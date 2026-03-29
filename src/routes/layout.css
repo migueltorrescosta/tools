@@ -1,3 +1,60 @@
-@import 'tailwindcss';
-@plugin '@tailwindcss/forms';
-@plugin '@tailwindcss/typography';
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+:root {
+	--futuristic-bg: #0a0a0f;
+	--futuristic-surface: #12121a;
+	--futuristic-border: rgba(0, 255, 255, 0.15);
+	--futuristic-cyan: #00f5ff;
+	--futuristic-magenta: #ff00ff;
+	--futuristic-blue: #0080ff;
+	--futuristic-text: #e0e6ed;
+	--futuristic-text-dim: #6b7c93;
+	--futuristic-glow: 0 0 20px rgba(0, 245, 255, 0.4);
+	--futuristic-glow-intense: 0 0 30px rgba(0, 245, 255, 0.6), 0 0 60px rgba(0, 245, 255, 0.3);
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	background: var(--futuristic-bg);
+	color: var(--futuristic-text);
+	font-family: 'Rajdhani', sans-serif;
+	min-height: 100vh;
+}
+
+body::before {
+	content: '';
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background:
+		radial-gradient(ellipse at 20% 20%, rgba(0, 245, 255, 0.03) 0%, transparent 50%),
+		radial-gradient(ellipse at 80% 80%, rgba(255, 0, 255, 0.03) 0%, transparent 50%),
+		linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
+	pointer-events: none;
+	z-index: -1;
+}
+
+::selection {
+	background: var(--futuristic-cyan);
+	color: var(--futuristic-bg);
+}
+
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: var(--futuristic-bg);
+}
+
+::-webkit-scrollbar-thumb {
+	background: linear-gradient(180deg, var(--futuristic-cyan), var(--futuristic-blue));
+	border-radius: 4px;
+}
