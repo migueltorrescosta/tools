@@ -1,5 +1,6 @@
 import type { StorybookConfig } from '@storybook/sveltekit';
 
+// @ts-ignore
 const config: StorybookConfig = {
 	disableTelemetry: true,
 	stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|ts|svelte)'],
