@@ -130,7 +130,7 @@
 				}
 			}
 
-			const invalidChars = trimmed.match(/[\x00-\x08\x0B\x0C\x0E-\x1F]/);
+			const invalidChars = trimmed.match(/[\x00-\x08\x0B\x0C\x0E-\x1F]/); // eslint-disable-line no-control-regex
 			if (invalidChars) {
 				throw new Error(`Invalid control character at line ${i + 1}`);
 			}
@@ -206,13 +206,9 @@
 					}
 				}
 
-				const emphasisPattern = /(\*\*|__|\*|_|`{1,2})(?=.*\1)/g;
 				const asterisks = (trimmed.match(/\*/g) || []).length;
-				const underscores = (trimmed.match(/_/g) || []).length;
 				if (asterisks % 2 !== 0 && asterisks > 0) {
-					const unmatched = trimmed.match(/(\*)+(?:[^*]+|$)/g);
-					if (unmatched && unmatched.some((m) => m.startsWith('*') && !m.startsWith('**'))) {
-					}
+					// Check for unmatched asterisks
 				}
 
 				const htmlTagPattern = /<([a-zA-Z][a-zA-Z0-9]*)[^>]*>/g;
@@ -262,7 +258,7 @@
 			return { valid: false, message: 'Text cannot be empty' };
 		}
 
-		const invalidBytes = text.match(/[\x00-\x08\x0B\x0C\x0E-\x1F\uFFFE\uFFFF]/);
+		const invalidBytes = text.match(/[\x00-\x08\x0B\x0C\x0E-\x1F\uFFFE\uFFFF]/); // eslint-disable-line no-control-regex
 		if (invalidBytes) {
 			return { valid: false, message: 'Text contains invalid control characters' };
 		}
@@ -330,7 +326,7 @@
 			<span class="hint">Select the format to validate</span>
 		</div>
 		<div class="format-buttons">
-			{#each formats as format}
+			{#each formats as format (format.value)}
 				<button
 					class="format-btn"
 					class:active={selectedFormat === format.value}

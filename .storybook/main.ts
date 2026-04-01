@@ -1,7 +1,7 @@
 import type { StorybookConfig } from '@storybook/sveltekit';
 
-// @ts-ignore
 const config: StorybookConfig = {
+	// @ts-expect-error - disableTelemetry is not in types yet
 	disableTelemetry: true,
 	stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|ts|svelte)'],
 	addons: [

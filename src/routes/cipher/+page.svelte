@@ -211,7 +211,7 @@
 
 <div class="container">
 	<header>
-		<h1>ENCRYPTION TOOL</h1>
+		<h1>ENCRYPTER/DECRYPTER</h1>
 		<p class="subtitle">Encrypt & Decrypt Messages</p>
 	</header>
 
@@ -221,7 +221,7 @@
 				<span class="label">ALGORITHM</span>
 			</div>
 			<select class="algorithm-select" bind:value={selectedAlgorithm}>
-				{#each algorithms as alg}
+				{#each algorithms as alg (alg)}
 					<option value={alg}>{alg}</option>
 				{/each}
 			</select>

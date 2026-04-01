@@ -111,11 +111,6 @@
 		token = `${encodedHeader}.${encodedPayload}.`;
 	}
 
-	function verifySignature() {
-		if (!token || !token.includes('.')) return;
-		signatureResult = 'Verification requires crypto library';
-	}
-
 	function copyToClipboard(text: string) {
 		navigator.clipboard.writeText(text);
 	}
@@ -136,7 +131,7 @@
 
 <div class="container">
 	<header>
-		<h1>JWT TOOL</h1>
+		<h1>JWT PARSER</h1>
 		<p class="subtitle">Decode, Encode & Verify JSON Web Tokens</p>
 	</header>
 
@@ -205,7 +200,7 @@
 					<div class="algorithm-section">
 						<label class="input-label">ALGORITHM</label>
 						<select class="algorithm-select" bind:value={selectedAlgorithm}>
-							{#each algorithms as alg}
+							{#each algorithms as alg (alg)}
 								<option value={alg}>{alg}</option>
 							{/each}
 						</select>
