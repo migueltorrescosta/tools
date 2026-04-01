@@ -197,15 +197,10 @@
 			<div class="section-header"><span class="label">Items</span></div>
 			<div class="result-panel">
 				<table class="split-table">
-					<thead><tr><th>Description</th><th>Estimated Price</th><th>Action</th></tr></thead>
+					<thead><tr><th>Description</th><th>Estimated Price</th></tr></thead>
 					<tbody>
 						{#each items as item}
-							<tr
-								><td>{item.description}</td><td>{formatter.format(Math.round(item.price))}</td><td
-									><button class="split-delete-btn" onclick={() => deleteItem(item.id)}
-										>Delete</button
-									></td
-								></tr
+							<tr><td>{item.description}</td><td>{formatter.format(Math.round(item.price))}</td></tr
 							>
 						{/each}
 						<tr class="add-item-row"
@@ -242,10 +237,7 @@
 			<div class="section">
 				<div class="section-header"><span class="label">People</span></div>
 				<div class="split-flex">
-					{#each people as p}<div class="split-person-item">
-							<button class="split-delete-btn" onclick={() => deletePerson(p.id)}>Del</button
-							>{p.name}
-						</div>{/each}
+					{#each people as p}<div class="split-person-item">{p.name}</div>{/each}
 				</div>
 			</div>
 
@@ -253,14 +245,11 @@
 				<div class="section-header"><span class="label">Items</span></div>
 				<div class="result-panel">
 					<table class="split-table">
-						<thead><tr><th>Description</th><th>Estimated Price</th><th>Action</th></tr></thead>
+						<thead><tr><th>Description</th><th>Estimated Price</th></tr></thead>
 						<tbody>
 							{#each items as item}
 								<tr
-									><td>{item.description}</td><td>{formatter.format(Math.round(item.price))}</td><td
-										><button class="split-delete-btn" onclick={() => deleteItem(item.id)}
-											>Delete</button
-										></td
+									><td>{item.description}</td><td>{formatter.format(Math.round(item.price))}</td
 									></tr
 								>
 							{/each}
