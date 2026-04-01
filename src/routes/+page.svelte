@@ -22,6 +22,12 @@
 				'Encrypt and decrypt messages using AES-GCM, AES-CBC, RSA-OAEP, Base64, Hex, and ROT13.'
 		},
 		{
+			path: '/wordle',
+			name: 'Wordle Solver',
+			description:
+				'Solver for the Wordle game. Enter the color results from the game and get suggested next words.'
+		},
+		{
 			path: '/split',
 			name: 'Asset Splitting',
 			description:
