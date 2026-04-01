@@ -1,14 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
 
 :root {
-	--futuristic-bg: #0a0a0f;
-	--futuristic-surface: #12121a;
-	--futuristic-border: rgba(0, 255, 255, 0.15);
+	--futuristic-bg: #0f0f18;
+	--futuristic-surface: #1a1a28;
+	--futuristic-border: rgba(0, 255, 255, 0.35);
 	--futuristic-cyan: #00f5ff;
 	--futuristic-magenta: #ff00ff;
 	--futuristic-blue: #0080ff;
-	--futuristic-text: #e0e6ed;
-	--futuristic-text-dim: #6b7c93;
+	--futuristic-text: #f0f4f8;
+	--futuristic-text-dim: #c8d4de;
 	--futuristic-glow: 0 0 20px rgba(0, 245, 255, 0.4);
 	--futuristic-glow-intense: 0 0 30px rgba(0, 245, 255, 0.6), 0 0 60px rgba(0, 245, 255, 0.3);
 }
@@ -138,7 +138,7 @@ h1 {
 }
 
 .format-btn.active {
-	background: rgba(0, 245, 255, 0.1);
+	background: rgba(0, 245, 255, 0.2);
 	border-color: var(--futuristic-cyan);
 	color: var(--futuristic-cyan);
 }
@@ -212,7 +212,7 @@ h1 {
 	outline: none;
 	cursor: pointer;
 	appearance: none;
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7c93' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23c8d4de' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
 	background-repeat: no-repeat;
 	background-position: right 0.75rem center;
 	padding-right: 2rem;
@@ -349,7 +349,7 @@ h1 {
 	align-items: center;
 	gap: 0.5rem;
 	padding: 0.75rem 1rem;
-	background: rgba(0, 0, 0, 0.3);
+	background: rgba(0, 0, 0, 0.25);
 	border-bottom: 1px solid var(--futuristic-border);
 }
 
@@ -434,15 +434,15 @@ h1 {
 }
 
 .result.valid {
-	background: rgba(40, 200, 64, 0.1);
-	border: 1px solid rgba(40, 200, 64, 0.3);
-	color: #28c840;
+	background: rgba(40, 200, 64, 0.2);
+	border: 1px solid rgba(40, 200, 64, 0.6);
+	color: #4dff6a;
 }
 
 .result.invalid {
-	background: rgba(255, 68, 68, 0.1);
-	border: 1px solid rgba(255, 68, 68, 0.3);
-	color: #ff4444;
+	background: rgba(255, 68, 68, 0.2);
+	border: 1px solid rgba(255, 68, 68, 0.6);
+	color: #ff6666;
 }
 
 .result-icon {
@@ -470,28 +470,28 @@ h1 {
 }
 
 .error {
-	color: #ff4444;
+	color: #ff7777;
 	font-size: 0.85rem;
 	padding: 1rem;
 	text-align: center;
-	background: rgba(255, 68, 68, 0.1);
-	border: 1px solid rgba(255, 68, 68, 0.3);
+	background: rgba(255, 68, 68, 0.2);
+	border: 1px solid rgba(255, 68, 68, 0.6);
 	border-radius: 8px;
 }
 
 .error-small {
-	color: #ff4444;
+	color: #ff8888;
 	font-size: 0.8rem;
 	margin-top: 0.25rem;
 }
 
 .key-warning {
-	color: #ffaa00;
+	color: #ffcc55;
 	font-size: 0.85rem;
 	padding: 0.75rem 1rem;
 	text-align: center;
-	background: rgba(255, 170, 0, 0.1);
-	border: 1px solid rgba(255, 170, 0, 0.3);
+	background: rgba(255, 170, 0, 0.2);
+	border: 1px solid rgba(255, 170, 0, 0.6);
 	border-radius: 8px;
 	margin-bottom: 1rem;
 	font-family: 'Rajdhani', sans-serif;
@@ -534,15 +534,15 @@ h1 {
 }
 
 .signature-status.valid {
-	background: rgba(40, 200, 64, 0.1);
-	border: 1px solid rgba(40, 200, 64, 0.3);
-	color: #28c840;
+	background: rgba(40, 200, 64, 0.2);
+	border: 1px solid rgba(40, 200, 64, 0.6);
+	color: #4dff6a;
 }
 
 .signature-status.invalid {
-	background: rgba(255, 68, 68, 0.1);
-	border: 1px solid rgba(255, 68, 68, 0.3);
-	color: #ff4444;
+	background: rgba(255, 68, 68, 0.2);
+	border: 1px solid rgba(255, 68, 68, 0.6);
+	color: #ff6666;
 }
 
 .encode-section {
@@ -601,7 +601,7 @@ h1 {
 	display: flex;
 	align-items: center;
 	padding: 0.75rem 1rem;
-	background: rgba(0, 0, 0, 0.3);
+	background: rgba(0, 0, 0, 0.25);
 	border-bottom: 1px solid var(--futuristic-border);
 }
 
@@ -915,14 +915,14 @@ h1 {
 .allocation-deltas {
 	margin-top: 1rem;
 	padding: 1rem;
-	background: rgba(255, 170, 0, 0.1);
-	border: 1px solid rgba(255, 170, 0, 0.3);
+	background: rgba(255, 170, 0, 0.18);
+	border: 1px solid rgba(255, 170, 0, 0.55);
 	border-radius: 8px;
 }
 
 .delta-item {
 	padding: 0.5rem;
-	color: #ffaa00;
+	color: #ffcc55;
 	font-family: 'Rajdhani', sans-serif;
 	font-size: 0.9rem;
 }
@@ -1046,6 +1046,6 @@ h1 {
 .group-value {
 	font-family: 'Rajdhani', sans-serif;
 	font-weight: 600;
-	color: #ffaa00;
+	color: #ffbb44;
 	font-size: 1rem;
 }
