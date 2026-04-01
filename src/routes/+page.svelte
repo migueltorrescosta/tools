@@ -20,6 +20,12 @@
 			name: 'Encrypter/Decrypter',
 			description:
 				'Encrypt and decrypt messages using AES-GCM, AES-CBC, RSA-OAEP, Base64, Hex, and ROT13.'
+		},
+		{
+			path: '/split',
+			name: 'Asset Splitting',
+			description:
+				'Fair division tool for splitting assets among people. Interactive algorithm for equitable asset allocation.'
 		}
 	];
 
