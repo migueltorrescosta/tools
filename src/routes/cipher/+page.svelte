@@ -206,7 +206,7 @@
 </script>
 
 <svelte:head>
-	<title>Encryption Tool</title>
+	<title>Encrypter/Decrypter</title>
 </svelte:head>
 
 <div class="container">

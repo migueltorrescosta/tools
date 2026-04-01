@@ -131,7 +131,7 @@
 </script>
 
 <svelte:head>
-	<title>JWT Tool</title>
+	<title>JWT Parser</title>
 </svelte:head>
 
 <div class="container">

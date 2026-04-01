@@ -664,3 +664,65 @@ h1 {
 		grid-template-columns: 1fr;
 	}
 }
+
+.nav {
+	display: flex;
+	gap: 1rem;
+	padding: 1rem 1.5rem;
+	background: var(--futuristic-surface);
+	border-bottom: 1px solid var(--futuristic-border);
+}
+
+.nav-link {
+	font-family: 'Orbitron', sans-serif;
+	font-size: 0.85rem;
+	font-weight: 500;
+	color: var(--futuristic-text-dim);
+	text-decoration: none;
+	letter-spacing: 0.1em;
+	transition: color 0.2s;
+}
+
+.nav-link:hover,
+.nav-link.active {
+	color: var(--futuristic-cyan);
+}
+
+.homepage-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+	gap: 1.5rem;
+	padding: 2rem 0;
+}
+
+.route-card {
+	background: var(--futuristic-surface);
+	border: 1px solid var(--futuristic-border);
+	border-radius: 12px;
+	padding: 1.5rem;
+	text-decoration: none;
+	transition: all 0.3s;
+}
+
+.route-card:hover {
+	border-color: var(--futuristic-cyan);
+	box-shadow: 0 0 30px rgba(0, 245, 255, 0.2);
+	transform: translateY(-4px);
+}
+
+.route-card h2 {
+	font-family: 'Orbitron', sans-serif;
+	font-size: 1.25rem;
+	font-weight: 700;
+	color: var(--futuristic-cyan);
+	margin: 0 0 0.75rem 0;
+	letter-spacing: 0.1em;
+}
+
+.route-card p {
+	font-family: 'Rajdhani', sans-serif;
+	font-size: 0.95rem;
+	color: var(--futuristic-text-dim);
+	margin: 0;
+	line-height: 1.5;
+}
