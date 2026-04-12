@@ -172,7 +172,7 @@
 		border: 1px solid var(--futuristic-border);
 		border-radius: 8px;
 		padding: 0.75rem;
-		font-family: 'Rajdhani', sans-serif;
+		font-family: 'Inter', sans-serif;
 		font-size: 1rem;
 		color: var(--futuristic-text);
 		outline: none;
@@ -199,7 +199,7 @@
 
 	.timeline-description {
 		margin-top: 0.75rem;
-		font-family: 'Rajdhani', sans-serif;
+		font-family: 'Inter', sans-serif;
 		font-size: 0.9rem;
 		color: var(--futuristic-text-dim);
 	}
@@ -254,7 +254,7 @@
 	}
 
 	.event-title {
-		font-family: 'Rajdhani', sans-serif;
+		font-family: 'Inter', sans-serif;
 		font-size: 0.8rem;
 		font-weight: 500;
 		color: var(--futuristic-text);
@@ -297,7 +297,7 @@
 	}
 
 	.tooltip-text {
-		font-family: 'Rajdhani', sans-serif;
+		font-family: 'Inter', sans-serif;
 		font-size: 0.75rem;
 		color: var(--futuristic-text);
 		line-height: 1.4;
@@ -339,7 +339,7 @@
 		align-items: center;
 		justify-content: center;
 		height: 200px;
-		font-family: 'Rajdhani', sans-serif;
+		font-family: 'Inter', sans-serif;
 		font-size: 1rem;
 		color: var(--futuristic-text-dim);
 	}

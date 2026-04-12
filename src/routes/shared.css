@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
 	--futuristic-bg: #0f0f18;
@@ -21,8 +21,10 @@ body {
 	margin: 0;
 	background: var(--futuristic-bg);
 	color: var(--futuristic-text);
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 	min-height: 100vh;
+	font-size: 18px;
+	line-height: 1.6;
 }
 
 body::before {
@@ -85,7 +87,7 @@ h1 {
 }
 
 .subtitle {
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 	font-size: 0.9rem;
 	color: var(--futuristic-text-dim);
 	margin-top: 0.25rem;
@@ -105,11 +107,13 @@ h1 {
 	font-weight: 600;
 	color: var(--futuristic-cyan);
 	letter-spacing: 0.15em;
+	line-height: 1.4;
 }
 
 .hint {
 	font-size: 0.85rem;
 	color: var(--futuristic-text-dim);
+	line-height: 1.4;
 }
 
 .format-buttons {
@@ -124,7 +128,7 @@ h1 {
 	border: 1px solid var(--futuristic-border);
 	border-radius: 6px;
 	color: var(--futuristic-text-dim);
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 	font-size: 0.85rem;
 	font-weight: 600;
 	cursor: pointer;
@@ -156,13 +160,14 @@ h1 {
 	border: 1px solid var(--futuristic-border);
 	border-radius: 8px;
 	padding: 0.75rem;
-	font-family: 'Rajdhani', monospace;
-	font-size: 0.9rem;
+	font-family: 'JetBrains Mono', 'Fira Code', monospace;
+	font-size: 0.95rem;
 	color: var(--futuristic-text);
 	outline: none;
 	transition:
 		border-color 0.3s,
 		box-shadow 0.3s;
+	letter-spacing: 0.02em;
 }
 
 .content-input {
@@ -206,7 +211,7 @@ h1 {
 	border: 1px solid var(--futuristic-border);
 	border-radius: 8px;
 	padding: 0.75rem;
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 	font-size: 0.95rem;
 	color: var(--futuristic-text);
 	outline: none;
@@ -258,7 +263,7 @@ h1 {
 
 .input-label {
 	font-family: 'Orbitron', sans-serif;
-	font-size: 0.65rem;
+	font-size: 0.75rem;
 	font-weight: 600;
 	color: var(--futuristic-text-dim);
 	letter-spacing: 0.1em;
@@ -385,7 +390,7 @@ h1 {
 	background: transparent;
 	border: 1px solid var(--futuristic-border);
 	color: var(--futuristic-text-dim);
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 	font-size: 0.7rem;
 	font-weight: 600;
 	padding: 0.25rem 0.75rem;
@@ -427,7 +432,7 @@ h1 {
 	gap: 0.75rem;
 	padding: 1rem 1.5rem;
 	border-radius: 8px;
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 	font-size: 1rem;
 	font-weight: 600;
 	letter-spacing: 0.05em;
@@ -456,17 +461,18 @@ h1 {
 
 .result-placeholder {
 	color: var(--futuristic-text-dim);
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 	font-size: 0.9rem;
 }
 
 .json-display {
-	font-family: 'Rajdhani', monospace;
+	font-family: 'JetBrains Mono', 'Fira Code', monospace;
 	font-size: 0.95rem;
 	color: var(--futuristic-text);
 	margin: 0;
 	white-space: pre-wrap;
 	word-break: break-all;
+	letter-spacing: 0.02em;
 }
 
 .error {
@@ -494,7 +500,7 @@ h1 {
 	border: 1px solid rgba(255, 170, 0, 0.6);
 	border-radius: 8px;
 	margin-bottom: 1rem;
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 }
 
 .signature-row {
@@ -511,7 +517,7 @@ h1 {
 }
 
 .signature-value {
-	font-family: 'Rajdhani', monospace;
+	font-family: 'JetBrains Mono', monospace;
 	font-size: 0.75rem;
 	color: var(--futuristic-text);
 	background: var(--futuristic-bg);
@@ -571,7 +577,7 @@ h1 {
 	border: 1px solid var(--futuristic-border);
 	border-radius: 8px;
 	padding: 0.75rem;
-	font-family: 'Rajdhani', monospace;
+	font-family: 'JetBrains Mono', monospace;
 	font-size: 0.9rem;
 	color: var(--futuristic-text);
 	resize: none;
@@ -616,7 +622,7 @@ h1 {
 
 .info-content li {
 	color: var(--futuristic-text-dim);
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 	font-size: 0.9rem;
 	line-height: 1.6;
 	margin-bottom: 0.25rem;
@@ -728,7 +734,7 @@ h1 {
 }
 
 .route-card p {
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 	font-size: 0.95rem;
 	color: var(--futuristic-text-dim);
 	margin: 0;
@@ -763,7 +769,7 @@ h1 {
 	border-radius: 4px;
 	cursor: pointer;
 	transition: all 0.2s;
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 	font-weight: 600;
 	letter-spacing: 0.05em;
 }
@@ -857,7 +863,7 @@ h1 {
 	color: #10b981;
 	border-radius: 6px;
 	cursor: pointer;
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 	font-size: 0.8rem;
 	font-weight: 600;
 	letter-spacing: 0.05em;
@@ -870,7 +876,7 @@ h1 {
 }
 
 .person-selector {
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 	font-size: 1rem;
 	color: var(--futuristic-text);
 }
@@ -884,7 +890,7 @@ h1 {
 	color: #6366f1;
 	border-radius: 6px;
 	cursor: pointer;
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 	letter-spacing: 0.05em;
 	transition: all 0.3s;
 }
@@ -923,7 +929,7 @@ h1 {
 .delta-item {
 	padding: 0.5rem;
 	color: #ffcc55;
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 	font-size: 0.9rem;
 }
 
@@ -990,7 +996,7 @@ h1 {
 .selection-col .selection-name {
 	font-weight: 600;
 	color: var(--futuristic-text);
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 }
 
 .selection-col .algorithm-select {
@@ -1020,7 +1026,7 @@ h1 {
 
 .group-title {
 	font-weight: 700;
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 	color: var(--futuristic-cyan);
 	font-size: 1.1rem;
 }
@@ -1044,7 +1050,7 @@ h1 {
 }
 
 .group-value {
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 	font-weight: 600;
 	color: #ffbb44;
 	font-size: 1rem;
@@ -1094,7 +1100,7 @@ h1 {
 }
 
 .result-cell {
-	font-family: 'Rajdhani', monospace;
+	font-family: 'JetBrains Mono', monospace;
 	font-size: 1rem;
 	letter-spacing: 0.3em;
 	color: var(--futuristic-text);
@@ -1140,7 +1146,7 @@ h1 {
 	border: 1px solid rgba(255, 68, 68, 0.6);
 	border-radius: 8px;
 	color: #ff7777;
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 	font-size: 0.9rem;
 	font-weight: 600;
 	letter-spacing: 0.1em;
@@ -1197,7 +1203,7 @@ h1 {
 }
 
 .legend-desc {
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 	font-size: 0.85rem;
 	color: var(--futuristic-text-dim);
 }
@@ -1283,7 +1289,7 @@ h1 {
 	background: rgba(0, 245, 255, 0.05);
 	border: 1px solid rgba(0, 245, 255, 0.15);
 	border-radius: 8px;
-	font-family: 'Rajdhani', sans-serif;
+	font-family: 'Inter', sans-serif;
 	font-size: 0.95rem;
 	line-height: 1.6;
 	color: var(--futuristic-text-dim);
