@@ -16,6 +16,7 @@
 		date: string;
 		title: string;
 		description: string;
+		url?: string;
 	}
 
 	interface EventTimeline {
@@ -180,7 +181,16 @@
 								<div class="event-card" class:past={isPast(event.date)}>
 									<span class="event-emoji">{event.emoji}</span>
 									<span class="event-date">{formatShortDate(event.date)}</span>
-									<span class="event-title">{event.title}</span>
+									{#if event.url}
+										<a
+											href={event.url}
+											target="_blank"
+											rel="noopener noreferrer"
+											class="event-title-link">{event.title}</a
+										>
+									{:else}
+										<span class="event-title">{event.title}</span>
+									{/if}
 									<div class="tooltip">
 										<span class="tooltip-text">{event.description}</span>
 									</div>
@@ -338,6 +348,23 @@
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+	}
+
+	.event-card .event-title-link {
+		font-family: 'Inter', sans-serif;
+		font-size: 0.7rem;
+		font-weight: 400;
+		color: var(--futuristic-cyan);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		text-decoration: none;
+		transition: color 0.2s;
+	}
+
+	.event-card .event-title-link:hover {
+		color: var(--futuristic-magenta);
+		text-decoration: underline;
 	}
 
 	.event-row {

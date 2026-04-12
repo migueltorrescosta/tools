@@ -4,349 +4,399 @@
 		"emoji": "🇵🇹",
 		"date": "2024-03-10",
 		"title": "Portugal Legislative Election",
-		"description": "Center-right Democratic Alliance wins snap election after PM Costa's resignation. Far-right Chega emerges as kingmaker in closest legislative race in Portuguese history."
+		"description": "Center-right Democratic Alliance wins snap election after PM Costa's resignation. Far-right Chega emerges as kingmaker in closest legislative race in Portuguese history.",
+		"url": "https://www.parlamento.pt/sites/EN/Parliament/Paginas/Election-results.aspx"
 	},
 	{
 		"id": 2,
 		"emoji": "🇸🇰",
 		"date": "2024-04-06",
 		"title": "Slovakia Presidential Election",
-		"description": "Petr Pellegrini elected president in runoff, succeeding Zuzana Čaputová who chose not to run for re-election."
+		"description": "Petr Pellegrini elected president in runoff, succeeding Zuzana Čaputová who chose not to run for re-election.",
+		"url": "https://volby.statistics.sk/prez/prez2024/en/"
 	},
 	{
 		"id": 3,
 		"emoji": "🇫🇮",
 		"date": "2024-01-28",
 		"title": "Finland Presidential Election",
-		"description": "Alexander Stubb elected president in runoff against Jussi Halla-aho of the Finns Party, after incumbent Sauli Niinistö chose not to seek re-election."
+		"description": "Alexander Stubb elected president in runoff against Jussi Halla-aho of the Finns Party, after incumbent Sauli Niinistö chose not to seek re-election.",
+		"url": "https://tulospalvelu.vaalit.fi/TPV-2024_2/en/"
 	},
 	{
 		"id": 4,
 		"emoji": "🇵🇱",
 		"date": "2025-06-01",
 		"title": "Poland Presidential Election",
-		"description": "Karol Nawrocki wins closely contested presidential election against Warsaw mayor Rafał Trzaskowski in narrow runoff."
+		"description": "Karol Nawrocki wins closely contested presidential election against Warsaw mayor Rafał Trzaskowski in narrow runoff.",
+		"url": "https://pkw.gov.pl/"
 	},
 	{
 		"id": 5,
 		"emoji": "🇦🇹",
 		"date": "2024-09-29",
 		"title": "Austria National Election",
-		"description": "Freedom Party (FPÖ) becomes first far-right party to win national election in post-war Austria. Coalition negotiations begin without clear path to government."
+		"description": "Freedom Party (FPÖ) becomes first far-right party to win national election in post-war Austria. Coalition negotiations begin without clear path to government.",
+		"url": "https://www.bmi.gv.at/412/Nationalratswahlen/Nationalratswahl_2024"
 	},
 	{
 		"id": 6,
 		"emoji": "🇷🇴",
 		"date": "2024-11-24",
 		"title": "Romania Presidential Election (Round 1)",
-		"description": "Pro-Russian candidate Călin Georgescu surprises with strong first-round showing amid allegations of TikTok manipulation."
+		"description": "Pro-Russian candidate Călin Georgescu surprises with strong first-round showing amid allegations of TikTok manipulation.",
+		"url": "https://www.roaep.ro/"
 	},
 	{
 		"id": 7,
 		"emoji": "🇬🇧",
 		"date": "2024-07-04",
 		"title": "UK General Election",
-		"description": "Labour Party wins massive landslide, ending 14 years of Conservative rule. Keir Starmer becomes Prime Minister."
+		"description": "Labour Party wins massive landslide, ending 14 years of Conservative rule. Keir Starmer becomes Prime Minister.",
+		"url": "https://electionresults.parliament.uk/"
 	},
 	{
 		"id": 8,
 		"emoji": "🇭🇷",
 		"date": "2024-12-29",
 		"title": "Croatia Presidential Election",
-		"description": "President Zoran Milanović wins re-election in a tight race against centrist challenger Dragan Primorac."
+		"description": "President Zoran Milanović wins re-election in a tight race against centrist challenger Dragan Primorac.",
+		"url": "https://www.izbori.hr/"
 	},
 	{
 		"id": 9,
 		"emoji": "🇩🇰",
 		"date": "2024-11-01",
 		"title": "Denmark General Election",
-		"description": "Mette Frederiksen's Social Democrats win again but lose parliamentary majority, leading to minority government."
+		"description": "Mette Frederiksen's Social Democrats win again but lose parliamentary majority, leading to minority government.",
+		"url": "https://dst.dk/valg/"
 	},
 	{
 		"id": 10,
 		"emoji": "🇱🇹",
 		"date": "2024-05-12",
 		"title": "Lithuania Presidential Election",
-		"description": "Incumbent Gitanas Nausėda re-elected president with strong public support for his stance on security and Ukraine."
+		"description": "Incumbent Gitanas Nausėda re-elected president with strong public support for his stance on security and Ukraine.",
+		"url": "https://www.electionguide.org/elections/id/4290"
 	},
 	{
 		"id": 11,
 		"emoji": "🇧🇪",
 		"date": "2024-06-09",
 		"title": "Belgium Federal Election",
-		"description": "Flemish nationalist N-VA becomes largest party, but coalition talks drag on for over 200 days."
+		"description": "Flemish nationalist N-VA becomes largest party, but coalition talks drag on for over 200 days.",
+		"url": "https://results.elections.europa.eu/en/national-results/belgium/2024-2029/"
 	},
 	{
 		"id": 12,
 		"emoji": "🇱🇻",
 		"date": "2025-05-03",
 		"title": "Latvia Parliamentary Election",
-		"description": "New Unity coalition led by Evika Siliņa wins re-election with focus on economic stability and defense spending."
+		"description": "New Unity coalition led by Evika Siliņa wins re-election with focus on economic stability and defense spending.",
+		"url": "https://results.elections.europa.eu/en/national-results/latvia/2024-2029/"
 	},
 	{
 		"id": 13,
 		"emoji": "🇳🇱",
 		"date": "2025-03-17",
 		"title": "Netherlands General Election",
-		"description": "Freedom Party (PVV) of Geert Wilders wins plurality but forms broadly-based coalition excluding far-right."
+		"description": "Freedom Party (PVV) of Geert Wilders wins plurality but forms broadly-based coalition excluding far-right.",
+		"url": "https://www.kiesraad.nl/"
 	},
 	{
 		"id": 14,
 		"emoji": "🇩🇪",
 		"date": "2025-09-01",
 		"title": "Germany Federal Election",
-		"description": "CDU/CSU wins decisive victory under Friedrich Merz. Coalition negotiations begin with SPD for 'Germany Alliance' government."
+		"description": "CDU/CSU wins decisive victory under Friedrich Merz. Coalition negotiations begin with SPD for 'Germany Alliance' government.",
+		"url": "https://www.bundeswahlleiter.de/"
 	},
 	{
 		"id": 15,
 		"emoji": "🇮🇪",
 		"date": "2025-11-29",
 		"title": "Ireland General Election",
-		"description": "Fine Gael and Fianna Fáil coalition loses majority but returns to power with independent support."
+		"description": "Fine Gael and Fianna Fáil coalition loses majority but returns to power with independent support.",
+		"url": "https://www.rtet.ie/elections/"
 	},
 	{
 		"id": 16,
 		"emoji": "🇨🇿",
 		"date": "2025-01-25",
 		"title": "Czech Republic Presidential Election",
-		"description": "Petr Pavel wins second term as president with strong approval ratings and popular support for EU integration."
+		"description": "Petr Pavel wins second term as president with strong approval ratings and popular support for EU integration.",
+		"url": "https://www.volby.cz/"
 	},
 	{
 		"id": 17,
 		"emoji": "🇪🇪",
 		"date": "2025-03-09",
 		"title": "Estonia Parliamentary Election",
-		"description": "Reform Party wins under Kaja Kallas who continues as Prime Minister despite coalition shifts."
+		"description": "Reform Party wins under Kaja Kallas who continues as Prime Minister despite coalition shifts.",
+		"url": "https://www.electionguide.org/elections/id/4313"
 	},
 	{
 		"id": 18,
 		"emoji": "🇭🇺",
 		"date": "2025-04-06",
 		"title": "Hungary Parliamentary Election",
-		"description": "Fidesz wins fourth consecutive supermajority under Viktor Orbán amid EU concerns about democratic backsliding."
+		"description": "Fidesz wins fourth consecutive supermajority under Viktor Orbán amid EU concerns about democratic backsliding.",
+		"url": "https://www.valasztas.hu/"
 	},
 	{
 		"id": 19,
 		"emoji": "🇸🇪",
 		"date": "2025-09-14",
 		"title": "Sweden General Election",
-		"description": "Ulf Kristersson's centre-right government loses majority but continues as minority with SD support."
+		"description": "Ulf Kristersson's centre-right government loses majority but continues as minority with SD support.",
+		"url": "https://www.val.se/"
 	},
 	{
 		"id": 20,
 		"emoji": "🇲🇹",
 		"date": "2025-10-12",
 		"title": "Malta General Election",
-		"description": "Robert Abela's Labour Party wins third consecutive term with increased majority in parliament."
+		"description": "Robert Abela's Labour Party wins third consecutive term with increased majority in parliament.",
+		"url": "https://elections.gov.mt/"
 	},
 	{
 		"id": 21,
 		"emoji": "🇬🇷",
 		"date": "2025-05-21",
 		"title": "Greece Parliamentary Election",
-		"description": "Kyriakos Mitsotakis's New Democracy party wins comfortable re-election with focus on economic growth."
+		"description": "Kyriakos Mitsotakis's New Democracy party wins comfortable re-election with focus on economic growth.",
+		"url": "https://ekloges.ypes.gr/"
 	},
 	{
 		"id": 22,
 		"emoji": "🇸🇮",
 		"date": "2025-11-24",
 		"title": "Slovenia Parliamentary Election",
-		"description": "Robert Golob's Freedom Movement retains power with improved majority in National Assembly."
+		"description": "Robert Golob's Freedom Movement retains power with improved majority in National Assembly.",
+		"url": "https://www.gov.si/"
 	},
 	{
 		"id": 23,
 		"emoji": "🇧🇬",
 		"date": "2025-07-06",
 		"title": "Bulgaria Parliamentary Election",
-		"description": "Continue the Change party forms government after fragmented election with seven parties in parliament."
+		"description": "Continue the Change party forms government after fragmented election with seven parties in parliament.",
+		"url": "https://www.cik.bg/"
 	},
 	{
 		"id": 24,
 		"emoji": "🇨🇾",
 		"date": "2025-05-11",
 		"title": "Cyprus Presidential Election",
-		"description": "Nikos Christodoulides re-elected president in first round with strong backing from business community."
+		"description": "Nikos Christodoulides re-elected president in first round with strong backing from business community.",
+		"url": "https://www.electionguide.org/elections/id/4246"
 	},
 	{
 		"id": 25,
 		"emoji": "🇫🇷",
 		"date": "2027-06-20",
 		"title": "France Legislative Election",
-		"description": "National Rally and left-wing alliance compete intensely as Macron's camp faces major challenges."
+		"description": "National Rally and left-wing alliance compete intensely as Macron's camp faces major challenges.",
+		"url": "https://www.interieur.gouv.fr/"
 	},
 	{
 		"id": 26,
 		"emoji": "🇮🇹",
 		"date": "2026-09-27",
 		"title": "Italy Senate Election",
-		"description": "Giorgia Meloni's Brothers of Italy maintains strong position in parliament with European Parliament aligned policies."
+		"description": "Giorgia Meloni's Brothers of Italy maintains strong position in parliament with European Parliament aligned policies.",
+		"url": "https://elezioni.interno.gov.it/"
 	},
 	{
 		"id": 27,
 		"emoji": "🇪🇸",
 		"date": "2027-12-01",
 		"title": "Spain General Election",
-		"description": "People's Party and Vox negotiations create shift in political landscape ahead of European Parliament elections."
+		"description": "People's Party and Vox negotiations create shift in political landscape ahead of European Parliament elections.",
+		"url": "https://infoelectoral.interior.gob.es/"
 	},
 	{
 		"id": 28,
 		"emoji": "🇱🇺",
 		"date": "2025-10-08",
 		"title": "Luxembourg General Election",
-		"description": "Democratic Party forms new coalition after Luc Frieden's Christian Social People's Party gains ground."
+		"description": "Democratic Party forms new coalition after Luc Frieden's Christian Social People's Party gains ground.",
+		"url": "https://elections.public.lu/"
 	},
 	{
 		"id": 29,
 		"emoji": "🇷🇸",
 		"date": "2026-04-26",
 		"title": "Serbia Presidential Election",
-		"description": "President Vučić wins re-election amid protests over electoral irregularities and EU alignment concerns."
+		"description": "President Vučić wins re-election amid protests over electoral irregularities and EU alignment concerns.",
+		"url": "https://www.rik.parlament.gov.rs/"
 	},
 	{
 		"id": 30,
 		"emoji": "🇲🇪",
 		"date": "2025-08-30",
 		"title": "Montenegro Parliamentary Election",
-		"description": "Pro-European coalition takes power after decade of Democratic Party of Socialists rule."
+		"description": "Pro-European coalition takes power after decade of Democratic Party of Socialists rule.",
+		"url": "https://www.electionguide.org/elections/id/4349"
 	},
 	{
 		"id": 31,
 		"emoji": "🏛️",
 		"date": "1957-01-01",
 		"title": "Treaty of Rome Signed",
-		"description": "Founding treaty of the European Economic Community signed by Belgium, France, Italy, Luxembourg, Netherlands, and West Germany in Rome."
+		"description": "Founding treaty of the European Economic Community signed by Belgium, France, Italy, Luxembourg, Netherlands, and West Germany in Rome.",
+		"url": "https://european-union.europa.eu/principles-treaties/treaty-rome_en"
 	},
 	{
 		"id": 32,
 		"emoji": "💶",
 		"date": "1999-01-01",
 		"title": "Euro Currency Created",
-		"description": "Euro currency is officially created as an accounting currency. Physical euro notes and coins enter circulation three years later."
+		"description": "Euro currency is officially created as an accounting currency. Physical euro notes and coins enter circulation three years later.",
+		"url": "https://www.ecb.europa.eu/ecb/orga_archives/intro/html/index.en.html"
 	},
 	{
 		"id": 33,
 		"emoji": "🌍",
 		"date": "2004-05-01",
 		"title": "Biggest EU Expansion",
-		"description": "Ten new countries join the EU in the largest expansion: Cyprus, Czech Republic, Estonia, Hungary, Latvia, Lithuania, Malta, Poland, Slovakia, and Slovenia."
+		"description": "Ten new countries join the EU in the largest expansion: Cyprus, Czech Republic, Estonia, Hungary, Latvia, Lithuania, Malta, Poland, Slovakia, and Slovenia.",
+		"url": "https://ec.europa.eu/enlargement/"
 	},
 	{
 		"id": 34,
 		"emoji": "📜",
 		"date": "2007-12-13",
 		"title": "Treaty of Lisbon Signed",
-		"description": "Reform treaty that amends the Maastricht Treaty and Treaty of Rome, creating a more efficient and democratic EU."
+		"description": "Reform treaty that amends the Maastricht Treaty and Treaty of Rome, creating a more efficient and democratic EU.",
+		"url": "https://european-union.europa.eu/principles-treaties/treaty-lisbon_en"
 	},
 	{
 		"id": 35,
 		"emoji": "🇬🇧",
 		"date": "2020-01-31",
 		"title": "United Kingdom Leaves EU",
-		"description": "Brexit is completed after years of negotiations following the 2016 referendum, making the UK the first country to leave the EU."
+		"description": "Brexit is completed after years of negotiations following the 2016 referendum, making the UK the first country to leave the EU.",
+		"url": "https://www.consilium.europa.eu/en/policies/eu-relations-with-the-united-kingdom/the-eu-uk-withdrawal-agreement/timeline-eu-uk-withdrawal-agreement/"
 	},
 	{
 		"id": 36,
 		"emoji": "💉",
 		"date": "2020-12-27",
 		"title": "EU Vaccination Campaign Begins",
-		"description": "Coordinated EU-wide vaccination campaign starts with Pfizer-BioNTech vaccine after regulatory approval."
+		"description": "Coordinated EU-wide vaccination campaign starts with Pfizer-BioNTech vaccine after regulatory approval.",
+		"url": "https://ec.europa.eu/commission/presscorner/detail/en/ip_20_2466"
 	},
 	{
 		"id": 37,
 		"emoji": "⚖️",
 		"date": "2021-07-01",
 		"title": "Portugal Takes EU Presidency",
-		"description": "Portugal begins six-month Council presidency, focusing on recovery from pandemic and EU-UK relations."
+		"description": "Portugal begins six-month Council presidency, focusing on recovery from pandemic and EU-UK relations.",
+		"url": "https://www.presidencia.pt/"
 	},
 	{
 		"id": 38,
 		"emoji": "🔋",
 		"date": "2022-02-11",
 		"title": "European Chips Act Announced",
-		"description": "EU unveils plan to boost semiconductor production and reduce dependence on Asian suppliers."
+		"description": "EU unveils plan to boost semiconductor production and reduce dependence on Asian suppliers.",
+		"url": "https://ec.europa.eu/commission/presscorner/detail/en/ip_22_865"
 	},
 	{
 		"id": 39,
 		"emoji": "🕊️",
 		"date": "2022-03-02",
 		"title": "EU Grants Candidate Status to Ukraine",
-		"description": "European Council grants Ukraine and Moldova candidate status for EU membership in historic decision amid Russian invasion."
+		"description": "European Council grants Ukraine and Moldova candidate status for EU membership in historic decision amid Russian invasion.",
+		"url": "https://www.consilium.europa.eu/en/press/press-releases/2022/06/23/european-council-conclusions-on-ukraine-the-membership-applications-of-ukraine-the-republic-of-moldova-and-georgia-western-balkans-and-external-relations-23-june-2022/"
 	},
 	{
 		"id": 40,
 		"emoji": "🇬🇧",
 		"date": "2023-03-10",
 		"title": "Silicon Valley Bank EU Subsidiaries",
-		"description": "EU banking authorities intervene after SVB collapse, ensuring financial stability across European markets."
+		"description": "EU banking authorities intervene after SVB collapse, ensuring financial stability across European markets.",
+		"url": "https://www.ecb.europa.eu/press/pr/date/2023/html/ecb.pr230310~5ea65d4801.en.html"
 	},
 	{
 		"id": 41,
 		"emoji": "🏦",
 		"date": "2023-06-01",
 		"title": "ECB Raises Rates to Record High",
-		"description": "European Central Bank raises interest rates to highest level since euro creation, fighting persistent inflation."
+		"description": "European Central Bank raises interest rates to highest level since euro creation, fighting persistent inflation.",
+		"url": "https://www.ecb.europa.eu/press/pr/date/2023/html/ecb.pr230615~4a7749905e.en.html"
 	},
 	{
 		"id": 42,
 		"emoji": "🤖",
 		"date": "2024-03-13",
 		"title": "EU AI Act Passed",
-		"description": "European Parliament approves world's first comprehensive AI regulation, setting global standards for artificial intelligence."
+		"description": "European Parliament approves world's first comprehensive AI regulation, setting global standards for artificial intelligence.",
+		"url": "https://www.europarl.europa.eu/news/en/press-room/20240308IPR19015/artificial-intelligence-act-meps-adopt-landmark-law"
 	},
 	{
 		"id": 43,
 		"emoji": "🏛️",
 		"date": "2024-06-09",
 		"title": "European Parliament Elections",
-		"description": "EU citizens vote in elections for the 720 members of the European Parliament, with shifts toward center-right and green parties."
+		"description": "EU citizens vote in elections for the 720 members of the European Parliament, with shifts toward centre-right and green parties.",
+		"url": "https://results.elections.europa.eu/en/"
 	},
 	{
 		"id": 44,
 		"emoji": "🛡️",
 		"date": "2024-06-25",
 		"title": "EU Border Security Deal",
-		"description": "Member states approve controversial migration pact with expanded border procedures and processing centers."
+		"description": "Member states approve controversial migration pact with expanded border procedures and processing centers.",
+		"url": "https://www.consilium.europa.eu/en/policies/migration/pact-on-migration-and-asylum/"
 	},
 	{
 		"id": 45,
 		"emoji": "🌱",
 		"date": "2025-04-01",
 		"title": "EU Deforestation Regulation",
-		"description": "New rules take effect requiring companies to prove products don't come from deforested land, affecting global supply chains."
+		"description": "New rules take effect requiring companies to prove products don't come from deforested land, affecting global supply chains.",
+		"url": "https://environment.ec.europa.eu/topics/forests/deforestation/regulation-deforestation-free-products_en"
 	},
 	{
 		"id": 46,
 		"emoji": "💰",
 		"date": "2025-06-30",
 		"title": "New EU Budget Cycle Begins",
-		"description": "Seven-year budget framework negotiations conclude with focus on defense, climate, and digital transition."
+		"description": "Seven-year budget framework negotiations conclude with focus on defense, climate, and digital transition.",
+		"url": "https://www.consilium.europa.eu/en/policies/eu-budget/"
 	},
 	{
 		"id": 47,
 		"emoji": "🇺🇦",
 		"date": "2025-06-01",
 		"title": "Ukraine EU Accession Talks",
-		"description": "Ukraine opens formal EU accession negotiations, marking major milestone in country's European integration path."
+		"description": "Ukraine opens formal EU accession negotiations, marking major milestone in country's European integration path.",
+		"url": "https://ec.europa.eu/commission/presscorner/detail/en/statement_25_1376"
 	},
 	{
 		"id": 48,
 		"emoji": "⚡",
 		"date": "2026-01-01",
 		"title": "Digital Euro Launch",
-		"description": "European Central Bank launches digital euro pilot program, exploring blockchain-based central bank digital currency."
+		"description": "European Central Bank launches digital euro pilot program, exploring blockchain-based central bank digital currency.",
+		"url": "https://www.ecb.europa.eu/paym/intro/publication/html/digital_euro_101_en.html"
 	},
 	{
 		"id": 49,
 		"emoji": "🎯",
 		"date": "2026-07-01",
 		"title": "Hungary Takes EU Presidency",
-		"description": "Hungary assumes Council presidency with agenda focused on competitiveness and agricultural policy reform."
+		"description": "Hungary assumes Council presidency with agenda focused on competitiveness and agricultural policy reform.",
+		"url": "https://www.consilium.europa.eu/en/council-us/eu-presidency/"
 	},
 	{
 		"id": 50,
 		"emoji": "🌊",
 		"date": "2027-01-01",
 		"title": "Schengen Area Expands",
-		"description": "Romania and Bulgaria fully join Schengen area, eliminating border controls in largest expansion since 2011."
+		"description": "Romania and Bulgaria fully join Schengen area, eliminating border controls in largest expansion since 2011.",
+		"url": "https://home-affairs.ec.europa.eu/policies/schengen-borders-and-visa/schengen-area_en"
 	}
 ]
