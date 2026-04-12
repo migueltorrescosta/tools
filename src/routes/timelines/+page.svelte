@@ -23,6 +23,8 @@
 		timelineId: string;
 	}
 
+	type TimelineRow = { type: 'year'; year: number } | { type: 'events'; events: Event[] };
+
 	const timelines = timelinesData as Timeline[];
 	const allEvents = eventsData as Event[];
 	const eventTimeline = eventTimelineData as EventTimeline[];
@@ -30,10 +32,26 @@
 	let selectedTimelineId = $state<string>('');
 	let containerRef: HTMLDivElement | null = $state(null);
 	let filteredEvents = $state<Event[]>([]);
+	let timelineRows = $state<TimelineRow[]>([]);
+
+	const COLUMNS = 3;
+
+	function getYear(dateStr: string): number {
+		return new Date(dateStr).getFullYear();
+	}
+
+	function formatShortDate(dateStr: string): string {
+		const date = new Date(dateStr);
+		return date.toLocaleDateString('en-GB', {
+			day: '2-digit',
+			month: 'short'
+		});
+	}
 
 	function updateFilteredEvents() {
 		if (!selectedTimelineId) {
 			filteredEvents = [];
+			timelineRows = [];
 			return;
 		}
 
@@ -44,6 +62,33 @@
 		filteredEvents = allEvents
 			.filter((e) => eventIds.includes(e.id))
 			.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+		// Group events by year
+		const eventsByYear = new Map<number, Event[]>();
+		for (const event of filteredEvents) {
+			const year = getYear(event.date);
+			if (!eventsByYear.has(year)) {
+				eventsByYear.set(year, []);
+			}
+			eventsByYear.get(year)!.push(event);
+		}
+
+		// Build rows: year separator + chunked events for each year
+		const rows: TimelineRow[] = [];
+		const sortedYears = Array.from(eventsByYear.keys()).sort((a, b) => a - b);
+
+		for (const year of sortedYears) {
+			// Add year separator
+			rows.push({ type: 'year', year });
+
+			// Chunk events for this year into rows of 3
+			const yearEvents = eventsByYear.get(year)!;
+			for (let i = 0; i < yearEvents.length; i += COLUMNS) {
+				rows.push({ type: 'events', events: yearEvents.slice(i, i + COLUMNS) });
+			}
+		}
+
+		timelineRows = rows;
 	}
 
 	function isPast(dateStr: string): boolean {
@@ -123,37 +168,28 @@
 
 	<div class="events-container" bind:this={containerRef}>
 		{#if filteredEvents.length > 0}
-			{@const today = new Date()}
-			{@const todayMs = today.setHours(0, 0, 0, 0)}
-			{#each filteredEvents as event (event.id)}
-				{@const eventDate = new Date(event.date)}
-				{@const eventMs = eventDate.setHours(0, 0, 0, 0)}
-				{#if eventMs >= todayMs}
-					{#if filteredEvents.indexOf(event) > 0 || filteredEvents.filter((e) => new Date(e.date).setHours(0, 0, 0, 0) < todayMs).length === 0}
-						{@const pastCount = filteredEvents.filter(
-							(e) => new Date(e.date).setHours(0, 0, 0, 0) < todayMs
-						).length}
-						{@const futureIndex = filteredEvents.findIndex(
-							(e) => new Date(e.date).setHours(0, 0, 0, 0) >= todayMs
-						)}
-						{#if filteredEvents.indexOf(event) === futureIndex}
-							<div class="today-divider-row">
-								<div class="today-line"></div>
-								<span class="today-label">— TODAY —</span>
-								<div class="today-line"></div>
-							</div>
-						{/if}
+			<div class="events-grid">
+				{#each timelineRows as row, rowIndex (rowIndex)}
+					{#if row.type === 'year'}
+						<div class="year-separator">
+							<span class="year-label">{row.year}</span>
+						</div>
+					{:else}
+						<div class="grid-row">
+							{#each row.events as event (event.id)}
+								<div class="event-card" class:past={isPast(event.date)}>
+									<span class="event-emoji">{event.emoji}</span>
+									<span class="event-date">{formatShortDate(event.date)}</span>
+									<span class="event-title">{event.title}</span>
+									<div class="tooltip">
+										<span class="tooltip-text">{event.description}</span>
+									</div>
+								</div>
+							{/each}
+						</div>
 					{/if}
-				{/if}
-				<div class="event-row" class:past={isPast(event.date)}>
-					<span class="event-emoji">{event.emoji}</span>
-					<span class="event-date">{formatDate(event.date)}</span>
-					<span class="event-title">{event.title}</span>
-					<div class="tooltip">
-						<span class="tooltip-text">{event.description}</span>
-					</div>
-				</div>
-			{/each}
+				{/each}
+			</div>
 		{:else}
 			<div class="empty-state">No events in this timeline</div>
 		{/if}
@@ -211,7 +247,97 @@
 		background: var(--futuristic-surface);
 		border: 1px solid var(--futuristic-border);
 		border-radius: 12px;
-		padding: 0.25rem;
+		padding: 0.5rem;
+	}
+
+	.events-grid {
+		display: flex;
+		flex-direction: column;
+		gap: 0;
+	}
+
+	.year-separator {
+		display: flex;
+		align-items: center;
+		padding: 0.5rem 0;
+		margin: 0.25rem 0;
+	}
+
+	.year-separator::before,
+	.year-separator::after {
+		content: '';
+		flex: 1;
+		height: 1px;
+		background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.3), transparent);
+	}
+
+	.year-label {
+		font-family: 'Orbitron', sans-serif;
+		font-size: 0.7rem;
+		font-weight: 600;
+		color: var(--futuristic-magenta);
+		letter-spacing: 0.15em;
+		padding: 0 1rem;
+		text-shadow: 0 0 8px rgba(255, 0, 255, 0.4);
+	}
+
+	.grid-row {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 0.5rem;
+		padding: 0.15rem 0;
+	}
+
+	.grid-row:not(:last-child) {
+		border-bottom: 1px solid rgba(0, 245, 255, 0.1);
+	}
+
+	.event-card {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.15rem 0.25rem;
+		position: relative;
+		cursor: default;
+		transition: background-color 0.2s;
+	}
+
+	.event-card:hover {
+		background: rgba(0, 245, 255, 0.05);
+	}
+
+	.event-card.past {
+		opacity: 0.5;
+	}
+
+	.event-card.past .event-title {
+		text-decoration: line-through;
+		text-decoration-color: rgba(200, 212, 222, 0.3);
+	}
+
+	.event-card .event-emoji {
+		font-size: 0.85rem;
+		flex-shrink: 0;
+	}
+
+	.event-card .event-date {
+		font-family: 'Orbitron', sans-serif;
+		font-size: 0.55rem;
+		font-weight: 500;
+		color: var(--futuristic-cyan);
+		letter-spacing: 0.03em;
+		white-space: nowrap;
+		min-width: 60px;
+	}
+
+	.event-card .event-title {
+		font-family: 'Inter', sans-serif;
+		font-size: 0.7rem;
+		font-weight: 400;
+		color: var(--futuristic-text);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.event-row {
@@ -291,7 +417,7 @@
 		border-top-color: var(--futuristic-cyan);
 	}
 
-	.event-row:hover .tooltip {
+	.event-card:hover .tooltip {
 		opacity: 1;
 		visibility: visible;
 	}
@@ -349,25 +475,8 @@
 			max-height: calc(100vh - 350px);
 		}
 
-		.event-row {
-			flex-wrap: wrap;
-			gap: 0.5rem;
-		}
-
-		.event-title {
-			width: 100%;
-			order: 3;
-		}
-
-		.tooltip {
-			left: 0;
-			transform: none;
-			width: calc(100% - 2rem);
-		}
-
-		.tooltip::after {
-			left: 1rem;
-			transform: none;
+		.grid-row {
+			grid-template-columns: 1fr;
 		}
 	}
 </style>
