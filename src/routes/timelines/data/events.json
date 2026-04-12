@@ -4,35 +4,35 @@
 		"emoji": "🇵🇹",
 		"date": "2024-03-10",
 		"title": "Portugal Legislative Election",
-		"description": "Snap election called after the collapse of the center-right minority government. The Socialist Party led by PM Costa had been in power since 2015."
+		"description": "Center-right Democratic Alliance wins snap election after PM Costa's resignation. Far-right Chega emerges as kingmaker in closest legislative race in Portuguese history."
 	},
 	{
 		"id": 2,
 		"emoji": "🇸🇰",
-		"date": "2024-02-25",
+		"date": "2024-04-06",
 		"title": "Slovakia Presidential Election",
-		"description": "Former general Petr Pellegrini elected president, succeeding Zuzana Čaputová who chose not to run for re-election."
+		"description": "Petr Pellegrini elected president in runoff, succeeding Zuzana Čaputová who chose not to run for re-election."
 	},
 	{
 		"id": 3,
 		"emoji": "🇫🇮",
 		"date": "2024-01-28",
 		"title": "Finland Presidential Election",
-		"description": "Incumbent President Alexander Stubb elected in a runoff against Green Party candidate Jussi Halla-aho."
+		"description": "Alexander Stubb elected president in runoff against Jussi Halla-aho of the Finns Party, after incumbent Sauli Niinistö chose not to seek re-election."
 	},
 	{
 		"id": 4,
 		"emoji": "🇵🇱",
-		"date": "2024-06-30",
+		"date": "2025-06-01",
 		"title": "Poland Presidential Election",
-		"description": "Prime Minister Donald Tusk's coalition partner Karol Nawrocki wins closely contested presidential election against Warsaw mayor Rafał Trzaskowski."
+		"description": "Karol Nawrocki wins closely contested presidential election against Warsaw mayor Rafał Trzaskowski in narrow runoff."
 	},
 	{
 		"id": 5,
 		"emoji": "🇦🇹",
 		"date": "2024-09-29",
 		"title": "Austria National Election",
-		"description": "The Austrian People's Party (ÖVP) wins plurality but forms coalition with the Social Democrats after months of negotiations."
+		"description": "Freedom Party (FPÖ) becomes first far-right party to win national election in post-war Austria. Coalition negotiations begin without clear path to government."
 	},
 	{
 		"id": 6,
@@ -172,7 +172,7 @@
 		"emoji": "🇫🇷",
 		"date": "2027-06-20",
 		"title": "France Legislative Election",
-		"description": "National Rally and left-wing alliance激烈竞争，马克龙阵营面临重大挑战。National Rally and left-wing alliance compete intensely as Macron's camp faces major challenges."
+		"description": "National Rally and left-wing alliance compete intensely as Macron's camp faces major challenges."
 	},
 	{
 		"id": 26,
@@ -274,7 +274,7 @@
 	},
 	{
 		"id": 40,
-		"emoji": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+		"emoji": "🇬🇧",
 		"date": "2023-03-10",
 		"title": "Silicon Valley Bank EU Subsidiaries",
 		"description": "EU banking authorities intervene after SVB collapse, ensuring financial stability across European markets."
