@@ -32,6 +32,12 @@
 			name: 'Asset Splitting',
 			description:
 				'Fair division tool for splitting assets among people. Interactive algorithm for equitable asset allocation.'
+		},
+		{
+			path: '/timelines',
+			name: 'Timelines',
+			description:
+				'Explore different timelines with upcoming and past events. View European elections and key EU milestones.'
 		}
 	];
 
