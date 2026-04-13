@@ -186,7 +186,7 @@
 	{
 		"id": 24,
 		"emoji": "🇬🇷",
-		"date": "2025-05-21",
+		"date": "2027-06-21",
 		"title": "Greece Parliamentary Election",
 		"description": "New Democracy wins second term under Kyriakos Mitsotakis with focus on economic growth and infrastructure development.",
 		"url": "https://ekloges.ypes.gr/"
@@ -266,7 +266,7 @@
 	{
 		"id": 34,
 		"emoji": "🇨🇾",
-		"date": "2026-05-24",
+		"date": "2028-02-05",
 		"title": "Cyprus Presidential Election",
 		"description": "Presidential election to elect leader of Republic of Cyprus. Incumbent Nikos Christodoulides eligible for re-election.",
 		"url": "https://www.electionguide.org/"
@@ -314,7 +314,7 @@
 	{
 		"id": 40,
 		"emoji": "🇫🇮",
-		"date": "2028-01-28",
+		"date": "2030-01-28",
 		"title": "Finland Presidential Election",
 		"description": "Presidential election to select head of state. Incumbent Alexander Stubb eligible for re-election.",
 		"url": "https://tulospalvelu.vaalit.fi/"
@@ -578,7 +578,7 @@
 	{
 		"id": 73,
 		"emoji": "🇨🇾",
-		"date": "2031-02-05",
+		"date": "2033-02-05",
 		"title": "Cyprus Presidential Election",
 		"description": "Presidential election following five-year term cycle.",
 		"url": "https://www.electionguide.org/"
