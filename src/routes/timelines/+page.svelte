@@ -172,40 +172,38 @@
 
 	<div class="events-container" bind:this={containerRef}>
 		{#if filteredEvents.length > 0}
-			<div class="events-grid">
-				{#each timelineRows as row, rowIndex (rowIndex)}
-					{#if row.type === 'year'}
-						<div class="year-separator">
-							<span class="year-label">{row.year}</span>
-						</div>
-					{:else}
-						<div class="grid-row">
-							{#each row.events as event (event.id)}
-								<div
-									class="event-card"
-									class:past={isPast(event.date)}
-									onmouseenter={(e) => showTooltip(e, event.description)}
-									onmouseleave={hideTooltip}
-									role="tooltip"
-								>
-									<span class="event-emoji">{event.emoji}</span>
-									<span class="event-date">{formatShortDate(event.date)}</span>
-									{#if event.url}
-										<a
-											href={event.url}
-											target="_blank"
-											rel="noopener noreferrer"
-											class="event-title-link">{event.title}</a
-										>
-									{:else}
-										<span class="event-title">{event.title}</span>
-									{/if}
-								</div>
-							{/each}
-						</div>
-					{/if}
-				{/each}
-			</div>
+			{#each timelineRows as row, rowIndex (rowIndex)}
+				{#if row.type === 'year'}
+					<div class="year-separator">
+						<span class="year-label">{row.year}</span>
+					</div>
+				{:else}
+					<div class="grid-row">
+						{#each row.events as event (event.id)}
+							<div
+								class="event-card"
+								class:past={isPast(event.date)}
+								onmouseenter={(e) => showTooltip(e, event.description)}
+								onmouseleave={hideTooltip}
+								role="tooltip"
+							>
+								<span class="event-emoji">{event.emoji}</span>
+								<span class="event-date">{formatShortDate(event.date)}</span>
+								{#if event.url}
+									<a
+										href={event.url}
+										target="_blank"
+										rel="noopener noreferrer"
+										class="event-title-link">{event.title}</a
+									>
+								{:else}
+									<span class="event-title">{event.title}</span>
+								{/if}
+							</div>
+						{/each}
+					</div>
+				{/if}
+			{/each}
 		{:else}
 			<div class="empty-state">No events in this timeline</div>
 		{/if}
@@ -264,19 +262,10 @@
 	}
 
 	.events-container {
-		max-height: calc(100vh - 280px);
-		min-height: 300px;
-		overflow-y: auto;
 		background: var(--futuristic-surface);
 		border: 1px solid var(--futuristic-border);
 		border-radius: 12px;
 		padding: 0.5rem;
-	}
-
-	.events-grid {
-		display: flex;
-		flex-direction: column;
-		gap: 0;
 	}
 
 	.year-separator {
@@ -426,10 +415,6 @@
 	}
 
 	@media (max-width: 600px) {
-		.events-container {
-			max-height: calc(100vh - 350px);
-		}
-
 		.grid-row {
 			grid-template-columns: 1fr;
 		}
