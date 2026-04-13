@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { page } from '$app/state';
 	import timelinesData from './data/timelines.json';
 	import eventsData from './data/events.json';
 	import eventTimelineData from './data/event_timeline.json';
@@ -135,11 +136,32 @@
 	}
 
 	function handleTimelineChange() {
-		updateFilteredEvents();
+		if (selectedTimelineId) {
+			updateFilteredEvents();
+			const url = new URL(window.location.href);
+			url.searchParams.set('t', selectedTimelineId);
+			window.history.replaceState({}, '', url);
+		}
 	}
 
+	// Read timeline from URL on mount, fallback to random
 	onMount(() => {
-		selectRandomTimeline();
+		const urlTimelineId = page.url.searchParams.get('t');
+		if (urlTimelineId && timelines.some((t) => t.id === urlTimelineId)) {
+			selectedTimelineId = urlTimelineId;
+			updateFilteredEvents();
+		} else {
+			selectRandomTimeline();
+		}
+	});
+
+	// Update URL when selection changes (handled by handleTimelineChange)
+	// This effect ensures filtering on initial load
+	$effect(() => {
+		const timelineId = selectedTimelineId;
+		if (timelineId && filteredEvents.length === 0) {
+			updateFilteredEvents();
+		}
 	});
 </script>
 
