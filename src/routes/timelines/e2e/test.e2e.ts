@@ -44,7 +44,9 @@ test('Timelines - loads and displays events', async ({ page }) => {
 	// Check tooltip appears on hover
 	const firstEvent = eventCards.first();
 	await firstEvent.hover();
-	const tooltip = page.locator('.tooltip').first();
+	// Wait a bit for the global tooltip to render
+	await page.waitForTimeout(100);
+	const tooltip = page.locator('.global-tooltip');
 	await expect(tooltip).toBeVisible();
 });
 

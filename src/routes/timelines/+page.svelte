@@ -34,6 +34,26 @@
 	let containerRef: HTMLDivElement | null = $state(null);
 	let filteredEvents = $state<Event[]>([]);
 	let timelineRows = $state<TimelineRow[]>([]);
+	let tooltipState = $state<{ visible: boolean; x: number; y: number; content: string }>({
+		visible: false,
+		x: 0,
+		y: 0,
+		content: ''
+	});
+
+	function showTooltip(event: MouseEvent, content: string) {
+		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+		tooltipState = {
+			visible: true,
+			x: rect.left + rect.width / 2,
+			y: rect.top - 8,
+			content
+		};
+	}
+
+	function hideTooltip() {
+		tooltipState = { ...tooltipState, visible: false };
+	}
 
 	const COLUMNS = 3;
 
@@ -178,7 +198,13 @@
 					{:else}
 						<div class="grid-row">
 							{#each row.events as event (event.id)}
-								<div class="event-card" class:past={isPast(event.date)}>
+								<div
+									class="event-card"
+									class:past={isPast(event.date)}
+									onmouseenter={(e) => showTooltip(e, event.description)}
+									onmouseleave={hideTooltip}
+									role="tooltip"
+								>
 									<span class="event-emoji">{event.emoji}</span>
 									<span class="event-date">{formatShortDate(event.date)}</span>
 									{#if event.url}
@@ -191,9 +217,6 @@
 									{:else}
 										<span class="event-title">{event.title}</span>
 									{/if}
-									<div class="tooltip">
-										<span class="tooltip-text">{event.description}</span>
-									</div>
 								</div>
 							{/each}
 						</div>
@@ -202,6 +225,13 @@
 			</div>
 		{:else}
 			<div class="empty-state">No events in this timeline</div>
+		{/if}
+
+		<!-- Global tooltip rendered at container level to avoid overflow clipping -->
+		{#if tooltipState.visible}
+			<div class="global-tooltip" style:left="{tooltipState.x}px" style:top="{tooltipState.y}px">
+				<span class="tooltip-text">{tooltipState.content}</span>
+			</div>
 		{/if}
 	</div>
 </div>
@@ -414,27 +444,25 @@
 		flex: 1;
 	}
 
-	.tooltip {
-		position: absolute;
-		bottom: 100%;
-		left: 50%;
-		transform: translateX(-50%);
+	/* Global tooltip - positioned fixed to escape overflow clipping */
+	.global-tooltip {
+		position: fixed;
+		transform: translate(-50%, -100%);
 		padding: 0.5rem 0.75rem;
 		background: var(--futuristic-bg);
 		border: 1px solid var(--futuristic-cyan);
 		border-radius: 6px;
-		box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
-		opacity: 0;
-		visibility: hidden;
-		transition:
-			opacity 0.2s,
-			visibility 0.2s;
-		z-index: 100;
+		box-shadow:
+			0 0 20px rgba(0, 245, 255, 0.3),
+			0 4px 12px rgba(0, 0, 0, 0.5);
+		z-index: 9999;
 		max-width: 350px;
-		margin-bottom: 6px;
+		pointer-events: none;
+		/* Fully opaque background */
+		opacity: 1 !important;
 	}
 
-	.tooltip::after {
+	.global-tooltip::after {
 		content: '';
 		position: absolute;
 		top: 100%;
@@ -442,11 +470,6 @@
 		transform: translateX(-50%);
 		border: 6px solid transparent;
 		border-top-color: var(--futuristic-cyan);
-	}
-
-	.event-card:hover .tooltip {
-		opacity: 1;
-		visibility: visible;
 	}
 
 	.tooltip-text {
