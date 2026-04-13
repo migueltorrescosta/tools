@@ -40,8 +40,8 @@ test('Asset Splitting - full algorithm flow', async ({ page }) => {
 	await page.waitForSelector('.panel-title:has-text("ROUND")', { timeout: 10000 });
 
 	// Verify selection grid appears
-	await expect(page.locator('.selection-grid')).toBeVisible();
-	await expect(page.locator('.selection-row')).toHaveCount(2);
+	await expect(page.locator('.selection-row-horizontal')).toBeVisible();
+	await expect(page.locator('.selection-col')).toHaveCount(2);
 
 	// Make selections
 	await page.selectOption('select.algorithm-select >> nth=0', '0');

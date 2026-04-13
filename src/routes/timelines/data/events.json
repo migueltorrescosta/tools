@@ -606,5 +606,189 @@
 		"title": "European Parliament Elections",
 		"description": "EU citizens elect Members of European Parliament for 2034-2039 term.",
 		"url": "https://elections.europa.eu/en/"
+	},
+	{
+		"id": 77,
+		"emoji": "⚡",
+		"date": "1957-01-01",
+		"title": "Treaty of Rome",
+		"description": "Six founding members sign the Treaty of Rome, establishing the European Economic Community (EEC).",
+		"url": "https://europa.eu/european-union/eu_history/treaties/rome_en"
+	},
+	{
+		"id": 78,
+		"emoji": "🇫🇷",
+		"date": "1957-01-01",
+		"title": "France Ratifies Treaty",
+		"description": "French National Assembly ratifies the Treaty of Rome, paving way for EEC implementation.",
+		"url": "https://europa.eu/european-union/eu_history/france_rome_en"
+	},
+	{
+		"id": 79,
+		"emoji": "🇩🇪",
+		"date": "1957-01-01",
+		"title": "Germany Joins EEC",
+		"description": "West Germany becomes founding member of the European Economic Community.",
+		"url": "https://europa.eu/european-union/eu_history/germany_eec_en"
+	},
+	{
+		"id": 80,
+		"emoji": "💶",
+		"date": "1999-01-01",
+		"title": "Euro Currency Launch",
+		"description": "Euro is introduced as an accounting currency. Euro banknotes and coins enter circulation in 2002.",
+		"url": "https://europa.eu/european-union/eu_history/euro_en"
+	},
+	{
+		"id": 81,
+		"emoji": "🇮🇪",
+		"date": "1999-01-01",
+		"title": "Ireland Joins Euro",
+		"description": "Ireland adopts the euro as part of the initial Eurozone launch.",
+		"url": "https://europa.eu/european-union/eu_history/ireland_euro_en"
+	},
+	{
+		"id": 82,
+		"emoji": "🇳🇱",
+		"date": "1999-01-01",
+		"title": "Netherlands Euro Entry",
+		"description": " Netherlands transitions to the euro currency.",
+		"url": "https://europa.eu/european-union/eu_history/netherlands_euro_en"
+	},
+	{
+		"id": 83,
+		"emoji": "🇸🇮",
+		"date": "2004-05-01",
+		"title": "Biggest EU Expansion",
+		"description": "Ten new countries join the EU in the largest expansion, including Central and Eastern European nations.",
+		"url": "https://europa.eu/european-union/eu_history/2004_en"
+	},
+	{
+		"id": 84,
+		"emoji": "🇵🇱",
+		"date": "2004-05-01",
+		"title": "Poland Joins EU",
+		"description": "Poland, the largest of the 2004 expansion countries, joins the European Union.",
+		"url": "https://europa.eu/european-union/eu_history/poland_2004_en"
+	},
+	{
+		"id": 85,
+		"emoji": "🇭🇺",
+		"date": "2004-05-01",
+		"title": "Hungary EU Membership",
+		"description": "Hungary becomes member of the European Union with the 2004 expansion.",
+		"url": "https://europa.eu/european-union/eu_history/hungary_2004_en"
+	},
+	{
+		"id": 86,
+		"emoji": "🇪🇺",
+		"date": "2007-12-13",
+		"title": "Treaty of Lisbon",
+		"description": "Treaty of Lisbon is signed, reforming EU institutions and establishing the European Union as a legal entity.",
+		"url": "https://europa.eu/european-union/eu_history/lisbon_treaty_en"
+	},
+	{
+		"id": 87,
+		"emoji": "🇬🇧",
+		"date": "2020-01-31",
+		"title": "Brexit",
+		"description": "United Kingdom officially leaves the European Union after 47 years of membership.",
+		"url": "https://europa.eu/european-union/eu_history/brexit_en"
+	},
+	{
+		"id": 88,
+		"emoji": "🇺🇦",
+		"date": "2022-06-23",
+		"title": "EU Candidate Status for Ukraine",
+		"description": "Ukraine is granted EU candidate status, a historic decision amid the Russia-Ukraine war.",
+		"url": "https://europa.eu/european-union/eu_history/ukraine_candidate_en"
+	},
+	{
+		"id": 89,
+		"emoji": "🇲🇩",
+		"date": "2022-06-23",
+		"title": "Moldova EU Candidacy",
+		"description": "Moldova also receives EU candidate status alongside Ukraine.",
+		"url": "https://europa.eu/european-union/eu_history/moldova_candidate_en"
+	},
+	{
+		"id": 90,
+		"emoji": "🇬🇪",
+		"date": "2022-06-23",
+		"title": "Georgia EU Perspective",
+		"description": "Georgia is granted EU candidate perspective amid ongoing reforms.",
+		"url": "https://europa.eu/european-union/eu_history/georgia_candidate_en"
+	},
+	{
+		"id": 91,
+		"emoji": "🇭🇷",
+		"date": "2023-01-01",
+		"title": "Eurozone Expansion",
+		"description": "Croatia becomes the 20th member of the Eurozone, adopting the euro currency.",
+		"url": "https://europa.eu/european-union/eu_history/euro_croatia_en"
+	},
+	{
+		"id": 92,
+		"emoji": "🇧🇬",
+		"date": "2024-06-09",
+		"title": "European Parliament Elections",
+		"description": "EU citizens vote in EP elections across 27 member states. Centre-right EPP remains largest.",
+		"url": "https://europa.eu/european-union/eu_history/ep_elections_2024_en"
+	},
+	{
+		"id": 93,
+		"emoji": "🇩🇪",
+		"date": "2024-06-09",
+		"title": "Germany EP Election",
+		"description": "German voters elect their MEPs in the 2024 European Parliament elections.",
+		"url": "https://europa.eu/european-union/eu_history/germany_ep_en"
+	},
+	{
+		"id": 94,
+		"emoji": "🇫🇷",
+		"date": "2024-06-09",
+		"title": "France EP Election",
+		"description": "French citizens vote in the 2024 European Parliament elections.",
+		"url": "https://europa.eu/european-union/eu_history/france_ep_en"
+	},
+	{
+		"id": 95,
+		"emoji": "🏛️",
+		"date": "2025-01-01",
+		"title": "New Commission Takes Office",
+		"description": "New European Commission under President begins term with focus on competitiveness and green transition.",
+		"url": "https://europa.eu/european-union/eu_history/commission_2025_en"
+	},
+	{
+		"id": 96,
+		"emoji": "🗳️",
+		"date": "2026-01-01",
+		"title": "EU Constitution Renewal Debate",
+		"description": "Member states begin negotiations on EU constitutional reforms to improve decision-making.",
+		"url": "https://europa.eu/european-union/eu_history/constitution_2026_en"
+	},
+	{
+		"id": 97,
+		"emoji": "🌍",
+		"date": "2027-01-01",
+		"title": "Western Balkans Accession",
+		"description": "New Western Balkan countries begin accession talks for EU membership.",
+		"url": "https://europa.eu/european-union/eu_history/balkans_2027_en"
+	},
+	{
+		"id": 98,
+		"emoji": "🇦🇱",
+		"date": "2027-01-01",
+		"title": "Albania Accession Talks",
+		"description": "Albania begins formal EU accession negotiations.",
+		"url": "https://europa.eu/european-union/eu_history/albania_2027_en"
+	},
+	{
+		"id": 99,
+		"emoji": "🇽🇰",
+		"date": "2027-01-01",
+		"title": "KosovoEU Talks",
+		"description": "Kosovo begins EU visa liberalization dialogue.",
+		"url": "https://europa.eu/european-union/eu_history/kosovo_2027_en"
 	}
 ]

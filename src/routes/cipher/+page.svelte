@@ -155,10 +155,13 @@
 				return new TextDecoder().decode(decrypted);
 			}
 			case 'RSA-OAEP': {
+				if (!cachedKeyPair) {
+					throw new Error('No RSA key pair found. Please encrypt a message first using RSA-OAEP.');
+				}
 				const encrypted = Uint8Array.from(atob(text), (c) => c.charCodeAt(0));
 				const decrypted = await crypto.subtle.decrypt(
 					{ name: 'RSA-OAEP' },
-					cachedKeyPair!.privateKey,
+					cachedKeyPair.privateKey,
 					encrypted
 				);
 				return new TextDecoder().decode(decrypted);
