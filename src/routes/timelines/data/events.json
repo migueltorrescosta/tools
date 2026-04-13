@@ -4,19 +4,11 @@
 		"emoji": "🇵🇹",
 		"date": "2024-03-10",
 		"title": "Portugal Legislative Election",
-		"description": "Center-right Democratic Alliance wins snap election after PM Costa's resignation. Far-right Chega emerges as kingmaker in closest legislative race in Portuguese history.",
+		"description": "Center-right Democratic Alliance (AD) wins snap election after PM Costa's resignation. Far-right Chega emerges as third-largest party in Portuguese parliament.",
 		"url": "https://www.parlamento.pt/sites/EN/Parliament/Paginas/Election-results.aspx"
 	},
 	{
 		"id": 2,
-		"emoji": "🇸🇰",
-		"date": "2024-04-06",
-		"title": "Slovakia Presidential Election",
-		"description": "Petr Pellegrini elected president in runoff, succeeding Zuzana Čaputová who chose not to run for re-election.",
-		"url": "https://volby.statistics.sk/prez/prez2024/en/"
-	},
-	{
-		"id": 3,
 		"emoji": "🇫🇮",
 		"date": "2024-01-28",
 		"title": "Finland Presidential Election",
@@ -24,55 +16,15 @@
 		"url": "https://tulospalvelu.vaalit.fi/TPV-2024_2/en/"
 	},
 	{
+		"id": 3,
+		"emoji": "🇸🇰",
+		"date": "2024-04-06",
+		"title": "Slovakia Presidential Election",
+		"description": "Petr Pellegrini elected president in runoff, succeeding Zuzana Čaputová who chose not to run for re-election.",
+		"url": "https://volby.statistics.sk/prez/prez2024/en/"
+	},
+	{
 		"id": 4,
-		"emoji": "🇵🇱",
-		"date": "2025-06-01",
-		"title": "Poland Presidential Election",
-		"description": "Karol Nawrocki wins closely contested presidential election against Warsaw mayor Rafał Trzaskowski in narrow runoff.",
-		"url": "https://pkw.gov.pl/"
-	},
-	{
-		"id": 5,
-		"emoji": "🇦🇹",
-		"date": "2024-09-29",
-		"title": "Austria National Election",
-		"description": "Freedom Party (FPÖ) becomes first far-right party to win national election in post-war Austria. Coalition negotiations begin without clear path to government.",
-		"url": "https://www.bmi.gv.at/412/Nationalratswahlen/Nationalratswahl_2024"
-	},
-	{
-		"id": 6,
-		"emoji": "🇷🇴",
-		"date": "2024-11-24",
-		"title": "Romania Presidential Election (Round 1)",
-		"description": "Pro-Russian candidate Călin Georgescu surprises with strong first-round showing amid allegations of TikTok manipulation.",
-		"url": "https://www.roaep.ro/"
-	},
-	{
-		"id": 7,
-		"emoji": "🇬🇧",
-		"date": "2024-07-04",
-		"title": "UK General Election",
-		"description": "Labour Party wins massive landslide, ending 14 years of Conservative rule. Keir Starmer becomes Prime Minister.",
-		"url": "https://electionresults.parliament.uk/"
-	},
-	{
-		"id": 8,
-		"emoji": "🇭🇷",
-		"date": "2024-12-29",
-		"title": "Croatia Presidential Election",
-		"description": "President Zoran Milanović wins re-election in a tight race against centrist challenger Dragan Primorac.",
-		"url": "https://www.izbori.hr/"
-	},
-	{
-		"id": 9,
-		"emoji": "🇩🇰",
-		"date": "2024-11-01",
-		"title": "Denmark General Election",
-		"description": "Mette Frederiksen's Social Democrats win again but lose parliamentary majority, leading to minority government.",
-		"url": "https://dst.dk/valg/"
-	},
-	{
-		"id": 10,
 		"emoji": "🇱🇹",
 		"date": "2024-05-12",
 		"title": "Lithuania Presidential Election",
@@ -80,323 +32,579 @@
 		"url": "https://www.electionguide.org/elections/id/4290"
 	},
 	{
-		"id": 11,
+		"id": 5,
 		"emoji": "🇧🇪",
 		"date": "2024-06-09",
 		"title": "Belgium Federal Election",
-		"description": "Flemish nationalist N-VA becomes largest party, but coalition talks drag on for over 200 days.",
+		"description": "Flemish nationalist N-VA becomes largest party, but coalition talks drag on for over 200 days amid regional tensions.",
 		"url": "https://results.elections.europa.eu/en/national-results/belgium/2024-2029/"
 	},
 	{
+		"id": 6,
+		"emoji": "🇪🇺",
+		"date": "2024-06-09",
+		"title": "European Parliament Elections",
+		"description": "EU citizens vote across 27 member states for 720 MEPs. Centre-right EPP remains largest group with 188 seats, far-right makes significant gains.",
+		"url": "https://results.elections.europa.eu/en/"
+	},
+	{
+		"id": 7,
+		"emoji": "🇫🇷",
+		"date": "2024-06-30",
+		"title": "France Legislative Election",
+		"description": "Snap election called by Macron after EU elections setback. Left-wing New Popular Front surprises with majority, leaving Macron in minority government.",
+		"url": "https://www.interieur.gouv.fr/"
+	},
+	{
+		"id": 8,
+		"emoji": "🇬🇧",
+		"date": "2024-07-04",
+		"title": "UK General Election",
+		"description": "Labour Party wins massive landslide, ending 14 years of Conservative rule. Keir Starmer becomes Prime Minister.",
+		"url": "https://electionresults.parliament.uk/"
+	},
+	{
+		"id": 9,
+		"emoji": "🇭🇷",
+		"date": "2024-04-17",
+		"title": "Croatia Parliamentary Election",
+		"description": "HDZ wins narrow victory but loses absolute majority. Andrej Plenković continues as PM with HDZ-DPMIO coalition government.",
+		"url": "https://www.izbori.hr/"
+	},
+	{
+		"id": 10,
+		"emoji": "🇭🇷",
+		"date": "2024-12-29",
+		"title": "Croatia Presidential Election",
+		"description": "President Zoran Milanović wins re-election in tight race against centrist challenger Dragan Primorac.",
+		"url": "https://www.izbori.hr/"
+	},
+	{
+		"id": 11,
+		"emoji": "🇦🇹",
+		"date": "2024-09-29",
+		"title": "Austria National Election",
+		"description": "Freedom Party (FPÖ) becomes first far-right party to win national election in post-war Austria. Coalition negotiations begin without clear path to government.",
+		"url": "https://www.bmi.gv.at/412/Nationalratswahlen/Nationalratswahl_2024"
+	},
+	{
 		"id": 12,
-		"emoji": "🇱🇻",
-		"date": "2025-05-03",
-		"title": "Latvia Parliamentary Election",
-		"description": "New Unity coalition led by Evika Siliņa wins re-election with focus on economic stability and defense spending.",
-		"url": "https://results.elections.europa.eu/en/national-results/latvia/2024-2029/"
+		"emoji": "🇱🇹",
+		"date": "2024-10-13",
+		"title": "Lithuania Parliamentary Election",
+		"description": "Social Democrats (LSDP) win surprising victory, ending 24 years of centre-right dominance. Ingrida Šimonytė resigns as PM.",
+		"url": "https://www.electionguide.org/elections/id/4345"
 	},
 	{
 		"id": 13,
-		"emoji": "🇳🇱",
-		"date": "2025-03-17",
-		"title": "Netherlands General Election",
-		"description": "Freedom Party (PVV) of Geert Wilders wins plurality but forms broadly-based coalition excluding far-right.",
-		"url": "https://www.kiesraad.nl/"
+		"emoji": "🇧🇬",
+		"date": "2024-10-27",
+		"title": "Bulgaria Parliamentary Election",
+		"description": "GERB remains largest party but no stable government forms. Sixth consecutive election since 2021 produces further political deadlock.",
+		"url": "https://www.cik.bg/"
 	},
 	{
 		"id": 14,
+		"emoji": "🇷🇴",
+		"date": "2024-11-24",
+		"title": "Romania Presidential Election (Round 1, Annulled)",
+		"description": "Pro-Russian candidate Călin Georgescu surprises with first-place finish. Constitutional Court later annuls election due to Russian TikTok manipulation allegations.",
+		"url": "https://www.roaep.ro/"
+	},
+	{
+		"id": 15,
+		"emoji": "🇷🇴",
+		"date": "2024-12-01",
+		"title": "Romania Parliamentary Election",
+		"description": "Pro-Western parties win majority but far-right AUR makes significant gains. Political fragmentation complicates coalition formation.",
+		"url": "https://www.roaep.ro/"
+	},
+	{
+		"id": 16,
+		"emoji": "🇩🇰",
+		"date": "2024-11-01",
+		"title": "Denmark General Election",
+		"description": "Mette Frederiksen's Social Democrats win again but lose parliamentary majority, leading to minority government formation.",
+		"url": "https://dst.dk/valg/"
+	},
+	{
+		"id": 17,
 		"emoji": "🇩🇪",
-		"date": "2025-09-01",
+		"date": "2025-02-23",
 		"title": "Germany Federal Election",
 		"description": "CDU/CSU wins decisive victory under Friedrich Merz. Coalition negotiations begin with SPD for 'Germany Alliance' government.",
 		"url": "https://www.bundeswahlleiter.de/"
 	},
 	{
-		"id": 15,
-		"emoji": "🇮🇪",
-		"date": "2025-11-29",
-		"title": "Ireland General Election",
-		"description": "Fine Gael and Fianna Fáil coalition loses majority but returns to power with independent support.",
-		"url": "https://www.rtet.ie/elections/"
-	},
-	{
-		"id": 16,
-		"emoji": "🇨🇿",
-		"date": "2025-01-25",
-		"title": "Czech Republic Presidential Election",
-		"description": "Petr Pavel wins second term as president with strong approval ratings and popular support for EU integration.",
-		"url": "https://www.volby.cz/"
-	},
-	{
-		"id": 17,
+		"id": 18,
 		"emoji": "🇪🇪",
 		"date": "2025-03-09",
 		"title": "Estonia Parliamentary Election",
-		"description": "Reform Party wins under Kaja Kallas who continues as Prime Minister despite coalition shifts.",
+		"description": "Reform Party and Centre Party neck-and-neck. Coalition negotiations determine next government amid tight results.",
 		"url": "https://www.electionguide.org/elections/id/4313"
 	},
 	{
-		"id": 18,
-		"emoji": "🇭🇺",
-		"date": "2025-04-06",
-		"title": "Hungary Parliamentary Election",
-		"description": "Fidesz wins fourth consecutive supermajority under Viktor Orbán amid EU concerns about democratic backsliding.",
-		"url": "https://www.valasztas.hu/"
-	},
-	{
 		"id": 19,
-		"emoji": "🇸🇪",
-		"date": "2025-09-14",
-		"title": "Sweden General Election",
-		"description": "Ulf Kristersson's centre-right government loses majority but continues as minority with SD support.",
-		"url": "https://www.val.se/"
+		"emoji": "🇵🇹",
+		"date": "2025-05-18",
+		"title": "Portugal Parliamentary Election",
+		"description": "Democratic Alliance (AD) wins narrow majority. Luís Montenegro becomes PM, ending Socialist government era.",
+		"url": "https://www.cne.pt/"
 	},
 	{
 		"id": 20,
-		"emoji": "🇲🇹",
-		"date": "2025-10-12",
-		"title": "Malta General Election",
-		"description": "Robert Abela's Labour Party wins third consecutive term with increased majority in parliament.",
-		"url": "https://elections.gov.mt/"
+		"emoji": "🇵🇱",
+		"date": "2025-05-18",
+		"title": "Poland Presidential Election (Round 1)",
+		"description": "Conservative Karol Nawrocki and centrist Rafał Trzaskowski advance to runoff in closely contested first round.",
+		"url": "https://pkw.gov.pl/"
 	},
 	{
 		"id": 21,
-		"emoji": "🇬🇷",
-		"date": "2025-05-21",
-		"title": "Greece Parliamentary Election",
-		"description": "Kyriakos Mitsotakis's New Democracy party wins comfortable re-election with focus on economic growth.",
-		"url": "https://ekloges.ypes.gr/"
+		"emoji": "🇵🇱",
+		"date": "2025-06-01",
+		"title": "Poland Presidential Election (Runoff)",
+		"description": "Karol Nawrocki wins closely contested presidential election against Warsaw mayor Rafał Trzaskowski in narrow runoff.",
+		"url": "https://pkw.gov.pl/"
 	},
 	{
 		"id": 22,
-		"emoji": "🇸🇮",
-		"date": "2025-11-24",
-		"title": "Slovenia Parliamentary Election",
-		"description": "Robert Golob's Freedom Movement retains power with improved majority in National Assembly.",
-		"url": "https://www.gov.si/"
+		"emoji": "🇷🇴",
+		"date": "2025-05-04",
+		"title": "Romania Presidential Election (Round 1, Re-run)",
+		"description": "George Simion (AUR) leads first round of re-run election following annulment of 2024 vote due to foreign interference.",
+		"url": "https://prezenta.roaep.ro/"
 	},
 	{
 		"id": 23,
-		"emoji": "🇧🇬",
-		"date": "2025-07-06",
-		"title": "Bulgaria Parliamentary Election",
-		"description": "Continue the Change party forms government after fragmented election with seven parties in parliament.",
-		"url": "https://www.cik.bg/"
+		"emoji": "🇷🇴",
+		"date": "2025-05-18",
+		"title": "Romania Presidential Election (Runoff)",
+		"description": "Pro-EU Nicusor Dan defeats far-right George Simion in stunning comeback. Election seen as crucial test for Romania's Western alignment.",
+		"url": "https://prezenta.roaep.ro/"
 	},
 	{
 		"id": 24,
-		"emoji": "🇨🇾",
-		"date": "2025-05-11",
-		"title": "Cyprus Presidential Election",
-		"description": "Nikos Christodoulides re-elected president in first round with strong backing from business community.",
-		"url": "https://www.electionguide.org/elections/id/4246"
+		"emoji": "🇬🇷",
+		"date": "2025-05-21",
+		"title": "Greece Parliamentary Election",
+		"description": "New Democracy wins second term under Kyriakos Mitsotakis with focus on economic growth and infrastructure development.",
+		"url": "https://ekloges.ypes.gr/"
 	},
 	{
 		"id": 25,
-		"emoji": "🇫🇷",
-		"date": "2027-06-20",
-		"title": "France Legislative Election",
-		"description": "National Rally and left-wing alliance compete intensely as Macron's camp faces major challenges.",
-		"url": "https://www.interieur.gouv.fr/"
+		"emoji": "🇮🇪",
+		"date": "2025-10-24",
+		"title": "Ireland Presidential Election",
+		"description": "Former Fine Gael leader runs in presidential election amid coalition government dynamics.",
+		"url": "https://www.rte.ie/elections/"
 	},
 	{
 		"id": 26,
-		"emoji": "🇮🇹",
-		"date": "2026-09-27",
-		"title": "Italy Senate Election",
-		"description": "Giorgia Meloni's Brothers of Italy maintains strong position in parliament with European Parliament aligned policies.",
-		"url": "https://elezioni.interno.gov.it/"
+		"emoji": "🇲🇹",
+		"date": "2025-10-12",
+		"title": "Malta General Election",
+		"description": "Robert Abela's Labour Party wins third consecutive term with increased parliamentary majority.",
+		"url": "https://elections.gov.mt/"
 	},
 	{
 		"id": 27,
-		"emoji": "🇪🇸",
-		"date": "2027-12-01",
-		"title": "Spain General Election",
-		"description": "People's Party and Vox negotiations create shift in political landscape ahead of European Parliament elections.",
-		"url": "https://infoelectoral.interior.gob.es/"
+		"emoji": "🇨🇿",
+		"date": "2025-10-04",
+		"title": "Czech Republic Parliamentary Election",
+		"description": "ODS and centre-right coalition maintains narrow majority. Petr Fiala continues as Prime Minister.",
+		"url": "https://www.volby.cz/"
 	},
 	{
 		"id": 28,
-		"emoji": "🇱🇺",
-		"date": "2025-10-08",
-		"title": "Luxembourg General Election",
-		"description": "Democratic Party forms new coalition after Luc Frieden's Christian Social People's Party gains ground.",
-		"url": "https://elections.public.lu/"
+		"emoji": "🇸🇮",
+		"date": "2025-11-24",
+		"title": "Slovenia Parliamentary Election",
+		"description": "Robert Golob's Freedom Movement retains power with improved parliamentary majority.",
+		"url": "https://www.gov.si/"
 	},
 	{
 		"id": 29,
-		"emoji": "🇷🇸",
-		"date": "2026-04-26",
-		"title": "Serbia Presidential Election",
-		"description": "President Vučić wins re-election amid protests over electoral irregularities and EU alignment concerns.",
-		"url": "https://www.rik.parlament.gov.rs/"
+		"emoji": "🇸🇮",
+		"date": "2026-03-22",
+		"title": "Slovenia Parliamentary Election",
+		"description": "Next scheduled parliamentary election following standard four-year legislative term.",
+		"url": "https://www.dvk-rs.si/"
 	},
 	{
 		"id": 30,
-		"emoji": "🇲🇪",
-		"date": "2025-08-30",
-		"title": "Montenegro Parliamentary Election",
-		"description": "Pro-European coalition takes power after decade of Democratic Party of Socialists rule.",
-		"url": "https://www.electionguide.org/elections/id/4349"
+		"emoji": "🇭🇺",
+		"date": "2026-04-12",
+		"title": "Hungary Parliamentary Election",
+		"description": "Fidesz expected to contest election amid EU concerns about democratic backsliding and rule of law.",
+		"url": "https://www.valasztas.hu/"
 	},
 	{
 		"id": 31,
-		"emoji": "🏛️",
-		"date": "1957-01-01",
-		"title": "Treaty of Rome Signed",
-		"description": "Founding treaty of the European Economic Community signed by Belgium, France, Italy, Luxembourg, Netherlands, and West Germany in Rome.",
-		"url": "https://european-union.europa.eu/principles-treaties/treaty-rome_en"
+		"emoji": "🇧🇬",
+		"date": "2026-04-19",
+		"title": "Bulgaria Parliamentary Election",
+		"description": "Snap election called after continued political deadlock. Eighth parliamentary election since 2021.",
+		"url": "https://www.cik.bg/"
 	},
 	{
 		"id": 32,
-		"emoji": "💶",
-		"date": "1999-01-01",
-		"title": "Euro Currency Created",
-		"description": "Euro currency is officially created as an accounting currency. Physical euro notes and coins enter circulation three years later.",
-		"url": "https://www.ecb.europa.eu/ecb/orga_archives/intro/html/index.en.html"
+		"emoji": "🇵🇹",
+		"date": "2026-01-18",
+		"title": "Portugal Presidential Election (Round 1)",
+		"description": "Marcelo Rebelo de Sousa does not stand for re-election. Multiple candidates contest presidency.",
+		"url": "https://www.cne.pt/"
 	},
 	{
 		"id": 33,
-		"emoji": "🌍",
-		"date": "2004-05-01",
-		"title": "Biggest EU Expansion",
-		"description": "Ten new countries join the EU in the largest expansion: Cyprus, Czech Republic, Estonia, Hungary, Latvia, Lithuania, Malta, Poland, Slovakia, and Slovenia.",
-		"url": "https://ec.europa.eu/enlargement/"
+		"emoji": "🇵🇹",
+		"date": "2026-02-08",
+		"title": "Portugal Presidential Election (Runoff)",
+		"description": "Second round of presidential election if no candidate achieves absolute majority in first round.",
+		"url": "https://www.cne.pt/"
 	},
 	{
 		"id": 34,
-		"emoji": "📜",
-		"date": "2007-12-13",
-		"title": "Treaty of Lisbon Signed",
-		"description": "Reform treaty that amends the Maastricht Treaty and Treaty of Rome, creating a more efficient and democratic EU.",
-		"url": "https://european-union.europa.eu/principles-treaties/treaty-lisbon_en"
+		"emoji": "🇨🇾",
+		"date": "2026-05-24",
+		"title": "Cyprus Presidential Election",
+		"description": "Presidential election to elect leader of Republic of Cyprus. Incumbent Nikos Christodoulides eligible for re-election.",
+		"url": "https://www.electionguide.org/"
 	},
 	{
 		"id": 35,
-		"emoji": "🇬🇧",
-		"date": "2020-01-31",
-		"title": "United Kingdom Leaves EU",
-		"description": "Brexit is completed after years of negotiations following the 2016 referendum, making the UK the first country to leave the EU.",
-		"url": "https://www.consilium.europa.eu/en/policies/eu-relations-with-the-united-kingdom/the-eu-uk-withdrawal-agreement/timeline-eu-uk-withdrawal-agreement/"
+		"emoji": "🇸🇪",
+		"date": "2026-09-13",
+		"title": "Sweden General Election",
+		"description": "Next scheduled parliamentary election following four-year legislative term.",
+		"url": "https://www.val.se/"
 	},
 	{
 		"id": 36,
-		"emoji": "💉",
-		"date": "2020-12-27",
-		"title": "EU Vaccination Campaign Begins",
-		"description": "Coordinated EU-wide vaccination campaign starts with Pfizer-BioNTech vaccine after regulatory approval.",
-		"url": "https://ec.europa.eu/commission/presscorner/detail/en/ip_20_2466"
+		"emoji": "🇱🇻",
+		"date": "2026-10-03",
+		"title": "Latvia Parliamentary Election",
+		"description": "Next scheduled Saeima election following constitutional four-year term.",
+		"url": "https://www.vestnesis.lv/"
 	},
 	{
 		"id": 37,
-		"emoji": "⚖️",
-		"date": "2021-07-01",
-		"title": "Portugal Takes EU Presidency",
-		"description": "Portugal begins six-month Council presidency, focusing on recovery from pandemic and EU-UK relations.",
-		"url": "https://www.presidencia.pt/"
+		"emoji": "🇩🇰",
+		"date": "2026-10-31",
+		"title": "Denmark General Election",
+		"description": "Next scheduled parliamentary election by constitutional deadline.",
+		"url": "https://dst.dk/valg/"
 	},
 	{
 		"id": 38,
-		"emoji": "🔋",
-		"date": "2022-02-11",
-		"title": "European Chips Act Announced",
-		"description": "EU unveils plan to boost semiconductor production and reduce dependence on Asian suppliers.",
-		"url": "https://ec.europa.eu/commission/presscorner/detail/en/ip_22_865"
+		"emoji": "🇪🇪",
+		"date": "2026-08-30",
+		"title": "Estonia Presidential Election",
+		"description": "Presidential election to select head of state. Alar Karis does not stand for re-election.",
+		"url": "https://www.president.ee/"
 	},
 	{
 		"id": 39,
-		"emoji": "🕊️",
-		"date": "2022-03-02",
-		"title": "EU Grants Candidate Status to Ukraine",
-		"description": "European Council grants Ukraine and Moldova candidate status for EU membership in historic decision amid Russian invasion.",
-		"url": "https://www.consilium.europa.eu/en/press/press-releases/2022/06/23/european-council-conclusions-on-ukraine-the-membership-applications-of-ukraine-the-republic-of-moldova-and-georgia-western-balkans-and-external-relations-23-june-2022/"
+		"emoji": "🇨🇿",
+		"date": "2026-09-20",
+		"title": "Czech Republic Senate Election",
+		"description": "Senate by-elections and partial renewal of one-third of Senate seats.",
+		"url": "https://www.volby.cz/"
 	},
 	{
 		"id": 40,
-		"emoji": "🇬🇧",
-		"date": "2023-03-10",
-		"title": "Silicon Valley Bank EU Subsidiaries",
-		"description": "EU banking authorities intervene after SVB collapse, ensuring financial stability across European markets.",
-		"url": "https://www.ecb.europa.eu/press/pr/date/2023/html/ecb.pr230310~5ea65d4801.en.html"
+		"emoji": "🇫🇮",
+		"date": "2028-01-28",
+		"title": "Finland Presidential Election",
+		"description": "Presidential election to select head of state. Incumbent Alexander Stubb eligible for re-election.",
+		"url": "https://tulospalvelu.vaalit.fi/"
 	},
 	{
 		"id": 41,
-		"emoji": "🏦",
-		"date": "2023-06-01",
-		"title": "ECB Raises Rates to Record High",
-		"description": "European Central Bank raises interest rates to highest level since euro creation, fighting persistent inflation.",
-		"url": "https://www.ecb.europa.eu/press/pr/date/2023/html/ecb.pr230615~4a7749905e.en.html"
+		"emoji": "🇨🇾",
+		"date": "2028-02-05",
+		"title": "Cyprus Presidential Election",
+		"description": "Presidential election following five-year term cycle.",
+		"url": "https://www.electionguide.org/"
 	},
 	{
 		"id": 42,
-		"emoji": "🤖",
-		"date": "2024-03-13",
-		"title": "EU AI Act Passed",
-		"description": "European Parliament approves world's first comprehensive AI regulation, setting global standards for artificial intelligence.",
-		"url": "https://www.europarl.europa.eu/news/en/press-room/20240308IPR19015/artificial-intelligence-act-meps-adopt-landmark-law"
+		"emoji": "🇦🇹",
+		"date": "2028-10-13",
+		"title": "Austria Presidential Election",
+		"description": "Presidential election to select head of state. Incumbent Alexander Van der Bellen eligible for re-election.",
+		"url": "https://www.bmi.gv.at/"
 	},
 	{
 		"id": 43,
-		"emoji": "🏛️",
-		"date": "2024-06-09",
-		"title": "European Parliament Elections",
-		"description": "EU citizens vote in elections for the 720 members of the European Parliament, with shifts toward centre-right and green parties.",
-		"url": "https://results.elections.europa.eu/en/"
+		"emoji": "🇫🇷",
+		"date": "2027-04-11",
+		"title": "France Presidential Election (Round 1)",
+		"description": "Presidential election without incumbent Emmanuel Macron (term-limited). Multiple candidates from across political spectrum.",
+		"url": "https://www.interieur.gouv.fr/"
 	},
 	{
 		"id": 44,
-		"emoji": "🛡️",
-		"date": "2024-06-25",
-		"title": "EU Border Security Deal",
-		"description": "Member states approve controversial migration pact with expanded border procedures and processing centers.",
-		"url": "https://www.consilium.europa.eu/en/policies/migration/pact-on-migration-and-asylum/"
+		"emoji": "🇫🇷",
+		"date": "2027-04-25",
+		"title": "France Presidential Election (Runoff)",
+		"description": "Second round of presidential election if no candidate achieves absolute majority.",
+		"url": "https://www.interieur.gouv.fr/"
 	},
 	{
 		"id": 45,
-		"emoji": "🌱",
-		"date": "2025-04-01",
-		"title": "EU Deforestation Regulation",
-		"description": "New rules take effect requiring companies to prove products don't come from deforested land, affecting global supply chains.",
-		"url": "https://environment.ec.europa.eu/topics/forests/deforestation/regulation-deforestation-free-products_en"
+		"emoji": "🇫🇷",
+		"date": "2027-06-20",
+		"title": "France Legislative Election",
+		"description": "Parliamentary elections following presidential election. Outcome shapes government formation.",
+		"url": "https://www.interieur.gouv.fr/"
 	},
 	{
 		"id": 46,
-		"emoji": "💰",
-		"date": "2025-06-30",
-		"title": "New EU Budget Cycle Begins",
-		"description": "Seven-year budget framework negotiations conclude with focus on defense, climate, and digital transition.",
-		"url": "https://www.consilium.europa.eu/en/policies/eu-budget/"
+		"emoji": "🇮🇹",
+		"date": "2027-09-25",
+		"title": "Italy Parliamentary Election",
+		"description": "Chamber of Deputies and Senate elections. Giorgia Meloni's Brothers of Italy faces electoral test.",
+		"url": "https://elezioni.interno.gov.it/"
 	},
 	{
 		"id": 47,
-		"emoji": "🇺🇦",
-		"date": "2025-06-01",
-		"title": "Ukraine EU Accession Talks",
-		"description": "Ukraine opens formal EU accession negotiations, marking major milestone in country's European integration path.",
-		"url": "https://ec.europa.eu/commission/presscorner/detail/en/statement_25_1376"
+		"emoji": "🇪🇸",
+		"date": "2027-12-01",
+		"title": "Spain General Election",
+		"description": "Congress of Deputies and Senate elections. Political fragmentation continues to challenge government formation.",
+		"url": "https://infoelectoral.interior.gob.es/"
 	},
 	{
 		"id": 48,
-		"emoji": "⚡",
-		"date": "2026-01-01",
-		"title": "Digital Euro Launch",
-		"description": "European Central Bank launches digital euro pilot program, exploring blockchain-based central bank digital currency.",
-		"url": "https://www.ecb.europa.eu/paym/intro/publication/html/digital_euro_101_en.html"
+		"emoji": "🇬🇷",
+		"date": "2027-05-21",
+		"title": "Greece Parliamentary Election",
+		"description": "Next scheduled parliamentary election following standard four-year legislative term.",
+		"url": "https://ekloges.ypes.gr/"
 	},
 	{
 		"id": 49,
-		"emoji": "🎯",
-		"date": "2026-07-01",
-		"title": "Hungary Takes EU Presidency",
-		"description": "Hungary assumes Council presidency with agenda focused on competitiveness and agricultural policy reform.",
-		"url": "https://www.consilium.europa.eu/en/council-us/eu-presidency/"
+		"emoji": "🇧🇬",
+		"date": "2027-10-27",
+		"title": "Bulgaria Parliamentary Election",
+		"description": "Next scheduled parliamentary election following constitutional four-year term.",
+		"url": "https://www.cik.bg/"
 	},
 	{
 		"id": 50,
-		"emoji": "🌊",
-		"date": "2027-01-01",
-		"title": "Schengen Area Expands",
-		"description": "Romania and Bulgaria fully join Schengen area, eliminating border controls in largest expansion since 2011.",
-		"url": "https://home-affairs.ec.europa.eu/policies/schengen-borders-and-visa/schengen-area_en"
+		"emoji": "🇱🇺",
+		"date": "2028-10-08",
+		"title": "Luxembourg General Election",
+		"description": "Chamber of Deputies election following five-year legislative term.",
+		"url": "https://elections.public.lu/"
+	},
+	{
+		"id": 51,
+		"emoji": "🇱🇹",
+		"date": "2028-10-13",
+		"title": "Lithuania Parliamentary Election",
+		"description": "Seimas election following four-year legislative term.",
+		"url": "https://www.lrs.lt/"
+	},
+	{
+		"id": 52,
+		"emoji": "🇧🇪",
+		"date": "2029-06-09",
+		"title": "Belgium Federal Election",
+		"description": "Federal elections to Chamber of Representatives and Senate following five-year term.",
+		"url": "https://elections.fgov.be/"
+	},
+	{
+		"id": 53,
+		"emoji": "🇦🇹",
+		"date": "2029-09-29",
+		"title": "Austria National Election",
+		"description": "National Council election following five-year legislative term.",
+		"url": "https://www.bmi.gv.at/412/Nationalratswahlen/"
+	},
+	{
+		"id": 54,
+		"emoji": "🇮🇪",
+		"date": "2029-11-29",
+		"title": "Ireland General Election",
+		"description": "Dáil Éireann election following five-year legislative term.",
+		"url": "https://www.citizensinformation.ie/en/government_in_ireland/elections_and_referenda/"
+	},
+	{
+		"id": 55,
+		"emoji": "🇵🇹",
+		"date": "2029-05-18",
+		"title": "Portugal Parliamentary Election",
+		"description": "Assembly of the Republic election following four-year legislative term.",
+		"url": "https://www.cne.pt/"
+	},
+	{
+		"id": 56,
+		"emoji": "🇪🇺",
+		"date": "2029-06-06",
+		"title": "European Parliament Elections",
+		"description": "EU citizens across 27 member states elect 720 Members of European Parliament for 2029-2034 term.",
+		"url": "https://elections.europa.eu/en/"
+	},
+	{
+		"id": 57,
+		"emoji": "🇲🇹",
+		"date": "2029-10-12",
+		"title": "Malta General Election",
+		"description": "House of Representatives election following five-year legislative term.",
+		"url": "https://elections.gov.mt/"
+	},
+	{
+		"id": 58,
+		"emoji": "🇨🇿",
+		"date": "2029-10-04",
+		"title": "Czech Republic Parliamentary Election",
+		"description": "Chamber of Deputies election following four-year legislative term.",
+		"url": "https://www.volby.cz/"
+	},
+	{
+		"id": 59,
+		"emoji": "🇭🇷",
+		"date": "2029-12-29",
+		"title": "Croatia Presidential Election",
+		"description": "Presidential election following five-year term cycle.",
+		"url": "https://www.izbori.hr/"
+	},
+	{
+		"id": 60,
+		"emoji": "🇷🇴",
+		"date": "2028-12-01",
+		"title": "Romania Parliamentary Election",
+		"description": "Parliamentary elections to Chamber of Deputies and Senate following four-year term.",
+		"url": "https://www.roaep.ro/"
+	},
+	{
+		"id": 61,
+		"emoji": "🇱🇹",
+		"date": "2029-05-12",
+		"title": "Lithuania Presidential Election",
+		"description": "Presidential election following five-year term cycle.",
+		"url": "https://www.electionguide.org/"
+	},
+	{
+		"id": 62,
+		"emoji": "🇵🇱",
+		"date": "2030-05-18",
+		"title": "Poland Presidential Election (Round 1)",
+		"description": "Presidential election following five-year term cycle.",
+		"url": "https://pkw.gov.pl/"
+	},
+	{
+		"id": 63,
+		"emoji": "🇵🇱",
+		"date": "2030-06-01",
+		"title": "Poland Presidential Election (Runoff)",
+		"description": "Second round of presidential election if needed.",
+		"url": "https://pkw.gov.pl/"
+	},
+	{
+		"id": 64,
+		"emoji": "🇸🇰",
+		"date": "2029-03-09",
+		"title": "Slovakia Presidential Election",
+		"description": "Presidential election following five-year term cycle. President Pellegrini eligible for re-election.",
+		"url": "https://volby.statistics.sk/prez/"
+	},
+	{
+		"id": 65,
+		"emoji": "🇩🇪",
+		"date": "2029-02-23",
+		"title": "Germany Federal Election",
+		"description": "Bundestag election following four-year legislative term.",
+		"url": "https://www.bundeswahlleiter.de/"
+	},
+	{
+		"id": 66,
+		"emoji": "🇸🇪",
+		"date": "2030-09-14",
+		"title": "Sweden General Election",
+		"description": "Riksdag election following four-year legislative term.",
+		"url": "https://www.val.se/"
+	},
+	{
+		"id": 67,
+		"emoji": "🇸🇮",
+		"date": "2030-11-24",
+		"title": "Slovenia Parliamentary Election",
+		"description": "National Assembly election following four-year legislative term.",
+		"url": "https://www.dvk-rs.si/"
+	},
+	{
+		"id": 68,
+		"emoji": "🇭🇺",
+		"date": "2030-04-12",
+		"title": "Hungary Parliamentary Election",
+		"description": "National Assembly election following four-year legislative term.",
+		"url": "https://www.valasztas.hu/"
+	},
+	{
+		"id": 69,
+		"emoji": "🇩🇰",
+		"date": "2030-10-31",
+		"title": "Denmark General Election",
+		"description": "Folketing election following constitutional four-year term deadline.",
+		"url": "https://dst.dk/valg/"
+	},
+	{
+		"id": 70,
+		"emoji": "🇪🇪",
+		"date": "2029-03-09",
+		"title": "Estonia Parliamentary Election",
+		"description": "Riigikogu election following four-year legislative term.",
+		"url": "https://www.electionguide.org/"
+	},
+	{
+		"id": 71,
+		"emoji": "🇱🇻",
+		"date": "2030-10-03",
+		"title": "Latvia Parliamentary Election",
+		"description": "Saeima election following four-year constitutional term.",
+		"url": "https://www.vestnesis.lv/"
+	},
+	{
+		"id": 72,
+		"emoji": "🇫🇮",
+		"date": "2030-01-28",
+		"title": "Finland Presidential Election",
+		"description": "Presidential election following six-year term cycle.",
+		"url": "https://tulospalvelu.vaalit.fi/"
+	},
+	{
+		"id": 73,
+		"emoji": "🇨🇾",
+		"date": "2031-02-05",
+		"title": "Cyprus Presidential Election",
+		"description": "Presidential election following five-year term cycle.",
+		"url": "https://www.electionguide.org/"
+	},
+	{
+		"id": 74,
+		"emoji": "🇵🇹",
+		"date": "2031-01-18",
+		"title": "Portugal Presidential Election (Round 1)",
+		"description": "Presidential election following five-year term cycle.",
+		"url": "https://www.cne.pt/"
+	},
+	{
+		"id": 75,
+		"emoji": "🇮🇪",
+		"date": "2032-10-24",
+		"title": "Ireland Presidential Election",
+		"description": "Presidential election following seven-year term cycle.",
+		"url": "https://www.citizensinformation.ie/en/government_in_ireland/elections_and_referenda/"
+	},
+	{
+		"id": 76,
+		"emoji": "🇪🇺",
+		"date": "2034-06-06",
+		"title": "European Parliament Elections",
+		"description": "EU citizens elect Members of European Parliament for 2034-2039 term.",
+		"url": "https://elections.europa.eu/en/"
 	}
 ]
