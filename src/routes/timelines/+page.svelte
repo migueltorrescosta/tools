@@ -128,22 +128,6 @@
 		});
 	}
 
-	function scrollToToday() {
-		if (!containerRef || filteredEvents.length === 0) return;
-
-		const dividerElement = containerRef.querySelector('.today-divider-row');
-		if (!dividerElement) return;
-
-		const dividerRect = dividerElement.getBoundingClientRect();
-		const containerRect = containerRef.getBoundingClientRect();
-		const scrollTop = dividerRect.top - containerRect.top + containerRef.scrollTop;
-
-		containerRef.scrollTo({
-			top: Math.max(0, scrollTop - 50),
-			behavior: 'smooth'
-		});
-	}
-
 	function selectRandomTimeline() {
 		const randomIndex = Math.floor(Math.random() * timelines.length);
 		selectedTimelineId = timelines[randomIndex].id;
@@ -152,7 +136,6 @@
 
 	function handleTimelineChange() {
 		updateFilteredEvents();
-		setTimeout(scrollToToday, 100);
 	}
 
 	onMount(() => {
@@ -397,53 +380,6 @@
 		text-decoration: underline;
 	}
 
-	.event-row {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.35rem 0.5rem;
-		border-radius: 4px;
-		position: relative;
-		cursor: default;
-		transition: background-color 0.2s;
-	}
-
-	.event-row:hover {
-		background: rgba(0, 245, 255, 0.08);
-	}
-
-	.event-row.past {
-		opacity: 0.6;
-	}
-
-	.event-row.past .event-title {
-		text-decoration: line-through;
-		text-decoration-color: rgba(200, 212, 222, 0.4);
-	}
-
-	.event-emoji {
-		font-size: 0.9rem;
-		flex-shrink: 0;
-	}
-
-	.event-date {
-		font-family: 'Orbitron', sans-serif;
-		font-size: 0.6rem;
-		font-weight: 500;
-		color: var(--futuristic-cyan);
-		letter-spacing: 0.05em;
-		white-space: nowrap;
-		min-width: 70px;
-	}
-
-	.event-title {
-		font-family: 'Inter', sans-serif;
-		font-size: 0.8rem;
-		font-weight: 500;
-		color: var(--futuristic-text);
-		flex: 1;
-	}
-
 	/* Global tooltip - positioned fixed to escape overflow clipping */
 	.global-tooltip {
 		position: fixed;
@@ -477,37 +413,6 @@
 		font-size: 0.75rem;
 		color: var(--futuristic-text);
 		line-height: 1.4;
-	}
-
-	.today-divider-row {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.5rem;
-		margin: 0.25rem 0;
-	}
-
-	.today-line {
-		flex: 1;
-		height: 1px;
-		background: linear-gradient(
-			90deg,
-			transparent,
-			var(--futuristic-magenta),
-			var(--futuristic-cyan),
-			var(--futuristic-magenta),
-			transparent
-		);
-	}
-
-	.today-label {
-		font-family: 'Orbitron', sans-serif;
-		font-size: 0.75rem;
-		font-weight: 700;
-		color: var(--futuristic-magenta);
-		letter-spacing: 0.2em;
-		white-space: nowrap;
-		text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
 	}
 
 	.empty-state {
