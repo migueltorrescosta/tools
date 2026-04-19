@@ -926,5 +926,165 @@
 		"title": "Multi-Agent LLM Collaboration",
 		"description": "Multiple specialist agents (planner, coder, reviewer, tester) coordinate via shared context—mimics real dev teams.",
 		"url": "https://arxiv.org/abs/2405.16510"
+	},
+	{
+		"id": 117,
+		"emoji": "📖",
+		"date": "1891-01-01",
+		"title": "Zehnder's Original Interferometer",
+		"description": "Ludwig Zehnder invents the interferometer (Ein neuer Interferenzrefraktor), pioneering beam-splitter design for measuring refractive index variations.",
+		"url": "https://archive.org/details/Mach_ZehndersInterferometer"
+	},
+	{
+		"id": 118,
+		"emoji": "⚙️",
+		"date": "1892-01-01",
+		"title": "Mach's Refinement",
+		"description": "Ludwig Mach refines Zehnder's design, creating stable interference fringes. The apparatus bears both inventors' names.",
+		"url": "https://archive.org/details/Mach_ZehndersInterferometer"
+	},
+	{
+		"id": 119,
+		"emoji": "💫",
+		"date": "1990-09-10",
+		"title": "Two-Photon Interference",
+		"description": "First demonstration of two-photon interference using entangled photons in MZI, showing quantum non-classical correlations.",
+		"url": "https://doi.org/10.1103/PhysRevLett.65.1348"
+	},
+	{
+		"id": 120,
+		"emoji": "💣",
+		"date": "1993-01-01",
+		"title": "Elitzur–Vaidman Bomb Tester",
+		"description": "Introduces interaction-free measurement—detecting object presence without physically interacting, using quantum superposition in MZI.",
+		"url": "https://arxiv.org/abs/hep-th/9305002"
+	},
+	{
+		"id": 121,
+		"emoji": "🧪",
+		"date": "1997-01-01",
+		"title": "Experimental IFM Realized",
+		"description": "First experimental verification of Elitzur-Vaidman bomb tester using single photons—25% detection efficiency achieved.",
+		"url": "https://doi.org/10.1103/PhysRevLett.74.476"
+	},
+	{
+		"id": 122,
+		"emoji": "⚡",
+		"date": "2003-03-27",
+		"title": "Electronic MZI",
+		"description": "First electronic MZI using edge states in 2D electron gas (QHE regime)—62% visibility, opens path to fractional charge measurement.",
+		"url": "https://doi.org/10.1038/nature01503"
+	},
+	{
+		"id": 123,
+		"emoji": "🔀",
+		"date": "2013-01-01",
+		"title": "Past of a Quantum Particle",
+		"description": "Vaidman's weak measurement analysis of nested MZI claims 'discontinuous trajectories'—sparking major foundations debate.",
+		"url": "https://doi.org/10.1103/PhysRevA.87.052104"
+	},
+	{
+		"id": 124,
+		"emoji": "❓",
+		"date": "2013-10-29",
+		"title": "Quantum Trajectories Debate",
+		"description": "Li et al. challenge Vaidman's interpretation—argues results align with standard quantum mechanics. Heated exchange in Phys. Rev. A.",
+		"url": "https://doi.org/10.1103/PhysRevA.88.046102"
+	},
+	{
+		"id": 125,
+		"emoji": "🔬",
+		"date": "2013-01-01",
+		"title": "Experimental Past Detection",
+		"description": "Danon et al. experimentally realize 'past of photon' detection—photons detected at paths they didn't traverse.",
+		"url": "https://doi.org/10.1103/PhysRevLett.111.240402"
+	},
+	{
+		"id": 126,
+		"emoji": "📊",
+		"date": "2016-01-01",
+		"title": "Consistent Histories Analysis",
+		"description": "Robert Griffiths applies consistent histories formalism to nested MZI—challenges both Vaidman and counterfactual communication proposals.",
+		"url": "https://doi.org/10.1103/PhysRevA.94.032115"
+	},
+	{
+		"id": 127,
+		"emoji": "🔓",
+		"date": "2017-04-21",
+		"title": "Disconnected Trajectories Paradox",
+		"description": "Nikolaev shows results explained classically without 'discontinuous trajectories'—challenges Vaidman's interpretation.",
+		"url": "https://doi.org/10.1134/S0021364017030110"
+	},
+	{
+		"id": 128,
+		"emoji": "📡",
+		"date": "2017-08-18",
+		"title": "Graphene Electronic MZI",
+		"description": "First high-visibility (98%) electronic MZI in graphene using spin/valley-polarized edge channels—robust to dephasing.",
+		"url": "https://doi.org/10.1126/sciadv.1700600"
+	},
+	{
+		"id": 129,
+		"emoji": "🌊",
+		"date": "2020-04-01",
+		"title": "Wave-Particle Duality Test",
+		"description": "Breaks traditional V² + D² ≤ 1 limit using weak-measurement MZI—achieving V² + D² ≈ 1.63.",
+		"url": "https://doi.org/10.1364/PRJ.386774"
+	},
+	{
+		"id": 130,
+		"emoji": "📏",
+		"date": "2024-07-09",
+		"title": "Higher Order Weak Values",
+		"description": "Recent re-examination of weak value phenomena in nested MZIs—extending path integral frameworks.",
+		"url": "https://arxiv.org/abs/2407.06989"
+	},
+	{
+		"id": 131,
+		"emoji": "🎯",
+		"date": "2024-05-27",
+		"title": "Heisenberg-Scale Estimation",
+		"description": "Achieves Heisenberg-limited precision for simultaneous two-phase estimation using squeezed + coherent states.",
+		"url": "https://doi.org/10.1103/PhysRevA.111.062408"
+	},
+	{
+		"id": 132,
+		"emoji": "⚙️",
+		"date": "2025-02-18",
+		"title": "Automated MZI Control",
+		"description": "High-precision arbitrary magnitude/phase setting (7-8 bit resolution) for scalable photonic computing.",
+		"url": "https://arxiv.org/abs/2502.12869"
+	},
+	{
+		"id": 133,
+		"emoji": "🔒",
+		"date": "2024-07-23",
+		"title": "Fiber Phase Locking",
+		"description": "New method for arbitrary-phase locking in fiber MZIs—enables 99.3% visibility for quantum networks.",
+		"url": "https://arxiv.org/abs/2407.16433"
+	},
+	{
+		"id": 134,
+		"emoji": "🔍",
+		"date": "2025-03-18",
+		"title": "Quantum Parameter Estimation Limits",
+		"description": "Critical analysis exposing QFI overoptimism in MZI models—proper constraints needed for realistic experiments.",
+		"url": "https://arxiv.org/abs/2503.14306"
+	},
+	{
+		"id": 135,
+		"emoji": "🌌",
+		"date": "2026-01-21",
+		"title": "Nanoparticle Matter-Wave MZI",
+		"description": "Matter-wave interference with 7,000-atom nanoparticles—macroscopicity μ = 15.5, surpassing previous by order of magnitude.",
+		"url": "https://doi.org/10.1038/s41586-025-09917-9"
+	},
+	{
+		"id": 136,
+		"emoji": "📡",
+		"date": "2026-03-05",
+		"title": "Quantum Wavemetry",
+		"description": "New approach using coherence de Broglie wavelength for superresolution—loss tolerant without N00N states.",
+		"url": "https://arxiv.org/abs/2603.05639"
 	}
 ]
