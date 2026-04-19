@@ -790,5 +790,141 @@
 		"title": "KosovoEU Talks",
 		"description": "Kosovo begins EU visa liberalization dialogue.",
 		"url": "https://europa.eu/european-union/eu_history/kosovo_2027_en"
+	},
+	{
+		"id": 100,
+		"emoji": "🧠",
+		"date": "2017-06-12",
+		"title": "Attention Is All You Need",
+		"description": "Transformer architecture introduced—based entirely on self-attention, dispensing with recurrence and convolutions. Foundation of all modern LLMs.",
+		"url": "https://arxiv.org/abs/1706.03762"
+	},
+	{
+		"id": 101,
+		"emoji": "📚",
+		"date": "2019-02-14",
+		"title": "GPT-2: Language Models are Unsupervised Multitask Learners",
+		"description": "Demonstrated that large models can perform zero-shot tasks without explicit fine-tuning—scaling unlocks emergent abilities.",
+		"url": "https://arxiv.org/abs/1811.01241"
+	},
+	{
+		"id": 102,
+		"emoji": "💻",
+		"date": "2021-07-07",
+		"title": "Codex: Evaluating Large Language Models Trained on Code",
+		"description": "LLMs fine-tuned on GitHub code for code generation. Introduced HumanEval benchmark. Powers GitHub Copilot.",
+		"url": "https://arxiv.org/abs/2107.03374"
+	},
+	{
+		"id": 103,
+		"emoji": "🎯",
+		"date": "2022-01-27",
+		"title": "InstructGPT / RLHF",
+		"description": "Reinforcement Learning from Human Feedback aligns models with user intent. 1.3B model preferred over 175B GPT-3.",
+		"url": "https://arxiv.org/abs/2203.02155"
+	},
+	{
+		"id": 104,
+		"emoji": "🧩",
+		"date": "2022-01-28",
+		"title": "Chain of Thought Prompting",
+		"description": "Few-shot examples with reasoning steps enable models to solve multi-step problems—emergent property of model scale.",
+		"url": "https://arxiv.org/abs/2201.11903"
+	},
+	{
+		"id": 105,
+		"emoji": "⚔️",
+		"date": "2022-10-06",
+		"title": "ReAct: Synergizing Reasoning and Acting",
+		"description": "Interleaves reasoning traces with tool actions—model reasons, calls APIs, incorporates feedback. Enables grounded tool use.",
+		"url": "https://arxiv.org/abs/2210.03629"
+	},
+	{
+		"id": 106,
+		"emoji": "🔧",
+		"date": "2023-02-09",
+		"title": "Toolformer: Self-Taught Tool Use",
+		"description": "Language models learn to use external APIs (calculator, search, Q&A) via self-supervised fine-tuning with minimal demos.",
+		"url": "https://arxiv.org/abs/2302.04761"
+	},
+	{
+		"id": 107,
+		"emoji": "🪞",
+		"date": "2023-03-20",
+		"title": "Reflexion: Verbal Reinforcement",
+		"description": "Agents reflect on feedback and store experiences in memory to improve future decisions—without weight updates. 91% on HumanEval.",
+		"url": "https://arxiv.org/abs/2303.11366"
+	},
+	{
+		"id": 108,
+		"emoji": "🔄",
+		"date": "2023-03-30",
+		"title": "Self-Refine: Iterative Refinement with Self-Feedback",
+		"description": "Models generate, critique, and iteratively improve outputs using self-feedback—enhances code quality via test-time computation.",
+		"url": "https://arxiv.org/abs/2303.17651"
+	},
+	{
+		"id": 109,
+		"emoji": "📞",
+		"date": "2023-04-17",
+		"title": "API-Bank: Tool-Augmented LLMs Benchmark",
+		"description": "Native structured tool schemas added to model inputs—standardized code execution, compiler calls, and custom tool invocations.",
+		"url": "https://arxiv.org/abs/2304.08244"
+	},
+	{
+		"id": 110,
+		"emoji": "🔗",
+		"date": "2024-11-25",
+		"title": "Model Context Protocol (MCP)",
+		"description": "Open standard by Anthropic for connecting AI assistants to external tools and data sources via universal client-server protocol.",
+		"url": "https://modelcontextprotocol.io/specification/latest"
+	},
+	{
+		"id": 111,
+		"emoji": "🔐",
+		"date": "2025-02-15",
+		"title": "MCP Security Frameworks",
+		"description": "Enterprise-grade security extensions for MCP—defense-in-depth, threat modeling, and tool poisoning mitigation.",
+		"url": "https://arxiv.org/abs/2504.08623"
+	},
+	{
+		"id": 112,
+		"emoji": "🎭",
+		"date": "2023-10-02",
+		"title": "RoleLLM: Role-Playing Prompting",
+		"description": "System prompts define agent roles and expertise—improves consistency and domain specialization for coding tasks.",
+		"url": "https://arxiv.org/abs/2310.00746"
+	},
+	{
+		"id": 113,
+		"emoji": "🚀",
+		"date": "2023-09-14",
+		"title": "LLM Agents: The Rise and Potential of Agentic Systems",
+		"description": "Native agent architectures with built-in loops: plan → execute → observe → reflect. Autonomous multi-step workflows.",
+		"url": "https://arxiv.org/abs/2309.07864"
+	},
+	{
+		"id": 114,
+		"emoji": "🧑‍💻",
+		"date": "2023-05-15",
+		"title": "Plan-and-Solve Prompting",
+		"description": "Decompose complex tasks into executable plans before action—improves zero-shot planning for agents.",
+		"url": "https://arxiv.org/abs/2305.04091"
+	},
+	{
+		"id": 115,
+		"emoji": "📜",
+		"date": "2024-11-21",
+		"title": "Code Agents with REPL",
+		"description": "Agents use Read-Eval-Print Loop for interactive planning—flexibly correct errors and handle tasks dynamically.",
+		"url": "https://arxiv.org/abs/2411.13826"
+	},
+	{
+		"id": 116,
+		"emoji": "👥",
+		"date": "2024-05-27",
+		"title": "Multi-Agent LLM Collaboration",
+		"description": "Multiple specialist agents (planner, coder, reviewer, tester) coordinate via shared context—mimics real dev teams.",
+		"url": "https://arxiv.org/abs/2405.16510"
 	}
 ]

@@ -8,5 +8,10 @@
 		"id": "eu-key-events",
 		"shortTitle": "🔑 Key Events of the EU",
 		"description": "Significant milestones and turning points in European Union history"
+	},
+	{
+		"id": "coding-agents",
+		"shortTitle": "🤖 Evolution of Coding Agents",
+		"description": "Key papers and breakthroughs that enabled modern AI coding assistants"
 	}
 ]
