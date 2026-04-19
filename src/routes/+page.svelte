@@ -54,7 +54,7 @@
 <div class="container">
 	<header>
 		<h1>TOOLS</h1>
-		<p class="subtitle">Collection of Developer Utilities</p>
+		<p class="subtitle">Collection of Developer Utilities. Everything runs exclusively on your browser. No guarantees of correctness are provided. Use at your own risk.</p>
 	</header>
 
 	<div class="homepage-grid">
