@@ -1,0 +1,416 @@
+[
+	{
+		"name": "Damian Boeselager",
+		"startDate": "02/07/2019",
+		"endDate": "2029",
+		"position": "MdEP",
+		"location": "European Parliament",
+		"country": "🇩🇪",
+		"url": "https://www.europarl.europa.eu/meps/en/197439/DAMIAN_BOESELAGER/home"
+	},
+	{
+		"name": "Nela Riehl",
+		"startDate": "16/07/2024",
+		"endDate": "2029",
+		"position": "MdEP",
+		"location": "European Parliament",
+		"country": "🇩🇪",
+		"url": "https://en.wikipedia.org/wiki/Nela_Riehl"
+	},
+	{
+		"name": "Kai Tegethoff",
+		"startDate": "16/07/2024",
+		"endDate": "2029",
+		"position": "MdEP",
+		"location": "European Parliament",
+		"country": "🇩🇪",
+		"url": "https://en.wikipedia.org/wiki/Kai_Tegethoff"
+	},
+	{
+		"name": "Reinier van Lanschot",
+		"startDate": "16/07/2024",
+		"endDate": "2029",
+		"position": "MEP",
+		"location": "European Parliament",
+		"country": "🇳🇱",
+		"url": "https://en.wikipedia.org/wiki/Reinier_van_Lanschot"
+	},
+	{
+		"name": "Anna Strolenberg",
+		"startDate": "16/07/2024",
+		"endDate": "2029",
+		"position": "MEP",
+		"location": "European Parliament",
+		"country": "🇳🇱",
+		"url": "https://en.wikipedia.org/wiki/Anna_Strolenberg"
+	},
+	{
+		"name": "Laurens Dassen",
+		"startDate": "31/03/2021",
+		"endDate": "2027",
+		"position": "Tweede Kamer",
+		"location": "Netherlands",
+		"country": "🇳🇱",
+		"url": "https://parlement.com/biografie/lajm-laurens-dassen"
+	},
+	{
+		"name": "Gaby Perin-Gopie",
+		"startDate": "13/06/2023",
+		"endDate": "2027",
+		"position": "Eerste Kamer",
+		"location": "Netherlands",
+		"country": "🇳🇱",
+		"url": "https://www.senaat.nl/persoon/g_k_perin_gopie_msc_volt"
+	},
+	{
+		"name": "Eddy Hartog",
+		"startDate": "13/06/2023",
+		"endDate": "2027",
+		"position": "Eerste Kamer",
+		"location": "Netherlands",
+		"country": "🇳🇱",
+		"url": "https://www.eerstekamer.nl/persoon/e_w_hartog_volt"
+	},
+	{
+		"name": "Alexandra Attalides",
+		"startDate": "2021",
+		"endDate": "2026",
+		"position": "Βουλευτής",
+		"location": "Nicosia",
+		"country": "🇨🇾",
+		"url": "https://en.wikipedia.org/wiki/Alexandra_Attalides"
+	},
+	{
+		"name": "Juliet Broersen",
+		"startDate": "2022",
+		"endDate": "2026",
+		"position": "Fractievoorzitter",
+		"location": "Amsterdam",
+		"country": "🇳🇱",
+		"url": "https://voltnederland.org/gemeenteraadsverkiezingen-2022"
+	},
+	{
+		"name": "Itay Garmy",
+		"startDate": "2022",
+		"endDate": "2026",
+		"position": "Gemeenteraadslid",
+		"location": "Amsterdam",
+		"country": "🇳🇱",
+		"url": "https://voltnederland.org/gemeenteraadsverkiezingen-2022"
+	},
+	{
+		"name": "Niels Scholten",
+		"startDate": "2022",
+		"endDate": "2026",
+		"position": "Gemeenteraadslid",
+		"location": "Arnhem",
+		"country": "🇳🇱",
+		"url": "https://voltnederland.org/gemeenteraadsverkiezingen-2022"
+	},
+	{
+		"name": "Marlies Neutkens",
+		"startDate": "2022",
+		"endDate": "2026",
+		"position": "Gemeenteraadslid",
+		"location": "Arnhem",
+		"country": "🇳🇱",
+		"url": "https://voltnederland.org/gemeenteraadsverkiezingen-2022"
+	},
+	{
+		"name": "Jorrit Treffers",
+		"startDate": "2022",
+		"endDate": "2026",
+		"position": "Gemeenteraadslid",
+		"location": "Delft",
+		"country": "🇳🇱",
+		"url": "https://voltnederland.org/gemeenteraadsverkiezingen-2022"
+	},
+	{
+		"name": "Cankut Ercan",
+		"startDate": "2022",
+		"endDate": "2026",
+		"position": "Gemeenteraadslid",
+		"location": "Zwolle",
+		"country": "🇳🇱",
+		"url": "https://voltnederland.org/gemeenteraadsverkiezingen-2022"
+	},
+	{
+		"name": "Jacco Rubenkamp",
+		"startDate": "2022",
+		"endDate": "2026",
+		"position": "Fractievoorzitter",
+		"location": "Eindhoven",
+		"country": "🇳🇱",
+		"url": "https://voltnederland.org/gemeenteraadsverkiezingen-2022"
+	},
+	{
+		"name": "Inge Teklenburg",
+		"startDate": "2022",
+		"endDate": "2026",
+		"position": "Gemeenteraadslid",
+		"location": "Eindhoven",
+		"country": "🇳🇱",
+		"url": "https://voltnederland.org/gemeenteraadsverkiezingen-2022"
+	},
+	{
+		"name": "Erik Kemp",
+		"startDate": "2022",
+		"endDate": "2026",
+		"position": "Gemeenteraadslid",
+		"location": "Enschede",
+		"country": "🇳🇱",
+		"url": "https://voltnederland.org/gemeenteraadsverkiezingen-2022"
+	},
+	{
+		"name": "Linda Wissink",
+		"startDate": "2022",
+		"endDate": "2026",
+		"position": "Gemeenteraadslid",
+		"location": "Enschede",
+		"country": "🇳🇱",
+		"url": "https://voltnederland.org/gemeenteraadsverkiezingen-2022"
+	},
+	{
+		"name": "Julius Ortjens",
+		"startDate": "2022",
+		"endDate": "2026",
+		"position": "Gemeenteraadslid",
+		"location": "Maastricht",
+		"country": "🇳🇱",
+		"url": "https://voltnederland.org/gemeenteraadsverkiezingen-2022"
+	},
+	{
+		"name": "Mart den Heijer",
+		"startDate": "2022",
+		"endDate": "2026",
+		"position": "Gemeenteraadslid",
+		"location": "Maastricht",
+		"country": "🇳🇱",
+		"url": "https://voltnederland.org/gemeenteraadsverkiezingen-2022"
+	},
+	{
+		"name": "Charlotte Passier",
+		"startDate": "2022",
+		"endDate": "2026",
+		"position": "Fractievoorzitter",
+		"location": "Utrecht",
+		"country": "🇳🇱",
+		"url": "https://voltnederland.org/gemeenteraadsverkiezingen-2022"
+	},
+	{
+		"name": "Ruud Maas",
+		"startDate": "2022",
+		"endDate": "2026",
+		"position": "Gemeenteraadslid",
+		"location": "Utrecht",
+		"country": "🇳🇱",
+		"url": "https://voltnederland.org/gemeenteraadsverkiezingen-2022"
+	},
+	{
+		"name": "Linda Bode",
+		"startDate": "2022",
+		"endDate": "2026",
+		"position": "Gemeenteraadslid",
+		"location": "Utrecht",
+		"country": "🇳🇱",
+		"url": "https://voltnederland.org/gemeenteraadsverkiezingen-2022"
+	},
+	{
+		"name": "Jennifer Glashagen",
+		"startDate": "2025",
+		"endDate": "2030",
+		"position": "Fraktionsvorsitzende",
+		"location": "Köln",
+		"country": "🇩🇪",
+		"url": "https://voltkoeln.de/team"
+	},
+	{
+		"name": "Sergen Belen",
+		"startDate": "2025",
+		"endDate": "2030",
+		"position": "Stadtrat",
+		"location": "Köln",
+		"country": "🇩🇪",
+		"url": "https://voltkoeln.de/team"
+	},
+	{
+		"name": "Helena Woll",
+		"startDate": "2025",
+		"endDate": "2030",
+		"position": "Stadträtin",
+		"location": "Köln",
+		"country": "🇩🇪",
+		"url": "https://voltkoeln.de/team"
+	},
+	{
+		"name": "Manuel Froh",
+		"startDate": "2025",
+		"endDate": "2030",
+		"position": "Stadtrat",
+		"location": "Köln",
+		"country": "🇩🇪",
+		"url": "https://voltkoeln.de/team"
+	},
+	{
+		"name": "Jasna Ibrić",
+		"startDate": "2025",
+		"endDate": "2030",
+		"position": "Stadträtin",
+		"location": "Köln",
+		"country": "🇩🇪",
+		"url": "https://voltkoeln.de/team"
+	},
+	{
+		"name": "Olga Dourou",
+		"startDate": "10/2023",
+		"endDate": "2028",
+		"position": "Αντιδήμαρχος",
+		"location": "Athens",
+		"country": "🇬🇷",
+		"url": "https://www.athinatora.gr/team/dourou-olga/"
+	},
+	{
+		"name": "State Marian",
+		"startDate": "09/06/2024",
+		"endDate": "2028",
+		"position": "Primar",
+		"location": "Florești-Stoenești",
+		"country": "🇷🇴",
+		"url": "https://voltromania.org/floresti-stoenesti"
+	},
+	{
+		"name": "Volt Florești-Stoenești candidates",
+		"startDate": "09/06/2024",
+		"endDate": "2028",
+		"position": "Consiliu Local",
+		"location": "Florești-Stoenești",
+		"country": "🇷🇴",
+		"url": "https://voltromania.org/floresti-stoenesti"
+	},
+	{
+		"name": "Volt Giurgiu-Iepurești candidates",
+		"startDate": "09/06/2024",
+		"endDate": "2028",
+		"position": "Consiliu Local",
+		"location": "Giurgiu-Iepurești",
+		"country": "🇷🇴",
+		"url": "https://voltromania.org/alegeri-locale-2024"
+	},
+	{
+		"name": "Volt Mihail Kogălniceanu candidates",
+		"startDate": "09/06/2024",
+		"endDate": "2028",
+		"position": "Consiliu Local",
+		"location": "Mihail Kogălniceanu",
+		"country": "🇷🇴",
+		"url": "https://voltromania.org/alegeri-locale-2024"
+	},
+	{
+		"name": "Caius Ionuț Seracin",
+		"startDate": "09/06/2024",
+		"endDate": "2028",
+		"position": "Primar",
+		"location": "Giroc",
+		"country": "🇷🇴",
+		"url": "https://voltromania.org/giroc"
+	},
+	{
+		"name": "Volt Giroc candidates",
+		"startDate": "09/06/2024",
+		"endDate": "2028",
+		"position": "Consiliu Local",
+		"location": "Giroc",
+		"country": "🇷🇴",
+		"url": "https://voltromania.org/giroc"
+	},
+	{
+		"name": "Rui Estrela",
+		"startDate": "2025",
+		"endDate": "2029",
+		"position": "Vereador",
+		"location": "Torres Vedras",
+		"country": "🇵🇹",
+		"url": "https://voltportugal.org/pessoas/rui-estrela-autarquicas2025-eleito"
+	},
+	{
+		"name": "Luís Tirano",
+		"startDate": "2025",
+		"endDate": "2029",
+		"position": "Assembleia Municipal",
+		"location": "Rio Maior",
+		"country": "🇵🇹",
+		"url": "https://voltportugal.org/noticias/quatro-eleitos-volt-um-novo-partido-europeu-na-politica-local-portuguesa"
+	},
+	{
+		"name": "Manuel José Neto",
+		"startDate": "2025",
+		"endDate": "2029",
+		"position": "Assembleia de Freguesia",
+		"location": "Rio Maior",
+		"country": "🇵🇹",
+		"url": "https://voltportugal.org/noticias/quatro-eleitos-volt-um-novo-partido-europeu-na-politica-local-portuguesa"
+	},
+	{
+		"name": "Carlos Leite",
+		"startDate": "2025",
+		"endDate": "2029",
+		"position": "Assembleia de Freguesia",
+		"location": "Trouxemil e Torre de Vilela, Coimbra",
+		"country": "🇵🇹",
+		"url": "https://voltportugal.org/pessoas/carlos-leite-autarquicas2025-eleito"
+	},
+	{
+		"name": "Inês Santos",
+		"startDate": "2021",
+		"endDate": "2025",
+		"position": "Assembleia de Freguesia",
+		"location": "Almalaguês, Coimbra",
+		"country": "🇵🇹",
+		"url": "https://voltportugal.org/autarquicas-2021"
+	},
+	{
+		"name": "Federica Vinci",
+		"startDate": "10/2021",
+		"endDate": "2026",
+		"position": "Vicesindaco",
+		"location": "Bologna",
+		"country": "🇮🇹",
+		"url": "https://voltitalia.it/elezioni-trasparenti"
+	},
+	{
+		"name": "Volt Mantova",
+		"startDate": "2021",
+		"endDate": "2026",
+		"position": "Consigliere Comunale",
+		"location": "Mantova",
+		"country": "🇮🇹",
+		"url": "https://voltitalia.it/elezioni-trasparenti"
+	},
+	{
+		"name": "Volt Matera candidates",
+		"startDate": "10/2021",
+		"endDate": "2026",
+		"position": "Consigliere Comunale",
+		"location": "Matera",
+		"country": "🇮🇹",
+		"url": "https://voltitalia.it/elezioni-trasparenti"
+	},
+	{
+		"name": "Camille Marteau",
+		"startDate": "03/2026",
+		"endDate": "2032",
+		"position": "Conseiller Municipal",
+		"location": "Strasbourg",
+		"country": "🇫🇷",
+		"url": "https://voltfrance.org/actualites/volt-entre-au-conseil-municipal-de-strasbourg"
+	},
+	{
+		"name": "Mathias Langner",
+		"startDate": "03/2026",
+		"endDate": "2032",
+		"position": "Conseiller Municipal",
+		"location": "L'Hermitage",
+		"country": "🇫🇷",
+		"url": "https://www.dna.fr/elections/resultats/elections-municipales-2026?commune=35131"
+	}
+]
