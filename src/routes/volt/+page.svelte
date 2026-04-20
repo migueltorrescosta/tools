@@ -207,57 +207,59 @@
 	</div>
 
 	<!-- Timeline Header -->
-	<div class="timeline-header">
-		<div class="timeline-label">TIMELINE ({minYear} - {maxYear})</div>
-		<div class="timeline-scale">
-			{#each Array(yearRange) as _, i}
-				<span class="year-marker">{minYear + i}</span>
+	<div class="gantt-scroll-wrapper">
+		<div class="timeline-header">
+			<div class="timeline-label">TIMELINE ({minYear} - {maxYear})</div>
+			<div class="timeline-scale">
+				{#each Array(yearRange) as _, i}
+					<span class="year-marker">{minYear + i}</span>
+				{/each}
+			</div>
+		</div>
+
+		<!-- Gantt Chart -->
+		<div class="gantt-container">
+			{#each Object.entries(filteredCountries) as [country, positions] (country)}
+				{@const color = countryColors[country] || '#888'}
+				{@const totalCount = positions.reduce((sum, g) => sum + g.politicians.length, 0)}
+				<div class="gantt-country">
+					<div class="country-header">
+						<span class="country-flag">{country}</span>
+						<span class="country-count">{totalCount}</span>
+					</div>
+					<div class="country-rows">
+						{#each positions as group (group.location)}
+							{@const barHeight = group.politicians.length * 14}
+							<div class="gantt-row">
+								<div class="row-label">{group.location}</div>
+								<div class="row-bar-container" style="height: {barHeight}px;">
+									{#each group.politicians as p, idx (p.name)}
+										{@const start = parseDate(p.startDate)}
+										{@const end = parseDate(p.endDate)}
+										{@const left = ((start - minYear) / yearRange) * 100}
+										{@const width = ((end - start + 1) / yearRange) * 100}
+										{@const top = idx * 14}
+										<div
+											class="row-bar"
+											style="left: {left}%; width: {width}%; background: {color}; top: {top}px; height: 14px;"
+										>
+											<a
+												href={p.url}
+												target="_blank"
+												rel="noopener noreferrer"
+												class="bar-link"
+											>
+												<span class="bar-text">{p.name} ({p.position})</span>
+											</a>
+										</div>
+									{/each}
+								</div>
+							</div>
+						{/each}
+					</div>
+				</div>
 			{/each}
 		</div>
-	</div>
-
-	<!-- Gantt Chart -->
-	<div class="gantt-container">
-		{#each Object.entries(filteredCountries) as [country, positions] (country)}
-			{@const color = countryColors[country] || '#888'}
-			{@const totalCount = positions.reduce((sum, g) => sum + g.politicians.length, 0)}
-			<div class="gantt-country">
-				<div class="country-header">
-					<span class="country-flag">{country}</span>
-					<span class="country-count">{totalCount}</span>
-				</div>
-				<div class="country-rows">
-					{#each positions as group (group.location)}
-						{@const barHeight = group.politicians.length * 14}
-						<div class="gantt-row">
-							<div class="row-label">{group.location}</div>
-							<div class="row-bar-container" style="height: {barHeight}px;">
-								{#each group.politicians as p, idx (p.name)}
-									{@const start = parseDate(p.startDate)}
-									{@const end = parseDate(p.endDate)}
-									{@const left = ((start - minYear) / yearRange) * 100}
-									{@const width = ((end - start + 1) / yearRange) * 100}
-									{@const top = idx * 14}
-									<div
-										class="row-bar"
-										style="left: {left}%; width: {width}%; background: {color}; top: {top}px; height: 14px;"
-									>
-										<a
-											href={p.url}
-											target="_blank"
-											rel="noopener noreferrer"
-											class="bar-link"
-										>
-											<span class="bar-text">{p.name} ({p.position})</span>
-										</a>
-									</div>
-								{/each}
-							</div>
-						</div>
-					{/each}
-				</div>
-			</div>
-		{/each}
 	</div>
 </div>
 
@@ -281,6 +283,8 @@
 		border-bottom: 1px solid var(--futuristic-border);
 		margin-bottom: 1rem;
 		z-index: 10;
+		display: flex;
+		flex-direction: column;
 	}
 
 	.timeline-label {
@@ -288,6 +292,7 @@
 		font-weight: 600;
 		color: var(--futuristic-cyan);
 		margin-bottom: 0.5rem;
+		padding: 0 1rem;
 	}
 
 	.timeline-scale {
@@ -295,6 +300,7 @@
 		justify-content: space-between;
 		padding-left: 200px;
 		padding-right: 1rem;
+		min-width: 800px;
 	}
 
 	.year-marker {
@@ -302,6 +308,26 @@
 		color: var(--futuristic-text-dim);
 		flex: 1;
 		text-align: center;
+	}
+
+	/* Scrollable wrapper for horizontal scrolling */
+	.gantt-scroll-wrapper {
+		overflow-x: auto;
+		margin: 0 -1.5rem;
+		padding: 0 1.5rem;
+	}
+
+	.gantt-scroll-wrapper::-webkit-scrollbar {
+		height: 10px;
+	}
+
+	.gantt-scroll-wrapper::-webkit-scrollbar-track {
+		background: var(--futuristic-bg);
+	}
+
+	.gantt-scroll-wrapper::-webkit-scrollbar-thumb {
+		background: linear-gradient(90deg, var(--futuristic-cyan), var(--futuristic-blue));
+		border-radius: 5px;
 	}
 
 	.gantt-container {
@@ -458,5 +484,57 @@
 		font-weight: 600;
 		color: var(--futuristic-cyan);
 		text-align: right;
+	}
+
+	/* Mobile styles */
+	@media (max-width: 768px) {
+		.timeline-scale {
+			padding-left: 120px;
+			min-width: 600px;
+		}
+
+		.gantt-row {
+			grid-template-columns: 120px 1fr;
+		}
+
+		.row-label {
+			font-size: 0.75rem;
+			padding: 0 0.5rem;
+		}
+
+		.bar-chart {
+			overflow-x: auto;
+			margin: 0 -1rem;
+			padding: 0.75rem 1rem;
+		}
+
+		.bar-row {
+			grid-template-columns: 100px 1fr 35px;
+			min-width: 400px;
+		}
+
+		.bar-label {
+			font-size: 0.7rem;
+		}
+
+		.gantt-scroll-wrapper {
+			margin: 0 -1rem;
+			padding: 0 1rem;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.timeline-scale {
+			padding-left: 100px;
+			min-width: 500px;
+		}
+
+		.gantt-row {
+			grid-template-columns: 100px 1fr;
+		}
+
+		.row-label {
+			font-size: 0.7rem;
+		}
 	}
 </style>
