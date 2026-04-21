@@ -3,7 +3,7 @@
 
 // --- Constants ---
 export const MIN_CHOICES = 2;
-export const MAX_CHOICES = 8;
+export const MAX_CHOICES = 14;
 
 // Crockford's Base32 alphabet (excludes I, L, O, U)
 const CB32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
@@ -152,7 +152,7 @@ export function isValidCode(code: string, numChoices: number): boolean {
 }
 
 // --- Color palette ---
-// 8 futuristic/neon colors for visual distinction
+// 14 futuristic/neon colors for visual distinction
 // Using cyan/magenta/blue/purple palette to match the futuristic theme
 export const COLOR_PALETTE = [
 	{ bg: 'rgba(0, 245, 255, 0.15)', border: 'var(--futuristic-cyan)' }, // Cyan
@@ -162,7 +162,13 @@ export const COLOR_PALETTE = [
 	{ bg: 'rgba(0, 255, 127, 0.15)', border: '#00ff7f' }, // Spring green
 	{ bg: 'rgba(255, 165, 0, 0.15)', border: '#ffa500' }, // Orange
 	{ bg: 'rgba(255, 20, 147, 0.15)', border: '#ff1493' }, // Deep pink
-	{ bg: 'rgba(64, 224, 208, 0.15)', border: '#40e0d0' } // Turquoise
+	{ bg: 'rgba(64, 224, 208, 0.15)', border: '#40e0d0' }, // Turquoise
+	{ bg: 'rgba(255, 215, 0, 0.15)', border: '#ffd700' }, // Gold
+	{ bg: 'rgba(50, 205, 50, 0.15)', border: '#32cd32' }, // Lime green
+	{ bg: 'rgba(255, 69, 0, 0.15)', border: '#ff4500' }, // Orange red
+	{ bg: 'rgba(147, 112, 219, 0.15)', border: '#9370db' }, // Medium purple
+	{ bg: 'rgba(0, 191, 255, 0.15)', border: '#00bfff' }, // Deep sky blue
+	{ bg: 'rgba(255, 127, 80, 0.15)', border: '#ff7f50' } // Coral
 ];
 
 export function choiceColor(index: number) {
