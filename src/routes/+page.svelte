@@ -44,6 +44,12 @@
 			name: 'Volt',
 			description:
 				'Table of elected representatives of the pan-European political party Volt Europa.'
+		},
+		{
+			path: '/rank-vote',
+			name: 'Rank Vote',
+			description:
+				'Ranked-choice voting tool for small groups. Create a ballot, share a link, and tally results with Borda count.'
 		}
 	];
 
