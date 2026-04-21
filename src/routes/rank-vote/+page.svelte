@@ -82,8 +82,8 @@
 				width: 200,
 				margin: 2,
 				color: {
-					dark: '#00f5ff',
-					light: '#1a1a28'
+					dark: '#ffffff',
+					light: '#000000'
 				}
 			});
 		} catch {
@@ -395,7 +395,10 @@
 	{/if}
 
 	{#if mode === 'vote' && election}
-		<h2 class="vote-title">{election.title}</h2>
+		<div class="vote-header-row">
+			<a href={'#tally=' + encodedBallot} class="back-link">← Tally</a>
+			<h2 class="vote-title">{election.title}</h2>
+		</div>
 		<p class="hint">Rank the choices in your preferred order.</p>
 
 		<div class="rank-choices">
@@ -631,6 +634,27 @@
 
 <style>
 	/* Additional styles for rank-vote specific elements */
+	.vote-header-row {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.back-link {
+		color: var(--futuristic-cyan);
+		text-decoration: none;
+		font-size: 0.85rem;
+		padding: 0.25rem 0.5rem;
+		border-radius: 4px;
+		transition: background 0.15s;
+		white-space: nowrap;
+	}
+
+	.back-link:hover {
+		background: rgba(0, 245, 255, 0.1);
+	}
+
 	.vote-title {
 		font-family: 'Orbitron', sans-serif;
 		font-size: 1.5rem;
