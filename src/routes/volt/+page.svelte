@@ -21,11 +21,13 @@
 	}
 
 	// Process politicians with parsed dates
-	const processed: (Politician & { startYear: number; endYear: number })[] = electedOfficials.map((p) => ({
-		...p,
-		startYear: parseDate(p.startDate),
-		endYear: parseDate(p.endDate)
-	}));
+	const processed: (Politician & { startYear: number; endYear: number })[] = electedOfficials.map(
+		(p) => ({
+			...p,
+			startYear: parseDate(p.startDate),
+			endYear: parseDate(p.endDate)
+		})
+	);
 
 	// Determine timeline range
 	const minYear = Math.min(...processed.map((p) => p.startYear));
@@ -63,15 +65,15 @@
 
 	// Country colors (lighter for better contrast with dark text)
 	const countryColors: Record<string, string> = {
-		'🇩🇪': '#FFEA00',  // Germany - bright gold
-		'🇳🇱': '#FF9933',  // Netherlands - light orange
+		'🇩🇪': '#FFEA00', // Germany - bright gold
+		'🇳🇱': '#FF9933', // Netherlands - light orange
 		'🇬🇷': '#3399FF', // Greece - bright blue
 		'🇨🇾': '#FF7733', // Cyprus - coral orange
 		'🇷🇴': '#3366CC', // Romania - medium blue
 		'🇵🇹': '#00AC00', // Portugal - green
 		'🇮🇹': '#009999', // Italy - teal
 		'🇫🇷': '#E30717', // France - red
-		'🇪🇺': '#4477DD'  // EU - softer blue
+		'🇪🇺': '#4477DD' // EU - softer blue
 	};
 
 	type CountryFilter = 'all' | '🇪🇺' | '🇳🇱' | '🇩🇪' | '🇨🇾' | '🇬🇷' | '🇷🇴' | '🇵🇹' | '🇮🇹' | '🇫🇷';
@@ -187,16 +189,16 @@
 				{#each sortedBars as bar (bar.key)}
 					<button
 						class="bar-row"
-						class:active={filterCountry === bar.flag || (bar.key === 'all' && filterCountry === 'all')}
-						onclick={() => (filterCountry = bar.key === 'all' ? 'all' : bar.flag as CountryFilter)}
+						class:active={filterCountry === bar.flag ||
+							(bar.key === 'all' && filterCountry === 'all')}
+						onclick={() =>
+							(filterCountry = bar.key === 'all' ? 'all' : (bar.flag as CountryFilter))}
 					>
 						<span class="bar-label">{bar.flag} {bar.label}</span>
 						<div class="bar-container">
 							<div
 								class="bar-fill"
-								style="width: {stats.total > 0
-									? (bar.count / stats.total) * 100
-									: 0}%"
+								style="width: {stats.total > 0 ? (bar.count / stats.total) * 100 : 0}%"
 							></div>
 						</div>
 						<span class="bar-value">{bar.count}</span>
@@ -243,12 +245,7 @@
 											class="row-bar"
 											style="left: {left}%; width: {width}%; background: {color}; top: {top}px; height: 14px;"
 										>
-											<a
-												href={p.url}
-												target="_blank"
-												rel="noopener noreferrer"
-												class="bar-link"
-											>
+											<a href={p.url} target="_blank" rel="noopener noreferrer" class="bar-link">
 												<span class="bar-text">{p.name} ({p.position})</span>
 											</a>
 										</div>
@@ -264,10 +261,6 @@
 </div>
 
 <style>
-	.filter-section {
-		margin-bottom: 1.5rem;
-	}
-
 	.summary-panel {
 		background: var(--futuristic-surface);
 		border-radius: 8px;
@@ -404,7 +397,9 @@
 		display: flex;
 		align-items: center;
 		overflow: hidden;
-		transition: transform 0.2s, box-shadow 0.2s;
+		transition:
+			transform 0.2s,
+			box-shadow 0.2s;
 	}
 
 	.row-bar:hover {

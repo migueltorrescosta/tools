@@ -8,7 +8,6 @@
 	let { children } = $props();
 
 	function navigate(path: string) {
-		// eslint-disable-next-line svelte/no-navigation-without-resolve
 		goto(path);
 	}
 </script>

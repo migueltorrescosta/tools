@@ -56,7 +56,7 @@ function getLockfileDeps(): Record<string, string> {
 		const packageMatch = line.match(/^\s{6}('?[^:]+'?:)\s*$/);
 		if (packageMatch) {
 			// Remove quotes and trailing colon: 'package-name': -> package-name
-			let packageName = packageMatch[1].replace(/^'|':$/g, '').replace(/:$/, '');
+			const packageName = packageMatch[1].replace(/^'|':$/g, '').replace(/:$/, '');
 			// Look ahead for specifier on the next lines
 			for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
 				const nextLine = lines[j];

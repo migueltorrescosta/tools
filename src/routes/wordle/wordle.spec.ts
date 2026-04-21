@@ -351,7 +351,7 @@ describe('Game Logic', () => {
 
 		it('should navigate through tree based on result patterns', () => {
 			// Start at root with BBBBB result
-			let currentNode = solutionTree['BBBBB'] as TreeNode;
+			const currentNode = solutionTree['BBBBB'] as TreeNode;
 			expect(currentNode).toBeDefined();
 
 			// Navigate using a valid result
@@ -426,7 +426,7 @@ describe('Edge Cases', () => {
 describe('Real game scenarios', () => {
 	it('should handle a realistic game progression', () => {
 		// Start at BBBBB (all wrong letters)
-		let currentNode = solutionTree['BBBBB'] as TreeNode;
+		const currentNode = solutionTree['BBBBB'] as TreeNode;
 		expect(currentNode).toBeDefined();
 		expect(currentNode.word.length).toBe(5);
 

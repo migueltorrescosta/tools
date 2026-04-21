@@ -215,7 +215,12 @@ export function tallyResults(choices: string[], votes: Vote[]): TallyResult {
 		valid++;
 	}
 
-	const results: Result[] = choices.map((text, i) => ({ text, score: scores[i], index: i, rank: 0 }));
+	const results: Result[] = choices.map((text, i) => ({
+		text,
+		score: scores[i],
+		index: i,
+		rank: 0
+	}));
 	results.sort((a, b) => b.score - a.score || a.index - b.index);
 
 	// Competition ranking for ties

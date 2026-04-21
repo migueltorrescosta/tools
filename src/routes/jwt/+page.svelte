@@ -193,13 +193,19 @@
 			<div class="panel-content">
 				<div class="signature-row">
 					<div class="secret-section">
-						<label class="input-label">SECRET</label>
-						<input type="text" class="secret-input" bind:value={secret} placeholder="secret" />
+						<label class="input-label" for="secret-input">SECRET</label>
+						<input
+							id="secret-input"
+							type="text"
+							class="secret-input"
+							bind:value={secret}
+							placeholder="secret"
+						/>
 					</div>
 
 					<div class="algorithm-section">
-						<label class="input-label">ALGORITHM</label>
-						<select class="algorithm-select" bind:value={selectedAlgorithm}>
+						<label class="input-label" for="algorithm-select">ALGORITHM</label>
+						<select id="algorithm-select" class="algorithm-select" bind:value={selectedAlgorithm}>
 							{#each algorithms as alg (alg)}
 								<option value={alg}>{alg}</option>
 							{/each}
@@ -208,7 +214,7 @@
 				</div>
 
 				<div class="signature-display">
-					<label class="input-label">SIGNATURE</label>
+					<span class="input-label">SIGNATURE</span>
 					<div class="signature-value">{signatureResult || 'Not available'}</div>
 				</div>
 
@@ -229,8 +235,9 @@
 
 		<div class="encode-inputs">
 			<div class="encode-input-group">
-				<label class="input-label">HEADER (JSON)</label>
+				<label class="input-label" for="header-json">HEADER (JSON)</label>
 				<textarea
+					id="header-json"
 					class="encode-textarea"
 					bind:value={headerJson}
 					placeholder={'{"alg": "HS256", "typ": "JWT"}'}
@@ -240,8 +247,9 @@
 			</div>
 
 			<div class="encode-input-group">
-				<label class="input-label">PAYLOAD (JSON)</label>
+				<label class="input-label" for="payload-json">PAYLOAD (JSON)</label>
 				<textarea
+					id="payload-json"
 					class="encode-textarea"
 					bind:value={payloadJson}
 					placeholder={'{"sub": "1234567890", "name": "John Doe"}'}

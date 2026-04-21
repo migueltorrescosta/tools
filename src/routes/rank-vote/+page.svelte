@@ -63,7 +63,9 @@
 
 	// --- Ballot validation ---
 	function isBallotValid(): boolean {
-		return title.trim().length > 0 && choices.length >= MIN_CHOICES && choices.every((c) => c.trim());
+		return (
+			title.trim().length > 0 && choices.length >= MIN_CHOICES && choices.every((c) => c.trim())
+		);
 	}
 
 	// --- Get vote URL ---
@@ -224,10 +226,18 @@
 	let voteCodeWidth = $derived(election ? codeWidth(election.choices.length) : 0);
 
 	// Results for each voting mechanism
-	let resultsFPTP = $derived(election ? tallyFPTP(election.choices, votes) : { results: [], valid: 0 });
-	let resultsIRV = $derived(election ? tallyIRV(election.choices, votes) : { results: [], valid: 0 });
-	let resultsBorda = $derived(election ? tallyResults(election.choices, votes) : { results: [], valid: 0 });
-	let resultsCondorcet = $derived(election ? tallyCondorcet(election.choices, votes) : { results: [], valid: 0 });
+	let resultsFPTP = $derived(
+		election ? tallyFPTP(election.choices, votes) : { results: [], valid: 0 }
+	);
+	let resultsIRV = $derived(
+		election ? tallyIRV(election.choices, votes) : { results: [], valid: 0 }
+	);
+	let resultsBorda = $derived(
+		election ? tallyResults(election.choices, votes) : { results: [], valid: 0 }
+	);
+	let resultsCondorcet = $derived(
+		election ? tallyCondorcet(election.choices, votes) : { results: [], valid: 0 }
+	);
 
 	// --- Init ---
 	onMount(() => {
@@ -281,7 +291,11 @@
 </script>
 
 <svelte:head>
-	<title>{election && (mode === 'vote' || mode === 'tally') ? `${election.title} — Rank Vote` : 'Rank Vote'}</title>
+	<title
+		>{election && (mode === 'vote' || mode === 'tally')
+			? `${election.title} — Rank Vote`
+			: 'Rank Vote'}</title
+	>
 </svelte:head>
 
 <!-- Toast notification -->
@@ -300,7 +314,8 @@
 		aria-modal="true"
 		tabindex="-1"
 	>
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div class="qr-modal" onclick={(e) => e.stopPropagation()}>
 			<button class="qr-close" onclick={closeQRModal} aria-label="Close">×</button>
 			<h3>{qrModalTitle}</h3>
@@ -373,11 +388,7 @@
 					<button class="btn-secondary" onclick={addChoice}>+ Add choice</button>
 				{/if}
 			</div>
-			<button
-				class="btn-primary-full"
-				disabled={!isBallotValid()}
-				onclick={createBallot}
-			>
+			<button class="btn-primary-full" disabled={!isBallotValid()} onclick={createBallot}>
 				Create ballot
 			</button>
 		</div>
@@ -454,8 +465,9 @@
 						<input type="text" class="rank-input share-input" value={getVoteURL()} readonly />
 					</div>
 					<div class="share-buttons">
-						<button class="btn-secondary" onclick={() => copyToClipboard(getVoteURL(), 'Link copied')}
-							>Copy</button
+						<button
+							class="btn-secondary"
+							onclick={() => copyToClipboard(getVoteURL(), 'Link copied')}>Copy</button
 						>
 						<button class="btn-secondary" onclick={() => openQRModal(getVoteURL(), 'Scan to vote')}
 							>QR</button
@@ -607,7 +619,13 @@
 	{/if}
 
 	<footer class="tool-footer">
-		<p>Tool forked from <a href="https://tools.jonathandemirgian.com/rank-vote.html" target="_blank" rel="noopener">https://tools.jonathandemirgian.com/rank-vote.html</a></p>
+		<p>
+			Tool forked from <a
+				href="https://tools.jonathandemirgian.com/rank-vote.html"
+				target="_blank"
+				rel="noopener">https://tools.jonathandemirgian.com/rank-vote.html</a
+			>
+		</p>
 	</footer>
 </div>
 

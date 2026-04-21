@@ -1,9 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 // Mock DOMParser for Node.js environment
-const mockQuerySelector = vi.fn();
-const mockParseFromString = vi.fn();
-
 class MockDOMParser {
 	parseFromString(text: string, _type: string) {
 		const parser = new MockDOMParserImpl(text);
@@ -20,16 +17,15 @@ class MockDOMParserImpl {
 		if (selector !== 'parsererror') return null;
 
 		// Basic XML validation
-		const errors: string[] = [];
+		// Note: XML validation is done inline, errors are returned directly
 
 		// Check for unclosed tags
 		const tagPattern = /<(\/?)([\w:-]+)([^>]*)>/g;
 		const stack: string[] = [];
 		let match;
-		let lastIndex = 0;
 
 		while ((match = tagPattern.exec(this.xml)) !== null) {
-			lastIndex = match.index + match[0].length;
+			// Track position for potential error reporting (currently unused)
 			const isClosing = match[1] === '/';
 			const tagName = match[2];
 			const content = match[3];
@@ -60,7 +56,7 @@ class MockDOMParserImpl {
 		const attrPattern = /<[\w:-]+([^>]*?)>/g;
 		while ((match = attrPattern.exec(this.xml)) !== null) {
 			const attrs = match[1];
-			const unquotedMatch = attrs.match(/[^\s=]+=(?![^"\']*["\'])[^\s>]+/);
+			const unquotedMatch = attrs.match(/[^\s=]+=(?![^"']*["'])[^\s>]+/);
 			if (unquotedMatch) {
 				return { textContent: 'error at line 1: attributes must have quoted values' };
 			}
@@ -100,7 +96,7 @@ function validateJson(text: string): { valid: boolean; message: string } {
 
 function validateYamlSimple(text: string): void {
 	const lines = text.split('\n');
-	let indentStack: number[] = [0];
+	const indentStack: number[] = [0];
 	let inBlockScalar = false;
 	let blockScalarIndent = 0;
 
