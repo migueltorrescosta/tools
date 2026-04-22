@@ -267,6 +267,7 @@ export function tallyFPTP(choices: string[], votes: Vote[]): TallyResult {
 
 // --- Instant Runoff Voting (IRV) ---
 // Eliminate lowest, redistribute until someone has >50%
+// Score: round eliminated in (winner gets n)
 
 export function tallyIRV(choices: string[], votes: Vote[]): TallyResult {
 	const n = choices.length;
@@ -282,22 +283,22 @@ export function tallyIRV(choices: string[], votes: Vote[]): TallyResult {
 	}
 
 	if (valid === 0) {
-		const results: Result[] = choices.map((text, i) => ({ text, score: 0, index: i, rank: i + 1 }));
+		const results: Result[] = choices.map((text, i) => ({ text, score: 0, index: i, rank: 0 }));
 		return { results, valid: 0 };
 	}
 
-	// Track which candidates are still in the running
+	// Simulate IRV to track elimination round for each candidate
 	const active = new Set<number>();
 	for (let i = 0; i < n; i++) active.add(i);
 
-	// Track rounds for each candidate
-	const roundsWon: number[] = new Array(n).fill(0);
+	const eliminationRound = new Array(n).fill(0);
+	let round = 1;
+	let winner: number | null = null;
 
-	while (active.size > 0) {
+	while (active.size > 0 && winner === null) {
 		// Count first-choice votes among active candidates
 		const counts = new Array(n).fill(0);
 		for (const ballot of ballots) {
-			// Find first choice that's still active
 			for (const choice of ballot) {
 				if (active.has(choice)) {
 					counts[choice]++;
@@ -311,54 +312,64 @@ export function tallyIRV(choices: string[], votes: Vote[]): TallyResult {
 
 		// Check for winner with >50%
 		for (const choice of active) {
-			if (counts[choice] > totalActiveVotes / 2) {
-				roundsWon[choice]++;
-				active.delete(choice);
+			if (counts[choice] > valid / 2) {
+				winner = choice;
 				break;
 			}
 		}
+
+		if (winner !== null) break;
 
 		// Find lowest and eliminate
-		if (active.size > 0) {
-			let minCount = Infinity;
-			let minChoices: number[] = [];
-			for (const choice of active) {
-				if (counts[choice] < minCount) {
-					minCount = counts[choice];
-					minChoices = [choice];
-				} else if (counts[choice] === minCount) {
-					minChoices.push(choice);
-				}
-			}
-
-			// If multiple tied for last, eliminate first by index
-			if (minChoices.length === active.size) {
-				// All remaining tied - all get 1 round
-				for (const choice of active) {
-					roundsWon[choice]++;
-				}
-				break;
-			}
-
-			// Eliminate the lowest (by index if tied)
-			minChoices.sort((a, b) => a - b);
-			active.delete(minChoices[0]);
+		let minCount = Infinity;
+		for (const choice of active) {
+			if (counts[choice] < minCount) minCount = counts[choice];
 		}
+
+		const minChoices: number[] = [];
+		for (const choice of active) {
+			if (counts[choice] === minCount) minChoices.push(choice);
+		}
+
+		if (active.size === 1) {
+			winner = Array.from(active)[0];
+			break;
+		}
+
+		// Sort by index to break ties deterministically
+		minChoices.sort((a, b) => a - b);
+		const eliminated = minChoices[0];
+		active.delete(eliminated);
+		eliminationRound[eliminated] = round;
+		round++;
 	}
 
-	// Convert rounds won to final scores (more rounds = higher score)
+	// Score: winner gets n, each eliminated gets their elimination round
+	// Final round survivors (not winner) get n-1
 	const results: Result[] = choices.map((text, i) => ({
 		text,
-		score: roundsWon[i],
+		score: 0,
 		index: i,
 		rank: 0
 	}));
+
+	for (let i = 0; i < n; i++) {
+		if (i === winner) {
+			results[i].score = n;
+		} else if (eliminationRound[i] > 0) {
+			results[i].score = eliminationRound[i];
+		} else {
+			// Still active but didn't win - final round survivor
+			results[i].score = n - 1;
+		}
+	}
+
+	// Sort by score descending, then by index for ties
 	results.sort((a, b) => b.score - a.score || a.index - b.index);
 
 	// Assign ranks
 	for (let i = 0; i < results.length; i++) {
-		results[i].rank =
-			i === 0 || results[i].score !== results[i - 1].score ? i + 1 : results[i - 1].rank;
+		results[i].rank = i === 0 || results[i].score !== results[i - 1].score ? i + 1 : results[i - 1].rank;
 	}
 
 	return { results, valid };

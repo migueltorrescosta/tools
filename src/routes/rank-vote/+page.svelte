@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
 	import QRCode from 'qrcode';
 	import {
 		MIN_CHOICES,
@@ -39,7 +38,6 @@
 	let toastVisible = $state(false);
 	let qrModalOpen = $state(false);
 	let qrModalText = $state('');
-	let qrModalTitle = $state('');
 	let qrDataUrl = $state('');
 
 	// --- Toast ---
@@ -74,9 +72,8 @@
 	}
 
 	// --- QR Modal ---
-	async function openQRModal(text: string, title: string) {
+	async function openQRModal(text: string) {
 		qrModalText = text;
-		qrModalTitle = title;
 		try {
 			qrDataUrl = await QRCode.toDataURL(text, {
 				width: 200,
@@ -215,14 +212,6 @@
 			: ''
 	);
 
-	let tallyData = $derived(
-		election ? tallyResults(election.choices, votes) : { results: [], valid: 0 }
-	);
-
-	let voteCodePattern = $derived(
-		election ? `[${CB32_CHAR_CLASS}]{${codeWidth(election.choices.length)}}` : ''
-	);
-
 	let voteCodeWidth = $derived(election ? codeWidth(election.choices.length) : 0);
 
 	// Results for each voting mechanism
@@ -318,7 +307,7 @@
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div class="qr-modal" onclick={(e) => e.stopPropagation()}>
 			<button class="qr-close" onclick={closeQRModal} aria-label="Close">×</button>
-			<h3>{qrModalTitle}</h3>
+			<h3>Scan to vote</h3>
 			{#if qrDataUrl}
 				<div class="qr-image-container">
 					<img src={qrDataUrl} alt="QR Code" class="qr-image" />
@@ -472,7 +461,7 @@
 							class="btn-secondary"
 							onclick={() => copyToClipboard(getVoteURL(), 'Link copied')}>Copy</button
 						>
-						<button class="btn-secondary" onclick={() => openQRModal(getVoteURL(), 'Scan to vote')}
+						<button class="btn-secondary" onclick={() => openQRModal(getVoteURL())}
 							>QR</button
 						>
 					</div>
