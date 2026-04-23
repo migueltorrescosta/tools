@@ -18,7 +18,12 @@
 	<button
 		class="nav-link"
 		class:active={page.url.pathname === '/'}
-		onclick={() => navigate(`${base}/`)}>Homepage</button
-	>
+		onclick={() => navigate(`${base}/`)}>Homepage</button>
 </nav>
 {@render children()}
+
+<footer class="footer">
+	<p>
+		Collection of Developer Utilities. Everything runs exclusively on your browser. No guarantees of correctness are provided. Use at your own risk. Contact <a href="mailto:tools-feedback@mptc.uk">tools-feedback@mptc.uk</a> for improvement suggestions
+	</p>
+</footer>
