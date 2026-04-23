@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import QRCode from 'qrcode';
+	import { copyToClipboard as copyToClipboardLib } from '$lib/clipboard';
 	import {
 		MIN_CHOICES,
 		MAX_CHOICES,
@@ -52,7 +53,7 @@
 	// --- Clipboard ---
 	async function copyToClipboard(text: string, successMsg: string) {
 		try {
-			await navigator.clipboard.writeText(text);
+			await copyToClipboardLib(text);
 			showToast(successMsg);
 		} catch {
 			showToast('Could not copy — check clipboard permissions');
@@ -226,6 +227,10 @@
 	);
 	let resultsCondorcet = $derived(
 		election ? tallyCondorcet(election.choices, votes) : { results: [], valid: 0 }
+	);
+
+	let voteCodePattern = $derived(
+		election ? `[${CB32_CHAR_CLASS}]{${codeWidth(election.choices.length)}}` : ''
 	);
 
 	// --- Init ---

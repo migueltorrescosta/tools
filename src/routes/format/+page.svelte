@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { copyToClipboard } from '$lib/clipboard';
 
 	let content = $state('');
 	let selectedFormat = $state('json');
@@ -42,98 +43,70 @@
 			return { valid: false, message: 'YAML cannot be empty' };
 		}
 		try {
-			validateYamlSimple(text);
-			return { valid: true, message: 'Valid YAML' };
-		} catch (e) {
-			const error = e as Error;
-			return { valid: false, message: `Invalid YAML: ${error.message}` };
-		}
-	}
+			// Inline YAML validation logic
+			const lines = text.split('\n');
+			let indentStack: number[] = [0];
+			let inBlockScalar = false;
+			let blockScalarIndent = 0;
 
-	function validateYamlSimple(text: string): void {
-		const lines = text.split('\n');
-		let indentStack: number[] = [0];
-		let inBlockScalar = false;
-		let blockScalarIndent = 0;
+			for (let i = 0; i < lines.length; i++) {
+				const line = lines[i];
 
-		for (let i = 0; i < lines.length; i++) {
-			const line = lines[i];
-
-			if (line.trim() === '' || line.trim().startsWith('#')) {
-				continue;
-			}
-
-			if (inBlockScalar) {
-				const indent = line.match(/^(\s*)/)?.[1].length ?? 0;
-				if (indent < blockScalarIndent && line.trim() !== '') {
-					inBlockScalar = false;
-					indentStack.pop();
-				} else {
+				if (line.trim() === '' || line.trim().startsWith('#')) {
 					continue;
 				}
-			}
 
-			if (line.match(/^[|>]-?\s*$/)) {
-				inBlockScalar = true;
+				if (inBlockScalar) {
+					const indent = line.match(/^(\s*)/)?.[1].length ?? 0;
+					if (indent < blockScalarIndent && line.trim() !== '') {
+						inBlockScalar = false;
+					} else {
+						continue;
+					}
+				}
+
+				// Detect block scalars (|, >)
+				if (line.trim().match(/^(\||>)\d*(\+|-)?$/)) {
+					inBlockScalar = true;
+					blockScalarIndent = line.match(/^(\s*)/)?.[1].length ?? 0;
+					continue;
+				}
+
 				const currentIndent = line.match(/^(\s*)/)?.[1].length ?? 0;
-				blockScalarIndent = currentIndent;
-				continue;
-			}
+				const lastIndent = indentStack[indentStack.length - 1];
 
-			const indent = line.match(/^(\s*)/)?.[1].length ?? 0;
-			const trimmed = line.trim();
+				if (line.trim().startsWith('-')) {
+					// List item
+					indentStack.push(currentIndent);
+				} else if (currentIndent > lastIndent) {
+					// Nested key
+					indentStack.push(currentIndent);
+				} else if (currentIndent < lastIndent) {
+					// Going back up the tree
+					while (indentStack.length > 1 && indentStack[indentStack.length - 1] > currentIndent) {
+						indentStack.pop();
+					}
+				}
 
-			if (trimmed === '') continue;
-
-			const lastIndent = indentStack[indentStack.length - 1];
-
-			if (indent > lastIndent && !trimmed.startsWith('-') && !trimmed.startsWith('?')) {
-				throw new Error(`Unexpected indentation at line ${i + 1}`);
-			}
-
-			if (trimmed.match(/^-\s+/)) {
+				// Check for key: value format
 				const keyMatch = trimmed.match(/^-\s+([^:]+):?\s*(.*)$/);
 				if (keyMatch) {
 					const key = keyMatch[1].trim();
 					const value = keyMatch[2].trim();
-					if (key.includes(':') && !value.startsWith('{') && !value.startsWith('[')) {
-						throw new Error(`Invalid mapping at line ${i + 1}: unexpected ":" in key "${key}"`);
+					if (!key) {
+						return { valid: false, message: `Invalid YAML at line ${i + 1}: empty key` };
+					}
+					// Check for invalid characters
+					const invalidChars = line.trim().match(/[\x00-\x08\x0B\x0C\x0E-\x1F]/);
+					if (invalidChars) {
+						return { valid: false, message: `Invalid YAML: control characters not allowed` };
 					}
 				}
 			}
-
-			if (trimmed.match(/^[^:]+:\s*[|:>-]/)) {
-				const nextLineIndex = i + 1;
-				if (nextLineIndex >= lines.length || lines[nextLineIndex].trim() === '') {
-					throw new Error(`Block scalar expected at line ${i + 1}`);
-				}
-			}
-
-			if (trimmed.match(/^[^:]+:\s*$/)) {
-				indentStack.push(indent);
-			} else if (trimmed.match(/^-\s+/)) {
-				indentStack.push(indent);
-			}
-
-			while (indentStack.length > 1 && indentStack[indentStack.length - 1] > indent) {
-				indentStack.pop();
-			}
-
-			if (trimmed.includes(':')) {
-				const parts = trimmed.split(':');
-				const key = parts[0].trim();
-				if (key.match(/^\d+$/)) {
-					throw new Error(`Invalid key at line ${i + 1}: numeric key "${key}" must be quoted`);
-				}
-				if (key.includes(':') && !key.startsWith('"') && !key.startsWith("'")) {
-					throw new Error(`Invalid key at line ${i + 1}: multi-part key must be quoted`);
-				}
-			}
-
-			const invalidChars = trimmed.match(/[\x00-\x08\x0B\x0C\x0E-\x1F]/); // eslint-disable-line no-control-regex
-			if (invalidChars) {
-				throw new Error(`Invalid control character at line ${i + 1}`);
-			}
+			return { valid: true, message: 'Valid YAML' };
+		} catch (e) {
+			const error = e as Error;
+			return { valid: false, message: `Invalid YAML: ${error.message}` };
 		}
 	}
 
@@ -291,10 +264,6 @@
 			default:
 				validationResult = { valid: false, message: 'Unknown format' };
 		}
-	}
-
-	function copyToClipboard(text: string) {
-		navigator.clipboard.writeText(text);
 	}
 
 	$effect(() => {

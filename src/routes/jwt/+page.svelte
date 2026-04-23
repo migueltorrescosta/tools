@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { copyToClipboard } from '$lib/clipboard';
 
 	let token = $state('');
 	let secret = $state('');
@@ -109,10 +110,6 @@
 		const encodedHeader = base64UrlEncode(JSON.stringify(header));
 		const encodedPayload = base64UrlEncode(JSON.stringify(payload));
 		token = `${encodedHeader}.${encodedPayload}.`;
-	}
-
-	function copyToClipboard(text: string) {
-		navigator.clipboard.writeText(text);
 	}
 
 	$effect(() => {

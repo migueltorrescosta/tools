@@ -1,33 +1,5 @@
 import { describe, it, expect } from 'vitest';
-
-// Test-specific implementations (duplicated from component for testing)
-// These match the exact logic in +page.svelte
-
-function base64Encode(str: string): string {
-	return btoa(unescape(encodeURIComponent(str)));
-}
-
-function base64Decode(str: string): string {
-	return decodeURIComponent(escape(atob(str)));
-}
-
-function toHex(str: string): string {
-	return Array.from(new TextEncoder().encode(str))
-		.map((b) => b.toString(16).padStart(2, '0'))
-		.join('');
-}
-
-function fromHex(hex: string): string {
-	const bytes = new Uint8Array(hex.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) || []);
-	return new TextDecoder().decode(bytes);
-}
-
-function rot13(str: string): string {
-	return str.replace(/[a-zA-Z]/g, (char) => {
-		const base = char <= 'Z' ? 65 : 97;
-		return String.fromCharCode(((char.charCodeAt(0) - base + 13) % 26) + base);
-	});
-}
+import { base64Encode, base64Decode, toHex, fromHex, rot13 } from '$lib/crypto';
 
 describe('Cipher Tool - Encoding Functions', () => {
 	describe('ROT13 Edge Cases', () => {

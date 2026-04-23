@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import solutionTree from '$lib/wordle-solution';
 
 	interface TreeNode {
@@ -117,10 +116,6 @@
 		errorMessage = '';
 		gameOver = false;
 	}
-
-	onMount(() => {
-		// Initialize - nothing special needed
-	});
 </script>
 
 <svelte:head>

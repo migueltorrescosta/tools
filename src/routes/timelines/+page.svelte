@@ -32,7 +32,6 @@
 	const eventTimeline = eventTimelineData as EventTimeline[];
 
 	let selectedTimelineId = $state<string>('');
-	let containerRef: HTMLDivElement | null = $state(null);
 	let filteredEvents = $state<Event[]>([]);
 	let timelineRows = $state<TimelineRow[]>([]);
 	let tooltipState = $state<{ visible: boolean; x: number; y: number; content: string }>({
@@ -192,7 +191,7 @@
 		{/if}
 	</div>
 
-	<div class="events-container" bind:this={containerRef}>
+	<div class="events-container">
 		{#if filteredEvents.length > 0}
 			{#each timelineRows as row, rowIndex (rowIndex)}
 				{#if row.type === 'year'}
