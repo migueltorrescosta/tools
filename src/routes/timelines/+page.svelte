@@ -20,16 +20,13 @@
 		url?: string;
 	}
 
-	interface EventTimeline {
-		eventId: number;
-		timelineId: string;
-	}
+	type EventTimelineMap = Record<string, number[]>;
 
 	type TimelineRow = { type: 'year'; year: number } | { type: 'events'; events: Event[] };
 
 	const timelines = timelinesData as Timeline[];
 	const allEvents = eventsData as Event[];
-	const eventTimeline = eventTimelineData as EventTimeline[];
+	const eventTimeline = eventTimelineData as EventTimelineMap;
 
 	let selectedTimelineId = $state<string>('');
 	let filteredEvents = $state<Event[]>([]);
@@ -76,9 +73,7 @@
 			return;
 		}
 
-		const eventIds = eventTimeline
-			.filter((et) => et.timelineId === selectedTimelineId)
-			.map((et) => et.eventId);
+		const eventIds = eventTimeline[selectedTimelineId] || [];
 
 		filteredEvents = allEvents
 			.filter((e) => eventIds.includes(e.id))
@@ -154,14 +149,7 @@
 		}
 	});
 
-	// Update URL when selection changes (handled by handleTimelineChange)
-	// This effect ensures filtering on initial load
-	$effect(() => {
-		const timelineId = selectedTimelineId;
-		if (timelineId && filteredEvents.length === 0) {
-			updateFilteredEvents();
-		}
-	});
+
 </script>
 
 <svelte:head>

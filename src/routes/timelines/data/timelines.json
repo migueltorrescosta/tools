@@ -18,5 +18,10 @@
 		"id": "mzi-developments",
 		"shortTitle": "🔬 Mach-Zehnder Interferometry",
 		"description": "Academic and experimental breakthroughs in Mach-Zehnder interferometry from 1891 to present"
+	},
+	{
+		"id": "public-holidays",
+		"shortTitle": "🎉 Public Holidays",
+		"description": "Public holidays across EU countries from 2026 to 2029"
 	}
 ]
