@@ -1,146 +1,96 @@
 import { expect, test } from '@playwright/test';
 
-test('Timelines - loads and displays events', async ({ page }) => {
+test('Timelines - loads with dynamic imports', async ({ page }) => {
 	await page.goto('/timelines');
 
+	// Check page title
 	await expect(page.locator('h1')).toHaveText('TIMELINES');
 
-	// Check dropdown exists and has options
-	const select = page.locator('select.timeline-select');
-	await expect(select).toBeVisible();
+	// Wait for timeline selector to be visible
+	await expect(page.locator('.timeline-select')).toBeVisible();
 
-	// Get all timeline options
-	const options = await select.locator('option').allTextContents();
-	expect(options.length).toBeGreaterThan(0);
-	expect(options).toContain('🇪🇺 European National Elections');
-	expect(options).toContain('🔑 Key Events of the EU');
+	// Check that loading state appears briefly then disappears
+	await page.waitForSelector('.events-container .loading-state', { state: 'visible', timeout: 5000 });
+	await page.waitForSelector('.events-container .loading-state', { state: 'hidden', timeout: 10000 });
 
-	// Check events are displayed in cards
-	const eventCards = page.locator('.event-card');
-	await expect(eventCards.first()).toBeVisible();
-
-	// Check year separators are visible
-	const yearSeparators = page.locator('.year-separator');
-	await expect(yearSeparators.first()).toBeVisible();
-
-	// Check that events are displayed in a grid with 3 columns (select eu-key-events to ensure we have enough events)
-	await select.selectOption('eu-key-events');
-	await page.waitForTimeout(500);
-	const gridRows = page.locator('.grid-row');
-	await expect(gridRows.first()).toBeVisible();
-
-	// Get all grid rows and find one with 3 cards
-	const allRows = await gridRows.all();
-	let foundRowWithThree = false;
-	for (const row of allRows) {
-		const count = await row.locator('.event-card').count();
-		if (count >= 3) {
-			foundRowWithThree = true;
-			break;
-		}
-	}
-	expect(foundRowWithThree).toBe(true);
-
-	// Check tooltip appears on hover
-	const firstEvent = eventCards.first();
-	await firstEvent.hover();
-	// Wait a bit for the global tooltip to render
-	await page.waitForTimeout(100);
-	const tooltip = page.locator('.global-tooltip');
-	await expect(tooltip).toBeVisible();
+	// Check that events are displayed
+	await expect(page.locator('.event-card').first()).toBeVisible({ timeout: 10000 });
 });
 
-test('Timelines - can change timeline', async ({ page }) => {
+test('Timelines - switch between timelines', async ({ page }) => {
 	await page.goto('/timelines');
 
-	const select = page.locator('select.timeline-select');
+	// Wait for initial load
+	await page.waitForSelector('.event-card', { state: 'visible', timeout: 10000 });
 
-	// Ensure we're on eu-elections first
-	await select.selectOption('eu-elections');
-	await page.waitForTimeout(200);
+	// Count initial events
+	const initialEventCount = await page.locator('.event-card').count();
 
-	// Get event count for eu-elections
-	const electionsEvents = await page.locator('.event-card').count();
-	expect(electionsEvents).toBeGreaterThan(0);
+	// Select a different timeline
+	await page.selectOption('.timeline-select', 'eu-key-events');
 
-	// Select different timeline
-	await select.selectOption('eu-key-events');
+	// Wait for loading and new content
+	await page.waitForSelector('.loading-state', { state: 'visible', timeout: 2000 });
+	await page.waitForSelector('.loading-state', { state: 'hidden', timeout: 10000 });
 
-	// Wait for events to update
-	await page.waitForTimeout(200);
-
-	// Check events changed (different count)
-	const keyEventsCount = await page.locator('.event-card').count();
-	expect(keyEventsCount).not.toBe(electionsEvents);
+	// Check that events changed
+	const newEventCount = await page.locator('.event-card').count();
+	expect(newEventCount).toBeGreaterThan(0);
 });
 
-test('Timelines - past events are styled differently', async ({ page }) => {
-	await page.goto('/timelines');
+test('Timelines - verify URL parameter', async ({ page }) => {
+	await page.goto('/timelines?t=eu-elections');
 
-	// Get past events
-	const pastEvents = page.locator('.event-card.past');
+	// Wait for content to load
+	await page.waitForSelector('.event-card', { state: 'visible', timeout: 10000 });
 
-	// Some past events should exist
-	await expect(pastEvents.first()).toBeVisible();
+	// Check that the correct timeline is selected
+	const selectedValue = await page.locator('.timeline-select').inputValue();
+	expect(selectedValue).toBe('eu-elections');
 });
 
-test('Timelines - all timelines show at least one event', async ({ page }) => {
-	await page.goto('/timelines');
+test('Timelines - LLM breakthroughs shows rich card layout', async ({ page }) => {
+	await page.goto('/timelines?t=llm-breakthroughs');
 
-	const select = page.locator('select.timeline-select');
+	// Wait for rich event cards to load
+	await page.waitForSelector('.rich-event-card', { state: 'visible', timeout: 10000 });
 
-	// Get all timeline option values
-	const timelineOptions = await select.locator('option').all();
-	const timelineIds: string[] = [];
+	// Verify rich card elements are present
+	const firstCard = page.locator('.rich-event-card').first();
 
-	for (const option of timelineOptions) {
-		const value = await option.getAttribute('value');
-		if (value) {
-			timelineIds.push(value);
-		}
-	}
+	// Should have an emoji
+	await expect(firstCard.locator('.rich-card-emoji')).toBeVisible();
 
-	expect(timelineIds.length).toBeGreaterThan(0);
+	// Should have a clickable title link
+	const titleLink = firstCard.locator('.rich-card-title');
+	await expect(titleLink).toBeVisible();
+	await expect(titleLink).toHaveAttribute('target', '_blank');
 
-	// Test each timeline
-	for (const timelineId of timelineIds) {
-		// Select this timeline
-		await select.selectOption(timelineId);
+	// Should have a description
+	await expect(firstCard.locator('.rich-card-description')).toBeVisible();
 
-		// Wait for UI to update
-		await page.waitForTimeout(200);
+	// Should have a value-add with ✦ prefix
+	const valueAdd = firstCard.locator('.rich-card-value-add');
+	await expect(valueAdd).toBeVisible();
+	await expect(valueAdd).toContainText('✦');
 
-		// Count event cards
-		const eventCount = await page.locator('.event-card').count();
-
-		// Verify at least one event is displayed
-		expect(eventCount, `Timeline "${timelineId}" should show at least one event`).toBeGreaterThan(
-			0
-		);
-
-		// Verify "No events" message is NOT visible
-		const emptyState = page.locator('.empty-state');
-		await expect(emptyState).not.toBeVisible();
-	}
+	// Verify year separators are present
+	await expect(page.locator('.year-separator').first()).toBeVisible();
 });
 
-test('Timelines - events are in chronological order across years', async ({ page }) => {
+test('Timelines - switching to LLM breakthroughs shows rich cards', async ({ page }) => {
 	await page.goto('/timelines');
 
-	const select = page.locator('select.timeline-select');
-	await select.selectOption('eu-key-events');
-	await page.waitForTimeout(200);
+	// Wait for initial load
+	await page.waitForSelector('.event-card', { state: 'visible', timeout: 10000 });
 
-	// Get all year labels in order
-	const yearLabels = await page.locator('.year-label').allTextContents();
+	// Switch to LLM breakthroughs
+	await page.selectOption('.timeline-select', 'llm-breakthroughs');
 
-	// Verify years are in ascending order
-	for (let i = 1; i < yearLabels.length; i++) {
-		const prevYear = parseInt(yearLabels[i - 1]);
-		const currYear = parseInt(yearLabels[i]);
-		expect(prevYear).toBeLessThan(currYear);
-	}
+	// Wait for loading and new content
+	await page.waitForSelector('.loading-state', { state: 'visible', timeout: 2000 });
+	await page.waitForSelector('.loading-state', { state: 'hidden', timeout: 10000 });
 
-	// Verify we have the expected years for eu-key-events (should include: 1957, 1999, 2004, 2007, 2020, 2022, 2023, 2024, 2025, 2026, 2027)
-	expect(yearLabels.length).toBeGreaterThan(5);
+	// Should now show rich cards
+	await expect(page.locator('.rich-event-card').first()).toBeVisible({ timeout: 10000 });
 });

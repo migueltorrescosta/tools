@@ -2,8 +2,6 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import timelinesData from './data/timelines.json';
-	import eventsData from './data/events.json';
-	import eventTimelineData from './data/event_timeline.json';
 
 	interface Timeline {
 		id: string;
@@ -18,25 +16,30 @@
 		title: string;
 		description: string;
 		url?: string;
+		conceptDescription?: string;
+		valueAdd?: string;
 	}
-
-	type EventTimelineMap = Record<string, number[]>;
 
 	type TimelineRow = { type: 'year'; year: number } | { type: 'events'; events: Event[] };
 
 	const timelines = timelinesData as Timeline[];
-	const allEvents = eventsData as Event[];
-	const eventTimeline = eventTimelineData as EventTimelineMap;
 
 	let selectedTimelineId = $state<string>('');
 	let filteredEvents = $state<Event[]>([]);
 	let timelineRows = $state<TimelineRow[]>([]);
+	let loading = $state(false);
+	const isRichContent = $derived(
+		filteredEvents.length > 0 && filteredEvents.some((e) => e.conceptDescription || e.valueAdd)
+	);
 	let tooltipState = $state<{ visible: boolean; x: number; y: number; content: string }>({
 		visible: false,
 		x: 0,
 		y: 0,
 		content: ''
 	});
+
+	// Cache for loaded timeline events
+	const timelineCache = new Map<string, Event[]>();
 
 	function showTooltip(event: MouseEvent, content: string) {
 		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
@@ -66,45 +69,70 @@
 		});
 	}
 
-	function updateFilteredEvents() {
+	async function updateFilteredEvents() {
 		if (!selectedTimelineId) {
 			filteredEvents = [];
 			timelineRows = [];
 			return;
 		}
 
-		const eventIds = eventTimeline[selectedTimelineId] || [];
+		loading = true;
 
-		filteredEvents = allEvents
-			.filter((e) => eventIds.includes(e.id))
-			.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-		// Group events by year
-		const eventsByYear = new Map<number, Event[]>();
-		for (const event of filteredEvents) {
-			const year = getYear(event.date);
-			if (!eventsByYear.has(year)) {
-				eventsByYear.set(year, []);
+		try {
+			// Load events for the selected timeline (with caching)
+			let events: Event[];
+			if (timelineCache.has(selectedTimelineId)) {
+				events = timelineCache.get(selectedTimelineId)!;
+			} else {
+				const module = await import(`./data/events/${selectedTimelineId}.json`);
+				events = module.default as Event[];
+				timelineCache.set(selectedTimelineId, events);
 			}
-			eventsByYear.get(year)!.push(event);
-		}
 
-		// Build rows: year separator + chunked events for each year
-		const rows: TimelineRow[] = [];
-		const sortedYears = Array.from(eventsByYear.keys()).sort((a, b) => a - b);
+			// Sort events by date
+			filteredEvents = events.sort(
+				(a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+			);
 
-		for (const year of sortedYears) {
-			// Add year separator
-			rows.push({ type: 'year', year });
+			// Check if this timeline has rich content (conceptDescription or valueAdd)
+			const hasRichContent = filteredEvents.some(
+				(e) => e.conceptDescription || e.valueAdd
+			);
 
-			// Chunk events for this year into rows of 3
-			const yearEvents = eventsByYear.get(year)!;
-			for (let i = 0; i < yearEvents.length; i += COLUMNS) {
-				rows.push({ type: 'events', events: yearEvents.slice(i, i + COLUMNS) });
+			// Group events by year
+			const eventsByYear = new Map<number, Event[]>();
+			for (const event of filteredEvents) {
+				const year = getYear(event.date);
+				if (!eventsByYear.has(year)) {
+					eventsByYear.set(year, []);
+				}
+				eventsByYear.get(year)!.push(event);
 			}
-		}
 
-		timelineRows = rows;
+			// Build rows: year separator + events for each year
+			const rows: TimelineRow[] = [];
+			const sortedYears = Array.from(eventsByYear.keys()).sort((a, b) => a - b);
+
+			for (const year of sortedYears) {
+				// Add year separator
+				rows.push({ type: 'year', year });
+
+				const yearEvents = eventsByYear.get(year)!;
+				if (hasRichContent) {
+					// For rich content, keep all events in a single group
+					rows.push({ type: 'events', events: yearEvents });
+				} else {
+					// Chunk events for this year into rows of 3
+					for (let i = 0; i < yearEvents.length; i += COLUMNS) {
+						rows.push({ type: 'events', events: yearEvents.slice(i, i + COLUMNS) });
+					}
+				}
+			}
+
+			timelineRows = rows;
+		} finally {
+			loading = false;
+		}
 	}
 
 	function isPast(dateStr: string): boolean {
@@ -123,15 +151,15 @@
 		});
 	}
 
-	function selectRandomTimeline() {
+	async function selectRandomTimeline() {
 		const randomIndex = Math.floor(Math.random() * timelines.length);
 		selectedTimelineId = timelines[randomIndex].id;
-		updateFilteredEvents();
+		await updateFilteredEvents();
 	}
 
-	function handleTimelineChange() {
+	async function handleTimelineChange() {
 		if (selectedTimelineId) {
-			updateFilteredEvents();
+			await updateFilteredEvents();
 			const url = new URL(window.location.href);
 			url.searchParams.set('t', selectedTimelineId);
 			window.history.replaceState({}, '', url);
@@ -180,41 +208,68 @@
 	</div>
 
 	<div class="events-container">
-		{#if filteredEvents.length > 0}
-			{#each timelineRows as row, rowIndex (rowIndex)}
-				{#if row.type === 'year'}
-					<div class="year-separator">
-						<span class="year-label">{row.year}</span>
-					</div>
-				{:else}
-					<div class="grid-row">
-						{#each row.events as event (event.id)}
-							<div
-								class="event-card"
-								class:past={isPast(event.date)}
-								onmouseenter={(e) => showTooltip(e, event.description)}
-								onmouseleave={hideTooltip}
-								role="tooltip"
-							>
-								<span class="event-emoji">{event.emoji}</span>
-								<span class="event-date">{formatShortDate(event.date)}</span>
-								{#if event.url}
-									<a
-										href={event.url}
-										target="_blank"
-										rel="noopener noreferrer"
-										class="event-title-link">{event.title}</a
-									>
-								{:else}
-									<span class="event-title">{event.title}</span>
-								{/if}
-							</div>
-						{/each}
-					</div>
-				{/if}
-			{/each}
+		{#if loading}
+			<div class="loading-state">
+				<div class="loading-spinner"></div>
+				<span>Loading events...</span>
+			</div>
 		{:else}
-			<div class="empty-state">No events in this timeline</div>
+			{#if filteredEvents.length > 0}
+				{#each timelineRows as row, rowIndex (rowIndex)}
+					{#if row.type === 'year'}
+						<div class="year-separator">
+							<span class="year-label">{row.year}</span>
+						</div>
+					{:else if isRichContent}
+						<div class="rich-card-list">
+							{#each row.events as event (event.id)}
+								<div class="rich-event-card">
+									<div class="rich-card-header">
+										<span class="rich-card-emoji">{event.emoji}</span>
+										<a
+											href={event.url}
+											target="_blank"
+											rel="noopener noreferrer"
+											class="rich-card-title">{event.title}</a
+										>
+									</div>
+									<p class="rich-card-description"
+										>{event.conceptDescription || event.description}</p
+									>
+									<p class="rich-card-value-add">✦ {event.valueAdd}</p>
+								</div>
+							{/each}
+						</div>
+					{:else}
+						<div class="grid-row">
+							{#each row.events as event (event.id)}
+								<div
+									class="event-card"
+									class:past={isPast(event.date)}
+									onmouseenter={(e) => showTooltip(e, event.description)}
+									onmouseleave={hideTooltip}
+									role="tooltip"
+								>
+									<span class="event-emoji">{event.emoji}</span>
+									<span class="event-date">{formatShortDate(event.date)}</span>
+									{#if event.url}
+										<a
+											href={event.url}
+											target="_blank"
+											rel="noopener noreferrer"
+											class="event-title-link">{event.title}</a
+										>
+									{:else}
+										<span class="event-title">{event.title}</span>
+									{/if}
+								</div>
+							{/each}
+						</div>
+					{/if}
+				{/each}
+			{:else}
+				<div class="empty-state">No events in this timeline</div>
+			{/if}
 		{/if}
 
 		<!-- Global tooltip rendered at container level to avoid overflow clipping -->
@@ -421,6 +476,106 @@
 		font-family: 'Inter', sans-serif;
 		font-size: 1rem;
 		color: var(--futuristic-text-dim);
+	}
+
+	.loading-state {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		height: 200px;
+		font-family: 'Inter', sans-serif;
+		font-size: 1rem;
+		color: var(--futuristic-text-dim);
+	}
+
+	.loading-spinner {
+		width: 20px;
+		height: 20px;
+		border: 2px solid var(--futuristic-border);
+		border-top-color: var(--futuristic-cyan);
+		border-radius: 50%;
+		animation: spin 0.8s linear infinite;
+	}
+
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	/* Rich content styles */
+	.rich-card-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		padding: 0.5rem 0;
+	}
+
+	.rich-card-list:not(:last-child) {
+		border-bottom: 1px solid rgba(0, 245, 255, 0.1);
+	}
+
+	.rich-event-card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		padding: 0.6rem 0.75rem;
+		background: rgba(0, 245, 255, 0.03);
+		border: 1px solid rgba(0, 245, 255, 0.1);
+		border-radius: 8px;
+		transition:
+			background 0.2s,
+			border-color 0.2s;
+	}
+
+	.rich-event-card:hover {
+		background: rgba(0, 245, 255, 0.06);
+		border-color: rgba(0, 245, 255, 0.2);
+	}
+
+	.rich-card-header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.rich-card-emoji {
+		font-size: 1.1rem;
+		flex-shrink: 0;
+	}
+
+	.rich-card-title {
+		font-family: 'Orbitron', sans-serif;
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--futuristic-cyan);
+		letter-spacing: 0.04em;
+		text-decoration: none;
+		transition: color 0.2s;
+	}
+
+	.rich-card-title:hover {
+		color: var(--futuristic-magenta);
+		text-decoration: underline;
+	}
+
+	.rich-card-description {
+		font-family: 'Inter', sans-serif;
+		font-size: 0.8rem;
+		color: var(--futuristic-text);
+		line-height: 1.5;
+		margin: 0;
+	}
+
+	.rich-card-value-add {
+		font-family: 'Inter', sans-serif;
+		font-size: 0.8rem;
+		color: var(--futuristic-magenta);
+		line-height: 1.5;
+		margin: 0;
+		padding-left: 1.5rem;
+		opacity: 0.9;
 	}
 
 	@media (max-width: 600px) {

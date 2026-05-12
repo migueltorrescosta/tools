@@ -1,0 +1,292 @@
+[
+	{
+		"id": 1001,
+		"emoji": "🧠",
+		"date": "1997-06-15",
+		"title": "Long Short-Term Memory",
+		"description": "Introduced gated recurrent units (LSTMs) that preserve information across long sequences.",
+		"conceptDescription": "Introduced gated recurrent units (LSTMs) that preserve information across long sequences.",
+		"valueAdd": "Enabled models to remember earlier context and learn long-range dependencies in language.",
+		"url": "https://www.bioinf.jku.at/publications/older/2604.pdf"
+	},
+	{
+		"id": 1002,
+		"emoji": "🧠",
+		"date": "2003-06-15",
+		"title": "A Neural Probabilistic Language Model",
+		"description": "Learned dense vector embeddings for words instead of sparse symbolic representations.",
+		"conceptDescription": "Learned dense vector embeddings for words instead of sparse symbolic representations.",
+		"valueAdd": "Allowed semantic similarity and analogical reasoning to emerge from learned embeddings.",
+		"url": "https://www.jmlr.org/papers/volume3/bengio03a/bengio03a.pdf"
+	},
+	{
+		"id": 1003,
+		"emoji": "🧠",
+		"date": "2013-06-15",
+		"title": "Word2Vec",
+		"description": "Learned word meanings from unlabeled text by predicting nearby words (word2vec).",
+		"conceptDescription": "Learned word meanings from unlabeled text by predicting nearby words (word2vec).",
+		"valueAdd": "Made representation learning scalable to web-scale corpora without manual labels.",
+		"url": "https://arxiv.org/abs/1301.3781"
+	},
+	{
+		"id": 1004,
+		"emoji": "⚡",
+		"date": "2014-06-15",
+		"title": "Sequence to Sequence Learning",
+		"description": "Used encoder–decoder architectures to transform one sequence into another.",
+		"conceptDescription": "Used encoder–decoder architectures to transform one sequence into another.",
+		"valueAdd": "Unified translation, summarization, and dialogue under a common neural framework.",
+		"url": "https://arxiv.org/abs/1409.3215"
+	},
+	{
+		"id": 1005,
+		"emoji": "⚡",
+		"date": "2014-06-15",
+		"title": "Neural Attention Mechanisms",
+		"description": "Allowed models to focus dynamically on relevant parts of the input during generation.",
+		"conceptDescription": "Allowed models to focus dynamically on relevant parts of the input during generation.",
+		"valueAdd": "Improved handling of long sequences and became foundational for modern LLM architectures.",
+		"url": "https://arxiv.org/abs/1409.0473"
+	},
+	{
+		"id": 1006,
+		"emoji": "⚡",
+		"date": "2015-06-15",
+		"title": "Pointer Networks",
+		"description": "Enabled models to explicitly reference or copy elements from the input.",
+		"conceptDescription": "Enabled models to explicitly reference or copy elements from the input.",
+		"valueAdd": "Improved handling of structured data, rare tokens, code, and factual references.",
+		"url": "https://arxiv.org/abs/1506.03134"
+	},
+	{
+		"id": 1007,
+		"emoji": "⚡",
+		"date": "2017-06-15",
+		"title": "Transformer Architecture",
+		"description": "Replaced recurrence with self-attention to model all token relationships in parallel.",
+		"conceptDescription": "Replaced recurrence with self-attention to model all token relationships in parallel.",
+		"valueAdd": "Created the Transformer architecture, dramatically improving scalability and performance.",
+		"url": "https://arxiv.org/abs/1706.03762"
+	},
+	{
+		"id": 1008,
+		"emoji": "⚡",
+		"date": "2017-06-15",
+		"title": "Positional Encoding",
+		"description": "Injected sequence order information into attention-only models.",
+		"conceptDescription": "Injected sequence order information into attention-only models.",
+		"valueAdd": "Allowed Transformers to model ordered language without recurrent structures.",
+		"url": "https://arxiv.org/abs/1706.03762"
+	},
+	{
+		"id": 1009,
+		"emoji": "📏",
+		"date": "2018-06-15",
+		"title": "Generative Pre-Training (GPT)",
+		"description": "Trained large language models on massive unlabeled corpora before downstream adaptation.",
+		"conceptDescription": "Trained large language models on massive unlabeled corpora before downstream adaptation.",
+		"valueAdd": "Enabled general-purpose language understanding and generation capabilities.",
+		"url": "https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf"
+	},
+	{
+		"id": 1010,
+		"emoji": "📏",
+		"date": "2018-06-15",
+		"title": "BERT",
+		"description": "Learned token representations using both left and right context simultaneously.",
+		"conceptDescription": "Learned token representations using both left and right context simultaneously.",
+		"valueAdd": "Improved nuanced language understanding, ambiguity resolution, and contextual comprehension.",
+		"url": "https://arxiv.org/abs/1810.04805"
+	},
+	{
+		"id": 1011,
+		"emoji": "📏",
+		"date": "2019-06-15",
+		"title": "GPT-2",
+		"description": "Demonstrated that scaling autoregressive language models improves broad generative abilities.",
+		"conceptDescription": "Demonstrated that scaling autoregressive language models improves broad generative abilities.",
+		"valueAdd": "Produced coherent long-form text and emergent task capabilities.",
+		"url": "https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf"
+	},
+	{
+		"id": 1012,
+		"emoji": "📏",
+		"date": "2020-06-15",
+		"title": "Neural Scaling Laws",
+		"description": "Showed predictable performance improvements from scaling parameters, data, and compute.",
+		"conceptDescription": "Showed predictable performance improvements from scaling parameters, data, and compute.",
+		"valueAdd": "Provided a roadmap for training larger and more capable foundation models.",
+		"url": "https://arxiv.org/abs/2001.08361"
+	},
+	{
+		"id": 1013,
+		"emoji": "📏",
+		"date": "2020-06-15",
+		"title": "GPT-3 / In-Context Learning",
+		"description": "Demonstrated that models can perform tasks from examples embedded in prompts.",
+		"conceptDescription": "Demonstrated that models can perform tasks from examples embedded in prompts.",
+		"valueAdd": "Enabled flexible prompting without retraining or task-specific fine-tuning.",
+		"url": "https://arxiv.org/abs/2005.14165"
+	},
+	{
+		"id": 1014,
+		"emoji": "🎯",
+		"date": "2021-06-15",
+		"title": "Chain-of-Thought Reasoning",
+		"description": "Encouraged models to generate intermediate reasoning steps before answers.",
+		"conceptDescription": "Encouraged models to generate intermediate reasoning steps before answers.",
+		"valueAdd": "Improved reasoning, mathematics, planning, and multi-step problem solving.",
+		"url": "https://arxiv.org/abs/2201.11903"
+	},
+	{
+		"id": 1015,
+		"emoji": "🎯",
+		"date": "2021-06-15",
+		"title": "WebGPT",
+		"description": "Enabled language models to interact with web browsers and external information sources.",
+		"conceptDescription": "Enabled language models to interact with web browsers and external information sources.",
+		"valueAdd": "Introduced the idea of LLMs operating external tools instead of relying only on parametric memory.",
+		"url": "https://arxiv.org/abs/2112.09332"
+	},
+	{
+		"id": 1016,
+		"emoji": "🎯",
+		"date": "2022-06-15",
+		"title": "Instruction Tuning",
+		"description": "Fine-tuned models on natural-language instructions and demonstrations.",
+		"conceptDescription": "Fine-tuned models on natural-language instructions and demonstrations.",
+		"valueAdd": "Made models substantially more useful, controllable, and aligned with user intent.",
+		"url": "https://arxiv.org/abs/2109.01652"
+	},
+	{
+		"id": 1017,
+		"emoji": "🎯",
+		"date": "2022-06-15",
+		"title": "RLHF (Human Preference Alignment)",
+		"description": "Optimized model outputs using human preference rankings (RLHF).",
+		"conceptDescription": "Optimized model outputs using human preference rankings (RLHF).",
+		"valueAdd": "Improved helpfulness, conversational quality, and safety.",
+		"url": "https://arxiv.org/abs/2203.02155"
+	},
+	{
+		"id": 1018,
+		"emoji": "🎯",
+		"date": "2022-06-15",
+		"title": "ReAct",
+		"description": "Combined reasoning traces with external actions like search or API calls.",
+		"conceptDescription": "Combined reasoning traces with external actions like search or API calls.",
+		"valueAdd": "Created the conceptual basis for autonomous AI agents and coding assistants.",
+		"url": "https://arxiv.org/abs/2210.03629"
+	},
+	{
+		"id": 1019,
+		"emoji": "🎯",
+		"date": "2022-06-15",
+		"title": "Reflexion",
+		"description": "Allowed agents to critique prior failures and iteratively improve behavior.",
+		"conceptDescription": "Allowed agents to critique prior failures and iteratively improve behavior.",
+		"valueAdd": "Improved robustness and multi-step task completion without retraining the model.",
+		"url": "https://arxiv.org/abs/2303.11366"
+	},
+	{
+		"id": 1020,
+		"emoji": "🤖",
+		"date": "2023-06-15",
+		"title": "Retrieval-Augmented Generation (RAG)",
+		"description": "Combined language models with external retrieval systems.",
+		"conceptDescription": "Combined language models with external retrieval systems.",
+		"valueAdd": "Reduced hallucinations and enabled access to fresh or private information sources.",
+		"url": "https://arxiv.org/abs/2005.11401"
+	},
+	{
+		"id": 1021,
+		"emoji": "🤖",
+		"date": "2023-06-15",
+		"title": "Toolformer",
+		"description": "Trained models to reliably invoke APIs and software tools.",
+		"conceptDescription": "Trained models to reliably invoke APIs and software tools.",
+		"valueAdd": "Enabled integration with IDEs, browsers, databases, and external computation systems.",
+		"url": "https://arxiv.org/abs/2302.04761"
+	},
+	{
+		"id": 1022,
+		"emoji": "🤖",
+		"date": "2023-06-15",
+		"title": "Generative Agents",
+		"description": "Introduced long-term memory streams with retrieval and reflection mechanisms for agents.",
+		"conceptDescription": "Introduced long-term memory streams with retrieval and reflection mechanisms for agents.",
+		"valueAdd": "Enabled agents to maintain identity, context, and continuity across extended interactions.",
+		"url": "https://arxiv.org/abs/2304.03442"
+	},
+	{
+		"id": 1023,
+		"emoji": "🤖",
+		"date": "2023-06-15",
+		"title": "Voyager",
+		"description": "Agents stored and reused learned behaviors as executable skills.",
+		"conceptDescription": "Agents stored and reused learned behaviors as executable skills.",
+		"valueAdd": "Enabled cumulative learning and increasingly capable autonomous behavior over time.",
+		"url": "https://arxiv.org/abs/2305.16291"
+	},
+	{
+		"id": 1024,
+		"emoji": "🤖",
+		"date": "2023-06-15",
+		"title": "CAMEL",
+		"description": "Multiple LLM agents cooperated through role-based communication.",
+		"conceptDescription": "Multiple LLM agents cooperated through role-based communication.",
+		"valueAdd": "Enabled decomposition of complex tasks into coordinated subtasks.",
+		"url": "https://arxiv.org/abs/2303.17760"
+	},
+	{
+		"id": 1025,
+		"emoji": "🤖",
+		"date": "2023-06-15",
+		"title": "AutoGPT",
+		"description": "Agents recursively planned and executed subtasks toward high-level goals.",
+		"conceptDescription": "Agents recursively planned and executed subtasks toward high-level goals.",
+		"valueAdd": "Demonstrated autonomous workflows with planning loops and iterative execution.",
+		"url": "https://github.com/Significant-Gravitas/AutoGPT"
+	},
+	{
+		"id": 1026,
+		"emoji": "🤖",
+		"date": "2023-06-15",
+		"title": "Mixture-of-Experts (Switch Transformers)",
+		"description": "Activated only subsets of model parameters for each token.",
+		"conceptDescription": "Activated only subsets of model parameters for each token.",
+		"valueAdd": "Increased effective model capacity while reducing compute costs.",
+		"url": "https://arxiv.org/abs/2101.03961"
+	},
+	{
+		"id": 1027,
+		"emoji": "🤖",
+		"date": "2024-06-15",
+		"title": "LongRoPE",
+		"description": "Extended Transformer context windows to millions of tokens.",
+		"conceptDescription": "Extended Transformer context windows to millions of tokens.",
+		"valueAdd": "Enabled repository-scale coding, document analysis, and persistent conversational memory.",
+		"url": "https://arxiv.org/abs/2402.13753"
+	},
+	{
+		"id": 1028,
+		"emoji": "🤖",
+		"date": "2024-06-15",
+		"title": "SWE-agent",
+		"description": "Combined planning, memory, retrieval, and tools into iterative autonomous workflows.",
+		"conceptDescription": "Combined planning, memory, retrieval, and tools into iterative autonomous workflows.",
+		"valueAdd": "Enabled coding agents capable of debugging, editing, testing, and executing multi-step tasks autonomously.",
+		"url": "https://arxiv.org/abs/2405.15793"
+	},
+	{
+		"id": 1029,
+		"emoji": "🤖",
+		"date": "2024-06-15",
+		"title": "OpenDevin",
+		"description": "Integrated terminals, editors, browsers, and execution environments into agent loops.",
+		"conceptDescription": "Integrated terminals, editors, browsers, and execution environments into agent loops.",
+		"valueAdd": "Enabled agents to interact with real developer tooling and complete end-to-end coding workflows.",
+		"url": "https://github.com/OpenDevin/OpenDevin"
+	}
+]

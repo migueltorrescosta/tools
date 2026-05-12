@@ -23,5 +23,10 @@
 		"id": "public-holidays",
 		"shortTitle": "🎉 Public Holidays",
 		"description": "Public holidays across EU countries from 2026 to 2029"
+	},
+	{
+		"id": "llm-breakthroughs",
+		"shortTitle": "🧠 LLM Breakthroughs",
+		"description": "Key papers and milestones in Large Language Model research from 1997 to 2024"
 	}
 ]

@@ -1,0 +1,2102 @@
+[
+  {
+    "id": 3,
+    "emoji": "🇦🇹",
+    "date": "2026-11-01",
+    "title": "All Saints' Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 4,
+    "emoji": "🇦🇹",
+    "date": "2027-11-01",
+    "title": "All Saints' Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 5,
+    "emoji": "🇦🇹",
+    "date": "2028-11-01",
+    "title": "All Saints' Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 6,
+    "emoji": "🇦🇹",
+    "date": "2029-11-01",
+    "title": "All Saints' Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 7,
+    "emoji": "🇱🇹",
+    "date": "2026-11-02",
+    "title": "All Souls' Day",
+    "description": "Public holiday in Lithuania"
+  },
+  {
+    "id": 8,
+    "emoji": "🇱🇹",
+    "date": "2027-11-02",
+    "title": "All Souls' Day",
+    "description": "Public holiday in Lithuania"
+  },
+  {
+    "id": 9,
+    "emoji": "🇱🇹",
+    "date": "2028-11-02",
+    "title": "All Souls' Day",
+    "description": "Public holiday in Lithuania"
+  },
+  {
+    "id": 10,
+    "emoji": "🇱🇹",
+    "date": "2029-11-02",
+    "title": "All Souls' Day",
+    "description": "Public holiday in Lithuania"
+  },
+  {
+    "id": 11,
+    "emoji": "🇧🇪",
+    "date": "2026-11-11",
+    "title": "Armistice Day",
+    "description": "Public holiday in Belgium"
+  },
+  {
+    "id": 12,
+    "emoji": "🇧🇪",
+    "date": "2027-11-11",
+    "title": "Armistice Day",
+    "description": "Public holiday in Belgium"
+  },
+  {
+    "id": 13,
+    "emoji": "🇧🇪",
+    "date": "2028-11-11",
+    "title": "Armistice Day",
+    "description": "Public holiday in Belgium"
+  },
+  {
+    "id": 14,
+    "emoji": "🇧🇪",
+    "date": "2029-11-11",
+    "title": "Armistice Day",
+    "description": "Public holiday in Belgium"
+  },
+  {
+    "id": 15,
+    "emoji": "🇦🇹",
+    "date": "2026-05-13",
+    "title": "Ascension Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 16,
+    "emoji": "🇦🇹",
+    "date": "2027-05-05",
+    "title": "Ascension Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 17,
+    "emoji": "🇦🇹",
+    "date": "2028-05-18",
+    "title": "Ascension Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 18,
+    "emoji": "🇦🇹",
+    "date": "2029-05-09",
+    "title": "Ascension Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 19,
+    "emoji": "🇦🇹",
+    "date": "2026-08-15",
+    "title": "Assumption of Mary",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 20,
+    "emoji": "🇦🇹",
+    "date": "2027-08-15",
+    "title": "Assumption of Mary",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 21,
+    "emoji": "🇦🇹",
+    "date": "2028-08-15",
+    "title": "Assumption of Mary",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 22,
+    "emoji": "🇦🇹",
+    "date": "2029-08-15",
+    "title": "Assumption of Mary",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 24,
+    "emoji": "🇮🇪",
+    "date": "2026-08-03",
+    "title": "August Bank Holiday",
+    "description": "Public holiday in Ireland"
+  },
+  {
+    "id": 25,
+    "emoji": "🇮🇪",
+    "date": "2027-08-02",
+    "title": "August Bank Holiday",
+    "description": "Public holiday in Ireland"
+  },
+  {
+    "id": 26,
+    "emoji": "🇮🇪",
+    "date": "2028-08-07",
+    "title": "August Bank Holiday",
+    "description": "Public holiday in Ireland"
+  },
+  {
+    "id": 27,
+    "emoji": "🇮🇪",
+    "date": "2029-08-05",
+    "title": "August Bank Holiday",
+    "description": "Public holiday in Ireland"
+  },
+  {
+    "id": 29,
+    "emoji": "🇫🇷",
+    "date": "2026-07-14",
+    "title": "Bastille Day",
+    "description": "Public holiday in France"
+  },
+  {
+    "id": 30,
+    "emoji": "🇫🇷",
+    "date": "2027-07-14",
+    "title": "Bastille Day",
+    "description": "Public holiday in France"
+  },
+  {
+    "id": 31,
+    "emoji": "🇫🇷",
+    "date": "2028-07-14",
+    "title": "Bastille Day",
+    "description": "Public holiday in France"
+  },
+  {
+    "id": 32,
+    "emoji": "🇫🇷",
+    "date": "2029-07-14",
+    "title": "Bastille Day",
+    "description": "Public holiday in France"
+  },
+  {
+    "id": 37,
+    "emoji": "🇷🇴",
+    "date": "2026-06-01",
+    "title": "Children's Day",
+    "description": "Public holiday in Romania"
+  },
+  {
+    "id": 38,
+    "emoji": "🇷🇴",
+    "date": "2027-06-01",
+    "title": "Children's Day",
+    "description": "Public holiday in Romania"
+  },
+  {
+    "id": 39,
+    "emoji": "🇷🇴",
+    "date": "2028-06-01",
+    "title": "Children's Day",
+    "description": "Public holiday in Romania"
+  },
+  {
+    "id": 40,
+    "emoji": "🇷🇴",
+    "date": "2029-06-01",
+    "title": "Children's Day",
+    "description": "Public holiday in Romania"
+  },
+  {
+    "id": 41,
+    "emoji": "🇦🇹",
+    "date": "2026-12-25",
+    "title": "Christmas Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 42,
+    "emoji": "🇦🇹",
+    "date": "2027-12-25",
+    "title": "Christmas Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 43,
+    "emoji": "🇦🇹",
+    "date": "2028-12-25",
+    "title": "Christmas Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 44,
+    "emoji": "🇦🇹",
+    "date": "2029-12-25",
+    "title": "Christmas Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 45,
+    "emoji": "🇧🇬",
+    "date": "2026-12-24",
+    "title": "Christmas Eve",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 46,
+    "emoji": "🇧🇬",
+    "date": "2027-12-24",
+    "title": "Christmas Eve",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 47,
+    "emoji": "🇧🇬",
+    "date": "2028-12-24",
+    "title": "Christmas Eve",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 48,
+    "emoji": "🇧🇬",
+    "date": "2029-12-24",
+    "title": "Christmas Eve",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 51,
+    "emoji": "🇲🇹",
+    "date": "2026-06-05",
+    "title": "Commemoration of the June 1919 Rising",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 52,
+    "emoji": "🇲🇹",
+    "date": "2027-05-28",
+    "title": "Commemoration of the June 1919 Rising",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 53,
+    "emoji": "🇲🇹",
+    "date": "2028-06-08",
+    "title": "Commemoration of the June 1919 Rising",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 54,
+    "emoji": "🇲🇹",
+    "date": "2029-05-30",
+    "title": "Commemoration of the June 1919 Rising",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 56,
+    "emoji": "🇩🇰",
+    "date": "2026-06-05",
+    "title": "Constitution Day",
+    "description": "Public holiday in Denmark"
+  },
+  {
+    "id": 57,
+    "emoji": "🇩🇰",
+    "date": "2027-06-05",
+    "title": "Constitution Day",
+    "description": "Public holiday in Denmark"
+  },
+  {
+    "id": 58,
+    "emoji": "🇩🇰",
+    "date": "2028-06-05",
+    "title": "Constitution Day",
+    "description": "Public holiday in Denmark"
+  },
+  {
+    "id": 59,
+    "emoji": "🇩🇰",
+    "date": "2029-06-05",
+    "title": "Constitution Day",
+    "description": "Public holiday in Denmark"
+  },
+  {
+    "id": 61,
+    "emoji": "🇦🇹",
+    "date": "2026-06-05",
+    "title": "Corpus Christi",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 62,
+    "emoji": "🇦🇹",
+    "date": "2027-05-28",
+    "title": "Corpus Christi",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 63,
+    "emoji": "🇦🇹",
+    "date": "2028-06-08",
+    "title": "Corpus Christi",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 64,
+    "emoji": "🇦🇹",
+    "date": "2029-05-30",
+    "title": "Corpus Christi",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 65,
+    "emoji": "🇧🇬",
+    "date": "2026-05-24",
+    "title": "Culture and Literacy Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 66,
+    "emoji": "🇧🇬",
+    "date": "2027-05-16",
+    "title": "Culture and Literacy Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 67,
+    "emoji": "🇧🇬",
+    "date": "2028-05-24",
+    "title": "Culture and Literacy Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 68,
+    "emoji": "🇧🇬",
+    "date": "2029-05-24",
+    "title": "Culture and Literacy Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 69,
+    "emoji": "🇨🇾",
+    "date": "2026-10-01",
+    "title": "Cyprus Independence Day",
+    "description": "Public holiday in Cyprus"
+  },
+  {
+    "id": 70,
+    "emoji": "🇨🇾",
+    "date": "2027-10-01",
+    "title": "Cyprus Independence Day",
+    "description": "Public holiday in Cyprus"
+  },
+  {
+    "id": 71,
+    "emoji": "🇨🇾",
+    "date": "2028-10-01",
+    "title": "Cyprus Independence Day",
+    "description": "Public holiday in Cyprus"
+  },
+  {
+    "id": 72,
+    "emoji": "🇨🇾",
+    "date": "2029-10-01",
+    "title": "Cyprus Independence Day",
+    "description": "Public holiday in Cyprus"
+  },
+  {
+    "id": 73,
+    "emoji": "🇷🇴",
+    "date": "2026-01-02",
+    "title": "Day after New Year",
+    "description": "Public holiday in Romania"
+  },
+  {
+    "id": 74,
+    "emoji": "🇷🇴",
+    "date": "2027-01-02",
+    "title": "Day after New Year",
+    "description": "Public holiday in Romania"
+  },
+  {
+    "id": 75,
+    "emoji": "🇷🇴",
+    "date": "2028-01-02",
+    "title": "Day after New Year",
+    "description": "Public holiday in Romania"
+  },
+  {
+    "id": 76,
+    "emoji": "🇷🇴",
+    "date": "2029-01-02",
+    "title": "Day after New Year",
+    "description": "Public holiday in Romania"
+  },
+  {
+    "id": 78,
+    "emoji": "🇨🇾",
+    "date": "2026-07-15",
+    "title": "Dormition of the Theotokos",
+    "description": "Public holiday in Cyprus"
+  },
+  {
+    "id": 79,
+    "emoji": "🇨🇾",
+    "date": "2027-07-15",
+    "title": "Dormition of the Theotokos",
+    "description": "Public holiday in Cyprus"
+  },
+  {
+    "id": 80,
+    "emoji": "🇨🇾",
+    "date": "2028-07-15",
+    "title": "Dormition of the Theotokos",
+    "description": "Public holiday in Cyprus"
+  },
+  {
+    "id": 81,
+    "emoji": "🇨🇾",
+    "date": "2029-07-15",
+    "title": "Dormition of the Theotokos",
+    "description": "Public holiday in Cyprus"
+  },
+  {
+    "id": 84,
+    "emoji": "🇦🇹",
+    "date": "2026-04-06",
+    "title": "Easter Monday",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 85,
+    "emoji": "🇦🇹",
+    "date": "2027-03-29",
+    "title": "Easter Monday",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 86,
+    "emoji": "🇦🇹",
+    "date": "2028-04-17",
+    "title": "Easter Monday",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 87,
+    "emoji": "🇦🇹",
+    "date": "2029-04-03",
+    "title": "Easter Monday",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 88,
+    "emoji": "🇭🇷",
+    "date": "2026-04-05",
+    "title": "Easter Sunday",
+    "description": "Public holiday in Croatia"
+  },
+  {
+    "id": 89,
+    "emoji": "🇭🇷",
+    "date": "2027-03-28",
+    "title": "Easter Sunday",
+    "description": "Public holiday in Croatia"
+  },
+  {
+    "id": 90,
+    "emoji": "🇭🇷",
+    "date": "2028-04-16",
+    "title": "Easter Sunday",
+    "description": "Public holiday in Croatia"
+  },
+  {
+    "id": 91,
+    "emoji": "🇭🇷",
+    "date": "2029-04-01",
+    "title": "Easter Sunday",
+    "description": "Public holiday in Croatia"
+  },
+  {
+    "id": 94,
+    "emoji": "🇦🇹",
+    "date": "2026-01-06",
+    "title": "Epiphany",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 95,
+    "emoji": "🇦🇹",
+    "date": "2027-01-06",
+    "title": "Epiphany",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 96,
+    "emoji": "🇦🇹",
+    "date": "2028-01-06",
+    "title": "Epiphany",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 97,
+    "emoji": "🇦🇹",
+    "date": "2029-01-06",
+    "title": "Epiphany",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 106,
+    "emoji": "🇲🇹",
+    "date": "2026-09-08",
+    "title": "Feast of Our Lady of Victories",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 107,
+    "emoji": "🇲🇹",
+    "date": "2027-09-08",
+    "title": "Feast of Our Lady of Victories",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 108,
+    "emoji": "🇲🇹",
+    "date": "2028-09-08",
+    "title": "Feast of Our Lady of Victories",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 109,
+    "emoji": "🇲🇹",
+    "date": "2029-09-08",
+    "title": "Feast of Our Lady of Victories",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 110,
+    "emoji": "🇲🇹",
+    "date": "2026-03-19",
+    "title": "Feast of St. Joseph",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 111,
+    "emoji": "🇲🇹",
+    "date": "2027-03-19",
+    "title": "Feast of St. Joseph",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 112,
+    "emoji": "🇲🇹",
+    "date": "2028-03-19",
+    "title": "Feast of St. Joseph",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 113,
+    "emoji": "🇲🇹",
+    "date": "2029-03-19",
+    "title": "Feast of St. Joseph",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 114,
+    "emoji": "🇲🇹",
+    "date": "2026-02-10",
+    "title": "Feast of St. Paul's Shipwreck",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 115,
+    "emoji": "🇲🇹",
+    "date": "2027-02-10",
+    "title": "Feast of St. Paul's Shipwreck",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 116,
+    "emoji": "🇲🇹",
+    "date": "2028-02-10",
+    "title": "Feast of St. Paul's Shipwreck",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 117,
+    "emoji": "🇲🇹",
+    "date": "2029-02-10",
+    "title": "Feast of St. Paul's Shipwreck",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 122,
+    "emoji": "🇲🇹",
+    "date": "2026-03-31",
+    "title": "Freedom Day",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 123,
+    "emoji": "🇲🇹",
+    "date": "2027-03-31",
+    "title": "Freedom Day",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 124,
+    "emoji": "🇲🇹",
+    "date": "2028-03-31",
+    "title": "Freedom Day",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 125,
+    "emoji": "🇲🇹",
+    "date": "2029-03-31",
+    "title": "Freedom Day",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 126,
+    "emoji": "🇨🇿",
+    "date": "2026-11-17",
+    "title": "Freedom and Democracy Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 127,
+    "emoji": "🇨🇿",
+    "date": "2027-11-17",
+    "title": "Freedom and Democracy Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 128,
+    "emoji": "🇨🇿",
+    "date": "2028-11-17",
+    "title": "Freedom and Democracy Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 129,
+    "emoji": "🇨🇿",
+    "date": "2029-11-17",
+    "title": "Freedom and Democracy Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 139,
+    "emoji": "🇩🇪",
+    "date": "2026-10-03",
+    "title": "German Unity Day",
+    "description": "Public holiday in Germany"
+  },
+  {
+    "id": 140,
+    "emoji": "🇩🇪",
+    "date": "2027-10-03",
+    "title": "German Unity Day",
+    "description": "Public holiday in Germany"
+  },
+  {
+    "id": 141,
+    "emoji": "🇩🇪",
+    "date": "2028-10-03",
+    "title": "German Unity Day",
+    "description": "Public holiday in Germany"
+  },
+  {
+    "id": 142,
+    "emoji": "🇩🇪",
+    "date": "2029-10-03",
+    "title": "German Unity Day",
+    "description": "Public holiday in Germany"
+  },
+  {
+    "id": 143,
+    "emoji": "🇦🇹",
+    "date": "2026-04-03",
+    "title": "Good Friday",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 144,
+    "emoji": "🇦🇹",
+    "date": "2027-03-26",
+    "title": "Good Friday",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 145,
+    "emoji": "🇦🇹",
+    "date": "2028-04-14",
+    "title": "Good Friday",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 146,
+    "emoji": "🇦🇹",
+    "date": "2029-03-30",
+    "title": "Good Friday",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 148,
+    "emoji": "🇨🇾",
+    "date": "2026-03-25",
+    "title": "Greek Independence Day",
+    "description": "Public holiday in Cyprus"
+  },
+  {
+    "id": 149,
+    "emoji": "🇨🇾",
+    "date": "2027-03-25",
+    "title": "Greek Independence Day",
+    "description": "Public holiday in Cyprus"
+  },
+  {
+    "id": 150,
+    "emoji": "🇨🇾",
+    "date": "2028-03-25",
+    "title": "Greek Independence Day",
+    "description": "Public holiday in Cyprus"
+  },
+  {
+    "id": 151,
+    "emoji": "🇨🇾",
+    "date": "2029-03-25",
+    "title": "Greek Independence Day",
+    "description": "Public holiday in Cyprus"
+  },
+  {
+    "id": 154,
+    "emoji": "🇦🇹",
+    "date": "2026-12-08",
+    "title": "Immaculate Conception",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 155,
+    "emoji": "🇦🇹",
+    "date": "2027-12-08",
+    "title": "Immaculate Conception",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 156,
+    "emoji": "🇦🇹",
+    "date": "2028-12-08",
+    "title": "Immaculate Conception",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 157,
+    "emoji": "🇦🇹",
+    "date": "2029-12-08",
+    "title": "Immaculate Conception",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 158,
+    "emoji": "🇧🇬",
+    "date": "2026-09-22",
+    "title": "Independence Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 159,
+    "emoji": "🇧🇬",
+    "date": "2027-09-22",
+    "title": "Independence Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 160,
+    "emoji": "🇧🇬",
+    "date": "2028-09-22",
+    "title": "Independence Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 161,
+    "emoji": "🇧🇬",
+    "date": "2029-09-22",
+    "title": "Independence Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 162,
+    "emoji": "🇸🇮",
+    "date": "2026-12-26",
+    "title": "Independence and Unity Day",
+    "description": "Public holiday in Slovenia"
+  },
+  {
+    "id": 163,
+    "emoji": "🇸🇮",
+    "date": "2027-12-26",
+    "title": "Independence and Unity Day",
+    "description": "Public holiday in Slovenia"
+  },
+  {
+    "id": 164,
+    "emoji": "🇸🇮",
+    "date": "2028-12-26",
+    "title": "Independence and Unity Day",
+    "description": "Public holiday in Slovenia"
+  },
+  {
+    "id": 165,
+    "emoji": "🇸🇮",
+    "date": "2029-12-26",
+    "title": "Independence and Unity Day",
+    "description": "Public holiday in Slovenia"
+  },
+  {
+    "id": 166,
+    "emoji": "🇨🇿",
+    "date": "2026-10-28",
+    "title": "Independent Czechoslovak State Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 167,
+    "emoji": "🇨🇿",
+    "date": "2027-10-28",
+    "title": "Independent Czechoslovak State Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 168,
+    "emoji": "🇨🇿",
+    "date": "2028-10-28",
+    "title": "Independent Czechoslovak State Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 169,
+    "emoji": "🇨🇿",
+    "date": "2029-10-28",
+    "title": "Independent Czechoslovak State Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 171,
+    "emoji": "🇨🇿",
+    "date": "2026-07-06",
+    "title": "Jan Hus Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 172,
+    "emoji": "🇨🇿",
+    "date": "2027-07-06",
+    "title": "Jan Hus Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 173,
+    "emoji": "🇨🇿",
+    "date": "2028-07-06",
+    "title": "Jan Hus Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 174,
+    "emoji": "🇨🇿",
+    "date": "2029-07-06",
+    "title": "Jan Hus Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 178,
+    "emoji": "🇮🇪",
+    "date": "2026-06-01",
+    "title": "June Bank Holiday",
+    "description": "Public holiday in Ireland"
+  },
+  {
+    "id": 179,
+    "emoji": "🇮🇪",
+    "date": "2027-06-07",
+    "title": "June Bank Holiday",
+    "description": "Public holiday in Ireland"
+  },
+  {
+    "id": 180,
+    "emoji": "🇮🇪",
+    "date": "2028-06-05",
+    "title": "June Bank Holiday",
+    "description": "Public holiday in Ireland"
+  },
+  {
+    "id": 181,
+    "emoji": "🇮🇪",
+    "date": "2029-06-03",
+    "title": "June Bank Holiday",
+    "description": "Public holiday in Ireland"
+  },
+  {
+    "id": 182,
+    "emoji": "🇳🇱",
+    "date": "2026-05-01",
+    "title": "King's Day",
+    "description": "Public holiday in Netherlands (Apr 27)"
+  },
+  {
+    "id": 183,
+    "emoji": "🇳🇱",
+    "date": "2027-04-27",
+    "title": "King's Day",
+    "description": "Public holiday in Netherlands"
+  },
+  {
+    "id": 184,
+    "emoji": "🇳🇱",
+    "date": "2028-04-27",
+    "title": "King's Day",
+    "description": "Public holiday in Netherlands"
+  },
+  {
+    "id": 185,
+    "emoji": "🇳🇱",
+    "date": "2029-04-27",
+    "title": "King's Day",
+    "description": "Public holiday in Netherlands"
+  },
+  {
+    "id": 188,
+    "emoji": "🇦🇹",
+    "date": "2026-05-01",
+    "title": "Labour Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 189,
+    "emoji": "🇦🇹",
+    "date": "2027-05-01",
+    "title": "Labour Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 190,
+    "emoji": "🇦🇹",
+    "date": "2028-05-01",
+    "title": "Labour Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 191,
+    "emoji": "🇦🇹",
+    "date": "2029-05-01",
+    "title": "Labour Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 194,
+    "emoji": "🇧🇬",
+    "date": "2026-03-03",
+    "title": "Liberation Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 195,
+    "emoji": "🇧🇬",
+    "date": "2027-03-03",
+    "title": "Liberation Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 196,
+    "emoji": "🇧🇬",
+    "date": "2028-03-03",
+    "title": "Liberation Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 197,
+    "emoji": "🇧🇬",
+    "date": "2029-03-03",
+    "title": "Liberation Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 200,
+    "emoji": "🇩🇰",
+    "date": "2026-04-03",
+    "title": "Maundy Thursday",
+    "description": "Public holiday in Denmark"
+  },
+  {
+    "id": 201,
+    "emoji": "🇩🇰",
+    "date": "2027-03-25",
+    "title": "Maundy Thursday",
+    "description": "Public holiday in Denmark"
+  },
+  {
+    "id": 202,
+    "emoji": "🇩🇰",
+    "date": "2028-04-13",
+    "title": "Maundy Thursday",
+    "description": "Public holiday in Denmark"
+  },
+  {
+    "id": 203,
+    "emoji": "🇩🇰",
+    "date": "2029-03-28",
+    "title": "Maundy Thursday",
+    "description": "Public holiday in Denmark"
+  },
+  {
+    "id": 204,
+    "emoji": "🇮🇪",
+    "date": "2026-05-04",
+    "title": "May Day",
+    "description": "Public holiday in Ireland"
+  },
+  {
+    "id": 205,
+    "emoji": "🇮🇪",
+    "date": "2027-05-03",
+    "title": "May Day",
+    "description": "Public holiday in Ireland"
+  },
+  {
+    "id": 206,
+    "emoji": "🇮🇪",
+    "date": "2028-05-07",
+    "title": "May Day",
+    "description": "Public holiday in Ireland"
+  },
+  {
+    "id": 207,
+    "emoji": "🇮🇪",
+    "date": "2029-05-06",
+    "title": "May Day",
+    "description": "Public holiday in Ireland"
+  },
+  {
+    "id": 208,
+    "emoji": "🇫🇮",
+    "date": "2026-06-20",
+    "title": "Midsummer Day",
+    "description": "Public holiday in Finland"
+  },
+  {
+    "id": 209,
+    "emoji": "🇫🇮",
+    "date": "2027-06-26",
+    "title": "Midsummer Day",
+    "description": "Public holiday in Finland"
+  },
+  {
+    "id": 210,
+    "emoji": "🇫🇮",
+    "date": "2028-06-24",
+    "title": "Midsummer Day",
+    "description": "Public holiday in Finland"
+  },
+  {
+    "id": 211,
+    "emoji": "🇫🇮",
+    "date": "2029-06-22",
+    "title": "Midsummer Day",
+    "description": "Public holiday in Finland"
+  },
+  {
+    "id": 212,
+    "emoji": "🇫🇮",
+    "date": "2026-06-19",
+    "title": "Midsummer Eve",
+    "description": "Public holiday in Finland"
+  },
+  {
+    "id": 213,
+    "emoji": "🇫🇮",
+    "date": "2027-06-25",
+    "title": "Midsummer Eve",
+    "description": "Public holiday in Finland"
+  },
+  {
+    "id": 214,
+    "emoji": "🇫🇮",
+    "date": "2028-06-23",
+    "title": "Midsummer Eve",
+    "description": "Public holiday in Finland"
+  },
+  {
+    "id": 215,
+    "emoji": "🇫🇮",
+    "date": "2029-06-21",
+    "title": "Midsummer Eve",
+    "description": "Public holiday in Finland"
+  },
+  {
+    "id": 220,
+    "emoji": "🇦🇹",
+    "date": "2026-10-26",
+    "title": "National Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 221,
+    "emoji": "🇦🇹",
+    "date": "2027-10-26",
+    "title": "National Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 222,
+    "emoji": "🇦🇹",
+    "date": "2028-10-26",
+    "title": "National Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 223,
+    "emoji": "🇦🇹",
+    "date": "2029-10-26",
+    "title": "National Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 227,
+    "emoji": "🇦🇹",
+    "date": "2026-01-01",
+    "title": "New Year's Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 228,
+    "emoji": "🇦🇹",
+    "date": "2027-01-01",
+    "title": "New Year's Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 229,
+    "emoji": "🇦🇹",
+    "date": "2028-01-01",
+    "title": "New Year's Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 230,
+    "emoji": "🇦🇹",
+    "date": "2029-01-01",
+    "title": "New Year's Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 231,
+    "emoji": "🇨🇾",
+    "date": "2026-10-28",
+    "title": "Ochi Day",
+    "description": "Public holiday in Cyprus"
+  },
+  {
+    "id": 232,
+    "emoji": "🇨🇾",
+    "date": "2027-10-28",
+    "title": "Ochi Day",
+    "description": "Public holiday in Cyprus"
+  },
+  {
+    "id": 233,
+    "emoji": "🇨🇾",
+    "date": "2028-10-28",
+    "title": "Ochi Day",
+    "description": "Public holiday in Cyprus"
+  },
+  {
+    "id": 234,
+    "emoji": "🇨🇾",
+    "date": "2029-10-28",
+    "title": "Ochi Day",
+    "description": "Public holiday in Cyprus"
+  },
+  {
+    "id": 235,
+    "emoji": "🇮🇪",
+    "date": "2026-10-26",
+    "title": "October Bank Holiday",
+    "description": "Public holiday in Ireland"
+  },
+  {
+    "id": 236,
+    "emoji": "🇮🇪",
+    "date": "2027-10-25",
+    "title": "October Bank Holiday",
+    "description": "Public holiday in Ireland"
+  },
+  {
+    "id": 237,
+    "emoji": "🇮🇪",
+    "date": "2028-10-30",
+    "title": "October Bank Holiday",
+    "description": "Public holiday in Ireland"
+  },
+  {
+    "id": 238,
+    "emoji": "🇮🇪",
+    "date": "2029-10-28",
+    "title": "October Bank Holiday",
+    "description": "Public holiday in Ireland"
+  },
+  {
+    "id": 239,
+    "emoji": "🇸🇰",
+    "date": "2026-09-15",
+    "title": "Our Lady of Sorrows",
+    "description": "Public holiday in Slovakia"
+  },
+  {
+    "id": 240,
+    "emoji": "🇸🇰",
+    "date": "2027-09-15",
+    "title": "Our Lady of Sorrows",
+    "description": "Public holiday in Slovakia"
+  },
+  {
+    "id": 241,
+    "emoji": "🇸🇰",
+    "date": "2028-09-15",
+    "title": "Our Lady of Sorrows",
+    "description": "Public holiday in Slovakia"
+  },
+  {
+    "id": 242,
+    "emoji": "🇸🇰",
+    "date": "2029-09-15",
+    "title": "Our Lady of Sorrows",
+    "description": "Public holiday in Slovakia"
+  },
+  {
+    "id": 251,
+    "emoji": "🇪🇪",
+    "date": "2026-05-24",
+    "title": "Pentecost",
+    "description": "Public holiday in Estonia"
+  },
+  {
+    "id": 252,
+    "emoji": "🇪🇪",
+    "date": "2027-05-16",
+    "title": "Pentecost",
+    "description": "Public holiday in Estonia"
+  },
+  {
+    "id": 253,
+    "emoji": "🇪🇪",
+    "date": "2028-05-28",
+    "title": "Pentecost",
+    "description": "Public holiday in Estonia"
+  },
+  {
+    "id": 254,
+    "emoji": "🇪🇪",
+    "date": "2029-05-19",
+    "title": "Pentecost",
+    "description": "Public holiday in Estonia"
+  },
+  {
+    "id": 256,
+    "emoji": "🇵🇹",
+    "date": "2026-06-10",
+    "title": "Portugal Day",
+    "description": "Public holiday in Portugal"
+  },
+  {
+    "id": 257,
+    "emoji": "🇵🇹",
+    "date": "2027-06-10",
+    "title": "Portugal Day",
+    "description": "Public holiday in Portugal"
+  },
+  {
+    "id": 258,
+    "emoji": "🇵🇹",
+    "date": "2028-06-10",
+    "title": "Portugal Day",
+    "description": "Public holiday in Portugal"
+  },
+  {
+    "id": 259,
+    "emoji": "🇵🇹",
+    "date": "2029-06-10",
+    "title": "Portugal Day",
+    "description": "Public holiday in Portugal"
+  },
+  {
+    "id": 279,
+    "emoji": "🇸🇮",
+    "date": "2026-02-08",
+    "title": "Prešeren Day",
+    "description": "Public holiday in Slovenia"
+  },
+  {
+    "id": 280,
+    "emoji": "🇸🇮",
+    "date": "2027-02-08",
+    "title": "Prešeren Day",
+    "description": "Public holiday in Slovenia"
+  },
+  {
+    "id": 281,
+    "emoji": "🇸🇮",
+    "date": "2028-02-08",
+    "title": "Prešeren Day",
+    "description": "Public holiday in Slovenia"
+  },
+  {
+    "id": 282,
+    "emoji": "🇸🇮",
+    "date": "2029-02-08",
+    "title": "Prešeren Day",
+    "description": "Public holiday in Slovenia"
+  },
+  {
+    "id": 283,
+    "emoji": "🇱🇻",
+    "date": "2026-11-18",
+    "title": "Proclamation Day",
+    "description": "Public holiday in Latvia"
+  },
+  {
+    "id": 284,
+    "emoji": "🇱🇻",
+    "date": "2027-11-18",
+    "title": "Proclamation Day",
+    "description": "Public holiday in Latvia"
+  },
+  {
+    "id": 285,
+    "emoji": "🇱🇻",
+    "date": "2028-11-18",
+    "title": "Proclamation Day",
+    "description": "Public holiday in Latvia"
+  },
+  {
+    "id": 286,
+    "emoji": "🇱🇻",
+    "date": "2029-11-18",
+    "title": "Proclamation Day",
+    "description": "Public holiday in Latvia"
+  },
+  {
+    "id": 293,
+    "emoji": "🇸🇮",
+    "date": "2026-10-31",
+    "title": "Reformation Day",
+    "description": "Public holiday in Slovenia"
+  },
+  {
+    "id": 294,
+    "emoji": "🇸🇮",
+    "date": "2027-10-31",
+    "title": "Reformation Day",
+    "description": "Public holiday in Slovenia"
+  },
+  {
+    "id": 295,
+    "emoji": "🇸🇮",
+    "date": "2028-10-31",
+    "title": "Reformation Day",
+    "description": "Public holiday in Slovenia"
+  },
+  {
+    "id": 296,
+    "emoji": "🇸🇮",
+    "date": "2029-10-31",
+    "title": "Reformation Day",
+    "description": "Public holiday in Slovenia"
+  },
+  {
+    "id": 297,
+    "emoji": "🇭🇺",
+    "date": "2026-10-23",
+    "title": "Republic Day",
+    "description": "Public holiday in Hungary"
+  },
+  {
+    "id": 298,
+    "emoji": "🇭🇺",
+    "date": "2027-10-23",
+    "title": "Republic Day",
+    "description": "Public holiday in Hungary"
+  },
+  {
+    "id": 299,
+    "emoji": "🇭🇺",
+    "date": "2028-10-23",
+    "title": "Republic Day",
+    "description": "Public holiday in Hungary"
+  },
+  {
+    "id": 300,
+    "emoji": "🇭🇺",
+    "date": "2029-10-23",
+    "title": "Republic Day",
+    "description": "Public holiday in Hungary"
+  },
+  {
+    "id": 301,
+    "emoji": "🇵🇹",
+    "date": "2026-12-01",
+    "title": "Restoration of Independence",
+    "description": "Public holiday in Portugal"
+  },
+  {
+    "id": 302,
+    "emoji": "🇵🇹",
+    "date": "2027-12-01",
+    "title": "Restoration of Independence",
+    "description": "Public holiday in Portugal"
+  },
+  {
+    "id": 303,
+    "emoji": "🇵🇹",
+    "date": "2028-12-01",
+    "title": "Restoration of Independence",
+    "description": "Public holiday in Portugal"
+  },
+  {
+    "id": 304,
+    "emoji": "🇵🇹",
+    "date": "2029-12-01",
+    "title": "Restoration of Independence",
+    "description": "Public holiday in Portugal"
+  },
+  {
+    "id": 305,
+    "emoji": "🇪🇪",
+    "date": "2026-08-20",
+    "title": "Restoration of Independence Day",
+    "description": "Public holiday in Estonia"
+  },
+  {
+    "id": 306,
+    "emoji": "🇪🇪",
+    "date": "2027-08-20",
+    "title": "Restoration of Independence Day",
+    "description": "Public holiday in Estonia"
+  },
+  {
+    "id": 307,
+    "emoji": "🇪🇪",
+    "date": "2028-08-20",
+    "title": "Restoration of Independence Day",
+    "description": "Public holiday in Estonia"
+  },
+  {
+    "id": 308,
+    "emoji": "🇪🇪",
+    "date": "2029-08-20",
+    "title": "Restoration of Independence Day",
+    "description": "Public holiday in Estonia"
+  },
+  {
+    "id": 310,
+    "emoji": "🇸🇮",
+    "date": "2026-11-23",
+    "title": "Rudolf Maister Day",
+    "description": "Public holiday in Slovenia"
+  },
+  {
+    "id": 311,
+    "emoji": "🇸🇮",
+    "date": "2027-11-23",
+    "title": "Rudolf Maister Day",
+    "description": "Public holiday in Slovenia"
+  },
+  {
+    "id": 312,
+    "emoji": "🇸🇮",
+    "date": "2028-11-23",
+    "title": "Rudolf Maister Day",
+    "description": "Public holiday in Slovenia"
+  },
+  {
+    "id": 313,
+    "emoji": "🇸🇮",
+    "date": "2029-11-23",
+    "title": "Rudolf Maister Day",
+    "description": "Public holiday in Slovenia"
+  },
+  {
+    "id": 314,
+    "emoji": "🇨🇿",
+    "date": "2026-07-05",
+    "title": "Saints Cyril and Methodius Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 315,
+    "emoji": "🇨🇿",
+    "date": "2027-07-05",
+    "title": "Saints Cyril and Methodius Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 316,
+    "emoji": "🇨🇿",
+    "date": "2028-07-05",
+    "title": "Saints Cyril and Methodius Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 317,
+    "emoji": "🇨🇿",
+    "date": "2029-07-05",
+    "title": "Saints Cyril and Methodius Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 318,
+    "emoji": "🇧🇬",
+    "date": "2026-12-26",
+    "title": "Second Christmas Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 319,
+    "emoji": "🇧🇬",
+    "date": "2027-12-26",
+    "title": "Second Christmas Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 320,
+    "emoji": "🇧🇬",
+    "date": "2028-12-26",
+    "title": "Second Christmas Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 321,
+    "emoji": "🇧🇬",
+    "date": "2029-12-26",
+    "title": "Second Christmas Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 324,
+    "emoji": "🇸🇰",
+    "date": "2026-08-29",
+    "title": "Slovak National Uprising Anniversary",
+    "description": "Public holiday in Slovakia"
+  },
+  {
+    "id": 325,
+    "emoji": "🇸🇰",
+    "date": "2027-08-29",
+    "title": "Slovak National Uprising Anniversary",
+    "description": "Public holiday in Slovakia"
+  },
+  {
+    "id": 326,
+    "emoji": "🇸🇰",
+    "date": "2028-08-29",
+    "title": "Slovak National Uprising Anniversary",
+    "description": "Public holiday in Slovakia"
+  },
+  {
+    "id": 327,
+    "emoji": "🇸🇰",
+    "date": "2029-08-29",
+    "title": "Slovak National Uprising Anniversary",
+    "description": "Public holiday in Slovakia"
+  },
+  {
+    "id": 328,
+    "emoji": "🇷🇴",
+    "date": "2026-11-30",
+    "title": "St. Andrew's Day",
+    "description": "Public holiday in Romania"
+  },
+  {
+    "id": 329,
+    "emoji": "🇷🇴",
+    "date": "2027-11-30",
+    "title": "St. Andrew's Day",
+    "description": "Public holiday in Romania"
+  },
+  {
+    "id": 330,
+    "emoji": "🇷🇴",
+    "date": "2028-11-30",
+    "title": "St. Andrew's Day",
+    "description": "Public holiday in Romania"
+  },
+  {
+    "id": 331,
+    "emoji": "🇷🇴",
+    "date": "2029-11-30",
+    "title": "St. Andrew's Day",
+    "description": "Public holiday in Romania"
+  },
+  {
+    "id": 332,
+    "emoji": "🇧🇬",
+    "date": "2026-05-06",
+    "title": "St. George's Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 333,
+    "emoji": "🇧🇬",
+    "date": "2027-05-06",
+    "title": "St. George's Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 334,
+    "emoji": "🇧🇬",
+    "date": "2028-05-06",
+    "title": "St. George's Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 335,
+    "emoji": "🇧🇬",
+    "date": "2029-05-06",
+    "title": "St. George's Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 336,
+    "emoji": "🇪🇸",
+    "date": "2026-07-25",
+    "title": "St. James the Great Day",
+    "description": "Public holiday in Spain (some regions)"
+  },
+  {
+    "id": 337,
+    "emoji": "🇪🇸",
+    "date": "2027-07-25",
+    "title": "St. James the Great Day",
+    "description": "Public holiday in Spain (some regions)"
+  },
+  {
+    "id": 338,
+    "emoji": "🇪🇸",
+    "date": "2028-07-25",
+    "title": "St. James the Great Day",
+    "description": "Public holiday in Spain (some regions)"
+  },
+  {
+    "id": 339,
+    "emoji": "🇪🇸",
+    "date": "2029-07-25",
+    "title": "St. James the Great Day",
+    "description": "Public holiday in Spain (some regions)"
+  },
+  {
+    "id": 340,
+    "emoji": "🇪🇪",
+    "date": "2026-06-24",
+    "title": "St. John's Day",
+    "description": "Public holiday in Estonia"
+  },
+  {
+    "id": 341,
+    "emoji": "🇪🇪",
+    "date": "2027-06-24",
+    "title": "St. John's Day",
+    "description": "Public holiday in Estonia"
+  },
+  {
+    "id": 342,
+    "emoji": "🇪🇪",
+    "date": "2028-06-24",
+    "title": "St. John's Day",
+    "description": "Public holiday in Estonia"
+  },
+  {
+    "id": 343,
+    "emoji": "🇪🇪",
+    "date": "2029-06-24",
+    "title": "St. John's Day",
+    "description": "Public holiday in Estonia"
+  },
+  {
+    "id": 344,
+    "emoji": "🇮🇪",
+    "date": "2026-03-17",
+    "title": "St. Patrick's Day",
+    "description": "Public holiday in Ireland"
+  },
+  {
+    "id": 345,
+    "emoji": "🇮🇪",
+    "date": "2027-03-17",
+    "title": "St. Patrick's Day",
+    "description": "Public holiday in Ireland"
+  },
+  {
+    "id": 346,
+    "emoji": "🇮🇪",
+    "date": "2028-03-17",
+    "title": "St. Patrick's Day",
+    "description": "Public holiday in Ireland"
+  },
+  {
+    "id": 347,
+    "emoji": "🇮🇪",
+    "date": "2029-03-17",
+    "title": "St. Patrick's Day",
+    "description": "Public holiday in Ireland"
+  },
+  {
+    "id": 348,
+    "emoji": "🇲🇹",
+    "date": "2026-06-29",
+    "title": "St. Peter and St. Paul",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 349,
+    "emoji": "🇲🇹",
+    "date": "2027-06-29",
+    "title": "St. Peter and St. Paul",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 350,
+    "emoji": "🇲🇹",
+    "date": "2028-06-29",
+    "title": "St. Peter and St. Paul",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 351,
+    "emoji": "🇲🇹",
+    "date": "2029-06-29",
+    "title": "St. Peter and St. Paul",
+    "description": "Public holiday in Malta"
+  },
+  {
+    "id": 352,
+    "emoji": "🇦🇹",
+    "date": "2026-12-26",
+    "title": "St. Stephen's Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 353,
+    "emoji": "🇦🇹",
+    "date": "2027-12-26",
+    "title": "St. Stephen's Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 354,
+    "emoji": "🇦🇹",
+    "date": "2028-12-26",
+    "title": "St. Stephen's Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 355,
+    "emoji": "🇦🇹",
+    "date": "2029-12-26",
+    "title": "St. Stephen's Day",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 356,
+    "emoji": "🇨🇿",
+    "date": "2026-09-28",
+    "title": "St. Wenceslas Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 357,
+    "emoji": "🇨🇿",
+    "date": "2027-09-28",
+    "title": "St. Wenceslas Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 358,
+    "emoji": "🇨🇿",
+    "date": "2028-09-28",
+    "title": "St. Wenceslas Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 359,
+    "emoji": "🇨🇿",
+    "date": "2029-09-28",
+    "title": "St. Wenceslas Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 360,
+    "emoji": "🇱🇹",
+    "date": "2026-02-16",
+    "title": "State Restoration Day",
+    "description": "Public holiday in Lithuania"
+  },
+  {
+    "id": 361,
+    "emoji": "🇱🇹",
+    "date": "2027-02-16",
+    "title": "State Restoration Day",
+    "description": "Public holiday in Lithuania"
+  },
+  {
+    "id": 362,
+    "emoji": "🇱🇹",
+    "date": "2028-02-16",
+    "title": "State Restoration Day",
+    "description": "Public holiday in Lithuania"
+  },
+  {
+    "id": 363,
+    "emoji": "🇱🇹",
+    "date": "2029-02-16",
+    "title": "State Restoration Day",
+    "description": "Public holiday in Lithuania"
+  },
+  {
+    "id": 364,
+    "emoji": "🇭🇷",
+    "date": "2026-06-25",
+    "title": "Statehood Day",
+    "description": "Public holiday in Croatia"
+  },
+  {
+    "id": 365,
+    "emoji": "🇭🇷",
+    "date": "2027-06-25",
+    "title": "Statehood Day",
+    "description": "Public holiday in Croatia"
+  },
+  {
+    "id": 366,
+    "emoji": "🇭🇷",
+    "date": "2028-06-25",
+    "title": "Statehood Day",
+    "description": "Public holiday in Croatia"
+  },
+  {
+    "id": 367,
+    "emoji": "🇭🇷",
+    "date": "2029-06-25",
+    "title": "Statehood Day",
+    "description": "Public holiday in Croatia"
+  },
+  {
+    "id": 373,
+    "emoji": "🇧🇬",
+    "date": "2026-09-06",
+    "title": "Unification Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 374,
+    "emoji": "🇧🇬",
+    "date": "2027-09-06",
+    "title": "Unification Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 375,
+    "emoji": "🇧🇬",
+    "date": "2028-09-06",
+    "title": "Unification Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 376,
+    "emoji": "🇧🇬",
+    "date": "2029-09-06",
+    "title": "Unification Day",
+    "description": "Public holiday in Bulgaria"
+  },
+  {
+    "id": 377,
+    "emoji": "🇨🇿",
+    "date": "2026-05-08",
+    "title": "Victory Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 378,
+    "emoji": "🇨🇿",
+    "date": "2027-05-08",
+    "title": "Victory Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 379,
+    "emoji": "🇨🇿",
+    "date": "2028-05-08",
+    "title": "Victory Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 380,
+    "emoji": "🇨🇿",
+    "date": "2029-05-08",
+    "title": "Victory Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 381,
+    "emoji": "🇭🇷",
+    "date": "2026-08-05",
+    "title": "Victory and Homeland Thanksgiving",
+    "description": "Public holiday in Croatia"
+  },
+  {
+    "id": 382,
+    "emoji": "🇭🇷",
+    "date": "2027-08-05",
+    "title": "Victory and Homeland Thanksgiving",
+    "description": "Public holiday in Croatia"
+  },
+  {
+    "id": 383,
+    "emoji": "🇭🇷",
+    "date": "2028-08-05",
+    "title": "Victory and Homeland Thanksgiving",
+    "description": "Public holiday in Croatia"
+  },
+  {
+    "id": 384,
+    "emoji": "🇭🇷",
+    "date": "2029-08-05",
+    "title": "Victory and Homeland Thanksgiving",
+    "description": "Public holiday in Croatia"
+  },
+  {
+    "id": 385,
+    "emoji": "🇨🇿",
+    "date": "2026-05-08",
+    "title": "Victory in Europe Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 386,
+    "emoji": "🇨🇿",
+    "date": "2027-05-08",
+    "title": "Victory in Europe Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 387,
+    "emoji": "🇨🇿",
+    "date": "2028-05-08",
+    "title": "Victory in Europe Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 388,
+    "emoji": "🇨🇿",
+    "date": "2029-05-08",
+    "title": "Victory in Europe Day",
+    "description": "Public holiday in Czech Republic"
+  },
+  {
+    "id": 389,
+    "emoji": "🇭🇷",
+    "date": "2026-11-18",
+    "title": "War Veteran Remembrance Day",
+    "description": "Public holiday in Croatia"
+  },
+  {
+    "id": 390,
+    "emoji": "🇭🇷",
+    "date": "2027-11-18",
+    "title": "War Veteran Remembrance Day",
+    "description": "Public holiday in Croatia"
+  },
+  {
+    "id": 391,
+    "emoji": "🇭🇷",
+    "date": "2028-11-18",
+    "title": "War Veteran Remembrance Day",
+    "description": "Public holiday in Croatia"
+  },
+  {
+    "id": 392,
+    "emoji": "🇭🇷",
+    "date": "2029-11-18",
+    "title": "War Veteran Remembrance Day",
+    "description": "Public holiday in Croatia"
+  },
+  {
+    "id": 395,
+    "emoji": "🇦🇹",
+    "date": "2026-05-25",
+    "title": "Whit Monday",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 396,
+    "emoji": "🇦🇹",
+    "date": "2027-05-17",
+    "title": "Whit Monday",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 397,
+    "emoji": "🇦🇹",
+    "date": "2028-05-29",
+    "title": "Whit Monday",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 398,
+    "emoji": "🇦🇹",
+    "date": "2029-05-20",
+    "title": "Whit Monday",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 399,
+    "emoji": "🇦🇹",
+    "date": "2026-05-24",
+    "title": "Whit Sunday",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 400,
+    "emoji": "🇦🇹",
+    "date": "2027-05-16",
+    "title": "Whit Sunday",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 401,
+    "emoji": "🇦🇹",
+    "date": "2028-05-28",
+    "title": "Whit Sunday",
+    "description": "Public holiday in Austria"
+  },
+  {
+    "id": 402,
+    "emoji": "🇦🇹",
+    "date": "2029-05-19",
+    "title": "Whit Sunday",
+    "description": "Public holiday in Austria"
+  }
+]

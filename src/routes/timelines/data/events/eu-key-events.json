@@ -1,0 +1,142 @@
+[
+  {
+    "id": 2,
+    "emoji": "📅",
+    "date": "2027-01-01",
+    "title": "Albania Accession Talks",
+    "description": "Albania begins formal EU accession negotiations."
+  },
+  {
+    "id": 33,
+    "emoji": "📅",
+    "date": "2004-05-01",
+    "title": "Biggest EU Expansion",
+    "description": "Ten new countries join the EU in the largest expansion, including Central and Eastern European nations."
+  },
+  {
+    "id": 34,
+    "emoji": "📅",
+    "date": "2020-01-31",
+    "title": "Brexit",
+    "description": "United Kingdom officially leaves the European Union after 47 years of membership."
+  },
+  {
+    "id": 35,
+    "emoji": "📅",
+    "date": "2022-06-23",
+    "title": "Candidate Status for Ukraine",
+    "description": "Ukraine is granted EU candidate status, a historic decision amid the Russia-Ukraine war."
+  },
+  {
+    "id": 60,
+    "emoji": "📅",
+    "date": "2026-01-01",
+    "title": "Constitution Renewal Debate",
+    "description": "Member states begin negotiations on EU constitutional reforms to improve decision-making."
+  },
+  {
+    "id": 83,
+    "emoji": "📅",
+    "date": "2004-05-01",
+    "title": "EU Membership",
+    "description": "Hungary becomes member of the European Union with the 2004 expansion."
+  },
+  {
+    "id": 98,
+    "emoji": "📅",
+    "date": "1999-01-01",
+    "title": "Euro Currency Launch",
+    "description": "Euro is introduced as an accounting currency. Euro banknotes and coins enter circulation in 2002."
+  },
+  {
+    "id": 99,
+    "emoji": "📅",
+    "date": "1999-01-01",
+    "title": "Euro Entry",
+    "description": " Netherlands transitions to the euro currency."
+  },
+  {
+    "id": 103,
+    "emoji": "📅",
+    "date": "2023-01-01",
+    "title": "Eurozone Expansion",
+    "description": "Croatia becomes the 20th member of the Eurozone, adopting the euro currency."
+  },
+  {
+    "id": 138,
+    "emoji": "📅",
+    "date": "2022-06-23",
+    "title": "Georgia EU Perspective",
+    "description": "Georgia is granted EU candidate perspective amid ongoing reforms."
+  },
+  {
+    "id": 175,
+    "emoji": "📅",
+    "date": "1957-01-01",
+    "title": "Joins EEC",
+    "description": "West Germany becomes founding member of the European Economic Community."
+  },
+  {
+    "id": 176,
+    "emoji": "📅",
+    "date": "2004-05-01",
+    "title": "Joins EU",
+    "description": "Poland, the largest of the 2004 expansion countries, joins the European Union."
+  },
+  {
+    "id": 177,
+    "emoji": "📅",
+    "date": "1999-01-01",
+    "title": "Joins Euro",
+    "description": "Ireland adopts the euro as part of the initial Eurozone launch."
+  },
+  {
+    "id": 186,
+    "emoji": "📅",
+    "date": "2027-01-01",
+    "title": "KosovoEU Talks",
+    "description": "Kosovo begins EU visa liberalization dialogue."
+  },
+  {
+    "id": 217,
+    "emoji": "📅",
+    "date": "2022-06-23",
+    "title": "Moldova EU Candidacy",
+    "description": "Moldova also receives EU candidate status alongside Ukraine."
+  },
+  {
+    "id": 226,
+    "emoji": "📅",
+    "date": "2025-01-01",
+    "title": "New Commission Takes Office",
+    "description": "New European Commission under President begins term with focus on competitiveness and green transition."
+  },
+  {
+    "id": 290,
+    "emoji": "📅",
+    "date": "1957-01-01",
+    "title": "Ratifies Treaty",
+    "description": "French National Assembly ratifies the Treaty of Rome, paving way for EEC implementation."
+  },
+  {
+    "id": 369,
+    "emoji": "📅",
+    "date": "2007-12-13",
+    "title": "Treaty of Lisbon",
+    "description": "Treaty of Lisbon is signed, reforming EU institutions and establishing the European Union as a legal entity."
+  },
+  {
+    "id": 370,
+    "emoji": "📅",
+    "date": "1957-01-01",
+    "title": "Treaty of Rome",
+    "description": "Six founding members sign the Treaty of Rome, establishing the European Economic Community (EEC)."
+  },
+  {
+    "id": 394,
+    "emoji": "📅",
+    "date": "2027-01-01",
+    "title": "Western Balkans Accession",
+    "description": "New Western Balkan countries begin accession talks for EU membership."
+  }
+]

@@ -1,0 +1,317 @@
+[
+  {
+    "id": 100,
+    "emoji": "🇪🇺",
+    "date": "2024-06-09",
+    "title": "European Parliament Elections",
+    "description": "EU citizens vote across 27 member states for 720 MEPs. Centre-right EPP remains largest group with 188 seats, far-right makes significant gains."
+  },
+  {
+    "id": 101,
+    "emoji": "🇪🇺",
+    "date": "2029-06-06",
+    "title": "European Parliament Elections",
+    "description": "EU citizens across 27 member states elect 720 Members of European Parliament for 2029-2034 term."
+  },
+  {
+    "id": 102,
+    "emoji": "🇪🇺",
+    "date": "2034-06-06",
+    "title": "European Parliament Elections",
+    "description": "EU citizens elect Members of European Parliament for 2034-2039 term."
+  },
+  {
+    "id": 118,
+    "emoji": "🗳️",
+    "date": "2024-06-09",
+    "title": "Federal Election",
+    "description": "Flemish nationalist N-VA becomes largest party, but coalition talks drag on for over 200 days amid regional tensions."
+  },
+  {
+    "id": 119,
+    "emoji": "🗳️",
+    "date": "2025-02-23",
+    "title": "Federal Election",
+    "description": "CDU/CSU wins decisive victory under Friedrich Merz. Coalition negotiations begin with SPD for 'Germany Alliance' government."
+  },
+  {
+    "id": 120,
+    "emoji": "🗳️",
+    "date": "2029-06-09",
+    "title": "Federal Election",
+    "description": "Federal elections to Chamber of Representatives and Senate following five-year term."
+  },
+  {
+    "id": 131,
+    "emoji": "📅",
+    "date": "2024-11-01",
+    "title": "General Election",
+    "description": "Mette Frederiksen's Social Democrats win again but lose parliamentary majority, leading to minority government formation."
+  },
+  {
+    "id": 132,
+    "emoji": "📅",
+    "date": "2025-10-12",
+    "title": "General Election",
+    "description": "Robert Abela's Labour Party wins third consecutive term with increased parliamentary majority."
+  },
+  {
+    "id": 133,
+    "emoji": "📅",
+    "date": "2026-09-13",
+    "title": "General Election",
+    "description": "Next scheduled parliamentary election following four-year legislative term."
+  },
+  {
+    "id": 134,
+    "emoji": "📅",
+    "date": "2027-12-01",
+    "title": "General Election",
+    "description": "Congress of Deputies and Senate elections. Political fragmentation continues to challenge government formation."
+  },
+  {
+    "id": 135,
+    "emoji": "📅",
+    "date": "2028-10-08",
+    "title": "General Election",
+    "description": "Chamber of Deputies election following five-year legislative term."
+  },
+  {
+    "id": 136,
+    "emoji": "📅",
+    "date": "2029-11-29",
+    "title": "General Election",
+    "description": "Dáil Éireann election following five-year legislative term."
+  },
+  {
+    "id": 137,
+    "emoji": "📅",
+    "date": "2030-09-14",
+    "title": "General Election",
+    "description": "Riksdag election following four-year legislative term."
+  },
+  {
+    "id": 192,
+    "emoji": "📅",
+    "date": "2024-03-10",
+    "title": "Legislative Election",
+    "description": "Center-right Democratic Alliance (AD) wins snap election after PM Costa's resignation. Far-right Chega emerges as third-largest party in Portuguese parliament."
+  },
+  {
+    "id": 193,
+    "emoji": "📅",
+    "date": "2027-06-20",
+    "title": "Legislative Election",
+    "description": "Parliamentary elections following presidential election. Outcome shapes government formation."
+  },
+  {
+    "id": 224,
+    "emoji": "📅",
+    "date": "2024-09-29",
+    "title": "National Election",
+    "description": "Freedom Party (FPÖ) becomes first far-right party to win national election in post-war Austria. Coalition negotiations begin without clear path to government."
+  },
+  {
+    "id": 225,
+    "emoji": "📅",
+    "date": "2029-09-29",
+    "title": "National Election",
+    "description": "National Council election following five-year legislative term."
+  },
+  {
+    "id": 243,
+    "emoji": "🗳️",
+    "date": "2024-04-17",
+    "title": "Parliamentary Election",
+    "description": "HDZ wins narrow victory but loses absolute majority. Andrej Plenković continues as PM with HDZ-DPMIO coalition government."
+  },
+  {
+    "id": 244,
+    "emoji": "🗳️",
+    "date": "2025-03-09",
+    "title": "Parliamentary Election",
+    "description": "Reform Party and Centre Party neck-and-neck. Coalition negotiations determine next government amid tight results."
+  },
+  {
+    "id": 245,
+    "emoji": "🗳️",
+    "date": "2026-03-22",
+    "title": "Parliamentary Election",
+    "description": "Next scheduled parliamentary election following standard four-year legislative term."
+  },
+  {
+    "id": 246,
+    "emoji": "🗳️",
+    "date": "2027-06-21",
+    "title": "Parliamentary Election",
+    "description": "New Democracy wins second term under Kyriakos Mitsotakis with focus on economic growth and infrastructure development."
+  },
+  {
+    "id": 247,
+    "emoji": "🗳️",
+    "date": "2028-10-13",
+    "title": "Parliamentary Election",
+    "description": "Seimas election following four-year legislative term."
+  },
+  {
+    "id": 248,
+    "emoji": "🗳️",
+    "date": "2029-05-18",
+    "title": "Parliamentary Election",
+    "description": "Assembly of the Republic election following four-year legislative term."
+  },
+  {
+    "id": 249,
+    "emoji": "🗳️",
+    "date": "2030-11-24",
+    "title": "Parliamentary Election",
+    "description": "National Assembly election following four-year legislative term."
+  },
+  {
+    "id": 260,
+    "emoji": "🗳️",
+    "date": "2024-01-28",
+    "title": "Presidential Election",
+    "description": "Alexander Stubb elected president in runoff against Jussi Halla-aho of the Finns Party, after incumbent Sauli Niinistö chose not to seek re-election."
+  },
+  {
+    "id": 261,
+    "emoji": "🗳️",
+    "date": "2025-10-24",
+    "title": "Presidential Election",
+    "description": "Former Fine Gael leader runs in presidential election amid coalition government dynamics."
+  },
+  {
+    "id": 262,
+    "emoji": "🗳️",
+    "date": "2026-08-30",
+    "title": "Presidential Election",
+    "description": "Presidential election to select head of state. Alar Karis does not stand for re-election."
+  },
+  {
+    "id": 263,
+    "emoji": "🗳️",
+    "date": "2028-02-05",
+    "title": "Presidential Election",
+    "description": "Presidential election to elect leader of Republic of Cyprus. Incumbent Nikos Christodoulides eligible for re-election."
+  },
+  {
+    "id": 264,
+    "emoji": "🗳️",
+    "date": "2029-12-29",
+    "title": "Presidential Election",
+    "description": "Presidential election following five-year term cycle."
+  },
+  {
+    "id": 265,
+    "emoji": "🗳️",
+    "date": "2030-01-28",
+    "title": "Presidential Election",
+    "description": "Presidential election to select head of state. Incumbent Alexander Stubb eligible for re-election."
+  },
+  {
+    "id": 266,
+    "emoji": "🗳️",
+    "date": "2032-10-24",
+    "title": "Presidential Election",
+    "description": "Presidential election following seven-year term cycle."
+  },
+  {
+    "id": 267,
+    "emoji": "🗳️",
+    "date": "2033-02-05",
+    "title": "Presidential Election",
+    "description": "Presidential election following five-year term cycle."
+  },
+  {
+    "id": 268,
+    "emoji": "🗳️",
+    "date": "2025-05-18",
+    "title": "Presidential Election (Round 1)",
+    "description": "Conservative Karol Nawrocki and centrist Rafał Trzaskowski advance to runoff in closely contested first round."
+  },
+  {
+    "id": 269,
+    "emoji": "🗳️",
+    "date": "2026-01-18",
+    "title": "Presidential Election (Round 1)",
+    "description": "Marcelo Rebelo de Sousa does not stand for re-election. Multiple candidates contest presidency."
+  },
+  {
+    "id": 270,
+    "emoji": "🗳️",
+    "date": "2027-04-11",
+    "title": "Presidential Election (Round 1)",
+    "description": "Presidential election without incumbent Emmanuel Macron (term-limited). Multiple candidates from across political spectrum."
+  },
+  {
+    "id": 271,
+    "emoji": "🗳️",
+    "date": "2030-05-18",
+    "title": "Presidential Election (Round 1)",
+    "description": "Presidential election following five-year term cycle."
+  },
+  {
+    "id": 272,
+    "emoji": "🗳️",
+    "date": "2031-01-18",
+    "title": "Presidential Election (Round 1)",
+    "description": "Presidential election following five-year term cycle."
+  },
+  {
+    "id": 273,
+    "emoji": "📅",
+    "date": "2024-11-24",
+    "title": "Presidential Election (Round 1, Annulled)",
+    "description": "Pro-Russian candidate Călin Georgescu surprises with first-place finish. Constitutional Court later annuls election due to Russian TikTok manipulation allegations."
+  },
+  {
+    "id": 274,
+    "emoji": "📅",
+    "date": "2025-05-04",
+    "title": "Presidential Election (Round 1, Re-run)",
+    "description": "George Simion (AUR) leads first round of re-run election following annulment of 2024 vote due to foreign interference."
+  },
+  {
+    "id": 275,
+    "emoji": "🗳️",
+    "date": "2025-06-01",
+    "title": "Presidential Election (Runoff)",
+    "description": "Karol Nawrocki wins closely contested presidential election against Warsaw mayor Rafał Trzaskowski in narrow runoff."
+  },
+  {
+    "id": 276,
+    "emoji": "🗳️",
+    "date": "2026-02-08",
+    "title": "Presidential Election (Runoff)",
+    "description": "Second round of presidential election if no candidate achieves absolute majority in first round."
+  },
+  {
+    "id": 277,
+    "emoji": "🗳️",
+    "date": "2027-04-25",
+    "title": "Presidential Election (Runoff)",
+    "description": "Second round of presidential election if no candidate achieves absolute majority."
+  },
+  {
+    "id": 278,
+    "emoji": "🗳️",
+    "date": "2030-06-01",
+    "title": "Presidential Election (Runoff)",
+    "description": "Second round of presidential election if needed."
+  },
+  {
+    "id": 323,
+    "emoji": "📅",
+    "date": "2026-09-20",
+    "title": "Senate Election",
+    "description": "Senate by-elections and partial renewal of one-third of Senate seats."
+  },
+  {
+    "id": 372,
+    "emoji": "📅",
+    "date": "2024-07-04",
+    "title": "UK General Election",
+    "description": "Labour Party wins massive landslide, ending 14 years of Conservative rule. Keir Starmer becomes Prime Minister."
+  }
+]

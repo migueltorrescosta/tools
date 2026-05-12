@@ -14,6 +14,8 @@ interface Event {
 	title: string;
 	description: string;
 	url?: string;
+	conceptDescription?: string;
+	valueAdd?: string;
 }
 
 interface EventTimeline {
@@ -127,6 +129,10 @@ function isPast(dateStr: string): boolean {
 	return date < today;
 }
 
+function hasRichContent(events: Event[]): boolean {
+	return events.some((e) => e.conceptDescription || e.valueAdd);
+}
+
 function updateFilteredEvents(
 	timelineId: string,
 	allEvents: Event[],
@@ -144,6 +150,8 @@ function updateFilteredEvents(
 		.filter((e) => eventIds.includes(e.id))
 		.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+	const rich = hasRichContent(filteredEvents);
+
 	// Group events by year
 	const eventsByYear = new Map<number, Event[]>();
 	for (const event of filteredEvents) {
@@ -154,7 +162,7 @@ function updateFilteredEvents(
 		eventsByYear.get(year)!.push(event);
 	}
 
-	// Build rows: year separator + chunked events for each year
+	// Build rows: year separator + events for each year
 	const rows: TimelineRow[] = [];
 	const sortedYears = Array.from(eventsByYear.keys()).sort((a, b) => a - b);
 
@@ -162,8 +170,14 @@ function updateFilteredEvents(
 		rows.push({ type: 'year', year });
 
 		const yearEvents = eventsByYear.get(year)!;
-		for (let i = 0; i < yearEvents.length; i += COLUMNS) {
-			rows.push({ type: 'events', events: yearEvents.slice(i, i + COLUMNS) });
+		if (rich) {
+			// For rich content, keep all events in a single group
+			rows.push({ type: 'events', events: yearEvents });
+		} else {
+			// Chunk events for this year into rows of 3
+			for (let i = 0; i < yearEvents.length; i += COLUMNS) {
+				rows.push({ type: 'events', events: yearEvents.slice(i, i + COLUMNS) });
+			}
 		}
 	}
 
@@ -454,6 +468,97 @@ describe('Timeline Row Generation', () => {
 
 		expect(eventRows[0].events.length).toBe(3);
 		expect(eventRows[1].events.length).toBe(1);
+	});
+});
+
+describe('Rich Content Handling', () => {
+	it('detects rich content when events have conceptDescription', () => {
+		const events: Event[] = [
+			{
+				id: 1,
+				emoji: '🧠',
+				date: '2023-06-15',
+				title: 'Test',
+				description: 'Fallback',
+				conceptDescription: 'Rich description',
+				valueAdd: 'Rich value'
+			}
+		];
+		expect(hasRichContent(events)).toBe(true);
+	});
+
+	it('detects rich content when events have valueAdd', () => {
+		const events: Event[] = [
+			{
+				id: 1,
+				emoji: '🧠',
+				date: '2023-06-15',
+				title: 'Test',
+				description: 'Fallback',
+				valueAdd: 'Rich value'
+			}
+		];
+		expect(hasRichContent(events)).toBe(true);
+	});
+
+	it('returns false when events lack rich fields', () => {
+		const events: Event[] = [
+			{ id: 1, emoji: '🇫🇮', date: '2024-01-28', title: 'Test', description: 'Basic' }
+		];
+		expect(hasRichContent(events)).toBe(false);
+	});
+
+	it('returns false for empty events', () => {
+		expect(hasRichContent([])).toBe(false);
+	});
+
+	it('does not chunk events into groups of 3 for rich content', () => {
+		const richEvents: Event[] = [];
+		const mapping: EventTimeline[] = [];
+		for (let i = 1; i <= 7; i++) {
+			richEvents.push({
+				id: i,
+				emoji: '🧠',
+				date: '2023-06-15',
+				title: `Event ${i}`,
+				description: 'Fallback',
+				conceptDescription: 'Rich concept',
+				valueAdd: 'Rich value'
+			});
+			mapping.push({ eventId: i, timelineId: 'rich-test' });
+		}
+
+		const result = updateFilteredEvents('rich-test', richEvents, mapping);
+
+		// Should have: 1 year row + 1 events row (all events in one group)
+		expect(result.timelineRows.length).toBe(2);
+		const eventRow = result.timelineRows[1] as { type: 'events'; events: Event[] };
+		expect(eventRow.type).toBe('events');
+		expect(eventRow.events.length).toBe(7);
+	});
+
+	it('still chunks non-rich events into groups of 3', () => {
+		const plainEvents: Event[] = [];
+		const mapping: EventTimeline[] = [];
+		for (let i = 1; i <= 7; i++) {
+			plainEvents.push({
+				id: i,
+				emoji: '📅',
+				date: '2023-06-15',
+				title: `Event ${i}`,
+				description: 'Plain'
+			});
+			mapping.push({ eventId: i, timelineId: 'plain-test' });
+		}
+
+		const result = updateFilteredEvents('plain-test', plainEvents, mapping);
+
+		// Should have: 1 year row + 3 event rows (3 + 3 + 1)
+		const eventRows = result.timelineRows.filter((r) => r.type === 'events');
+		expect(eventRows.length).toBe(3);
+		expect((eventRows[0] as { events: Event[] }).events.length).toBe(3);
+		expect((eventRows[1] as { events: Event[] }).events.length).toBe(3);
+		expect((eventRows[2] as { events: Event[] }).events.length).toBe(1);
 	});
 });
 

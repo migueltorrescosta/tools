@@ -1,0 +1,121 @@
+[
+  {
+    "id": 1,
+    "emoji": "📅",
+    "date": "2023-04-17",
+    "title": "API-Bank: Tool-Augmented LLMs Benchmark",
+    "description": "Native structured tool schemas added to model inputs—standardized code execution, compiler calls, and custom tool invocations."
+  },
+  {
+    "id": 23,
+    "emoji": "📅",
+    "date": "2017-06-12",
+    "title": "Attention Is All You Need",
+    "description": "Transformer architecture introduced—based entirely on self-attention, dispensing with recurrence and convolutions. Foundation of all modern LLMs."
+  },
+  {
+    "id": 36,
+    "emoji": "📅",
+    "date": "2022-01-28",
+    "title": "Chain of Thought Prompting",
+    "description": "Few-shot examples with reasoning steps enable models to solve multi-step problems—emergent property of model scale."
+  },
+  {
+    "id": 49,
+    "emoji": "📅",
+    "date": "2024-11-21",
+    "title": "Code Agents with REPL",
+    "description": "Agents use Read-Eval-Print Loop for interactive planning—flexibly correct errors and handle tasks dynamically."
+  },
+  {
+    "id": 50,
+    "emoji": "📅",
+    "date": "2021-07-07",
+    "title": "Codex: Evaluating Large Language Models Trained on Code",
+    "description": "LLMs fine-tuned on GitHub code for code generation. Introduced HumanEval benchmark. Powers GitHub Copilot."
+  },
+  {
+    "id": 130,
+    "emoji": "📅",
+    "date": "2019-02-14",
+    "title": "GPT-2: Language Models are Unsupervised Multitask Learners",
+    "description": "Demonstrated that large models can perform zero-shot tasks without explicit fine-tuning—scaling unlocks emergent abilities."
+  },
+  {
+    "id": 170,
+    "emoji": "📅",
+    "date": "2022-01-27",
+    "title": "InstructGPT / RLHF",
+    "description": "Reinforcement Learning from Human Feedback aligns models with user intent. 1.3B model preferred over 175B GPT-3."
+  },
+  {
+    "id": 187,
+    "emoji": "📅",
+    "date": "2023-09-14",
+    "title": "LLM Agents: The Rise and Potential of Agentic Systems",
+    "description": "Native agent architectures with built-in loops: plan → execute → observe → reflect. Autonomous multi-step workflows."
+  },
+  {
+    "id": 198,
+    "emoji": "📅",
+    "date": "2025-02-15",
+    "title": "MCP Security Frameworks",
+    "description": "Enterprise-grade security extensions for MCP—defense-in-depth, threat modeling, and tool poisoning mitigation."
+  },
+  {
+    "id": 216,
+    "emoji": "📅",
+    "date": "2024-11-25",
+    "title": "Model Context Protocol (MCP)",
+    "description": "Open standard by Anthropic for connecting AI assistants to external tools and data sources via universal client-server protocol."
+  },
+  {
+    "id": 218,
+    "emoji": "📅",
+    "date": "2024-05-27",
+    "title": "Multi-Agent LLM Collaboration",
+    "description": "Multiple specialist agents (planner, coder, reviewer, tester) coordinate via shared context—mimics real dev teams."
+  },
+  {
+    "id": 255,
+    "emoji": "📅",
+    "date": "2023-05-15",
+    "title": "Plan-and-Solve Prompting",
+    "description": "Decompose complex tasks into executable plans before action—improves zero-shot planning for agents."
+  },
+  {
+    "id": 291,
+    "emoji": "📅",
+    "date": "2022-10-06",
+    "title": "ReAct: Synergizing Reasoning and Acting",
+    "description": "Interleaves reasoning traces with tool actions—model reasons, calls APIs, incorporates feedback. Enables grounded tool use."
+  },
+  {
+    "id": 292,
+    "emoji": "📅",
+    "date": "2023-03-20",
+    "title": "Reflexion: Verbal Reinforcement",
+    "description": "Agents reflect on feedback and store experiences in memory to improve future decisions—without weight updates. 91% on HumanEval."
+  },
+  {
+    "id": 309,
+    "emoji": "📅",
+    "date": "2023-10-02",
+    "title": "RoleLLM: Role-Playing Prompting",
+    "description": "System prompts define agent roles and expertise—improves consistency and domain specialization for coding tasks."
+  },
+  {
+    "id": 322,
+    "emoji": "📅",
+    "date": "2023-03-30",
+    "title": "Self-Refine: Iterative Refinement with Self-Feedback",
+    "description": "Models generate, critique, and iteratively improve outputs using self-feedback—enhances code quality via test-time computation."
+  },
+  {
+    "id": 368,
+    "emoji": "📅",
+    "date": "2023-02-09",
+    "title": "Toolformer: Self-Taught Tool Use",
+    "description": "Language models learn to use external APIs (calculator, search, Q&A) via self-supervised fine-tuning with minimal demos."
+  }
+]
