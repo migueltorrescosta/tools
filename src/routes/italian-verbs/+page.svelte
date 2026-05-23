@@ -34,12 +34,27 @@
 
 	const LS_VERBS_KEY = 'italian-verbs-selected';
 	const LS_TENSES_KEY = 'italian-verbs-tenses';
+	const LS_SESSION_KEY = 'italian-verbs-session';
 
 	// ─── State ───────────────────────────────────────────────────────────────────
 
 	let selectedVerbs = $state<string[]>([]);
 	let selectedTenses = $state<string[]>([]);
-	let session = $state<SessionState>(createFreshSession());
+	let session = $state<SessionState>(
+		browser
+			? (() => {
+					const raw = localStorage.getItem(LS_SESSION_KEY);
+					if (raw) {
+						try {
+							return JSON.parse(raw) as SessionState;
+						} catch {
+							// corrupted data, start fresh
+						}
+					}
+					return createFreshSession();
+				})()
+			: createFreshSession()
+	);
 	let currentCard = $state<Card | null>(null);
 	let userInput = $state('');
 	let feedback = $state<{
@@ -195,6 +210,9 @@
 		userInput = '';
 		feedback = null;
 		isSubmitting = false;
+		if (browser) {
+			localStorage.removeItem(LS_SESSION_KEY);
+		}
 		setTimeout(focusInput, 50);
 	}
 
@@ -209,6 +227,12 @@
 	$effect(() => {
 		if (browser) {
 			localStorage.setItem(LS_TENSES_KEY, JSON.stringify(selectedTenses));
+		}
+	});
+
+	$effect(() => {
+		if (browser) {
+			localStorage.setItem(LS_SESSION_KEY, JSON.stringify(session));
 		}
 	});
 
