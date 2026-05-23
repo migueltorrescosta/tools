@@ -1,0 +1,816 @@
+<script lang="ts">
+	import { onMount, tick } from 'svelte';
+	import { browser } from '$app/environment';
+	import { conjugationMap, PERSON_LABELS, VERB_LIST, TENSE_LIST } from '$lib/data/italian-conjugations';
+	import {
+		buildPool,
+		selectCard,
+		validateAnswer,
+		processAnswer,
+		getCoverage,
+		getAccuracy,
+		createFreshSession,
+		cardKey,
+		extractConjugation,
+		type Card,
+		type SessionState
+	} from '$lib/italian-verbs';
+
+	// ─── Constants ───────────────────────────────────────────────────────────────
+
+	const ALL_VERBS = [...VERB_LIST].sort();
+	const ALL_TENSES = [...TENSE_LIST].sort();
+	const DEFAULT_VERBS = [
+		'essere', 'avere', 'fare', 'dire', 'andare',
+		'potere', 'volere', 'dovere', 'vedere', 'sapere',
+		'stare', 'dare', 'parlare', 'mangiare', 'bere',
+		'prendere', 'mettere', 'venire', 'uscire', 'entrare',
+		'capire', 'credere', 'trovare', 'lasciare', 'tornare'
+	];
+	const DEFAULT_TENSES = [
+		'indicativo presente', 'passato prossimo', 'imperfetto',
+		'futuro semplice', 'condizionale presente'
+	];
+
+	const LS_VERBS_KEY = 'italian-verbs-selected';
+	const LS_TENSES_KEY = 'italian-verbs-tenses';
+
+	// ─── State ───────────────────────────────────────────────────────────────────
+
+	let selectedVerbs = $state<string[]>([]);
+	let selectedTenses = $state<string[]>([]);
+	let session = $state<SessionState>(createFreshSession());
+	let currentCard = $state<Card | null>(null);
+	let userInput = $state('');
+	let feedback = $state<{
+		isCorrect: boolean;
+		userAnswer: string;
+		correctAnswer: string;
+		person: string;
+	} | null>(null);
+	let isSubmitting = $state(false);
+
+	// ─── Derived ─────────────────────────────────────────────────────────────────
+
+	let activePool = $derived(
+		selectedVerbs.length > 0 && selectedTenses.length > 0
+			? buildPool(selectedVerbs, selectedTenses, session.correctCounts)
+			: []
+	);
+
+	let coverage = $derived(getCoverage(session.correctCounts, selectedVerbs, selectedTenses));
+	let accuracy = $derived(getAccuracy(session.history));
+	let isComplete = $derived(activePool.length === 0 && selectedVerbs.length > 0 && selectedTenses.length > 0);
+
+	// ─── Card lines data ─────────────────────────────────────────────────────────
+
+	let cardLines = $derived.by(() => {
+		if (!currentCard) return [];
+		return PERSON_LABELS.map((person, i) => {
+			const key = cardKey(currentCard.verb, currentCard.tense, person);
+			const entry = conjugationMap.get(key);
+			return {
+				person,
+				conjugation: entry?.conjugation ?? '',
+				translation: entry?.translation ?? ''
+			};
+		});
+	});
+
+	let blankTranslation = $derived(
+		currentCard ? cardLines[currentCard.personIndex]?.translation ?? '' : ''
+	);
+
+	// ─── Pool change: pick a new card ────────────────────────────────────────────
+
+	function pickCard() {
+		if (activePool.length > 0) {
+			currentCard = selectCard(activePool, session);
+		} else {
+			currentCard = null;
+		}
+	}
+
+	// Pick initial card once selections are loaded, or when pills change
+	$effect(() => {
+		const poolSize = activePool.length;
+		const hasFeedback = feedback !== null;
+		if (poolSize > 0 && !hasFeedback && !currentCard) {
+			currentCard = selectCard(activePool, session);
+		} else if (poolSize === 0 && !hasFeedback) {
+			currentCard = null;
+		}
+	});
+
+	// ─── Feedback flow ───────────────────────────────────────────────────────────
+
+	function handleSubmit() {
+		if (!currentCard || !userInput.trim() || isSubmitting) return;
+
+		isSubmitting = true;
+		const person = PERSON_LABELS[currentCard.personIndex];
+		const isCorrect = validateAnswer(
+			userInput,
+			currentCard.verb,
+			currentCard.tense,
+			person,
+			conjugationMap
+		);
+
+		const key = cardKey(currentCard.verb, currentCard.tense, person);
+		const entry = conjugationMap.get(key);
+
+		session = processAnswer(
+			session,
+			currentCard,
+			userInput,
+			isCorrect,
+			entry?.conjugation ?? '',
+			entry?.translation ?? ''
+		);
+
+		feedback = {
+			isCorrect,
+			userAnswer: userInput,
+			correctAnswer: entry?.conjugation ?? '',
+			person
+		};
+
+		setTimeout(async () => {
+			feedback = null;
+			userInput = '';
+			isSubmitting = false;
+			pickCard();
+			await tick();
+			focusInput();
+		}, 800);
+	}
+
+	function handleKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter' && !e.shiftKey) {
+			e.preventDefault();
+			handleSubmit();
+		}
+	}
+
+	// ─── Pill toggles ────────────────────────────────────────────────────────────
+
+	function focusInput() {
+		if (browser) {
+			const input = document.querySelector('.verb-input') as HTMLInputElement | null;
+			input?.focus();
+		}
+	}
+
+	function toggleVerb(verb: string) {
+		if (selectedVerbs.includes(verb)) {
+			if (selectedVerbs.length <= 1) return; // prevent all deselected
+			selectedVerbs = selectedVerbs.filter((v) => v !== verb);
+		} else {
+			selectedVerbs = [...selectedVerbs, verb];
+		}
+		// Null currentCard so $effect picks a new one from the updated pool
+		if (!feedback) {
+			currentCard = null;
+		}
+		setTimeout(focusInput, 50);
+	}
+
+	function toggleTense(tense: string) {
+		if (selectedTenses.includes(tense)) {
+			if (selectedTenses.length <= 1) return;
+			selectedTenses = selectedTenses.filter((t) => t !== tense);
+		} else {
+			selectedTenses = [...selectedTenses, tense];
+		}
+		if (!feedback) {
+			currentCard = null;
+		}
+		setTimeout(focusInput, 50);
+	}
+
+	function restart() {
+		session = createFreshSession();
+		currentCard = null;
+		userInput = '';
+		feedback = null;
+		isSubmitting = false;
+		setTimeout(focusInput, 50);
+	}
+
+	// ─── LocalStorage persistence ────────────────────────────────────────────────
+
+	$effect(() => {
+		if (browser) {
+			localStorage.setItem(LS_VERBS_KEY, JSON.stringify(selectedVerbs));
+		}
+	});
+
+	$effect(() => {
+		if (browser) {
+			localStorage.setItem(LS_TENSES_KEY, JSON.stringify(selectedTenses));
+		}
+	});
+
+	// ─── Init ────────────────────────────────────────────────────────────────────
+
+	onMount(() => {
+		if (browser) {
+			const savedVerbs = localStorage.getItem(LS_VERBS_KEY);
+			const savedTenses = localStorage.getItem(LS_TENSES_KEY);
+			const parsedVerbs: string[] = savedVerbs ? JSON.parse(savedVerbs) : [];
+			const parsedTenses: string[] = savedTenses ? JSON.parse(savedTenses) : [];
+			selectedVerbs = parsedVerbs.length > 0 ? parsedVerbs : [...DEFAULT_VERBS];
+			selectedTenses = parsedTenses.length > 0 ? parsedTenses : [...DEFAULT_TENSES];
+		} else {
+			selectedVerbs = [...DEFAULT_VERBS];
+			selectedTenses = [...DEFAULT_TENSES];
+		}
+	});
+</script>
+
+<svelte:head>
+	<title>Italian Verbs</title>
+</svelte:head>
+
+<div class="container">
+	<header>
+		<h1>ITALIAN VERBS</h1>
+		<p class="subtitle">Conjugation revision</p>
+		<div class="stats-row">
+			<span class="stat">Coverage: {coverage.numerator} / {coverage.denominator}</span>
+			<span class="stat-sep">·</span>
+			<span class="stat">Accuracy: {accuracy}%</span>
+		</div>
+	</header>
+
+	<!-- Card + Input / History (two-column on desktop) -->
+	<div class="content-row">
+	<div class="content-col content-col-main">
+	<section class="section">
+		{#if isComplete}
+			<div class="completion">
+				<p class="completion-text">Congratulations. Restart?</p>
+				<button class="process-btn restart-btn-x" onclick={restart}>
+					<span class="btn-text">Restart</span>
+					<span class="btn-glow"></span>
+				</button>
+			</div>
+		{:else}
+			<div class="verb-card">
+				<div class="verb-card-header">
+					<span class="dot red"></span>
+					<span class="dot yellow"></span>
+					<span class="dot green"></span>
+					<span class="panel-title">CONJUGATION</span>
+				</div>
+				<div class="verb-card-body">
+					{#if currentCard}
+						<div class="card-lines">
+							{#each cardLines as line, i}
+								<span
+									class="line-translation"
+									class:is-blank={i === currentCard.personIndex && !feedback}
+									class:is-correct={feedback && i === currentCard.personIndex && feedback.isCorrect}
+									class:is-incorrect={feedback && i === currentCard.personIndex && !feedback.isCorrect}
+								>{line.translation}</span>
+								<span
+									class="line-content"
+									class:is-blank={i === currentCard.personIndex && !feedback}
+									class:is-correct={feedback && i === currentCard.personIndex && feedback.isCorrect}
+									class:is-incorrect={feedback && i === currentCard.personIndex && !feedback.isCorrect}
+								>
+									<span class="line-content-inner">
+										{#if i === currentCard.personIndex}
+											{#if feedback}
+												<span class="line-answer">{feedback.userAnswer}</span>
+												{#if !feedback.isCorrect}
+													<span class="arrow-symbol">→</span>
+													<span class="line-answer correct-answer">{feedback.correctAnswer}</span>
+												{/if}
+											{:else}
+												<span class="line-blank">______</span>
+											{/if}
+										{:else}
+											<span class="line-person">{line.person}</span>
+											<span class="line-conjugation">{line.conjugation}</span>
+										{/if}
+									</span>
+								</span>
+							{/each}
+						</div>
+					{:else}
+						<p class="empty-pool-text">Select at least one verb and one tense to begin.</p>
+					{/if}
+				</div>
+			</div>
+
+			{#if currentCard}
+				<!-- Input area -->
+				<div class="input-area">
+					<div class="input-row">
+						<input
+							class="verb-input"
+							type="text"
+							bind:value={userInput}
+							placeholder={blankTranslation}
+							onkeydown={handleKeydown}
+							disabled={feedback !== null}
+							spellcheck="false"
+							autocomplete="off"
+						/>
+						<button
+							class="submit-verb-btn"
+							onclick={handleSubmit}
+							disabled={!userInput.trim() || feedback !== null}
+						>↵</button>
+					</div>
+				</div>
+			{/if}
+		{/if}
+	</section>
+	</div>
+
+	<div class="content-col content-col-history">
+	<section class="section">
+		<div class="verb-card">
+			<div class="verb-card-header">
+				<span class="dot red"></span>
+				<span class="dot yellow"></span>
+				<span class="dot green"></span>
+				<span class="panel-title">HISTORY</span>
+			</div>
+			{#if session.history.length === 0}
+				<div class="verb-card-body">
+					<p class="hint" style="margin: 0;">No attempts yet.</p>
+				</div>
+			{:else}
+				<div class="history-scroll">
+					<table class="history-table">
+						<tbody>
+							{#each session.history as entry}
+								<tr>
+									<td class="hist-meaning">{entry.translation}</td>
+									<td class="hist-answer">
+										{#if entry.isCorrect}
+											<span class="answer-person">({entry.person})</span>
+											<span class="answer-correct">{entry.correctAnswer}</span>
+										{:else}
+											<span class="answer-person">({entry.person})</span>
+											<span class="answer-incorrect">{extractConjugation(entry.userAnswer, entry.person) ?? entry.userAnswer}</span>
+											<span class="arrow-symbol">→</span>
+											<span class="answer-correct">{entry.correctAnswer}</span>
+										{/if}
+									</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			{/if}
+		</div>
+	</section>
+	</div>
+	</div>
+
+	<!-- Pills: two-column layout -->
+	<div class="pills-row">
+		<section class="pills-col pills-col-verbs">
+			<div class="section-header">
+				<span class="label">Verb</span>
+			</div>
+			<div class="format-buttons pills-small">
+				{#each ALL_VERBS as verb}
+					<button
+						class="format-btn"
+						class:active={selectedVerbs.includes(verb)}
+						onclick={() => toggleVerb(verb)}
+						disabled={selectedVerbs.length === 1 && selectedVerbs.includes(verb)}
+					>{verb}</button
+					>
+				{/each}
+			</div>
+		</section>
+
+		<section class="pills-col pills-col-tenses">
+			<div class="section-header">
+				<span class="label">Tense</span>
+			</div>
+			<div class="format-buttons pills-small">
+				{#each ALL_TENSES as tense}
+					<button
+						class="format-btn"
+						class:active={selectedTenses.includes(tense)}
+						onclick={() => toggleTense(tense)}
+						disabled={selectedTenses.length === 1 && selectedTenses.includes(tense)}
+					>{tense}</button
+					>
+				{/each}
+			</div>
+		</section>
+	</div>
+</div>
+
+<style>
+	/* ─── Stats row ────────────────────────────────────────────── */
+	.stats-row {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 0.5rem;
+		margin-top: 0.5rem;
+		font-family: 'Orbitron', sans-serif;
+		font-size: 0.85rem;
+		color: var(--futuristic-text-dim);
+		letter-spacing: 0.05em;
+	}
+
+	.stat {
+		color: var(--futuristic-cyan);
+	}
+
+	.stat-sep {
+		color: var(--futuristic-text-dim);
+		opacity: 0.5;
+	}
+
+	/* ─── Two-column pills ───────────────────────────────────────── */
+	.pills-row {
+		display: flex;
+		gap: 1rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.pills-col-verbs {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.pills-col-tenses {
+		flex: 1;
+		min-width: 0;
+	}
+
+	:global(.pills-small .format-btn) {
+		font-size: 0.75rem;
+		padding: 0.3rem 0.5rem;
+		font-weight: 400;
+	}
+
+	@media (max-width: 600px) {
+		.pills-row {
+			flex-direction: column;
+			gap: 0.75rem;
+		}
+	}
+
+	/* ─── Two-column layout: conjugation + history ──────────────── */
+	.content-row {
+		display: flex;
+		gap: 1.5rem;
+		align-items: flex-start;
+	}
+
+	.content-col-main {
+		min-width: 0;
+		flex: 1;
+	}
+
+	.content-col-history {
+		min-width: 0;
+		flex: 1;
+	}
+
+	@media (max-width: 700px) {
+		.content-row {
+			flex-direction: column;
+			gap: 0;
+			align-items: stretch;
+		}
+	}
+
+	/* ─── Verb Card ─────────────────────────────────────────────── */
+	.verb-card {
+		background: var(--futuristic-surface);
+		border: 1px solid var(--futuristic-border);
+		border-radius: 12px;
+		overflow: hidden;
+		margin-bottom: 1rem;
+	}
+
+	.verb-card-header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.75rem 1rem;
+		background: rgba(0, 0, 0, 0.25);
+		border-bottom: 1px solid var(--futuristic-border);
+	}
+
+	.verb-card-body {
+		padding: 1rem 1.25rem;
+	}
+
+	.card-lines {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 0.25rem;
+		align-items: center;
+	}
+
+	.line-translation {
+		text-align: right;
+		white-space: nowrap;
+		font-family: 'JetBrains Mono', 'Fira Code', monospace;
+		font-size: 0.85rem;
+		color: var(--futuristic-text-dim);
+		padding: 0.15rem 0 0.15rem 0.75rem;
+	}
+
+	.line-content {
+		white-space: nowrap;
+		font-size: 0.85rem;
+		padding: 0.15rem 0.75rem 0.15rem 0;
+	}
+
+	.line-content-inner {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	/* Row separator borders */
+	.line-translation:not(:nth-last-child(2)) {
+		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+	}
+	.line-content:not(:last-child) {
+		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+	}
+
+	/* Blank row */
+	.line-translation.is-blank,
+	.line-content.is-blank {
+		background: rgba(0, 245, 255, 0.04);
+		outline: 1px dashed rgba(0, 245, 255, 0.25);
+		outline-offset: -1px;
+	}
+
+	/* Correct row */
+	.line-translation.is-correct,
+	.line-content.is-correct {
+		background: rgba(40, 200, 64, 0.15);
+		outline: 1px solid rgba(40, 200, 64, 0.4);
+		outline-offset: -1px;
+	}
+
+	/* Incorrect row */
+	.line-translation.is-incorrect,
+	.line-content.is-incorrect {
+		background: rgba(255, 68, 68, 0.15);
+		outline: 1px solid rgba(255, 68, 68, 0.4);
+		outline-offset: -1px;
+	}
+
+	.line-person,
+	.line-conjugation {
+		font-family: 'JetBrains Mono', 'Fira Code', monospace;
+		font-size: 0.85rem;
+		color: var(--futuristic-text);
+		font-weight: 500;
+		letter-spacing: 0.03em;
+	}
+
+	.line-blank {
+		font-family: 'JetBrains Mono', 'Fira Code', monospace;
+		color: var(--futuristic-text-dim);
+		opacity: 0.5;
+		letter-spacing: 0.1em;
+	}
+
+	.line-answer {
+		font-family: 'JetBrains Mono', 'Fira Code', monospace;
+		color: var(--futuristic-text);
+		font-weight: 600;
+	}
+
+	.line-answer.correct-answer {
+		color: #4dff6a;
+		font-weight: 700;
+	}
+
+	.is-incorrect .line-answer:first-of-type {
+		text-decoration: line-through;
+		color: #ff6666;
+	}
+
+	.arrow-symbol {
+		color: var(--futuristic-text-dim);
+		font-size: 0.85rem;
+		margin: 0 0.25rem;
+	}
+
+	/* ─── Input area ────────────────────────────────────────────── */
+	.input-area {
+		margin-top: 0.5rem;
+	}
+
+	.input-row {
+		display: flex;
+		gap: 0.5rem;
+		align-items: center;
+	}
+
+	.verb-input {
+		flex: 1;
+		padding: 0.75rem 1rem;
+		background: var(--futuristic-surface);
+		border: 1px solid var(--futuristic-border);
+		border-radius: 8px;
+		font-family: 'JetBrains Mono', 'Fira Code', monospace;
+		font-size: 1rem;
+		color: var(--futuristic-text);
+		outline: none;
+		transition: border-color 0.3s, box-shadow 0.3s;
+	}
+
+	.verb-input:focus {
+		border-color: var(--futuristic-cyan);
+		box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
+	}
+
+	.verb-input:disabled {
+		opacity: 0.5;
+	}
+
+	.verb-input::placeholder {
+		color: var(--futuristic-text-dim);
+		opacity: 0.7;
+	}
+
+	.submit-verb-btn {
+		width: 48px;
+		height: 48px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: linear-gradient(135deg, rgba(0, 245, 255, 0.1), rgba(255, 0, 255, 0.1));
+		border: 1px solid var(--futuristic-cyan);
+		border-radius: 8px;
+		color: var(--futuristic-cyan);
+		font-family: 'Inter', sans-serif;
+		font-size: 1.2rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.3s;
+		flex-shrink: 0;
+	}
+
+	.submit-verb-btn:hover:not(:disabled) {
+		background: linear-gradient(135deg, rgba(0, 245, 255, 0.2), rgba(255, 0, 255, 0.2));
+		box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+	}
+
+	.submit-verb-btn:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	/* ─── Completion ────────────────────────────────────────────── */
+	.completion {
+		text-align: center;
+		padding: 2rem;
+		background: var(--futuristic-surface);
+		border: 1px solid var(--futuristic-border);
+		border-radius: 12px;
+	}
+
+	.completion-text {
+		font-family: 'Orbitron', sans-serif;
+		font-size: 1.3rem;
+		color: var(--futuristic-cyan);
+		margin: 0 0 1.5rem;
+		letter-spacing: 0.1em;
+	}
+
+	.restart-btn-x {
+		display: inline-block;
+		width: auto;
+		padding: 0.75rem 2rem;
+	}
+
+	.empty-pool-text {
+		color: var(--futuristic-text-dim);
+		font-size: 0.95rem;
+		margin: 0;
+	}
+
+	/* ─── History table ─────────────────────────────────────────── */
+	.history-scroll {
+		max-height: 400px;
+		overflow-y: auto;
+	}
+
+	.history-table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.9rem;
+	}
+
+	.history-table td {
+		padding: 0.15rem 0.75rem;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+		vertical-align: middle;
+		font-size: 0.95rem;
+	}
+
+	.history-table tbody tr:hover {
+		background: rgba(255, 255, 255, 0.02);
+	}
+
+	.history-table tbody tr:first-child td {
+		border-top: none;
+	}
+
+	.history-table .hist-meaning {
+		text-align: right;
+		font-family: 'JetBrains Mono', 'Fira Code', monospace;
+		font-size: 0.85rem;
+		color: var(--futuristic-text-dim);
+	}
+
+	.hist-answer {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-family: 'JetBrains Mono', 'Fira Code', monospace;
+		flex-wrap: wrap;
+	}
+
+	.answer-correct {
+		color: #4dff6a;
+		font-weight: 600;
+	}
+
+	.answer-person {
+		color: var(--futuristic-text-dim);
+		opacity: 0.6;
+		margin-right: 0.25rem;
+	}
+
+	.answer-incorrect {
+		color: #ff6666;
+		text-decoration: line-through;
+	}
+
+	/* ─── Section spacing ───────────────────────────────────────── */
+	.section {
+		margin-bottom: 1.5rem;
+	}
+
+	/* ─── Mobile ────────────────────────────────────────────────── */
+	@media (max-width: 600px) {
+		.line-person,
+		.line-conjugation {
+			font-size: 0.8rem;
+		}
+
+		.card-lines {
+			gap: 0.15rem;
+		}
+
+		.line-translation {
+			font-size: 0.8rem;
+			padding: 0.1rem 0 0.1rem 0.5rem;
+		}
+
+		.line-content {
+			font-size: 0.8rem;
+			padding: 0.1rem 0.5rem 0.1rem 0;
+		}
+
+		.verb-input {
+			font-size: 0.9rem;
+			padding: 0.6rem 0.75rem;
+		}
+
+		.submit-verb-btn {
+			width: 42px;
+			height: 42px;
+			font-size: 1rem;
+		}
+
+		.history-table {
+			font-size: 0.8rem;
+		}
+
+		.history-table th,
+		.history-table td {
+			padding: 0.15rem 0.75rem;
+		}
+
+		.stats-row {
+			font-size: 0.75rem;
+			flex-wrap: wrap;
+		}
+	}
+</style>

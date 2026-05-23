@@ -50,6 +50,12 @@
 			name: 'Rank Vote',
 			description:
 				'Ranked-choice voting tool for small groups. Create a ballot, share a link, and tally results with Borda count.'
+		},
+		{
+			path: '/italian-verbs',
+			name: 'Italian Verbs',
+			description:
+				'Conjugation revision for Italian verbs. Practice verb tenses with spaced recall and track your progress.'
 		}
 	];
 
