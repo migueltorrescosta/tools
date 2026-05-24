@@ -52,10 +52,10 @@
 				'Ranked-choice voting tool for small groups. Create a ballot, share a link, and tally results with Borda count.'
 		},
 		{
-			path: '/italian-verbs',
-			name: 'Italian Verbs',
+			path: '/verb-conjugator',
+			name: 'Verb Conjugator',
 			description:
-				'Conjugation revision for Italian verbs. Practice verb tenses with spaced recall and track your progress.'
+				'Conjugation revision for Italian and Spanish verbs. Practice verb tenses with spaced recall and track your progress.'
 		}
 	];
 

@@ -527,7 +527,7 @@ const IRREGULAR: Record<string, TenseData> = {
  * English translation templates per tense.
  * {base}, {past}, {pp}, {ing}, {third} interpolated from verb's en config.
  */
-function enTranslate(person: string, tense: Tense, en: VerbInfo['en']): string {
+function enTranslate(verb: Verb, person: string, tense: Tense, en: VerbInfo['en']): string {
 	const p = person as Person;
 	const { base, past, pp, ing, third } = en;
 	// Pronoun mapping
@@ -539,10 +539,18 @@ function enTranslate(person: string, tense: Tense, en: VerbInfo['en']): string {
 		// ── Simple ──
 		case 'indicativo presente':
 			if ((p === 'lui/lei' || p === 'io') && base === 'be') return p === 'io' ? 'I am' : 'he/she is';
+			// Handle "potere" — present tense is "can" for all persons, not "be able"
+			if (verb === 'potere') return `${pro[p]} can`;
 			return p === 'lui/lei' ? `he/she ${third}` : `${pro[p]} ${base}`;
 			// note: "I have" not "I has", "you speak" not "you speaks"
 		case 'imperfetto':
-			if (base === 'be') return `${pro[p]} was/were`;
+			if (base === 'be') {
+				const bePast: Record<Person, string> = {
+					io: 'was', tu: 'were', 'lui/lei': 'was',
+					noi: 'were', voi: 'were', loro: 'were'
+				};
+				return `${pro[p]} ${bePast[p]}`;
+			}
 			return `${pro[p]} used to ${base}`;
 		case 'passato remoto':
 			return `${pro[p]} ${past}`;
@@ -733,7 +741,7 @@ function buildData(): Record<Verb, Record<Tense, Record<Person, { conjugation: s
 					}
 				}
 
-				const translation = enTranslate(p, tense, info.en);
+				const translation = enTranslate(verb as Verb, p, tense, info.en);
 				tData[p] = { conjugation, translation };
 			}
 
@@ -771,3 +779,73 @@ export function buildConjugationMap(): ConjugationMap {
 }
 
 export const conjugationMap: ConjugationMap = buildConjugationMap();
+
+// ─── Italian LanguageModule ──────────────────────────────────────────────────
+
+import type { LanguageModule } from './language-registry';
+
+/**
+ * Extract conjugation from user input for Italian.
+ * Handles "lui/lei" alternative forms.
+ */
+function italianExtractConjugation(input: string, expectedPersonLabel: string): string | null {
+	const normalized = input.trim().toLowerCase();
+	const label = expectedPersonLabel.toLowerCase();
+
+	// Try exact label match first
+	if (normalized.startsWith(label + ' ')) {
+		return normalized.slice(label.length).trim();
+	}
+	if (normalized === label) {
+		return ''; // just the label, no conjugation
+	}
+
+	// For "lui/lei" also accept "lui lei", "lei", and "lui"
+	if (label === 'lui/lei') {
+		for (const alt of ['lui lei', 'lei', 'lui']) {
+			if (normalized.startsWith(alt + ' ')) {
+				return normalized.slice(alt.length).trim();
+			}
+			if (normalized === alt) {
+				return '';
+			}
+		}
+	}
+
+	return null;
+}
+
+const DEFAULT_VERBS_IT: string[] = [
+	'essere', 'avere', 'fare', 'dire', 'andare',
+	'potere', 'volere', 'dovere', 'vedere', 'sapere',
+	'stare', 'dare', 'parlare', 'mangiare', 'bere',
+	'prendere', 'mettere', 'venire', 'uscire', 'entrare',
+	'capire', 'credere', 'trovare', 'lasciare', 'tornare'
+];
+
+const DEFAULT_TENSES_IT: string[] = [
+	'indicativo presente', 'passato prossimo', 'imperfetto',
+	'futuro semplice', 'condizionale presente'
+];
+
+export const italianModule: LanguageModule = {
+	id: 'italian',
+	flag: '🇮🇹',
+	name: 'Italian',
+	displayName: 'Italiano',
+	VERB_LIST: ALL_VERBS,
+	TENSE_LIST: ALL_TENSES,
+	PERSON_LABELS: ALL_PERSONS,
+	conjugationMap,
+	DEFAULT_VERBS: DEFAULT_VERBS_IT,
+	DEFAULT_TENSES: DEFAULT_TENSES_IT,
+	ui: {
+		coverage: 'Copertura',
+		accuracy: 'Precisione',
+		conjugation: 'Coniugazione',
+		history: 'Storico',
+		verb: 'Verbi',
+		tense: 'Tempi'
+	},
+	extractConjugation: italianExtractConjugation
+};

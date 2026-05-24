@@ -1,17 +1,22 @@
 import { describe, it, expect } from 'vitest';
-import { conjugationMap, PERSON_LABELS, buildConjugationMap } from '$lib/data/italian-conjugations';
+import { italianModule } from '$lib/data/italian-conjugations';
+import { buildConjugationMap } from '$lib/data/italian-conjugations';
 import {
 	buildPool,
 	selectCard,
-	extractConjugation,
 	validateAnswer,
 	processAnswer,
 	getCoverage,
 	getAccuracy,
 	createFreshSession,
 	cardKey,
-	type SessionState
-} from '$lib/italian-verbs';
+	type SessionState,
+	type Card
+} from '$lib/verbs';
+
+const conjugationMap = italianModule.conjugationMap;
+const PERSON_LABELS = italianModule.PERSON_LABELS;
+const extractConjugation = italianModule.extractConjugation;
 
 describe('buildConjugationMap', () => {
 	it('creates map with all 30 verbs × 21 tenses × 6 persons = 3780 entries', () => {
@@ -40,12 +45,17 @@ describe('buildConjugationMap', () => {
 
 describe('buildPool', () => {
 	it('returns correct number of cards for 1 verb × 1 tense', () => {
-		const pool = buildPool(['essere'], ['presente'], {});
+		const pool = buildPool(['essere'], ['presente'], {}, italianModule);
 		expect(pool).toHaveLength(6);
 	});
 
 	it('returns correct number of cards for 2 verbs × 2 tenses', () => {
-		const pool = buildPool(['essere', 'avere'], ['presente', 'futuro semplice'], {});
+		const pool = buildPool(
+			['essere', 'avere'],
+			['presente', 'futuro semplice'],
+			{},
+			italianModule
+		);
 		expect(pool).toHaveLength(2 * 2 * 6); // 24
 	});
 
@@ -54,39 +64,47 @@ describe('buildPool', () => {
 			'essere:presente:io': 2,
 			'essere:presente:tu': 1
 		};
-		const pool = buildPool(['essere'], ['presente'], correctCounts);
+		const pool = buildPool(['essere'], ['presente'], correctCounts, italianModule);
 		expect(pool).toHaveLength(5); // io removed (2 corrects), tu kept (1 correct)
-		expect(pool.find((c) => c.verb === 'essere' && c.tense === 'presente' && c.personIndex === 0)).toBeUndefined();
-		expect(pool.find((c) => c.verb === 'essere' && c.tense === 'presente' && c.personIndex === 1)).toBeDefined();
+		expect(
+			pool.find(
+				(c: Card) => c.verb === 'essere' && c.tense === 'presente' && c.personIndex === 0
+			)
+		).toBeUndefined();
+		expect(
+			pool.find(
+				(c: Card) => c.verb === 'essere' && c.tense === 'presente' && c.personIndex === 1
+			)
+		).toBeDefined();
 	});
 
 	it('returns empty pool for empty verbs', () => {
-		expect(buildPool([], ['presente'], {})).toHaveLength(0);
+		expect(buildPool([], ['presente'], {}, italianModule)).toHaveLength(0);
 	});
 
 	it('returns empty pool for empty tenses', () => {
-		expect(buildPool(['essere'], [], {})).toHaveLength(0);
+		expect(buildPool(['essere'], [], {}, italianModule)).toHaveLength(0);
 	});
 });
 
 describe('selectCard', () => {
 	it('returns null for empty pool', () => {
 		const session = createFreshSession();
-		expect(selectCard([], session)).toBeNull();
+		expect(selectCard([], session, italianModule)).toBeNull();
 	});
 
 	it('returns a card from the pool', () => {
-		const pool = buildPool(['essere'], ['presente'], {});
+		const pool = buildPool(['essere'], ['presente'], {}, italianModule);
 		const session = createFreshSession();
-		const card = selectCard(pool, session);
+		const card = selectCard(pool, session, italianModule);
 		expect(card).toBeDefined();
 		expect(pool).toContainEqual(card);
 	});
 
 	it('returns a valid card with all expected fields', () => {
-		const pool = buildPool(['avere'], ['passato prossimo'], {});
+		const pool = buildPool(['avere'], ['passato prossimo'], {}, italianModule);
 		const session = createFreshSession();
-		const card = selectCard(pool, session)!;
+		const card = selectCard(pool, session, italianModule)!;
 		expect(card.verb).toBe('avere');
 		expect(card.tense).toBe('passato prossimo');
 		expect(card.personIndex).toBeGreaterThanOrEqual(0);
@@ -96,7 +114,7 @@ describe('selectCard', () => {
 	it('biased weights produce different distributions (statistical)', () => {
 		// With wrongVerb['essere'] = 10, essere cards should be heavily favored
 		const verbs = ['essere', 'avere'];
-		const pool = buildPool(verbs, ['presente'], {});
+		const pool = buildPool(verbs, ['presente'], {}, italianModule);
 		const session: SessionState = {
 			...createFreshSession(),
 			wrongVerb: { essere: 10, avere: 0 }
@@ -107,7 +125,7 @@ describe('selectCard', () => {
 		// Draw 100 cards, expect most to be essere
 		let essereCount = 0;
 		for (let i = 0; i < 100; i++) {
-			const card = selectCard(pool, session);
+			const card = selectCard(pool, session, italianModule);
 			if (card?.verb === 'essere') essereCount++;
 		}
 		expect(essereCount).toBeGreaterThan(60);
@@ -156,34 +174,76 @@ describe('extractConjugation', () => {
 
 describe('validateAnswer', () => {
 	it('returns true for correct answer', () => {
-		expect(validateAnswer('io sono', 'essere', 'indicativo presente', 'io', conjugationMap)).toBe(true);
+		expect(
+			validateAnswer(
+				'io sono',
+				'essere',
+				'indicativo presente',
+				'io',
+				italianModule
+			)
+		).toBe(true);
 	});
 
 	it('returns true ignoring case', () => {
-		expect(validateAnswer('IO SONO', 'essere', 'indicativo presente', 'io', conjugationMap)).toBe(true);
+		expect(
+			validateAnswer(
+				'IO SONO',
+				'essere',
+				'indicativo presente',
+				'io',
+				italianModule
+			)
+		).toBe(true);
 	});
 
 	it('returns false for wrong conjugation', () => {
-		expect(validateAnswer('io sei', 'essere', 'indicativo presente', 'io', conjugationMap)).toBe(false);
+		expect(
+			validateAnswer('io sei', 'essere', 'indicativo presente', 'io', italianModule)
+		).toBe(false);
 	});
 
 	it('returns false for wrong person label', () => {
-		expect(validateAnswer('tu sono', 'essere', 'indicativo presente', 'io', conjugationMap)).toBe(false);
+		expect(
+			validateAnswer('tu sono', 'essere', 'indicativo presente', 'io', italianModule)
+		).toBe(false);
 	});
 
 	it('returns false for empty input', () => {
-		expect(validateAnswer('', 'essere', 'indicativo presente', 'io', conjugationMap)).toBe(false);
+		expect(
+			validateAnswer('', 'essere', 'indicativo presente', 'io', italianModule)
+		).toBe(false);
 	});
 
 	it('validates passato prossimo correctly', () => {
-		expect(validateAnswer('ho fatto', 'fare', 'passato prossimo', 'io', conjugationMap)).toBe(false);
-		expect(validateAnswer('io ho fatto', 'fare', 'passato prossimo', 'io', conjugationMap)).toBe(true);
+		expect(
+			validateAnswer('ho fatto', 'fare', 'passato prossimo', 'io', italianModule)
+		).toBe(false);
+		expect(
+			validateAnswer('io ho fatto', 'fare', 'passato prossimo', 'io', italianModule)
+		).toBe(true);
 	});
 
 	it('validates accented characters strictly', () => {
 		// è is correct, e is wrong
-		expect(validateAnswer('lui/lei è', 'essere', 'indicativo presente', 'lui/lei', conjugationMap)).toBe(true);
-		expect(validateAnswer('lui/lei e', 'essere', 'indicativo presente', 'lui/lei', conjugationMap)).toBe(false);
+		expect(
+			validateAnswer(
+				'lui/lei è',
+				'essere',
+				'indicativo presente',
+				'lui/lei',
+				italianModule
+			)
+		).toBe(true);
+		expect(
+			validateAnswer(
+				'lui/lei e',
+				'essere',
+				'indicativo presente',
+				'lui/lei',
+				italianModule
+			)
+		).toBe(false);
 	});
 });
 
@@ -191,7 +251,15 @@ describe('processAnswer', () => {
 	it('increments correctCounts on correct answer', () => {
 		const session = createFreshSession();
 		const card = { verb: 'essere', tense: 'indicativo presente', personIndex: 0 };
-		const newSession = processAnswer(session, card, 'io sono', true, 'sono', 'I am');
+		const newSession = processAnswer(
+			session,
+			card,
+			'io sono',
+			true,
+			'sono',
+			'I am',
+			italianModule
+		);
 		expect(newSession.correctCounts['essere:indicativo presente:io']).toBe(1);
 		expect(newSession.history).toHaveLength(1);
 		expect(newSession.history[0].isCorrect).toBe(true);
@@ -200,7 +268,15 @@ describe('processAnswer', () => {
 	it('increments wrong counters on incorrect answer', () => {
 		const session = createFreshSession();
 		const card = { verb: 'essere', tense: 'indicativo presente', personIndex: 1 };
-		const newSession = processAnswer(session, card, 'tu sei', false, 'sei', 'you are');
+		const newSession = processAnswer(
+			session,
+			card,
+			'tu sei',
+			false,
+			'sei',
+			'you are',
+			italianModule
+		);
 		expect(newSession.wrongVerb['essere']).toBe(1);
 		expect(newSession.wrongTense['indicativo presente']).toBe(1);
 		expect(newSession.wrongPerson['tu']).toBe(1);
@@ -210,23 +286,60 @@ describe('processAnswer', () => {
 		const session = createFreshSession();
 		const card = { verb: 'essere', tense: 'indicativo presente', personIndex: 0 };
 
-		const s1 = processAnswer(session, card, 'io sono', true, 'sono', 'I am');
+		const s1 = processAnswer(
+			session,
+			card,
+			'io sono',
+			true,
+			'sono',
+			'I am',
+			italianModule
+		);
 		expect(s1.correctCounts['essere:indicativo presente:io']).toBe(1);
 
-		const s2 = processAnswer(s1, card, 'io sono', true, 'sono', 'I am');
+		const s2 = processAnswer(
+			s1,
+			card,
+			'io sono',
+			true,
+			'sono',
+			'I am',
+			italianModule
+		);
 		expect(s2.correctCounts['essere:indicativo presente:io']).toBe(2);
 
 		// Card should now be filtered out by buildPool
-		const pool = buildPool(['essere'], ['indicativo presente'], s2.correctCounts);
-		expect(pool.find((c) => c.verb === 'essere' && c.tense === 'indicativo presente' && c.personIndex === 0)).toBeUndefined();
+		const pool = buildPool(['essere'], ['indicativo presente'], s2.correctCounts, italianModule);
+		expect(
+			pool.find(
+				(c: Card) =>
+					c.verb === 'essere' && c.tense === 'indicativo presente' && c.personIndex === 0
+			)
+		).toBeUndefined();
 	});
 
 	it('prepends new history entries', () => {
 		const session = createFreshSession();
 		const card = { verb: 'essere', tense: 'indicativo presente', personIndex: 0 };
 
-		const s1 = processAnswer(session, card, 'io sono', true, 'sono', 'I am');
-		const s2 = processAnswer(s1, card, 'io sono', true, 'sono', 'I am');
+		const s1 = processAnswer(
+			session,
+			card,
+			'io sono',
+			true,
+			'sono',
+			'I am',
+			italianModule
+		);
+		const s2 = processAnswer(
+			s1,
+			card,
+			'io sono',
+			true,
+			'sono',
+			'I am',
+			italianModule
+		);
 
 		expect(s2.history).toHaveLength(2);
 		// Newest first
@@ -236,7 +349,7 @@ describe('processAnswer', () => {
 
 describe('getCoverage', () => {
 	it('returns 0/denominator when no cards answered', () => {
-		const stats = getCoverage({}, ['essere', 'avere'], ['indicativo presente']);
+		const stats = getCoverage({}, ['essere', 'avere'], ['indicativo presente'], italianModule);
 		expect(stats.numerator).toBe(0);
 		expect(stats.denominator).toBe(2 * 1 * 6); // 2 verbs × 1 tense × 6 persons = 12
 	});
@@ -247,7 +360,12 @@ describe('getCoverage', () => {
 			'essere:indicativo presente:tu': 2,
 			'avere:indicativo presente:noi': 1
 		};
-		const stats = getCoverage(correctCounts, ['essere', 'avere'], ['indicativo presente']);
+		const stats = getCoverage(
+			correctCounts,
+			['essere', 'avere'],
+			['indicativo presente'],
+			italianModule
+		);
 		expect(stats.numerator).toBe(3);
 		expect(stats.denominator).toBe(12);
 	});

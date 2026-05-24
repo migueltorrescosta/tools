@@ -1,4 +1,4 @@
-import { conjugationMap, PERSON_LABELS, type ConjugationMap } from '$lib/data/italian-conjugations';
+import type { LanguageModule, ConjugationMap } from '$lib/data/language-registry';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -43,7 +43,8 @@ export function cardKey(verb: string, tense: string, person: string): string {
 export function buildPool(
 	verbs: string[],
 	tenses: string[],
-	correctCounts: Record<string, number>
+	correctCounts: Record<string, number>,
+	module: LanguageModule
 ): Card[] {
 	const pool: Card[] = [];
 
@@ -51,7 +52,7 @@ export function buildPool(
 		for (const tense of tenses) {
 			// Total 6 cards per (verb, tense) — one for each missing person
 			for (let personIndex = 0; personIndex < 6; personIndex++) {
-				const person = PERSON_LABELS[personIndex];
+				const person = module.PERSON_LABELS[personIndex];
 				const key = cardKey(verb, tense, person);
 				const correctCount = correctCounts[key] ?? 0;
 				if (correctCount >= 2) continue; // removal rule
@@ -69,13 +70,17 @@ export function buildPool(
  * Select a card from the pool using weighted random selection.
  * Weight formula: (2 + wrongVerb) * (2 + wrongTense) * (2 + wrongPerson)
  */
-export function selectCard(pool: Card[], session: SessionState): Card | null {
+export function selectCard(
+	pool: Card[],
+	session: SessionState,
+	module: LanguageModule
+): Card | null {
 	if (pool.length === 0) return null;
 
 	const weights: number[] = pool.map((card) => {
 		const verb = (session.wrongVerb[card.verb] ?? 0) + 2;
 		const tense = (session.wrongTense[card.tense] ?? 0) + 2;
-		const person = (session.wrongPerson[PERSON_LABELS[card.personIndex]] ?? 0) + 2;
+		const person = (session.wrongPerson[module.PERSON_LABELS[card.personIndex]] ?? 0) + 2;
 		return verb * tense * person;
 	});
 
@@ -87,45 +92,10 @@ export function selectCard(pool: Card[], session: SessionState): Card | null {
 		if (random <= 0) return pool[i];
 	}
 
+	return pool[pool.length - 1];
 }
 
 // ─── Validation ──────────────────────────────────────────────────────────────
-
-/**
- * Extract the conjugation from a full-line user input.
- * User types e.g. "io vado" for a card where the blank is "io".
- *
- * Returns the extracted conjugation or null if parsing fails.
- */
-export function extractConjugation(
-	input: string,
-	expectedPersonLabel: string
-): string | null {
-	const normalized = input.trim().toLowerCase();
-	const label = expectedPersonLabel.toLowerCase();
-
-	// Try exact label match first
-	if (normalized.startsWith(label + ' ')) {
-		return normalized.slice(label.length).trim();
-	}
-	if (normalized === label) {
-		return ''; // just the label, no conjugation
-	}
-
-	// For "lui/lei" also accept "lui lei", "lei", and "lui"
-	if (label === 'lui/lei') {
-		for (const alt of ['lui lei', 'lei', 'lui']) {
-			if (normalized.startsWith(alt + ' ')) {
-				return normalized.slice(alt.length).trim();
-			}
-			if (normalized === alt) {
-				return '';
-			}
-		}
-	}
-
-	return null;
-}
 
 /**
  * Validate a user's full-line answer against the canonical conjugation.
@@ -136,13 +106,13 @@ export function validateAnswer(
 	verb: string,
 	tense: string,
 	person: string,
-	map: ConjugationMap
+	module: LanguageModule
 ): boolean {
 	const key = cardKey(verb, tense, person);
-	const entry = map.get(key);
+	const entry = module.conjugationMap.get(key);
 	if (!entry) return false;
 
-	const extracted = extractConjugation(userInput, person);
+	const extracted = module.extractConjugation(userInput, person);
 	if (extracted === null) return false;
 
 	return extracted === entry.conjugation.trim().toLowerCase();
@@ -160,9 +130,10 @@ export function processAnswer(
 	userInput: string,
 	isCorrect: boolean,
 	correctConjugation: string,
-	translation: string
+	translation: string,
+	module: LanguageModule
 ): SessionState {
-	const person = PERSON_LABELS[card.personIndex];
+	const person = module.PERSON_LABELS[card.personIndex];
 	const key = cardKey(card.verb, card.tense, person);
 
 	const newCorrectCounts = { ...session.correctCounts };
@@ -211,14 +182,15 @@ export interface CoverageStats {
 export function getCoverage(
 	correctCounts: Record<string, number>,
 	selectedVerbs: string[],
-	selectedTenses: string[]
+	selectedTenses: string[],
+	module: LanguageModule
 ): CoverageStats {
 	const denominator = selectedVerbs.length * selectedTenses.length * 6;
 	let numerator = 0;
 
 	for (const verb of selectedVerbs) {
 		for (const tense of selectedTenses) {
-			for (const person of PERSON_LABELS) {
+			for (const person of module.PERSON_LABELS) {
 				const key = cardKey(verb, tense, person);
 				if ((correctCounts[key] ?? 0) >= 1) {
 					numerator++;

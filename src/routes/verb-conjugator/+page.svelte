@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { browser } from '$app/environment';
-	import { conjugationMap, PERSON_LABELS, VERB_LIST, TENSE_LIST } from '$lib/data/italian-conjugations';
+	import { LANGUAGE_REGISTRY, getLanguage, type LanguageModule } from '$lib/data/language-registry';
 	import {
 		buildPool,
 		selectCard,
@@ -11,50 +11,103 @@
 		getAccuracy,
 		createFreshSession,
 		cardKey,
-		extractConjugation,
 		type Card,
 		type SessionState
-	} from '$lib/italian-verbs';
+	} from '$lib/verbs';
 
-	// ─── Constants ───────────────────────────────────────────────────────────────
+	// ─── Helpers ────────────────────────────────────────────────────────────────
 
-	const ALL_VERBS = [...VERB_LIST].sort();
-	const ALL_TENSES = [...TENSE_LIST].sort();
-	const DEFAULT_VERBS = [
-		'essere', 'avere', 'fare', 'dire', 'andare',
-		'potere', 'volere', 'dovere', 'vedere', 'sapere',
-		'stare', 'dare', 'parlare', 'mangiare', 'bere',
-		'prendere', 'mettere', 'venire', 'uscire', 'entrare',
-		'capire', 'credere', 'trovare', 'lasciare', 'tornare'
-	];
-	const DEFAULT_TENSES = [
-		'indicativo presente', 'passato prossimo', 'imperfetto',
-		'futuro semplice', 'condizionale presente'
-	];
+	interface LanguageState {
+		verbs: string[];
+		tenses: string[];
+		session: SessionState;
+	}
 
-	const LS_VERBS_KEY = 'italian-verbs-selected';
-	const LS_TENSES_KEY = 'italian-verbs-tenses';
-	const LS_SESSION_KEY = 'italian-verbs-session';
+	function loadLanguageState(langId: string): LanguageState {
+		const module = getLanguage(langId);
+		if (!module) throw new Error(`Unknown language: ${langId}`);
+
+		if (!browser) {
+			return {
+				verbs: [...module.DEFAULT_VERBS],
+				tenses: [...module.DEFAULT_TENSES],
+				session: createFreshSession()
+			};
+		}
+
+		const savedVerbs = localStorage.getItem(`${langId}-verbs-selected`);
+		const savedTenses = localStorage.getItem(`${langId}-verbs-tenses`);
+		const savedSession = localStorage.getItem(`${langId}-verbs-session`);
+
+		const parsedVerbs: string[] = savedVerbs ? JSON.parse(savedVerbs) : [];
+		const parsedTenses: string[] = savedTenses ? JSON.parse(savedTenses) : [];
+
+		const verbs = parsedVerbs.length > 0 ? parsedVerbs : [...module.DEFAULT_VERBS];
+		const tenses = parsedTenses.length > 0 ? parsedTenses : [...module.DEFAULT_TENSES];
+
+		let session: SessionState;
+		if (savedSession) {
+			try {
+				session = JSON.parse(savedSession) as SessionState;
+			} catch {
+				session = createFreshSession();
+			}
+		} else {
+			session = createFreshSession();
+		}
+
+		return { verbs, tenses, session };
+	}
+
+	// ─── Language Selection ────────────────────────────────────────────────────
+
+	let selectedLanguageId = $state('italian');
+
+	let lang = $derived.by(() => {
+		const m = getLanguage(selectedLanguageId);
+		if (!m) throw new Error(`Unknown language: ${selectedLanguageId}`);
+		return m;
+	});
+
+	const ALL_VERBS = $derived([...lang.VERB_LIST].sort());
+	const ALL_TENSES = $derived([...lang.TENSE_LIST].sort());
+
+	// localStorage keys, per-language (for persistence only)
+	const lsKeys = $derived.by(() => ({
+		verbs: `${lang.id}-verbs-selected`,
+		tenses: `${lang.id}-verbs-tenses`,
+		session: `${lang.id}-verbs-session`
+	}));
+
+	// ─── Language switcher ─────────────────────────────────────────────────────
+
+	function switchLanguage(langId: string) {
+		if (langId === selectedLanguageId) return;
+
+		// Load state SYNCHRONOUSLY BEFORE updating selectedLanguageId
+		// This prevents the race condition where activePool derives with wrong state
+		const state = loadLanguageState(langId);
+
+		// Now update everything atomically
+		selectedLanguageId = langId;
+		selectedVerbs = state.verbs;
+		selectedTenses = state.tenses;
+		session = state.session;
+
+		// Safe to clear currentCard now that pool will derive correctly
+		currentCard = null;
+		userInput = '';
+		feedback = null;
+		isSubmitting = false;
+
+		setTimeout(focusInput, 50);
+	}
 
 	// ─── State ───────────────────────────────────────────────────────────────────
 
 	let selectedVerbs = $state<string[]>([]);
 	let selectedTenses = $state<string[]>([]);
-	let session = $state<SessionState>(
-		browser
-			? (() => {
-					const raw = localStorage.getItem(LS_SESSION_KEY);
-					if (raw) {
-						try {
-							return JSON.parse(raw) as SessionState;
-						} catch {
-							// corrupted data, start fresh
-						}
-					}
-					return createFreshSession();
-				})()
-			: createFreshSession()
-	);
+	let session = $state<SessionState>(createFreshSession());
 	let currentCard = $state<Card | null>(null);
 	let userInput = $state('');
 	let feedback = $state<{
@@ -69,21 +122,22 @@
 
 	let activePool = $derived(
 		selectedVerbs.length > 0 && selectedTenses.length > 0
-			? buildPool(selectedVerbs, selectedTenses, session.correctCounts)
+			? buildPool(selectedVerbs, selectedTenses, session.correctCounts, lang)
 			: []
 	);
 
-	let coverage = $derived(getCoverage(session.correctCounts, selectedVerbs, selectedTenses));
+	let coverage = $derived(getCoverage(session.correctCounts, selectedVerbs, selectedTenses, lang));
 	let accuracy = $derived(getAccuracy(session.history));
 	let isComplete = $derived(activePool.length === 0 && selectedVerbs.length > 0 && selectedTenses.length > 0);
 
 	// ─── Card lines data ─────────────────────────────────────────────────────────
 
 	let cardLines = $derived.by(() => {
-		if (!currentCard) return [];
-		return PERSON_LABELS.map((person, i) => {
-			const key = cardKey(currentCard.verb, currentCard.tense, person);
-			const entry = conjugationMap.get(key);
+		const card = currentCard;
+		if (!card) return [];
+		return lang.PERSON_LABELS.map((person, i) => {
+			const key = cardKey(card.verb, card.tense, person);
+			const entry = lang.conjugationMap.get(key);
 			return {
 				person,
 				conjugation: entry?.conjugation ?? '',
@@ -100,7 +154,7 @@
 
 	function pickCard() {
 		if (activePool.length > 0) {
-			currentCard = selectCard(activePool, session);
+			currentCard = selectCard(activePool, session, lang);
 		} else {
 			currentCard = null;
 		}
@@ -111,7 +165,7 @@
 		const poolSize = activePool.length;
 		const hasFeedback = feedback !== null;
 		if (poolSize > 0 && !hasFeedback && !currentCard) {
-			currentCard = selectCard(activePool, session);
+			currentCard = selectCard(activePool, session, lang);
 		} else if (poolSize === 0 && !hasFeedback) {
 			currentCard = null;
 		}
@@ -123,17 +177,17 @@
 		if (!currentCard || !userInput.trim() || isSubmitting) return;
 
 		isSubmitting = true;
-		const person = PERSON_LABELS[currentCard.personIndex];
+		const person = lang.PERSON_LABELS[currentCard.personIndex];
 		const isCorrect = validateAnswer(
 			userInput,
 			currentCard.verb,
 			currentCard.tense,
 			person,
-			conjugationMap
+			lang
 		);
 
 		const key = cardKey(currentCard.verb, currentCard.tense, person);
-		const entry = conjugationMap.get(key);
+		const entry = lang.conjugationMap.get(key);
 
 		session = processAnswer(
 			session,
@@ -141,7 +195,8 @@
 			userInput,
 			isCorrect,
 			entry?.conjugation ?? '',
-			entry?.translation ?? ''
+			entry?.translation ?? '',
+			lang
 		);
 
 		feedback = {
@@ -184,7 +239,6 @@
 		} else {
 			selectedVerbs = [...selectedVerbs, verb];
 		}
-		// Null currentCard so $effect picks a new one from the updated pool
 		if (!feedback) {
 			currentCard = null;
 		}
@@ -211,7 +265,7 @@
 		feedback = null;
 		isSubmitting = false;
 		if (browser) {
-			localStorage.removeItem(LS_SESSION_KEY);
+			localStorage.removeItem(lsKeys.session);
 		}
 		setTimeout(focusInput, 50);
 	}
@@ -219,52 +273,62 @@
 	// ─── LocalStorage persistence ────────────────────────────────────────────────
 
 	$effect(() => {
-		if (browser) {
-			localStorage.setItem(LS_VERBS_KEY, JSON.stringify(selectedVerbs));
+		if (browser && selectedVerbs.length > 0) {
+			localStorage.setItem(lsKeys.verbs, JSON.stringify(selectedVerbs));
+		}
+	});
+
+	$effect(() => {
+		if (browser && selectedTenses.length > 0) {
+			localStorage.setItem(lsKeys.tenses, JSON.stringify(selectedTenses));
 		}
 	});
 
 	$effect(() => {
 		if (browser) {
-			localStorage.setItem(LS_TENSES_KEY, JSON.stringify(selectedTenses));
-		}
-	});
-
-	$effect(() => {
-		if (browser) {
-			localStorage.setItem(LS_SESSION_KEY, JSON.stringify(session));
+			localStorage.setItem(lsKeys.session, JSON.stringify(session));
 		}
 	});
 
 	// ─── Init ────────────────────────────────────────────────────────────────────
 
 	onMount(() => {
-		if (browser) {
-			const savedVerbs = localStorage.getItem(LS_VERBS_KEY);
-			const savedTenses = localStorage.getItem(LS_TENSES_KEY);
-			const parsedVerbs: string[] = savedVerbs ? JSON.parse(savedVerbs) : [];
-			const parsedTenses: string[] = savedTenses ? JSON.parse(savedTenses) : [];
-			selectedVerbs = parsedVerbs.length > 0 ? parsedVerbs : [...DEFAULT_VERBS];
-			selectedTenses = parsedTenses.length > 0 ? parsedTenses : [...DEFAULT_TENSES];
-		} else {
-			selectedVerbs = [...DEFAULT_VERBS];
-			selectedTenses = [...DEFAULT_TENSES];
-		}
+		// Load initial state synchronously for the default language
+		const state = loadLanguageState(selectedLanguageId);
+		selectedVerbs = state.verbs;
+		selectedTenses = state.tenses;
+		session = state.session;
+		focusInput();
 	});
 </script>
 
 <svelte:head>
-	<title>Italian Verbs</title>
+	<title>Practice Verb Conjugation</title>
 </svelte:head>
 
 <div class="container">
 	<header>
-		<h1>ITALIAN VERBS</h1>
-		<p class="subtitle">Conjugation revision</p>
+		<h1>PRACTICE VERB CONJUGATION</h1>
+
+		<!-- Language Selector -->
+		<div class="language-selector">
+			<div class="format-buttons">
+				{#each LANGUAGE_REGISTRY as language (language.id)}
+					<button
+						class="format-btn"
+						class:active={selectedLanguageId === language.id}
+						onclick={() => switchLanguage(language.id)}
+					>
+						{language.flag} {language.displayName}
+					</button>
+				{/each}
+			</div>
+		</div>
+
 		<div class="stats-row">
-			<span class="stat">Coverage: {coverage.numerator} / {coverage.denominator}</span>
+			<span class="stat">{lang.ui.coverage}: {coverage.numerator} / {coverage.denominator}</span>
 			<span class="stat-sep">·</span>
-			<span class="stat">Accuracy: {accuracy}%</span>
+			<span class="stat">{lang.ui.accuracy}: {accuracy}%</span>
 		</div>
 	</header>
 
@@ -286,7 +350,7 @@
 					<span class="dot red"></span>
 					<span class="dot yellow"></span>
 					<span class="dot green"></span>
-					<span class="panel-title">CONJUGATION</span>
+					<span class="panel-title">{lang.ui.conjugation.toUpperCase()}</span>
 				</div>
 				<div class="verb-card-body">
 					{#if currentCard}
@@ -362,7 +426,7 @@
 				<span class="dot red"></span>
 				<span class="dot yellow"></span>
 				<span class="dot green"></span>
-				<span class="panel-title">HISTORY</span>
+				<span class="panel-title">{lang.ui.history.toUpperCase()}</span>
 			</div>
 			{#if session.history.length === 0}
 				<div class="verb-card-body">
@@ -381,7 +445,7 @@
 											<span class="answer-correct">{entry.correctAnswer}</span>
 										{:else}
 											<span class="answer-person">({entry.person})</span>
-											<span class="answer-incorrect">{extractConjugation(entry.userAnswer, entry.person) ?? entry.userAnswer}</span>
+											<span class="answer-incorrect">{lang.extractConjugation(entry.userAnswer, entry.person) ?? entry.userAnswer}</span>
 											<span class="arrow-symbol">→</span>
 											<span class="answer-correct">{entry.correctAnswer}</span>
 										{/if}
@@ -401,7 +465,7 @@
 	<div class="pills-row">
 		<section class="pills-col pills-col-verbs">
 			<div class="section-header">
-				<span class="label">Verb</span>
+				<span class="label">{lang.ui.verb}</span>
 			</div>
 			<div class="format-buttons pills-small">
 				{#each ALL_VERBS as verb}
@@ -418,7 +482,7 @@
 
 		<section class="pills-col pills-col-tenses">
 			<div class="section-header">
-				<span class="label">Tense</span>
+				<span class="label">{lang.ui.tense}</span>
 			</div>
 			<div class="format-buttons pills-small">
 				{#each ALL_TENSES as tense}
@@ -436,6 +500,13 @@
 </div>
 
 <style>
+	/* ─── Language selector ────────────────────────────────────────── */
+	.language-selector {
+		display: flex;
+		justify-content: center;
+		margin: 1rem 0 0.5rem;
+	}
+
 	/* ─── Stats row ────────────────────────────────────────────── */
 	.stats-row {
 		display: flex;
@@ -490,31 +561,33 @@
 
 	/* ─── Two-column layout: conjugation + history ──────────────── */
 	.content-row {
-		display: flex;
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr)); /* explicit equal width */
 		gap: 1.5rem;
-		align-items: flex-start;
+		align-items: start;
+		width: 100%;
 	}
 
 	.content-col-main {
 		min-width: 0;
-		flex: 1;
+		width: 100%;
 	}
 
 	.content-col-history {
 		min-width: 0;
-		flex: 1;
+		width: 100%;
 	}
 
 	@media (max-width: 700px) {
 		.content-row {
-			flex-direction: column;
+			grid-template-columns: minmax(0, 1fr); /* single column on mobile */
 			gap: 0;
-			align-items: stretch;
 		}
 	}
 
 	/* ─── Verb Card ─────────────────────────────────────────────── */
 	.verb-card {
+		width: 100%; /* ensure cards expand to fill column */
 		background: var(--futuristic-surface);
 		border: 1px solid var(--futuristic-border);
 		border-radius: 12px;
@@ -737,14 +810,14 @@
 	.history-table {
 		width: 100%;
 		border-collapse: collapse;
-		font-size: 0.9rem;
+		font-size: 0.85rem;
 	}
 
 	.history-table td {
-		padding: 0.15rem 0.75rem;
+		padding: 0.15rem 0.6rem;
 		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 		vertical-align: middle;
-		font-size: 0.95rem;
+		font-size: 0.85rem;
 	}
 
 	.history-table tbody tr:hover {
@@ -758,16 +831,17 @@
 	.history-table .hist-meaning {
 		text-align: right;
 		font-family: 'JetBrains Mono', 'Fira Code', monospace;
-		font-size: 0.85rem;
+		font-size: 0.8rem;
 		color: var(--futuristic-text-dim);
 	}
 
 	.hist-answer {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
+		gap: 0.4rem;
 		font-family: 'JetBrains Mono', 'Fira Code', monospace;
 		flex-wrap: wrap;
+		font-size: 0.85rem;
 	}
 
 	.answer-correct {
@@ -824,12 +898,11 @@
 		}
 
 		.history-table {
-			font-size: 0.8rem;
+			font-size: 0.7rem;
 		}
 
-		.history-table th,
 		.history-table td {
-			padding: 0.15rem 0.75rem;
+			padding: 0.1rem 0.4rem;
 		}
 
 		.stats-row {
