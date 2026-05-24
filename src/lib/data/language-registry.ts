@@ -59,10 +59,11 @@ export interface LanguageModule {
 
 import { italianModule } from './italian-conjugations';
 import { spanishModule } from './spanish-conjugations';
+import { portugueseModule } from './portuguese-conjugations';
 
-export { italianModule, spanishModule };
+export { italianModule, spanishModule, portugueseModule };
 
-export const LANGUAGE_REGISTRY: LanguageModule[] = [italianModule, spanishModule];
+export const LANGUAGE_REGISTRY: LanguageModule[] = [italianModule, spanishModule, portugueseModule];
 
 export function getLanguage(id: string): LanguageModule | undefined {
 	return LANGUAGE_REGISTRY.find((l) => l.id === id);

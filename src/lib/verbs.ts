@@ -9,6 +9,13 @@ export interface Card {
 	personIndex: number;
 }
 
+export type DiffOpType = 'same' | 'delete' | 'insert';
+
+export interface DiffSegment {
+	type: DiffOpType;
+	text: string;
+}
+
 export interface HistoryEntry {
 	verb: string;
 	tense: string;
@@ -18,6 +25,8 @@ export interface HistoryEntry {
 	correctAnswer: string;
 	isCorrect: boolean;
 	timestamp: number;
+	/** Pre-computed diff between userAnswer and "person correctAnswer" */
+	diff: DiffSegment[];
 }
 
 export interface SessionState {
@@ -118,6 +127,115 @@ export function validateAnswer(
 	return extracted === entry.conjugation.trim().toLowerCase();
 }
 
+// ─── Wagner-Fischer diff ──────────────────────────────────────────────────────
+
+/**
+ * Compute character-level diff between two strings using the Wagner-Fischer
+ * (edit distance) algorithm. Returns segments grouped so removals precede
+ * additions at each aligned position.
+ *
+ * Tiebreaker: prefer insert > substitute > delete when costs are equal.
+ * This produces cleaner diffs (e.g. "h→son" instead of "so→h→n" for
+ * "ho" → "sono").
+ */
+export function computeDiff(a: string, b: string): DiffSegment[] {
+	const m = a.length;
+	const n = b.length;
+
+	// DP table: d[i][j] = edit distance between a[0..i) and b[0..j)
+	const d: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+	for (let i = 1; i <= m; i++) d[i][0] = i;
+	for (let j = 1; j <= n; j++) d[0][j] = j;
+
+	for (let i = 1; i <= m; i++) {
+		for (let j = 1; j <= n; j++) {
+			const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+			d[i][j] = Math.min(
+				d[i - 1][j] + 1, // delete
+				d[i][j - 1] + 1, // insert
+				d[i - 1][j - 1] + cost // match or substitute
+			);
+		}
+	}
+
+	// Backtrace
+	const ops: Array<{ type: DiffOpType; char: string }> = [];
+	let i = m;
+	let j = n;
+
+	while (i > 0 || j > 0) {
+		if (i > 0 && j > 0 && a[i - 1] === b[j - 1]) {
+			// Match
+			ops.push({ type: 'same', char: a[i - 1] });
+			i--;
+			j--;
+		} else {
+			const subCost = i > 0 && j > 0 ? d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1) : Infinity;
+			const delCost = i > 0 ? d[i - 1][j] + 1 : Infinity;
+			const insCost = j > 0 ? d[i][j - 1] + 1 : Infinity;
+
+			// Tiebreaker: insert > substitute > delete (cleaner diffs)
+			if (insCost <= delCost && insCost <= subCost) {
+				// Insert
+				ops.push({ type: 'insert', char: b[j - 1] });
+				j--;
+			} else if (subCost <= delCost) {
+				// Substitute: push insert then delete, so after reversal
+				// deletes come before inserts (removals then additions)
+				ops.push({ type: 'insert', char: b[j - 1] });
+				ops.push({ type: 'delete', char: a[i - 1] });
+				i--;
+				j--;
+			} else {
+				// Delete
+				ops.push({ type: 'delete', char: a[i - 1] });
+				i--;
+			}
+		}
+	}
+
+	ops.reverse();
+
+	// Within each contiguous region without 'same', reorder so all
+	// deletions come before all insertions. This produces cleaner
+	// diffs like "v~~ad~~oy" instead of "v~~a~~o~~d~~y".
+	const reordered: Array<{ type: DiffOpType; char: string }> = [];
+	let idx = 0;
+	while (idx < ops.length) {
+		if (ops[idx].type === 'same') {
+			reordered.push(ops[idx]);
+			idx++;
+		} else {
+			// Collect a no-same region
+			const deletes: string[] = [];
+			const inserts: string[] = [];
+			while (idx < ops.length && ops[idx].type !== 'same') {
+				if (ops[idx].type === 'delete') {
+					deletes.push(ops[idx].char);
+				} else {
+					inserts.push(ops[idx].char);
+				}
+				idx++;
+			}
+			for (const ch of deletes) reordered.push({ type: 'delete', char: ch });
+			for (const ch of inserts) reordered.push({ type: 'insert', char: ch });
+		}
+	}
+
+	// Group consecutive same-type ops into segments
+	const segments: DiffSegment[] = [];
+	for (const op of reordered) {
+		const last = segments[segments.length - 1];
+		if (last && last.type === op.type) {
+			last.text += op.char;
+		} else {
+			segments.push({ type: op.type, text: op.char });
+		}
+	}
+
+	return segments;
+}
+
 // ─── Session processing ──────────────────────────────────────────────────────
 
 /**
@@ -149,6 +267,9 @@ export function processAnswer(
 		newWrongPerson[person] = (newWrongPerson[person] ?? 0) + 1;
 	}
 
+	const userVerb = module.extractConjugation(userInput.trim(), person) ?? userInput.trim();
+	const diff = computeDiff(userVerb, correctConjugation.trim());
+
 	const newHistory: HistoryEntry = {
 		verb: card.verb,
 		tense: card.tense,
@@ -157,7 +278,8 @@ export function processAnswer(
 		userAnswer: userInput.trim(),
 		correctAnswer: correctConjugation.trim(),
 		isCorrect,
-		timestamp: Date.now()
+		timestamp: Date.now(),
+		diff
 	};
 
 	return {

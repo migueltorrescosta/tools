@@ -55,7 +55,7 @@
 			path: '/verb-conjugator',
 			name: 'Verb Conjugator',
 			description:
-				'Conjugation revision for Italian and Spanish verbs. Practice verb tenses with spaced recall and track your progress.'
+				'Conjugation revision for Italian, Spanish and Portuguese verbs. Practice verb tenses with spaced recall and track your progress.'
 		}
 	];
 

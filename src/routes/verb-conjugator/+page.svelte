@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, tick } from 'svelte';
+	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { LANGUAGE_REGISTRY, getLanguage, type LanguageModule } from '$lib/data/language-registry';
 	import {
@@ -12,7 +12,8 @@
 		createFreshSession,
 		cardKey,
 		type Card,
-		type SessionState
+		type SessionState,
+		type HistoryEntry
 	} from '$lib/verbs';
 
 	// ─── Helpers ────────────────────────────────────────────────────────────────
@@ -97,7 +98,6 @@
 		// Safe to clear currentCard now that pool will derive correctly
 		currentCard = null;
 		userInput = '';
-		feedback = null;
 		isSubmitting = false;
 		pickCard();
 
@@ -111,12 +111,6 @@
 	let session = $state<SessionState>(createFreshSession());
 	let currentCard = $state<Card | null>(null);
 	let userInput = $state('');
-	let feedback = $state<{
-		isCorrect: boolean;
-		userAnswer: string;
-		correctAnswer: string;
-		person: string;
-	} | null>(null);
 	let isSubmitting = $state(false);
 
 	// ─── Derived ─────────────────────────────────────────────────────────────────
@@ -163,7 +157,7 @@
 		}
 	}
 
-	// ─── Feedback flow ───────────────────────────────────────────────────────────
+	// ─── Submit answer ───────────────────────────────────────────────────────────
 
 	function handleSubmit() {
 		if (!currentCard || !userInput.trim() || isSubmitting) return;
@@ -185,21 +179,10 @@
 			lang
 		);
 
-		feedback = {
-			isCorrect,
-			userAnswer: userInput,
-			correctAnswer: entry?.conjugation ?? '',
-			person
-		};
-
-		setTimeout(async () => {
-			feedback = null;
-			userInput = '';
-			isSubmitting = false;
-			pickCard();
-			await tick();
-			focusInput();
-		}, 800);
+		userInput = '';
+		isSubmitting = false;
+		pickCard();
+		focusInput();
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
@@ -225,10 +208,8 @@
 		} else {
 			selectedVerbs = [...selectedVerbs, verb];
 		}
-		if (!feedback) {
-			currentCard = null;
-			pickCard();
-		}
+		currentCard = null;
+		pickCard();
 		setTimeout(focusInput, 50);
 	}
 
@@ -239,17 +220,14 @@
 		} else {
 			selectedTenses = [...selectedTenses, tense];
 		}
-		if (!feedback) {
-			currentCard = null;
-			pickCard();
-		}
+		currentCard = null;
+		pickCard();
 		setTimeout(focusInput, 50);
 	}
 
 	function restart() {
 		session = createFreshSession();
 		userInput = '';
-		feedback = null;
 		isSubmitting = false;
 		if (browser) {
 			localStorage.removeItem(lsKeys.session);
@@ -322,9 +300,10 @@
 		</div>
 	</header>
 
-	<!-- Card + Input / History (two-column on desktop) -->
-	<div class="content-row">
-		<div class="content-col content-col-main">
+	<!-- Main 2x2 grid: Conjugation | History / Verbs | Tenses -->
+	<div class="main-grid">
+		<!-- Top-left: Conjugations -->
+		<div class="conjugation-col">
 			<section class="section">
 				{#if isComplete}
 					<div class="completion">
@@ -348,37 +327,16 @@
 									{#each cardLines as line, i}
 										<span
 											class="line-translation"
-											class:is-blank={i === currentCard.personIndex && !feedback}
-											class:is-correct={feedback &&
-												i === currentCard.personIndex &&
-												feedback.isCorrect}
-											class:is-incorrect={feedback &&
-												i === currentCard.personIndex &&
-												!feedback.isCorrect}>{line.translation}</span
+											class:is-blank={i === currentCard.personIndex}
+											>{line.translation}</span
 										>
 										<span
 											class="line-content"
-											class:is-blank={i === currentCard.personIndex && !feedback}
-											class:is-correct={feedback &&
-												i === currentCard.personIndex &&
-												feedback.isCorrect}
-											class:is-incorrect={feedback &&
-												i === currentCard.personIndex &&
-												!feedback.isCorrect}
+											class:is-blank={i === currentCard.personIndex}
 										>
 											<span class="line-content-inner">
 												{#if i === currentCard.personIndex}
-													{#if feedback}
-														<span class="line-answer">{feedback.userAnswer}</span>
-														{#if !feedback.isCorrect}
-															<span class="arrow-symbol">→</span>
-															<span class="line-answer correct-answer"
-																>{feedback.correctAnswer}</span
-															>
-														{/if}
-													{:else}
-														<span class="line-blank">______</span>
-													{/if}
+													<span class="line-blank">______</span>
 												{:else}
 													<span class="line-person">{line.person}</span>
 													<span class="line-conjugation">{line.conjugation}</span>
@@ -403,14 +361,13 @@
 									bind:value={userInput}
 									placeholder={blankTranslation}
 									onkeydown={handleKeydown}
-									disabled={feedback !== null}
 									spellcheck="false"
 									autocomplete="off"
 								/>
 								<button
 									class="submit-verb-btn"
 									onclick={handleSubmit}
-									disabled={!userInput.trim() || feedback !== null}>↵</button
+									disabled={!userInput.trim()}>↵</button
 								>
 							</div>
 						</div>
@@ -419,7 +376,8 @@
 			</section>
 		</div>
 
-		<div class="content-col content-col-history">
+		<!-- Top-right: History -->
+		<div class="history-col">
 			<section class="section">
 				<div class="verb-card">
 					<div class="verb-card-header">
@@ -440,18 +398,16 @@
 										<tr>
 											<td class="hist-meaning">{entry.translation}</td>
 											<td class="hist-answer">
-												{#if entry.isCorrect}
-													<span class="answer-person">({entry.person})</span>
-													<span class="answer-correct">{entry.correctAnswer}</span>
-												{:else}
-													<span class="answer-person">({entry.person})</span>
-													<span class="answer-incorrect"
-														>{lang.extractConjugation(entry.userAnswer, entry.person) ??
-															entry.userAnswer}</span
-													>
-													<span class="arrow-symbol">→</span>
-													<span class="answer-correct">{entry.correctAnswer}</span>
-												{/if}
+												<span class="answer-person">({entry.person}) </span>
+												{#each entry.diff as seg}
+													{#if seg.type === 'delete'}
+														<span class="diff-delete">{seg.text}</span>
+													{:else if seg.type === 'insert'}
+														<span class="diff-insert">{seg.text}</span>
+													{:else}
+														<span class="diff-same">{seg.text}</span>
+													{/if}
+												{/each}
 											</td>
 										</tr>
 									{/each}
@@ -462,41 +418,44 @@
 				</div>
 			</section>
 		</div>
-	</div>
 
-	<!-- Pills: two-column layout -->
-	<div class="pills-row">
-		<section class="pills-col pills-col-verbs">
-			<div class="section-header">
-				<span class="label">{lang.ui.verb}</span>
-			</div>
-			<div class="format-buttons pills-small">
-				{#each ALL_VERBS as verb}
-					<button
-						class="format-btn"
-						class:active={selectedVerbs.includes(verb)}
-						onclick={() => toggleVerb(verb)}
-						disabled={selectedVerbs.length === 1 && selectedVerbs.includes(verb)}>{verb}</button
-					>
-				{/each}
-			</div>
-		</section>
+		<!-- Bottom-left: Verbs -->
+		<div class="verbs-col">
+			<section class="section">
+				<div class="section-header">
+					<span class="label">{lang.ui.verb}</span>
+				</div>
+				<div class="format-buttons pills-small">
+					{#each ALL_VERBS as verb}
+						<button
+							class="format-btn"
+							class:active={selectedVerbs.includes(verb)}
+							onclick={() => toggleVerb(verb)}
+							disabled={selectedVerbs.length === 1 && selectedVerbs.includes(verb)}>{verb}</button
+						>
+					{/each}
+				</div>
+			</section>
+		</div>
 
-		<section class="pills-col pills-col-tenses">
-			<div class="section-header">
-				<span class="label">{lang.ui.tense}</span>
-			</div>
-			<div class="format-buttons pills-small">
-				{#each ALL_TENSES as tense}
-					<button
-						class="format-btn"
-						class:active={selectedTenses.includes(tense)}
-						onclick={() => toggleTense(tense)}
-						disabled={selectedTenses.length === 1 && selectedTenses.includes(tense)}>{tense}</button
-					>
-				{/each}
-			</div>
-		</section>
+		<!-- Bottom-right: Verb Tenses -->
+		<div class="tenses-col">
+			<section class="section">
+				<div class="section-header">
+					<span class="label">{lang.ui.tense}</span>
+				</div>
+				<div class="format-buttons pills-small">
+					{#each ALL_TENSES as tense}
+						<button
+							class="format-btn"
+							class:active={selectedTenses.includes(tense)}
+							onclick={() => toggleTense(tense)}
+							disabled={selectedTenses.length === 1 && selectedTenses.includes(tense)}>{tense}</button
+						>
+					{/each}
+				</div>
+			</section>
+		</div>
 	</div>
 </div>
 
@@ -530,21 +489,20 @@
 		opacity: 0.5;
 	}
 
-	/* ─── Two-column pills ───────────────────────────────────────── */
-	.pills-row {
-		display: flex;
-		gap: 1rem;
-		margin-bottom: 1.5rem;
+	/* ─── Main 2x2 grid layout ────────────────────────────────────── */
+	.main-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1.5rem;
+		width: 100%;
 	}
 
-	.pills-col-verbs {
-		flex: 1;
+	.conjugation-col,
+	.history-col,
+	.verbs-col,
+	.tenses-col {
 		min-width: 0;
-	}
-
-	.pills-col-tenses {
-		flex: 1;
-		min-width: 0;
+		width: 100%;
 	}
 
 	:global(.pills-small .format-btn) {
@@ -553,36 +511,20 @@
 		font-weight: 400;
 	}
 
-	@media (max-width: 600px) {
-		.pills-row {
-			flex-direction: column;
-			gap: 0.75rem;
-		}
+	/* Constrain scrollable panels so pills don't push layout too tall */
+	.verbs-col .format-buttons,
+	.tenses-col .format-buttons {
+		max-height: 280px;
+		overflow-y: auto;
 	}
 
-	/* ─── Two-column layout: conjugation + history ──────────────── */
-	.content-row {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr)); /* explicit equal width */
-		gap: 1.5rem;
-		align-items: start;
-		width: 100%;
+	.history-col .history-scroll {
+		max-height: 360px;
 	}
 
-	.content-col-main {
-		min-width: 0;
-		width: 100%;
-	}
-
-	.content-col-history {
-		min-width: 0;
-		width: 100%;
-	}
-
-	@media (max-width: 700px) {
-		.content-row {
-			grid-template-columns: minmax(0, 1fr); /* single column on mobile */
-			gap: 0;
+	@media (max-width: 800px) {
+		.main-grid {
+			grid-template-columns: 1fr;
 		}
 	}
 
@@ -653,22 +595,6 @@
 		outline-offset: -1px;
 	}
 
-	/* Correct row */
-	.line-translation.is-correct,
-	.line-content.is-correct {
-		background: rgba(40, 200, 64, 0.15);
-		outline: 1px solid rgba(40, 200, 64, 0.4);
-		outline-offset: -1px;
-	}
-
-	/* Incorrect row */
-	.line-translation.is-incorrect,
-	.line-content.is-incorrect {
-		background: rgba(255, 68, 68, 0.15);
-		outline: 1px solid rgba(255, 68, 68, 0.4);
-		outline-offset: -1px;
-	}
-
 	.line-person,
 	.line-conjugation {
 		font-family: 'JetBrains Mono', 'Fira Code', monospace;
@@ -685,26 +611,18 @@
 		letter-spacing: 0.1em;
 	}
 
-	.line-answer {
-		font-family: 'JetBrains Mono', 'Fira Code', monospace;
-		color: var(--futuristic-text);
-		font-weight: 600;
-	}
-
-	.line-answer.correct-answer {
-		color: #4dff6a;
-		font-weight: 700;
-	}
-
-	.is-incorrect .line-answer:first-of-type {
-		text-decoration: line-through;
+	/* ─── Diff colours ─────────────────────────────────────────── */
+	.diff-delete {
 		color: #ff6666;
+		text-decoration: line-through;
 	}
 
-	.arrow-symbol {
-		color: var(--futuristic-text-dim);
-		font-size: 0.85rem;
-		margin: 0 0.25rem;
+	.diff-insert {
+		color: #4da6ff;
+	}
+
+	.diff-same {
+		color: #4dff6a;
 	}
 
 	/* ─── Input area ────────────────────────────────────────────── */
@@ -839,28 +757,14 @@
 	}
 
 	.hist-answer {
-		display: flex;
-		align-items: center;
-		gap: 0.4rem;
 		font-family: 'JetBrains Mono', 'Fira Code', monospace;
-		flex-wrap: wrap;
 		font-size: 0.85rem;
-	}
-
-	.answer-correct {
-		color: #4dff6a;
-		font-weight: 600;
 	}
 
 	.answer-person {
 		color: var(--futuristic-text-dim);
 		opacity: 0.6;
 		margin-right: 0.25rem;
-	}
-
-	.answer-incorrect {
-		color: #ff6666;
-		text-decoration: line-through;
 	}
 
 	/* ─── Section spacing ───────────────────────────────────────── */

@@ -925,7 +925,7 @@ function enTranslate(verb: string, tense: string, person: string): string {
 			return `${pro} ${info.base}`;
 		}
 		case 'pretérito perfecto':
-			return `${pro} have ${info.pp}`;
+			return `${pro} ${person === 'él/ella' ? 'has' : 'have'} ${info.pp}`;
 		case 'imperfecto': {
 			if (verb === 'ser' || verb === 'estar') {
 				if (person === 'yo' || person === 'él/ella') return `${pro} was ${verbName}`.trim();

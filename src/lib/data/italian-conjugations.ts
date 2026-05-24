@@ -2119,7 +2119,7 @@ function enTranslate(verb: Verb, person: string, tense: Tense, en: VerbInfo['en'
 			return `${ing}`;
 		// ── Compound ──
 		case 'passato prossimo':
-			return `${pro[p]} have ${pp}`;
+			return `${pro[p]} ${p === 'lui/lei' ? 'has' : 'have'} ${pp}`;
 		case 'trapassato prossimo':
 			return `${pro[p]} had ${pp}`;
 		case 'trapassato remoto':
