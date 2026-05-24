@@ -99,6 +99,7 @@
 		userInput = '';
 		feedback = null;
 		isSubmitting = false;
+		pickCard();
 
 		setTimeout(focusInput, 50);
 	}
@@ -128,7 +129,9 @@
 
 	let coverage = $derived(getCoverage(session.correctCounts, selectedVerbs, selectedTenses, lang));
 	let accuracy = $derived(getAccuracy(session.history));
-	let isComplete = $derived(activePool.length === 0 && selectedVerbs.length > 0 && selectedTenses.length > 0);
+	let isComplete = $derived(
+		activePool.length === 0 && selectedVerbs.length > 0 && selectedTenses.length > 0
+	);
 
 	// ─── Card lines data ─────────────────────────────────────────────────────────
 
@@ -147,7 +150,7 @@
 	});
 
 	let blankTranslation = $derived(
-		currentCard ? cardLines[currentCard.personIndex]?.translation ?? '' : ''
+		currentCard ? (cardLines[currentCard.personIndex]?.translation ?? '') : ''
 	);
 
 	// ─── Pool change: pick a new card ────────────────────────────────────────────
@@ -160,17 +163,6 @@
 		}
 	}
 
-	// Pick initial card once selections are loaded, or when pills change
-	$effect(() => {
-		const poolSize = activePool.length;
-		const hasFeedback = feedback !== null;
-		if (poolSize > 0 && !hasFeedback && !currentCard) {
-			currentCard = selectCard(activePool, session, lang);
-		} else if (poolSize === 0 && !hasFeedback) {
-			currentCard = null;
-		}
-	});
-
 	// ─── Feedback flow ───────────────────────────────────────────────────────────
 
 	function handleSubmit() {
@@ -178,13 +170,7 @@
 
 		isSubmitting = true;
 		const person = lang.PERSON_LABELS[currentCard.personIndex];
-		const isCorrect = validateAnswer(
-			userInput,
-			currentCard.verb,
-			currentCard.tense,
-			person,
-			lang
-		);
+		const isCorrect = validateAnswer(userInput, currentCard.verb, currentCard.tense, person, lang);
 
 		const key = cardKey(currentCard.verb, currentCard.tense, person);
 		const entry = lang.conjugationMap.get(key);
@@ -241,6 +227,7 @@
 		}
 		if (!feedback) {
 			currentCard = null;
+			pickCard();
 		}
 		setTimeout(focusInput, 50);
 	}
@@ -254,19 +241,20 @@
 		}
 		if (!feedback) {
 			currentCard = null;
+			pickCard();
 		}
 		setTimeout(focusInput, 50);
 	}
 
 	function restart() {
 		session = createFreshSession();
-		currentCard = null;
 		userInput = '';
 		feedback = null;
 		isSubmitting = false;
 		if (browser) {
 			localStorage.removeItem(lsKeys.session);
 		}
+		pickCard();
 		setTimeout(focusInput, 50);
 	}
 
@@ -298,6 +286,7 @@
 		selectedVerbs = state.verbs;
 		selectedTenses = state.tenses;
 		session = state.session;
+		pickCard();
 		focusInput();
 	});
 </script>
@@ -319,7 +308,8 @@
 						class:active={selectedLanguageId === language.id}
 						onclick={() => switchLanguage(language.id)}
 					>
-						{language.flag} {language.displayName}
+						{language.flag}
+						{language.displayName}
 					</button>
 				{/each}
 			</div>
@@ -334,131 +324,144 @@
 
 	<!-- Card + Input / History (two-column on desktop) -->
 	<div class="content-row">
-	<div class="content-col content-col-main">
-	<section class="section">
-		{#if isComplete}
-			<div class="completion">
-				<p class="completion-text">Congratulations. Restart?</p>
-				<button class="process-btn restart-btn-x" onclick={restart}>
-					<span class="btn-text">Restart</span>
-					<span class="btn-glow"></span>
-				</button>
-			</div>
-		{:else}
-			<div class="verb-card">
-				<div class="verb-card-header">
-					<span class="dot red"></span>
-					<span class="dot yellow"></span>
-					<span class="dot green"></span>
-					<span class="panel-title">{lang.ui.conjugation.toUpperCase()}</span>
-				</div>
-				<div class="verb-card-body">
-					{#if currentCard}
-						<div class="card-lines">
-							{#each cardLines as line, i}
-								<span
-									class="line-translation"
-									class:is-blank={i === currentCard.personIndex && !feedback}
-									class:is-correct={feedback && i === currentCard.personIndex && feedback.isCorrect}
-									class:is-incorrect={feedback && i === currentCard.personIndex && !feedback.isCorrect}
-								>{line.translation}</span>
-								<span
-									class="line-content"
-									class:is-blank={i === currentCard.personIndex && !feedback}
-									class:is-correct={feedback && i === currentCard.personIndex && feedback.isCorrect}
-									class:is-incorrect={feedback && i === currentCard.personIndex && !feedback.isCorrect}
-								>
-									<span class="line-content-inner">
-										{#if i === currentCard.personIndex}
-											{#if feedback}
-												<span class="line-answer">{feedback.userAnswer}</span>
-												{#if !feedback.isCorrect}
-													<span class="arrow-symbol">→</span>
-													<span class="line-answer correct-answer">{feedback.correctAnswer}</span>
+		<div class="content-col content-col-main">
+			<section class="section">
+				{#if isComplete}
+					<div class="completion">
+						<p class="completion-text">Congratulations. Restart?</p>
+						<button class="process-btn restart-btn-x" onclick={restart}>
+							<span class="btn-text">Restart</span>
+							<span class="btn-glow"></span>
+						</button>
+					</div>
+				{:else}
+					<div class="verb-card">
+						<div class="verb-card-header">
+							<span class="dot red"></span>
+							<span class="dot yellow"></span>
+							<span class="dot green"></span>
+							<span class="panel-title">{lang.ui.conjugation.toUpperCase()}</span>
+						</div>
+						<div class="verb-card-body">
+							{#if currentCard}
+								<div class="card-lines">
+									{#each cardLines as line, i}
+										<span
+											class="line-translation"
+											class:is-blank={i === currentCard.personIndex && !feedback}
+											class:is-correct={feedback &&
+												i === currentCard.personIndex &&
+												feedback.isCorrect}
+											class:is-incorrect={feedback &&
+												i === currentCard.personIndex &&
+												!feedback.isCorrect}>{line.translation}</span
+										>
+										<span
+											class="line-content"
+											class:is-blank={i === currentCard.personIndex && !feedback}
+											class:is-correct={feedback &&
+												i === currentCard.personIndex &&
+												feedback.isCorrect}
+											class:is-incorrect={feedback &&
+												i === currentCard.personIndex &&
+												!feedback.isCorrect}
+										>
+											<span class="line-content-inner">
+												{#if i === currentCard.personIndex}
+													{#if feedback}
+														<span class="line-answer">{feedback.userAnswer}</span>
+														{#if !feedback.isCorrect}
+															<span class="arrow-symbol">→</span>
+															<span class="line-answer correct-answer"
+																>{feedback.correctAnswer}</span
+															>
+														{/if}
+													{:else}
+														<span class="line-blank">______</span>
+													{/if}
+												{:else}
+													<span class="line-person">{line.person}</span>
+													<span class="line-conjugation">{line.conjugation}</span>
 												{/if}
-											{:else}
-												<span class="line-blank">______</span>
-											{/if}
-										{:else}
-											<span class="line-person">{line.person}</span>
-											<span class="line-conjugation">{line.conjugation}</span>
-										{/if}
-									</span>
-								</span>
-							{/each}
+											</span>
+										</span>
+									{/each}
+								</div>
+							{:else}
+								<p class="empty-pool-text">Select at least one verb and one tense to begin.</p>
+							{/if}
+						</div>
+					</div>
+
+					{#if currentCard}
+						<!-- Input area -->
+						<div class="input-area">
+							<div class="input-row">
+								<input
+									class="verb-input"
+									type="text"
+									bind:value={userInput}
+									placeholder={blankTranslation}
+									onkeydown={handleKeydown}
+									disabled={feedback !== null}
+									spellcheck="false"
+									autocomplete="off"
+								/>
+								<button
+									class="submit-verb-btn"
+									onclick={handleSubmit}
+									disabled={!userInput.trim() || feedback !== null}>↵</button
+								>
+							</div>
+						</div>
+					{/if}
+				{/if}
+			</section>
+		</div>
+
+		<div class="content-col content-col-history">
+			<section class="section">
+				<div class="verb-card">
+					<div class="verb-card-header">
+						<span class="dot red"></span>
+						<span class="dot yellow"></span>
+						<span class="dot green"></span>
+						<span class="panel-title">{lang.ui.history.toUpperCase()}</span>
+					</div>
+					{#if session.history.length === 0}
+						<div class="verb-card-body">
+							<p class="hint" style="margin: 0;">No attempts yet.</p>
 						</div>
 					{:else}
-						<p class="empty-pool-text">Select at least one verb and one tense to begin.</p>
+						<div class="history-scroll">
+							<table class="history-table">
+								<tbody>
+									{#each session.history as entry}
+										<tr>
+											<td class="hist-meaning">{entry.translation}</td>
+											<td class="hist-answer">
+												{#if entry.isCorrect}
+													<span class="answer-person">({entry.person})</span>
+													<span class="answer-correct">{entry.correctAnswer}</span>
+												{:else}
+													<span class="answer-person">({entry.person})</span>
+													<span class="answer-incorrect"
+														>{lang.extractConjugation(entry.userAnswer, entry.person) ??
+															entry.userAnswer}</span
+													>
+													<span class="arrow-symbol">→</span>
+													<span class="answer-correct">{entry.correctAnswer}</span>
+												{/if}
+											</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
 					{/if}
 				</div>
-			</div>
-
-			{#if currentCard}
-				<!-- Input area -->
-				<div class="input-area">
-					<div class="input-row">
-						<input
-							class="verb-input"
-							type="text"
-							bind:value={userInput}
-							placeholder={blankTranslation}
-							onkeydown={handleKeydown}
-							disabled={feedback !== null}
-							spellcheck="false"
-							autocomplete="off"
-						/>
-						<button
-							class="submit-verb-btn"
-							onclick={handleSubmit}
-							disabled={!userInput.trim() || feedback !== null}
-						>↵</button>
-					</div>
-				</div>
-			{/if}
-		{/if}
-	</section>
-	</div>
-
-	<div class="content-col content-col-history">
-	<section class="section">
-		<div class="verb-card">
-			<div class="verb-card-header">
-				<span class="dot red"></span>
-				<span class="dot yellow"></span>
-				<span class="dot green"></span>
-				<span class="panel-title">{lang.ui.history.toUpperCase()}</span>
-			</div>
-			{#if session.history.length === 0}
-				<div class="verb-card-body">
-					<p class="hint" style="margin: 0;">No attempts yet.</p>
-				</div>
-			{:else}
-				<div class="history-scroll">
-					<table class="history-table">
-						<tbody>
-							{#each session.history as entry}
-								<tr>
-									<td class="hist-meaning">{entry.translation}</td>
-									<td class="hist-answer">
-										{#if entry.isCorrect}
-											<span class="answer-person">({entry.person})</span>
-											<span class="answer-correct">{entry.correctAnswer}</span>
-										{:else}
-											<span class="answer-person">({entry.person})</span>
-											<span class="answer-incorrect">{lang.extractConjugation(entry.userAnswer, entry.person) ?? entry.userAnswer}</span>
-											<span class="arrow-symbol">→</span>
-											<span class="answer-correct">{entry.correctAnswer}</span>
-										{/if}
-									</td>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
-				</div>
-			{/if}
+			</section>
 		</div>
-	</section>
-	</div>
 	</div>
 
 	<!-- Pills: two-column layout -->
@@ -473,8 +476,7 @@
 						class="format-btn"
 						class:active={selectedVerbs.includes(verb)}
 						onclick={() => toggleVerb(verb)}
-						disabled={selectedVerbs.length === 1 && selectedVerbs.includes(verb)}
-					>{verb}</button
+						disabled={selectedVerbs.length === 1 && selectedVerbs.includes(verb)}>{verb}</button
 					>
 				{/each}
 			</div>
@@ -490,8 +492,7 @@
 						class="format-btn"
 						class:active={selectedTenses.includes(tense)}
 						onclick={() => toggleTense(tense)}
-						disabled={selectedTenses.length === 1 && selectedTenses.includes(tense)}
-					>{tense}</button
+						disabled={selectedTenses.length === 1 && selectedTenses.includes(tense)}>{tense}</button
 					>
 				{/each}
 			</div>
@@ -727,7 +728,9 @@
 		font-size: 1rem;
 		color: var(--futuristic-text);
 		outline: none;
-		transition: border-color 0.3s, box-shadow 0.3s;
+		transition:
+			border-color 0.3s,
+			box-shadow 0.3s;
 	}
 
 	.verb-input:focus {
@@ -908,6 +911,18 @@
 		.stats-row {
 			font-size: 0.75rem;
 			flex-wrap: wrap;
+		}
+	}
+
+	/* Override shared.css full-width pills on mobile */
+	@media (max-width: 768px) {
+		.pills-small.format-buttons {
+			flex-direction: row;
+			flex-wrap: wrap;
+		}
+		.pills-small .format-btn {
+			width: auto;
+			text-align: initial;
 		}
 	}
 </style>

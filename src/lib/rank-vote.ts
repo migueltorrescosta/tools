@@ -369,7 +369,8 @@ export function tallyIRV(choices: string[], votes: Vote[]): TallyResult {
 
 	// Assign ranks
 	for (let i = 0; i < results.length; i++) {
-		results[i].rank = i === 0 || results[i].score !== results[i - 1].score ? i + 1 : results[i - 1].rank;
+		results[i].rank =
+			i === 0 || results[i].score !== results[i - 1].score ? i + 1 : results[i - 1].rank;
 	}
 
 	return { results, valid };

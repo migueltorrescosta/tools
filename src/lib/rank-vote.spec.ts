@@ -73,7 +73,10 @@ describe('Rank Vote - Permutations', () => {
 					return;
 				}
 				for (let i = 0; i < m.length; i++) {
-					generate([...arr, m[i]], m.filter((_, j) => j !== i));
+					generate(
+						[...arr, m[i]],
+						m.filter((_, j) => j !== i)
+					);
 				}
 			};
 			generate([], [0, 1, 2]);
@@ -281,7 +284,7 @@ describe('Rank Vote - Tally Methods', () => {
 			const result = tallyIRV(choices, votes);
 
 			// All should have non-zero scores
-			expect(result.results.every(r => r.score > 0)).toBe(true);
+			expect(result.results.every((r) => r.score > 0)).toBe(true);
 		});
 
 		it('four-choice election with multiple eliminations', () => {
@@ -324,7 +327,7 @@ describe('Rank Vote - Tally Methods', () => {
 			]);
 
 			const result = tallyIRV(choices, votes);
-			const scores = result.results.map(r => r.score);
+			const scores = result.results.map((r) => r.score);
 
 			// All scores should be unique: 4, 3, 2, 1
 			const uniqueScores = new Set(scores);

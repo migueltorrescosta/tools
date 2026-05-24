@@ -95,9 +95,7 @@
 			);
 
 			// Check if this timeline has rich content (conceptDescription or valueAdd)
-			const hasRichContent = filteredEvents.some(
-				(e) => e.conceptDescription || e.valueAdd
-			);
+			const hasRichContent = filteredEvents.some((e) => e.conceptDescription || e.valueAdd);
 
 			// Group events by year
 			const eventsByYear = new Map<number, Event[]>();
@@ -176,8 +174,6 @@
 			selectRandomTimeline();
 		}
 	});
-
-
 </script>
 
 <svelte:head>
@@ -213,63 +209,59 @@
 				<div class="loading-spinner"></div>
 				<span>Loading events...</span>
 			</div>
-		{:else}
-			{#if filteredEvents.length > 0}
-				{#each timelineRows as row, rowIndex (rowIndex)}
-					{#if row.type === 'year'}
-						<div class="year-separator">
-							<span class="year-label">{row.year}</span>
-						</div>
-					{:else if isRichContent}
-						<div class="rich-card-list">
-							{#each row.events as event (event.id)}
-								<div class="rich-event-card">
-									<div class="rich-card-header">
-										<span class="rich-card-emoji">{event.emoji}</span>
-										<a
-											href={event.url}
-											target="_blank"
-											rel="noopener noreferrer"
-											class="rich-card-title">{event.title}</a
-										>
-									</div>
-									<p class="rich-card-description"
-										>{event.conceptDescription || event.description}</p
+		{:else if filteredEvents.length > 0}
+			{#each timelineRows as row, rowIndex (rowIndex)}
+				{#if row.type === 'year'}
+					<div class="year-separator">
+						<span class="year-label">{row.year}</span>
+					</div>
+				{:else if isRichContent}
+					<div class="rich-card-list">
+						{#each row.events as event (event.id)}
+							<div class="rich-event-card">
+								<div class="rich-card-header">
+									<span class="rich-card-emoji">{event.emoji}</span>
+									<a
+										href={event.url}
+										target="_blank"
+										rel="noopener noreferrer"
+										class="rich-card-title">{event.title}</a
 									>
-									<p class="rich-card-value-add">✦ {event.valueAdd}</p>
 								</div>
-							{/each}
-						</div>
-					{:else}
-						<div class="grid-row">
-							{#each row.events as event (event.id)}
-								<div
-									class="event-card"
-									class:past={isPast(event.date)}
-									onmouseenter={(e) => showTooltip(e, event.description)}
-									onmouseleave={hideTooltip}
-									role="tooltip"
-								>
-									<span class="event-emoji">{event.emoji}</span>
-									<span class="event-date">{formatShortDate(event.date)}</span>
-									{#if event.url}
-										<a
-											href={event.url}
-											target="_blank"
-											rel="noopener noreferrer"
-											class="event-title-link">{event.title}</a
-										>
-									{:else}
-										<span class="event-title">{event.title}</span>
-									{/if}
-								</div>
-							{/each}
-						</div>
-					{/if}
-				{/each}
-			{:else}
-				<div class="empty-state">No events in this timeline</div>
-			{/if}
+								<p class="rich-card-description">{event.conceptDescription || event.description}</p>
+								<p class="rich-card-value-add">✦ {event.valueAdd}</p>
+							</div>
+						{/each}
+					</div>
+				{:else}
+					<div class="grid-row">
+						{#each row.events as event (event.id)}
+							<div
+								class="event-card"
+								class:past={isPast(event.date)}
+								onmouseenter={(e) => showTooltip(e, event.description)}
+								onmouseleave={hideTooltip}
+								role="tooltip"
+							>
+								<span class="event-emoji">{event.emoji}</span>
+								<span class="event-date">{formatShortDate(event.date)}</span>
+								{#if event.url}
+									<a
+										href={event.url}
+										target="_blank"
+										rel="noopener noreferrer"
+										class="event-title-link">{event.title}</a
+									>
+								{:else}
+									<span class="event-title">{event.title}</span>
+								{/if}
+							</div>
+						{/each}
+					</div>
+				{/if}
+			{/each}
+		{:else}
+			<div class="empty-state">No events in this timeline</div>
 		{/if}
 
 		<!-- Global tooltip rendered at container level to avoid overflow clipping -->

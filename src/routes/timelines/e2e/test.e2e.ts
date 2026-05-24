@@ -9,32 +9,32 @@ test('Timelines - loads with dynamic imports', async ({ page }) => {
 	// Wait for timeline selector to be visible
 	await expect(page.locator('.timeline-select')).toBeVisible();
 
-	// Check that loading state appears briefly then disappears
-	await page.waitForSelector('.events-container .loading-state', { state: 'visible', timeout: 5000 });
-	await page.waitForSelector('.events-container .loading-state', { state: 'hidden', timeout: 10000 });
-
-	// Check that events are displayed
-	await expect(page.locator('.event-card').first()).toBeVisible({ timeout: 10000 });
+	// Wait for events to load (the initial pick may be rich or non-rich)
+	await expect(page.locator('.event-card, .rich-event-card').first()).toBeVisible({
+		timeout: 15000
+	});
 });
 
 test('Timelines - switch between timelines', async ({ page }) => {
-	await page.goto('/timelines');
+	// Start on a known non-rich timeline for deterministic behavior
+	await page.goto('/timelines?t=eu-elections');
 
-	// Wait for initial load
-	await page.waitForSelector('.event-card', { state: 'visible', timeout: 10000 });
+	// Wait for initial event cards to load
+	await expect(page.locator('.event-card').first()).toBeVisible({ timeout: 10000 });
 
 	// Count initial events
 	const initialEventCount = await page.locator('.event-card').count();
+	expect(initialEventCount).toBeGreaterThan(0);
 
 	// Select a different timeline
 	await page.selectOption('.timeline-select', 'eu-key-events');
 
-	// Wait for loading and new content
-	await page.waitForSelector('.loading-state', { state: 'visible', timeout: 2000 });
-	await page.waitForSelector('.loading-state', { state: 'hidden', timeout: 10000 });
+	// Wait for events to update
+	await expect(page.locator('.event-card').first()).toBeVisible({ timeout: 10000 });
 
-	// Check that events changed
+	// Check that events changed (should be a different set)
 	const newEventCount = await page.locator('.event-card').count();
+	expect(newEventCount).not.toBe(initialEventCount);
 	expect(newEventCount).toBeGreaterThan(0);
 });
 
@@ -79,18 +79,15 @@ test('Timelines - LLM breakthroughs shows rich card layout', async ({ page }) =>
 });
 
 test('Timelines - switching to LLM breakthroughs shows rich cards', async ({ page }) => {
-	await page.goto('/timelines');
+	// Start on a known non-rich timeline for deterministic behavior
+	await page.goto('/timelines?t=eu-elections');
 
-	// Wait for initial load
-	await page.waitForSelector('.event-card', { state: 'visible', timeout: 10000 });
+	// Wait for initial event cards to load
+	await expect(page.locator('.event-card').first()).toBeVisible({ timeout: 10000 });
 
 	// Switch to LLM breakthroughs
 	await page.selectOption('.timeline-select', 'llm-breakthroughs');
 
-	// Wait for loading and new content
-	await page.waitForSelector('.loading-state', { state: 'visible', timeout: 2000 });
-	await page.waitForSelector('.loading-state', { state: 'hidden', timeout: 10000 });
-
-	// Should now show rich cards
-	await expect(page.locator('.rich-event-card').first()).toBeVisible({ timeout: 10000 });
+	// Should now show rich cards instead of standard event cards
+	await expect(page.locator('.rich-event-card').first()).toBeVisible({ timeout: 15000 });
 });

@@ -66,7 +66,7 @@ body::before {
 .container {
 	max-width: 1400px;
 	margin: 0 auto;
-	padding: 1.5rem;
+	padding: 0.75rem;
 	flex: 1;
 }
 
@@ -630,7 +630,7 @@ h1 {
 
 @media (max-width: 768px) {
 	.container {
-		padding: 1rem;
+		padding: 0.5rem;
 	}
 
 	h1 {

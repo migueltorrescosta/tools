@@ -89,7 +89,7 @@
 				}
 
 				// Check for key: value format
-				const keyMatch = trimmed.match(/^-\s+([^:]+):?\s*(.*)$/);
+				const keyMatch = line.trim().match(/^-\s+([^:]+):?\s*(.*)$/);
 				if (keyMatch) {
 					const key = keyMatch[1].trim();
 					const value = keyMatch[2].trim();
@@ -97,6 +97,7 @@
 						return { valid: false, message: `Invalid YAML at line ${i + 1}: empty key` };
 					}
 					// Check for invalid characters
+					// eslint-disable-next-line no-control-regex
 					const invalidChars = line.trim().match(/[\x00-\x08\x0B\x0C\x0E-\x1F]/);
 					if (invalidChars) {
 						return { valid: false, message: `Invalid YAML: control characters not allowed` };

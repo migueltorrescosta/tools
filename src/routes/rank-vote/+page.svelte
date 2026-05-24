@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import QRCode from 'qrcode';
 	import { copyToClipboard as copyToClipboardLib } from '$lib/clipboard';
 	import {
@@ -466,9 +467,7 @@
 							class="btn-secondary"
 							onclick={() => copyToClipboard(getVoteURL(), 'Link copied')}>Copy</button
 						>
-						<button class="btn-secondary" onclick={() => openQRModal(getVoteURL())}
-							>QR</button
-						>
+						<button class="btn-secondary" onclick={() => openQRModal(getVoteURL())}>QR</button>
 					</div>
 					<a href={getVoteURL()} target="_blank" rel="noopener" class="btn-secondary-full vote-link"
 						>Vote yourself</a

@@ -233,8 +233,6 @@
 		</div>
 	</div>
 
-	
-
 	<div class="process-btn-container">
 		<div class="btn-row">
 			<button class="process-btn" onclick={encryptText}>
