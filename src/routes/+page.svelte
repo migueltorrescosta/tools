@@ -56,6 +56,12 @@
 			name: 'Verb Conjugator',
 			description:
 				'Conjugation revision for Italian, Spanish and Portuguese verbs. Practice verb tenses with spaced recall and track your progress.'
+		},
+		{
+			path: '/decision-tree',
+			name: 'Decision Tree',
+			description:
+				'Navigate decision trees one answer at a time. Choose a car or find your religion through an interactive question flow.'
 		}
 	];
 
