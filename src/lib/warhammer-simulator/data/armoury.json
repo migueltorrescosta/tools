@@ -1,0 +1,103 @@
+{
+  "weapons": [
+    {
+      "type": "hand-weapon",
+      "name": "Hand Weapon",
+      "attacks": 0,
+      "strengthBonus": 0,
+      "ap": 0,
+      "twoHanded": false,
+      "special": []
+    },
+    {
+      "type": "great-weapon",
+      "name": "Great Weapon",
+      "attacks": 0,
+      "strengthBonus": 2,
+      "ap": -2,
+      "twoHanded": true,
+      "special": ["always-strikes-last"]
+    },
+    {
+      "type": "flail",
+      "name": "Flail",
+      "attacks": 0,
+      "strengthBonus": 2,
+      "ap": -1,
+      "twoHanded": false,
+      "special": ["charge-strength-only"]
+    },
+    {
+      "type": "halberd",
+      "name": "Halberd",
+      "attacks": 0,
+      "strengthBonus": 1,
+      "ap": -1,
+      "twoHanded": true,
+      "special": []
+    },
+    {
+      "type": "lance",
+      "name": "Lance",
+      "attacks": 0,
+      "strengthBonus": 2,
+      "ap": -2,
+      "twoHanded": false,
+      "special": ["charge-strength-only"]
+    },
+    {
+      "type": "additional-hand-weapon",
+      "name": "Additional Hand Weapon",
+      "attacks": 1,
+      "strengthBonus": 0,
+      "ap": 0,
+      "twoHanded": false,
+      "special": ["extra-attack"]
+    },
+    {
+      "type": "spear",
+      "name": "Spear",
+      "attacks": 0,
+      "strengthBonus": 0,
+      "ap": 0,
+      "twoHanded": false,
+      "special": ["fight-in-extra-ranks"]
+    }
+  ],
+  "armour": [
+    {
+      "type": "none",
+      "name": "No Armour",
+      "save": 7
+    },
+    {
+      "type": "light",
+      "name": "Light Armour",
+      "save": 6
+    },
+    {
+      "type": "heavy",
+      "name": "Heavy Armour",
+      "save": 5
+    },
+    {
+      "type": "full-plate",
+      "name": "Full Plate Armour",
+      "save": 4
+    }
+  ],
+  "shields": [
+    {
+      "type": "none",
+      "name": "No Shield",
+      "saveBonus": 0,
+      "parryBonus": 0
+    },
+    {
+      "type": "shield",
+      "name": "Shield",
+      "saveBonus": 1,
+      "parryBonus": 1
+    }
+  ]
+}

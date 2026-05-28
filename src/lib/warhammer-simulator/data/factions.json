@@ -1,0 +1,93 @@
+[
+  {
+    "id": "empire",
+    "name": "Empire of Man",
+    "marks": [],
+    "specialRules": ["detachment", "hold-the-line"],
+    "description": "The Empire relies on disciplined soldiers, black powder weapons, and the might of its warrior priests."
+  },
+  {
+    "id": "bretonnia",
+    "name": "Bretonnia",
+    "marks": [],
+    "specialRules": ["lance-formation", "vows", "blessing-of-the-lady"],
+    "description": "Bretonnian knights are peerless cavalry, bound by chivalric vows and the blessing of the Lady."
+  },
+  {
+    "id": "chaos",
+    "name": "Warriors of Chaos",
+    "marks": ["undivided", "khorne", "nurgle", "tzeentch", "slaanesh"],
+    "specialRules": ["mark-of-chaos", "chaos-armour", "fear"],
+    "description": "Chaos Warriors are heavily armoured champions blessed by the Dark Gods."
+  },
+  {
+    "id": "orcs-and-goblins",
+    "name": "Orcs & Goblins",
+    "marks": [],
+    "specialRules": ["animosity", "waaagh"],
+    "description": "Greenskins live for battle, their Waaagh! energy growing with each victory."
+  },
+  {
+    "id": "dwarfs",
+    "name": "Dwarf Mountain Holds",
+    "marks": [],
+    "specialRules": ["ancestral-grudges", "relentless", "stubborn"],
+    "description": "Dwarfs are dour, stubborn, and unyielding, with peerless smithcraft."
+  },
+  {
+    "id": "wood-elves",
+    "name": "Wood Elves",
+    "marks": [],
+    "specialRules": ["forest-spirits", "skirmish", "ambush"],
+    "description": "Wood Elves move through the forests like ghosts, striking where least expected."
+  },
+  {
+    "id": "high-elves",
+    "name": "High Elves",
+    "marks": [],
+    "specialRules": ["martial-prowess", "iathanasi-magic", "valour-of-ages"],
+    "description": "High Elves are the most graceful and skilled warriors of the Old World."
+  },
+  {
+    "id": "beastmen",
+    "name": "Beastmen Brayherds",
+    "marks": [],
+    "specialRules": ["primal-fury", "ambush", "bloodgreed"],
+    "description": "Beastmen are savage warherds that rampage from the deep forests."
+  },
+  {
+    "id": "tomb-kings",
+    "name": "Tomb Kings of Khemri",
+    "marks": [],
+    "specialRules": ["undead", "my-will-be-done", "constructs"],
+    "description": "The Tomb Kings are ancient undead rulers commanding legions of bone and stone."
+  },
+  {
+    "id": "vampire-counts",
+    "name": "Vampire Counts",
+    "marks": [],
+    "specialRules": ["undead", "invocation-of-nehek", "blood-knights"],
+    "description": "Vampire Lords are ancient, powerful undead who command legions of the damned."
+  },
+  {
+    "id": "skaven",
+    "name": "Skaven",
+    "marks": [],
+    "specialRules": ["strength-in-numbers", "sneaky", "warpmachines"],
+    "description": "The Skaven are a limitless tide of ratmen, treacherous and inventive."
+  },
+  {
+    "id": "dark-elves",
+    "name": "Dark Elves",
+    "marks": [],
+    "specialRules": ["murderous-prowess", "hatred-of-high-elves", "cold-blooded"],
+    "description": "Dark Elves are cruel, ruthless raiders from the frozen lands of Naggaroth."
+  },
+  {
+    "id": "lizardmen",
+    "name": "Lizardmen",
+    "marks": [],
+    "specialRules": ["cold-blooded", "predatory-fighter", "blessings-of-the-old-ones"],
+    "description": "Lizardmen are the cold-blooded servants of the Old Ones, defending the world's primal order."
+  }
+]

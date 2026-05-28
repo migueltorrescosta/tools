@@ -62,6 +62,12 @@
 			name: 'Decision Tree',
 			description:
 				'Navigate decision trees one answer at a time. Choose a car or find your religion through an interactive question flow.'
+		},
+		{
+			path: '/warhammer-simulator',
+			name: 'Warhammer Simulator',
+			description:
+				'Monte Carlo duel probability calculator for Warhammer: The Old World. Simulate character duels with dice-level resolution.'
 		}
 	];
 
