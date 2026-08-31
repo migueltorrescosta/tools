@@ -57,12 +57,7 @@ test.describe('Decision Tree E2E', () => {
 		// Go back and change "Can you charge at home?" from "Yes" to "No"
 		// The answer rows are: [root answers, car options, charge-at-home answers]
 		// So nth(2) = the 3rd answer row = "Can you charge at home?"
-		await page
-			.locator('.answer-row')
-			.nth(2)
-			.locator('.answer-btn')
-			.filter({ hasText: 'No' })
-			.click();
+		await page.locator('.answer-row').nth(2).locator('.answer-btn').filter({ hasText: 'No' }).click();
 		await page.waitForTimeout(100);
 
 		// Result should now be different (Hybrid or Plug-in Hybrid instead of Battery EV)
@@ -138,7 +133,7 @@ test.describe('Decision Tree E2E', () => {
 
 		// Now only the new answer should be selected
 		await expect(firstAnswerRow.locator('.answer-btn.selected')).toHaveCount(1);
-		await expect(firstAnswerRow.locator('.answer-btn.selected')).toHaveText('Religion');
+		await expect(firstAnswerRow.locator('.answer-btn.selected')).toHaveText('Find my religion');
 	});
 
 	// 6. Interface usable on narrow mobile layouts
@@ -215,7 +210,9 @@ test.describe('Decision Tree E2E', () => {
 		// Car-specific questions should be gone, religion questions should show
 		const questions = page.locator('.question-prompt');
 		await expect(questions.first()).toHaveText('What do you want to do today?');
-		await expect(questions.last()).toHaveText('Final word of God?');
+		await expect(questions.last()).toHaveText(
+			'Which book contains the final word of God?'
+		);
 
 		// No result should be visible (still navigating)
 		await expect(page.locator('.result-text')).toHaveCount(0);
