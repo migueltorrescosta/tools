@@ -166,11 +166,11 @@
 						>
 							<span class="answer-label">{edge.label}</span>
 							{#if edge.explanation}
-							<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-							<span
-								class="explanation-tip"
-								class:visible={revealedExplanations.has(edge.id)}
-								onclick={(e) => {
+								<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+								<span
+									class="explanation-tip"
+									class:visible={revealedExplanations.has(edge.id)}
+									onclick={(e) => {
 										e.stopPropagation();
 										toggleExplanation(edge.id);
 									}}
