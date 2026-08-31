@@ -159,8 +159,24 @@ After the tool is implemented and working:
 - [ ] Has proper page title in `<svelte:head>`
 - [ ] Has responsive design (mobile-friendly)
 - [ ] Includes sample data in `onMount` (optional but recommended)
+- [ ] Unit test for tool logic added at `src/routes/[tool-name]/[tool-name].spec.ts` (see Test Placement)
 - [ ] E2E tests added at `src/routes/[tool-name]/e2e/test.e2e.ts` (optional but recommended)
 - [ ] Searched beads memory for relevant prior context before implementing
 - [ ] Saved key decisions to beads memory (`bd remember`), consolidated if >5 saves, and reflected
 
 Put reusable functions in `src/lib/`.
+
+## Test Placement
+
+The repo has three distinct test placement conventions. Match the existing convention rather than guessing:
+
+- **Route-colocated unit tests** — tool-specific logic tests live as `.spec.ts` files colocated with the route directory. This is where the pure logic/helpers for a single tool get unit-tested. Existing examples:
+  - `src/routes/cipher/cipher.spec.ts`
+  - `src/routes/format/format.spec.ts`
+  - `src/routes/jwt/jwt.spec.ts`
+  - `src/routes/timelines/timelines.spec.ts`
+  - `src/routes/wordle/wordle.spec.ts`
+- **`src/lib/` unit tests** — shared/reusable utilities (used across multiple tools) get unit-tested as `.spec.ts` files alongside the lib module, e.g. `src/lib/crypto.spec.ts`.
+- **E2E tests** — full browser flows live under `src/routes/[tool]/e2e/test.e2e.ts` and run via Playwright.
+
+So: put a tool's own logic tests in the route's `.spec.ts`, shared logic tests in `src/lib/`, and browser-flow tests in `e2e/test.e2e.ts`.
