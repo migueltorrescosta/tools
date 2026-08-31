@@ -13,6 +13,8 @@ You're a toolmaker. Follow this guide for any tool creation.
 2. Add to homepage routes array in `src/routes/+page.svelte`
 3. Implement using the patterns below
 
+**Package manager**: use **pnpm** for all commands (`pnpm install`, `pnpm run dev`, `pnpm test`, etc.). Do not use npm. The repo tracks `pnpm-lock.yaml` (not `package-lock.json`); node version is pinned in `.nvmrc`.
+
 ---
 
 ## Project Overview
