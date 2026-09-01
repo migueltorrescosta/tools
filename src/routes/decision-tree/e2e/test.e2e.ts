@@ -133,7 +133,7 @@ test.describe('Decision Tree E2E', () => {
 
 		// Now only the new answer should be selected
 		await expect(firstAnswerRow.locator('.answer-btn.selected')).toHaveCount(1);
-		await expect(firstAnswerRow.locator('.answer-btn.selected')).toHaveText('Find my religion');
+		await expect(firstAnswerRow.locator('.answer-btn.selected')).toHaveText('Religion');
 	});
 
 	// 6. Interface usable on narrow mobile layouts
