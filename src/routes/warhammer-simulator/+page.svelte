@@ -17,9 +17,28 @@
 	import armouryData from '$lib/warhammer-simulator/data/armoury.json';
 	import factionsData from '$lib/warhammer-simulator/data/factions.json';
 	import giftTraitsData from '$lib/warhammer-simulator/data/gift-traits.json';
-	import { Chart, PieController, BarController, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
+	import {
+		Chart,
+		PieController,
+		BarController,
+		ArcElement,
+		BarElement,
+		CategoryScale,
+		LinearScale,
+		Tooltip,
+		Legend
+	} from 'chart.js';
 
-	Chart.register(PieController, BarController, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+	Chart.register(
+		PieController,
+		BarController,
+		ArcElement,
+		BarElement,
+		CategoryScale,
+		LinearScale,
+		Tooltip,
+		Legend
+	);
 
 	// ── Presets ──
 	const presets = PRESET_CHARACTERS;
@@ -27,7 +46,13 @@
 	const armourList = armouryData.armour as Array<{ type: string; name: string }>;
 	const shieldsList = armouryData.shields as Array<{ type: string; name: string }>;
 	const factions = factionsData as Array<{ id: string; name: string; marks: string[] }>;
-	const traitsList = giftTraitsData as Array<{ id: string; name: string; description: string; category: string; cost: number }>;
+	const traitsList = giftTraitsData as Array<{
+		id: string;
+		name: string;
+		description: string;
+		category: string;
+		cost: number;
+	}>;
 	const factionOptions = factions.map((f) => ({ value: f.id, label: f.name }));
 	const weaponOptions = weaponsList.map((w) => ({ value: w.type, label: w.name }));
 	const armourOptions = armourList.map((a) => ({ value: a.type, label: a.name }));
@@ -87,7 +112,11 @@
 		if (char.traits.includes('strength+1')) effectiveStr += 1;
 		if (char.traits.includes('armour-boost')) armourVal = Math.max(2, armourVal - 1);
 
-		const wardVal = char.traits.includes('ward-4') ? 4 : char.traits.includes('ward-5') ? 5 : char.wardSave;
+		const wardVal = char.traits.includes('ward-4')
+			? 4
+			: char.traits.includes('ward-5')
+				? 5
+				: char.wardSave;
 
 		return {
 			strength: effectiveStr,
@@ -96,7 +125,8 @@
 			ap: effectiveAp,
 			armourSave: armourVal,
 			wardSave: wardVal,
-			hasRerollHits: char.traits.includes('immortal-fury') || char.specialRules.includes('hatred-all'),
+			hasRerollHits:
+				char.traits.includes('immortal-fury') || char.specialRules.includes('hatred-all'),
 			hasKillingBlow: char.traits.includes('killing-blow'),
 			hasPoison: char.traits.includes('poisoned-attacks'),
 			giftPoints: char.traits.reduce((sum, t) => {
@@ -141,7 +171,9 @@
 	}
 
 	// ── Trait toggles ──
-	const availableGiftTraits = traitsList.filter((t) => t.category === 'gift' || t.category === 'item');
+	const availableGiftTraits = traitsList.filter(
+		(t) => t.category === 'gift' || t.category === 'item'
+	);
 	const traitNames = availableGiftTraits.map((t) => t.id);
 
 	function toggleTrait(target: 'A' | 'B', traitId: string) {
@@ -155,10 +187,12 @@
 			const traitDef = traitsList.find((t) => t.id === traitId);
 			if (traitDef?.category === 'gift') {
 				// Gifts are limited by points, not count
-			} else if (currentTraits.filter((t) => {
-				const d = traitsList.find((td) => td.id === t);
-				return d?.category !== 'gift';
-			}).length >= 2) {
+			} else if (
+				currentTraits.filter((t) => {
+					const d = traitsList.find((td) => td.id === t);
+					return d?.category !== 'gift';
+				}).length >= 2
+			) {
 				return; // max 2 non-gift traits
 			}
 			currentTraits.push(traitId);
@@ -221,10 +255,9 @@
 		elapsedMs = 0;
 		results = null;
 
-		worker = new Worker(
-			new URL('$lib/warhammer-simulator/simulation.worker.ts', import.meta.url),
-			{ type: 'module' }
-		);
+		worker = new Worker(new URL('$lib/warhammer-simulator/simulation.worker.ts', import.meta.url), {
+			type: 'module'
+		});
 
 		worker.onmessage = (e: MessageEvent<WorkerMessage>) => {
 			const data = e.data;
@@ -265,9 +298,18 @@
 		if (!r || !pieCanvas || !histCanvas || !dmgCanvas) return;
 
 		// Destroy old charts
-		if (pieChart) { pieChart.destroy(); pieChart = null; }
-		if (histChart) { histChart.destroy(); histChart = null; }
-		if (dmgChart) { dmgChart.destroy(); dmgChart = null; }
+		if (pieChart) {
+			pieChart.destroy();
+			pieChart = null;
+		}
+		if (histChart) {
+			histChart.destroy();
+			histChart = null;
+		}
+		if (dmgChart) {
+			dmgChart.destroy();
+			dmgChart = null;
+		}
 
 		// Pie chart
 		const ctx = pieCanvas.getContext('2d');
@@ -276,24 +318,18 @@
 				type: 'pie',
 				data: {
 					labels: [charA.name, charB.name, 'Mutual Kill / Draw'],
-					datasets: [{
-						data: [
-							r.winRateA,
-							r.winRateB,
-							r.mutualKillRate + r.drawRate
-						],
-						backgroundColor: [
-							'rgba(0, 245, 255, 0.8)',
-							'rgba(255, 0, 255, 0.8)',
-							'rgba(255, 200, 0, 0.8)'
-						],
-						borderColor: [
-							'rgba(0, 245, 255, 1)',
-							'rgba(255, 0, 255, 1)',
-							'rgba(255, 200, 0, 1)'
-						],
-						borderWidth: 2
-					}]
+					datasets: [
+						{
+							data: [r.winRateA, r.winRateB, r.mutualKillRate + r.drawRate],
+							backgroundColor: [
+								'rgba(0, 245, 255, 0.8)',
+								'rgba(255, 0, 255, 0.8)',
+								'rgba(255, 200, 0, 0.8)'
+							],
+							borderColor: ['rgba(0, 245, 255, 1)', 'rgba(255, 0, 255, 1)', 'rgba(255, 200, 0, 1)'],
+							borderWidth: 2
+						}
+					]
 				},
 				options: {
 					responsive: true,
@@ -323,13 +359,15 @@
 				type: 'bar',
 				data: {
 					labels,
-					datasets: [{
-						label: 'Frequency',
-						data: r.roundDistribution.map((c) => (c / r.totalRuns) * 100),
-						backgroundColor: 'rgba(0, 245, 255, 0.6)',
-						borderColor: 'rgba(0, 245, 255, 0.9)',
-						borderWidth: 1
-					}]
+					datasets: [
+						{
+							label: 'Frequency',
+							data: r.roundDistribution.map((c) => (c / r.totalRuns) * 100),
+							backgroundColor: 'rgba(0, 245, 255, 0.6)',
+							borderColor: 'rgba(0, 245, 255, 0.9)',
+							borderWidth: 1
+						}
+					]
 				},
 				options: {
 					responsive: true,
@@ -441,7 +479,10 @@
 <div class="container">
 	<header>
 		<h1>WARHAMMER SIMULATOR</h1>
-		<p class="subtitle">Monte Carlo duel probability calculator for Warhammer: The Old World — 100 000 simulations by default</p>
+		<p class="subtitle">
+			Monte Carlo duel probability calculator for Warhammer: The Old World — 100 000 simulations by
+			default
+		</p>
 	</header>
 
 	<!-- Character Builder -->
@@ -456,8 +497,12 @@
 			</div>
 			<div class="panel-content sim-form">
 				<div class="field-group">
-					<label class="input-label">Preset</label>
-					<select class="algorithm-select" onchange={(e) => loadPreset('A', (e.target as HTMLSelectElement).value)}>
+					<label class="input-label" for="charA-preset">Preset</label>
+					<select
+						id="charA-preset"
+						class="algorithm-select"
+						onchange={(e) => loadPreset('A', (e.target as HTMLSelectElement).value)}
+					>
 						<option value="">-- Select Preset --</option>
 						{#each presets as preset}
 							<option value={preset.name}>{preset.name}</option>
@@ -465,21 +510,27 @@
 					</select>
 				</div>
 				<div class="field-group">
-					<label class="input-label">Name</label>
-					<input class="key-input" type="text" bind:value={charA.name} placeholder="Character name" />
+					<label class="input-label" for="charA-name">Name</label>
+					<input
+						id="charA-name"
+						class="key-input"
+						type="text"
+						bind:value={charA.name}
+						placeholder="Character name"
+					/>
 				</div>
 				<div class="sim-form-row">
 					<div class="field-group">
-						<label class="input-label">Faction</label>
-						<select class="algorithm-select" bind:value={charA.faction}>
+						<label class="input-label" for="charA-faction">Faction</label>
+						<select id="charA-faction" class="algorithm-select" bind:value={charA.faction}>
 							{#each factionOptions as opt}
 								<option value={opt.value}>{opt.label}</option>
 							{/each}
 						</select>
 					</div>
 					<div class="field-group">
-						<label class="input-label">Mark</label>
-						<select class="algorithm-select" bind:value={charA.mark}>
+						<label class="input-label" for="charA-mark">Mark</label>
+						<select id="charA-mark" class="algorithm-select" bind:value={charA.mark}>
 							<option value={undefined}>None</option>
 							{#each getFactionMarks(charA.faction) as mark}
 								<option value={mark}>{mark.charAt(0).toUpperCase() + mark.slice(1)}</option>
@@ -488,33 +539,87 @@
 					</div>
 				</div>
 				<div class="sim-form-row">
-					<div class="field-group"><label class="input-label">WS</label><input class="key-input" type="number" min="1" max="10" bind:value={charA.ws} /></div>
-					<div class="field-group"><label class="input-label">S</label><input class="key-input" type="number" min="1" max="10" bind:value={charA.s} /></div>
-					<div class="field-group"><label class="input-label">T</label><input class="key-input" type="number" min="1" max="10" bind:value={charA.t} /></div>
-					<div class="field-group"><label class="input-label">A</label><input class="key-input" type="number" min="1" max="10" bind:value={charA.a} /></div>
-					<div class="field-group"><label class="input-label">I</label><input class="key-input" type="number" min="1" max="10" bind:value={charA.i} /></div>
-					<div class="field-group"><label class="input-label">W</label><input class="key-input" type="number" min="1" max="10" bind:value={charA.wounds} /></div>
+					<div class="field-group">
+						<label class="input-label" for="charA-ws">WS</label><input
+							id="charA-ws"
+							class="key-input"
+							type="number"
+							min="1"
+							max="10"
+							bind:value={charA.ws}
+						/>
+					</div>
+					<div class="field-group">
+						<label class="input-label" for="charA-s">S</label><input
+							id="charA-s"
+							class="key-input"
+							type="number"
+							min="1"
+							max="10"
+							bind:value={charA.s}
+						/>
+					</div>
+					<div class="field-group">
+						<label class="input-label" for="charA-t">T</label><input
+							id="charA-t"
+							class="key-input"
+							type="number"
+							min="1"
+							max="10"
+							bind:value={charA.t}
+						/>
+					</div>
+					<div class="field-group">
+						<label class="input-label" for="charA-a">A</label><input
+							id="charA-a"
+							class="key-input"
+							type="number"
+							min="1"
+							max="10"
+							bind:value={charA.a}
+						/>
+					</div>
+					<div class="field-group">
+						<label class="input-label" for="charA-i">I</label><input
+							id="charA-i"
+							class="key-input"
+							type="number"
+							min="1"
+							max="10"
+							bind:value={charA.i}
+						/>
+					</div>
+					<div class="field-group">
+						<label class="input-label" for="charA-w">W</label><input
+							id="charA-w"
+							class="key-input"
+							type="number"
+							min="1"
+							max="10"
+							bind:value={charA.wounds}
+						/>
+					</div>
 				</div>
 				<div class="sim-form-row">
 					<div class="field-group">
-						<label class="input-label">Weapon</label>
-						<select class="algorithm-select" bind:value={charA.weapon}>
+						<label class="input-label" for="charA-weapon">Weapon</label>
+						<select id="charA-weapon" class="algorithm-select" bind:value={charA.weapon}>
 							{#each weaponOptions as opt}
 								<option value={opt.value}>{opt.label}</option>
 							{/each}
 						</select>
 					</div>
 					<div class="field-group">
-						<label class="input-label">Armour</label>
-						<select class="algorithm-select" bind:value={charA.armour}>
+						<label class="input-label" for="charA-armour">Armour</label>
+						<select id="charA-armour" class="algorithm-select" bind:value={charA.armour}>
 							{#each armourOptions as opt}
 								<option value={opt.value}>{opt.label}</option>
 							{/each}
 						</select>
 					</div>
 					<div class="field-group">
-						<label class="input-label">Shield</label>
-						<select class="algorithm-select" bind:value={charA.shield}>
+						<label class="input-label" for="charA-shield">Shield</label>
+						<select id="charA-shield" class="algorithm-select" bind:value={charA.shield}>
 							{#each shieldOptions as opt}
 								<option value={opt.value}>{opt.label}</option>
 							{/each}
@@ -522,15 +627,15 @@
 					</div>
 				</div>
 
-				<!-- Traits & Gifts -->
-				<div class="field-group">
-					<label class="input-label">Traits & Gifts (max 50 pts)</label>
-					<div class="trait-grid">
-						{#each availableGiftTraits as trait}
-							<button
-								class="format-btn"
-								class:active={charA.traits.includes(trait.id)}
-								onclick={() => toggleTrait('A', trait.id)}
+			<!-- Traits & Gifts -->
+			<div class="field-group">
+				<span class="input-label">Traits & Gifts (max 50 pts)</span>
+				<div class="trait-grid">
+					{#each availableGiftTraits as trait}
+						<button
+							class="format-btn"
+							class:active={charA.traits.includes(trait.id)}
+							onclick={() => toggleTrait('A', trait.id)}
 								title={trait.description}
 							>
 								{trait.name} ({trait.cost} pts)
@@ -542,11 +647,11 @@
 					{/if}
 				</div>
 
-				<!-- Derived Stats -->
-				<div class="derived-stats">
-					<label class="input-label">Effective Stats</label>
-					<div class="stats-grid">
-						<span>S {statsA.strength}</span>
+			<!-- Derived Stats -->
+			<div class="derived-stats">
+				<span class="input-label">Effective Stats</span>
+				<div class="stats-grid">
+					<span>S {statsA.strength}</span>
 						<span>A {statsA.attacks}</span>
 						<span>I {statsA.initiative}</span>
 						<span>AP {statsA.ap}</span>
@@ -569,8 +674,12 @@
 			</div>
 			<div class="panel-content sim-form">
 				<div class="field-group">
-					<label class="input-label">Preset</label>
-					<select class="algorithm-select" onchange={(e) => loadPreset('B', (e.target as HTMLSelectElement).value)}>
+					<label class="input-label" for="charB-preset">Preset</label>
+					<select
+						id="charB-preset"
+						class="algorithm-select"
+						onchange={(e) => loadPreset('B', (e.target as HTMLSelectElement).value)}
+					>
 						<option value="">-- Select Preset --</option>
 						{#each presets as preset}
 							<option value={preset.name}>{preset.name}</option>
@@ -578,66 +687,126 @@
 					</select>
 				</div>
 				<div class="field-group">
-					<label class="input-label">Name</label>
-					<input class="key-input" type="text" bind:value={charB.name} placeholder="Character name" />
+					<label class="input-label" for="charB-name">Name</label>
+					<input
+						id="charB-name"
+						class="key-input"
+						type="text"
+						bind:value={charB.name}
+						placeholder="Character name"
+					/>
 				</div>
 				<div class="sim-form-row">
-					<div class="field-group">
-						<label class="input-label">Faction</label>
-						<select class="algorithm-select" bind:value={charB.faction}>
-							{#each factionOptions as opt}
-								<option value={opt.value}>{opt.label}</option>
-							{/each}
-						</select>
-					</div>
-					<div class="field-group">
-						<label class="input-label">Mark</label>
-						<select class="algorithm-select" bind:value={charB.mark}>
-							<option value={undefined}>None</option>
-							{#each getFactionMarks(charB.faction) as mark}
-								<option value={mark}>{mark.charAt(0).toUpperCase() + mark.slice(1)}</option>
-							{/each}
-						</select>
-					</div>
+				<div class="field-group">
+					<label class="input-label" for="charB-faction">Faction</label>
+					<select id="charB-faction" class="algorithm-select" bind:value={charB.faction}>
+						{#each factionOptions as opt}
+							<option value={opt.value}>{opt.label}</option>
+						{/each}
+					</select>
+				</div>
+				<div class="field-group">
+					<label class="input-label" for="charB-mark">Mark</label>
+					<select id="charB-mark" class="algorithm-select" bind:value={charB.mark}>
+						<option value={undefined}>None</option>
+						{#each getFactionMarks(charB.faction) as mark}
+							<option value={mark}>{mark.charAt(0).toUpperCase() + mark.slice(1)}</option>
+						{/each}
+					</select>
+				</div>
 				</div>
 				<div class="sim-form-row">
-					<div class="field-group"><label class="input-label">WS</label><input class="key-input" type="number" min="1" max="10" bind:value={charB.ws} /></div>
-					<div class="field-group"><label class="input-label">S</label><input class="key-input" type="number" min="1" max="10" bind:value={charB.s} /></div>
-					<div class="field-group"><label class="input-label">T</label><input class="key-input" type="number" min="1" max="10" bind:value={charB.t} /></div>
-					<div class="field-group"><label class="input-label">A</label><input class="key-input" type="number" min="1" max="10" bind:value={charB.a} /></div>
-					<div class="field-group"><label class="input-label">I</label><input class="key-input" type="number" min="1" max="10" bind:value={charB.i} /></div>
-					<div class="field-group"><label class="input-label">W</label><input class="key-input" type="number" min="1" max="10" bind:value={charB.wounds} /></div>
+				<div class="field-group">
+					<label class="input-label" for="charB-ws">WS</label><input
+						id="charB-ws"
+						class="key-input"
+						type="number"
+						min="1"
+						max="10"
+						bind:value={charB.ws}
+					/>
+				</div>
+				<div class="field-group">
+					<label class="input-label" for="charB-s">S</label><input
+						id="charB-s"
+						class="key-input"
+						type="number"
+						min="1"
+						max="10"
+						bind:value={charB.s}
+					/>
+				</div>
+				<div class="field-group">
+					<label class="input-label" for="charB-t">T</label><input
+						id="charB-t"
+						class="key-input"
+						type="number"
+						min="1"
+						max="10"
+						bind:value={charB.t}
+					/>
+				</div>
+				<div class="field-group">
+					<label class="input-label" for="charB-a">A</label><input
+						id="charB-a"
+						class="key-input"
+						type="number"
+						min="1"
+						max="10"
+						bind:value={charB.a}
+					/>
+				</div>
+				<div class="field-group">
+					<label class="input-label" for="charB-i">I</label><input
+						id="charB-i"
+						class="key-input"
+						type="number"
+						min="1"
+						max="10"
+						bind:value={charB.i}
+					/>
+				</div>
+				<div class="field-group">
+					<label class="input-label" for="charB-w">W</label><input
+						id="charB-w"
+						class="key-input"
+						type="number"
+						min="1"
+						max="10"
+						bind:value={charB.wounds}
+					/>
+				</div>
 				</div>
 				<div class="sim-form-row">
-					<div class="field-group">
-						<label class="input-label">Weapon</label>
-						<select class="algorithm-select" bind:value={charB.weapon}>
-							{#each weaponOptions as opt}
-								<option value={opt.value}>{opt.label}</option>
-							{/each}
-						</select>
-					</div>
-					<div class="field-group">
-						<label class="input-label">Armour</label>
-						<select class="algorithm-select" bind:value={charB.armour}>
-							{#each armourOptions as opt}
-								<option value={opt.value}>{opt.label}</option>
-							{/each}
-						</select>
-					</div>
-					<div class="field-group">
-						<label class="input-label">Shield</label>
-						<select class="algorithm-select" bind:value={charB.shield}>
-							{#each shieldOptions as opt}
-								<option value={opt.value}>{opt.label}</option>
-							{/each}
-						</select>
-					</div>
+				<div class="field-group">
+					<label class="input-label" for="charB-weapon">Weapon</label>
+					<select id="charB-weapon" class="algorithm-select" bind:value={charB.weapon}>
+						{#each weaponOptions as opt}
+							<option value={opt.value}>{opt.label}</option>
+						{/each}
+					</select>
+				</div>
+				<div class="field-group">
+					<label class="input-label" for="charB-armour">Armour</label>
+					<select id="charB-armour" class="algorithm-select" bind:value={charB.armour}>
+						{#each armourOptions as opt}
+							<option value={opt.value}>{opt.label}</option>
+						{/each}
+					</select>
+				</div>
+				<div class="field-group">
+					<label class="input-label" for="charB-shield">Shield</label>
+					<select id="charB-shield" class="algorithm-select" bind:value={charB.shield}>
+						{#each shieldOptions as opt}
+							<option value={opt.value}>{opt.label}</option>
+						{/each}
+					</select>
+				</div>
 				</div>
 
 				<!-- Traits & Gifts -->
 				<div class="field-group">
-					<label class="input-label">Traits & Gifts (max 50 pts)</label>
+					<span class="input-label">Traits & Gifts (max 50 pts)</span>
 					<div class="trait-grid">
 						{#each availableGiftTraits as trait}
 							<button
@@ -657,7 +826,7 @@
 
 				<!-- Derived Stats -->
 				<div class="derived-stats">
-					<label class="input-label">Effective Stats</label>
+					<span class="input-label">Effective Stats</span>
 					<div class="stats-grid">
 						<span>S {statsB.strength}</span>
 						<span>A {statsB.attacks}</span>
@@ -684,12 +853,19 @@
 		<div class="panel-content">
 			<div class="sim-controls-row">
 				<div class="field-group">
-					<label class="input-label">Simulations</label>
-					<input class="key-input sim-count-input" type="number" min="100" max="100000" bind:value={simCount} />
+					<label class="input-label" for="sim-count">Simulations</label>
+					<input
+						id="sim-count"
+						class="key-input sim-count-input"
+						type="number"
+						min="100"
+						max="100000"
+						bind:value={simCount}
+					/>
 				</div>
 				<div class="field-group">
-					<label class="input-label">Charge Bonus</label>
-					<select class="algorithm-select" bind:value={chargeBonus}>
+					<label class="input-label" for="charge-bonus">Charge Bonus</label>
+					<select id="charge-bonus" class="algorithm-select" bind:value={chargeBonus}>
 						<option value={1}>+1</option>
 						<option value={2}>+2</option>
 						<option value={3}>+3</option>
@@ -716,7 +892,7 @@
 						<div class="progress-bar-fill" style="width: {isRunning ? progress * 100 : 100}%"></div>
 					</div>
 					<span class="progress-text">
-						{isRunning ? `${(progress * 100).toFixed(0)}%` : '100%'} 
+						{isRunning ? `${(progress * 100).toFixed(0)}%` : '100%'}
 						({(elapsedMs / 1000).toFixed(1)}s)
 					</span>
 				</div>
@@ -755,11 +931,15 @@
 						<div class="winner-stat">
 							<span class="winner-dot" style="background:rgba(255,200,0,0.9)"></span>
 							<span class="winner-label">Mutual/Draw</span>
-							<span class="winner-value">{((results.mutualKillRate + results.drawRate) * 100).toFixed(1)}%</span>
+							<span class="winner-value"
+								>{((results.mutualKillRate + results.drawRate) * 100).toFixed(1)}%</span
+							>
 						</div>
 					</div>
 					<div class="winner-note">
-						<span class="hint">Mutual Kill = both died same round. Draw = 50-round cap reached (shown combined).</span>
+						<span class="hint"
+							>Mutual Kill = both died same round. Draw = 50-round cap reached (shown combined).</span
+						>
 					</div>
 				</div>
 			</div>
@@ -775,7 +955,9 @@
 				<div class="panel-content chart-panel-content">
 					<canvas bind:this={histCanvas}></canvas>
 					<div class="chart-note">
-						<span class="hint">Percentage of total simulations that ended in each round number.</span>
+						<span class="hint"
+							>Percentage of total simulations that ended in each round number.</span
+						>
 					</div>
 				</div>
 			</div>
@@ -897,7 +1079,7 @@
 		font-size: 0.85rem;
 	}
 
-	.checkbox-group input[type="checkbox"] {
+	.checkbox-group input[type='checkbox'] {
 		width: 18px;
 		height: 18px;
 		accent-color: var(--futuristic-cyan);

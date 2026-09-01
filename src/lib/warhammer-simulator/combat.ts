@@ -70,16 +70,8 @@ export class CombatEngine {
 		if (!aAlive || !bAlive) return;
 
 		// Compute effective stats for this round
-		const statsA = computeEffectiveStats(
-			this.charA,
-			this.state.chargeA,
-			this.state.roundNumber
-		);
-		const statsB = computeEffectiveStats(
-			this.charB,
-			this.state.chargeB,
-			this.state.roundNumber
-		);
+		const statsA = computeEffectiveStats(this.charA, this.state.chargeA, this.state.roundNumber);
+		const statsB = computeEffectiveStats(this.charB, this.state.chargeB, this.state.roundNumber);
 
 		// Determine initiative order
 		const initOrder = this.determineInitiative(statsA, statsB);
@@ -108,43 +100,19 @@ export class CombatEngine {
 
 			// First actor strikes
 			if (first === 'A' && this.state.charAWounds > 0) {
-				const dmg = this.resolveAttacks(
-					this.charA,
-					this.charB,
-					statsA,
-					statsB,
-					abilityActivations
-				);
+				const dmg = this.resolveAttacks(this.charA, this.charB, statsA, statsB, abilityActivations);
 				this.state.charBWounds = Math.max(0, this.state.charBWounds - dmg);
 			} else if (first === 'B' && this.state.charBWounds > 0) {
-				const dmg = this.resolveAttacks(
-					this.charB,
-					this.charA,
-					statsB,
-					statsA,
-					abilityActivations
-				);
+				const dmg = this.resolveAttacks(this.charB, this.charA, statsB, statsA, abilityActivations);
 				this.state.charAWounds = Math.max(0, this.state.charAWounds - dmg);
 			}
 
 			// Second actor strikes (if still alive)
 			if (second === 'A' && this.state.charAWounds > 0) {
-				const dmg = this.resolveAttacks(
-					this.charA,
-					this.charB,
-					statsA,
-					statsB,
-					abilityActivations
-				);
+				const dmg = this.resolveAttacks(this.charA, this.charB, statsA, statsB, abilityActivations);
 				this.state.charBWounds = Math.max(0, this.state.charBWounds - dmg);
 			} else if (second === 'B' && this.state.charBWounds > 0) {
-				const dmg = this.resolveAttacks(
-					this.charB,
-					this.charA,
-					statsB,
-					statsA,
-					abilityActivations
-				);
+				const dmg = this.resolveAttacks(this.charB, this.charA, statsB, statsA, abilityActivations);
 				this.state.charAWounds = Math.max(0, this.state.charAWounds - dmg);
 			}
 		}
@@ -195,7 +163,8 @@ export class CombatEngine {
 					abilityActivations['killing-blow'] = (abilityActivations['killing-blow'] || 0) + 1;
 				}
 				if (attackerStats.hasPoison) {
-					abilityActivations['poisoned-attacks'] = (abilityActivations['poisoned-attacks'] || 0) + 1;
+					abilityActivations['poisoned-attacks'] =
+						(abilityActivations['poisoned-attacks'] || 0) + 1;
 				}
 			}
 		}

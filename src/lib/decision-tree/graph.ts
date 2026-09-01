@@ -1,4 +1,12 @@
-import type { DecisionGraph, Node, AnswerEdge, RawTree, TraversalPath, QuestionNode, ResultNode } from './types';
+import type {
+	DecisionGraph,
+	Node,
+	AnswerEdge,
+	RawTree,
+	TraversalPath,
+	QuestionNode,
+	ResultNode
+} from './types';
 
 export function isQuestionNode(node: Node): node is QuestionNode {
 	return node.type === 'question';

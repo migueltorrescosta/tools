@@ -430,12 +430,20 @@ describe('computeDiff', () => {
 		const segments = result;
 		expect(segments.length).toBeGreaterThan(0);
 		// Reconstruct output string (deletions + insertions + same)
-		const reconstructed = segments.map(s => s.type === 'delete' ? '' : s.text).join('');
+		const reconstructed = segments.map((s) => (s.type === 'delete' ? '' : s.text)).join('');
 		const expectedOutput = 'aveva andato';
 		expect(reconstructed).toBe(expectedOutput);
 		// Verify all chars accounted for in deletions (deleted chars = what user typed minus what matched)
-		const deletedText = segments.filter(s => s.type === 'delete').map(s => s.text).join('');
-		const sourceAligned = deletedText + segments.filter(s => s.type === 'same').map(s => s.text).join('');
+		const deletedText = segments
+			.filter((s) => s.type === 'delete')
+			.map((s) => s.text)
+			.join('');
+		const sourceAligned =
+			deletedText +
+			segments
+				.filter((s) => s.type === 'same')
+				.map((s) => s.text)
+				.join('');
 		// Not necessarily exact match due to alignment, but close enough
 		expect(sourceAligned.length).toBeGreaterThanOrEqual(7);
 	});

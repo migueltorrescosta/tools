@@ -149,101 +149,197 @@ function generateConjugations(
 
 	if (ending === 'ar') {
 		t['presente do indicativo'] = [
-			stem + 'o', stem + 'as', stem + 'a',
-			stem + 'amos', stem + 'ais', stem + 'am'
+			stem + 'o',
+			stem + 'as',
+			stem + 'a',
+			stem + 'amos',
+			stem + 'ais',
+			stem + 'am'
 		];
 		t['pretérito perfeito do indicativo'] = [
-			stem + 'ei', stem + 'aste', stem + 'ou',
-			stem + 'ámos', stem + 'astes', stem + 'aram'
+			stem + 'ei',
+			stem + 'aste',
+			stem + 'ou',
+			stem + 'ámos',
+			stem + 'astes',
+			stem + 'aram'
 		];
 		t['pretérito imperfeito do indicativo'] = [
-			stem + 'ava', stem + 'avas', stem + 'ava',
-			stem + 'ávamos', stem + 'áveis', stem + 'avam'
+			stem + 'ava',
+			stem + 'avas',
+			stem + 'ava',
+			stem + 'ávamos',
+			stem + 'áveis',
+			stem + 'avam'
 		];
 		t['pretérito mais-que-perfeito do indicativo'] = [
-			stem + 'ara', stem + 'aras', stem + 'ara',
-			stem + 'áramos', stem + 'áreis', stem + 'aram'
+			stem + 'ara',
+			stem + 'aras',
+			stem + 'ara',
+			stem + 'áramos',
+			stem + 'áreis',
+			stem + 'aram'
 		];
 		t['futuro do indicativo'] = [
-			verb + 'ei', verb + 'ás', verb + 'á',
-			verb + 'emos', verb + 'eis', verb + 'ão'
+			verb + 'ei',
+			verb + 'ás',
+			verb + 'á',
+			verb + 'emos',
+			verb + 'eis',
+			verb + 'ão'
 		];
 		t['condicional'] = [
-			verb + 'ia', verb + 'ias', verb + 'ia',
-			verb + 'íamos', verb + 'íeis', verb + 'iam'
+			verb + 'ia',
+			verb + 'ias',
+			verb + 'ia',
+			verb + 'íamos',
+			verb + 'íeis',
+			verb + 'iam'
 		];
 		t['presente do conjuntivo'] = [
-			subjStem + 'e', subjStem + 'es', subjStem + 'e',
-			subjStem + 'emos', subjStem + 'eis', subjStem + 'em'
+			subjStem + 'e',
+			subjStem + 'es',
+			subjStem + 'e',
+			subjStem + 'emos',
+			subjStem + 'eis',
+			subjStem + 'em'
 		];
 		t['pretérito imperfeito do conjuntivo'] = [
-			stem + 'asse', stem + 'asses', stem + 'asse',
-			stem + 'ássemos', stem + 'ásseis', stem + 'assem'
+			stem + 'asse',
+			stem + 'asses',
+			stem + 'asse',
+			stem + 'ássemos',
+			stem + 'ásseis',
+			stem + 'assem'
 		];
 		t['futuro do conjuntivo'] = [
-			stem + 'ar', stem + 'ares', stem + 'ar',
-			stem + 'armos', stem + 'ardes', stem + 'arem'
+			stem + 'ar',
+			stem + 'ares',
+			stem + 'ar',
+			stem + 'armos',
+			stem + 'ardes',
+			stem + 'arem'
 		];
 		t['imperativo afirmativo'] = [
-			'', stem + 'a', subjStem + 'e',
-			subjStem + 'emos', stem + 'ai', subjStem + 'em'
+			'',
+			stem + 'a',
+			subjStem + 'e',
+			subjStem + 'emos',
+			stem + 'ai',
+			subjStem + 'em'
 		];
 		t['imperativo negativo'] = [
-			'', subjStem + 'es', subjStem + 'e',
-			subjStem + 'emos', subjStem + 'eis', subjStem + 'em'
+			'',
+			subjStem + 'es',
+			subjStem + 'e',
+			subjStem + 'emos',
+			subjStem + 'eis',
+			subjStem + 'em'
 		];
 		t['infinitivo pessoal'] = [
-			stem + 'ar', stem + 'ares', stem + 'ar',
-			stem + 'armos', stem + 'ardes', stem + 'arem'
+			stem + 'ar',
+			stem + 'ares',
+			stem + 'ar',
+			stem + 'armos',
+			stem + 'ardes',
+			stem + 'arem'
 		];
 	} else if (ending === 'er') {
 		t['presente do indicativo'] = [
-			stem + 'o', stem + 'es', stem + 'e',
-			stem + 'emos', stem + 'eis', stem + 'em'
+			stem + 'o',
+			stem + 'es',
+			stem + 'e',
+			stem + 'emos',
+			stem + 'eis',
+			stem + 'em'
 		];
 		t['pretérito perfeito do indicativo'] = [
-			stem + 'i', stem + 'este', stem + 'eu',
-			stem + 'emos', stem + 'estes', stem + 'eram'
+			stem + 'i',
+			stem + 'este',
+			stem + 'eu',
+			stem + 'emos',
+			stem + 'estes',
+			stem + 'eram'
 		];
 		t['pretérito imperfeito do indicativo'] = [
-			stem + 'ia', stem + 'ias', stem + 'ia',
-			stem + 'íamos', stem + 'íeis', stem + 'iam'
+			stem + 'ia',
+			stem + 'ias',
+			stem + 'ia',
+			stem + 'íamos',
+			stem + 'íeis',
+			stem + 'iam'
 		];
 		t['pretérito mais-que-perfeito do indicativo'] = [
-			stem + 'era', stem + 'eras', stem + 'era',
-			stem + 'êramos', stem + 'êreis', stem + 'eram'
+			stem + 'era',
+			stem + 'eras',
+			stem + 'era',
+			stem + 'êramos',
+			stem + 'êreis',
+			stem + 'eram'
 		];
 		t['futuro do indicativo'] = [
-			verb + 'ei', verb + 'ás', verb + 'á',
-			verb + 'emos', verb + 'eis', verb + 'ão'
+			verb + 'ei',
+			verb + 'ás',
+			verb + 'á',
+			verb + 'emos',
+			verb + 'eis',
+			verb + 'ão'
 		];
 		t['condicional'] = [
-			verb + 'ia', verb + 'ias', verb + 'ia',
-			verb + 'íamos', verb + 'íeis', verb + 'iam'
+			verb + 'ia',
+			verb + 'ias',
+			verb + 'ia',
+			verb + 'íamos',
+			verb + 'íeis',
+			verb + 'iam'
 		];
 		t['presente do conjuntivo'] = [
-			stem + 'a', stem + 'as', stem + 'a',
-			stem + 'amos', stem + 'ais', stem + 'am'
+			stem + 'a',
+			stem + 'as',
+			stem + 'a',
+			stem + 'amos',
+			stem + 'ais',
+			stem + 'am'
 		];
 		t['pretérito imperfeito do conjuntivo'] = [
-			stem + 'esse', stem + 'esses', stem + 'esse',
-			stem + 'êssemos', stem + 'êsseis', stem + 'essem'
+			stem + 'esse',
+			stem + 'esses',
+			stem + 'esse',
+			stem + 'êssemos',
+			stem + 'êsseis',
+			stem + 'essem'
 		];
 		t['futuro do conjuntivo'] = [
-			stem + 'er', stem + 'eres', stem + 'er',
-			stem + 'ermos', stem + 'erdes', stem + 'erem'
+			stem + 'er',
+			stem + 'eres',
+			stem + 'er',
+			stem + 'ermos',
+			stem + 'erdes',
+			stem + 'erem'
 		];
 		t['imperativo afirmativo'] = [
-			'', stem + 'e', stem + 'a',
-			stem + 'amos', stem + 'ei', stem + 'am'
+			'',
+			stem + 'e',
+			stem + 'a',
+			stem + 'amos',
+			stem + 'ei',
+			stem + 'am'
 		];
 		t['imperativo negativo'] = [
-			'', stem + 'as', stem + 'a',
-			stem + 'amos', stem + 'ais', stem + 'am'
+			'',
+			stem + 'as',
+			stem + 'a',
+			stem + 'amos',
+			stem + 'ais',
+			stem + 'am'
 		];
 		t['infinitivo pessoal'] = [
-			stem + 'er', stem + 'eres', stem + 'er',
-			stem + 'ermos', stem + 'erdes', stem + 'erem'
+			stem + 'er',
+			stem + 'eres',
+			stem + 'er',
+			stem + 'ermos',
+			stem + 'erdes',
+			stem + 'erem'
 		];
 	}
 	// -ir verbs not used in regular generation for this dataset;
@@ -288,13 +384,23 @@ const CONJUGATIONS: ConjTable = {
 		'pretérito perfeito do indicativo': ['fui', 'foste', 'foi', 'fomos', 'fostes', 'foram'],
 		'pretérito imperfeito do indicativo': ['era', 'eras', 'era', 'éramos', 'éreis', 'eram'],
 		'pretérito mais-que-perfeito do indicativo': [
-			'fora', 'foras', 'fora', 'fôramos', 'fôreis', 'foram'
+			'fora',
+			'foras',
+			'fora',
+			'fôramos',
+			'fôreis',
+			'foram'
 		],
 		'futuro do indicativo': ['serei', 'serás', 'será', 'seremos', 'sereis', 'serão'],
-		'condicional': ['seria', 'serias', 'seria', 'seríamos', 'seríeis', 'seriam'],
+		condicional: ['seria', 'serias', 'seria', 'seríamos', 'seríeis', 'seriam'],
 		'presente do conjuntivo': ['seja', 'sejas', 'seja', 'sejamos', 'sejais', 'sejam'],
 		'pretérito imperfeito do conjuntivo': [
-			'fosse', 'fosses', 'fosse', 'fôssemos', 'fôsseis', 'fossem'
+			'fosse',
+			'fosses',
+			'fosse',
+			'fôssemos',
+			'fôsseis',
+			'fossem'
 		],
 		'futuro do conjuntivo': ['for', 'fores', 'for', 'formos', 'fordes', 'forem'],
 		'imperativo afirmativo': ['', 'sê', 'seja', 'sejamos', 'sede', 'sejam'],
@@ -306,26 +412,47 @@ const CONJUGATIONS: ConjTable = {
 	estar: {
 		'presente do indicativo': ['estou', 'estás', 'está', 'estamos', 'estais', 'estão'],
 		'pretérito perfeito do indicativo': [
-			'estive', 'estiveste', 'esteve', 'estivemos', 'estivestes', 'estiveram'
+			'estive',
+			'estiveste',
+			'esteve',
+			'estivemos',
+			'estivestes',
+			'estiveram'
 		],
 		'pretérito imperfeito do indicativo': [
-			'estava', 'estavas', 'estava', 'estávamos', 'estáveis', 'estavam'
+			'estava',
+			'estavas',
+			'estava',
+			'estávamos',
+			'estáveis',
+			'estavam'
 		],
 		'pretérito mais-que-perfeito do indicativo': [
-			'estivera', 'estiveras', 'estivera', 'estivéramos', 'estivéreis', 'estiveram'
+			'estivera',
+			'estiveras',
+			'estivera',
+			'estivéramos',
+			'estivéreis',
+			'estiveram'
 		],
 		'futuro do indicativo': ['estarei', 'estarás', 'estará', 'estaremos', 'estareis', 'estarão'],
-		'condicional': [
-			'estaria', 'estarias', 'estaria', 'estaríamos', 'estaríeis', 'estariam'
-		],
-		'presente do conjuntivo': [
-			'esteja', 'estejas', 'esteja', 'estejamos', 'estejais', 'estejam'
-		],
+		condicional: ['estaria', 'estarias', 'estaria', 'estaríamos', 'estaríeis', 'estariam'],
+		'presente do conjuntivo': ['esteja', 'estejas', 'esteja', 'estejamos', 'estejais', 'estejam'],
 		'pretérito imperfeito do conjuntivo': [
-			'estivesse', 'estivesses', 'estivesse', 'estivéssemos', 'estivésseis', 'estivessem'
+			'estivesse',
+			'estivesses',
+			'estivesse',
+			'estivéssemos',
+			'estivésseis',
+			'estivessem'
 		],
 		'futuro do conjuntivo': [
-			'estiver', 'estiveres', 'estiver', 'estivermos', 'estiverdes', 'estiverem'
+			'estiver',
+			'estiveres',
+			'estiver',
+			'estivermos',
+			'estiverdes',
+			'estiverem'
 		],
 		'imperativo afirmativo': ['', 'está', 'esteja', 'estejamos', 'estai', 'estejam'],
 		'imperativo negativo': ['', 'estejas', 'esteja', 'estejamos', 'estejais', 'estejam'],
@@ -336,25 +463,41 @@ const CONJUGATIONS: ConjTable = {
 	ter: {
 		'presente do indicativo': ['tenho', 'tens', 'tem', 'temos', 'tendes', 'têm'],
 		'pretérito perfeito do indicativo': [
-			'tive', 'tiveste', 'teve', 'tivemos', 'tivestes', 'tiveram'
+			'tive',
+			'tiveste',
+			'teve',
+			'tivemos',
+			'tivestes',
+			'tiveram'
 		],
 		'pretérito imperfeito do indicativo': [
-			'tinha', 'tinhas', 'tinha', 'tínhamos', 'tínheis', 'tinham'
+			'tinha',
+			'tinhas',
+			'tinha',
+			'tínhamos',
+			'tínheis',
+			'tinham'
 		],
 		'pretérito mais-que-perfeito do indicativo': [
-			'tivera', 'tiveras', 'tivera', 'tivéramos', 'tivéreis', 'tiveram'
+			'tivera',
+			'tiveras',
+			'tivera',
+			'tivéramos',
+			'tivéreis',
+			'tiveram'
 		],
 		'futuro do indicativo': ['terei', 'terás', 'terá', 'teremos', 'tereis', 'terão'],
-		'condicional': ['teria', 'terias', 'teria', 'teríamos', 'teríeis', 'teriam'],
-		'presente do conjuntivo': [
-			'tenha', 'tenhas', 'tenha', 'tenhamos', 'tenhais', 'tenham'
-		],
+		condicional: ['teria', 'terias', 'teria', 'teríamos', 'teríeis', 'teriam'],
+		'presente do conjuntivo': ['tenha', 'tenhas', 'tenha', 'tenhamos', 'tenhais', 'tenham'],
 		'pretérito imperfeito do conjuntivo': [
-			'tivesse', 'tivesses', 'tivesse', 'tivéssemos', 'tivésseis', 'tivessem'
+			'tivesse',
+			'tivesses',
+			'tivesse',
+			'tivéssemos',
+			'tivésseis',
+			'tivessem'
 		],
-		'futuro do conjuntivo': [
-			'tiver', 'tiveres', 'tiver', 'tivermos', 'tiverdes', 'tiverem'
-		],
+		'futuro do conjuntivo': ['tiver', 'tiveres', 'tiver', 'tivermos', 'tiverdes', 'tiverem'],
 		'imperativo afirmativo': ['', 'tem', 'tenha', 'tenhamos', 'tende', 'tenham'],
 		'imperativo negativo': ['', 'tenhas', 'tenha', 'tenhamos', 'tenhais', 'tenham'],
 		'infinitivo pessoal': ['ter', 'teres', 'ter', 'termos', 'terdes', 'terem']
@@ -364,25 +507,41 @@ const CONJUGATIONS: ConjTable = {
 	haver: {
 		'presente do indicativo': ['hei', 'hás', 'há', 'havemos', 'haveis', 'hão'],
 		'pretérito perfeito do indicativo': [
-			'houve', 'houveste', 'houve', 'houvemos', 'houvestes', 'houveram'
+			'houve',
+			'houveste',
+			'houve',
+			'houvemos',
+			'houvestes',
+			'houveram'
 		],
 		'pretérito imperfeito do indicativo': [
-			'havia', 'havias', 'havia', 'havíamos', 'havíeis', 'haviam'
+			'havia',
+			'havias',
+			'havia',
+			'havíamos',
+			'havíeis',
+			'haviam'
 		],
 		'pretérito mais-que-perfeito do indicativo': [
-			'houvera', 'houveras', 'houvera', 'houvéramos', 'houvéreis', 'houveram'
+			'houvera',
+			'houveras',
+			'houvera',
+			'houvéramos',
+			'houvéreis',
+			'houveram'
 		],
 		'futuro do indicativo': ['haverei', 'haverás', 'haverá', 'haveremos', 'havereis', 'haverão'],
-		'condicional': [
-			'haveria', 'haverias', 'haveria', 'haveríamos', 'haveríeis', 'haveriam'
-		],
+		condicional: ['haveria', 'haverias', 'haveria', 'haveríamos', 'haveríeis', 'haveriam'],
 		'presente do conjuntivo': ['haja', 'hajas', 'haja', 'hajamos', 'hajais', 'hajam'],
 		'pretérito imperfeito do conjuntivo': [
-			'houvesse', 'houvesses', 'houvesse', 'houvéssemos', 'houvésseis', 'houvessem'
+			'houvesse',
+			'houvesses',
+			'houvesse',
+			'houvéssemos',
+			'houvésseis',
+			'houvessem'
 		],
-		'futuro do conjuntivo': [
-			'houver', 'houveres', 'houver', 'houvermos', 'houverdes', 'houverem'
-		],
+		'futuro do conjuntivo': ['houver', 'houveres', 'houver', 'houvermos', 'houverdes', 'houverem'],
 		'imperativo afirmativo': ['', 'há', 'haja', 'hajamos', 'havei', 'hajam'],
 		'imperativo negativo': ['', 'hajas', 'haja', 'hajamos', 'hajais', 'hajam'],
 		'infinitivo pessoal': ['haver', 'haveres', 'haver', 'havermos', 'haverdes', 'haverem']
@@ -391,24 +550,35 @@ const CONJUGATIONS: ConjTable = {
 	// ─── FAZER (to do/make) ───────────────────────────────────────────────────
 	fazer: {
 		'presente do indicativo': ['faço', 'fazes', 'faz', 'fazemos', 'fazeis', 'fazem'],
-		'pretérito perfeito do indicativo': [
-			'fiz', 'fizeste', 'fez', 'fizemos', 'fizestes', 'fizeram'
-		],
+		'pretérito perfeito do indicativo': ['fiz', 'fizeste', 'fez', 'fizemos', 'fizestes', 'fizeram'],
 		'pretérito imperfeito do indicativo': [
-			'fazia', 'fazias', 'fazia', 'fazíamos', 'fazíeis', 'faziam'
+			'fazia',
+			'fazias',
+			'fazia',
+			'fazíamos',
+			'fazíeis',
+			'faziam'
 		],
 		'pretérito mais-que-perfeito do indicativo': [
-			'fizera', 'fizeras', 'fizera', 'fizéramos', 'fizéreis', 'fizeram'
+			'fizera',
+			'fizeras',
+			'fizera',
+			'fizéramos',
+			'fizéreis',
+			'fizeram'
 		],
 		'futuro do indicativo': ['farei', 'farás', 'fará', 'faremos', 'fareis', 'farão'],
-		'condicional': ['faria', 'farias', 'faria', 'faríamos', 'faríeis', 'fariam'],
+		condicional: ['faria', 'farias', 'faria', 'faríamos', 'faríeis', 'fariam'],
 		'presente do conjuntivo': ['faça', 'faças', 'faça', 'façamos', 'façais', 'façam'],
 		'pretérito imperfeito do conjuntivo': [
-			'fizesse', 'fizesses', 'fizesse', 'fizéssemos', 'fizésseis', 'fizessem'
+			'fizesse',
+			'fizesses',
+			'fizesse',
+			'fizéssemos',
+			'fizésseis',
+			'fizessem'
 		],
-		'futuro do conjuntivo': [
-			'fizer', 'fizeres', 'fizer', 'fizermos', 'fizerdes', 'fizerem'
-		],
+		'futuro do conjuntivo': ['fizer', 'fizeres', 'fizer', 'fizermos', 'fizerdes', 'fizerem'],
 		'imperativo afirmativo': ['', 'faz', 'faça', 'façamos', 'fazei', 'façam'],
 		'imperativo negativo': ['', 'faças', 'faça', 'façamos', 'façais', 'façam'],
 		'infinitivo pessoal': ['fazer', 'fazeres', 'fazer', 'fazermos', 'fazerdes', 'fazerem']
@@ -420,13 +590,23 @@ const CONJUGATIONS: ConjTable = {
 		'pretérito perfeito do indicativo': ['fui', 'foste', 'foi', 'fomos', 'fostes', 'foram'],
 		'pretérito imperfeito do indicativo': ['ia', 'ias', 'ia', 'íamos', 'íeis', 'iam'],
 		'pretérito mais-que-perfeito do indicativo': [
-			'fora', 'foras', 'fora', 'fôramos', 'fôreis', 'foram'
+			'fora',
+			'foras',
+			'fora',
+			'fôramos',
+			'fôreis',
+			'foram'
 		],
 		'futuro do indicativo': ['irei', 'irás', 'irá', 'iremos', 'ireis', 'irão'],
-		'condicional': ['iria', 'irias', 'iria', 'iríamos', 'iríeis', 'iriam'],
+		condicional: ['iria', 'irias', 'iria', 'iríamos', 'iríeis', 'iriam'],
 		'presente do conjuntivo': ['vá', 'vás', 'vá', 'vamos', 'vades', 'vão'],
 		'pretérito imperfeito do conjuntivo': [
-			'fosse', 'fosses', 'fosse', 'fôssemos', 'fôsseis', 'fossem'
+			'fosse',
+			'fosses',
+			'fosse',
+			'fôssemos',
+			'fôsseis',
+			'fossem'
 		],
 		'futuro do conjuntivo': ['for', 'fores', 'for', 'formos', 'fordes', 'forem'],
 		'imperativo afirmativo': ['', 'vai', 'vá', 'vamos', 'ide', 'vão'],
@@ -437,26 +617,35 @@ const CONJUGATIONS: ConjTable = {
 	// ─── VIR (to come) ────────────────────────────────────────────────────────
 	vir: {
 		'presente do indicativo': ['venho', 'vens', 'vem', 'vimos', 'vindes', 'vêm'],
-		'pretérito perfeito do indicativo': [
-			'vim', 'vieste', 'veio', 'viemos', 'viestes', 'vieram'
-		],
+		'pretérito perfeito do indicativo': ['vim', 'vieste', 'veio', 'viemos', 'viestes', 'vieram'],
 		'pretérito imperfeito do indicativo': [
-			'vinha', 'vinhas', 'vinha', 'vínhamos', 'vínheis', 'vinham'
+			'vinha',
+			'vinhas',
+			'vinha',
+			'vínhamos',
+			'vínheis',
+			'vinham'
 		],
 		'pretérito mais-que-perfeito do indicativo': [
-			'viera', 'vieras', 'viera', 'viéramos', 'viéreis', 'vieram'
+			'viera',
+			'vieras',
+			'viera',
+			'viéramos',
+			'viéreis',
+			'vieram'
 		],
 		'futuro do indicativo': ['virei', 'virás', 'virá', 'viremos', 'vireis', 'virão'],
-		'condicional': ['viria', 'virias', 'viria', 'viríamos', 'viríeis', 'viriam'],
-		'presente do conjuntivo': [
-			'venha', 'venhas', 'venha', 'venhamos', 'venhais', 'venham'
-		],
+		condicional: ['viria', 'virias', 'viria', 'viríamos', 'viríeis', 'viriam'],
+		'presente do conjuntivo': ['venha', 'venhas', 'venha', 'venhamos', 'venhais', 'venham'],
 		'pretérito imperfeito do conjuntivo': [
-			'viesse', 'viesses', 'viesse', 'viéssemos', 'viésseis', 'viessem'
+			'viesse',
+			'viesses',
+			'viesse',
+			'viéssemos',
+			'viésseis',
+			'viessem'
 		],
-		'futuro do conjuntivo': [
-			'vier', 'vieres', 'vier', 'viermos', 'vierdes', 'vierem'
-		],
+		'futuro do conjuntivo': ['vier', 'vieres', 'vier', 'viermos', 'vierdes', 'vierem'],
 		'imperativo afirmativo': ['', 'vem', 'venha', 'venhamos', 'vinde', 'venham'],
 		'imperativo negativo': ['', 'venhas', 'venha', 'venhamos', 'venhais', 'venham'],
 		'infinitivo pessoal': ['vir', 'vires', 'vir', 'virmos', 'virdes', 'virem']
@@ -466,23 +655,41 @@ const CONJUGATIONS: ConjTable = {
 	dizer: {
 		'presente do indicativo': ['digo', 'dizes', 'diz', 'dizemos', 'dizeis', 'dizem'],
 		'pretérito perfeito do indicativo': [
-			'disse', 'disseste', 'disse', 'dissemos', 'dissestes', 'disseram'
+			'disse',
+			'disseste',
+			'disse',
+			'dissemos',
+			'dissestes',
+			'disseram'
 		],
 		'pretérito imperfeito do indicativo': [
-			'dizia', 'dizias', 'dizia', 'dizíamos', 'dizíeis', 'diziam'
+			'dizia',
+			'dizias',
+			'dizia',
+			'dizíamos',
+			'dizíeis',
+			'diziam'
 		],
 		'pretérito mais-que-perfeito do indicativo': [
-			'dissera', 'disseras', 'dissera', 'disséramos', 'disséreis', 'disseram'
+			'dissera',
+			'disseras',
+			'dissera',
+			'disséramos',
+			'disséreis',
+			'disseram'
 		],
 		'futuro do indicativo': ['direi', 'dirás', 'dirá', 'diremos', 'direis', 'dirão'],
-		'condicional': ['diria', 'dirias', 'diria', 'diríamos', 'diríeis', 'diriam'],
+		condicional: ['diria', 'dirias', 'diria', 'diríamos', 'diríeis', 'diriam'],
 		'presente do conjuntivo': ['diga', 'digas', 'diga', 'digamos', 'digais', 'digam'],
 		'pretérito imperfeito do conjuntivo': [
-			'dissesse', 'dissesses', 'dissesse', 'disséssemos', 'dissésseis', 'dissessem'
+			'dissesse',
+			'dissesses',
+			'dissesse',
+			'disséssemos',
+			'dissésseis',
+			'dissessem'
 		],
-		'futuro do conjuntivo': [
-			'disser', 'disseres', 'disser', 'dissermos', 'disserdes', 'disserem'
-		],
+		'futuro do conjuntivo': ['disser', 'disseres', 'disser', 'dissermos', 'disserdes', 'disserem'],
 		'imperativo afirmativo': ['', 'diz', 'diga', 'digamos', 'dizei', 'digam'],
 		'imperativo negativo': ['', 'digas', 'diga', 'digamos', 'digais', 'digam'],
 		'infinitivo pessoal': ['dizer', 'dizeres', 'dizer', 'dizermos', 'dizerdes', 'dizerem']
@@ -492,29 +699,41 @@ const CONJUGATIONS: ConjTable = {
 	poder: {
 		'presente do indicativo': ['posso', 'podes', 'pode', 'podemos', 'podeis', 'podem'],
 		'pretérito perfeito do indicativo': [
-			'pude', 'pudeste', 'pôde', 'pudemos', 'pudestes', 'puderam'
+			'pude',
+			'pudeste',
+			'pôde',
+			'pudemos',
+			'pudestes',
+			'puderam'
 		],
 		'pretérito imperfeito do indicativo': [
-			'podia', 'podias', 'podia', 'podíamos', 'podíeis', 'podiam'
+			'podia',
+			'podias',
+			'podia',
+			'podíamos',
+			'podíeis',
+			'podiam'
 		],
 		'pretérito mais-que-perfeito do indicativo': [
-			'pudera', 'puderas', 'pudera', 'pudéramos', 'pudéreis', 'puderam'
+			'pudera',
+			'puderas',
+			'pudera',
+			'pudéramos',
+			'pudéreis',
+			'puderam'
 		],
-		'futuro do indicativo': [
-			'poderei', 'poderás', 'poderá', 'poderemos', 'podereis', 'poderão'
-		],
-		'condicional': [
-			'poderia', 'poderias', 'poderia', 'poderíamos', 'poderíeis', 'poderiam'
-		],
-		'presente do conjuntivo': [
-			'possa', 'possas', 'possa', 'possamos', 'possais', 'possam'
-		],
+		'futuro do indicativo': ['poderei', 'poderás', 'poderá', 'poderemos', 'podereis', 'poderão'],
+		condicional: ['poderia', 'poderias', 'poderia', 'poderíamos', 'poderíeis', 'poderiam'],
+		'presente do conjuntivo': ['possa', 'possas', 'possa', 'possamos', 'possais', 'possam'],
 		'pretérito imperfeito do conjuntivo': [
-			'pudesse', 'pudesses', 'pudesse', 'pudéssemos', 'pudésseis', 'pudessem'
+			'pudesse',
+			'pudesses',
+			'pudesse',
+			'pudéssemos',
+			'pudésseis',
+			'pudessem'
 		],
-		'futuro do conjuntivo': [
-			'puder', 'puderes', 'puder', 'pudermos', 'puderdes', 'puderem'
-		],
+		'futuro do conjuntivo': ['puder', 'puderes', 'puder', 'pudermos', 'puderdes', 'puderem'],
 		'imperativo afirmativo': ['', 'pode', 'possa', 'possamos', 'podei', 'possam'],
 		'imperativo negativo': ['', 'possas', 'possa', 'possamos', 'possais', 'possam'],
 		'infinitivo pessoal': ['poder', 'poderes', 'poder', 'podermos', 'poderdes', 'poderem']
@@ -524,63 +743,92 @@ const CONJUGATIONS: ConjTable = {
 	querer: {
 		'presente do indicativo': ['quero', 'queres', 'quer', 'queremos', 'quereis', 'querem'],
 		'pretérito perfeito do indicativo': [
-			'quis', 'quiseste', 'quis', 'quisemos', 'quisestes', 'quiseram'
+			'quis',
+			'quiseste',
+			'quis',
+			'quisemos',
+			'quisestes',
+			'quiseram'
 		],
 		'pretérito imperfeito do indicativo': [
-			'queria', 'querias', 'queria', 'queríamos', 'queríeis', 'queriam'
+			'queria',
+			'querias',
+			'queria',
+			'queríamos',
+			'queríeis',
+			'queriam'
 		],
 		'pretérito mais-que-perfeito do indicativo': [
-			'quisera', 'quiseras', 'quisera', 'quiséramos', 'quiséreis', 'quiseram'
+			'quisera',
+			'quiseras',
+			'quisera',
+			'quiséramos',
+			'quiséreis',
+			'quiseram'
 		],
 		'futuro do indicativo': [
-			'quererei', 'quererás', 'quererá', 'quereremos', 'querereis', 'quererão'
+			'quererei',
+			'quererás',
+			'quererá',
+			'quereremos',
+			'querereis',
+			'quererão'
 		],
-		'condicional': [
-			'quereria', 'quererias', 'quereria', 'quereríamos', 'quereríeis', 'quereriam'
-		],
-		'presente do conjuntivo': [
-			'queira', 'queiras', 'queira', 'queiramos', 'queirais', 'queiram'
-		],
+		condicional: ['quereria', 'quererias', 'quereria', 'quereríamos', 'quereríeis', 'quereriam'],
+		'presente do conjuntivo': ['queira', 'queiras', 'queira', 'queiramos', 'queirais', 'queiram'],
 		'pretérito imperfeito do conjuntivo': [
-			'quisesse', 'quisesses', 'quisesse', 'quiséssemos', 'quisésseis', 'quisessem'
+			'quisesse',
+			'quisesses',
+			'quisesse',
+			'quiséssemos',
+			'quisésseis',
+			'quisessem'
 		],
-		'futuro do conjuntivo': [
-			'quiser', 'quiseres', 'quiser', 'quisermos', 'quiserdes', 'quiserem'
-		],
+		'futuro do conjuntivo': ['quiser', 'quiseres', 'quiser', 'quisermos', 'quiserdes', 'quiserem'],
 		'imperativo afirmativo': ['', 'quer', 'queira', 'queiramos', 'querei', 'queiram'],
 		'imperativo negativo': ['', 'queiras', 'queira', 'queiramos', 'queirais', 'queiram'],
-		'infinitivo pessoal': [
-			'querer', 'quereres', 'querer', 'querermos', 'quererdes', 'quererem'
-		]
+		'infinitivo pessoal': ['querer', 'quereres', 'querer', 'querermos', 'quererdes', 'quererem']
 	},
 
 	// ─── SABER (to know) ──────────────────────────────────────────────────────
 	saber: {
 		'presente do indicativo': ['sei', 'sabes', 'sabe', 'sabemos', 'sabeis', 'sabem'],
 		'pretérito perfeito do indicativo': [
-			'soube', 'soubeste', 'soube', 'soubemos', 'soubestes', 'souberam'
+			'soube',
+			'soubeste',
+			'soube',
+			'soubemos',
+			'soubestes',
+			'souberam'
 		],
 		'pretérito imperfeito do indicativo': [
-			'sabia', 'sabias', 'sabia', 'sabíamos', 'sabíeis', 'sabiam'
+			'sabia',
+			'sabias',
+			'sabia',
+			'sabíamos',
+			'sabíeis',
+			'sabiam'
 		],
 		'pretérito mais-que-perfeito do indicativo': [
-			'soubera', 'souberas', 'soubera', 'soubéramos', 'soubéreis', 'souberam'
+			'soubera',
+			'souberas',
+			'soubera',
+			'soubéramos',
+			'soubéreis',
+			'souberam'
 		],
-		'futuro do indicativo': [
-			'saberei', 'saberás', 'saberá', 'saberemos', 'sabereis', 'saberão'
-		],
-		'condicional': [
-			'saberia', 'saberias', 'saberia', 'saberíamos', 'saberíeis', 'saberiam'
-		],
-		'presente do conjuntivo': [
-			'saiba', 'saibas', 'saiba', 'saibamos', 'saibais', 'saibam'
-		],
+		'futuro do indicativo': ['saberei', 'saberás', 'saberá', 'saberemos', 'sabereis', 'saberão'],
+		condicional: ['saberia', 'saberias', 'saberia', 'saberíamos', 'saberíeis', 'saberiam'],
+		'presente do conjuntivo': ['saiba', 'saibas', 'saiba', 'saibamos', 'saibais', 'saibam'],
 		'pretérito imperfeito do conjuntivo': [
-			'soubesse', 'soubesses', 'soubesse', 'soubéssemos', 'soubésseis', 'soubessem'
+			'soubesse',
+			'soubesses',
+			'soubesse',
+			'soubéssemos',
+			'soubésseis',
+			'soubessem'
 		],
-		'futuro do conjuntivo': [
-			'souber', 'souberes', 'souber', 'soubermos', 'souberdes', 'souberem'
-		],
+		'futuro do conjuntivo': ['souber', 'souberes', 'souber', 'soubermos', 'souberdes', 'souberem'],
 		'imperativo afirmativo': ['', 'sabe', 'saiba', 'saibamos', 'sabei', 'saibam'],
 		'imperativo negativo': ['', 'saibas', 'saiba', 'saibamos', 'saibais', 'saibam'],
 		'infinitivo pessoal': ['saber', 'saberes', 'saber', 'sabermos', 'saberdes', 'saberem']
@@ -592,13 +840,23 @@ const CONJUGATIONS: ConjTable = {
 		'pretérito perfeito do indicativo': ['vi', 'viste', 'viu', 'vimos', 'vistes', 'viram'],
 		'pretérito imperfeito do indicativo': ['via', 'vias', 'via', 'víamos', 'víeis', 'viam'],
 		'pretérito mais-que-perfeito do indicativo': [
-			'vira', 'viras', 'vira', 'víramos', 'víreis', 'viram'
+			'vira',
+			'viras',
+			'vira',
+			'víramos',
+			'víreis',
+			'viram'
 		],
 		'futuro do indicativo': ['verei', 'verás', 'verá', 'veremos', 'vereis', 'verão'],
-		'condicional': ['veria', 'verias', 'veria', 'veríamos', 'veríeis', 'veriam'],
+		condicional: ['veria', 'verias', 'veria', 'veríamos', 'veríeis', 'veriam'],
 		'presente do conjuntivo': ['veja', 'vejas', 'veja', 'vejamos', 'vejais', 'vejam'],
 		'pretérito imperfeito do conjuntivo': [
-			'visse', 'visses', 'visse', 'víssemos', 'vísseis', 'vissem'
+			'visse',
+			'visses',
+			'visse',
+			'víssemos',
+			'vísseis',
+			'vissem'
 		],
 		'futuro do conjuntivo': ['vir', 'vires', 'vir', 'virmos', 'virdes', 'virem'],
 		'imperativo afirmativo': ['', 'vê', 'veja', 'vejamos', 'vede', 'vejam'],
@@ -609,20 +867,26 @@ const CONJUGATIONS: ConjTable = {
 	// ─── DAR (to give) ────────────────────────────────────────────────────────
 	dar: {
 		'presente do indicativo': ['dou', 'dás', 'dá', 'damos', 'dais', 'dão'],
-		'pretérito perfeito do indicativo': [
-			'dei', 'deste', 'deu', 'demos', 'destes', 'deram'
-		],
-		'pretérito imperfeito do indicativo': [
-			'dava', 'davas', 'dava', 'dávamos', 'dáveis', 'davam'
-		],
+		'pretérito perfeito do indicativo': ['dei', 'deste', 'deu', 'demos', 'destes', 'deram'],
+		'pretérito imperfeito do indicativo': ['dava', 'davas', 'dava', 'dávamos', 'dáveis', 'davam'],
 		'pretérito mais-que-perfeito do indicativo': [
-			'dera', 'deras', 'dera', 'déramos', 'déreis', 'deram'
+			'dera',
+			'deras',
+			'dera',
+			'déramos',
+			'déreis',
+			'deram'
 		],
 		'futuro do indicativo': ['darei', 'darás', 'dará', 'daremos', 'dareis', 'darão'],
-		'condicional': ['daria', 'darias', 'daria', 'daríamos', 'daríeis', 'dariam'],
+		condicional: ['daria', 'darias', 'daria', 'daríamos', 'daríeis', 'dariam'],
 		'presente do conjuntivo': ['dê', 'dês', 'dê', 'demos', 'deis', 'deem'],
 		'pretérito imperfeito do conjuntivo': [
-			'desse', 'desses', 'desse', 'déssemos', 'désseis', 'dessem'
+			'desse',
+			'desses',
+			'desse',
+			'déssemos',
+			'désseis',
+			'dessem'
 		],
 		'futuro do conjuntivo': ['der', 'deres', 'der', 'dermos', 'derdes', 'derem'],
 		'imperativo afirmativo': ['', 'dá', 'dê', 'demos', 'dai', 'deem'],
@@ -632,63 +896,108 @@ const CONJUGATIONS: ConjTable = {
 
 	// ─── PARECER (to seem) ────────────────────────────────────────────────────
 	parecer: {
-		'presente do indicativo': [
-			'pareço', 'pareces', 'parece', 'parecemos', 'pareceis', 'parecem'
-		],
+		'presente do indicativo': ['pareço', 'pareces', 'parece', 'parecemos', 'pareceis', 'parecem'],
 		'pretérito perfeito do indicativo': [
-			'pareci', 'pareceste', 'pareceu', 'parecemos', 'parecestes', 'pareceram'
+			'pareci',
+			'pareceste',
+			'pareceu',
+			'parecemos',
+			'parecestes',
+			'pareceram'
 		],
 		'pretérito imperfeito do indicativo': [
-			'parecia', 'parecias', 'parecia', 'parecíamos', 'parecíeis', 'pareciam'
+			'parecia',
+			'parecias',
+			'parecia',
+			'parecíamos',
+			'parecíeis',
+			'pareciam'
 		],
 		'pretérito mais-que-perfeito do indicativo': [
-			'parecera', 'pareceras', 'parecera', 'parecêramos', 'parecêreis', 'pareceram'
+			'parecera',
+			'pareceras',
+			'parecera',
+			'parecêramos',
+			'parecêreis',
+			'pareceram'
 		],
 		'futuro do indicativo': [
-			'parecerei', 'parecerás', 'parecerá', 'pareceremos', 'parecereis', 'parecerão'
+			'parecerei',
+			'parecerás',
+			'parecerá',
+			'pareceremos',
+			'parecereis',
+			'parecerão'
 		],
-		'condicional': [
-			'pareceria', 'parecerias', 'pareceria', 'pareceríamos', 'pareceríeis', 'pareceriam'
+		condicional: [
+			'pareceria',
+			'parecerias',
+			'pareceria',
+			'pareceríamos',
+			'pareceríeis',
+			'pareceriam'
 		],
-		'presente do conjuntivo': [
-			'pareça', 'pareças', 'pareça', 'pareçamos', 'pareçais', 'pareçam'
-		],
+		'presente do conjuntivo': ['pareça', 'pareças', 'pareça', 'pareçamos', 'pareçais', 'pareçam'],
 		'pretérito imperfeito do conjuntivo': [
-			'parecesse', 'parecesses', 'parecesse', 'parecêssemos', 'parecêsseis', 'parecessem'
+			'parecesse',
+			'parecesses',
+			'parecesse',
+			'parecêssemos',
+			'parecêsseis',
+			'parecessem'
 		],
 		'futuro do conjuntivo': [
-			'parecer', 'pareceres', 'parecer', 'parecermos', 'parecerdes', 'parecerem'
+			'parecer',
+			'pareceres',
+			'parecer',
+			'parecermos',
+			'parecerdes',
+			'parecerem'
 		],
 		'imperativo afirmativo': ['', 'parece', 'pareça', 'pareçamos', 'parecei', 'pareçam'],
 		'imperativo negativo': ['', 'pareças', 'pareça', 'pareçamos', 'pareçais', 'pareçam'],
 		'infinitivo pessoal': [
-			'parecer', 'pareceres', 'parecer', 'parecermos', 'parecerdes', 'parecerem'
+			'parecer',
+			'pareceres',
+			'parecer',
+			'parecermos',
+			'parecerdes',
+			'parecerem'
 		]
 	},
 
 	// ─── PÔR (to put) ─────────────────────────────────────────────────────────
 	pôr: {
 		'presente do indicativo': ['ponho', 'pões', 'põe', 'pomos', 'pondes', 'põem'],
-		'pretérito perfeito do indicativo': [
-			'pus', 'puseste', 'pôs', 'pusemos', 'pusestes', 'puseram'
-		],
+		'pretérito perfeito do indicativo': ['pus', 'puseste', 'pôs', 'pusemos', 'pusestes', 'puseram'],
 		'pretérito imperfeito do indicativo': [
-			'punha', 'punhas', 'punha', 'púnhamos', 'púnheis', 'punham'
+			'punha',
+			'punhas',
+			'punha',
+			'púnhamos',
+			'púnheis',
+			'punham'
 		],
 		'pretérito mais-que-perfeito do indicativo': [
-			'pusera', 'puseras', 'pusera', 'puséramos', 'puséreis', 'puseram'
+			'pusera',
+			'puseras',
+			'pusera',
+			'puséramos',
+			'puséreis',
+			'puseram'
 		],
 		'futuro do indicativo': ['porei', 'porás', 'porá', 'poremos', 'poreis', 'porão'],
-		'condicional': ['poria', 'porias', 'poria', 'poríamos', 'poríeis', 'poriam'],
-		'presente do conjuntivo': [
-			'ponha', 'ponhas', 'ponha', 'ponhamos', 'ponhais', 'ponham'
-		],
+		condicional: ['poria', 'porias', 'poria', 'poríamos', 'poríeis', 'poriam'],
+		'presente do conjuntivo': ['ponha', 'ponhas', 'ponha', 'ponhamos', 'ponhais', 'ponham'],
 		'pretérito imperfeito do conjuntivo': [
-			'pusesse', 'pusesses', 'pusesse', 'puséssemos', 'pusésseis', 'pusessem'
+			'pusesse',
+			'pusesses',
+			'pusesse',
+			'puséssemos',
+			'pusésseis',
+			'pusessem'
 		],
-		'futuro do conjuntivo': [
-			'puser', 'puseres', 'puser', 'pusermos', 'puserdes', 'puserem'
-		],
+		'futuro do conjuntivo': ['puser', 'puseres', 'puser', 'pusermos', 'puserdes', 'puserem'],
 		'imperativo afirmativo': ['', 'põe', 'ponha', 'ponhamos', 'ponde', 'ponham'],
 		'imperativo negativo': ['', 'ponhas', 'ponha', 'ponhamos', 'ponhais', 'ponham'],
 		'infinitivo pessoal': ['pôr', 'pores', 'pôr', 'pormos', 'pordes', 'porem']
@@ -710,7 +1019,13 @@ const EN_VERB_INFO: Record<string, EnVerbInfo> = {
 	estar: { base: 'be', past: 'was/were', pp: 'been', third: 'is', ing: 'being' },
 	ter: { base: 'have', past: 'had', pp: 'had', third: 'has', ing: 'having' },
 	haver: { base: 'have', past: 'had', pp: 'had', third: 'has', ing: 'having' },
-	fazer: { base: 'do/make', past: 'did/made', pp: 'done/made', third: 'does/makes', ing: 'doing/making' },
+	fazer: {
+		base: 'do/make',
+		past: 'did/made',
+		pp: 'done/made',
+		third: 'does/makes',
+		ing: 'doing/making'
+	},
 	ir: { base: 'go', past: 'went', pp: 'gone', third: 'goes', ing: 'going' },
 	vir: { base: 'come', past: 'came', pp: 'come', third: 'comes', ing: 'coming' },
 	dizer: { base: 'say', past: 'said', pp: 'said', third: 'says', ing: 'saying' },
@@ -728,7 +1043,13 @@ const EN_VERB_INFO: Record<string, EnVerbInfo> = {
 	encontrar: { base: 'find', past: 'found', pp: 'found', third: 'finds', ing: 'finding' },
 	pensar: { base: 'think', past: 'thought', pp: 'thought', third: 'thinks', ing: 'thinking' },
 	levar: { base: 'take/carry', past: 'took', pp: 'taken', third: 'takes', ing: 'taking' },
-	começar: { base: 'start/begin', past: 'started', pp: 'started', third: 'starts', ing: 'starting' },
+	começar: {
+		base: 'start/begin',
+		past: 'started',
+		pp: 'started',
+		third: 'starts',
+		ing: 'starting'
+	},
 	parecer: { base: 'seem', past: 'seemed', pp: 'seemed', third: 'seems', ing: 'seeming' },
 	usar: { base: 'use', past: 'used', pp: 'used', third: 'uses', ing: 'using' },
 	trabalhar: { base: 'work', past: 'worked', pp: 'worked', third: 'works', ing: 'working' },
@@ -915,9 +1236,31 @@ function portugueseExtractConjugation(input: string, expectedPersonLabel: string
 // ─── Default selections ──────────────────────────────────────────────────────
 
 const DEFAULT_VERBS_PT: string[] = [
-	'ser', 'estar', 'ter', 'haver', 'fazer', 'ir', 'vir', 'dizer', 'poder', 'querer',
-	'saber', 'ver', 'dar', 'falar', 'chegar', 'passar', 'dever', 'ficar', 'deixar',
-	'encontrar', 'pensar', 'levar', 'começar', 'parecer', 'usar'
+	'ser',
+	'estar',
+	'ter',
+	'haver',
+	'fazer',
+	'ir',
+	'vir',
+	'dizer',
+	'poder',
+	'querer',
+	'saber',
+	'ver',
+	'dar',
+	'falar',
+	'chegar',
+	'passar',
+	'dever',
+	'ficar',
+	'deixar',
+	'encontrar',
+	'pensar',
+	'levar',
+	'começar',
+	'parecer',
+	'usar'
 ];
 
 const DEFAULT_TENSES_PT: string[] = [

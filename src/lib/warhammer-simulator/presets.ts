@@ -23,7 +23,8 @@ export const PRESET_CHARACTERS: CharacterPreset[] = [
 		giftPoints: 25,
 		wizardLevel: 'not-wizard',
 		specialRules: ['mark-of-chaos', 'fear'],
-		description: 'A Khornate Chaos Lord with a Great Weapon, clad in Full Plate — a brutal melee powerhouse.'
+		description:
+			'A Khornate Chaos Lord with a Great Weapon, clad in Full Plate — a brutal melee powerhouse.'
 	},
 	{
 		name: 'Empire General',
@@ -61,7 +62,8 @@ export const PRESET_CHARACTERS: CharacterPreset[] = [
 		giftPoints: 20,
 		wizardLevel: 'not-wizard',
 		specialRules: ['animosity', 'waaagh'],
-		description: 'A brutal Orc Warboss with two weapons, hacking through the enemy with raw strength.'
+		description:
+			'A brutal Orc Warboss with two weapons, hacking through the enemy with raw strength.'
 	},
 	{
 		name: 'Bretonnian Lord',

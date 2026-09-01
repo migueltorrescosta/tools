@@ -1,5 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { buildGraph, getCurrentNode, getAnswersForNode, computeRows, encodePath, decodePath, isResultNode, isQuestionNode } from './decision-tree/graph';
+import {
+	buildGraph,
+	getCurrentNode,
+	getAnswersForNode,
+	computeRows,
+	encodePath,
+	decodePath,
+	isResultNode,
+	isQuestionNode
+} from './decision-tree/graph';
 import { validateGraph } from './decision-tree/validation';
 import type { RawTree, DecisionGraph, TraversalPath } from './decision-tree/types';
 
@@ -391,12 +400,7 @@ describe('Full tree traversal', () => {
 		expect(errors).toHaveLength(0);
 
 		// root → Religion → Bible → Yes → Pope of Rome
-		const path: TraversalPath = [
-			'root|Religion',
-			'r_q1|Bible',
-			'r_q4|Yes',
-			'r_q5|Pope of Rome'
-		];
+		const path: TraversalPath = ['root|Religion', 'r_q1|Bible', 'r_q4|Yes', 'r_q5|Pope of Rome'];
 		const rows = computeRows(graph, path);
 		expect(rows[rows.length - 1].type).toBe('result');
 		expect((rows[rows.length - 1] as any).node.result).toBe('Roman Catholic');
@@ -414,8 +418,6 @@ describe('Full tree traversal', () => {
 		// Switch to religion tree at root
 		path = ['root|Religion', 'r_q1|None'];
 		rows = computeRows(graph, path);
-		expect((rows[rows.length - 1] as any).node.result).toBe(
-			'Outside major Abrahamic religions'
-		);
+		expect((rows[rows.length - 1] as any).node.result).toBe('Outside major Abrahamic religions');
 	});
 });

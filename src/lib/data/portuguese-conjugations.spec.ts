@@ -10,17 +10,17 @@ describe('Portuguese conjugation map', () => {
 	});
 
 	it('has all 30 verbs', () => {
-		const verbs = new Set([...map.keys()].map(k => k.split(':')[0]));
+		const verbs = new Set([...map.keys()].map((k) => k.split(':')[0]));
 		expect(verbs.size).toBe(30);
 	});
 
 	it('has all 15 tenses', () => {
-		const tenses = new Set([...map.keys()].map(k => k.split(':')[1]));
+		const tenses = new Set([...map.keys()].map((k) => k.split(':')[1]));
 		expect(tenses.size).toBe(15);
 	});
 
 	// ── Irregular verbs spot checks ──
-	const checks: [string, string, string][] = [
+	const checks: [string, string, string, string][] = [
 		['ser', 'presente do indicativo', 'eu', 'sou'],
 		['ser', 'presente do indicativo', 'tu', 'és'],
 		['ser', 'pretérito perfeito do indicativo', 'eu', 'fui'],
@@ -66,7 +66,7 @@ describe('Portuguese conjugation map', () => {
 		['pôr', 'presente do indicativo', 'eu', 'ponho'],
 		['pôr', 'presente do indicativo', 'ele/ela/você', 'põe'],
 		['pôr', 'futuro do indicativo', 'eu', 'porei'],
-		['pôr', 'infinitivo pessoal', 'eu', 'pôr'],
+		['pôr', 'infinitivo pessoal', 'eu', 'pôr']
 	];
 
 	for (const [verb, tense, person, expected] of checks) {
@@ -100,7 +100,9 @@ describe('Portuguese conjugation map', () => {
 	});
 
 	it('dever preterito perfeito 3sg = deveu', () => {
-		expect(map.get('dever:pretérito perfeito do indicativo:ele/ela/você')!.conjugation).toBe('deveu');
+		expect(map.get('dever:pretérito perfeito do indicativo:ele/ela/você')!.conjugation).toBe(
+			'deveu'
+		);
 	});
 
 	// ── Default selections ──
@@ -130,22 +132,44 @@ describe('Portuguese conjugation map', () => {
 
 describe('Portuguese validateAnswer', () => {
 	it('correct ser present', () => {
-		expect(validateAnswer('eu sou', 'ser', 'presente do indicativo', 'eu', portugueseModule)).toBe(true);
+		expect(validateAnswer('eu sou', 'ser', 'presente do indicativo', 'eu', portugueseModule)).toBe(
+			true
+		);
 	});
 
 	it('correct você estar', () => {
-		expect(validateAnswer('você está', 'estar', 'presente do indicativo', 'ele/ela/você', portugueseModule)).toBe(true);
+		expect(
+			validateAnswer(
+				'você está',
+				'estar',
+				'presente do indicativo',
+				'ele/ela/você',
+				portugueseModule
+			)
+		).toBe(true);
 	});
 
 	it('wrong conjugation', () => {
-		expect(validateAnswer('eu ser', 'ser', 'presente do indicativo', 'eu', portugueseModule)).toBe(false);
+		expect(validateAnswer('eu ser', 'ser', 'presente do indicativo', 'eu', portugueseModule)).toBe(
+			false
+		);
 	});
 
 	it('correct falo', () => {
-		expect(validateAnswer('eu falo', 'falar', 'presente do indicativo', 'eu', portugueseModule)).toBe(true);
+		expect(
+			validateAnswer('eu falo', 'falar', 'presente do indicativo', 'eu', portugueseModule)
+		).toBe(true);
 	});
 
 	it('correct ela fala', () => {
-		expect(validateAnswer('ela fala', 'falar', 'presente do indicativo', 'ele/ela/você', portugueseModule)).toBe(true);
+		expect(
+			validateAnswer(
+				'ela fala',
+				'falar',
+				'presente do indicativo',
+				'ele/ela/você',
+				portugueseModule
+			)
+		).toBe(true);
 	});
 });

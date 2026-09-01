@@ -1,7 +1,19 @@
 import { describe, it, expect } from 'vitest';
 import { SeededRNG } from './warhammer-simulator/rng';
-import { getToHitTarget, getToWoundTarget, computeEffectiveSave, clampSave } from './warhammer-simulator/tables';
-import { resolveHit, resolveWound, resolveArmourSave, resolveWardSave, computeEffectiveStats, getWeaponStats } from './warhammer-simulator/rules';
+import {
+	getToHitTarget,
+	getToWoundTarget,
+	computeEffectiveSave,
+	clampSave
+} from './warhammer-simulator/tables';
+import {
+	resolveHit,
+	resolveWound,
+	resolveArmourSave,
+	resolveWardSave,
+	computeEffectiveStats,
+	getWeaponStats
+} from './warhammer-simulator/rules';
 import { CombatEngine } from './warhammer-simulator/combat';
 import { MonteCarloController } from './warhammer-simulator/simulation';
 import { PRESET_CHARACTERS } from './warhammer-simulator/presets';
@@ -261,7 +273,21 @@ describe('CombatEngine', () => {
 
 describe('Preset Characters', () => {
 	it('all presets have valid factions', () => {
-		const validFactions = ['empire', 'bretonnia', 'chaos', 'orcs-and-goblins', 'dwarfs', 'wood-elves', 'high-elves', 'beastmen', 'tomb-kings', 'vampire-counts', 'skaven', 'dark-elves', 'lizardmen'];
+		const validFactions = [
+			'empire',
+			'bretonnia',
+			'chaos',
+			'orcs-and-goblins',
+			'dwarfs',
+			'wood-elves',
+			'high-elves',
+			'beastmen',
+			'tomb-kings',
+			'vampire-counts',
+			'skaven',
+			'dark-elves',
+			'lizardmen'
+		];
 		for (const preset of PRESET_CHARACTERS) {
 			expect(validFactions).toContain(preset.faction);
 		}
@@ -299,7 +325,9 @@ describe('MonteCarloController', () => {
 		const results = controller.run(100);
 
 		expect(results.totalRuns).toBe(100);
-		expect(results.winRateA + results.winRateB + results.mutualKillRate + results.drawRate).toBeCloseTo(1.0, 1);
+		expect(
+			results.winRateA + results.winRateB + results.mutualKillRate + results.drawRate
+		).toBeCloseTo(1.0, 1);
 		expect(results.avgRounds).toBeGreaterThan(0);
 	});
 

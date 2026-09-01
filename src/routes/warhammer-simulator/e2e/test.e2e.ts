@@ -50,7 +50,9 @@ test('Warhammer Simulator - run simulation with default characters', async ({ pa
 	await expect(page.locator('text=Win Rate')).toBeVisible();
 });
 
-test('Warhammer Simulator - presets loaded for both characters produce different stats', async ({ page }) => {
+test('Warhammer Simulator - presets loaded for both characters produce different stats', async ({
+	page
+}) => {
 	await page.goto('/warhammer-simulator');
 
 	// Get both preset selects

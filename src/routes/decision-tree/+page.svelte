@@ -36,7 +36,9 @@
 			? graph.nodes.get(graph.rootNodeId)!
 			: (() => {
 					const lastEdge = graph.edges.get(traversalPath[traversalPath.length - 1]);
-					return lastEdge ? graph.nodes.get(lastEdge.targetId)! : graph.nodes.get(graph.rootNodeId)!;
+					return lastEdge
+						? graph.nodes.get(lastEdge.targetId)!
+						: graph.nodes.get(graph.rootNodeId)!;
 				})()
 	);
 	// --- URL helpers ---
@@ -164,10 +166,11 @@
 						>
 							<span class="answer-label">{edge.label}</span>
 							{#if edge.explanation}
-								<span
-									class="explanation-tip"
-									class:visible={revealedExplanations.has(edge.id)}
-									onclick={(e) => {
+							<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+							<span
+								class="explanation-tip"
+								class:visible={revealedExplanations.has(edge.id)}
+								onclick={(e) => {
 										e.stopPropagation();
 										toggleExplanation(edge.id);
 									}}
@@ -229,8 +232,7 @@
 		font-size: 0.85rem;
 		font-weight: 500;
 		cursor: pointer;
-		transition:
-			all 0.2s ease;
+		transition: all 0.2s ease;
 		letter-spacing: 0.02em;
 		line-height: 1.3;
 		text-align: center;

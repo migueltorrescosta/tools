@@ -1,0 +1,8 @@
+src/routes/**/e2e/**
+src/routes/**/data/**
+**/*.json
+**/*.map
+node_modules/
+build/
+dist/
+.svelte-kit/

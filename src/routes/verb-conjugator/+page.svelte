@@ -325,15 +325,10 @@
 							{#if currentCard}
 								<div class="card-lines">
 									{#each cardLines as line, i}
-										<span
-											class="line-translation"
-											class:is-blank={i === currentCard.personIndex}
+										<span class="line-translation" class:is-blank={i === currentCard.personIndex}
 											>{line.translation}</span
 										>
-										<span
-											class="line-content"
-											class:is-blank={i === currentCard.personIndex}
-										>
+										<span class="line-content" class:is-blank={i === currentCard.personIndex}>
 											<span class="line-content-inner">
 												{#if i === currentCard.personIndex}
 													<span class="line-blank">______</span>
@@ -364,10 +359,8 @@
 									spellcheck="false"
 									autocomplete="off"
 								/>
-								<button
-									class="submit-verb-btn"
-									onclick={handleSubmit}
-									disabled={!userInput.trim()}>↵</button
+								<button class="submit-verb-btn" onclick={handleSubmit} disabled={!userInput.trim()}
+									>↵</button
 								>
 							</div>
 						</div>
@@ -450,7 +443,8 @@
 							class="format-btn"
 							class:active={selectedTenses.includes(tense)}
 							onclick={() => toggleTense(tense)}
-							disabled={selectedTenses.length === 1 && selectedTenses.includes(tense)}>{tense}</button
+							disabled={selectedTenses.length === 1 && selectedTenses.includes(tense)}
+							>{tense}</button
 						>
 					{/each}
 				</div>

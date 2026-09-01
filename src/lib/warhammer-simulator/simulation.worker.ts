@@ -76,10 +76,18 @@ function aggregateResults(
 
 	for (const result of results) {
 		switch (result.winner) {
-			case 'A': winsA++; break;
-			case 'B': winsB++; break;
-			case 'mutual': mutualKills++; break;
-			case 'draw': draws++; break;
+			case 'A':
+				winsA++;
+				break;
+			case 'B':
+				winsB++;
+				break;
+			case 'mutual':
+				mutualKills++;
+				break;
+			case 'draw':
+				draws++;
+				break;
 		}
 
 		totalRounds += result.rounds;

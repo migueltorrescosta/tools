@@ -1,11 +1,6 @@
 import type { Character, RerollSource, WeaponType } from './types';
 import { SeededRNG } from './rng';
-import {
-	getToHitTarget,
-	getToWoundTarget,
-	computeEffectiveSave,
-	clampSave
-} from './tables';
+import { getToHitTarget, getToWoundTarget, computeEffectiveSave, clampSave } from './tables';
 import armouryData from './data/armoury.json';
 import type { WeaponStats, ArmourStats, ShieldStats } from './types';
 
@@ -86,11 +81,7 @@ export function resolveWound(
  * Returns true if the save is successful (i.e., damage is blocked).
  * AP is a negative number: -1, -2, etc.
  */
-export function resolveArmourSave(
-	rng: SeededRNG,
-	baseSave: number,
-	ap: number
-): boolean {
+export function resolveArmourSave(rng: SeededRNG, baseSave: number, ap: number): boolean {
 	const effectiveSave = computeEffectiveSave(baseSave, ap);
 	if (effectiveSave >= 7) return false; // no save possible
 	const roll = rng.rollD6();
@@ -236,7 +227,7 @@ export function resolveSingleAttack(
 	isAttackerCharging: boolean
 ): number {
 	// 1. Hit roll
-	const hitReroll = attackerStats.hasRerollHits ? 'always' as RerollSource : undefined;
+	const hitReroll = attackerStats.hasRerollHits ? ('always' as RerollSource) : undefined;
 	const hits = resolveHit(rng, attacker.ws, defender.ws, hitReroll);
 	if (!hits) return 0;
 
@@ -245,7 +236,7 @@ export function resolveSingleAttack(
 	// since the hit roll is abstracted
 
 	// 3. Wound roll
-	const woundReroll = attackerStats.hasRerollWounds ? 'always' as RerollSource : undefined;
+	const woundReroll = attackerStats.hasRerollWounds ? ('always' as RerollSource) : undefined;
 	const wounds = resolveWound(rng, attackerStats.strength, defender.t, woundReroll);
 	if (!wounds) return 0;
 
@@ -253,11 +244,7 @@ export function resolveSingleAttack(
 	// For simplicity, KB is handled at the engine level
 
 	// 5. Armour save (AP reduces the defender's save)
-	const saveSuccessful = resolveArmourSave(
-		rng,
-		defenderStats.armourSave,
-		attackerStats.ap
-	);
+	const saveSuccessful = resolveArmourSave(rng, defenderStats.armourSave, attackerStats.ap);
 	if (saveSuccessful) return 0;
 
 	// 6. Ward save
