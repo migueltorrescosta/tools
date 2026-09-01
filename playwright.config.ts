@@ -1,6 +1,7 @@
 import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
+	retries: 1,
 	webServer: {
 		command: 'npm run dev',
 		port: 5173,

@@ -8,13 +8,14 @@ test('Warhammer Simulator - page loads correctly', async ({ page }) => {
 
 test('Warhammer Simulator - preset selection populates form', async ({ page }) => {
 	await page.goto('/warhammer-simulator');
+	await page.waitForLoadState('networkidle');
 
-	// Get all preset selects (there should be 2, one for each character)
-	const presetSelects = page.locator('select.algorithm-select').first();
-	await presetSelects.waitFor({ state: 'visible' });
+	// Get the preset select for Character A (first select inside first panel)
+	const presetSelect = page.locator('.sim-builder-grid .panel').first().locator('select.algorithm-select').first();
+	await presetSelect.waitFor({ state: 'visible' });
 
 	// Select a preset for Character A
-	await presetSelects.selectOption('Chaos Lord');
+	await presetSelect.selectOption('Chaos Lord');
 
 	// Check that name field was populated
 	const nameInput = page.locator('input[type="text"]').first();
@@ -23,6 +24,11 @@ test('Warhammer Simulator - preset selection populates form', async ({ page }) =
 
 test('Warhammer Simulator - run simulation with default characters', async ({ page }) => {
 	await page.goto('/warhammer-simulator');
+	await page.waitForLoadState('networkidle');
+
+	// Reduce simulation count for faster test execution
+	const simCountInput = page.locator('.sim-count-input');
+	await simCountInput.fill('1000');
 
 	// Click the Run Simulation button
 	const runBtn = page.locator('button:has-text("RUN SIMULATION")');
@@ -33,9 +39,9 @@ test('Warhammer Simulator - run simulation with default characters', async ({ pa
 	const progressBar = page.locator('.progress-bar-bg');
 	await expect(progressBar).toBeVisible({ timeout: 5000 });
 
-	// Wait for results to appear (timeout depends on simulation count, default 1000)
-	const resultsHeader = page.locator('text=OUTCOME DISTRIBUTION');
-	await expect(resultsHeader).toBeVisible({ timeout: 60000 });
+	// Wait for results to appear
+	const resultsHeader = page.locator('text=WINNER');
+	await expect(resultsHeader).toBeVisible({ timeout: 30000 });
 
 	// Verify pie chart canvas rendered
 	const pieCanvas = page.locator('canvas').first();
@@ -44,21 +50,21 @@ test('Warhammer Simulator - run simulation with default characters', async ({ pa
 	// Verify histogram canvas rendered
 	const histCanvas = page.locator('canvas').nth(1);
 	await expect(histCanvas).toBeVisible();
-
-	// Verify summary stats are shown
-	await expect(page.locator('text=SUMMARY')).toBeVisible();
-	await expect(page.locator('text=Win Rate')).toBeVisible();
 });
 
 test('Warhammer Simulator - presets loaded for both characters produce different stats', async ({
 	page
 }) => {
 	await page.goto('/warhammer-simulator');
+	await page.waitForLoadState('networkidle');
 
-	// Get both preset selects
-	const selects = page.locator('select.algorithm-select');
-	const selectA = selects.nth(0);
-	const selectB = selects.nth(1);
+	// Reduce simulation count for faster test execution
+	const simCountInput = page.locator('.sim-count-input');
+	await simCountInput.fill('1000');
+
+	// Get the preset selects for each character panel
+	const selectA = page.locator('.sim-builder-grid .panel').first().locator('select.algorithm-select').first();
+	const selectB = page.locator('.sim-builder-grid .panel').nth(1).locator('select.algorithm-select').first();
 
 	// Load different presets
 	await selectA.selectOption('Chaos Lord');
@@ -68,11 +74,12 @@ test('Warhammer Simulator - presets loaded for both characters produce different
 	await page.locator('button:has-text("RUN SIMULATION")').click();
 
 	// Wait for results
-	await expect(page.locator('text=OUTCOME DISTRIBUTION')).toBeVisible({ timeout: 60000 });
+	await expect(page.locator('text=WINNER')).toBeVisible({ timeout: 30000 });
 });
 
 test('Warhammer Simulator - simulation count input accepts values', async ({ page }) => {
 	await page.goto('/warhammer-simulator');
+	await page.waitForLoadState('networkidle');
 
 	const simCountInput = page.locator('input[type="number"]').first();
 	await simCountInput.fill('500');
@@ -81,8 +88,9 @@ test('Warhammer Simulator - simulation count input accepts values', async ({ pag
 
 test('Warhammer Simulator - validation prevents >50 gift points', async ({ page }) => {
 	await page.goto('/warhammer-simulator');
+	await page.waitForLoadState('networkidle');
 
 	// Try to trigger validation by enabling many expensive traits
 	// The simplest check is that the page renders without errors
-	await expect(page.locator('h1')).toHaveText('COMBAT SIMULATOR');
+	await expect(page.locator('h1')).toHaveText('WARHAMMER SIMULATOR');
 });

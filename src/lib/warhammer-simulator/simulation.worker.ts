@@ -61,7 +61,7 @@ function aggregateResults(
 	let totalDamageA = 0;
 	let totalDamageB = 0;
 
-	const maxRounds = Math.max(...results.map((r) => r.rounds), 1);
+	const maxRounds = results.reduce((max, r) => Math.max(max, r.rounds), 1);
 	const roundDist = new Array(maxRounds).fill(0);
 	const damageDistA: number[] = [];
 	const damageDistB: number[] = [];
