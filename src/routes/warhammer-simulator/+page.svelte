@@ -627,15 +627,15 @@
 					</div>
 				</div>
 
-			<!-- Traits & Gifts -->
-			<div class="field-group">
-				<span class="input-label">Traits & Gifts (max 50 pts)</span>
-				<div class="trait-grid">
-					{#each availableGiftTraits as trait}
-						<button
-							class="format-btn"
-							class:active={charA.traits.includes(trait.id)}
-							onclick={() => toggleTrait('A', trait.id)}
+				<!-- Traits & Gifts -->
+				<div class="field-group">
+					<span class="input-label">Traits & Gifts (max 50 pts)</span>
+					<div class="trait-grid">
+						{#each availableGiftTraits as trait}
+							<button
+								class="format-btn"
+								class:active={charA.traits.includes(trait.id)}
+								onclick={() => toggleTrait('A', trait.id)}
 								title={trait.description}
 							>
 								{trait.name} ({trait.cost} pts)
@@ -647,11 +647,11 @@
 					{/if}
 				</div>
 
-			<!-- Derived Stats -->
-			<div class="derived-stats">
-				<span class="input-label">Effective Stats</span>
-				<div class="stats-grid">
-					<span>S {statsA.strength}</span>
+				<!-- Derived Stats -->
+				<div class="derived-stats">
+					<span class="input-label">Effective Stats</span>
+					<div class="stats-grid">
+						<span>S {statsA.strength}</span>
 						<span>A {statsA.attacks}</span>
 						<span>I {statsA.initiative}</span>
 						<span>AP {statsA.ap}</span>
@@ -697,111 +697,111 @@
 					/>
 				</div>
 				<div class="sim-form-row">
-				<div class="field-group">
-					<label class="input-label" for="charB-faction">Faction</label>
-					<select id="charB-faction" class="algorithm-select" bind:value={charB.faction}>
-						{#each factionOptions as opt}
-							<option value={opt.value}>{opt.label}</option>
-						{/each}
-					</select>
-				</div>
-				<div class="field-group">
-					<label class="input-label" for="charB-mark">Mark</label>
-					<select id="charB-mark" class="algorithm-select" bind:value={charB.mark}>
-						<option value={undefined}>None</option>
-						{#each getFactionMarks(charB.faction) as mark}
-							<option value={mark}>{mark.charAt(0).toUpperCase() + mark.slice(1)}</option>
-						{/each}
-					</select>
-				</div>
-				</div>
-				<div class="sim-form-row">
-				<div class="field-group">
-					<label class="input-label" for="charB-ws">WS</label><input
-						id="charB-ws"
-						class="key-input"
-						type="number"
-						min="1"
-						max="10"
-						bind:value={charB.ws}
-					/>
-				</div>
-				<div class="field-group">
-					<label class="input-label" for="charB-s">S</label><input
-						id="charB-s"
-						class="key-input"
-						type="number"
-						min="1"
-						max="10"
-						bind:value={charB.s}
-					/>
-				</div>
-				<div class="field-group">
-					<label class="input-label" for="charB-t">T</label><input
-						id="charB-t"
-						class="key-input"
-						type="number"
-						min="1"
-						max="10"
-						bind:value={charB.t}
-					/>
-				</div>
-				<div class="field-group">
-					<label class="input-label" for="charB-a">A</label><input
-						id="charB-a"
-						class="key-input"
-						type="number"
-						min="1"
-						max="10"
-						bind:value={charB.a}
-					/>
-				</div>
-				<div class="field-group">
-					<label class="input-label" for="charB-i">I</label><input
-						id="charB-i"
-						class="key-input"
-						type="number"
-						min="1"
-						max="10"
-						bind:value={charB.i}
-					/>
-				</div>
-				<div class="field-group">
-					<label class="input-label" for="charB-w">W</label><input
-						id="charB-w"
-						class="key-input"
-						type="number"
-						min="1"
-						max="10"
-						bind:value={charB.wounds}
-					/>
-				</div>
+					<div class="field-group">
+						<label class="input-label" for="charB-faction">Faction</label>
+						<select id="charB-faction" class="algorithm-select" bind:value={charB.faction}>
+							{#each factionOptions as opt}
+								<option value={opt.value}>{opt.label}</option>
+							{/each}
+						</select>
+					</div>
+					<div class="field-group">
+						<label class="input-label" for="charB-mark">Mark</label>
+						<select id="charB-mark" class="algorithm-select" bind:value={charB.mark}>
+							<option value={undefined}>None</option>
+							{#each getFactionMarks(charB.faction) as mark}
+								<option value={mark}>{mark.charAt(0).toUpperCase() + mark.slice(1)}</option>
+							{/each}
+						</select>
+					</div>
 				</div>
 				<div class="sim-form-row">
-				<div class="field-group">
-					<label class="input-label" for="charB-weapon">Weapon</label>
-					<select id="charB-weapon" class="algorithm-select" bind:value={charB.weapon}>
-						{#each weaponOptions as opt}
-							<option value={opt.value}>{opt.label}</option>
-						{/each}
-					</select>
+					<div class="field-group">
+						<label class="input-label" for="charB-ws">WS</label><input
+							id="charB-ws"
+							class="key-input"
+							type="number"
+							min="1"
+							max="10"
+							bind:value={charB.ws}
+						/>
+					</div>
+					<div class="field-group">
+						<label class="input-label" for="charB-s">S</label><input
+							id="charB-s"
+							class="key-input"
+							type="number"
+							min="1"
+							max="10"
+							bind:value={charB.s}
+						/>
+					</div>
+					<div class="field-group">
+						<label class="input-label" for="charB-t">T</label><input
+							id="charB-t"
+							class="key-input"
+							type="number"
+							min="1"
+							max="10"
+							bind:value={charB.t}
+						/>
+					</div>
+					<div class="field-group">
+						<label class="input-label" for="charB-a">A</label><input
+							id="charB-a"
+							class="key-input"
+							type="number"
+							min="1"
+							max="10"
+							bind:value={charB.a}
+						/>
+					</div>
+					<div class="field-group">
+						<label class="input-label" for="charB-i">I</label><input
+							id="charB-i"
+							class="key-input"
+							type="number"
+							min="1"
+							max="10"
+							bind:value={charB.i}
+						/>
+					</div>
+					<div class="field-group">
+						<label class="input-label" for="charB-w">W</label><input
+							id="charB-w"
+							class="key-input"
+							type="number"
+							min="1"
+							max="10"
+							bind:value={charB.wounds}
+						/>
+					</div>
 				</div>
-				<div class="field-group">
-					<label class="input-label" for="charB-armour">Armour</label>
-					<select id="charB-armour" class="algorithm-select" bind:value={charB.armour}>
-						{#each armourOptions as opt}
-							<option value={opt.value}>{opt.label}</option>
-						{/each}
-					</select>
-				</div>
-				<div class="field-group">
-					<label class="input-label" for="charB-shield">Shield</label>
-					<select id="charB-shield" class="algorithm-select" bind:value={charB.shield}>
-						{#each shieldOptions as opt}
-							<option value={opt.value}>{opt.label}</option>
-						{/each}
-					</select>
-				</div>
+				<div class="sim-form-row">
+					<div class="field-group">
+						<label class="input-label" for="charB-weapon">Weapon</label>
+						<select id="charB-weapon" class="algorithm-select" bind:value={charB.weapon}>
+							{#each weaponOptions as opt}
+								<option value={opt.value}>{opt.label}</option>
+							{/each}
+						</select>
+					</div>
+					<div class="field-group">
+						<label class="input-label" for="charB-armour">Armour</label>
+						<select id="charB-armour" class="algorithm-select" bind:value={charB.armour}>
+							{#each armourOptions as opt}
+								<option value={opt.value}>{opt.label}</option>
+							{/each}
+						</select>
+					</div>
+					<div class="field-group">
+						<label class="input-label" for="charB-shield">Shield</label>
+						<select id="charB-shield" class="algorithm-select" bind:value={charB.shield}>
+							{#each shieldOptions as opt}
+								<option value={opt.value}>{opt.label}</option>
+							{/each}
+						</select>
+					</div>
 				</div>
 
 				<!-- Traits & Gifts -->
