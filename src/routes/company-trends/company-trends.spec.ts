@@ -204,7 +204,7 @@ describe('fx conversion', () => {
 // ---------------------------------------------------------------------------
 
 describe('filterCompanies', () => {
-	const companies = [
+	const companies: Company[] = [
 		{
 			id: 'sap',
 			name: 'SAP',
@@ -282,7 +282,7 @@ describe('validateDataset', () => {
 
 	it('requires fx base EUR and positive USD/GBP rates for every rate entry', () => {
 		const broken = clone();
-		broken.fx.base = 'USD';
+		broken.fx.base = 'USD' as Dataset['fx']['base'];
 		broken.fx.rates['2000Q1'].USD = 0;
 		delete broken.fx.rates['2000Q2'].GBP;
 		const errors = validateDataset(broken);
