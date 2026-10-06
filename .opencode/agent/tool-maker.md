@@ -146,6 +146,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ### After completing
 
 After the tool is implemented and working:
+
 1. **Save key decisions to beads memory** — run `bd remember "<decision or pattern>"` with the decisions, patterns, and conventions established. Use `bd remember "lesson: <pattern>"` if a recurring pattern emerged.
 2. **Consolidate if needed** — if you made more than 5 memory saves during this task, no additional consolidation step is needed (beads handles this automatically).
 
