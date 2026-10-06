@@ -1,0 +1,13 @@
+{
+	"meta": {
+		"generated": "2026-10-06",
+		"units": "EUR millions",
+		"fxMethodology": "Hardcoded ECB quarterly average reference rates (foreign currency units per EUR). Figures reported in USD or GBP are converted to EUR with the quarter's rate; the dataset stores EUR values only.",
+		"fxSource": "https://data.ecb.europa.eu/data/datasets/EXR"
+	},
+	"fx": {
+		"base": "EUR",
+		"rates": {}
+	},
+	"companies": []
+}
