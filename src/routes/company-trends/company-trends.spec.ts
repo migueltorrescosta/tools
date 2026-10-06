@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { loadDataset, validateDataset, type Dataset } from '$lib/company-trends/schema';
+import {
+	loadDataset,
+	validateDataset,
+	type Company,
+	type Dataset
+} from '$lib/company-trends/schema';
 import { convert, convertFromEur, convertToEur, type FxTable } from '$lib/company-trends/fx';
 import {
 	deriveExpenses,
@@ -96,7 +101,7 @@ describe('quarter helpers', () => {
 describe('log-space interpolation', () => {
 	it('interpolates geometrically between positive endpoints', () => {
 		expect(logInterp(100, 400, 0.5)).toBeCloseTo(200, 10);
-		expect(logInterp(1, 8, 0.5)).toBeCloseTo(2, 10);
+		expect(logInterp(2, 8, 0.5)).toBeCloseTo(4, 10);
 		expect(logInterp(100, 400, 0)).toBe(100);
 		expect(logInterp(100, 400, 1)).toBe(400);
 	});
@@ -144,9 +149,12 @@ describe('interpolateSeries', () => {
 	});
 
 	it('does not extrapolate beyond the first or last anchor', () => {
-		const wide = ['1999Q4', ...grid, '2001Q1'];
-		const out = interpolateSeries(anchors, wide);
-		expect(out.map((p) => p.quarter)).toEqual(['2000Q1', '2000Q2', '2000Q3']);
+		const lateAnchors: CompanyPoint[] = [
+			reported('2000Q2', 100, 25, 'q2 filing'),
+			reported('2000Q3', 400, 100, 'q3 filing')
+		];
+		const out = interpolateSeries(lateAnchors, ['2000Q1', ...grid, '2001Q1']);
+		expect(out.map((p) => p.quarter)).toEqual(['2000Q2', '2000Q3']);
 	});
 
 	it('emits a lone anchor unchanged', () => {
@@ -197,9 +205,30 @@ describe('fx conversion', () => {
 
 describe('filterCompanies', () => {
 	const companies = [
-		{ id: 'sap', name: 'SAP', type: 'software', reportingCurrency: 'EUR', country: 'DE', points: [] },
-		{ id: 'shell', name: 'Shell', type: 'energy', reportingCurrency: 'EUR', country: 'NL', points: [] },
-		{ id: 'msft', name: 'Microsoft', type: 'software', reportingCurrency: 'USD', country: 'US', points: [] }
+		{
+			id: 'sap',
+			name: 'SAP',
+			type: 'software',
+			reportingCurrency: 'EUR',
+			country: 'DE',
+			points: []
+		},
+		{
+			id: 'shell',
+			name: 'Shell',
+			type: 'energy',
+			reportingCurrency: 'EUR',
+			country: 'NL',
+			points: []
+		},
+		{
+			id: 'msft',
+			name: 'Microsoft',
+			type: 'software',
+			reportingCurrency: 'USD',
+			country: 'US',
+			points: []
+		}
 	];
 
 	it('selects by company id', () => {
@@ -277,7 +306,8 @@ describe('validateDataset', () => {
 	it('rejects a company with missing fields, bad currency or no points', () => {
 		const broken = clone();
 		broken.companies[0].name = '';
-		broken.companies[0].reportingCurrency = 'JPY' as Dataset['companies'][number]['reportingCurrency'];
+		broken.companies[0].reportingCurrency =
+			'JPY' as Dataset['companies'][number]['reportingCurrency'];
 		broken.companies[0].points = [];
 		const errors = validateDataset(broken);
 		expect(errors.some((e) => e.includes('companies[0].name'))).toBe(true);
