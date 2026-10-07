@@ -3,7 +3,13 @@
 	import TrendsChart from './TrendsChart.svelte';
 	import { loadDataset } from '$lib/company-trends/schema';
 	import { companyTypes, filterCompanies } from '$lib/company-trends/filter';
-	import { buildTrail, formatMoney, logExtent, typeSlot } from '$lib/company-trends/chart';
+	import {
+		buildTrail,
+		formatMoney,
+		formatPercent,
+		logExtent,
+		typeSlot
+	} from '$lib/company-trends/chart';
 	import { quarterIndex, quarterLabel, quarterRange } from '$lib/company-trends/series';
 	import type { Currency } from '$lib/company-trends/fx';
 
@@ -47,9 +53,10 @@
 	const allTrails = $derived(companies.map((c) => buildTrail(c, quarters, currency, dataset.fx)));
 	const visibleTrails = $derived(allTrails.filter((t) => visible.includes(t.company)));
 
-	// Axes span every visible point across all quarters, so they stay fixed during playback.
+	// The revenue axis spans every visible point across all quarters, so it stays fixed during
+	// playback; the margin axis is fixed outright.
 	const domain = $derived.by((): [number, number] => {
-		const values = visibleTrails.flatMap((t) => t.points.flatMap((p) => [p.revenue, p.expenses]));
+		const values = visibleTrails.flatMap((t) => t.points.map((p) => p.revenue));
 		return logExtent(values) ?? [1, 1e6];
 	});
 
@@ -100,8 +107,8 @@
 	<header>
 		<h1>COMPANY TRENDS</h1>
 		<p class="subtitle">
-			Revenue vs operating expenses as log-log trajectories, 2000 → last reported quarter,
-			normalized to EUR
+			Revenue (log scale) vs operating margin trajectories, 2000 → last reported quarter, normalized
+			to EUR
 		</p>
 	</header>
 
@@ -187,6 +194,10 @@
 						><svg width="24" height="14"><line x1="1" y1="7" x2="23" y2="7" class="lg gap" /></svg
 						>data gap (missing years)</span
 					>
+					<span
+						><svg width="14" height="14"><path d="M3,4L11,4L7,12Z" class="lg offscale" /></svg
+						>off-scale margin (below −200%), pinned to the edge</span
+					>
 				</div>
 			</div>
 
@@ -230,6 +241,7 @@
 						<th>Revenue</th>
 						<th>Op. expenses</th>
 						<th>Op. income</th>
+						<th>Op. margin</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -241,6 +253,7 @@
 							<td>{formatMoney(row.point.revenue, currency)}</td>
 							<td>{formatMoney(row.point.expenses, currency)}</td>
 							<td>{formatMoney(row.point.operatingIncome, currency)}</td>
+							<td>{row.point.margin === null ? '—' : formatPercent(row.point.margin, 1)}</td>
 						</tr>
 					{/each}
 				</tbody>
@@ -248,9 +261,9 @@
 		</details>
 
 		<p class="hint">
-			Units: {dataset.meta.units}. Expenses = revenue − operating income. Values are fiscal-year
-			figures placed at each fiscal year's closing quarter; quarters in between are
-			log-interpolated.
+			Units: {dataset.meta.units}. Operating margin = operating income / revenue, on a fixed −200%
+			to +100% axis; expenses = revenue − operating income. Values are fiscal-year figures placed at
+			each fiscal year's closing quarter; quarters in between are log-interpolated.
 		</p>
 	{/if}
 
@@ -387,6 +400,10 @@
 	.lg.interp {
 		fill: var(--text-secondary);
 		opacity: 0.45;
+	}
+
+	.lg.offscale {
+		fill: var(--text-secondary);
 	}
 
 	.lg.gap {

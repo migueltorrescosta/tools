@@ -1,8 +1,13 @@
 <script lang="ts">
 	import {
+		clampMargin,
 		formatMoney,
+		formatPercent,
+		linearScale,
 		logScale,
 		logTicks,
+		MARGIN_DOMAIN,
+		percentTicks,
 		trailSegments,
 		trailUpTo,
 		typeSlot,
@@ -17,7 +22,7 @@
 		qi: number;
 		quarter: string;
 		currency: Currency;
-		/** Shared [min, max] for both axes so the break-even diagonal is 45°. */
+		/** Revenue [min, max] for the log x axis; the margin axis is fixed. */
 		domain: [number, number];
 	}
 
@@ -28,8 +33,25 @@
 	const M = { top: 20, right: 30, bottom: 56, left: 76 };
 
 	const x = $derived(logScale(domain, [M.left, W - M.right]));
-	const y = $derived(logScale(domain, [H - M.bottom, M.top]));
-	const ticks = $derived(logTicks(domain));
+	const y = linearScale(MARGIN_DOMAIN, [H - M.bottom, M.top]);
+	const xTicks = $derived(logTicks(domain));
+	const yTicks = percentTicks(MARGIN_DOMAIN);
+
+	/** Plot y of a drawable point: its margin, pinned to the axis edge when off-scale. */
+	function py(p: TrailPoint): number {
+		return y(clampMargin(p.margin ?? 0).value);
+	}
+
+	function clipOf(p: TrailPoint) {
+		return p.margin === null ? null : clampMargin(p.margin).clipped;
+	}
+
+	/** Outward-pointing caret with its tip on the axis edge. */
+	function caret(cx: number, side: 'low' | 'high', size: number): string {
+		const tip = side === 'low' ? H - M.bottom : M.top;
+		const base = side === 'low' ? tip - size * 1.6 : tip + size * 1.6;
+		return `M${cx - size},${base}L${cx + size},${base}L${cx},${tip}Z`;
+	}
 
 	interface Drawn {
 		trail: Trail;
@@ -42,7 +64,7 @@
 
 	const drawn = $derived<Drawn[]>(
 		trails.map((trail) => {
-			const points = trailUpTo(trail, qi).filter((p) => p.revenue > 0 && p.expenses > 0);
+			const points = trailUpTo(trail, qi).filter((p) => p.revenue > 0 && p.margin !== null);
 			const last = trail.points[trail.points.length - 1];
 			return {
 				trail,
@@ -69,13 +91,13 @@
 		if (!svgEl) return null;
 		const rect = svgEl.getBoundingClientRect();
 		const px = ((event.clientX - rect.left) / rect.width) * W;
-		const py = ((event.clientY - rect.top) / rect.height) * H;
+		const pointerY = ((event.clientY - rect.top) / rect.height) * H;
 		let best: Hit | null = null;
 		let bestDist = 14 * 14;
 		for (const d of drawn) {
 			for (const p of d.points) {
 				const dx = x(p.revenue) - px;
-				const dy = y(p.expenses) - py;
+				const dy = py(p) - pointerY;
 				const dist = dx * dx + dy * dy;
 				// Prefer anchors and heads over faint interpolated points at equal distance.
 				const bias = p.quality === 'interpolated' && p !== d.head ? 4 : 0;
@@ -112,25 +134,21 @@
 	};
 
 	function margin(p: TrailPoint): string {
-		if (p.revenue <= 0) return '—';
-		return `${((p.operatingIncome / p.revenue) * 100).toFixed(1)}%`;
+		return p.margin === null ? '—' : formatPercent(p.margin, 1);
 	}
 
 	// Tooltip placement in percent of the chart box, flipped away from the edges.
 	const tip = $derived.by(() => {
 		if (!active) return null;
-		const px = x(active.point.revenue);
-		const py = y(active.point.expenses);
+		const tx = x(active.point.revenue);
+		const ty = py(active.point);
 		return {
-			left: (px / W) * 100,
-			top: (py / H) * 100,
-			flipX: px > W * 0.6,
-			flipY: py > H * 0.55
+			left: (tx / W) * 100,
+			top: (ty / H) * 100,
+			flipX: tx > W * 0.6,
+			flipY: ty > H * 0.55
 		};
 	});
-
-	// Low on the diagonal, where trails rarely run.
-	const breakEvenLabelAt = $derived(domain[0] * (domain[1] / domain[0]) ** 0.08);
 </script>
 
 <svelte:window onkeydown={onKey} />
@@ -141,7 +159,7 @@
 		bind:this={svgEl}
 		viewBox="0 0 {W} {H}"
 		role="img"
-		aria-label="Revenue versus operating expenses, log-log, at {quarter}"
+		aria-label="Revenue (log scale) versus operating margin at {quarter}"
 		data-testid="trends-chart"
 		onpointermove={onMove}
 		onpointerleave={() => (hovered = null)}
@@ -151,7 +169,7 @@
 			>{quarter}</text
 		>
 
-		{#each ticks as tick (tick.value)}
+		{#each xTicks as tick (tick.value)}
 			<line
 				class="grid"
 				class:major={tick.major}
@@ -160,6 +178,11 @@
 				y1={M.top}
 				y2={H - M.bottom}
 			/>
+			<text class="tick" x={x(tick.value)} y={H - M.bottom + 18} text-anchor="middle"
+				>{formatMoney(tick.value, currency)}</text
+			>
+		{/each}
+		{#each yTicks as tick (tick.value)}
 			<line
 				class="grid"
 				class:major={tick.major}
@@ -168,40 +191,31 @@
 				y1={y(tick.value)}
 				y2={y(tick.value)}
 			/>
-			<text class="tick" x={x(tick.value)} y={H - M.bottom + 18} text-anchor="middle"
-				>{formatMoney(tick.value, currency)}</text
-			>
 			<text class="tick" x={M.left - 8} y={y(tick.value) + 4} text-anchor="end"
-				>{formatMoney(tick.value, currency)}</text
+				>{formatPercent(tick.value)}</text
 			>
 		{/each}
 
 		<line
 			class="breakeven"
-			x1={x(domain[0])}
-			y1={y(domain[0])}
-			x2={x(domain[1])}
-			y2={y(domain[1])}
+			x1={M.left}
+			y1={y(0)}
+			x2={W - M.right}
+			y2={y(0)}
+			data-testid="breakeven"
 		/>
-		<text
-			class="breakeven-label"
-			transform="translate({x(breakEvenLabelAt)},{y(breakEvenLabelAt) - 8}) rotate(-{(Math.atan2(
-				H - M.top - M.bottom,
-				W - M.left - M.right
-			) *
-				180) /
-				Math.PI})"
+		<text class="breakeven-label" x={M.left + 8} y={y(0) + 16}
+			>break-even · below = operating loss</text
 		>
-			break-even · above = operating loss
-		</text>
 
 		<text class="axis-title" x={(M.left + W - M.right) / 2} y={H - 12} text-anchor="middle"
-			>Revenue (trailing 12 months, {currency})</text
+			>Revenue (trailing 12 months, {currency}, log scale)</text
 		>
 		<text
 			class="axis-title"
 			transform="translate(18,{(M.top + H - M.bottom) / 2}) rotate(-90)"
-			text-anchor="middle">Operating expenses (revenue − operating income, {currency})</text
+			text-anchor="middle"
+			data-testid="y-axis-title">Operating margin (operating income / revenue)</text
 		>
 
 		{#each drawn as d (d.trail.company.id)}
@@ -210,14 +224,21 @@
 					<path class="trail {seg.kind}" d={seg.d} />
 				{/each}
 				{#each d.points as p (p.qi)}
+					{@const clip = clipOf(p)}
 					{#if p !== d.head}
-						{#if p.quality === 'interpolated'}
-							<circle class="pt interp" cx={x(p.revenue)} cy={y(p.expenses)} r="1.6" />
+						{#if clip}
+							<path
+								class="pt offscale"
+								class:interp={p.quality === 'interpolated'}
+								d={caret(x(p.revenue), clip, p.quality === 'interpolated' ? 2 : 3)}
+							/>
+						{:else if p.quality === 'interpolated'}
+							<circle class="pt interp" cx={x(p.revenue)} cy={py(p)} r="1.6" />
 						{:else}
 							<circle
 								class="pt {p.quality}"
 								cx={x(p.revenue)}
-								cy={y(p.expenses)}
+								cy={py(p)}
 								r={p.quality === 'estimated' ? 3.2 : 2.8}
 							/>
 						{/if}
@@ -229,18 +250,29 @@
 		{#each drawn as d (d.trail.company.id)}
 			{#if d.head}
 				{@const flip = x(d.head.revenue) > W * 0.82}
+				{@const clip = clipOf(d.head)}
+				{@const hy = clip === 'low' ? H - M.bottom - 14 : clip === 'high' ? M.top + 14 : py(d.head)}
 				<g class="head" style="--c: {d.color}">
-					<circle
-						class="head-dot {d.head.quality}"
-						class:ended={d.ended}
-						cx={x(d.head.revenue)}
-						cy={y(d.head.expenses)}
-						r="6"
-					/>
+					{#if clip}
+						<path
+							class="head-caret"
+							class:ended={d.ended}
+							d={caret(x(d.head.revenue), clip, 6)}
+							data-testid="offscale-head"
+						/>
+					{:else}
+						<circle
+							class="head-dot {d.head.quality}"
+							class:ended={d.ended}
+							cx={x(d.head.revenue)}
+							cy={py(d.head)}
+							r="6"
+						/>
+					{/if}
 					<text
 						class="head-label"
 						x={x(d.head.revenue) + (flip ? -9 : 9)}
-						y={y(d.head.expenses) + 4}
+						y={hy + 4}
 						text-anchor={flip ? 'end' : 'start'}>{d.trail.company.name}</text
 					>
 				</g>
@@ -248,7 +280,7 @@
 		{/each}
 
 		{#if active}
-			<circle class="focus-ring" cx={x(active.point.revenue)} cy={y(active.point.expenses)} r="9" />
+			<circle class="focus-ring" cx={x(active.point.revenue)} cy={py(active.point)} r="9" />
 		{/if}
 	</svg>
 
@@ -275,14 +307,17 @@
 			<div class="tt-badges">
 				<span class="badge {p.quality}">{QUALITY_LABEL[p.quality]}</span>
 				{#if p.gap}<span class="badge gap">data gap</span>{/if}
+				{#if clipOf(p)}<span class="badge offscale">off-scale</span>{/if}
 			</div>
 			<dl>
+				<dt>Op. margin</dt>
+				<dd>{margin(p)}</dd>
 				<dt>Revenue</dt>
 				<dd>{formatMoney(p.revenue, currency)}</dd>
 				<dt>Op. expenses</dt>
 				<dd>{formatMoney(p.expenses, currency)}</dd>
 				<dt>Op. income</dt>
-				<dd>{formatMoney(p.operatingIncome, currency)} ({margin(p)})</dd>
+				<dd>{formatMoney(p.operatingIncome, currency)}</dd>
 			</dl>
 			<div class="tt-source">
 				{#if p.quality === 'interpolated'}
@@ -375,6 +410,29 @@
 	.trail.gap {
 		stroke-dasharray: 3 5;
 		opacity: 0.4;
+	}
+
+	.trail.clipped {
+		stroke-dasharray: 2 4;
+		opacity: 0.45;
+	}
+
+	.pt.offscale {
+		fill: var(--c);
+	}
+
+	.pt.offscale.interp {
+		opacity: 0.35;
+	}
+
+	.head-caret {
+		fill: var(--c);
+		stroke: var(--chart-surface);
+		stroke-width: 1.5;
+	}
+
+	.head-caret.ended {
+		opacity: 0.6;
 	}
 
 	.pt.reported {
@@ -504,6 +562,10 @@
 
 	.badge.estimated {
 		border-style: dashed;
+	}
+
+	.badge.offscale {
+		border-style: dotted;
 	}
 
 	.badge.interpolated,
