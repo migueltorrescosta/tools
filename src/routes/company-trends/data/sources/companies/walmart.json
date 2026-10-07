@@ -4,7 +4,7 @@
 	"type": "retail",
 	"country": "US",
 	"reportingCurrency": "USD",
-	"notes": "Revenue = Total revenues (net sales + membership and other income). Operating income = 'Operating income' (labelled 'Operating profit' in FY2001-FY2004 filings). FY ends Jan 31. FY2000 omitted: FY2002 10-K income statement has no operating income line. FY2001 is on pre-McLane-divestiture basis (includes McLane); FY2002+ exclude McLane, so a step down between FY2001 and FY2002 is a basis change.",
+	"notes": "Revenue = Total revenues (net sales + membership and other income). Operating income = 'Operating income' (labelled 'Operating profit' in FY2001-FY2004 filings). FY ends Jan 31. FY2000 omitted: FY2002 10-K income statement has no operating income line. FY2001 is on pre-McLane-divestiture basis (includes McLane); FY2002+ exclude McLane, so a step down between FY2001 and FY2002 is a basis change. Each year as first reported in its own 10-K (later restatements of FY2009-FY2013 not applied).",
 	"anchors": [
 		{
 			"periodEnd": "2001-01-31",

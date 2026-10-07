@@ -4,7 +4,7 @@
 	"type": "tech",
 	"country": "US",
 	"reportingCurrency": "USD",
-	"notes": "Revenue = total revenues; operating income = 'Income from operations'. FY ends Dec 31. 2000-2003 pre-IPO figures from Google's first 10-K (FY2004) five-year table rather than the S-1 (same data). 2012-2013 as originally reported incl. Motorola Mobility (Alphabet later restated 2013 to 55,519/15,403 with Motorola as discontinued). 2000-2014 from Google Inc. (CIK 1288776), 2015+ Alphabet Inc.",
+	"notes": "Revenue = total revenues; operating income = 'Income from operations'. FY ends Dec 31. 2000-2003 pre-IPO figures from Google's first 10-K (FY2004) five-year table rather than the S-1 (same data). 2012-2013 as originally reported incl. Motorola Mobility (later restated with Motorola as discontinued: 2013 to 55,519/15,403, 2012 OI to 13,834). 2000-2009 stored to the thousand as filed. 2000-2014 from Google Inc. (CIK 1288776), 2015+ Alphabet Inc.",
 	"anchors": [
 		{
 			"periodEnd": "2000-12-31",

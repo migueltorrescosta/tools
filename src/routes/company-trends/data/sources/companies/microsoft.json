@@ -4,7 +4,7 @@
 	"type": "tech",
 	"country": "US",
 	"reportingCurrency": "USD",
-	"notes": "Revenue = total revenue; operating income = 'Operating income' line. FY ends June 30. FY2017 onward on ASC 606 basis (FY2017 restated in FY2018 10-K: 96,571 vs 89,950 originally); FY2016 and earlier as originally reported (pre-606). FY2008 OI 22,492 per FY2008 10-K (FY2010 10-K XBRL shows 22,271 recast).",
+	"notes": "Revenue = total revenue; operating income = 'Operating income' line. FY ends June 30. FY2017 onward on ASC 606 basis (FY2017 restated in FY2018 10-K: 96,571 vs 89,950 originally); FY2016 and earlier pre-606: FY2004-2016 as originally reported; FY2002-2003 as restated in the FY2004 10-K for retroactive SFAS 123 stock-compensation expensing (FY2000-2001 not restated, so they exclude stock-comp expense). FY2008 OI 22,492 per FY2008 10-K (FY2010 10-K XBRL shows 22,271 recast).",
 	"anchors": [
 		{
 			"periodEnd": "2000-06-30",

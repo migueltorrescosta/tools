@@ -4,7 +4,7 @@
 	"type": "tech",
 	"country": "US",
 	"reportingCurrency": "USD",
-	"notes": "Revenue = 'Revenue'; operatingIncome = 'Income (loss) from operations'. FY ends last Sunday of January (periodEnd = FY end; e.g. FY2026 ends 2026-01-25). FY2000-2003 from FY2004 10-K (pre-2006 stock-option restatement); FY2004-2007 from FY2008 10-K (restated; FY2004 OI 49.8 vs 90.2 originally). FY2008+ from XBRL 10-K facts (OI concept us-gaap:OperatingIncomeLoss, accn shown in source).",
+	"notes": "Revenue = 'Revenue'; operatingIncome = 'Income (loss) from operations'. FY ends last Sunday of January (periodEnd = FY end; e.g. FY2026 ends 2026-01-25). FY2000-2003 from FY2004 10-K (pre-2006 stock-option restatement); FY2004-2007 from FY2008 10-K (restated; FY2004 OI 49.8 vs 90.2 originally). FY2008+ from XBRL 10-K facts (OI concept us-gaap:OperatingIncomeLoss, accn shown in source; FY2008 OI is not tagged in XBRL and matches the FY2008 10-K Selected Financial Data, 836,346K).",
 	"anchors": [
 		{
 			"periodEnd": "2000-01-30",
@@ -180,11 +180,11 @@
 		{
 			"periodEnd": "2019-01-27",
 			"currency": "USD",
-			"revenue": 11798.0,
+			"revenue": 11716.0,
 			"operatingIncome": 3804.0,
 			"quality": "reported",
-			"source": "NVIDIA Form 10-K XBRL (accn 0001045810-19-000023), SEC companyconcept API",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+			"source": "NVIDIA Form 10-K XBRL (accn 0001045810-19-000023), SEC companyconcept API (revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
 		},
 		{
 			"periodEnd": "2020-01-26",

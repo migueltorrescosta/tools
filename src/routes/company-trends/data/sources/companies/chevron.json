@@ -75,7 +75,7 @@
 			"revenue": 220904,
 			"operatingIncome": 32274,
 			"quality": "reported",
-			"source": "Chevron 10-K (acc. 0000950123-10-048910) via SEC XBRL company concept",
+			"source": "Chevron 10-K FY2009 (acc. 0000950123-10-016846) via SEC XBRL company concept",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
 		},
 		{
@@ -93,7 +93,7 @@
 			"revenue": 171636,
 			"operatingIncome": 18528,
 			"quality": "reported",
-			"source": "Chevron 10-K FY2011 (acc. 0000093410-12-002976) via SEC XBRL company concept",
+			"source": "Chevron 10-K FY2011 (acc. 0000950123-12-002976) via SEC XBRL company concept",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
 		},
 		{

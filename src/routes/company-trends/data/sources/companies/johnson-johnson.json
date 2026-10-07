@@ -4,7 +4,7 @@
 	"type": "pharma",
 	"country": "US",
 	"reportingCurrency": "USD",
-	"notes": "No operating income line reported; operatingIncome = 'Earnings before provision for taxes on income' (pretax income, continuing operations from FY2023). Revenue = 'Sales to customers'. FY ends Sunday closest to Dec 31; FY2000-2006 period-end dates derived from that rule (FY2007+ confirmed in SEC data). Each year uses figures as first reported in that year's 10-K: FY2022 includes Consumer Health (94,943 / 21,725); FY2023 onward excludes Kenvue (restated FY2022 revenue 79,990). FY2000-2009 from FY2009 Exhibit 13 ten-year table (2007-2009 match XBRL). FY2015 revenue XBRL context end-dated 2015-12-27 though FY ended 2016-01-03. FY2025 pretax 32,581 is unusually high (likely one-off gains; not investigated).",
+	"notes": "No operating income line reported; operatingIncome = 'Earnings before provision for taxes on income' (pretax income, continuing operations from FY2023). Revenue = 'Sales to customers'. FY ends Sunday closest to Dec 31; FY2000-2006 period-end dates derived from that rule (FY2007+ confirmed in SEC data). Each year uses figures as first reported in that year's 10-K: FY2022 includes Consumer Health (94,943 / 21,725); FY2023 onward excludes Kenvue (restated FY2022 revenue 79,990). FY2000-2009 from FY2009 Exhibit 13 ten-year table (2007-2009 match XBRL). FY2015 is a 53-week year (2014-12-29 to 2016-01-03 in XBRL). FY2025 pretax 32,581 is unusually high (likely one-off gains; not investigated).",
 	"anchors": [
 		{
 			"periodEnd": "2000-12-31",

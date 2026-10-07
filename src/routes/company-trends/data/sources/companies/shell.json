@@ -4,7 +4,7 @@
 	"type": "energy",
 	"country": "GB",
 	"reportingCurrency": "USD",
-	"notes": "Royal Dutch/Shell Group (2001-2004 via Royal Dutch Petroleum Co filings), Royal Dutch Shell plc 2005-2021, Shell plc 2022+. No consistent operating line: operatingIncome = 'Income before taxation'. Revenue: 2001-2003 US GAAP 'Net proceeds' (sales proceeds less sales taxes/excise duties); 2004+ IFRS 'Revenue' (net of sales taxes). 2001 and 2002 as first reported in Q4 results (later 20-F restated 2001 revenue lower, 122,453); 2004-2005 IFRS from 20-F FY2005. 2015+ from SEC XBRL company concept. 2000 omitted: no fetched source gave Group income before taxation (20-F FY2001 text truncated). FY ends Dec 31.",
+	"notes": "Royal Dutch/Shell Group (2001-2004 via Royal Dutch Petroleum Co filings), Royal Dutch Shell plc 2005-2021, Shell plc 2022+. No consistent operating line: operatingIncome = 'Income before taxation'. Revenue: 2001-2003 US GAAP 'Net proceeds' (sales proceeds less sales taxes/excise duties); 2004+ IFRS 'Revenue' (net of sales taxes). 2001 as first reported in Q4 2002 results (later 20-F restated 2001 revenue lower, 122,453); 2002 and 2003 as restated in the following year's Q4 results (first reported: 2002 net proceeds 179,431; 2003 net proceeds 201,932, income before taxation 23,188); 2004-2005 IFRS from 20-F FY2005. 2015+ from SEC XBRL company concept. 2000 omitted: no fetched source gave Group income before taxation (20-F FY2001 text truncated). FY ends Dec 31.",
 	"anchors": [
 		{
 			"periodEnd": "2001-12-31",

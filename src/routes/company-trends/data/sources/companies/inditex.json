@@ -4,7 +4,7 @@
 	"type": "retail",
 	"country": "ES",
 	"reportingCurrency": "EUR",
-	"notes": "Revenue = Net sales (Ventas). Operating income = EBIT (Resultado/Beneficio de explotación; 'Net operating profit (EBIT)'). FY runs Feb 1 - Jan 31; Inditex labels FY by start year (FY2025 ends 2026-01-31). FY1999-FY2003 Spanish GAAP; FY2004+ IFRS (FY2004 IFRS-restated 5,569/922 vs Spanish GAAP 5,670/925). FY2019+ IFRS 16 (FY2018 not restated). FY1999-FY2011 figures from Inditex annual reports retrieved from the UAB library archive of company reports (ddd.uab.cat), not from inditex.com. FY2012-2015 converted from thousands, rounded.",
+	"notes": "Revenue = Net sales (Ventas). Operating income = EBIT (Resultado/Beneficio de explotación; 'Net operating profit (EBIT)'). FY runs Feb 1 - Jan 31; Inditex labels FY by start year (FY2025 ends 2026-01-31). FY1999-FY2003 Spanish GAAP; FY2004+ IFRS (FY2004 IFRS-restated 5,569/922 vs Spanish GAAP 5,670/925). FY2019+ IFRS 16 (FY2018 not restated). FY1999-FY2011 figures from Inditex annual reports retrieved from the UAB library archive of company reports (ddd.uab.cat), not from inditex.com. FY2012-2015 converted from thousands, rounded. FY2009 revenue taken from the audited consolidated income statement (11,084); the multi-year indicator tables in AR2009/AR2011 print a transposed 11,048.",
 	"anchors": [
 		{
 			"periodEnd": "2000-01-31",
@@ -99,10 +99,10 @@
 		{
 			"periodEnd": "2010-01-31",
 			"currency": "EUR",
-			"revenue": 11048,
+			"revenue": 11084,
 			"operatingIncome": 1729,
 			"quality": "reported",
-			"source": "Inditex Informe Anual 2009, 'Evolución de los principales indicadores' (IFRS), FY2009",
+			"source": "Inditex Informe Anual 2009, Pérdidas y Ganancias consolidada (Ventas 11,083,514 / EBIT 1,728,388 thousand EUR), FY2009",
 			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2009ispa.pdf"
 		},
 		{

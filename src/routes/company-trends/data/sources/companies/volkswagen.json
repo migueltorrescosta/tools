@@ -4,7 +4,7 @@
 	"type": "automotive",
 	"country": "DE",
 	"reportingCurrency": "EUR",
-	"notes": "Revenue = 'Sales revenue'; operatingIncome = 'Operating profit' / 'Operating result' (after special items) from the Group's five-/ten-year reviews, IFRS throughout. FY = calendar year. Figures exclude the equity-accounted Chinese joint ventures. 2015 operating result (-4,069) is depressed by diesel-issue special items; 2016 (7,103) also includes diesel special items (operating result before special items ~EUR 14.6bn per AR2016). Later reviews restated some years (2004 per IAS 19 amendment in AR2005; 2013 per AR2016; 2017 adjusted in AR2020; 2023 adjusted in AR2025: 22,528 vs 22,576 originally); the restated values are used. 2011 sourced from the Group's Sustainability Report 2011 (company document) because the AR2011/2012 PDFs and online reports were unfetchable.",
+	"notes": "Revenue = 'Sales revenue'; operatingIncome = 'Operating profit' / 'Operating result' (after special items) from the Group's five-/ten-year reviews, IFRS throughout. FY = calendar year. Figures exclude the equity-accounted Chinese joint ventures. 2015 operating result (-4,069) is depressed by diesel-issue special items; 2016 (7,103) also includes diesel special items (operating result before special items ~EUR 14.6bn per AR2016). Later reviews restated some years (2004 per IAS 19 amendment in AR2005; 2013 per AR2016; 2017 adjusted in AR2020; 2022 and 2023 adjusted in AR2025, 2023: 22,528 vs 22,576 originally); the restated values are used. 2011 sourced from the Group's Sustainability Report 2011 (company document) because the AR2011/2012 PDFs and online reports were unfetchable.",
 	"anchors": [
 		{
 			"periodEnd": "2000-12-31",

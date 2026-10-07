@@ -84,8 +84,8 @@
 			"revenue": 72483,
 			"operatingIncome": 1969,
 			"quality": "reported",
-			"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+			"source": "Costco Form 10-K FY2010, Item 6 Selected Financial Data (net sales 70,977 + membership fees 1,506; operating income 1,969)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/909832/000119312510230379/d10k.htm"
 		},
 		{
 			"periodEnd": "2009-08-30",
