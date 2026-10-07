@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "Tesco Preliminary Results 2012/13, Group income statement (comparative, restated)",
 			"sourceUrl": "https://www.tescoplc.com/media/476040/prelim_2012-13_results_statement.pdf"
+		},
+		{
+			"periodEnd": "2013-02-23",
+			"currency": "GBP",
+			"revenue": 64826,
+			"operatingIncome": 2188,
+			"quality": "reported",
+			"source": "Tesco Preliminary Results 2012/13, Group income statement",
+			"sourceUrl": "https://www.tescoplc.com/media/476040/prelim_2012-13_results_statement.pdf"
+		},
+		{
+			"periodEnd": "2014-02-22",
+			"currency": "GBP",
+			"revenue": 63557,
+			"operatingIncome": 2631,
+			"quality": "reported",
+			"source": "Tesco Preliminary Results 2014/15, Group income statement (comparative, restated)",
+			"sourceUrl": "https://www.tescoplc.com/media/1322/prelim_2014-2015_results_statement.pdf"
+		},
+		{
+			"periodEnd": "2015-02-28",
+			"currency": "GBP",
+			"revenue": 62284,
+			"operatingIncome": -5792,
+			"quality": "reported",
+			"source": "Tesco Preliminary Results 2014/15, Group income statement (53 weeks)",
+			"sourceUrl": "https://www.tescoplc.com/media/1322/prelim_2014-2015_results_statement.pdf"
+		},
+		{
+			"periodEnd": "2016-02-27",
+			"currency": "GBP",
+			"revenue": 53933,
+			"operatingIncome": 1072,
+			"quality": "reported",
+			"source": "Tesco Preliminary Results 2016/17, Group income statement (comparative, restated)",
+			"sourceUrl": "https://www.tescoplc.com/media/392168/tesco-plc-preliminary-results-1617.pdf"
+		},
+		{
+			"periodEnd": "2017-02-25",
+			"currency": "GBP",
+			"revenue": 55917,
+			"operatingIncome": 1017,
+			"quality": "reported",
+			"source": "Tesco Preliminary Results 2016/17, Group income statement",
+			"sourceUrl": "https://www.tescoplc.com/media/392168/tesco-plc-preliminary-results-1617.pdf"
+		},
+		{
+			"periodEnd": "2018-02-24",
+			"currency": "GBP",
+			"revenue": 57493,
+			"operatingIncome": 1839,
+			"quality": "reported",
+			"source": "Tesco Preliminary Results 2018/19, Group income statement (comparative)",
+			"sourceUrl": "https://www.tescoplc.com/media/3u4f1r3d/prelims-results-1819.pdf"
+		},
+		{
+			"periodEnd": "2019-02-23",
+			"currency": "GBP",
+			"revenue": 63911,
+			"operatingIncome": 2153,
+			"quality": "reported",
+			"source": "Tesco Preliminary Results 2018/19, Group income statement",
+			"sourceUrl": "https://www.tescoplc.com/media/3u4f1r3d/prelims-results-1819.pdf"
 		}
 	]
 }

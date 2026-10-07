@@ -113,6 +113,69 @@
 			"quality": "reported",
 			"source": "Royal Dutch Shell 6-K Q4/FY2012 results, consolidated statement of income (later restated to 50,512 for IAS 19R)",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1306965/000119312513032050/d478760d6k.htm"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "USD",
+			"revenue": 451235,
+			"operatingIncome": 33592,
+			"quality": "reported",
+			"source": "Royal Dutch Shell 6-K Q4/FY2013 results, consolidated statement of income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1306965/000119312514027679/d660447d6k.htm"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "USD",
+			"revenue": 421105,
+			"operatingIncome": 28594,
+			"quality": "reported",
+			"source": "Royal Dutch Shell 6-K Q4/FY2014 results, consolidated statement of income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1306965/000119312515024615/d862412d6k.htm"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "USD",
+			"revenue": 264960,
+			"operatingIncome": 2047,
+			"quality": "reported",
+			"source": "Royal Dutch Shell Form 20-F (acc. 0001564590-18-005735) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "USD",
+			"revenue": 233591,
+			"operatingIncome": 5606,
+			"quality": "reported",
+			"source": "Royal Dutch Shell Form 20-F (acc. 0001564590-19-007740) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "USD",
+			"revenue": 305179,
+			"operatingIncome": 18130,
+			"quality": "reported",
+			"source": "Royal Dutch Shell Form 20-F (acc. 0001306965-20-000014) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "USD",
+			"revenue": 388379,
+			"operatingIncome": 35621,
+			"quality": "reported",
+			"source": "Royal Dutch Shell Form 20-F (acc. 0001306965-21-000025) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "USD",
+			"revenue": 344877,
+			"operatingIncome": 25485,
+			"quality": "reported",
+			"source": "Royal Dutch Shell Form 20-F (acc. 0001306965-22-000012) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
 		}
 	]
 }

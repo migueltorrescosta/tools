@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "Oracle Form 10-K XBRL (accn 0001193125-12-284007), SEC companyconcept API",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2013-05-31",
+			"currency": "USD",
+			"revenue": 37180.0,
+			"operatingIncome": 14684.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001193125-13-272832), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2014-05-31",
+			"currency": "USD",
+			"revenue": 38275.0,
+			"operatingIncome": 14759.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001193125-14-251351), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2015-05-31",
+			"currency": "USD",
+			"revenue": 38226.0,
+			"operatingIncome": 13871.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001193125-15-235239), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2016-05-31",
+			"currency": "USD",
+			"revenue": 37047.0,
+			"operatingIncome": 12604.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001193125-16-628942), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2017-05-31",
+			"currency": "USD",
+			"revenue": 37728.0,
+			"operatingIncome": 12710.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001193125-17-214833), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2018-05-31",
+			"currency": "USD",
+			"revenue": 39831.0,
+			"operatingIncome": 13679.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001193125-18-201034), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2019-05-31",
+			"currency": "USD",
+			"revenue": 39506.0,
+			"operatingIncome": 13535.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001564590-19-023119), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
 		}
 	]
 }

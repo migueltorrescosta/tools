@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "P&G Form 10-K FY2015, Financial Summary (Item 6)",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042415000070/fy141510-kreport.htm"
+		},
+		{
+			"periodEnd": "2013-06-30",
+			"currency": "USD",
+			"revenue": 80116,
+			"operatingIncome": 13817,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2015, Financial Summary (Item 6)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042415000070/fy141510-kreport.htm"
+		},
+		{
+			"periodEnd": "2014-06-30",
+			"currency": "USD",
+			"revenue": 80510,
+			"operatingIncome": 14740,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2015, Financial Summary (Item 6)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042415000070/fy141510-kreport.htm"
+		},
+		{
+			"periodEnd": "2015-06-30",
+			"currency": "USD",
+			"revenue": 76279,
+			"operatingIncome": 11790,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2015, Financial Summary (Item 6)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042415000070/fy141510-kreport.htm"
+		},
+		{
+			"periodEnd": "2016-06-30",
+			"currency": "USD",
+			"revenue": 65299,
+			"operatingIncome": 13258,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2020, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042420000053/pg-20200630.htm"
+		},
+		{
+			"periodEnd": "2017-06-30",
+			"currency": "USD",
+			"revenue": 65058,
+			"operatingIncome": 13766,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2020, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042420000053/pg-20200630.htm"
+		},
+		{
+			"periodEnd": "2018-06-30",
+			"currency": "USD",
+			"revenue": 66832,
+			"operatingIncome": 13363,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2020, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042420000053/pg-20200630.htm"
+		},
+		{
+			"periodEnd": "2019-06-30",
+			"currency": "USD",
+			"revenue": 67684,
+			"operatingIncome": 5487,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2020, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042420000053/pg-20200630.htm"
 		}
 	]
 }

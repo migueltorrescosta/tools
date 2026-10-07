@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT')",
 			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "EUR",
+			"revenue": 117982,
+			"operatingIncome": 10815,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "EUR",
+			"revenue": 129872,
+			"operatingIncome": 10752,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "EUR",
+			"revenue": 149467,
+			"operatingIncome": 13186,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "EUR",
+			"revenue": 153261,
+			"operatingIncome": 12902,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "EUR",
+			"revenue": 164154,
+			"operatingIncome": 14348,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "EUR",
+			"revenue": 167362,
+			"operatingIncome": 11132,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "EUR",
+			"revenue": 172745,
+			"operatingIncome": 4313,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
 		}
 	]
 }

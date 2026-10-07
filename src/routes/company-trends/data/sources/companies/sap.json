@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "SAP Form 20-F FY2014, Item 3 Selected Financial Data (IFRS)",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000119312515099258/d875102d20f.htm"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "EUR",
+			"revenue": 16815,
+			"operatingIncome": 4479,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2014, Item 3 Selected Financial Data (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000119312515099258/d875102d20f.htm"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "EUR",
+			"revenue": 17560,
+			"operatingIncome": 4331,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2014, Item 3 Selected Financial Data (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000119312515099258/d875102d20f.htm"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "EUR",
+			"revenue": 20793,
+			"operatingIncome": 4252,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2016, Item 3 Selected Financial Data (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000119312517060157/d344005d20f.htm"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "EUR",
+			"revenue": 22062,
+			"operatingIncome": 5135,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2016, Item 3 Selected Financial Data (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000119312517060157/d344005d20f.htm"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "EUR",
+			"revenue": 23461,
+			"operatingIncome": 4877,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2019, Consolidated Income Statement (IFRS, XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465920025681/R2.htm"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "EUR",
+			"revenue": 24708,
+			"operatingIncome": 5703,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2019, Consolidated Income Statement (IFRS, XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465920025681/R2.htm"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "EUR",
+			"revenue": 27553,
+			"operatingIncome": 4473,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2019, Consolidated Income Statement (IFRS, XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465920025681/R2.htm"
 		}
 	]
 }

@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "Pfizer Form 10-K FY2013, Consolidated Statements of Income (XBRL R2)",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800314000018/R2.htm"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "USD",
+			"revenue": 51584,
+			"operatingIncome": 15716,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2013, Consolidated Statements of Income (XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800314000018/R2.htm"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "USD",
+			"revenue": 49605,
+			"operatingIncome": 12240,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2016, Consolidated Statements of Income (XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800317000014/R2.htm"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "USD",
+			"revenue": 48851,
+			"operatingIncome": 8965,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2016, Consolidated Statements of Income (XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800317000014/R2.htm"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "USD",
+			"revenue": 52824,
+			"operatingIncome": 8351,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2016, Consolidated Statements of Income (XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800317000014/R2.htm"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "USD",
+			"revenue": 52546,
+			"operatingIncome": 12305,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2019, Consolidated Statements of Income (XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800320000014/R2.htm"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "USD",
+			"revenue": 53647,
+			"operatingIncome": 11885,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2019, Consolidated Statements of Income (XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800320000014/R2.htm"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "USD",
+			"revenue": 51750,
+			"operatingIncome": 17682,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2019, Consolidated Statements of Income (XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800320000014/R2.htm"
 		}
 	]
 }

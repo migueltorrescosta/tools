@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "Eni Form 20-F FY2014, Item 3 Selected Financial Information (continuing operations)",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1002242/000131143515000006/sj0415eni20f2014.htm"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "EUR",
+			"revenue": 114697,
+			"operatingIncome": 8888,
+			"quality": "reported",
+			"source": "Eni Form 20-F FY2014, Item 3 Selected Financial Information (continuing operations)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1002242/000131143515000006/sj0415eni20f2014.htm"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "EUR",
+			"revenue": 109847,
+			"operatingIncome": 7917,
+			"quality": "reported",
+			"source": "Eni Form 20-F FY2014, Item 3 Selected Financial Information (continuing operations)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1002242/000131143515000006/sj0415eni20f2014.htm"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "EUR",
+			"revenue": 72286,
+			"operatingIncome": -3076,
+			"quality": "reported",
+			"source": "Eni 6-K 2017-04-07, FY2016 results, consolidated income statement (continuing operations)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1002242/000167276417000027/t1700943_6k.htm"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "EUR",
+			"revenue": 55762,
+			"operatingIncome": 2157,
+			"quality": "reported",
+			"source": "Eni 6-K 2017-04-07, FY2016 results, consolidated income statement (continuing operations)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1002242/000167276417000027/t1700943_6k.htm"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "EUR",
+			"revenue": 66919,
+			"operatingIncome": 8012,
+			"quality": "reported",
+			"source": "Eni Form 20-F FY2019 (acc. 0001104659-20-042364) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001002242/ifrs-full/RevenueFromContractsWithCustomers.json"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "EUR",
+			"revenue": 75822,
+			"operatingIncome": 9983,
+			"quality": "reported",
+			"source": "Eni Form 20-F FY2020 (acc. 0001104659-21-046015) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001002242/ifrs-full/RevenueFromContractsWithCustomers.json"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "EUR",
+			"revenue": 69881,
+			"operatingIncome": 6432,
+			"quality": "reported",
+			"source": "Eni Form 20-F FY2021 (acc. 0001104659-22-043979) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001002242/ifrs-full/RevenueFromContractsWithCustomers.json"
 		}
 	]
 }

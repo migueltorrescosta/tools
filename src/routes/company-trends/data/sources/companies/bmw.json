@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "BMW Group Report 2020, Ten-year Comparison",
 			"sourceUrl": "https://bericht2020.bmwgroup.com/data/pdf/en/BMW-Group-Bericht-2020-EN_10_Year_Comparison.pdf"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "EUR",
+			"revenue": 76059,
+			"operatingIncome": 7978,
+			"quality": "reported",
+			"source": "BMW Group Report 2020, Ten-year Comparison",
+			"sourceUrl": "https://bericht2020.bmwgroup.com/data/pdf/en/BMW-Group-Bericht-2020-EN_10_Year_Comparison.pdf"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "EUR",
+			"revenue": 80401,
+			"operatingIncome": 9118,
+			"quality": "reported",
+			"source": "BMW Group Report 2023, Ten-year Comparison",
+			"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "EUR",
+			"revenue": 92175,
+			"operatingIncome": 9593,
+			"quality": "reported",
+			"source": "BMW Group Report 2023, Ten-year Comparison",
+			"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "EUR",
+			"revenue": 94163,
+			"operatingIncome": 9386,
+			"quality": "reported",
+			"source": "BMW Group Report 2023, Ten-year Comparison",
+			"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "EUR",
+			"revenue": 98282,
+			"operatingIncome": 9899,
+			"quality": "reported",
+			"source": "BMW Group Report 2023, Ten-year Comparison",
+			"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "EUR",
+			"revenue": 96855,
+			"operatingIncome": 8933,
+			"quality": "reported",
+			"source": "BMW Group Report 2023, Ten-year Comparison",
+			"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "EUR",
+			"revenue": 104210,
+			"operatingIncome": 7411,
+			"quality": "reported",
+			"source": "BMW Group Report 2023, Ten-year Comparison",
+			"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
 		}
 	]
 }

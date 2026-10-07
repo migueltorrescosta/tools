@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "J&J Form 10-K FY2012 (accn 0000200406-13-000038), XBRL via SEC companyconcept API; revenue from SalesRevenueGoodsNet, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json)",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/SalesRevenueGoodsNet.json"
+		},
+		{
+			"periodEnd": "2013-12-29",
+			"currency": "USD",
+			"revenue": 71312,
+			"operatingIncome": 15471,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2013 (accn 0000200406-14-000033), XBRL via SEC companyconcept API; revenue from SalesRevenueGoodsNet, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/SalesRevenueGoodsNet.json"
+		},
+		{
+			"periodEnd": "2014-12-28",
+			"currency": "USD",
+			"revenue": 74331,
+			"operatingIncome": 20563,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2014 (accn 0000200406-15-000004), XBRL via SEC companyconcept API; revenue from SalesRevenueGoodsNet, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/SalesRevenueGoodsNet.json"
+		},
+		{
+			"periodEnd": "2016-01-03",
+			"currency": "USD",
+			"revenue": 70074,
+			"operatingIncome": 19196,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2015 (accn 0000200406-16-000071), XBRL via SEC companyconcept API; revenue from SalesRevenueGoodsNet, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/SalesRevenueGoodsNet.json"
+		},
+		{
+			"periodEnd": "2017-01-01",
+			"currency": "USD",
+			"revenue": 71890,
+			"operatingIncome": 19803,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2016 (accn 0000200406-17-000006), XBRL via SEC companyconcept API; revenue from SalesRevenueGoodsNet, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/SalesRevenueGoodsNet.json"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "USD",
+			"revenue": 76450,
+			"operatingIncome": 17673,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2017 (accn 0000200406-18-000005), XBRL via SEC companyconcept API; revenue from SalesRevenueGoodsNet, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/SalesRevenueGoodsNet.json"
+		},
+		{
+			"periodEnd": "2018-12-30",
+			"currency": "USD",
+			"revenue": 81581,
+			"operatingIncome": 17999,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2018 (accn 0000200406-19-000009), XBRL via SEC companyconcept API; revenue from RevenueFromContractWithCustomerExcludingAssessedTax, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+		},
+		{
+			"periodEnd": "2019-12-29",
+			"currency": "USD",
+			"revenue": 82059,
+			"operatingIncome": 17328,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2019 (accn 0000200406-20-000010), XBRL via SEC companyconcept API; revenue from RevenueFromContractWithCustomerExcludingAssessedTax, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
 		}
 	]
 }

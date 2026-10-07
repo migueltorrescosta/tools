@@ -550,6 +550,62 @@
 					"quality": "reported",
 					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-13-028362); revenue tag us-gaap:Revenues (Google Inc. CIK 1288776), operating income us-gaap:OperatingIncomeLoss (FY ending 2012-12-31: revenue USD 50,175m, operating income USD 12,760m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001288776/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 45048.8,
+					"operatingIncome": 10516.5,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001288776-14-000020); revenue tag us-gaap:Revenues (Google Inc. CIK 1288776), operating income us-gaap:OperatingIncomeLoss (FY ending 2013-12-31: revenue USD 59,825m, operating income USD 13,966m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001288776/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 49661.6,
+					"operatingIncome": 12412.2,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001288776-15-000008); revenue tag us-gaap:Revenues (Google Inc. CIK 1288776), operating income us-gaap:OperatingIncomeLoss (FY ending 2014-12-31: revenue USD 66,001m, operating income USD 16,496m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001288776/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 67583.1,
+					"operatingIncome": 17448,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-16-000012); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss (FY ending 2015-12-31: revenue USD 74,989m, operating income USD 19,360m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 81568.3,
+					"operatingIncome": 21429.4,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-17-000008); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss (FY ending 2016-12-31: revenue USD 90,272m, operating income USD 23,716m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 98125,
+					"operatingIncome": 23143.5,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-18-000007); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss (FY ending 2017-12-31: revenue USD 110,855m, operating income USD 26,146m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 115825.4,
+					"operatingIncome": 22282.3,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-19-000004); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss (FY ending 2018-12-31: revenue USD 136,819m, operating income USD 26,321m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 144562.9,
+					"operatingIncome": 30573.5,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-20-000008); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss (FY ending 2019-12-31: revenue USD 161,857m, operating income USD 34,231m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
 				}
 			]
 		},
@@ -663,6 +719,62 @@
 					"operatingIncome": 526.2,
 					"quality": "reported",
 					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-13-028520); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss (FY ending 2012-12-31: revenue USD 61,093m, operating income USD 676m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001018724/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 56063,
+					"operatingIncome": 561,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001018724-14-000006); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss (FY ending 2013-12-31: revenue USD 74,452m, operating income USD 745m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001018724/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 66957.9,
+					"operatingIncome": 133.9,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001018724-15-000006); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss (FY ending 2014-12-31: revenue USD 88,988m, operating income USD 178m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001018724/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 96438.1,
+					"operatingIncome": 2012.5,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001018724-16-000172); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss (FY ending 2015-12-31: revenue USD 107,006m, operating income USD 2,233m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001018724/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 122875.6,
+					"operatingIncome": 3782.4,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001018724-17-000011); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss (FY ending 2016-12-31: revenue USD 135,987m, operating income USD 4,186m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001018724/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 157440.8,
+					"operatingIncome": 3634.5,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001018724-18-000005); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss (FY ending 2017-12-31: revenue USD 177,866m, operating income USD 4,106m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001018724/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 197152.6,
+					"operatingIncome": 10515.1,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001018724-19-000004); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2018-12-31: revenue USD 232,887m, operating income USD 12,421m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001018724/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 250548.8,
+					"operatingIncome": 12987.3,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001018724-20-000004); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2019-12-31: revenue USD 280,522m, operating income USD 14,541m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001018724/us-gaap/OperatingIncomeLoss.json"
 				}
 			]
@@ -778,6 +890,62 @@
 					"quality": "reported",
 					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-12-444068); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss (FY ending 2012-09-29: revenue USD 156,508m, operating income USD 55,241m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2013Q3",
+					"revenue": 130273.5,
+					"operatingIncome": 37348.7,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-13-416534); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss (FY ending 2013-09-28: revenue USD 170,910m, operating income USD 48,999m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2014Q3",
+					"revenue": 134724.1,
+					"operatingIncome": 38695.9,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-14-383437); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss (FY ending 2014-09-27: revenue USD 182,795m, operating income USD 52,503m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2015Q3",
+					"revenue": 203546.4,
+					"operatingIncome": 62035.4,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-15-356351); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss (FY ending 2015-09-26: revenue USD 233,715m, operating income USD 71,230m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2016Q3",
+					"revenue": 194132.1,
+					"operatingIncome": 54037.5,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001628280-16-020309); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss (FY ending 2016-09-24: revenue USD 215,639m, operating income USD 60,024m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2017Q3",
+					"revenue": 207428.6,
+					"operatingIncome": 55508.8,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0000320193-17-000070); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss (FY ending 2017-09-30: revenue USD 229,234m, operating income USD 61,344m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2018Q3",
+					"revenue": 223142.7,
+					"operatingIncome": 59565.8,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0000320193-18-000145); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2018-09-29: revenue USD 265,595m, operating income USD 70,898m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2019Q3",
+					"revenue": 230608.8,
+					"operatingIncome": 56665.2,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0000320193-19-000119); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2019-09-28: revenue USD 260,174m, operating income USD 63,930m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
 				}
 			]
 		},
@@ -892,6 +1060,62 @@
 					"quality": "reported",
 					"source": "ASML Form 20-F (FY2013/FY2014) XBRL facts via SEC companyconcept API: SalesRevenueNet, OperatingIncomeLoss (US GAAP) (FY ending 2012-12-31: revenue EUR 4,731.6m, operating income EUR 1,156.8m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 5245.3,
+					"operatingIncome": 1047.9,
+					"quality": "reported",
+					"source": "ASML Form 20-F (FY2014/FY2015) XBRL facts via SEC companyconcept API: SalesRevenueNet, OperatingIncomeLoss (US GAAP) (FY ending 2013-12-31: revenue EUR 5,245.3m, operating income EUR 1,047.9m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 5856.3,
+					"operatingIncome": 1282.2,
+					"quality": "reported",
+					"source": "ASML Form 20-F (FY2015/FY2016) XBRL facts via SEC companyconcept API: SalesRevenueNet, OperatingIncomeLoss (US GAAP) (FY ending 2014-12-31: revenue EUR 5,856.3m, operating income EUR 1,282.2m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 6287.4,
+					"operatingIncome": 1565.1,
+					"quality": "reported",
+					"source": "ASML Form 20-F (FY2017) XBRL facts via SEC companyconcept API: SalesRevenueNet, OperatingIncomeLoss (US GAAP) (FY ending 2015-12-31: revenue EUR 6,287.4m, operating income EUR 1,565.1m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 6875.1,
+					"operatingIncome": 1758.5,
+					"quality": "reported",
+					"source": "ASML Form 20-F FY2018 XBRL facts via SEC companyconcept API: RevenueFromContractWithCustomerExcludingAssessedTax, OperatingIncomeLoss (US GAAP) (FY ending 2016-12-31: revenue EUR 6,875.1m, operating income EUR 1,758.5m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 8962.7,
+					"operatingIncome": 2439.7,
+					"quality": "reported",
+					"source": "ASML Form 20-F FY2019 XBRL facts via SEC companyconcept API: RevenueFromContractWithCustomerExcludingAssessedTax, OperatingIncomeLoss (US GAAP) (FY ending 2017-12-31: revenue EUR 8,962.7m, operating income EUR 2,439.7m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 10944,
+					"operatingIncome": 2965.3,
+					"quality": "reported",
+					"source": "ASML Form 20-F FY2020 XBRL facts via SEC companyconcept API: RevenueFromContractWithCustomerExcludingAssessedTax, OperatingIncomeLoss (US GAAP) (FY ending 2018-12-31: revenue EUR 10,944m, operating income EUR 2,965.3m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 11820,
+					"operatingIncome": 2790.8,
+					"quality": "reported",
+					"source": "ASML Form 20-F FY2021 XBRL facts via SEC companyconcept API: RevenueFromContractWithCustomerExcludingAssessedTax, OperatingIncomeLoss (US GAAP) (FY ending 2019-12-31: revenue EUR 11,820m, operating income EUR 2,790.8m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
 				}
 			]
 		},
@@ -1006,6 +1230,62 @@
 					"quality": "reported",
 					"source": "AstraZeneca Annual Report and Form 20-F Information 2014, Group Financial Record (IFRS; 2010-2012 restated for IAS 19 (2011)) (FY ending 2012-12-31: revenue USD 27,973m, operating income USD 8,148m)",
 					"sourceUrl": "https://ddd.uab.cat/pub/infanu/40172/iaASTZENa2014ieng.pdf"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 19360.6,
+					"operatingIncome": 2795.2,
+					"quality": "reported",
+					"source": "AstraZeneca Annual Report and Form 20-F Information 2014, Group Financial Record (IFRS; 2010-2012 restated for IAS 19 (2011)) (FY ending 2013-12-31: revenue USD 25,711m, operating income USD 3,712m)",
+					"sourceUrl": "https://ddd.uab.cat/pub/infanu/40172/iaASTZENa2014ieng.pdf"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 19634.8,
+					"operatingIncome": 1608,
+					"quality": "reported",
+					"source": "AstraZeneca Annual Report and Form 20-F Information 2014, Group Financial Record (IFRS; 2010-2012 restated for IAS 19 (2011)) (FY ending 2014-12-31: revenue USD 26,095m, operating income USD 2,137m)",
+					"sourceUrl": "https://ddd.uab.cat/pub/infanu/40172/iaASTZENa2014ieng.pdf"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 22267.8,
+					"operatingIncome": 3707.7,
+					"quality": "reported",
+					"source": "AstraZeneca Form 20-F XBRL (SEC companyconcept ifrs-full:Revenue and ifrs-full:ProfitLossFromOperatingActivities), accn 0001104659-18-015257 (FY ending 2015-12-31: revenue USD 24,708m, operating income USD 4,114m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000901832/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 20784.2,
+					"operatingIncome": 4429.4,
+					"quality": "reported",
+					"source": "AstraZeneca Form 20-F XBRL (SEC companyconcept ifrs-full:Revenue and ifrs-full:ProfitLossFromOperatingActivities), accn 0001104659-18-015257 (FY ending 2016-12-31: revenue USD 23,002m, operating income USD 4,902m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000901832/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 19885.2,
+					"operatingIncome": 3254.8,
+					"quality": "reported",
+					"source": "AstraZeneca Form 20-F XBRL (SEC companyconcept ifrs-full:Revenue and ifrs-full:ProfitLossFromOperatingActivities), accn 0001104659-18-015257 (FY ending 2017-12-31: revenue USD 22,465m, operating income USD 3,677m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000901832/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 18700.5,
+					"operatingIncome": 2867.3,
+					"quality": "reported",
+					"source": "AstraZeneca Form 20-F XBRL (SEC companyconcept ifrs-full:Revenue and ifrs-full:ProfitLossFromOperatingActivities), accn 0001104659-19-012881 (FY ending 2018-12-31: revenue USD 22,090m, operating income USD 3,387m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000901832/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 21778.6,
+					"operatingIncome": 2611.6,
+					"quality": "reported",
+					"source": "AstraZeneca Form 20-F XBRL (SEC companyconcept ifrs-full:Revenue and ifrs-full:ProfitLossFromOperatingActivities), accn 0001104659-20-028557 (FY ending 2019-12-31: revenue USD 24,384m, operating income USD 2,924m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000901832/ifrs-full/Revenue.json"
 				}
 			]
 		},
@@ -1120,6 +1400,62 @@
 					"quality": "reported",
 					"source": "BMW Group Report 2020, Ten-year Comparison (FY ending 2012-12-31: revenue EUR 76,848m, operating income EUR 8,275m)",
 					"sourceUrl": "https://bericht2020.bmwgroup.com/data/pdf/en/BMW-Group-Bericht-2020-EN_10_Year_Comparison.pdf"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 76059,
+					"operatingIncome": 7978,
+					"quality": "reported",
+					"source": "BMW Group Report 2020, Ten-year Comparison (FY ending 2013-12-31: revenue EUR 76,059m, operating income EUR 7,978m)",
+					"sourceUrl": "https://bericht2020.bmwgroup.com/data/pdf/en/BMW-Group-Bericht-2020-EN_10_Year_Comparison.pdf"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 80401,
+					"operatingIncome": 9118,
+					"quality": "reported",
+					"source": "BMW Group Report 2023, Ten-year Comparison (FY ending 2014-12-31: revenue EUR 80,401m, operating income EUR 9,118m)",
+					"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 92175,
+					"operatingIncome": 9593,
+					"quality": "reported",
+					"source": "BMW Group Report 2023, Ten-year Comparison (FY ending 2015-12-31: revenue EUR 92,175m, operating income EUR 9,593m)",
+					"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 94163,
+					"operatingIncome": 9386,
+					"quality": "reported",
+					"source": "BMW Group Report 2023, Ten-year Comparison (FY ending 2016-12-31: revenue EUR 94,163m, operating income EUR 9,386m)",
+					"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 98282,
+					"operatingIncome": 9899,
+					"quality": "reported",
+					"source": "BMW Group Report 2023, Ten-year Comparison (FY ending 2017-12-31: revenue EUR 98,282m, operating income EUR 9,899m)",
+					"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 96855,
+					"operatingIncome": 8933,
+					"quality": "reported",
+					"source": "BMW Group Report 2023, Ten-year Comparison (FY ending 2018-12-31: revenue EUR 96,855m, operating income EUR 8,933m)",
+					"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 104210,
+					"operatingIncome": 7411,
+					"quality": "reported",
+					"source": "BMW Group Report 2023, Ten-year Comparison (FY ending 2019-12-31: revenue EUR 104,210m, operating income EUR 7,411m)",
+					"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
 				}
 			]
 		},
@@ -1233,6 +1569,62 @@
 					"operatingIncome": 4912.1,
 					"quality": "reported",
 					"source": "Boeing Form 10-K FY2012, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API) (FY ending 2012-12-31: revenue USD 81,698m, operating income USD 6,311m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 65227.9,
+					"operatingIncome": 4941.2,
+					"quality": "reported",
+					"source": "Boeing Form 10-K FY2013, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API) (FY ending 2013-12-31: revenue USD 86,623m, operating income USD 6,562m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 68292.7,
+					"operatingIncome": 5623,
+					"quality": "reported",
+					"source": "Boeing Form 10-K FY2014, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API) (FY ending 2014-12-31: revenue USD 90,762m, operating income USD 7,473m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 86621.8,
+					"operatingIncome": 6707.9,
+					"quality": "reported",
+					"source": "Boeing Form 10-K FY2015, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API) (FY ending 2015-12-31: revenue USD 96,114m, operating income USD 7,443m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 85452.8,
+					"operatingIncome": 5271.5,
+					"quality": "reported",
+					"source": "Boeing Form 10-K FY2016, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API) (FY ending 2016-12-31: revenue USD 94,571m, operating income USD 5,834m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 82667.4,
+					"operatingIncome": 9097.7,
+					"quality": "reported",
+					"source": "Boeing Form 10-K FY2017, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API) (FY ending 2017-12-31: revenue USD 93,392m, operating income USD 10,278m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 85610,
+					"operatingIncome": 10147.7,
+					"quality": "reported",
+					"source": "Boeing Form 10-K FY2018, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API) (FY ending 2018-12-31: revenue USD 101,127m, operating income USD 11,987m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 68378.8,
+					"operatingIncome": -1764,
+					"quality": "reported",
+					"source": "Boeing Form 10-K FY2019, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API) (FY ending 2019-12-31: revenue USD 76,559m, operating income USD -1,975m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
 				}
 			]
@@ -1348,6 +1740,62 @@
 					"quality": "reported",
 					"source": "BP 6-K Q4/FY2013 results, group income statement (FY ending 2012-12-31: revenue USD 388,074m, operating income USD 18,131m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119312514034432/d669396d6k.htm"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 298355.1,
+					"operatingIncome": 22756.7,
+					"quality": "reported",
+					"source": "BP 6-K Q4/FY2013 results, group income statement (FY ending 2013-12-31: revenue USD 396,217m, operating income USD 30,221m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119312514034432/d669396d6k.htm"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 269882.6,
+					"operatingIncome": 3724.6,
+					"quality": "reported",
+					"source": "BP 6-K Q4/FY2014 results, group income statement (FY ending 2014-12-31: revenue USD 358,678m, operating income USD 4,950m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119163815000127/bp201502036k.htm"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 203664,
+					"operatingIncome": -8625.8,
+					"quality": "reported",
+					"source": "BP Form 20-F (acc. 0001628280-18-003778) via SEC XBRL company concept (FY ending 2015-12-31: revenue USD 225,982m, operating income USD -9,571m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 168614,
+					"operatingIncome": -2073.7,
+					"quality": "reported",
+					"source": "BP Form 20-F (acc. 0001628280-19-003618) via SEC XBRL company concept (FY ending 2016-12-31: revenue USD 186,606m, operating income USD -2,295m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 216495.5,
+					"operatingIncome": 6355.5,
+					"quality": "reported",
+					"source": "BP Form 20-F (acc. 0001628280-20-003753) via SEC XBRL company concept (FY ending 2017-12-31: revenue USD 244,582m, operating income USD 7,180m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 257132.2,
+					"operatingIncome": 14157,
+					"quality": "reported",
+					"source": "BP Form 20-F (acc. 0001628280-21-005241) via SEC XBRL company concept (FY ending 2018-12-31: revenue USD 303,738m, operating income USD 16,723m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 252419.1,
+					"operatingIncome": 7282.8,
+					"quality": "reported",
+					"source": "BP Form 20-F (acc. 0001628280-21-005241 / 0000313807-22-000012) via SEC XBRL company concept (FY ending 2019-12-31: revenue USD 282,616m, operating income USD 8,154m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
 				}
 			]
 		},
@@ -1461,6 +1909,62 @@
 					"operatingIncome": 36061.9,
 					"quality": "reported",
 					"source": "Chevron 10-K FY2014 (acc. 0000093410-15-000010) via SEC XBRL company concept (FY ending 2012-12-31: revenue USD 241,909m, operating income USD 46,332m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 172324.7,
+					"operatingIncome": 27036.8,
+					"quality": "reported",
+					"source": "Chevron 10-K FY2015 (acc. 0000093410-16-000049) via SEC XBRL company concept (FY ending 2013-12-31: revenue USD 228,848m, operating income USD 35,905m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 159494.1,
+					"operatingIncome": 23477.5,
+					"quality": "reported",
+					"source": "Chevron 10-K FY2016 (acc. 0000093410-17-000013) via SEC XBRL company concept (FY ending 2014-12-31: revenue USD 211,970m, operating income USD 31,202m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 124801,
+					"operatingIncome": 4363.8,
+					"quality": "reported",
+					"source": "Chevron 10-K FY2017 (acc. 0000093410-18-000010) via SEC XBRL company concept (FY ending 2015-12-31: revenue USD 138,477m, operating income USD 4,842m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 103435,
+					"operatingIncome": -1951.7,
+					"quality": "reported",
+					"source": "Chevron 10-K FY2018 (acc. 0000093410-19-000008) via SEC XBRL company concept (FY ending 2016-12-31: revenue USD 114,472m, operating income USD -2,160m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 125447.4,
+					"operatingIncome": 8162.1,
+					"quality": "reported",
+					"source": "Chevron 10-K FY2019 (acc. 0000093410-20-000010) via SEC XBRL company concept (FY ending 2017-12-31: revenue USD 141,722m, operating income USD 9,221m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 140815.8,
+					"operatingIncome": 17418,
+					"quality": "reported",
+					"source": "Chevron 10-K FY2020 (acc. 0000093410-21-000009) via SEC XBRL company concept (FY ending 2018-12-31: revenue USD 166,339m, operating income USD 20,575m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 130861.1,
+					"operatingIncome": 4944.5,
+					"quality": "reported",
+					"source": "Chevron 10-K FY2021 (acc. 0000093410-22-000019) via SEC XBRL company concept (FY ending 2019-12-31: revenue USD 146,516m, operating income USD 5,536m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
 				}
 			]
@@ -1576,6 +2080,62 @@
 					"quality": "reported",
 					"source": "Coca-Cola Form 10-K FY2013, Consolidated Statements of Income (FY ending 2012-12-31: revenue USD 48,017m, operating income USD 10,779m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134414000008/R2.htm"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 35281.5,
+					"operatingIncome": 7701.8,
+					"quality": "reported",
+					"source": "Coca-Cola Form 10-K FY2013, Consolidated Statements of Income (FY ending 2013-12-31: revenue USD 46,854m, operating income USD 10,228m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134414000008/R2.htm"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 34610.6,
+					"operatingIncome": 7304.7,
+					"quality": "reported",
+					"source": "Coca-Cola Form 10-K FY2016, Consolidated Statements of Income (FY ending 2014-12-31: revenue USD 45,998m, operating income USD 9,708m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134417000009/R2.htm"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 39919.5,
+					"operatingIncome": 7866,
+					"quality": "reported",
+					"source": "Coca-Cola Form 10-K FY2016, Consolidated Statements of Income (FY ending 2015-12-31: revenue USD 44,294m, operating income USD 8,728m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134417000009/R2.htm"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 37826.7,
+					"operatingIncome": 7794.3,
+					"quality": "reported",
+					"source": "Coca-Cola Form 10-K FY2016, Consolidated Statements of Income (FY ending 2016-12-31: revenue USD 41,863m, operating income USD 8,626m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134417000009/R2.htm"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 32053.6,
+					"operatingIncome": 6864.5,
+					"quality": "reported",
+					"source": "Coca-Cola Form 10-K FY2019, Consolidated Statements of Income (FY ending 2017-12-31: revenue USD 36,212m, operating income USD 7,755m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134420000006/R2.htm"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 29037,
+					"operatingIncome": 7747.7,
+					"quality": "reported",
+					"source": "Coca-Cola Form 10-K FY2019, Consolidated Statements of Income (FY ending 2018-12-31: revenue USD 34,300m, operating income USD 9,152m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134420000006/R2.htm"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 33284.2,
+					"operatingIncome": 9008.3,
+					"quality": "reported",
+					"source": "Coca-Cola Form 10-K FY2019, Consolidated Statements of Income (FY ending 2019-12-31: revenue USD 37,266m, operating income USD 10,086m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134420000006/R2.htm"
 				}
 			]
 		},
@@ -1689,6 +2249,62 @@
 					"operatingIncome": 2126.1,
 					"quality": "reported",
 					"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2012-09-02: revenue USD 99,137m, operating income USD 2,759m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2013Q3",
+					"revenue": 80153.5,
+					"operatingIncome": 2327.1,
+					"quality": "reported",
+					"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2013-09-01: revenue USD 105,156m, operating income USD 3,053m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2014Q3",
+					"revenue": 83018.3,
+					"operatingIncome": 2373.2,
+					"quality": "reported",
+					"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2014-08-31: revenue USD 112,640m, operating income USD 3,220m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2015Q3",
+					"revenue": 101199.7,
+					"operatingIncome": 3156.2,
+					"quality": "reported",
+					"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2015-08-30: revenue USD 116,199m, operating income USD 3,624m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2016Q3",
+					"revenue": 106878.5,
+					"operatingIncome": 3305.8,
+					"quality": "reported",
+					"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2016-08-28: revenue USD 118,719m, operating income USD 3,672m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2017Q3",
+					"revenue": 116751.8,
+					"operatingIncome": 3719.9,
+					"quality": "reported",
+					"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2017-09-03: revenue USD 129,025m, operating income USD 4,111m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2018Q3",
+					"revenue": 118946.7,
+					"operatingIncome": 3763.9,
+					"quality": "reported",
+					"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2018-09-02: revenue USD 141,576m, operating income USD 4,480m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2019Q3",
+					"revenue": 135350.4,
+					"operatingIncome": 4198.7,
+					"quality": "reported",
+					"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2019-09-01: revenue USD 152,703m, operating income USD 4,737m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
 				}
 			]
@@ -1804,6 +2420,62 @@
 					"quality": "reported",
 					"source": "Eli Lilly Form 10-K FY2012 (accn 0000059478-13-000007), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json) (FY ending 2012-12-31: revenue USD 22,603.4m, operating income USD 4,901.5m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 17404.4,
+					"operatingIncome": 4434.7,
+					"quality": "reported",
+					"source": "Eli Lilly Form 10-K FY2015 (accn 0000059478-16-000321), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json) (FY ending 2013-12-31: revenue USD 23,113.1m, operating income USD 5,889.3m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 14759.5,
+					"operatingIncome": 2257.5,
+					"quality": "reported",
+					"source": "Eli Lilly Form 10-K FY2015 (accn 0000059478-16-000321), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json) (FY ending 2014-12-31: revenue USD 19,615.6m, operating income USD 3,000.3m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 17987.6,
+					"operatingIncome": 2514.5,
+					"quality": "reported",
+					"source": "Eli Lilly Form 10-K FY2015 (accn 0000059478-16-000321), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json) (FY ending 2015-12-31: revenue USD 19,958.7m, operating income USD 2,790m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 19175.9,
+					"operatingIncome": 3048.7,
+					"quality": "reported",
+					"source": "Eli Lilly Form 10-K FY2016 (accn 0000059478-17-000098), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json) (FY ending 2016-12-31: revenue USD 21,222.1m, operating income USD 3,374m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 20244.9,
+					"operatingIncome": 1945.1,
+					"quality": "reported",
+					"source": "Eli Lilly Form 10-K FY2017 (accn 0000059478-18-000089), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json) (FY ending 2017-12-31: revenue USD 22,871.3m, operating income USD 2,197.4m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 20787.9,
+					"operatingIncome": 3213.3,
+					"quality": "reported",
+					"source": "Eli Lilly Form 10-K FY2018 (accn 0000059478-19-000082), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json) (FY ending 2018-12-31: revenue USD 24,555.7m, operating income USD 3,795.7m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 19934.7,
+					"operatingIncome": 4703.3,
+					"quality": "reported",
+					"source": "Eli Lilly Form 10-K FY2019 (accn 0000059478-20-000057), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json) (FY ending 2019-12-31: revenue USD 22,319.5m, operating income USD 5,265.9m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
 				}
 			]
 		},
@@ -1918,6 +2590,62 @@
 					"quality": "reported",
 					"source": "Eni Form 20-F FY2014, Item 3 Selected Financial Information (continuing operations) (FY ending 2012-12-31: revenue EUR 127,109m, operating income EUR 15,208m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1002242/000131143515000006/sj0415eni20f2014.htm"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 114697,
+					"operatingIncome": 8888,
+					"quality": "reported",
+					"source": "Eni Form 20-F FY2014, Item 3 Selected Financial Information (continuing operations) (FY ending 2013-12-31: revenue EUR 114,697m, operating income EUR 8,888m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1002242/000131143515000006/sj0415eni20f2014.htm"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 109847,
+					"operatingIncome": 7917,
+					"quality": "reported",
+					"source": "Eni Form 20-F FY2014, Item 3 Selected Financial Information (continuing operations) (FY ending 2014-12-31: revenue EUR 109,847m, operating income EUR 7,917m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1002242/000131143515000006/sj0415eni20f2014.htm"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 72286,
+					"operatingIncome": -3076,
+					"quality": "reported",
+					"source": "Eni 6-K 2017-04-07, FY2016 results, consolidated income statement (continuing operations) (FY ending 2015-12-31: revenue EUR 72,286m, operating income EUR -3,076m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1002242/000167276417000027/t1700943_6k.htm"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 55762,
+					"operatingIncome": 2157,
+					"quality": "reported",
+					"source": "Eni 6-K 2017-04-07, FY2016 results, consolidated income statement (continuing operations) (FY ending 2016-12-31: revenue EUR 55,762m, operating income EUR 2,157m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1002242/000167276417000027/t1700943_6k.htm"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 66919,
+					"operatingIncome": 8012,
+					"quality": "reported",
+					"source": "Eni Form 20-F FY2019 (acc. 0001104659-20-042364) via SEC XBRL company concept (FY ending 2017-12-31: revenue EUR 66,919m, operating income EUR 8,012m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001002242/ifrs-full/RevenueFromContractsWithCustomers.json"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 75822,
+					"operatingIncome": 9983,
+					"quality": "reported",
+					"source": "Eni Form 20-F FY2020 (acc. 0001104659-21-046015) via SEC XBRL company concept (FY ending 2018-12-31: revenue EUR 75,822m, operating income EUR 9,983m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001002242/ifrs-full/RevenueFromContractsWithCustomers.json"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 69881,
+					"operatingIncome": 6432,
+					"quality": "reported",
+					"source": "Eni Form 20-F FY2021 (acc. 0001104659-22-043979) via SEC XBRL company concept (FY ending 2019-12-31: revenue EUR 69,881m, operating income EUR 6,432m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001002242/ifrs-full/RevenueFromContractsWithCustomers.json"
 				}
 			]
 		},
@@ -2032,6 +2760,62 @@
 					"quality": "reported",
 					"source": "ExxonMobil 10-K FY2014 (acc. 0000034088-15-000013) via SEC XBRL company concept (FY ending 2012-12-31: revenue USD 451,509m, operating income USD 78,726m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 316893.4,
+					"operatingIncome": 43456.9,
+					"quality": "reported",
+					"source": "ExxonMobil 10-K FY2015 (acc. 0000034088-16-000065) via SEC XBRL company concept (FY ending 2013-12-31: revenue USD 420,836m, operating income USD 57,711m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 296539.2,
+					"operatingIncome": 38848.3,
+					"quality": "reported",
+					"source": "ExxonMobil 10-K FY2016 (acc. 0000034088-17-000017) via SEC XBRL company concept (FY ending 2014-12-31: revenue USD 394,105m, operating income USD 51,630m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 216166,
+					"operatingIncome": 19796.6,
+					"quality": "reported",
+					"source": "ExxonMobil 10-K FY2017 (acc. 0000034088-18-000015) via SEC XBRL company concept (FY ending 2015-12-31: revenue USD 239,854m, operating income USD 21,966m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 181284.1,
+					"operatingIncome": 7200.7,
+					"quality": "reported",
+					"source": "ExxonMobil 10-K FY2018 (acc. 0000034088-19-000010) via SEC XBRL company concept (FY ending 2016-12-31: revenue USD 200,628m, operating income USD 7,969m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 216301.6,
+					"operatingIncome": 16529.6,
+					"quality": "reported",
+					"source": "ExxonMobil 10-K FY2019 (acc. 0000034088-20-000016) via SEC XBRL company concept (FY ending 2017-12-31: revenue USD 244,363m, operating income USD 18,674m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 245681.6,
+					"operatingIncome": 26203.5,
+					"quality": "reported",
+					"source": "ExxonMobil 10-K FY2020 (acc. 0000034088-21-000012) via SEC XBRL company concept (FY ending 2018-12-31: revenue USD 290,212m, operating income USD 30,953m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 236630,
+					"operatingIncome": 17913.1,
+					"quality": "reported",
+					"source": "ExxonMobil 10-K FY2021 (acc. 0000034088-22-000011) via SEC XBRL company concept (FY ending 2019-12-31: revenue USD 264,938m, operating income USD 20,056m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
 				}
 			]
 		},
@@ -2058,6 +2842,62 @@
 					"quality": "reported",
 					"source": "Ferrari Form 20-F FY2015, Item 3.A Selected Financial Data (FY ending 2012-12-31: revenue EUR 2,225m, operating income EUR 335m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841616000057/ferrarinv20-f12312015.htm"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 2335,
+					"operatingIncome": 364,
+					"quality": "reported",
+					"source": "Ferrari Form 20-F FY2015, Item 3.A Selected Financial Data (FY ending 2013-12-31: revenue EUR 2,335m, operating income EUR 364m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841616000057/ferrarinv20-f12312015.htm"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 2762,
+					"operatingIncome": 389,
+					"quality": "reported",
+					"source": "Ferrari Form 20-F FY2015, Item 3.A Selected Financial Data (FY ending 2014-12-31: revenue EUR 2,762m, operating income EUR 389m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841616000057/ferrarinv20-f12312015.htm"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 2854,
+					"operatingIncome": 444,
+					"quality": "reported",
+					"source": "Ferrari Form 20-F FY2015, Item 3.A Selected Financial Data (FY ending 2015-12-31: revenue EUR 2,854m, operating income EUR 444m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841616000057/ferrarinv20-f12312015.htm"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 3105,
+					"operatingIncome": 595,
+					"quality": "reported",
+					"source": "Ferrari Form 20-F FY2016, Item 3.A Selected Financial Data (FY ending 2016-12-31: revenue EUR 3,105m, operating income EUR 595m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841617000016/ferrarinv20-f12312016.htm"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 3416.9,
+					"operatingIncome": 775.4,
+					"quality": "reported",
+					"source": "Ferrari Form 20-F FY2019, Consolidated Income Statement (FY ending 2017-12-31: revenue EUR 3,416.9m, operating income EUR 775.4m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841620000022/R2.htm"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 3420.3,
+					"operatingIncome": 826.5,
+					"quality": "reported",
+					"source": "Ferrari Form 20-F FY2019, Consolidated Income Statement (FY ending 2018-12-31: revenue EUR 3,420.3m, operating income EUR 826.5m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841620000022/R2.htm"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 3766.6,
+					"operatingIncome": 917.4,
+					"quality": "reported",
+					"source": "Ferrari Form 20-F FY2019, Consolidated Income Statement (FY ending 2019-12-31: revenue EUR 3,766.6m, operating income EUR 917.4m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841620000022/R2.htm"
 				}
 			]
 		},
@@ -2172,6 +3012,62 @@
 					"quality": "reported",
 					"source": "Ford Form 10-K FY2013, Consolidated Income Statement (FY ending 2012-12-31: revenue USD 133,559m, operating income USD 7,720m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799614000010/R2.htm"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 110629.9,
+					"operatingIncome": 5271.8,
+					"quality": "reported",
+					"source": "Ford Form 10-K FY2013, Consolidated Income Statement (FY ending 2013-12-31: revenue USD 146,917m, operating income USD 7,001m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799614000010/R2.htm"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 108408.9,
+					"operatingIncome": 928.5,
+					"quality": "reported",
+					"source": "Ford Form 10-K FY2016, Consolidated Income Statement (FY ending 2014-12-31: revenue USD 144,077m, operating income USD 1,234m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799617000013/R2.htm"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 134787.6,
+					"operatingIncome": 9239.5,
+					"quality": "reported",
+					"source": "Ford Form 10-K FY2016, Consolidated Income Statement (FY ending 2015-12-31: revenue USD 149,558m, operating income USD 10,252m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799617000013/R2.htm"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 137163.9,
+					"operatingIncome": 6140.8,
+					"quality": "reported",
+					"source": "Ford Form 10-K FY2016, Consolidated Income Statement (FY ending 2016-12-31: revenue USD 151,800m, operating income USD 6,796m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799617000013/R2.htm"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 138772.7,
+					"operatingIncome": 7222.1,
+					"quality": "reported",
+					"source": "Ford Form 10-K FY2019, Consolidated Income Statement (FY ending 2017-12-31: revenue USD 156,776m, operating income USD 8,159m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799620000010/R3.htm"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 135735.6,
+					"operatingIncome": 3678.3,
+					"quality": "reported",
+					"source": "Ford Form 10-K FY2019, Consolidated Income Statement (FY ending 2018-12-31: revenue USD 160,338m, operating income USD 4,345m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799620000010/R3.htm"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 139242.4,
+					"operatingIncome": -571.6,
+					"quality": "reported",
+					"source": "Ford Form 10-K FY2019, Consolidated Income Statement (FY ending 2019-12-31: revenue USD 155,900m, operating income USD -640m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799620000010/R3.htm"
 				}
 			]
 		},
@@ -2278,6 +3174,62 @@
 					"quality": "reported",
 					"source": "GM Form 10-K FY2013, Consolidated Income Statements (FY ending 2012-12-31: revenue USD 152,256m, operating income USD -28,695m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785814000043/R2.htm"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 117038,
+					"operatingIncome": 5615.9,
+					"quality": "reported",
+					"source": "GM Form 10-K FY2013, Consolidated Income Statements (FY ending 2013-12-31: revenue USD 155,427m, operating income USD 7,458m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785814000043/R2.htm"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 117326.7,
+					"operatingIncome": 3194.8,
+					"quality": "reported",
+					"source": "GM Form 10-K FY2016, Consolidated Income Statements (FY ending 2014-12-31: revenue USD 155,929m, operating income USD 4,246m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785817000028/R2.htm"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 137309.3,
+					"operatingIncome": 6955.8,
+					"quality": "reported",
+					"source": "GM Form 10-K FY2016, Consolidated Income Statements (FY ending 2015-12-31: revenue USD 152,356m, operating income USD 7,718m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785817000028/R2.htm"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 150338.2,
+					"operatingIncome": 10557.5,
+					"quality": "reported",
+					"source": "GM Form 10-K FY2016, Consolidated Income Statements (FY ending 2016-12-31: revenue USD 166,380m, operating income USD 11,684m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785817000028/R2.htm"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 128869.4,
+					"operatingIncome": 10500.7,
+					"quality": "reported",
+					"source": "GM Form 10-K FY2019, Consolidated Income Statements (FY ending 2017-12-31: revenue USD 145,588m, operating income USD 11,863m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785820000028/R2.htm"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 124485.7,
+					"operatingIncome": 7237.2,
+					"quality": "reported",
+					"source": "GM Form 10-K FY2019, Consolidated Income Statements (FY ending 2018-12-31: revenue USD 147,049m, operating income USD 8,549m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785820000028/R2.htm"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 122573.5,
+					"operatingIncome": 6641.5,
+					"quality": "reported",
+					"source": "GM Form 10-K FY2019, Consolidated Income Statements (FY ending 2019-12-31: revenue USD 137,237m, operating income USD 7,436m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785820000028/R2.htm"
 				}
 			]
 		},
@@ -2384,6 +3336,62 @@
 					"quality": "reported",
 					"source": "GSK FY2013 results 6-K (Feb 2014), total results, 2012 restated (IAS 19R) (FY ending 2012-12-31: revenue GBP 26,431m, operating income GBP 7,300m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/0001131399/000119163814000145/gsk201402056k.htm"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 31210.4,
+					"operatingIncome": 8275.7,
+					"quality": "reported",
+					"source": "GSK FY2014 results 6-K (Feb 2015), total results (FY ending 2013-12-31: revenue GBP 26,505m, operating income GBP 7,028m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1131399/000119163815000135/gsk201502046k.htm"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 28530.4,
+					"operatingIncome": 4460.7,
+					"quality": "reported",
+					"source": "GSK FY2014 results 6-K (Feb 2015), total results (FY ending 2014-12-31: revenue GBP 23,006m, operating income GBP 3,597m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1131399/000119163815000135/gsk201502046k.htm"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 32954.2,
+					"operatingIncome": 14218.7,
+					"quality": "reported",
+					"source": "GSK Form 20-F/A FY2017 (0001193125-18-088407), XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json) (FY ending 2015-12-31: revenue GBP 23,923m, operating income GBP 10,322m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 34052.9,
+					"operatingIncome": 3172.2,
+					"quality": "reported",
+					"source": "GSK Form 20-F/A FY2017 (0001193125-18-088407), XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json) (FY ending 2016-12-31: revenue GBP 27,889m, operating income GBP 2,598m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 34436.2,
+					"operatingIncome": 4662.5,
+					"quality": "reported",
+					"source": "GSK Form 20-F/A FY2017 (0001193125-18-088407), XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json) (FY ending 2017-12-31: revenue GBP 30,186m, operating income GBP 4,087m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 34840.3,
+					"operatingIncome": 6198,
+					"quality": "reported",
+					"source": "GSK Form 20-F FY2018 (0001193125-19-076716), XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json) (FY ending 2018-12-31: revenue GBP 30,821m, operating income GBP 5,483m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 38464.5,
+					"operatingIncome": 7932.4,
+					"quality": "reported",
+					"source": "GSK Form 20-F FY2019 (0001193125-20-065064), XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json) (FY ending 2019-12-31: revenue GBP 33,754m, operating income GBP 6,961m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
 				}
 			]
 		},
@@ -2498,6 +3506,62 @@
 					"quality": "reported",
 					"source": "Inditex Informe Anual 2011, 'Evolución de los principales indicadores', FY2011 (FY ending 2012-01-31: revenue EUR 13,793m, operating income EUR 2,522m)",
 					"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2011ispa.pdf"
+				},
+				{
+					"quarter": "2013Q1",
+					"revenue": 15946,
+					"operatingIncome": 3117,
+					"quality": "reported",
+					"source": "Inditex Annual Report 2013, consolidated income statement (comparative) (FY ending 2013-01-31: revenue EUR 15,946m, operating income EUR 3,117m)",
+					"sourceUrl": "https://static.inditex.com/annual_report_2013/en/annual-accounts/economic-and-financial-report/consolidated-income-statement.php"
+				},
+				{
+					"quarter": "2014Q1",
+					"revenue": 16724,
+					"operatingIncome": 3071,
+					"quality": "reported",
+					"source": "Inditex Annual Report 2013, consolidated income statement (FY ending 2014-01-31: revenue EUR 16,724m, operating income EUR 3,071m)",
+					"sourceUrl": "https://static.inditex.com/annual_report_2013/en/annual-accounts/economic-and-financial-report/consolidated-income-statement.php"
+				},
+				{
+					"quarter": "2015Q1",
+					"revenue": 18117,
+					"operatingIncome": 3198,
+					"quality": "reported",
+					"source": "Inditex Annual Report 2015, consolidated income statement (comparative) (FY ending 2015-01-31: revenue EUR 18,117m, operating income EUR 3,198m)",
+					"sourceUrl": "https://static.inditex.com/annual_report_2015/en/annual-accounts/economic-and-financial-report/consolidated-income-statement.php"
+				},
+				{
+					"quarter": "2016Q1",
+					"revenue": 20900,
+					"operatingIncome": 3677,
+					"quality": "reported",
+					"source": "Inditex Annual Report 2015, consolidated income statement (FY ending 2016-01-31: revenue EUR 20,900m, operating income EUR 3,677m)",
+					"sourceUrl": "https://static.inditex.com/annual_report_2015/en/annual-accounts/economic-and-financial-report/consolidated-income-statement.php"
+				},
+				{
+					"quarter": "2017Q1",
+					"revenue": 23311,
+					"operatingIncome": 4021,
+					"quality": "reported",
+					"source": "Inditex Consolidated Annual Accounts 2017, income statement (comparative) (FY ending 2017-01-31: revenue EUR 23,311m, operating income EUR 4,021m)",
+					"sourceUrl": "https://static.inditex.com/annual_report_2021/en/documents/inditex-consolidated-annual-acounts-2017.pdf"
+				},
+				{
+					"quarter": "2018Q1",
+					"revenue": 25336,
+					"operatingIncome": 4314,
+					"quality": "reported",
+					"source": "Inditex Consolidated Annual Accounts 2017, income statement (FY ending 2018-01-31: revenue EUR 25,336m, operating income EUR 4,314m)",
+					"sourceUrl": "https://static.inditex.com/annual_report_2021/en/documents/inditex-consolidated-annual-acounts-2017.pdf"
+				},
+				{
+					"quarter": "2019Q1",
+					"revenue": 26145,
+					"operatingIncome": 4357,
+					"quality": "reported",
+					"source": "Inditex Consolidated Annual Accounts 2019, income statement (comparative, pre-IFRS 16) (FY ending 2019-01-31: revenue EUR 26,145m, operating income EUR 4,357m)",
+					"sourceUrl": "https://static.inditex.com/annual_report_2021/en/documents/inditex-consolidated-annual-acounts-2019.pdf"
 				}
 			]
 		},
@@ -2612,6 +3676,62 @@
 					"quality": "reported",
 					"source": "Intel Form 10-K XBRL (accn 0001193125-13-065416), SEC companyconcept API (FY ending 2012-12-29: revenue USD 53,341m, operating income USD 14,638m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/SalesRevenueNet.json"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 39689.6,
+					"operatingIncome": 9255.2,
+					"quality": "reported",
+					"source": "Intel Form 10-K XBRL (accn 0000050863-14-000020), SEC companyconcept API (FY ending 2013-12-28: revenue USD 52,708m, operating income USD 12,291m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/SalesRevenueNet.json"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 42038.7,
+					"operatingIncome": 11547.6,
+					"quality": "reported",
+					"source": "Intel Form 10-K XBRL (accn 0000050863-15-000015), SEC companyconcept API (FY ending 2014-12-27: revenue USD 55,870m, operating income USD 15,347m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/SalesRevenueNet.json"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 49888.1,
+					"operatingIncome": 12619.2,
+					"quality": "reported",
+					"source": "Intel Form 10-K XBRL (accn 0000050863-16-000105), SEC companyconcept API (FY ending 2015-12-26: revenue USD 55,355m, operating income USD 14,002m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/SalesRevenueNet.json"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 53661.1,
+					"operatingIncome": 11632.7,
+					"quality": "reported",
+					"source": "Intel Form 10-K XBRL (accn 0000050863-17-000012), SEC companyconcept API (FY ending 2016-12-31: revenue USD 59,387m, operating income USD 12,874m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/SalesRevenueNet.json"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 55553.9,
+					"operatingIncome": 15876.3,
+					"quality": "reported",
+					"source": "Intel Form 10-K XBRL (accn 0000050863-18-000007), SEC companyconcept API (FY ending 2017-12-30: revenue USD 62,761m, operating income USD 17,936m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/SalesRevenueNet.json"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 59977,
+					"operatingIncome": 19738.4,
+					"quality": "reported",
+					"source": "Intel Form 10-K XBRL (accn 0000050863-19-000007), SEC companyconcept API (FY ending 2018-12-29: revenue USD 70,848m, operating income USD 23,316m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 64275.7,
+					"operatingIncome": 19680.6,
+					"quality": "reported",
+					"source": "Intel Form 10-K XBRL (accn 0000050863-20-000011), SEC companyconcept API (FY ending 2019-12-28: revenue USD 71,965m, operating income USD 22,035m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
 				}
 			]
 		},
@@ -2726,6 +3846,62 @@
 					"quality": "reported",
 					"source": "J&J Form 10-K FY2012 (accn 0000200406-13-000038), XBRL via SEC companyconcept API; revenue from SalesRevenueGoodsNet, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json) (FY ending 2012-12-30: revenue USD 67,224m, operating income USD 13,775m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/SalesRevenueGoodsNet.json"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 53698.6,
+					"operatingIncome": 11649.8,
+					"quality": "reported",
+					"source": "J&J Form 10-K FY2013 (accn 0000200406-14-000033), XBRL via SEC companyconcept API; revenue from SalesRevenueGoodsNet, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json) (FY ending 2013-12-29: revenue USD 71,312m, operating income USD 15,471m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/SalesRevenueGoodsNet.json"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 55929.4,
+					"operatingIncome": 15472.4,
+					"quality": "reported",
+					"source": "J&J Form 10-K FY2014 (accn 0000200406-15-000004), XBRL via SEC companyconcept API; revenue from SalesRevenueGoodsNet, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json) (FY ending 2014-12-28: revenue USD 74,331m, operating income USD 20,563m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/SalesRevenueGoodsNet.json"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 63153.5,
+					"operatingIncome": 17300.2,
+					"quality": "reported",
+					"source": "J&J Form 10-K FY2015 (accn 0000200406-16-000071), XBRL via SEC companyconcept API; revenue from SalesRevenueGoodsNet, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json) (FY ending 2016-01-03: revenue USD 70,074m, operating income USD 19,196m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/SalesRevenueGoodsNet.json"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 64958.6,
+					"operatingIncome": 17893.7,
+					"quality": "reported",
+					"source": "J&J Form 10-K FY2016 (accn 0000200406-17-000006), XBRL via SEC companyconcept API; revenue from SalesRevenueGoodsNet, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json) (FY ending 2017-01-01: revenue USD 71,890m, operating income USD 19,803m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/SalesRevenueGoodsNet.json"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 67670.9,
+					"operatingIncome": 15643.5,
+					"quality": "reported",
+					"source": "J&J Form 10-K FY2017 (accn 0000200406-18-000005), XBRL via SEC companyconcept API; revenue from SalesRevenueGoodsNet, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json) (FY ending 2017-12-31: revenue USD 76,450m, operating income USD 17,673m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/SalesRevenueGoodsNet.json"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 69063.1,
+					"operatingIncome": 15237.2,
+					"quality": "reported",
+					"source": "J&J Form 10-K FY2018 (accn 0000200406-19-000009), XBRL via SEC companyconcept API; revenue from RevenueFromContractWithCustomerExcludingAssessedTax, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json) (FY ending 2018-12-30: revenue USD 81,581m, operating income USD 17,999m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 73291.2,
+					"operatingIncome": 15476.5,
+					"quality": "reported",
+					"source": "J&J Form 10-K FY2019 (accn 0000200406-20-000010), XBRL via SEC companyconcept API; revenue from RevenueFromContractWithCustomerExcludingAssessedTax, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json) (FY ending 2019-12-29: revenue USD 82,059m, operating income USD 17,328m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
 				}
 			]
 		},
@@ -2840,6 +4016,62 @@
 					"quality": "reported",
 					"source": "LVMH Document de référence 2012, compte de résultat consolidé (FY ending 2012-12-31: revenue EUR 28,103m, operating income EUR 5,739m)",
 					"sourceUrl": "https://www.bnains.org/archives/communiques/LVMH/20130327_Document_de_reference_2012_LVMH.pdf"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 29016,
+					"operatingIncome": 5898,
+					"quality": "reported",
+					"source": "LVMH 2015 annual results press release, condensed consolidated income statement (comparatives) (FY ending 2013-12-31: revenue EUR 29,016m, operating income EUR 5,898m)",
+					"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/ZmGkk5m069VX1gua_LVMHAnnualResults2015VA.pdf"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 30638,
+					"operatingIncome": 5431,
+					"quality": "reported",
+					"source": "LVMH 2015 annual results press release, condensed consolidated income statement (comparatives) (FY ending 2014-12-31: revenue EUR 30,638m, operating income EUR 5,431m)",
+					"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/ZmGkk5m069VX1gua_LVMHAnnualResults2015VA.pdf"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 35664,
+					"operatingIncome": 6384,
+					"quality": "reported",
+					"source": "LVMH 2017 annual results press release, condensed consolidated income statement (FY ending 2015-12-31: revenue EUR 35,664m, operating income EUR 6,384m)",
+					"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/Znlil5bWFbowezVN_LVMHAnnualResults2017VA.pdf"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 37600,
+					"operatingIncome": 6904,
+					"quality": "reported",
+					"source": "LVMH 2017 annual results press release, condensed consolidated income statement (FY ending 2016-12-31: revenue EUR 37,600m, operating income EUR 6,904m)",
+					"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/Znlil5bWFbowezVN_LVMHAnnualResults2017VA.pdf"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 42636,
+					"operatingIncome": 8113,
+					"quality": "reported",
+					"source": "LVMH 2017 annual results press release, condensed consolidated income statement (FY ending 2017-12-31: revenue EUR 42,636m, operating income EUR 8,113m)",
+					"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/Znlil5bWFbowezVN_LVMHAnnualResults2017VA.pdf"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 46826,
+					"operatingIncome": 9877,
+					"quality": "reported",
+					"source": "LVMH 2020 annual results press release, condensed consolidated income statement (FY ending 2018-12-31: revenue EUR 46,826m, operating income EUR 9,877m)",
+					"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/ZnVWzJm069VX18md_Pressrelease-LVMHAnnualResults2020.pdf"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 53670,
+					"operatingIncome": 11273,
+					"quality": "reported",
+					"source": "LVMH 2020 annual results press release, condensed consolidated income statement (FY ending 2019-12-31: revenue EUR 53,670m, operating income EUR 11,273m)",
+					"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/ZnVWzJm069VX18md_Pressrelease-LVMHAnnualResults2020.pdf"
 				}
 			]
 		},
@@ -2954,6 +4186,62 @@
 					"quality": "reported",
 					"source": "McDonald's Form 10-K FY2013, Consolidated Statement of Income (FY ending 2012-12-31: revenue USD 27,567m, operating income USD 8,604.6m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390814000019/R2.htm"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 21163.9,
+					"operatingIncome": 6599.6,
+					"quality": "reported",
+					"source": "McDonald's Form 10-K FY2013, Consolidated Statement of Income (FY ending 2013-12-31: revenue USD 28,105.7m, operating income USD 8,764.3m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390814000019/R2.htm"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 20647.8,
+					"operatingIncome": 5981.3,
+					"quality": "reported",
+					"source": "McDonald's Form 10-K FY2016, Consolidated Statement of Income (FY ending 2014-12-31: revenue USD 27,441.3m, operating income USD 7,949.2m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390817000017/R2.htm"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 22903.2,
+					"operatingIncome": 6439.8,
+					"quality": "reported",
+					"source": "McDonald's Form 10-K FY2016, Consolidated Statement of Income (FY ending 2015-12-31: revenue USD 25,413m, operating income USD 7,145.5m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390817000017/R2.htm"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 22247.9,
+					"operatingIncome": 6997.8,
+					"quality": "reported",
+					"source": "McDonald's Form 10-K FY2016, Consolidated Statement of Income (FY ending 2016-12-31: revenue USD 24,621.9m, operating income USD 7,744.5m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390817000017/R2.htm"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 20199.8,
+					"operatingIncome": 8455.7,
+					"quality": "reported",
+					"source": "McDonald's Form 10-K FY2019, Consolidated Statement of Income (FY ending 2017-12-31: revenue USD 22,820.4m, operating income USD 9,552.7m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390820000022/R2.htm"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 17799.1,
+					"operatingIncome": 7468.9,
+					"quality": "reported",
+					"source": "McDonald's Form 10-K FY2019, Consolidated Statement of Income (FY ending 2018-12-31: revenue USD 21,025.2m, operating income USD 8,822.6m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390820000022/R2.htm"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 18824.5,
+					"operatingIncome": 8100.7,
+					"quality": "reported",
+					"source": "McDonald's Form 10-K FY2019, Consolidated Statement of Income (FY ending 2019-12-31: revenue USD 21,076.5m, operating income USD 9,069.8m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390820000022/R2.htm"
 				}
 			]
 		},
@@ -3068,6 +4356,62 @@
 					"quality": "reported",
 					"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT') (FY ending 2012-12-31: revenue EUR 114,297m, operating income EUR 8,820m)",
 					"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 117982,
+					"operatingIncome": 10815,
+					"quality": "reported",
+					"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT') (FY ending 2013-12-31: revenue EUR 117,982m, operating income EUR 10,815m)",
+					"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 129872,
+					"operatingIncome": 10752,
+					"quality": "reported",
+					"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT') (FY ending 2014-12-31: revenue EUR 129,872m, operating income EUR 10,752m)",
+					"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 149467,
+					"operatingIncome": 13186,
+					"quality": "reported",
+					"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT') (FY ending 2015-12-31: revenue EUR 149,467m, operating income EUR 13,186m)",
+					"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 153261,
+					"operatingIncome": 12902,
+					"quality": "reported",
+					"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT') (FY ending 2016-12-31: revenue EUR 153,261m, operating income EUR 12,902m)",
+					"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 164154,
+					"operatingIncome": 14348,
+					"quality": "reported",
+					"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT') (FY ending 2017-12-31: revenue EUR 164,154m, operating income EUR 14,348m)",
+					"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 167362,
+					"operatingIncome": 11132,
+					"quality": "reported",
+					"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT') (FY ending 2018-12-31: revenue EUR 167,362m, operating income EUR 11,132m)",
+					"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 172745,
+					"operatingIncome": 4313,
+					"quality": "reported",
+					"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT') (FY ending 2019-12-31: revenue EUR 172,745m, operating income EUR 4,313m)",
+					"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
 				}
 			]
 		},
@@ -3125,6 +4469,62 @@
 					"operatingIncome": 418.7,
 					"quality": "reported",
 					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001326801-13-000003); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2012-12-31: revenue USD 5,089m, operating income USD 538m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001326801/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 5927.7,
+					"operatingIncome": 2111.4,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001326801-14-000007); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2013-12-31: revenue USD 7,872m, operating income USD 2,804m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001326801/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 9379.9,
+					"operatingIncome": 3757.7,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001326801-15-000006); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2014-12-31: revenue USD 12,466m, operating income USD 4,994m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001326801/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 16157.4,
+					"operatingIncome": 5610.2,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001326801-16-000043); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2015-12-31: revenue USD 17,928m, operating income USD 6,225m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001326801/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 24973.2,
+					"operatingIncome": 11228.8,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001326801-17-000007); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2016-12-31: revenue USD 27,638m, operating income USD 12,427m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001326801/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 35984.6,
+					"operatingIncome": 17883,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001326801-18-000009); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2017-12-31: revenue USD 40,653m, operating income USD 20,203m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001326801/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 47270.2,
+					"operatingIncome": 21090.3,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001326801-19-000009); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2018-12-31: revenue USD 55,838m, operating income USD 24,913m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001326801/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 63143.2,
+					"operatingIncome": 21423.1,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001326801-20-000013); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2019-12-31: revenue USD 70,697m, operating income USD 23,986m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001326801/us-gaap/OperatingIncomeLoss.json"
 				}
 			]
@@ -3240,6 +4640,62 @@
 					"quality": "reported",
 					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-12-316848); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss (FY ending 2012-06-30: revenue USD 73,723m, operating income USD 21,763m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000789019/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2013Q2",
+					"revenue": 60187.2,
+					"operatingIncome": 20692,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-13-310206); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss (FY ending 2013-06-30: revenue USD 77,849m, operating income USD 26,764m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000789019/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2014Q2",
+					"revenue": 64014.2,
+					"operatingIncome": 20464.2,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-14-289961); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss (FY ending 2014-06-30: revenue USD 86,833m, operating income USD 27,759m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000789019/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2015Q2",
+					"revenue": 77873.5,
+					"operatingIncome": 15112.9,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-15-272806); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss (FY ending 2015-06-30: revenue USD 93,580m, operating income USD 18,161m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000789019/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2016Q2",
+					"revenue": 76896.7,
+					"operatingIncome": 18189.5,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-16-662209); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss (FY ending 2016-06-30: revenue USD 85,320m, operating income USD 20,182m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000789019/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2017Q2",
+					"revenue": 88546.3,
+					"operatingIncome": 26613.1,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001564590-18-019062); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2017-06-30: revenue USD 96,571m, operating income USD 29,025m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000789019/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2018Q2",
+					"revenue": 92492.7,
+					"operatingIncome": 29382.1,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001564590-18-019062); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2018-06-30: revenue USD 110,360m, operating income USD 35,058m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000789019/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2019Q2",
+					"revenue": 110297.2,
+					"operatingIncome": 37652.1,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001564590-19-027952); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2019-06-30: revenue USD 125,843m, operating income USD 42,959m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000789019/us-gaap/OperatingIncomeLoss.json"
 				}
 			]
 		},
@@ -3353,6 +4809,62 @@
 					"operatingIncome": 38.9,
 					"quality": "reported",
 					"source": "Netflix Form 10-K XBRL (accn 0001065280-13-000008), SEC companyconcept API (FY ending 2012-12-31: revenue USD 3,609.3m, operating income USD 50m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 3294.1,
+					"operatingIncome": 171.9,
+					"quality": "reported",
+					"source": "Netflix Form 10-K XBRL (accn 0001065280-14-000006), SEC companyconcept API (FY ending 2013-12-31: revenue USD 4,374.6m, operating income USD 228.3m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 4141.9,
+					"operatingIncome": 303,
+					"quality": "reported",
+					"source": "Netflix Form 10-K XBRL (accn 0001065280-15-000006), SEC companyconcept API (FY ending 2014-12-31: revenue USD 5,504.7m, operating income USD 402.6m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 6110,
+					"operatingIncome": 275.6,
+					"quality": "reported",
+					"source": "Netflix Form 10-K XBRL (accn 0001065280-16-000047), SEC companyconcept API (FY ending 2015-12-31: revenue USD 6,779.5m, operating income USD 305.8m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 7979.2,
+					"operatingIncome": 343.2,
+					"quality": "reported",
+					"source": "Netflix Form 10-K XBRL (accn 0001628280-17-000496), SEC companyconcept API (FY ending 2016-12-31: revenue USD 8,830.7m, operating income USD 379.8m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 10350,
+					"operatingIncome": 742.4,
+					"quality": "reported",
+					"source": "Netflix Form 10-K XBRL (accn 0001065280-18-000069), SEC companyconcept API (FY ending 2017-12-31: revenue USD 11,692.7m, operating income USD 838.7m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 13370.8,
+					"operatingIncome": 1358.9,
+					"quality": "reported",
+					"source": "Netflix Form 10-K XBRL (accn 0001065280-19-000043), SEC companyconcept API (FY ending 2018-12-31: revenue USD 15,794.3m, operating income USD 1,605.2m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 18002.8,
+					"operatingIncome": 2326,
+					"quality": "reported",
+					"source": "Netflix Form 10-K XBRL (accn 0001065280-20-000040), SEC companyconcept API (FY ending 2019-12-31: revenue USD 20,156.4m, operating income USD 2,604.3m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
 				}
 			]
@@ -3468,6 +4980,62 @@
 					"quality": "reported",
 					"source": "Nike Form 10-K FY2014, Consolidated Statements of Income (FY ending 2012-05-31: revenue USD 23,331m, operating income USD 3,011m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018714000097/R2.htm"
+				},
+				{
+					"quarter": "2013Q2",
+					"revenue": 19570.2,
+					"operatingIncome": 2517.3,
+					"quality": "reported",
+					"source": "Nike Form 10-K FY2014, Consolidated Statements of Income (FY ending 2013-05-31: revenue USD 25,313m, operating income USD 3,256m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018714000097/R2.htm"
+				},
+				{
+					"quarter": "2014Q2",
+					"revenue": 20493.7,
+					"operatingIncome": 2612.7,
+					"quality": "reported",
+					"source": "Nike Form 10-K FY2014, Consolidated Statements of Income (FY ending 2014-05-31: revenue USD 27,799m, operating income USD 3,544m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018714000097/R2.htm"
+				},
+				{
+					"quarter": "2015Q2",
+					"revenue": 25464.9,
+					"operatingIncome": 3499.2,
+					"quality": "reported",
+					"source": "Nike Form 10-K FY2017, Consolidated Statements of Income (FY ending 2015-05-31: revenue USD 30,601m, operating income USD 4,205m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018717000090/R2.htm"
+				},
+				{
+					"quarter": "2016Q2",
+					"revenue": 29179.7,
+					"operatingIncome": 4166.6,
+					"quality": "reported",
+					"source": "Nike Form 10-K FY2017, Consolidated Statements of Income (FY ending 2016-05-31: revenue USD 32,376m, operating income USD 4,623m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018717000090/R2.htm"
+				},
+				{
+					"quarter": "2017Q2",
+					"revenue": 31495.6,
+					"operatingIncome": 4480,
+					"quality": "reported",
+					"source": "Nike Form 10-K FY2017, Consolidated Statements of Income (FY ending 2017-05-31: revenue USD 34,350m, operating income USD 4,886m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018717000090/R2.htm"
+				},
+				{
+					"quarter": "2018Q2",
+					"revenue": 30504.3,
+					"operatingIncome": 3624.8,
+					"quality": "reported",
+					"source": "Nike Form 10-K FY2020, Consolidated Statements of Income (FY ending 2018-05-31: revenue USD 36,397m, operating income USD 4,325m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018720000047/R2.htm"
+				},
+				{
+					"quarter": "2019Q2",
+					"revenue": 34284.7,
+					"operatingIncome": 4207.9,
+					"quality": "reported",
+					"source": "Nike Form 10-K FY2020, Consolidated Statements of Income (FY ending 2019-05-31: revenue USD 39,117m, operating income USD 4,801m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018720000047/R2.htm"
 				}
 			]
 		},
@@ -3558,6 +5126,62 @@
 					"quality": "reported",
 					"source": "Novartis Form 20-F FY2016, Item 3.A Selected Financial Data (continuing operations) (FY ending 2012-12-31: revenue USD 51,080m, operating income USD 11,507m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000104746917000338/a2230622z20-f.htm"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 39057.8,
+					"operatingIncome": 8270.3,
+					"quality": "reported",
+					"source": "Novartis Form 20-F FY2016, Item 3.A Selected Financial Data (continuing operations) (FY ending 2013-12-31: revenue USD 51,869m, operating income USD 10,983m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000104746917000338/a2230622z20-f.htm"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 39262.2,
+					"operatingIncome": 8343.8,
+					"quality": "reported",
+					"source": "Novartis Form 20-F FY2016, Item 3.A Selected Financial Data (continuing operations) (FY ending 2014-12-31: revenue USD 52,180m, operating income USD 11,089m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000104746917000338/a2230622z20-f.htm"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 44533.9,
+					"operatingIncome": 8090.4,
+					"quality": "reported",
+					"source": "Novartis Form 20-F FY2016, Item 3.A Selected Financial Data (continuing operations) (FY ending 2015-12-31: revenue USD 49,414m, operating income USD 8,977m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000104746917000338/a2230622z20-f.htm"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 43840,
+					"operatingIncome": 7470.8,
+					"quality": "reported",
+					"source": "Novartis Form 20-F FY2016, Item 3.A Selected Financial Data (continuing operations) (FY ending 2016-12-31: revenue USD 48,518m, operating income USD 8,268m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000104746917000338/a2230622z20-f.htm"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 43469.6,
+					"operatingIncome": 7638.1,
+					"quality": "reported",
+					"source": "Novartis Form 20-F FY2018, Consolidated income statement (as originally reported, incl. Alcon) (FY ending 2017-12-31: revenue USD 49,109m, operating income USD 8,629m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000137036819000002/R2.htm"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 43936.4,
+					"operatingIncome": 6915.5,
+					"quality": "reported",
+					"source": "Novartis Form 20-F FY2018, Consolidated income statement (as originally reported, incl. Alcon) (FY ending 2018-12-31: revenue USD 51,900m, operating income USD 8,169m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000137036819000002/R2.htm"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 42375.6,
+					"operatingIncome": 8115.2,
+					"quality": "reported",
+					"source": "Novartis Form 20-F FY2020, Consolidated income statement (continuing operations, excl. Alcon) (FY ending 2019-12-31: revenue USD 47,445m, operating income USD 9,086m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000137036821000006/R2.htm"
 				}
 			]
 		},
@@ -3671,6 +5295,62 @@
 					"operatingIncome": 470.6,
 					"quality": "reported",
 					"source": "NVIDIA Form 10-K XBRL (accn 0001045810-12-000013), SEC companyconcept API (FY ending 2012-01-29: revenue USD 3,997.9m, operating income USD 648.3m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2013Q1",
+					"revenue": 3325.1,
+					"operatingIncome": 503.6,
+					"quality": "reported",
+					"source": "NVIDIA Form 10-K XBRL (accn 0001045810-13-000008), SEC companyconcept API (FY ending 2013-01-27: revenue USD 4,280.2m, operating income USD 648.2m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2014Q1",
+					"revenue": 3081.6,
+					"operatingIncome": 370.2,
+					"quality": "reported",
+					"source": "NVIDIA Form 10-K XBRL (accn 0001045810-14-000030), SEC companyconcept API (FY ending 2014-01-26: revenue USD 4,130.2m, operating income USD 496.2m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2015Q1",
+					"revenue": 3691.6,
+					"operatingIncome": 598.5,
+					"quality": "reported",
+					"source": "NVIDIA Form 10-K XBRL (accn 0001045810-15-000036), SEC companyconcept API (FY ending 2015-01-25: revenue USD 4,681.5m, operating income USD 759m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2016Q1",
+					"revenue": 4539.9,
+					"operatingIncome": 676.9,
+					"quality": "reported",
+					"source": "NVIDIA Form 10-K XBRL (accn 0001045810-16-000205), SEC companyconcept API (FY ending 2016-01-31: revenue USD 5,010m, operating income USD 747m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2017Q1",
+					"revenue": 6296.7,
+					"operatingIncome": 1762.3,
+					"quality": "reported",
+					"source": "NVIDIA Form 10-K XBRL (accn 0001045810-17-000027), SEC companyconcept API (FY ending 2017-01-29: revenue USD 6,910m, operating income USD 1,934m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2018Q1",
+					"revenue": 8296.6,
+					"operatingIncome": 2741.6,
+					"quality": "reported",
+					"source": "NVIDIA Form 10-K XBRL (accn 0001045810-18-000010), SEC companyconcept API (FY ending 2018-01-28: revenue USD 9,714m, operating income USD 3,210m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2019Q1",
+					"revenue": 10189.2,
+					"operatingIncome": 3285.3,
+					"quality": "reported",
+					"source": "NVIDIA Form 10-K XBRL (accn 0001045810-19-000023), SEC companyconcept API (FY ending 2019-01-27: revenue USD 11,798m, operating income USD 3,804m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
 				}
 			]
@@ -3786,6 +5466,62 @@
 					"quality": "reported",
 					"source": "Oracle Form 10-K XBRL (accn 0001193125-12-284007), SEC companyconcept API (FY ending 2012-05-31: revenue USD 37,121m, operating income USD 13,706m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2013Q2",
+					"revenue": 28744.9,
+					"operatingIncome": 11352.6,
+					"quality": "reported",
+					"source": "Oracle Form 10-K XBRL (accn 0001193125-13-272832), SEC companyconcept API (FY ending 2013-05-31: revenue USD 37,180m, operating income USD 14,684m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2014Q2",
+					"revenue": 28216.7,
+					"operatingIncome": 10880.5,
+					"quality": "reported",
+					"source": "Oracle Form 10-K XBRL (accn 0001193125-14-251351), SEC companyconcept API (FY ending 2014-05-31: revenue USD 38,275m, operating income USD 14,759m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2015Q2",
+					"revenue": 31810.1,
+					"operatingIncome": 11542.9,
+					"quality": "reported",
+					"source": "Oracle Form 10-K XBRL (accn 0001193125-15-235239), SEC companyconcept API (FY ending 2015-05-31: revenue USD 38,226m, operating income USD 13,871m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2016Q2",
+					"revenue": 33389.5,
+					"operatingIncome": 11359.7,
+					"quality": "reported",
+					"source": "Oracle Form 10-K XBRL (accn 0001193125-16-628942), SEC companyconcept API (FY ending 2016-05-31: revenue USD 37,047m, operating income USD 12,604m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2017Q2",
+					"revenue": 34592.9,
+					"operatingIncome": 11653.8,
+					"quality": "reported",
+					"source": "Oracle Form 10-K XBRL (accn 0001193125-17-214833), SEC companyconcept API (FY ending 2017-05-31: revenue USD 37,728m, operating income USD 12,710m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2018Q2",
+					"revenue": 33382.4,
+					"operatingIncome": 11464.4,
+					"quality": "reported",
+					"source": "Oracle Form 10-K XBRL (accn 0001193125-18-201034), SEC companyconcept API (FY ending 2018-05-31: revenue USD 39,831m, operating income USD 13,679m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2019Q2",
+					"revenue": 34625.7,
+					"operatingIncome": 11863,
+					"quality": "reported",
+					"source": "Oracle Form 10-K XBRL (accn 0001564590-19-023119), SEC companyconcept API (FY ending 2019-05-31: revenue USD 39,506m, operating income USD 13,535m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
 				}
 			]
 		},
@@ -3900,6 +5636,62 @@
 					"quality": "reported",
 					"source": "Pfizer Form 10-K FY2013, Consolidated Statements of Income (XBRL R2) (FY ending 2012-12-31: revenue USD 54,657m, operating income USD 11,242m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800314000018/R2.htm"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 38843.2,
+					"operatingIncome": 11834.3,
+					"quality": "reported",
+					"source": "Pfizer Form 10-K FY2013, Consolidated Statements of Income (XBRL R2) (FY ending 2013-12-31: revenue USD 51,584m, operating income USD 15,716m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800314000018/R2.htm"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 37324.6,
+					"operatingIncome": 9209.8,
+					"quality": "reported",
+					"source": "Pfizer Form 10-K FY2016, Consolidated Statements of Income (XBRL R2) (FY ending 2014-12-31: revenue USD 49,605m, operating income USD 12,240m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800317000014/R2.htm"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 44026.5,
+					"operatingIncome": 8079.6,
+					"quality": "reported",
+					"source": "Pfizer Form 10-K FY2016, Consolidated Statements of Income (XBRL R2) (FY ending 2015-12-31: revenue USD 48,851m, operating income USD 8,965m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800317000014/R2.htm"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 47730.9,
+					"operatingIncome": 7545.8,
+					"quality": "reported",
+					"source": "Pfizer Form 10-K FY2016, Consolidated Statements of Income (XBRL R2) (FY ending 2016-12-31: revenue USD 52,824m, operating income USD 8,351m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800317000014/R2.htm"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 46511.9,
+					"operatingIncome": 10892,
+					"quality": "reported",
+					"source": "Pfizer Form 10-K FY2019, Consolidated Statements of Income (XBRL R2) (FY ending 2017-12-31: revenue USD 52,546m, operating income USD 12,305m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800320000014/R2.htm"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 45415.4,
+					"operatingIncome": 10061.4,
+					"quality": "reported",
+					"source": "Pfizer Form 10-K FY2019, Consolidated Statements of Income (XBRL R2) (FY ending 2018-12-31: revenue USD 53,647m, operating income USD 11,885m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800320000014/R2.htm"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 46220.6,
+					"operatingIncome": 15792.7,
+					"quality": "reported",
+					"source": "Pfizer Form 10-K FY2019, Consolidated Statements of Income (XBRL R2) (FY ending 2019-12-31: revenue USD 51,750m, operating income USD 17,682m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800320000014/R2.htm"
 				}
 			]
 		},
@@ -4014,6 +5806,62 @@
 					"quality": "reported",
 					"source": "P&G Form 10-K FY2015, Financial Summary (Item 6) (FY ending 2012-06-30: revenue USD 79,545m, operating income USD 12,611m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042415000070/fy141510-kreport.htm"
+				},
+				{
+					"quarter": "2013Q2",
+					"revenue": 61939.9,
+					"operatingIncome": 10682.3,
+					"quality": "reported",
+					"source": "P&G Form 10-K FY2015, Financial Summary (Item 6) (FY ending 2013-06-30: revenue USD 80,116m, operating income USD 13,817m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042415000070/fy141510-kreport.htm"
+				},
+				{
+					"quarter": "2014Q2",
+					"revenue": 59352.8,
+					"operatingIncome": 10866.5,
+					"quality": "reported",
+					"source": "P&G Form 10-K FY2015, Financial Summary (Item 6) (FY ending 2014-06-30: revenue USD 80,510m, operating income USD 14,740m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042415000070/fy141510-kreport.htm"
+				},
+				{
+					"quarter": "2015Q2",
+					"revenue": 63476.3,
+					"operatingIncome": 9811.2,
+					"quality": "reported",
+					"source": "P&G Form 10-K FY2015, Financial Summary (Item 6) (FY ending 2015-06-30: revenue USD 76,279m, operating income USD 11,790m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042415000070/fy141510-kreport.htm"
+				},
+				{
+					"quarter": "2016Q2",
+					"revenue": 58852.3,
+					"operatingIncome": 11949.1,
+					"quality": "reported",
+					"source": "P&G Form 10-K FY2020, Item 6 Selected Financial Data (FY ending 2016-06-30: revenue USD 65,299m, operating income USD 13,258m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042420000053/pg-20200630.htm"
+				},
+				{
+					"quarter": "2017Q2",
+					"revenue": 59651.9,
+					"operatingIncome": 12622.1,
+					"quality": "reported",
+					"source": "P&G Form 10-K FY2020, Item 6 Selected Financial Data (FY ending 2017-06-30: revenue USD 65,058m, operating income USD 13,766m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042420000053/pg-20200630.htm"
+				},
+				{
+					"quarter": "2018Q2",
+					"revenue": 56011.9,
+					"operatingIncome": 11199.5,
+					"quality": "reported",
+					"source": "P&G Form 10-K FY2020, Item 6 Selected Financial Data (FY ending 2018-06-30: revenue USD 66,832m, operating income USD 13,363m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042420000053/pg-20200630.htm"
+				},
+				{
+					"quarter": "2019Q2",
+					"revenue": 59322.8,
+					"operatingIncome": 4809.2,
+					"quality": "reported",
+					"source": "P&G Form 10-K FY2020, Item 6 Selected Financial Data (FY ending 2019-06-30: revenue USD 67,684m, operating income USD 5,487m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042420000053/pg-20200630.htm"
 				}
 			]
 		},
@@ -4128,6 +5976,62 @@
 					"quality": "reported",
 					"source": "SAP Form 20-F FY2014, Item 3 Selected Financial Data (IFRS) (FY ending 2012-12-31: revenue EUR 16,223m, operating income EUR 4,041m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000119312515099258/d875102d20f.htm"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 16815,
+					"operatingIncome": 4479,
+					"quality": "reported",
+					"source": "SAP Form 20-F FY2014, Item 3 Selected Financial Data (IFRS) (FY ending 2013-12-31: revenue EUR 16,815m, operating income EUR 4,479m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000119312515099258/d875102d20f.htm"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 17560,
+					"operatingIncome": 4331,
+					"quality": "reported",
+					"source": "SAP Form 20-F FY2014, Item 3 Selected Financial Data (IFRS) (FY ending 2014-12-31: revenue EUR 17,560m, operating income EUR 4,331m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000119312515099258/d875102d20f.htm"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 20793,
+					"operatingIncome": 4252,
+					"quality": "reported",
+					"source": "SAP Form 20-F FY2016, Item 3 Selected Financial Data (IFRS) (FY ending 2015-12-31: revenue EUR 20,793m, operating income EUR 4,252m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000119312517060157/d344005d20f.htm"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 22062,
+					"operatingIncome": 5135,
+					"quality": "reported",
+					"source": "SAP Form 20-F FY2016, Item 3 Selected Financial Data (IFRS) (FY ending 2016-12-31: revenue EUR 22,062m, operating income EUR 5,135m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000119312517060157/d344005d20f.htm"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 23461,
+					"operatingIncome": 4877,
+					"quality": "reported",
+					"source": "SAP Form 20-F FY2019, Consolidated Income Statement (IFRS, XBRL R2) (FY ending 2017-12-31: revenue EUR 23,461m, operating income EUR 4,877m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465920025681/R2.htm"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 24708,
+					"operatingIncome": 5703,
+					"quality": "reported",
+					"source": "SAP Form 20-F FY2019, Consolidated Income Statement (IFRS, XBRL R2) (FY ending 2018-12-31: revenue EUR 24,708m, operating income EUR 5,703m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465920025681/R2.htm"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 27553,
+					"operatingIncome": 4473,
+					"quality": "reported",
+					"source": "SAP Form 20-F FY2019, Consolidated Income Statement (IFRS, XBRL R2) (FY ending 2019-12-31: revenue EUR 27,553m, operating income EUR 4,473m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465920025681/R2.htm"
 				}
 			]
 		},
@@ -4234,6 +6138,62 @@
 					"quality": "reported",
 					"source": "Royal Dutch Shell 6-K Q4/FY2012 results, consolidated statement of income (later restated to 50,512 for IAS 19R) (FY ending 2012-12-31: revenue USD 467,153m, operating income USD 50,289m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1306965/000119312513032050/d478760d6k.htm"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 339784.1,
+					"operatingIncome": 25295.1,
+					"quality": "reported",
+					"source": "Royal Dutch Shell 6-K Q4/FY2013 results, consolidated statement of income (FY ending 2013-12-31: revenue USD 451,235m, operating income USD 33,592m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1306965/000119312514027679/d660447d6k.htm"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 316855,
+					"operatingIncome": 21515.2,
+					"quality": "reported",
+					"source": "Royal Dutch Shell 6-K Q4/FY2014 results, consolidated statement of income (FY ending 2014-12-31: revenue USD 421,105m, operating income USD 28,594m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1306965/000119312515024615/d862412d6k.htm"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 238792.5,
+					"operatingIncome": 1844.8,
+					"quality": "reported",
+					"source": "Royal Dutch Shell Form 20-F (acc. 0001564590-18-005735) via SEC XBRL company concept (FY ending 2015-12-31: revenue USD 264,960m, operating income USD 2,047m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 211068.9,
+					"operatingIncome": 5065.5,
+					"quality": "reported",
+					"source": "Royal Dutch Shell Form 20-F (acc. 0001564590-19-007740) via SEC XBRL company concept (FY ending 2016-12-31: revenue USD 233,591m, operating income USD 5,606m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 270133.9,
+					"operatingIncome": 16048,
+					"quality": "reported",
+					"source": "Royal Dutch Shell Form 20-F (acc. 0001306965-20-000014) via SEC XBRL company concept (FY ending 2017-12-31: revenue USD 305,179m, operating income USD 18,130m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 328785.8,
+					"operatingIncome": 30155.3,
+					"quality": "reported",
+					"source": "Royal Dutch Shell Form 20-F (acc. 0001306965-21-000025) via SEC XBRL company concept (FY ending 2018-12-31: revenue USD 388,379m, operating income USD 35,621m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 308027.7,
+					"operatingIncome": 22762,
+					"quality": "reported",
+					"source": "Royal Dutch Shell Form 20-F (acc. 0001306965-22-000012) via SEC XBRL company concept (FY ending 2019-12-31: revenue USD 344,877m, operating income USD 25,485m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
 				}
 			]
 		},
@@ -4348,6 +6308,62 @@
 					"quality": "reported",
 					"source": "Tesco Preliminary Results 2012/13, Group income statement (comparative, restated) (FY ending 2012-02-25: revenue GBP 63,916m, operating income GBP 4,182m)",
 					"sourceUrl": "https://www.tescoplc.com/media/476040/prelim_2012-13_results_statement.pdf"
+				},
+				{
+					"quarter": "2013Q1",
+					"revenue": 79540.6,
+					"operatingIncome": 2684.6,
+					"quality": "reported",
+					"source": "Tesco Preliminary Results 2012/13, Group income statement (FY ending 2013-02-23: revenue GBP 64,826m, operating income GBP 2,188m)",
+					"sourceUrl": "https://www.tescoplc.com/media/476040/prelim_2012-13_results_statement.pdf"
+				},
+				{
+					"quarter": "2014Q1",
+					"revenue": 75355.8,
+					"operatingIncome": 3119.4,
+					"quality": "reported",
+					"source": "Tesco Preliminary Results 2014/15, Group income statement (comparative, restated) (FY ending 2014-02-22: revenue GBP 63,557m, operating income GBP 2,631m)",
+					"sourceUrl": "https://www.tescoplc.com/media/1322/prelim_2014-2015_results_statement.pdf"
+				},
+				{
+					"quarter": "2015Q1",
+					"revenue": 79318.4,
+					"operatingIncome": -7376.1,
+					"quality": "reported",
+					"source": "Tesco Preliminary Results 2014/15, Group income statement (53 weeks) (FY ending 2015-02-28: revenue GBP 62,284m, operating income GBP -5,792m)",
+					"sourceUrl": "https://www.tescoplc.com/media/1322/prelim_2014-2015_results_statement.pdf"
+				},
+				{
+					"quarter": "2016Q1",
+					"revenue": 73608.6,
+					"operatingIncome": 1463.1,
+					"quality": "reported",
+					"source": "Tesco Preliminary Results 2016/17, Group income statement (comparative, restated) (FY ending 2016-02-27: revenue GBP 53,933m, operating income GBP 1,072m)",
+					"sourceUrl": "https://www.tescoplc.com/media/392168/tesco-plc-preliminary-results-1617.pdf"
+				},
+				{
+					"quarter": "2017Q1",
+					"revenue": 66455.5,
+					"operatingIncome": 1208.7,
+					"quality": "reported",
+					"source": "Tesco Preliminary Results 2016/17, Group income statement (FY ending 2017-02-25: revenue GBP 55,917m, operating income GBP 1,017m)",
+					"sourceUrl": "https://www.tescoplc.com/media/392168/tesco-plc-preliminary-results-1617.pdf"
+				},
+				{
+					"quarter": "2018Q1",
+					"revenue": 65155.4,
+					"operatingIncome": 2084.1,
+					"quality": "reported",
+					"source": "Tesco Preliminary Results 2018/19, Group income statement (comparative) (FY ending 2018-02-24: revenue GBP 57,493m, operating income GBP 1,839m)",
+					"sourceUrl": "https://www.tescoplc.com/media/3u4f1r3d/prelims-results-1819.pdf"
+				},
+				{
+					"quarter": "2019Q1",
+					"revenue": 72467.8,
+					"operatingIncome": 2441.3,
+					"quality": "reported",
+					"source": "Tesco Preliminary Results 2018/19, Group income statement (FY ending 2019-02-23: revenue GBP 63,911m, operating income GBP 2,153m)",
+					"sourceUrl": "https://www.tescoplc.com/media/3u4f1r3d/prelims-results-1819.pdf"
 				}
 			]
 		},
@@ -4405,6 +6421,62 @@
 					"operatingIncome": -306.9,
 					"quality": "reported",
 					"source": "Tesla Form 10-K XBRL (accn 0001193125-13-096241), SEC companyconcept API (FY ending 2012-12-31: revenue USD 413.3m, operating income USD -394.3m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 1516.2,
+					"operatingIncome": -46.1,
+					"quality": "reported",
+					"source": "Tesla Form 10-K XBRL (accn 0001193125-14-069681), SEC companyconcept API (FY ending 2013-12-31: revenue USD 2,013.5m, operating income USD -61.3m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 2406.6,
+					"operatingIncome": -140.5,
+					"quality": "reported",
+					"source": "Tesla Form 10-K XBRL (accn 0001564590-15-001031), SEC companyconcept API (FY ending 2014-12-31: revenue USD 3,198.4m, operating income USD -186.7m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 3646.4,
+					"operatingIncome": -645.9,
+					"quality": "reported",
+					"source": "Tesla Form 10-K XBRL (accn 0001564590-16-013195), SEC companyconcept API (FY ending 2015-12-31: revenue USD 4,046m, operating income USD -716.6m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 6325.2,
+					"operatingIncome": -603,
+					"quality": "reported",
+					"source": "Tesla Form 10-K XBRL (accn 0001564590-17-003118), SEC companyconcept API (FY ending 2016-12-31: revenue USD 7,000.1m, operating income USD -667.3m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 10408.4,
+					"operatingIncome": -1444.7,
+					"quality": "reported",
+					"source": "Tesla Form 10-K XBRL (accn 0001564590-18-002956), SEC companyconcept API (FY ending 2017-12-31: revenue USD 11,758.8m, operating income USD -1,632.1m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 18168.2,
+					"operatingIncome": -328.5,
+					"quality": "reported",
+					"source": "Tesla Form 10-K XBRL (accn 0001564590-19-003165), SEC companyconcept API (FY ending 2018-12-31: revenue USD 21,461.3m, operating income USD -388.1m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 21951.9,
+					"operatingIncome": -61.6,
+					"quality": "reported",
+					"source": "Tesla Form 10-K XBRL (accn 0001564590-20-004475), SEC companyconcept API (FY ending 2019-12-31: revenue USD 24,578m, operating income USD -69m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
 				}
 			]
@@ -4512,6 +6584,62 @@
 					"quality": "reported",
 					"source": "Total 6-K 2013-02-19, FY2012 results, consolidated statement of income; net income 10,841 + taxes 13,066 (FY ending 2012-12-31: revenue EUR 200,061m, operating income EUR 23,907m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000110465913011532/a13-5009_1ex99d1.htm"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 189551.2,
+					"operatingIncome": 19795.1,
+					"quality": "reported",
+					"source": "Total 6-K 2015-02-12, FY2014 results (USD), consolidated statement of income; net income 11,521 + taxes 14,767 (FY ending 2013-12-31: revenue USD 251,725m, operating income USD 26,288m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000110465915009243/a15-4087_1ex99d1.htm"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 177666.9,
+					"operatingIncome": 9679.3,
+					"quality": "reported",
+					"source": "Total 6-K 2015-02-12, FY2014 results (USD), consolidated statement of income; net income 4,250 + taxes 8,614 (FY ending 2014-12-31: revenue USD 236,122m, operating income USD 12,864m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000110465915009243/a15-4087_1ex99d1.htm"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 149026.3,
+					"operatingIncome": 5803.1,
+					"quality": "reported",
+					"source": "Total Form 20-F FY2017, consolidated statement of income (XBRL R2); net income 4,786 + taxes 1,653 (FY ending 2015-12-31: revenue USD 165,357m, operating income USD 6,439m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000130817918000062/R2.htm"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 135305.3,
+					"operatingIncome": 6484.1,
+					"quality": "reported",
+					"source": "Total Form 20-F FY2017, consolidated statement of income (XBRL R2); net income 6,206 + taxes 970 (FY ending 2016-12-31: revenue USD 149,743m, operating income USD 7,176m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000130817918000062/R2.htm"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 151799.7,
+					"operatingIncome": 10027.2,
+					"quality": "reported",
+					"source": "Total Form 20-F FY2019, consolidated statement of income (XBRL R2); net income 8,299 + taxes 3,029 (FY ending 2017-12-31: revenue USD 171,493m, operating income USD 11,328m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000119312520080490/R2.htm"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 177238.1,
+					"operatingIncome": 15293.9,
+					"quality": "reported",
+					"source": "Total Form 20-F FY2019, consolidated statement of income (XBRL R2); net income 11,550 + taxes 6,516 (FY ending 2018-12-31: revenue USD 209,363m, operating income USD 18,066m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000119312520080490/R2.htm"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 178912.7,
+					"operatingIncome": 15460.5,
+					"quality": "reported",
+					"source": "Total Form 20-F FY2019, consolidated statement of income (XBRL R2); net income 11,438 + taxes 5,872 (FY ending 2019-12-31: revenue USD 200,316m, operating income USD 17,310m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000119312520080490/R2.htm"
 				}
 			]
 		},
@@ -4626,6 +6754,62 @@
 					"quality": "reported",
 					"source": "Unilever Form 20-F 2015, Item 3 Selected financial data (FY ending 2012-12-31: revenue EUR 51,324m, operating income EUR 6,977m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312516472832/d61872d20f.htm"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 49797,
+					"operatingIncome": 7517,
+					"quality": "reported",
+					"source": "Unilever Form 20-F 2015, Item 3 Selected financial data (FY ending 2013-12-31: revenue EUR 49,797m, operating income EUR 7,517m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312516472832/d61872d20f.htm"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 48436,
+					"operatingIncome": 7980,
+					"quality": "reported",
+					"source": "Unilever Form 20-F 2015, Item 3 Selected financial data (FY ending 2014-12-31: revenue EUR 48,436m, operating income EUR 7,980m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312516472832/d61872d20f.htm"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 53272,
+					"operatingIncome": 7515,
+					"quality": "reported",
+					"source": "Unilever Form 20-F 2015, Item 3 Selected financial data (FY ending 2015-12-31: revenue EUR 53,272m, operating income EUR 7,515m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312516472832/d61872d20f.htm"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 52713,
+					"operatingIncome": 7801,
+					"quality": "reported",
+					"source": "Unilever Form 20-F 2018, Consolidated income statement (FY ending 2016-12-31: revenue EUR 52,713m, operating income EUR 7,801m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312519070426/R2.htm"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 53715,
+					"operatingIncome": 8857,
+					"quality": "reported",
+					"source": "Unilever Form 20-F 2018, Consolidated income statement (FY ending 2017-12-31: revenue EUR 53,715m, operating income EUR 8,857m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312519070426/R2.htm"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 50982,
+					"operatingIncome": 12535,
+					"quality": "reported",
+					"source": "Unilever Form 20-F 2018, Consolidated income statement (FY ending 2018-12-31: revenue EUR 50,982m, operating income EUR 12,535m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312519070426/R2.htm"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 51980,
+					"operatingIncome": 8708,
+					"quality": "reported",
+					"source": "Unilever Form 20-F 2021, Consolidated income statement (FY ending 2019-12-31: revenue EUR 51,980m, operating income EUR 8,708m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741022000009/R3.htm"
 				}
 			]
 		},
@@ -4740,6 +6924,62 @@
 					"quality": "reported",
 					"source": "Volkswagen AG Annual Report 2016, Five-Year Review (XLS) (FY ending 2012-12-31: revenue EUR 192,676m, operating income EUR 11,498m)",
 					"sourceUrl": "https://annualreport2016.volkswagenag.com/servicepages/downloads/files/five_year_review_vw_ar16.xls"
+				},
+				{
+					"quarter": "2013Q4",
+					"revenue": 197007,
+					"operatingIncome": 11671,
+					"quality": "reported",
+					"source": "Volkswagen AG Annual Report 2016, Five-Year Review (XLS) (FY ending 2013-12-31: revenue EUR 197,007m, operating income EUR 11,671m)",
+					"sourceUrl": "https://annualreport2016.volkswagenag.com/servicepages/downloads/files/five_year_review_vw_ar16.xls"
+				},
+				{
+					"quarter": "2014Q4",
+					"revenue": 202458,
+					"operatingIncome": 12697,
+					"quality": "reported",
+					"source": "Volkswagen AG Annual Report 2016, Five-Year Review (XLS) (FY ending 2014-12-31: revenue EUR 202,458m, operating income EUR 12,697m)",
+					"sourceUrl": "https://annualreport2016.volkswagenag.com/servicepages/downloads/files/five_year_review_vw_ar16.xls"
+				},
+				{
+					"quarter": "2015Q4",
+					"revenue": 213292,
+					"operatingIncome": -4069,
+					"quality": "reported",
+					"source": "Volkswagen AG Annual Report 2016, Five-Year Review (XLS) (FY ending 2015-12-31: revenue EUR 213,292m, operating income EUR -4,069m)",
+					"sourceUrl": "https://annualreport2016.volkswagenag.com/servicepages/downloads/files/five_year_review_vw_ar16.xls"
+				},
+				{
+					"quarter": "2016Q4",
+					"revenue": 217267,
+					"operatingIncome": 7103,
+					"quality": "reported",
+					"source": "Volkswagen AG Annual Report 2020, Five-Year Overview (FY ending 2016-12-31: revenue EUR 217,267m, operating income EUR 7,103m)",
+					"sourceUrl": "https://annualreport2020.volkswagenag.com/additional-information/five-year-overview.html"
+				},
+				{
+					"quarter": "2017Q4",
+					"revenue": 229550,
+					"operatingIncome": 13818,
+					"quality": "reported",
+					"source": "Volkswagen AG Annual Report 2020, Five-Year Overview (FY ending 2017-12-31: revenue EUR 229,550m, operating income EUR 13,818m)",
+					"sourceUrl": "https://annualreport2020.volkswagenag.com/additional-information/five-year-overview.html"
+				},
+				{
+					"quarter": "2018Q4",
+					"revenue": 235849,
+					"operatingIncome": 13920,
+					"quality": "reported",
+					"source": "Volkswagen AG Annual Report 2020, Five-Year Overview (FY ending 2018-12-31: revenue EUR 235,849m, operating income EUR 13,920m)",
+					"sourceUrl": "https://annualreport2020.volkswagenag.com/additional-information/five-year-overview.html"
+				},
+				{
+					"quarter": "2019Q4",
+					"revenue": 252632,
+					"operatingIncome": 16960,
+					"quality": "reported",
+					"source": "Volkswagen AG Annual Report 2020, Five-Year Overview (FY ending 2019-12-31: revenue EUR 252,632m, operating income EUR 16,960m)",
+					"sourceUrl": "https://annualreport2020.volkswagenag.com/additional-information/five-year-overview.html"
 				}
 			]
 		},
@@ -4845,6 +7085,62 @@
 					"operatingIncome": 19277.3,
 					"quality": "reported",
 					"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2012-01-31: revenue USD 446,950m, operating income USD 26,558m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2013Q1",
+					"revenue": 364469.9,
+					"operatingIncome": 21597.3,
+					"quality": "reported",
+					"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2013-01-31: revenue USD 469,162m, operating income USD 27,801m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2014Q1",
+					"revenue": 355375.7,
+					"operatingIncome": 20049.9,
+					"quality": "reported",
+					"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2014-01-31: revenue USD 476,294m, operating income USD 26,872m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2015Q1",
+					"revenue": 382962.5,
+					"operatingIncome": 21406.9,
+					"quality": "reported",
+					"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2015-01-31: revenue USD 485,651m, operating income USD 27,147m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2016Q1",
+					"revenue": 436891,
+					"operatingIncome": 21843.2,
+					"quality": "reported",
+					"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2016-01-31: revenue USD 482,130m, operating income USD 24,105m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2017Q1",
+					"revenue": 442747.2,
+					"operatingIncome": 20743.5,
+					"quality": "reported",
+					"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2017-01-31: revenue USD 485,873m, operating income USD 22,764m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2018Q1",
+					"revenue": 427338.6,
+					"operatingIncome": 17455.1,
+					"quality": "reported",
+					"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2018-01-31: revenue USD 500,343m, operating income USD 20,437m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2019Q1",
+					"revenue": 444259.7,
+					"operatingIncome": 18962.9,
+					"quality": "reported",
+					"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2019-01-31: revenue USD 514,405m, operating income USD 21,957m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
 				}
 			]

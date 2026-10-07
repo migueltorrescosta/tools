@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "Nike Form 10-K FY2014, Consolidated Statements of Income",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018714000097/R2.htm"
+		},
+		{
+			"periodEnd": "2013-05-31",
+			"currency": "USD",
+			"revenue": 25313,
+			"operatingIncome": 3256,
+			"quality": "reported",
+			"source": "Nike Form 10-K FY2014, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018714000097/R2.htm"
+		},
+		{
+			"periodEnd": "2014-05-31",
+			"currency": "USD",
+			"revenue": 27799,
+			"operatingIncome": 3544,
+			"quality": "reported",
+			"source": "Nike Form 10-K FY2014, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018714000097/R2.htm"
+		},
+		{
+			"periodEnd": "2015-05-31",
+			"currency": "USD",
+			"revenue": 30601,
+			"operatingIncome": 4205,
+			"quality": "reported",
+			"source": "Nike Form 10-K FY2017, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018717000090/R2.htm"
+		},
+		{
+			"periodEnd": "2016-05-31",
+			"currency": "USD",
+			"revenue": 32376,
+			"operatingIncome": 4623,
+			"quality": "reported",
+			"source": "Nike Form 10-K FY2017, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018717000090/R2.htm"
+		},
+		{
+			"periodEnd": "2017-05-31",
+			"currency": "USD",
+			"revenue": 34350,
+			"operatingIncome": 4886,
+			"quality": "reported",
+			"source": "Nike Form 10-K FY2017, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018717000090/R2.htm"
+		},
+		{
+			"periodEnd": "2018-05-31",
+			"currency": "USD",
+			"revenue": 36397,
+			"operatingIncome": 4325,
+			"quality": "reported",
+			"source": "Nike Form 10-K FY2020, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018720000047/R2.htm"
+		},
+		{
+			"periodEnd": "2019-05-31",
+			"currency": "USD",
+			"revenue": 39117,
+			"operatingIncome": 4801,
+			"quality": "reported",
+			"source": "Nike Form 10-K FY2020, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018720000047/R2.htm"
 		}
 	]
 }

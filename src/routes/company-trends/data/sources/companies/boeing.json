@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "Boeing Form 10-K FY2012, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API)",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "USD",
+			"revenue": 86623,
+			"operatingIncome": 6562,
+			"quality": "reported",
+			"source": "Boeing Form 10-K FY2013, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "USD",
+			"revenue": 90762,
+			"operatingIncome": 7473,
+			"quality": "reported",
+			"source": "Boeing Form 10-K FY2014, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "USD",
+			"revenue": 96114,
+			"operatingIncome": 7443,
+			"quality": "reported",
+			"source": "Boeing Form 10-K FY2015, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "USD",
+			"revenue": 94571,
+			"operatingIncome": 5834,
+			"quality": "reported",
+			"source": "Boeing Form 10-K FY2016, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "USD",
+			"revenue": 93392,
+			"operatingIncome": 10278,
+			"quality": "reported",
+			"source": "Boeing Form 10-K FY2017, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "USD",
+			"revenue": 101127,
+			"operatingIncome": 11987,
+			"quality": "reported",
+			"source": "Boeing Form 10-K FY2018, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "USD",
+			"revenue": 76559,
+			"operatingIncome": -1975,
+			"quality": "reported",
+			"source": "Boeing Form 10-K FY2019, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
 		}
 	]
 }

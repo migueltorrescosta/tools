@@ -113,6 +113,69 @@
 			"quality": "reported",
 			"source": "Total 6-K 2013-02-19, FY2012 results, consolidated statement of income; net income 10,841 + taxes 13,066",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000110465913011532/a13-5009_1ex99d1.htm"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "USD",
+			"revenue": 251725,
+			"operatingIncome": 26288,
+			"quality": "reported",
+			"source": "Total 6-K 2015-02-12, FY2014 results (USD), consolidated statement of income; net income 11,521 + taxes 14,767",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000110465915009243/a15-4087_1ex99d1.htm"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "USD",
+			"revenue": 236122,
+			"operatingIncome": 12864,
+			"quality": "reported",
+			"source": "Total 6-K 2015-02-12, FY2014 results (USD), consolidated statement of income; net income 4,250 + taxes 8,614",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000110465915009243/a15-4087_1ex99d1.htm"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "USD",
+			"revenue": 165357,
+			"operatingIncome": 6439,
+			"quality": "reported",
+			"source": "Total Form 20-F FY2017, consolidated statement of income (XBRL R2); net income 4,786 + taxes 1,653",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000130817918000062/R2.htm"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "USD",
+			"revenue": 149743,
+			"operatingIncome": 7176,
+			"quality": "reported",
+			"source": "Total Form 20-F FY2017, consolidated statement of income (XBRL R2); net income 6,206 + taxes 970",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000130817918000062/R2.htm"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "USD",
+			"revenue": 171493,
+			"operatingIncome": 11328,
+			"quality": "reported",
+			"source": "Total Form 20-F FY2019, consolidated statement of income (XBRL R2); net income 8,299 + taxes 3,029",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000119312520080490/R2.htm"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "USD",
+			"revenue": 209363,
+			"operatingIncome": 18066,
+			"quality": "reported",
+			"source": "Total Form 20-F FY2019, consolidated statement of income (XBRL R2); net income 11,550 + taxes 6,516",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000119312520080490/R2.htm"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "USD",
+			"revenue": 200316,
+			"operatingIncome": 17310,
+			"quality": "reported",
+			"source": "Total Form 20-F FY2019, consolidated statement of income (XBRL R2); net income 11,438 + taxes 5,872",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000119312520080490/R2.htm"
 		}
 	]
 }

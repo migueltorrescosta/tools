@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2013-09-01",
+			"currency": "USD",
+			"revenue": 105156,
+			"operatingIncome": 3053,
+			"quality": "reported",
+			"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2014-08-31",
+			"currency": "USD",
+			"revenue": 112640,
+			"operatingIncome": 3220,
+			"quality": "reported",
+			"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2015-08-30",
+			"currency": "USD",
+			"revenue": 116199,
+			"operatingIncome": 3624,
+			"quality": "reported",
+			"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2016-08-28",
+			"currency": "USD",
+			"revenue": 118719,
+			"operatingIncome": 3672,
+			"quality": "reported",
+			"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2017-09-03",
+			"currency": "USD",
+			"revenue": 129025,
+			"operatingIncome": 4111,
+			"quality": "reported",
+			"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2018-09-02",
+			"currency": "USD",
+			"revenue": 141576,
+			"operatingIncome": 4480,
+			"quality": "reported",
+			"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2019-09-01",
+			"currency": "USD",
+			"revenue": 152703,
+			"operatingIncome": 4737,
+			"quality": "reported",
+			"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
 		}
 	]
 }

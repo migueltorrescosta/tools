@@ -95,6 +95,69 @@
 			"quality": "reported",
 			"source": "Novartis Form 20-F FY2016, Item 3.A Selected Financial Data (continuing operations)",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000104746917000338/a2230622z20-f.htm"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "USD",
+			"revenue": 51869,
+			"operatingIncome": 10983,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2016, Item 3.A Selected Financial Data (continuing operations)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000104746917000338/a2230622z20-f.htm"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "USD",
+			"revenue": 52180,
+			"operatingIncome": 11089,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2016, Item 3.A Selected Financial Data (continuing operations)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000104746917000338/a2230622z20-f.htm"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "USD",
+			"revenue": 49414,
+			"operatingIncome": 8977,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2016, Item 3.A Selected Financial Data (continuing operations)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000104746917000338/a2230622z20-f.htm"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "USD",
+			"revenue": 48518,
+			"operatingIncome": 8268,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2016, Item 3.A Selected Financial Data (continuing operations)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000104746917000338/a2230622z20-f.htm"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "USD",
+			"revenue": 49109,
+			"operatingIncome": 8629,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2018, Consolidated income statement (as originally reported, incl. Alcon)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000137036819000002/R2.htm"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "USD",
+			"revenue": 51900,
+			"operatingIncome": 8169,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2018, Consolidated income statement (as originally reported, incl. Alcon)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000137036819000002/R2.htm"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "USD",
+			"revenue": 47445,
+			"operatingIncome": 9086,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2020, Consolidated income statement (continuing operations, excl. Alcon)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000137036821000006/R2.htm"
 		}
 	]
 }

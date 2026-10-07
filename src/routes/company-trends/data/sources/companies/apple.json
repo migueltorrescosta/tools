@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-12-444068); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2013-09-28",
+			"currency": "USD",
+			"revenue": 170910,
+			"operatingIncome": 48999,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-13-416534); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2014-09-27",
+			"currency": "USD",
+			"revenue": 182795,
+			"operatingIncome": 52503,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-14-383437); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2015-09-26",
+			"currency": "USD",
+			"revenue": 233715,
+			"operatingIncome": 71230,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-15-356351); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2016-09-24",
+			"currency": "USD",
+			"revenue": 215639,
+			"operatingIncome": 60024,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001628280-16-020309); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2017-09-30",
+			"currency": "USD",
+			"revenue": 229234,
+			"operatingIncome": 61344,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0000320193-17-000070); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2018-09-29",
+			"currency": "USD",
+			"revenue": 265595,
+			"operatingIncome": 70898,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0000320193-18-000145); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2019-09-28",
+			"currency": "USD",
+			"revenue": 260174,
+			"operatingIncome": 63930,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0000320193-19-000119); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
 		}
 	]
 }

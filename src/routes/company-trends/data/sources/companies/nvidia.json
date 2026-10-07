@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "NVIDIA Form 10-K XBRL (accn 0001045810-12-000013), SEC companyconcept API",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2013-01-27",
+			"currency": "USD",
+			"revenue": 4280.159,
+			"operatingIncome": 648.239,
+			"quality": "reported",
+			"source": "NVIDIA Form 10-K XBRL (accn 0001045810-13-000008), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2014-01-26",
+			"currency": "USD",
+			"revenue": 4130.162,
+			"operatingIncome": 496.227,
+			"quality": "reported",
+			"source": "NVIDIA Form 10-K XBRL (accn 0001045810-14-000030), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2015-01-25",
+			"currency": "USD",
+			"revenue": 4681.507,
+			"operatingIncome": 758.989,
+			"quality": "reported",
+			"source": "NVIDIA Form 10-K XBRL (accn 0001045810-15-000036), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2016-01-31",
+			"currency": "USD",
+			"revenue": 5010.0,
+			"operatingIncome": 747.0,
+			"quality": "reported",
+			"source": "NVIDIA Form 10-K XBRL (accn 0001045810-16-000205), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2017-01-29",
+			"currency": "USD",
+			"revenue": 6910.0,
+			"operatingIncome": 1934.0,
+			"quality": "reported",
+			"source": "NVIDIA Form 10-K XBRL (accn 0001045810-17-000027), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2018-01-28",
+			"currency": "USD",
+			"revenue": 9714.0,
+			"operatingIncome": 3210.0,
+			"quality": "reported",
+			"source": "NVIDIA Form 10-K XBRL (accn 0001045810-18-000010), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2019-01-27",
+			"currency": "USD",
+			"revenue": 11798.0,
+			"operatingIncome": 3804.0,
+			"quality": "reported",
+			"source": "NVIDIA Form 10-K XBRL (accn 0001045810-19-000023), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
 		}
 	]
 }

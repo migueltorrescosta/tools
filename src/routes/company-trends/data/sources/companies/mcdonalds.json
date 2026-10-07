@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "McDonald's Form 10-K FY2013, Consolidated Statement of Income",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390814000019/R2.htm"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "USD",
+			"revenue": 28105.7,
+			"operatingIncome": 8764.3,
+			"quality": "reported",
+			"source": "McDonald's Form 10-K FY2013, Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390814000019/R2.htm"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "USD",
+			"revenue": 27441.3,
+			"operatingIncome": 7949.2,
+			"quality": "reported",
+			"source": "McDonald's Form 10-K FY2016, Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390817000017/R2.htm"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "USD",
+			"revenue": 25413.0,
+			"operatingIncome": 7145.5,
+			"quality": "reported",
+			"source": "McDonald's Form 10-K FY2016, Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390817000017/R2.htm"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "USD",
+			"revenue": 24621.9,
+			"operatingIncome": 7744.5,
+			"quality": "reported",
+			"source": "McDonald's Form 10-K FY2016, Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390817000017/R2.htm"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "USD",
+			"revenue": 22820.4,
+			"operatingIncome": 9552.7,
+			"quality": "reported",
+			"source": "McDonald's Form 10-K FY2019, Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390820000022/R2.htm"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "USD",
+			"revenue": 21025.2,
+			"operatingIncome": 8822.6,
+			"quality": "reported",
+			"source": "McDonald's Form 10-K FY2019, Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390820000022/R2.htm"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "USD",
+			"revenue": 21076.5,
+			"operatingIncome": 9069.8,
+			"quality": "reported",
+			"source": "McDonald's Form 10-K FY2019, Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390820000022/R2.htm"
 		}
 	]
 }

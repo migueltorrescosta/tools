@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "Unilever Form 20-F 2015, Item 3 Selected financial data",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312516472832/d61872d20f.htm"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "EUR",
+			"revenue": 49797,
+			"operatingIncome": 7517,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2015, Item 3 Selected financial data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312516472832/d61872d20f.htm"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "EUR",
+			"revenue": 48436,
+			"operatingIncome": 7980,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2015, Item 3 Selected financial data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312516472832/d61872d20f.htm"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "EUR",
+			"revenue": 53272,
+			"operatingIncome": 7515,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2015, Item 3 Selected financial data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312516472832/d61872d20f.htm"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "EUR",
+			"revenue": 52713,
+			"operatingIncome": 7801,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2018, Consolidated income statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312519070426/R2.htm"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "EUR",
+			"revenue": 53715,
+			"operatingIncome": 8857,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2018, Consolidated income statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312519070426/R2.htm"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "EUR",
+			"revenue": 50982,
+			"operatingIncome": 12535,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2018, Consolidated income statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312519070426/R2.htm"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "EUR",
+			"revenue": 51980,
+			"operatingIncome": 8708,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2021, Consolidated income statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741022000009/R3.htm"
 		}
 	]
 }

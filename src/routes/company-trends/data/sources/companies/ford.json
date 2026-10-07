@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "Ford Form 10-K FY2013, Consolidated Income Statement",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799614000010/R2.htm"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "USD",
+			"revenue": 146917,
+			"operatingIncome": 7001,
+			"quality": "reported",
+			"source": "Ford Form 10-K FY2013, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799614000010/R2.htm"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "USD",
+			"revenue": 144077,
+			"operatingIncome": 1234,
+			"quality": "reported",
+			"source": "Ford Form 10-K FY2016, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799617000013/R2.htm"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "USD",
+			"revenue": 149558,
+			"operatingIncome": 10252,
+			"quality": "reported",
+			"source": "Ford Form 10-K FY2016, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799617000013/R2.htm"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "USD",
+			"revenue": 151800,
+			"operatingIncome": 6796,
+			"quality": "reported",
+			"source": "Ford Form 10-K FY2016, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799617000013/R2.htm"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "USD",
+			"revenue": 156776,
+			"operatingIncome": 8159,
+			"quality": "reported",
+			"source": "Ford Form 10-K FY2019, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799620000010/R3.htm"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "USD",
+			"revenue": 160338,
+			"operatingIncome": 4345,
+			"quality": "reported",
+			"source": "Ford Form 10-K FY2019, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799620000010/R3.htm"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "USD",
+			"revenue": 155900,
+			"operatingIncome": -640,
+			"quality": "reported",
+			"source": "Ford Form 10-K FY2019, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799620000010/R3.htm"
 		}
 	]
 }

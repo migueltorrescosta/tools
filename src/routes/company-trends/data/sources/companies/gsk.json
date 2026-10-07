@@ -113,6 +113,69 @@
 			"quality": "reported",
 			"source": "GSK FY2013 results 6-K (Feb 2014), total results, 2012 restated (IAS 19R)",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/0001131399/000119163814000145/gsk201402056k.htm"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "GBP",
+			"revenue": 26505,
+			"operatingIncome": 7028,
+			"quality": "reported",
+			"source": "GSK FY2014 results 6-K (Feb 2015), total results",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1131399/000119163815000135/gsk201502046k.htm"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "GBP",
+			"revenue": 23006,
+			"operatingIncome": 3597,
+			"quality": "reported",
+			"source": "GSK FY2014 results 6-K (Feb 2015), total results",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1131399/000119163815000135/gsk201502046k.htm"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "GBP",
+			"revenue": 23923,
+			"operatingIncome": 10322,
+			"quality": "reported",
+			"source": "GSK Form 20-F/A FY2017 (0001193125-18-088407), XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "GBP",
+			"revenue": 27889,
+			"operatingIncome": 2598,
+			"quality": "reported",
+			"source": "GSK Form 20-F/A FY2017 (0001193125-18-088407), XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "GBP",
+			"revenue": 30186,
+			"operatingIncome": 4087,
+			"quality": "reported",
+			"source": "GSK Form 20-F/A FY2017 (0001193125-18-088407), XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "GBP",
+			"revenue": 30821,
+			"operatingIncome": 5483,
+			"quality": "reported",
+			"source": "GSK Form 20-F FY2018 (0001193125-19-076716), XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "GBP",
+			"revenue": 33754,
+			"operatingIncome": 6961,
+			"quality": "reported",
+			"source": "GSK Form 20-F FY2019 (0001193125-20-065064), XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
 		}
 	]
 }

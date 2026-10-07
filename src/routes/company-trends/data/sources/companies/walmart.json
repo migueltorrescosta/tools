@@ -113,6 +113,69 @@
 			"quality": "reported",
 			"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2013-01-31",
+			"currency": "USD",
+			"revenue": 469162,
+			"operatingIncome": 27801,
+			"quality": "reported",
+			"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2014-01-31",
+			"currency": "USD",
+			"revenue": 476294,
+			"operatingIncome": 26872,
+			"quality": "reported",
+			"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2015-01-31",
+			"currency": "USD",
+			"revenue": 485651,
+			"operatingIncome": 27147,
+			"quality": "reported",
+			"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2016-01-31",
+			"currency": "USD",
+			"revenue": 482130,
+			"operatingIncome": 24105,
+			"quality": "reported",
+			"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2017-01-31",
+			"currency": "USD",
+			"revenue": 485873,
+			"operatingIncome": 22764,
+			"quality": "reported",
+			"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2018-01-31",
+			"currency": "USD",
+			"revenue": 500343,
+			"operatingIncome": 20437,
+			"quality": "reported",
+			"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2019-01-31",
+			"currency": "USD",
+			"revenue": 514405,
+			"operatingIncome": 21957,
+			"quality": "reported",
+			"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
 		}
 	]
 }

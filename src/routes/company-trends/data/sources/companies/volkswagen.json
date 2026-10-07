@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "Volkswagen AG Annual Report 2016, Five-Year Review (XLS)",
 			"sourceUrl": "https://annualreport2016.volkswagenag.com/servicepages/downloads/files/five_year_review_vw_ar16.xls"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "EUR",
+			"revenue": 197007,
+			"operatingIncome": 11671,
+			"quality": "reported",
+			"source": "Volkswagen AG Annual Report 2016, Five-Year Review (XLS)",
+			"sourceUrl": "https://annualreport2016.volkswagenag.com/servicepages/downloads/files/five_year_review_vw_ar16.xls"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "EUR",
+			"revenue": 202458,
+			"operatingIncome": 12697,
+			"quality": "reported",
+			"source": "Volkswagen AG Annual Report 2016, Five-Year Review (XLS)",
+			"sourceUrl": "https://annualreport2016.volkswagenag.com/servicepages/downloads/files/five_year_review_vw_ar16.xls"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "EUR",
+			"revenue": 213292,
+			"operatingIncome": -4069,
+			"quality": "reported",
+			"source": "Volkswagen AG Annual Report 2016, Five-Year Review (XLS)",
+			"sourceUrl": "https://annualreport2016.volkswagenag.com/servicepages/downloads/files/five_year_review_vw_ar16.xls"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "EUR",
+			"revenue": 217267,
+			"operatingIncome": 7103,
+			"quality": "reported",
+			"source": "Volkswagen AG Annual Report 2020, Five-Year Overview",
+			"sourceUrl": "https://annualreport2020.volkswagenag.com/additional-information/five-year-overview.html"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "EUR",
+			"revenue": 229550,
+			"operatingIncome": 13818,
+			"quality": "reported",
+			"source": "Volkswagen AG Annual Report 2020, Five-Year Overview",
+			"sourceUrl": "https://annualreport2020.volkswagenag.com/additional-information/five-year-overview.html"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "EUR",
+			"revenue": 235849,
+			"operatingIncome": 13920,
+			"quality": "reported",
+			"source": "Volkswagen AG Annual Report 2020, Five-Year Overview",
+			"sourceUrl": "https://annualreport2020.volkswagenag.com/additional-information/five-year-overview.html"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "EUR",
+			"revenue": 252632,
+			"operatingIncome": 16960,
+			"quality": "reported",
+			"source": "Volkswagen AG Annual Report 2020, Five-Year Overview",
+			"sourceUrl": "https://annualreport2020.volkswagenag.com/additional-information/five-year-overview.html"
 		}
 	]
 }

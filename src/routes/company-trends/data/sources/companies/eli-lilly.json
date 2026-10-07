@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "Eli Lilly Form 10-K FY2012 (accn 0000059478-13-000007), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "USD",
+			"revenue": 23113.1,
+			"operatingIncome": 5889.3,
+			"quality": "reported",
+			"source": "Eli Lilly Form 10-K FY2015 (accn 0000059478-16-000321), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "USD",
+			"revenue": 19615.6,
+			"operatingIncome": 3000.3,
+			"quality": "reported",
+			"source": "Eli Lilly Form 10-K FY2015 (accn 0000059478-16-000321), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "USD",
+			"revenue": 19958.7,
+			"operatingIncome": 2790.0,
+			"quality": "reported",
+			"source": "Eli Lilly Form 10-K FY2015 (accn 0000059478-16-000321), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "USD",
+			"revenue": 21222.1,
+			"operatingIncome": 3374.0,
+			"quality": "reported",
+			"source": "Eli Lilly Form 10-K FY2016 (accn 0000059478-17-000098), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "USD",
+			"revenue": 22871.3,
+			"operatingIncome": 2197.4,
+			"quality": "reported",
+			"source": "Eli Lilly Form 10-K FY2017 (accn 0000059478-18-000089), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "USD",
+			"revenue": 24555.7,
+			"operatingIncome": 3795.7,
+			"quality": "reported",
+			"source": "Eli Lilly Form 10-K FY2018 (accn 0000059478-19-000082), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "USD",
+			"revenue": 22319.5,
+			"operatingIncome": 5265.9,
+			"quality": "reported",
+			"source": "Eli Lilly Form 10-K FY2019 (accn 0000059478-20-000057), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
 		}
 	]
 }

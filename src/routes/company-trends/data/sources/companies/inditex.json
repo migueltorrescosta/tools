@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "Inditex Informe Anual 2011, 'Evolución de los principales indicadores', FY2011",
 			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2011ispa.pdf"
+		},
+		{
+			"periodEnd": "2013-01-31",
+			"currency": "EUR",
+			"revenue": 15946,
+			"operatingIncome": 3117,
+			"quality": "reported",
+			"source": "Inditex Annual Report 2013, consolidated income statement (comparative)",
+			"sourceUrl": "https://static.inditex.com/annual_report_2013/en/annual-accounts/economic-and-financial-report/consolidated-income-statement.php"
+		},
+		{
+			"periodEnd": "2014-01-31",
+			"currency": "EUR",
+			"revenue": 16724,
+			"operatingIncome": 3071,
+			"quality": "reported",
+			"source": "Inditex Annual Report 2013, consolidated income statement",
+			"sourceUrl": "https://static.inditex.com/annual_report_2013/en/annual-accounts/economic-and-financial-report/consolidated-income-statement.php"
+		},
+		{
+			"periodEnd": "2015-01-31",
+			"currency": "EUR",
+			"revenue": 18117,
+			"operatingIncome": 3198,
+			"quality": "reported",
+			"source": "Inditex Annual Report 2015, consolidated income statement (comparative)",
+			"sourceUrl": "https://static.inditex.com/annual_report_2015/en/annual-accounts/economic-and-financial-report/consolidated-income-statement.php"
+		},
+		{
+			"periodEnd": "2016-01-31",
+			"currency": "EUR",
+			"revenue": 20900,
+			"operatingIncome": 3677,
+			"quality": "reported",
+			"source": "Inditex Annual Report 2015, consolidated income statement",
+			"sourceUrl": "https://static.inditex.com/annual_report_2015/en/annual-accounts/economic-and-financial-report/consolidated-income-statement.php"
+		},
+		{
+			"periodEnd": "2017-01-31",
+			"currency": "EUR",
+			"revenue": 23311,
+			"operatingIncome": 4021,
+			"quality": "reported",
+			"source": "Inditex Consolidated Annual Accounts 2017, income statement (comparative)",
+			"sourceUrl": "https://static.inditex.com/annual_report_2021/en/documents/inditex-consolidated-annual-acounts-2017.pdf"
+		},
+		{
+			"periodEnd": "2018-01-31",
+			"currency": "EUR",
+			"revenue": 25336,
+			"operatingIncome": 4314,
+			"quality": "reported",
+			"source": "Inditex Consolidated Annual Accounts 2017, income statement",
+			"sourceUrl": "https://static.inditex.com/annual_report_2021/en/documents/inditex-consolidated-annual-acounts-2017.pdf"
+		},
+		{
+			"periodEnd": "2019-01-31",
+			"currency": "EUR",
+			"revenue": 26145,
+			"operatingIncome": 4357,
+			"quality": "reported",
+			"source": "Inditex Consolidated Annual Accounts 2019, income statement (comparative, pre-IFRS 16)",
+			"sourceUrl": "https://static.inditex.com/annual_report_2021/en/documents/inditex-consolidated-annual-acounts-2019.pdf"
 		}
 	]
 }

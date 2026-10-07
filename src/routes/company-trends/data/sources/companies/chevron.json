@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "Chevron 10-K FY2014 (acc. 0000093410-15-000010) via SEC XBRL company concept",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "USD",
+			"revenue": 228848,
+			"operatingIncome": 35905,
+			"quality": "reported",
+			"source": "Chevron 10-K FY2015 (acc. 0000093410-16-000049) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "USD",
+			"revenue": 211970,
+			"operatingIncome": 31202,
+			"quality": "reported",
+			"source": "Chevron 10-K FY2016 (acc. 0000093410-17-000013) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "USD",
+			"revenue": 138477,
+			"operatingIncome": 4842,
+			"quality": "reported",
+			"source": "Chevron 10-K FY2017 (acc. 0000093410-18-000010) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "USD",
+			"revenue": 114472,
+			"operatingIncome": -2160,
+			"quality": "reported",
+			"source": "Chevron 10-K FY2018 (acc. 0000093410-19-000008) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "USD",
+			"revenue": 141722,
+			"operatingIncome": 9221,
+			"quality": "reported",
+			"source": "Chevron 10-K FY2019 (acc. 0000093410-20-000010) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "USD",
+			"revenue": 166339,
+			"operatingIncome": 20575,
+			"quality": "reported",
+			"source": "Chevron 10-K FY2020 (acc. 0000093410-21-000009) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "USD",
+			"revenue": 146516,
+			"operatingIncome": 5536,
+			"quality": "reported",
+			"source": "Chevron 10-K FY2021 (acc. 0000093410-22-000019) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
 		}
 	]
 }

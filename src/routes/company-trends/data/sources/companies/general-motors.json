@@ -113,6 +113,69 @@
 			"quality": "reported",
 			"source": "GM Form 10-K FY2013, Consolidated Income Statements",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785814000043/R2.htm"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "USD",
+			"revenue": 155427,
+			"operatingIncome": 7458,
+			"quality": "reported",
+			"source": "GM Form 10-K FY2013, Consolidated Income Statements",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785814000043/R2.htm"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "USD",
+			"revenue": 155929,
+			"operatingIncome": 4246,
+			"quality": "reported",
+			"source": "GM Form 10-K FY2016, Consolidated Income Statements",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785817000028/R2.htm"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "USD",
+			"revenue": 152356,
+			"operatingIncome": 7718,
+			"quality": "reported",
+			"source": "GM Form 10-K FY2016, Consolidated Income Statements",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785817000028/R2.htm"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "USD",
+			"revenue": 166380,
+			"operatingIncome": 11684,
+			"quality": "reported",
+			"source": "GM Form 10-K FY2016, Consolidated Income Statements",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785817000028/R2.htm"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "USD",
+			"revenue": 145588,
+			"operatingIncome": 11863,
+			"quality": "reported",
+			"source": "GM Form 10-K FY2019, Consolidated Income Statements",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785820000028/R2.htm"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "USD",
+			"revenue": 147049,
+			"operatingIncome": 8549,
+			"quality": "reported",
+			"source": "GM Form 10-K FY2019, Consolidated Income Statements",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785820000028/R2.htm"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "USD",
+			"revenue": 137237,
+			"operatingIncome": 7436,
+			"quality": "reported",
+			"source": "GM Form 10-K FY2019, Consolidated Income Statements",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785820000028/R2.htm"
 		}
 	]
 }

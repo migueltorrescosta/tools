@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "BP 6-K Q4/FY2013 results, group income statement",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119312514034432/d669396d6k.htm"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "USD",
+			"revenue": 396217,
+			"operatingIncome": 30221,
+			"quality": "reported",
+			"source": "BP 6-K Q4/FY2013 results, group income statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119312514034432/d669396d6k.htm"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "USD",
+			"revenue": 358678,
+			"operatingIncome": 4950,
+			"quality": "reported",
+			"source": "BP 6-K Q4/FY2014 results, group income statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119163815000127/bp201502036k.htm"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "USD",
+			"revenue": 225982,
+			"operatingIncome": -9571,
+			"quality": "reported",
+			"source": "BP Form 20-F (acc. 0001628280-18-003778) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "USD",
+			"revenue": 186606,
+			"operatingIncome": -2295,
+			"quality": "reported",
+			"source": "BP Form 20-F (acc. 0001628280-19-003618) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "USD",
+			"revenue": 244582,
+			"operatingIncome": 7180,
+			"quality": "reported",
+			"source": "BP Form 20-F (acc. 0001628280-20-003753) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "USD",
+			"revenue": 303738,
+			"operatingIncome": 16723,
+			"quality": "reported",
+			"source": "BP Form 20-F (acc. 0001628280-21-005241) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "USD",
+			"revenue": 282616,
+			"operatingIncome": 8154,
+			"quality": "reported",
+			"source": "BP Form 20-F (acc. 0001628280-21-005241 / 0000313807-22-000012) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
 		}
 	]
 }

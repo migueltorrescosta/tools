@@ -122,6 +122,69 @@
 			"quality": "reported",
 			"source": "Coca-Cola Form 10-K FY2013, Consolidated Statements of Income",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134414000008/R2.htm"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "USD",
+			"revenue": 46854,
+			"operatingIncome": 10228,
+			"quality": "reported",
+			"source": "Coca-Cola Form 10-K FY2013, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134414000008/R2.htm"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "USD",
+			"revenue": 45998,
+			"operatingIncome": 9708,
+			"quality": "reported",
+			"source": "Coca-Cola Form 10-K FY2016, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134417000009/R2.htm"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "USD",
+			"revenue": 44294,
+			"operatingIncome": 8728,
+			"quality": "reported",
+			"source": "Coca-Cola Form 10-K FY2016, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134417000009/R2.htm"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "USD",
+			"revenue": 41863,
+			"operatingIncome": 8626,
+			"quality": "reported",
+			"source": "Coca-Cola Form 10-K FY2016, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134417000009/R2.htm"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "USD",
+			"revenue": 36212,
+			"operatingIncome": 7755,
+			"quality": "reported",
+			"source": "Coca-Cola Form 10-K FY2019, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134420000006/R2.htm"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "USD",
+			"revenue": 34300,
+			"operatingIncome": 9152,
+			"quality": "reported",
+			"source": "Coca-Cola Form 10-K FY2019, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134420000006/R2.htm"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "USD",
+			"revenue": 37266,
+			"operatingIncome": 10086,
+			"quality": "reported",
+			"source": "Coca-Cola Form 10-K FY2019, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134420000006/R2.htm"
 		}
 	]
 }
