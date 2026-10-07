@@ -296,6 +296,10 @@
 		flex-wrap: wrap;
 	}
 
+	.time-row .format-buttons {
+		flex-wrap: nowrap;
+	}
+
 	.time-row input[type='range'] {
 		flex: 1;
 		min-width: 200px;
