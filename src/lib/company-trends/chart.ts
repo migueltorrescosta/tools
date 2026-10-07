@@ -29,6 +29,8 @@ export interface TrailPoint {
 	/** Operating expenses (revenue - operating income) in the display currency (millions). */
 	expenses: number;
 	operatingIncome: number;
+	/** Operating margin (operating income / revenue) as a fraction; null without revenue. */
+	margin: number | null;
 	quality: Quality;
 	source?: string;
 	sourceUrl?: string;
@@ -70,6 +72,7 @@ export function buildTrail(
 			revenue,
 			expenses: deriveExpenses(revenue, operatingIncome),
 			operatingIncome,
+			margin: revenue > 0 ? operatingIncome / revenue : null,
 			quality: p.quality,
 			source: p.source,
 			sourceUrl: p.sourceUrl,
@@ -147,6 +150,89 @@ export function logTicks(domain: [number, number]): { value: number; major: bool
 	return ticks;
 }
 
+export interface LinearScale {
+	(value: number): number;
+	domain: readonly [number, number];
+	range: [number, number];
+}
+
+/** Linear scale mapping `domain` onto `range`. */
+export function linearScale(
+	domain: readonly [number, number],
+	range: [number, number]
+): LinearScale {
+	const [d0, d1] = domain;
+	const span = d1 - d0 || 1;
+	const scale = ((value: number) =>
+		range[0] + ((value - d0) / span) * (range[1] - range[0])) as LinearScale;
+	scale.domain = domain;
+	scale.range = range;
+	return scale;
+}
+
+/** Fixed operating-margin axis (fractions): -200% to +100%, so it never rescales. */
+export const MARGIN_DOMAIN = [-2, 1] as const;
+
+export type Clip = 'low' | 'high' | null;
+
+/** Clamp a margin into {@link MARGIN_DOMAIN}, reporting which edge (if any) it was pinned to. */
+export function clampMargin(margin: number): { value: number; clipped: Clip } {
+	const [lo, hi] = MARGIN_DOMAIN;
+	if (margin < lo) return { value: lo, clipped: 'low' };
+	if (margin > hi) return { value: hi, clipped: 'high' };
+	return { value: margin, clipped: null };
+}
+
+/** Ticks every 50% across a margin domain; 0% (break-even) is the major tick. */
+export function percentTicks(
+	domain: readonly [number, number]
+): { value: number; major: boolean }[] {
+	const ticks: { value: number; major: boolean }[] = [];
+	for (let k = Math.ceil(domain[0] * 2); k <= Math.floor(domain[1] * 2); k++) {
+		ticks.push({ value: k / 2, major: k === 0 });
+	}
+	return ticks;
+}
+
+/** Percentage label for a fraction, e.g. `−150%`, `12.4%`. */
+export function formatPercent(fraction: number, digits = 0): string {
+	const pct = fraction * 100;
+	const text = Math.abs(pct).toLocaleString('en-US', {
+		minimumFractionDigits: digits,
+		maximumFractionDigits: digits
+	});
+	return `${pct < 0 && Number(text.replace(/,/g, '')) !== 0 ? '−' : ''}${text}%`;
+}
+
+/** Number of distinct per-company colours; larger selections colour by industry. */
+export const PALETTE_SIZE = 12;
+
+export type ColorMode = 'company' | 'industry';
+
+export function colorMode(visibleCount: number): ColorMode {
+	return visibleCount <= PALETTE_SIZE ? 'company' : 'industry';
+}
+
+/**
+ * CSS colour per company id. Small selections get one palette slot per company,
+ * in name order over the visible set; larger ones share their industry's slot.
+ */
+export function assignColors(trails: readonly Trail[]): Map<string, string> {
+	const colors = new Map<string, string>();
+	if (colorMode(trails.length) === 'industry') {
+		for (const t of trails) {
+			colors.set(t.company.id, `var(--series-${typeSlot(t.company.type) + 1})`);
+		}
+		return colors;
+	}
+	const sorted = [...trails].sort(
+		(a, b) =>
+			a.company.name.localeCompare(b.company.name) || a.company.id.localeCompare(b.company.id)
+	);
+	sorted.forEach((t, i) => colors.set(t.company.id, `var(--cseries-${i + 1})`));
+	return colors;
+}
+
 const SYMBOL: Record<Currency, string> = { EUR: '€', USD: '$', GBP: '£' };
 
 /** Compact money label for a value in millions, e.g. `€1.2B`, `$350M`, `£2.4T`. */
@@ -170,7 +256,7 @@ export function formatMoney(millions: number, currency: Currency): string {
 	return `${sign}${SYMBOL[currency]}${text}${unit}`;
 }
 
-export type SegmentKind = 'solid' | 'gap';
+export type SegmentKind = 'solid' | 'gap' | 'clipped';
 
 export interface Segment {
 	kind: SegmentKind;
@@ -178,9 +264,11 @@ export interface Segment {
 }
 
 /**
- * Split a trail into SVG path segments. Consecutive points join a segment of
- * the same kind; points in a data gap form `gap` segments; non-positive values
- * (undrawable on log axes) break the line.
+ * Split a trail into SVG path segments in (revenue, operating margin) space.
+ * Consecutive points join a segment of the same kind; points in a data gap
+ * form `gap` segments; segments touching an off-scale margin are `clipped`
+ * (drawn pinned to the axis edge); points without positive revenue
+ * (undrawable on the log x axis) break the line.
  */
 export function trailSegments(
 	points: readonly TrailPoint[],
@@ -189,7 +277,7 @@ export function trailSegments(
 ): Segment[] {
 	const segments: Segment[] = [];
 	let current: { kind: SegmentKind; coords: string[] } | null = null;
-	let prev: TrailPoint | null = null;
+	let prev: { point: TrailPoint; xy: string; clipped: boolean } | null = null;
 	const flush = () => {
 		if (current && current.coords.length > 1) {
 			segments.push({ kind: current.kind, d: 'M' + current.coords.join('L') });
@@ -197,26 +285,33 @@ export function trailSegments(
 		current = null;
 	};
 	for (const p of points) {
-		if (!(p.revenue > 0 && p.expenses > 0)) {
+		if (!(p.revenue > 0) || p.margin === null) {
 			flush();
 			prev = null;
 			continue;
 		}
-		const xy = `${x(p.revenue).toFixed(1)},${y(p.expenses).toFixed(1)}`;
+		const m = clampMargin(p.margin);
+		const xy = `${x(p.revenue).toFixed(1)},${y(m.value).toFixed(1)}`;
+		const clipped = m.clipped !== null;
 		// A segment's kind is decided by its far endpoint: gap points sit inside gaps,
-		// and the anchor closing a gap still belongs to the gap.
-		const kind: SegmentKind = p.gap || (prev?.gap ?? false) ? 'gap' : 'solid';
+		// and the anchor closing a gap still belongs to the gap. Clipping wins over gaps.
+		const kind: SegmentKind =
+			clipped || (prev?.clipped ?? false)
+				? 'clipped'
+				: p.gap || (prev?.point.gap ?? false)
+					? 'gap'
+					: 'solid';
 		if (prev && current && current.kind === kind) {
 			current.coords.push(xy);
 		} else if (prev) {
-			const prevXy = `${x(prev.revenue).toFixed(1)},${y(prev.expenses).toFixed(1)}`;
+			const prevXy = prev.xy;
 			flush();
 			current = { kind, coords: [prevXy, xy] };
 		} else {
 			flush();
 			current = { kind, coords: [xy] };
 		}
-		prev = p;
+		prev = { point: p, xy, clipped };
 	}
 	flush();
 	return segments;
