@@ -10,6 +10,8 @@ export interface CompanyPoint {
 	quality: Quality;
 	/** Provenance for reported/estimated points (report, filing, press estimate). */
 	source?: string;
+	/** Link to the primary source document backing `source`. */
+	sourceUrl?: string;
 }
 
 const QUARTER_RE = /^(\d{4})Q([1-4])$/;

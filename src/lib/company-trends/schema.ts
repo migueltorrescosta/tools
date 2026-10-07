@@ -20,6 +20,8 @@ export interface Company {
 	/** Native reporting currency of the company (points are always EUR). */
 	reportingCurrency: Currency;
 	country: string;
+	/** Definitions used for this company (e.g. which line counts as operating income). */
+	notes?: string;
 	/** Quarterly points in strictly ascending quarter order, EUR-normalized. */
 	points: CompanyPoint[];
 }
@@ -159,6 +161,10 @@ export function validateDataset(data: unknown): string[] {
 				const source = point['source'];
 				if (typeof source !== 'string' || source.trim() === '') {
 					errors.push(`${pointPath}.source: required for quality '${quality}'`);
+				}
+				const sourceUrl = point['sourceUrl'];
+				if (typeof sourceUrl !== 'string' || !/^https?:\/\//.test(sourceUrl)) {
+					errors.push(`${pointPath}.sourceUrl: http(s) URL required for quality '${quality}'`);
 				}
 			}
 

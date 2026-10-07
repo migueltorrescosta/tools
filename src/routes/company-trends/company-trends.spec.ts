@@ -32,7 +32,14 @@ const reported = (
 	revenue: number,
 	operatingIncome: number,
 	source = 'annual report'
-): CompanyPoint => ({ quarter, revenue, operatingIncome, quality: 'reported', source });
+): CompanyPoint => ({
+	quarter,
+	revenue,
+	operatingIncome,
+	quality: 'reported',
+	source,
+	sourceUrl: 'https://example.com/annual-report.pdf'
+});
 
 const validDataset: Dataset = {
 	meta: {
@@ -341,6 +348,25 @@ describe('validateDataset', () => {
 		const interpolated = clone();
 		interpolated.companies[0].points[1].quality = 'interpolated';
 		delete interpolated.companies[0].points[1].source;
+		expect(validateDataset(interpolated)).toEqual([]);
+	});
+
+	it('requires an http(s) source URL on reported and estimated points', () => {
+		const missing = clone();
+		delete missing.companies[0].points[0].sourceUrl;
+		expect(
+			validateDataset(missing).some((e) => e.includes('companies[0].points[0].sourceUrl'))
+		).toBe(true);
+
+		const bad = clone();
+		bad.companies[0].points[1].sourceUrl = 'ftp://example.com/x';
+		expect(validateDataset(bad).some((e) => e.includes('companies[0].points[1].sourceUrl'))).toBe(
+			true
+		);
+
+		const interpolated = clone();
+		interpolated.companies[0].points[1].quality = 'interpolated';
+		delete interpolated.companies[0].points[1].sourceUrl;
 		expect(validateDataset(interpolated)).toEqual([]);
 	});
 
