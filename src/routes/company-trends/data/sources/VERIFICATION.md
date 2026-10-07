@@ -103,6 +103,16 @@ Method:
   - none
 - sourceUrl fixes: none
 
+## Coca-Cola (`coca-cola`)
+
+- Anchors checked: 26 (revenue + operating income each)
+- Sources: 10-K FY2003 Item 6 Summary of Operations FY2000-2003; 10-K FY2008 Item 6 FY2004-2008; 10-K FY2010 XBRL R1.xml Consolidated Statements of Income FY2008-2010; 10-K R2/R3 Consolidated Statements of Income in FY2013, FY2016, FY2019, FY2022, FY2025 filings (FY2011-2025). SEC companyconcept API returned empty unit arrays for CIK0000021344 via WebFetch, so filing statements used directly.
+- Corrected:
+  - none
+- Removed / unverifiable:
+  - none
+- sourceUrl fixes: none
+
 ## Costco (`costco`)
 
 - Anchors checked: 27 (revenue + operating income each)
@@ -216,6 +226,16 @@ Method:
   - none
 - sourceUrl fixes: none
 
+## McDonald's (`mcdonalds`)
+
+- Anchors checked: 26 (revenue + operating income each)
+- Sources: SEC XBRL companyconcept CIK0000063908 (Revenues, OperatingIncomeLoss) FY2007-2025; 10-K FY2004 Item 6 11-year summary FY2000-2004; 10-K FY2010 Item 6 6-year summary FY2005-2010; R2/R3 Consolidated Statement of Income in FY2013, FY2016, FY2019, FY2022, FY2025 10-Ks (FY2023 shown as 25,494.0 / 11,647.0 in FY2025 10-K vs 25,493.7 / 11,646.7 originally; stored values match the cited filing).
+- Corrected:
+  - none
+- Removed / unverifiable:
+  - none
+- sourceUrl fixes: none
+
 ## Mercedes-Benz Group (`mercedes-benz`)
 
 - Anchors checked: 26 (revenue + operating income each)
@@ -257,6 +277,16 @@ Method:
 - sourceUrl fixes: none
 - Note: values are stored in millions with three decimals (exact thousands), not rounded to the nearest million as the brief's convention states. Left unchanged (exact, not wrong); flag for a global formatting decision.
 
+## Nike (`nike`)
+
+- Anchors checked: 27 (revenue + operating income each)
+- Sources: SEC XBRL companyconcept CIK0000320187 (SalesRevenueNet FY2009-2018, RevenueFromContractWithCustomerExcludingAssessedTax FY2018-2026, IncomeLossFromContinuingOperationsBeforeIncomeTaxes... FY2020-2026); R2/R3 Consolidated Statements of Income in FY2011, FY2014, FY2017, FY2020, FY2023, FY2026 10-Ks (FY2009-2026; FY2012 restated 23,331 in FY2014 10-K vs 24,128 original, stored matches cited filing); 10-K FY2002 Consolidated Statements of Income FY2000-2002; 10-K FY2005 Consolidated Statements of Income FY2003-2005; 10-K FY2008 Item 6 FY2006-2008.
+- Corrected:
+  - none (values). Source label for FY2003-2005 changed from "Item 6 Selected Financial Data" to "Consolidated Statements of Income" (Item 6 in that 10-K shows no pretax income row). Notes updated: the "before cumulative effect of accounting change" pretax label applies to FY2000-2005, not only FY2000-2002.
+- Removed / unverifiable:
+  - none
+- sourceUrl fixes: none
+
 ## NVIDIA (`nvidia`)
 
 - Anchors checked: 27 (revenue + operating income each)
@@ -293,6 +323,16 @@ Method:
 - Sources: 10-K FY2002/FY2004/FY2007 Exhibit 13 income statements (Revenues; Income from continuing operations before provision for taxes on income, minority interests...) FY2000-2007; XBRL R2/R3 statements of income in 10-K FY2010, FY2013, FY2016, FY2019, FY2022, FY2025 FY2008-2025; cross-checked against SEC XBRL companyconcept CIK0000078003 (SalesRevenueNet, Revenues, IncomeLossFromContinuingOperationsBeforeIncomeTaxes...)
 - Corrected:
   - none (all 52 values match the cited filing presentation; FY2023 revenue 59,553 is the FY2024/FY2025 10-K restatement, first-reported 58,496, consistent with notes)
+- Removed / unverifiable:
+  - none
+- sourceUrl fixes: none
+
+## Procter & Gamble (`procter-gamble`)
+
+- Anchors checked: 27 (revenue + operating income each)
+- Sources: SEC XBRL companyconcept CIK0000080424 (SalesRevenueNet FY2007-2018, Revenues FY2018-2026, OperatingIncomeLoss FY2007-2026, incl. restated values from accn 0000080424-15-000070 and 8-K 0000080424-18-000106); 10-K FY2005 Ex.13 Financial Summary FY2000-2005; 10-K FY2007 Ex.13 Financial Summary FY2006-2007; 10-K FY2015 Item 6 Financial Summary FY2011-2015; FY2026 10-K R3.htm FY2024-2026.
+- Corrected:
+  - none
 - Removed / unverifiable:
   - none
 - sourceUrl fixes: none

@@ -4,7 +4,7 @@
 	"type": "consumer",
 	"country": "US",
 	"reportingCurrency": "USD",
-	"notes": "Revenue = Revenues. Nike reports no operating income line; operatingIncome = Income before income taxes (FY2000-2002: before cumulative effect of accounting change). FY ends May 31. Each year taken from the cited filing (as reported or as restated in that filing).",
+	"notes": "Revenue = Revenues. Nike reports no operating income line; operatingIncome = Income before income taxes (FY2000-2005: labeled 'Income before income taxes and cumulative effect of accounting change'). FY ends May 31. Each year taken from the cited filing (as reported or as restated in that filing).",
 	"anchors": [
 		{
 			"periodEnd": "2000-05-31",
@@ -39,7 +39,7 @@
 			"revenue": 10697.0,
 			"operatingIncome": 1123.0,
 			"quality": "reported",
-			"source": "Nike Form 10-K FY2005, Item 6 Selected Financial Data",
+			"source": "Nike Form 10-K FY2005, Consolidated Statements of Income",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000095012405004551/v10583e10vk.htm"
 		},
 		{
@@ -48,7 +48,7 @@
 			"revenue": 12253.1,
 			"operatingIncome": 1450.0,
 			"quality": "reported",
-			"source": "Nike Form 10-K FY2005, Item 6 Selected Financial Data",
+			"source": "Nike Form 10-K FY2005, Consolidated Statements of Income",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000095012405004551/v10583e10vk.htm"
 		},
 		{
@@ -57,7 +57,7 @@
 			"revenue": 13739.7,
 			"operatingIncome": 1859.8,
 			"quality": "reported",
-			"source": "Nike Form 10-K FY2005, Item 6 Selected Financial Data",
+			"source": "Nike Form 10-K FY2005, Consolidated Statements of Income",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000095012405004551/v10583e10vk.htm"
 		},
 		{

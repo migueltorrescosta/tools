@@ -9,10 +9,10 @@
 		{
 			"periodEnd": "2000-12-31",
 			"currency": "EUR",
-			"revenue": 46518,
-			"operatingIncome": 3140,
+			"revenue": 47582,
+			"operatingIncome": 3302,
 			"quality": "reported",
-			"source": "Unilever Form 20-F 2001, consolidated profit and loss account (UK GAAP, Group turnover / Group operating profit)",
+			"source": "Unilever Form 20-F 2001, Financial Review 2000 vs 1999 (UK GAAP, Group turnover / Group operating profit after amortisation and exceptional items)",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000102123102000070/unilever_plc20f.htm"
 		},
 		{

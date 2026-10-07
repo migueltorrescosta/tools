@@ -4,7 +4,7 @@
 	"type": "pharma",
 	"country": "GB",
 	"reportingCurrency": "GBP",
-	"notes": "Revenue = Turnover (Group turnover, total reported). operatingIncome = total reported Operating profit (not core). Bases: 2000-2002 UK GAAP (statutory totals incl. merger/restructuring items); 2003-2004 unaudited IFRS restatement; 2005+ IFRS. 2000 operatingIncome is UK GAAP 'Trading profit' (Operating profit row not sourced; for 2001 trading 4,697 vs operating 4,734). 2001 restated for FRS 19, 2007 restated, 2011/2012 restated for IAS 19R. 2015 operating profit inflated by Novartis transaction disposal gains. 2015-2025 from SEC XBRL companyconcept API (revenue URL as sourceUrl; operating profit from ProfitLossFromOperatingActivities endpoint). 2021 is as originally reported incl. Consumer Healthcare; 2022+ continuing operations after July 2022 Haleon demerger (2021 restated continuing ops not used), so a basis break exists at 2021/2022. FY2000 omitted: only a trading-profit line was available, not operating profit.",
+	"notes": "Revenue = Turnover (Group turnover, total reported). operatingIncome = total reported Operating profit (not core). Bases: 2000-2002 UK GAAP (statutory totals incl. merger/restructuring items); 2003-2004 IFRS restatement (2003 statutory total operating profit 6,050 per FY2005 20-F; 6,445 was IFRS business performance before merger/restructuring); 2005+ IFRS. 2000 operatingIncome is UK GAAP 'Trading profit' (Operating profit row not sourced; for 2001 trading 4,697 vs operating 4,734). 2001 restated for FRS 19, 2007 restated, 2011/2012 restated for IAS 19R. 2015 operating profit inflated by Novartis transaction disposal gains. 2015-2025 from SEC XBRL companyconcept API (revenue URL as sourceUrl; operating profit from ProfitLossFromOperatingActivities endpoint). 2021 is as originally reported incl. Consumer Healthcare; 2022+ continuing operations after July 2022 Haleon demerger (2021 restated continuing ops not used), so a basis break exists at 2021/2022. FY2000 omitted: only a trading-profit line was available, not operating profit.",
 	"anchors": [
 		{
 			"periodEnd": "2001-12-31",
@@ -28,10 +28,10 @@
 			"periodEnd": "2003-12-31",
 			"currency": "GBP",
 			"revenue": 21070,
-			"operatingIncome": 6445,
+			"operatingIncome": 6050,
 			"quality": "reported",
-			"source": "GSK 6-K (Feb 2005) unaudited IFRS restatement of 2003/2004 results",
-			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1131399/000102123105000130/b782210-6k.htm"
+			"source": "GSK Annual Report / Form 20-F 2005, five-year IFRS record (Turnover; total Operating profit incl. merger/restructuring)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1131399/000102123106000123/b822393.htm"
 		},
 		{
 			"periodEnd": "2004-12-31",
