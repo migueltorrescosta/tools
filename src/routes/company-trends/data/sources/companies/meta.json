@@ -1,0 +1,64 @@
+{
+	"id": "meta",
+	"name": "Meta Platforms (Facebook)",
+	"type": "tech",
+	"country": "US",
+	"reportingCurrency": "USD",
+	"notes": "Revenue = total revenue; operating income = 'Income from operations'. FY ends Dec 31. 2007-2009 pre-IPO from the Feb 2012 S-1 (earliest year in its selected data is 2007).",
+	"anchors": [
+		{
+			"periodEnd": "2007-12-31",
+			"currency": "USD",
+			"revenue": 153,
+			"operatingIncome": -124,
+			"quality": "reported",
+			"source": "Facebook Form S-1 (Feb 2012), Selected Consolidated Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1326801/000119312512034517/d287954ds1.htm"
+		},
+		{
+			"periodEnd": "2008-12-31",
+			"currency": "USD",
+			"revenue": 272,
+			"operatingIncome": -55,
+			"quality": "reported",
+			"source": "Facebook Form S-1 (Feb 2012), Selected Consolidated Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1326801/000119312512034517/d287954ds1.htm"
+		},
+		{
+			"periodEnd": "2009-12-31",
+			"currency": "USD",
+			"revenue": 777,
+			"operatingIncome": 262,
+			"quality": "reported",
+			"source": "Facebook Form S-1 (Feb 2012), Selected Consolidated Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1326801/000119312512034517/d287954ds1.htm"
+		},
+		{
+			"periodEnd": "2010-12-31",
+			"currency": "USD",
+			"revenue": 1974,
+			"operatingIncome": 1032,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001326801-13-000003); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001326801/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2011-12-31",
+			"currency": "USD",
+			"revenue": 3711,
+			"operatingIncome": 1756,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001326801-13-000003); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001326801/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2012-12-31",
+			"currency": "USD",
+			"revenue": 5089,
+			"operatingIncome": 538,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001326801-13-000003); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001326801/us-gaap/OperatingIncomeLoss.json"
+		}
+	]
+}

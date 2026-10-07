@@ -1,0 +1,127 @@
+{
+	"id": "inditex",
+	"name": "Inditex",
+	"type": "retail",
+	"country": "ES",
+	"reportingCurrency": "EUR",
+	"notes": "Revenue = Net sales (Ventas). Operating income = EBIT (Resultado/Beneficio de explotación; 'Net operating profit (EBIT)'). FY runs Feb 1 - Jan 31; Inditex labels FY by start year (FY2025 ends 2026-01-31). FY1999-FY2003 Spanish GAAP; FY2004+ IFRS (FY2004 IFRS-restated 5,569/922 vs Spanish GAAP 5,670/925). FY2019+ IFRS 16 (FY2018 not restated). FY1999-FY2011 figures from Inditex annual reports retrieved from the UAB library archive of company reports (ddd.uab.cat), not from inditex.com. FY2012-2015 converted from thousands, rounded.",
+	"anchors": [
+		{
+			"periodEnd": "2000-01-31",
+			"currency": "EUR",
+			"revenue": 2035.1,
+			"operatingIncome": 296.2,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2003, 'Principales indicadores' multi-year table (Spanish GAAP), FY1999",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2003ispa.pdf"
+		},
+		{
+			"periodEnd": "2001-01-31",
+			"currency": "EUR",
+			"revenue": 2614.7,
+			"operatingIncome": 379.9,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2003, 'Principales indicadores' multi-year table (Spanish GAAP), FY2000",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2003ispa.pdf"
+		},
+		{
+			"periodEnd": "2002-01-31",
+			"currency": "EUR",
+			"revenue": 3249.8,
+			"operatingIncome": 517.5,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2003, 'Principales indicadores' multi-year table (Spanish GAAP), FY2001",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2003ispa.pdf"
+		},
+		{
+			"periodEnd": "2003-01-31",
+			"currency": "EUR",
+			"revenue": 3974.0,
+			"operatingIncome": 659.5,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2003, 'Principales indicadores' multi-year table (Spanish GAAP), FY2002",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2003ispa.pdf"
+		},
+		{
+			"periodEnd": "2004-01-31",
+			"currency": "EUR",
+			"revenue": 4598.9,
+			"operatingIncome": 627.0,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2003, 'Principales indicadores' multi-year table (Spanish GAAP), FY2003",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2003ispa.pdf"
+		},
+		{
+			"periodEnd": "2005-01-31",
+			"currency": "EUR",
+			"revenue": 5569,
+			"operatingIncome": 922,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2009, 'Evolución de los principales indicadores' (IFRS), FY2004",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2009ispa.pdf"
+		},
+		{
+			"periodEnd": "2006-01-31",
+			"currency": "EUR",
+			"revenue": 6741,
+			"operatingIncome": 1094,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2009, 'Evolución de los principales indicadores' (IFRS), FY2005",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2009ispa.pdf"
+		},
+		{
+			"periodEnd": "2007-01-31",
+			"currency": "EUR",
+			"revenue": 8196,
+			"operatingIncome": 1356,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2009, 'Evolución de los principales indicadores' (IFRS), FY2006",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2009ispa.pdf"
+		},
+		{
+			"periodEnd": "2008-01-31",
+			"currency": "EUR",
+			"revenue": 9435,
+			"operatingIncome": 1652,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2009, 'Evolución de los principales indicadores' (IFRS), FY2007",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2009ispa.pdf"
+		},
+		{
+			"periodEnd": "2009-01-31",
+			"currency": "EUR",
+			"revenue": 10407,
+			"operatingIncome": 1609,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2009, 'Evolución de los principales indicadores' (IFRS), FY2008",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2009ispa.pdf"
+		},
+		{
+			"periodEnd": "2010-01-31",
+			"currency": "EUR",
+			"revenue": 11048,
+			"operatingIncome": 1729,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2009, 'Evolución de los principales indicadores' (IFRS), FY2009",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2009ispa.pdf"
+		},
+		{
+			"periodEnd": "2011-01-31",
+			"currency": "EUR",
+			"revenue": 12527,
+			"operatingIncome": 2290,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2011, 'Evolución de los principales indicadores', FY2010",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2011ispa.pdf"
+		},
+		{
+			"periodEnd": "2012-01-31",
+			"currency": "EUR",
+			"revenue": 13793,
+			"operatingIncome": 2522,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2011, 'Evolución de los principales indicadores', FY2011",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2011ispa.pdf"
+		}
+	]
+}

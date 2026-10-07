@@ -1,0 +1,100 @@
+{
+	"id": "novartis",
+	"name": "Novartis",
+	"type": "pharma",
+	"country": "CH",
+	"reportingCurrency": "USD",
+	"notes": "revenue = 'Net sales (to third parties)' (from continuing operations where split); operatingIncome = 'Operating income'. FY ends Dec 31. Novartis reported in CHF until 2002 and switched to USD from 1 Jan 2003; 2000-2001 are the company's own USD restatements in the FY2003 20-F (group scope at the time, incl. later-divested units), 2002-2006 from FY2006 20-F (Medical Nutrition as discontinued), 2007-2011 from FY2011 20-F (Medical Nutrition and Gerber discontinued), 2012-2016 from FY2016 20-F (restated for 2014-15 portfolio transformation: Vaccines/OTC/Animal Health discontinued), 2017-2018 as originally reported incl. Alcon (spun off Apr 2019), 2019-2020 excl. Alcon, 2021-2022 as reported incl. Sandoz, 2023-2025 excl. Sandoz (spun off Oct 2023). Series mixes restatement scopes; step changes at 2002/2003 boundary (FY2003 20-F gave 2003 sales 24,864 vs 24,049 in FY2006 20-F), 2018->2019 (Alcon) and 2022->2023 (Sandoz) are scope changes, not organic. FY2000-2002 omitted: originally reported in CHF.",
+	"anchors": [
+		{
+			"periodEnd": "2003-12-31",
+			"currency": "USD",
+			"revenue": 24049,
+			"operatingIncome": 5553,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2006, Item 3.A Selected Financial Data (continuing operations)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000104746907000510/a2175772z20-f.htm"
+		},
+		{
+			"periodEnd": "2004-12-31",
+			"currency": "USD",
+			"revenue": 27126,
+			"operatingIncome": 6243,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2006, Item 3.A Selected Financial Data (continuing operations)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000104746907000510/a2175772z20-f.htm"
+		},
+		{
+			"periodEnd": "2005-12-31",
+			"currency": "USD",
+			"revenue": 31005,
+			"operatingIncome": 6802,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2006, Item 3.A Selected Financial Data (continuing operations)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000104746907000510/a2175772z20-f.htm"
+		},
+		{
+			"periodEnd": "2006-12-31",
+			"currency": "USD",
+			"revenue": 36031,
+			"operatingIncome": 7949,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2006, Item 3.A Selected Financial Data (continuing operations)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000104746907000510/a2175772z20-f.htm"
+		},
+		{
+			"periodEnd": "2007-12-31",
+			"currency": "USD",
+			"revenue": 38072,
+			"operatingIncome": 6781,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2011, Item 3.A Selected Financial Data (continuing operations)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000104746912000354/a2205643z20-f.htm"
+		},
+		{
+			"periodEnd": "2008-12-31",
+			"currency": "USD",
+			"revenue": 41459,
+			"operatingIncome": 8964,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2011, Item 3.A Selected Financial Data (continuing operations)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000104746912000354/a2205643z20-f.htm"
+		},
+		{
+			"periodEnd": "2009-12-31",
+			"currency": "USD",
+			"revenue": 44267,
+			"operatingIncome": 9982,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2011, Item 3.A Selected Financial Data (continuing operations)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000104746912000354/a2205643z20-f.htm"
+		},
+		{
+			"periodEnd": "2010-12-31",
+			"currency": "USD",
+			"revenue": 50624,
+			"operatingIncome": 11526,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2011, Item 3.A Selected Financial Data (continuing operations)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000104746912000354/a2205643z20-f.htm"
+		},
+		{
+			"periodEnd": "2011-12-31",
+			"currency": "USD",
+			"revenue": 58566,
+			"operatingIncome": 10998,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2011, Item 3.A Selected Financial Data (continuing operations)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000104746912000354/a2205643z20-f.htm"
+		},
+		{
+			"periodEnd": "2012-12-31",
+			"currency": "USD",
+			"revenue": 51080,
+			"operatingIncome": 11507,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2016, Item 3.A Selected Financial Data (continuing operations)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000104746917000338/a2230622z20-f.htm"
+		}
+	]
+}

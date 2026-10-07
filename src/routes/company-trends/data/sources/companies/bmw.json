@@ -1,0 +1,127 @@
+{
+	"id": "bmw",
+	"name": "BMW Group",
+	"type": "automotive",
+	"country": "DE",
+	"reportingCurrency": "EUR",
+	"notes": "Revenue = Group 'Revenues'; operatingIncome = Group 'Profit before financial result' (EBIT; labelled 'Earnings before financial result' in later ten-year tables). FY ends 31 Dec. IAS/IFRS basis throughout (IAS adopted 2001; 2000 shown on IAS basis in 2009 ten-year table). 2000 includes Rover Cars to 9 May 2000 and Land Rover to 30 Jun 2000. 2004 adjusted for pension accounting change; 2018 restated for IFRS 16. 2000-2010 figures from BMW annual report PDFs hosted on a UAB (ddd.uab.cat) document archive since bmwgroup.com archives were not fetchable. 2024 is the prior-year comparative from the FY2025 release.",
+	"anchors": [
+		{
+			"periodEnd": "2000-12-31",
+			"currency": "EUR",
+			"revenue": 37226,
+			"operatingIncome": 2065,
+			"quality": "reported",
+			"source": "BMW Group Annual Report 2009, Ten-year Comparison (copy hosted by UAB)",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/169241/iaBMWa2009ieng.pdf"
+		},
+		{
+			"periodEnd": "2001-12-31",
+			"currency": "EUR",
+			"revenue": 38463,
+			"operatingIncome": 3356,
+			"quality": "reported",
+			"source": "BMW Group Annual Report 2010, Ten-year Comparison (copy hosted by UAB)",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/169241/iaBMWa2010ieng.pdf"
+		},
+		{
+			"periodEnd": "2002-12-31",
+			"currency": "EUR",
+			"revenue": 42411,
+			"operatingIncome": 3505,
+			"quality": "reported",
+			"source": "BMW Group Annual Report 2010, Ten-year Comparison (copy hosted by UAB)",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/169241/iaBMWa2010ieng.pdf"
+		},
+		{
+			"periodEnd": "2003-12-31",
+			"currency": "EUR",
+			"revenue": 41525,
+			"operatingIncome": 3353,
+			"quality": "reported",
+			"source": "BMW Group Annual Report 2010, Ten-year Comparison (copy hosted by UAB)",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/169241/iaBMWa2010ieng.pdf"
+		},
+		{
+			"periodEnd": "2004-12-31",
+			"currency": "EUR",
+			"revenue": 44335,
+			"operatingIncome": 3774,
+			"quality": "reported",
+			"source": "BMW Group Annual Report 2010, Ten-year Comparison (copy hosted by UAB)",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/169241/iaBMWa2010ieng.pdf"
+		},
+		{
+			"periodEnd": "2005-12-31",
+			"currency": "EUR",
+			"revenue": 46656,
+			"operatingIncome": 3793,
+			"quality": "reported",
+			"source": "BMW Group Annual Report 2010, Ten-year Comparison (copy hosted by UAB)",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/169241/iaBMWa2010ieng.pdf"
+		},
+		{
+			"periodEnd": "2006-12-31",
+			"currency": "EUR",
+			"revenue": 48999,
+			"operatingIncome": 4050,
+			"quality": "reported",
+			"source": "BMW Group Annual Report 2010, Ten-year Comparison (copy hosted by UAB)",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/169241/iaBMWa2010ieng.pdf"
+		},
+		{
+			"periodEnd": "2007-12-31",
+			"currency": "EUR",
+			"revenue": 56018,
+			"operatingIncome": 4212,
+			"quality": "reported",
+			"source": "BMW Group Annual Report 2010, Ten-year Comparison (copy hosted by UAB)",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/169241/iaBMWa2010ieng.pdf"
+		},
+		{
+			"periodEnd": "2008-12-31",
+			"currency": "EUR",
+			"revenue": 53197,
+			"operatingIncome": 921,
+			"quality": "reported",
+			"source": "BMW Group Annual Report 2010, Ten-year Comparison (copy hosted by UAB)",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/169241/iaBMWa2010ieng.pdf"
+		},
+		{
+			"periodEnd": "2009-12-31",
+			"currency": "EUR",
+			"revenue": 50681,
+			"operatingIncome": 289,
+			"quality": "reported",
+			"source": "BMW Group Annual Report 2010, Ten-year Comparison (copy hosted by UAB)",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/169241/iaBMWa2010ieng.pdf"
+		},
+		{
+			"periodEnd": "2010-12-31",
+			"currency": "EUR",
+			"revenue": 60477,
+			"operatingIncome": 5094,
+			"quality": "reported",
+			"source": "BMW Group Annual Report 2010, Ten-year Comparison (copy hosted by UAB)",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/169241/iaBMWa2010ieng.pdf"
+		},
+		{
+			"periodEnd": "2011-12-31",
+			"currency": "EUR",
+			"revenue": 68821,
+			"operatingIncome": 8018,
+			"quality": "reported",
+			"source": "BMW Group Report 2020, Ten-year Comparison",
+			"sourceUrl": "https://bericht2020.bmwgroup.com/data/pdf/en/BMW-Group-Bericht-2020-EN_10_Year_Comparison.pdf"
+		},
+		{
+			"periodEnd": "2012-12-31",
+			"currency": "EUR",
+			"revenue": 76848,
+			"operatingIncome": 8275,
+			"quality": "reported",
+			"source": "BMW Group Report 2020, Ten-year Comparison",
+			"sourceUrl": "https://bericht2020.bmwgroup.com/data/pdf/en/BMW-Group-Bericht-2020-EN_10_Year_Comparison.pdf"
+		}
+	]
+}

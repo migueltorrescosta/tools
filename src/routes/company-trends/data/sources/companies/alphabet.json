@@ -1,0 +1,127 @@
+{
+	"id": "alphabet",
+	"name": "Alphabet (Google)",
+	"type": "tech",
+	"country": "US",
+	"reportingCurrency": "USD",
+	"notes": "Revenue = total revenues; operating income = 'Income from operations'. FY ends Dec 31. 2000-2003 pre-IPO figures from Google's first 10-K (FY2004) five-year table rather than the S-1 (same data). 2012-2013 as originally reported incl. Motorola Mobility (Alphabet later restated 2013 to 55,519/15,403 with Motorola as discontinued). 2000-2014 from Google Inc. (CIK 1288776), 2015+ Alphabet Inc.",
+	"anchors": [
+		{
+			"periodEnd": "2000-12-31",
+			"currency": "USD",
+			"revenue": 19.108,
+			"operatingIncome": -14.737,
+			"quality": "reported",
+			"source": "Google Inc. Form 10-K FY2004, Item 6 Selected Financial Data (thousands converted to millions)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1288776/000119312505065298/d10k.htm"
+		},
+		{
+			"periodEnd": "2001-12-31",
+			"currency": "USD",
+			"revenue": 86.426,
+			"operatingIncome": 10.964,
+			"quality": "reported",
+			"source": "Google Inc. Form 10-K FY2004, Item 6 Selected Financial Data (thousands converted to millions)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1288776/000119312505065298/d10k.htm"
+		},
+		{
+			"periodEnd": "2002-12-31",
+			"currency": "USD",
+			"revenue": 439.508,
+			"operatingIncome": 186.466,
+			"quality": "reported",
+			"source": "Google Inc. Form 10-K FY2004, Item 6 Selected Financial Data (thousands converted to millions)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1288776/000119312505065298/d10k.htm"
+		},
+		{
+			"periodEnd": "2003-12-31",
+			"currency": "USD",
+			"revenue": 1465.934,
+			"operatingIncome": 342.464,
+			"quality": "reported",
+			"source": "Google Inc. Form 10-K FY2004, Item 6 Selected Financial Data (thousands converted to millions)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1288776/000119312505065298/d10k.htm"
+		},
+		{
+			"periodEnd": "2004-12-31",
+			"currency": "USD",
+			"revenue": 3189.223,
+			"operatingIncome": 640.192,
+			"quality": "reported",
+			"source": "Google Inc. Form 10-K FY2004, Item 6 Selected Financial Data (thousands converted to millions)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1288776/000119312505065298/d10k.htm"
+		},
+		{
+			"periodEnd": "2005-12-31",
+			"currency": "USD",
+			"revenue": 6138.56,
+			"operatingIncome": 2017.278,
+			"quality": "reported",
+			"source": "Google Inc. Form 10-K FY2009, Item 6 Selected Financial Data (thousands converted to millions)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1288776/000119312510030774/d10k.htm"
+		},
+		{
+			"periodEnd": "2006-12-31",
+			"currency": "USD",
+			"revenue": 10604.917,
+			"operatingIncome": 3549.996,
+			"quality": "reported",
+			"source": "Google Inc. Form 10-K FY2009, Item 6 Selected Financial Data (thousands converted to millions)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1288776/000119312510030774/d10k.htm"
+		},
+		{
+			"periodEnd": "2007-12-31",
+			"currency": "USD",
+			"revenue": 16593.986,
+			"operatingIncome": 5084.4,
+			"quality": "reported",
+			"source": "Google Inc. Form 10-K FY2009, Item 6 Selected Financial Data (thousands converted to millions)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1288776/000119312510030774/d10k.htm"
+		},
+		{
+			"periodEnd": "2008-12-31",
+			"currency": "USD",
+			"revenue": 21795.55,
+			"operatingIncome": 6631.969,
+			"quality": "reported",
+			"source": "Google Inc. Form 10-K FY2009, Item 6 Selected Financial Data (thousands converted to millions)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1288776/000119312510030774/d10k.htm"
+		},
+		{
+			"periodEnd": "2009-12-31",
+			"currency": "USD",
+			"revenue": 23650.563,
+			"operatingIncome": 8312.186,
+			"quality": "reported",
+			"source": "Google Inc. Form 10-K FY2009, Item 6 Selected Financial Data (thousands converted to millions)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1288776/000119312510030774/d10k.htm"
+		},
+		{
+			"periodEnd": "2010-12-31",
+			"currency": "USD",
+			"revenue": 29321,
+			"operatingIncome": 10381,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-11-032930 / 0001193125-13-028362); revenue tag us-gaap:Revenues (Google Inc. CIK 1288776), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001288776/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2011-12-31",
+			"currency": "USD",
+			"revenue": 37905,
+			"operatingIncome": 11742,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-12-025336 / 0001193125-13-028362); revenue tag us-gaap:Revenues (Google Inc. CIK 1288776), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001288776/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2012-12-31",
+			"currency": "USD",
+			"revenue": 50175,
+			"operatingIncome": 12760,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-13-028362); revenue tag us-gaap:Revenues (Google Inc. CIK 1288776), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001288776/us-gaap/OperatingIncomeLoss.json"
+		}
+	]
+}

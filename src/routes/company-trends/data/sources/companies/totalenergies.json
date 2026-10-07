@@ -1,0 +1,118 @@
+{
+	"id": "totalenergies",
+	"name": "TotalEnergies",
+	"type": "energy",
+	"country": "FR",
+	"reportingCurrency": "USD",
+	"notes": "Revenue = 'Sales' (top line, includes excise taxes). No operating income / pre-tax subtotal under IFRS: operatingIncome = pre-tax income DERIVED as 'Consolidated net income' + 'Income taxes' (both reported lines; includes after-tax equity-affiliate income). Same derivation applied to French GAAP years 2001-2003 for consistency. EUR reporting through FY2012 results; USD from FY2014 results onward with 2013 restated in USD (2013 anchor is the USD restatement). 2004 is IFRS pre-Arkema restatement; 2005 restated ex-Arkema. 2016+ from SEC XBRL financial report (R2) pages. FY ends Dec 31.",
+	"anchors": [
+		{
+			"periodEnd": "2001-12-31",
+			"currency": "EUR",
+			"revenue": 105318,
+			"operatingIncome": 13698,
+			"quality": "reported",
+			"source": "TotalFinaElf 6-K 2003-03-07, FY2002 consolidated statement of income (French GAAP); net income 7,824 + taxes 5,874",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000115697303000354/y00554e6vk.htm"
+		},
+		{
+			"periodEnd": "2002-12-31",
+			"currency": "EUR",
+			"revenue": 102540,
+			"operatingIncome": 10988,
+			"quality": "reported",
+			"source": "TotalFinaElf 6-K 2003-03-07, FY2002 consolidated statement of income (French GAAP); net income 5,954 + taxes 5,034",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000115697303000354/y00554e6vk.htm"
+		},
+		{
+			"periodEnd": "2003-12-31",
+			"currency": "EUR",
+			"revenue": 104652,
+			"operatingIncome": 12572,
+			"quality": "reported",
+			"source": "Total 6-K 2004-03-08 Ex.99.5, Q4/FY2003 consolidated accounts (French GAAP); net income 7,219 + taxes 5,353",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000095012304002944/y00781exv99w5.htm"
+		},
+		{
+			"periodEnd": "2004-12-31",
+			"currency": "EUR",
+			"revenue": 121998,
+			"operatingIncome": 19719,
+			"quality": "reported",
+			"source": "Total 6-K 2006-02-22, FY2005 results, consolidated statement of income (IFRS); net income 11,149 + taxes 8,570",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000095012306002081/y01311exv99w8.htm"
+		},
+		{
+			"periodEnd": "2005-12-31",
+			"currency": "EUR",
+			"revenue": 137607,
+			"operatingIncome": 24449,
+			"quality": "reported",
+			"source": "Total 6-K 2007-02-20, FY2006 results, consolidated statement of income; net income 12,643 + taxes 11,806",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000095012307002387/y01661exv99w11.htm"
+		},
+		{
+			"periodEnd": "2006-12-31",
+			"currency": "EUR",
+			"revenue": 153802,
+			"operatingIncome": 25855,
+			"quality": "reported",
+			"source": "Total 6-K 2007-02-20, FY2006 results, consolidated statement of income; net income 12,135 + taxes 13,720",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000095012307002387/y01661exv99w11.htm"
+		},
+		{
+			"periodEnd": "2007-12-31",
+			"currency": "EUR",
+			"revenue": 158752,
+			"operatingIncome": 27110,
+			"quality": "reported",
+			"source": "Total 6-K 2009-02-20, FY2008 results, consolidated statement of income; net income 13,535 + taxes 13,575",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000141978309000012/y03036exv99w8.htm"
+		},
+		{
+			"periodEnd": "2008-12-31",
+			"currency": "EUR",
+			"revenue": 179976,
+			"operatingIncome": 25099,
+			"quality": "reported",
+			"source": "Total 6-K 2009-02-20, FY2008 results, consolidated statement of income; net income 10,953 + taxes 14,146",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000141978309000012/y03036exv99w8.htm"
+		},
+		{
+			"periodEnd": "2009-12-31",
+			"currency": "EUR",
+			"revenue": 131327,
+			"operatingIncome": 16380,
+			"quality": "reported",
+			"source": "Total 6-K 2011-02-18, FY2010 results, consolidated statement of income; net income 8,629 + taxes 7,751",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000095012311015502/y03418te6vk.htm"
+		},
+		{
+			"periodEnd": "2010-12-31",
+			"currency": "EUR",
+			"revenue": 159269,
+			"operatingIncome": 21035,
+			"quality": "reported",
+			"source": "Total 6-K 2011-02-18, FY2010 results, consolidated statement of income; net income 10,807 + taxes 10,228",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000095012311015502/y03418te6vk.htm"
+		},
+		{
+			"periodEnd": "2011-12-31",
+			"currency": "EUR",
+			"revenue": 184693,
+			"operatingIncome": 26654,
+			"quality": "reported",
+			"source": "Total 6-K 2013-02-19, FY2012 results, consolidated statement of income; net income 12,581 + taxes 14,073",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000110465913011532/a13-5009_1ex99d1.htm"
+		},
+		{
+			"periodEnd": "2012-12-31",
+			"currency": "EUR",
+			"revenue": 200061,
+			"operatingIncome": 23907,
+			"quality": "reported",
+			"source": "Total 6-K 2013-02-19, FY2012 results, consolidated statement of income; net income 10,841 + taxes 13,066",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000110465913011532/a13-5009_1ex99d1.htm"
+		}
+	]
+}

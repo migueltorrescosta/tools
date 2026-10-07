@@ -1,0 +1,118 @@
+{
+	"id": "general-motors",
+	"name": "General Motors",
+	"type": "automotive",
+	"country": "US",
+	"reportingCurrency": "USD",
+	"notes": "operatingIncome = income/(loss) before income taxes for all years (Old GM reported no operating income line in its statements of income; pre-tax used throughout for consistency, though New GM also reports 'Operating income'). Old GM (CIK 40730) 2000-2008; New GM (CIK 1467858) 2010+. 2009 omitted (predecessor/successor split). Definitions vary: 2000-2001 'income before income taxes and minority interests' incl. Hughes (FY2002 10-K); 2002-2008 'before income taxes, equity income and minority interests' (Hughes discontinued; 2006-2008 includes equity in GMAC losses); 2010 as presented in FY2012 10-K (pre-reclassification); 2011+ includes equity income per FY2013+ presentation. 2006 revenue includes GMAC consolidated through Nov 2006. 2017+ restated excl. Opel/Vauxhall.",
+	"anchors": [
+		{
+			"periodEnd": "2000-12-31",
+			"currency": "USD",
+			"revenue": 184632,
+			"operatingIncome": 7164,
+			"quality": "reported",
+			"source": "GM (old) Form 10-K FY2002, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/40730/000004073003000054/complete10k.txt"
+		},
+		{
+			"periodEnd": "2001-12-31",
+			"currency": "USD",
+			"revenue": 177260,
+			"operatingIncome": 1518,
+			"quality": "reported",
+			"source": "GM (old) Form 10-K FY2002, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/40730/000004073003000054/complete10k.txt"
+		},
+		{
+			"periodEnd": "2002-12-31",
+			"currency": "USD",
+			"revenue": 177867,
+			"operatingIncome": 2338,
+			"quality": "reported",
+			"source": "GM (old) Form 10-K FY2004, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/40730/000004073005000050/final10k031505.txt"
+		},
+		{
+			"periodEnd": "2003-12-31",
+			"currency": "USD",
+			"revenue": 185837,
+			"operatingIncome": 2981,
+			"quality": "reported",
+			"source": "GM (old) Form 10-K FY2004, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/40730/000004073005000050/final10k031505.txt"
+		},
+		{
+			"periodEnd": "2004-12-31",
+			"currency": "USD",
+			"revenue": 193517,
+			"operatingIncome": 1192,
+			"quality": "reported",
+			"source": "GM (old) Form 10-K FY2004, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/40730/000004073005000050/final10k031505.txt"
+		},
+		{
+			"periodEnd": "2005-12-31",
+			"currency": "USD",
+			"revenue": 193050,
+			"operatingIncome": -17229,
+			"quality": "reported",
+			"source": "GM (old) Form 10-K FY2007, MD&A Consolidated Results of Operations",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/40730/000095012408000921/k23797e10vk.htm"
+		},
+		{
+			"periodEnd": "2006-12-31",
+			"currency": "USD",
+			"revenue": 204467,
+			"operatingIncome": -5658,
+			"quality": "reported",
+			"source": "GM (old) Form 10-K FY2008, MD&A Consolidated Results of Operations",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/40730/000119312509045144/d10k.htm"
+		},
+		{
+			"periodEnd": "2007-12-31",
+			"currency": "USD",
+			"revenue": 179984,
+			"operatingIncome": -6253,
+			"quality": "reported",
+			"source": "GM (old) Form 10-K FY2008, MD&A Consolidated Results of Operations",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/40730/000119312509045144/d10k.htm"
+		},
+		{
+			"periodEnd": "2008-12-31",
+			"currency": "USD",
+			"revenue": 148979,
+			"operatingIncome": -29388,
+			"quality": "reported",
+			"source": "GM (old) Form 10-K FY2008, MD&A Consolidated Results of Operations",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/40730/000119312509045144/d10k.htm"
+		},
+		{
+			"periodEnd": "2010-12-31",
+			"currency": "USD",
+			"revenue": 135592,
+			"operatingIncome": 5737,
+			"quality": "reported",
+			"source": "GM Form 10-K FY2012, Consolidated Income Statements",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785813000025/R2.htm"
+		},
+		{
+			"periodEnd": "2011-12-31",
+			"currency": "USD",
+			"revenue": 150276,
+			"operatingIncome": 9177,
+			"quality": "reported",
+			"source": "GM Form 10-K FY2013, Consolidated Income Statements",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785814000043/R2.htm"
+		},
+		{
+			"periodEnd": "2012-12-31",
+			"currency": "USD",
+			"revenue": 152256,
+			"operatingIncome": -28695,
+			"quality": "reported",
+			"source": "GM Form 10-K FY2013, Consolidated Income Statements",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785814000043/R2.htm"
+		}
+	]
+}

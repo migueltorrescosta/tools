@@ -1,0 +1,127 @@
+{
+	"id": "lvmh",
+	"name": "LVMH",
+	"type": "consumer",
+	"country": "FR",
+	"reportingCurrency": "EUR",
+	"notes": "Revenue = Revenue (Ventes / Chiffre d'affaires). Operating income = 'Operating profit' (Résultat opérationnel, i.e. after other operating income and expenses), not 'Profit from recurring operations'. FY = calendar year. FY2000-2003 French GAAP: 'Résultat opérationnel' there is before 'Autres produits et charges nets', so it is closer in scope to IFRS profit from recurring operations; FY2004+ IFRS (FY2004 IFRS-restated). Several pre-2013 reference documents were retrieved from the BNAINS archive (bnains.org) and the AMF open-data archive (echanges.dila.gouv.fr), not lvmh.com.",
+	"anchors": [
+		{
+			"periodEnd": "2000-12-31",
+			"currency": "EUR",
+			"revenue": 11581,
+			"operatingIncome": 1959,
+			"quality": "reported",
+			"source": "LVMH Document de référence 2002, compte de résultat consolidé (French GAAP)",
+			"sourceUrl": "https://www.bnains.org/archives/communiques/LVMH/20030509_Document_de_reference_2002_LVMH.pdf"
+		},
+		{
+			"periodEnd": "2001-12-31",
+			"currency": "EUR",
+			"revenue": 12229,
+			"operatingIncome": 1560,
+			"quality": "reported",
+			"source": "LVMH Document de référence 2003, compte de résultat consolidé (French GAAP)",
+			"sourceUrl": "https://www.bnains.org/archives/communiques/LVMH/20040510_Document_de_reference_2003_LVMH.pdf"
+		},
+		{
+			"periodEnd": "2002-12-31",
+			"currency": "EUR",
+			"revenue": 12693,
+			"operatingIncome": 2008,
+			"quality": "reported",
+			"source": "LVMH Document de référence 2003, compte de résultat consolidé (French GAAP)",
+			"sourceUrl": "https://www.bnains.org/archives/communiques/LVMH/20040510_Document_de_reference_2003_LVMH.pdf"
+		},
+		{
+			"periodEnd": "2003-12-31",
+			"currency": "EUR",
+			"revenue": 11962,
+			"operatingIncome": 2182,
+			"quality": "reported",
+			"source": "LVMH Document de référence 2003, compte de résultat consolidé (French GAAP)",
+			"sourceUrl": "https://www.bnains.org/archives/communiques/LVMH/20040510_Document_de_reference_2003_LVMH.pdf"
+		},
+		{
+			"periodEnd": "2004-12-31",
+			"currency": "EUR",
+			"revenue": 12481,
+			"operatingIncome": 2173,
+			"quality": "reported",
+			"source": "LVMH Document de référence 2006, compte de résultat consolidé (IFRS)",
+			"sourceUrl": "https://www.bnains.org/archives/communiques/LVMH/20070411_Document_de_reference_2006_LVMH.pdf"
+		},
+		{
+			"periodEnd": "2005-12-31",
+			"currency": "EUR",
+			"revenue": 13910,
+			"operatingIncome": 2522,
+			"quality": "reported",
+			"source": "LVMH Document de référence 2006, compte de résultat consolidé (IFRS)",
+			"sourceUrl": "https://www.bnains.org/archives/communiques/LVMH/20070411_Document_de_reference_2006_LVMH.pdf"
+		},
+		{
+			"periodEnd": "2006-12-31",
+			"currency": "EUR",
+			"revenue": 15306,
+			"operatingIncome": 3052,
+			"quality": "reported",
+			"source": "LVMH Document de référence 2006, compte de résultat consolidé (IFRS)",
+			"sourceUrl": "https://www.bnains.org/archives/communiques/LVMH/20070411_Document_de_reference_2006_LVMH.pdf"
+		},
+		{
+			"periodEnd": "2007-12-31",
+			"currency": "EUR",
+			"revenue": 16481,
+			"operatingIncome": 3429,
+			"quality": "reported",
+			"source": "LVMH Document de référence 2009 (AMF filing), compte de résultat consolidé",
+			"sourceUrl": "https://echanges.dila.gouv.fr/OPENDATA/AMF/CNS/8888/01/FCCNS026034_20100323.pdf"
+		},
+		{
+			"periodEnd": "2008-12-31",
+			"currency": "EUR",
+			"revenue": 17193,
+			"operatingIncome": 3485,
+			"quality": "reported",
+			"source": "LVMH Document de référence 2009 (AMF filing), compte de résultat consolidé",
+			"sourceUrl": "https://echanges.dila.gouv.fr/OPENDATA/AMF/CNS/8888/01/FCCNS026034_20100323.pdf"
+		},
+		{
+			"periodEnd": "2009-12-31",
+			"currency": "EUR",
+			"revenue": 17053,
+			"operatingIncome": 3161,
+			"quality": "reported",
+			"source": "LVMH Document de référence 2009 (AMF filing), compte de résultat consolidé",
+			"sourceUrl": "https://echanges.dila.gouv.fr/OPENDATA/AMF/CNS/8888/01/FCCNS026034_20100323.pdf"
+		},
+		{
+			"periodEnd": "2010-12-31",
+			"currency": "EUR",
+			"revenue": 20320,
+			"operatingIncome": 4169,
+			"quality": "reported",
+			"source": "LVMH Document de référence 2012, compte de résultat consolidé",
+			"sourceUrl": "https://www.bnains.org/archives/communiques/LVMH/20130327_Document_de_reference_2012_LVMH.pdf"
+		},
+		{
+			"periodEnd": "2011-12-31",
+			"currency": "EUR",
+			"revenue": 23659,
+			"operatingIncome": 5154,
+			"quality": "reported",
+			"source": "LVMH Document de référence 2012, compte de résultat consolidé",
+			"sourceUrl": "https://www.bnains.org/archives/communiques/LVMH/20130327_Document_de_reference_2012_LVMH.pdf"
+		},
+		{
+			"periodEnd": "2012-12-31",
+			"currency": "EUR",
+			"revenue": 28103,
+			"operatingIncome": 5739,
+			"quality": "reported",
+			"source": "LVMH Document de référence 2012, compte de résultat consolidé",
+			"sourceUrl": "https://www.bnains.org/archives/communiques/LVMH/20130327_Document_de_reference_2012_LVMH.pdf"
+		}
+	]
+}

@@ -1,0 +1,127 @@
+{
+	"id": "nvidia",
+	"name": "NVIDIA",
+	"type": "tech",
+	"country": "US",
+	"reportingCurrency": "USD",
+	"notes": "Revenue = 'Revenue'; operatingIncome = 'Income (loss) from operations'. FY ends last Sunday of January (periodEnd = FY end; e.g. FY2026 ends 2026-01-25). FY2000-2003 from FY2004 10-K (pre-2006 stock-option restatement); FY2004-2007 from FY2008 10-K (restated; FY2004 OI 49.8 vs 90.2 originally). FY2008+ from XBRL 10-K facts (OI concept us-gaap:OperatingIncomeLoss, accn shown in source).",
+	"anchors": [
+		{
+			"periodEnd": "2000-01-30",
+			"currency": "USD",
+			"revenue": 374.505,
+			"operatingIncome": 58.617,
+			"quality": "reported",
+			"source": "NVIDIA Form 10-K FY2004, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1045810/000104581004000007/annualreport.htm"
+		},
+		{
+			"periodEnd": "2001-01-28",
+			"currency": "USD",
+			"revenue": 735.264,
+			"operatingIncome": 128.135,
+			"quality": "reported",
+			"source": "NVIDIA Form 10-K FY2004, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1045810/000104581004000007/annualreport.htm"
+		},
+		{
+			"periodEnd": "2002-01-27",
+			"currency": "USD",
+			"revenue": 1369.471,
+			"operatingIncome": 241.732,
+			"quality": "reported",
+			"source": "NVIDIA Form 10-K FY2004, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1045810/000104581004000007/annualreport.htm"
+		},
+		{
+			"periodEnd": "2003-01-26",
+			"currency": "USD",
+			"revenue": 1909.447,
+			"operatingIncome": 143.986,
+			"quality": "reported",
+			"source": "NVIDIA Form 10-K FY2004, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1045810/000104581004000007/annualreport.htm"
+		},
+		{
+			"periodEnd": "2004-01-25",
+			"currency": "USD",
+			"revenue": 1822.945,
+			"operatingIncome": 49.788,
+			"quality": "reported",
+			"source": "NVIDIA Form 10-K FY2008, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1045810/000104581008000011/fy2008annualreportonform10k.htm"
+		},
+		{
+			"periodEnd": "2005-01-30",
+			"currency": "USD",
+			"revenue": 2010.033,
+			"operatingIncome": 95.176,
+			"quality": "reported",
+			"source": "NVIDIA Form 10-K FY2008, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1045810/000104581008000011/fy2008annualreportonform10k.htm"
+		},
+		{
+			"periodEnd": "2006-01-29",
+			"currency": "USD",
+			"revenue": 2375.687,
+			"operatingIncome": 336.664,
+			"quality": "reported",
+			"source": "NVIDIA Form 10-K FY2008, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1045810/000104581008000011/fy2008annualreportonform10k.htm"
+		},
+		{
+			"periodEnd": "2007-01-28",
+			"currency": "USD",
+			"revenue": 3068.771,
+			"operatingIncome": 453.452,
+			"quality": "reported",
+			"source": "NVIDIA Form 10-K FY2008, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1045810/000104581008000011/fy2008annualreportonform10k.htm"
+		},
+		{
+			"periodEnd": "2008-01-27",
+			"currency": "USD",
+			"revenue": 4097.86,
+			"operatingIncome": 836.346,
+			"quality": "reported",
+			"source": "NVIDIA Form 10-K XBRL (accn 0001045810-10-000006), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2009-01-25",
+			"currency": "USD",
+			"revenue": 3424.859,
+			"operatingIncome": -70.7,
+			"quality": "reported",
+			"source": "NVIDIA Form 10-K XBRL (accn 0001045810-10-000006), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2010-01-31",
+			"currency": "USD",
+			"revenue": 3326.445,
+			"operatingIncome": -98.945,
+			"quality": "reported",
+			"source": "NVIDIA Form 10-K XBRL (accn 0001045810-10-000006), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2011-01-30",
+			"currency": "USD",
+			"revenue": 3543.309,
+			"operatingIncome": 255.747,
+			"quality": "reported",
+			"source": "NVIDIA Form 10-K XBRL (accn 0001045810-11-000015), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2012-01-29",
+			"currency": "USD",
+			"revenue": 3997.93,
+			"operatingIncome": 648.299,
+			"quality": "reported",
+			"source": "NVIDIA Form 10-K XBRL (accn 0001045810-12-000013), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+		}
+	]
+}

@@ -1,0 +1,127 @@
+{
+	"id": "pfizer",
+	"name": "Pfizer",
+	"type": "pharma",
+	"country": "US",
+	"reportingCurrency": "USD",
+	"notes": "Pfizer reports no operating income line; operatingIncome = 'Income from continuing operations before provision/(benefit) for taxes on income' (pre-2009 label adds 'and minority interests'). Fiscal year ends Dec 31 (international subsidiaries Nov 30). Figures taken from the 10-K covering each year as presented there (some later restated for discontinued operations: e.g. 2019 includes Upjohn, 2020+ excludes it; 2023 reflects FY2025 10-K presentation).",
+	"anchors": [
+		{
+			"periodEnd": "2000-12-31",
+			"currency": "USD",
+			"revenue": 26045,
+			"operatingIncome": 5501,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2002, Exhibit 13 Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000095012303003360/y83976exv13.htm"
+		},
+		{
+			"periodEnd": "2001-12-31",
+			"currency": "USD",
+			"revenue": 29024,
+			"operatingIncome": 9984,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2002, Exhibit 13 Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000095012303003360/y83976exv13.htm"
+		},
+		{
+			"periodEnd": "2002-12-31",
+			"currency": "USD",
+			"revenue": 32373,
+			"operatingIncome": 11796,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2002, Exhibit 13 Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000095012303003360/y83976exv13.htm"
+		},
+		{
+			"periodEnd": "2003-12-31",
+			"currency": "USD",
+			"revenue": 44736,
+			"operatingIncome": 3246,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2004, Exhibit 13 Analysis of the Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000095012305002379/y06124exv13.htm"
+		},
+		{
+			"periodEnd": "2004-12-31",
+			"currency": "USD",
+			"revenue": 52516,
+			"operatingIncome": 14007,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2004, Exhibit 13 Analysis of the Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000095012305002379/y06124exv13.htm"
+		},
+		{
+			"periodEnd": "2005-12-31",
+			"currency": "USD",
+			"revenue": 47405,
+			"operatingIncome": 10800,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2007, Exhibit 13 Analysis of the Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000093041308001360/c52104_ex13.htm"
+		},
+		{
+			"periodEnd": "2006-12-31",
+			"currency": "USD",
+			"revenue": 48371,
+			"operatingIncome": 13028,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2007, Exhibit 13 Analysis of the Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000093041308001360/c52104_ex13.htm"
+		},
+		{
+			"periodEnd": "2007-12-31",
+			"currency": "USD",
+			"revenue": 48418,
+			"operatingIncome": 9278,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2007, Exhibit 13 Analysis of the Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000093041308001360/c52104_ex13.htm"
+		},
+		{
+			"periodEnd": "2008-12-31",
+			"currency": "USD",
+			"revenue": 48296,
+			"operatingIncome": 9694,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2010, Consolidated Statements of Income (XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000119312511048877/R2.xml"
+		},
+		{
+			"periodEnd": "2009-12-31",
+			"currency": "USD",
+			"revenue": 50009,
+			"operatingIncome": 10827,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2010, Consolidated Statements of Income (XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000119312511048877/R2.xml"
+		},
+		{
+			"periodEnd": "2010-12-31",
+			"currency": "USD",
+			"revenue": 67809,
+			"operatingIncome": 9422,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2010, Consolidated Statements of Income (XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000119312511048877/R2.xml"
+		},
+		{
+			"periodEnd": "2011-12-31",
+			"currency": "USD",
+			"revenue": 61035,
+			"operatingIncome": 11481,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2013, Consolidated Statements of Income (XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800314000018/R2.htm"
+		},
+		{
+			"periodEnd": "2012-12-31",
+			"currency": "USD",
+			"revenue": 54657,
+			"operatingIncome": 11242,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2013, Consolidated Statements of Income (XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800314000018/R2.htm"
+		}
+	]
+}

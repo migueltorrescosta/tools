@@ -1,0 +1,127 @@
+{
+	"id": "asml",
+	"name": "ASML",
+	"type": "tech",
+	"country": "NL",
+	"reportingCurrency": "EUR",
+	"notes": "US GAAP figures from SEC Form 20-F (ASML also publishes IFRS statements; not used). revenue = 'Net sales' / 'Total net sales'; operatingIncome = 'Income (loss) from operations'. FY ends Dec 31. 2000-2004 restated for Track/Thermal discontinued operations. 2016-2017 restated for ASC 606 (2017 originally 9,052.8 net sales). 2009 op. loss -165.0 per FY2009 20-F (later filings show -163.1). Revenue and op income for some 2010-2015 years taken from different later 20-F XBRL facts (both URLs: OperatingIncomeLoss and SalesRevenueNet companyconcept). FY2025 from 20-F filed 2026-02-25.",
+	"anchors": [
+		{
+			"periodEnd": "2000-12-31",
+			"currency": "EUR",
+			"revenue": 2672.63,
+			"operatingIncome": 542.269,
+			"quality": "reported",
+			"source": "ASML Form 20-F FY2004, Item 3 Selected Financial Data (US GAAP)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/937966/000115697305000129/u48286e20vf.htm"
+		},
+		{
+			"periodEnd": "2001-12-31",
+			"currency": "EUR",
+			"revenue": 1589.247,
+			"operatingIncome": -590.618,
+			"quality": "reported",
+			"source": "ASML Form 20-F FY2004, Item 3 Selected Financial Data (US GAAP)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/937966/000115697305000129/u48286e20vf.htm"
+		},
+		{
+			"periodEnd": "2002-12-31",
+			"currency": "EUR",
+			"revenue": 1958.672,
+			"operatingIncome": -94.043,
+			"quality": "reported",
+			"source": "ASML Form 20-F FY2004, Item 3 Selected Financial Data (US GAAP)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/937966/000115697305000129/u48286e20vf.htm"
+		},
+		{
+			"periodEnd": "2003-12-31",
+			"currency": "EUR",
+			"revenue": 1542.737,
+			"operatingIncome": -155.032,
+			"quality": "reported",
+			"source": "ASML Form 20-F FY2004, Item 3 Selected Financial Data (US GAAP)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/937966/000115697305000129/u48286e20vf.htm"
+		},
+		{
+			"periodEnd": "2004-12-31",
+			"currency": "EUR",
+			"revenue": 2465.377,
+			"operatingIncome": 378.913,
+			"quality": "reported",
+			"source": "ASML Form 20-F FY2004, Item 3 Selected Financial Data (US GAAP)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/937966/000115697305000129/u48286e20vf.htm"
+		},
+		{
+			"periodEnd": "2005-12-31",
+			"currency": "EUR",
+			"revenue": 2528.967,
+			"operatingIncome": 449.117,
+			"quality": "reported",
+			"source": "ASML Form 20-F FY2009, Item 3.A Selected Financial Data (US GAAP)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/937966/000095012310006383/u08158e20vf.htm"
+		},
+		{
+			"periodEnd": "2006-12-31",
+			"currency": "EUR",
+			"revenue": 3581.776,
+			"operatingIncome": 862.613,
+			"quality": "reported",
+			"source": "ASML Form 20-F FY2009, Item 3.A Selected Financial Data (US GAAP)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/937966/000095012310006383/u08158e20vf.htm"
+		},
+		{
+			"periodEnd": "2007-12-31",
+			"currency": "EUR",
+			"revenue": 3768.185,
+			"operatingIncome": 814.702,
+			"quality": "reported",
+			"source": "ASML Form 20-F FY2009, Item 3.A Selected Financial Data (US GAAP)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/937966/000095012310006383/u08158e20vf.htm"
+		},
+		{
+			"periodEnd": "2008-12-31",
+			"currency": "EUR",
+			"revenue": 2953.678,
+			"operatingIncome": 287.045,
+			"quality": "reported",
+			"source": "ASML Form 20-F FY2009, Item 3.A Selected Financial Data (US GAAP)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/937966/000095012310006383/u08158e20vf.htm"
+		},
+		{
+			"periodEnd": "2009-12-31",
+			"currency": "EUR",
+			"revenue": 1596.063,
+			"operatingIncome": -165.013,
+			"quality": "reported",
+			"source": "ASML Form 20-F FY2009, Item 3.A Selected Financial Data (US GAAP)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/937966/000095012310006383/u08158e20vf.htm"
+		},
+		{
+			"periodEnd": "2010-12-31",
+			"currency": "EUR",
+			"revenue": 4507.938,
+			"operatingIncome": 1250.699,
+			"quality": "reported",
+			"source": "ASML Form 20-F (FY2011/FY2012) XBRL facts via SEC companyconcept API: SalesRevenueNet, OperatingIncomeLoss (US GAAP)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2011-12-31",
+			"currency": "EUR",
+			"revenue": 5651.035,
+			"operatingIncome": 1641.216,
+			"quality": "reported",
+			"source": "ASML Form 20-F (FY2011/FY2013) XBRL facts via SEC companyconcept API: SalesRevenueNet, OperatingIncomeLoss (US GAAP)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2012-12-31",
+			"currency": "EUR",
+			"revenue": 4731.555,
+			"operatingIncome": 1156.774,
+			"quality": "reported",
+			"source": "ASML Form 20-F (FY2013/FY2014) XBRL facts via SEC companyconcept API: SalesRevenueNet, OperatingIncomeLoss (US GAAP)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/OperatingIncomeLoss.json"
+		}
+	]
+}

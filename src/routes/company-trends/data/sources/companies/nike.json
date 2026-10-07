@@ -1,0 +1,127 @@
+{
+	"id": "nike",
+	"name": "Nike",
+	"type": "consumer",
+	"country": "US",
+	"reportingCurrency": "USD",
+	"notes": "Revenue = Revenues. Nike reports no operating income line; operatingIncome = Income before income taxes (FY2000-2002: before cumulative effect of accounting change). FY ends May 31. Each year taken from the cited filing (as reported or as restated in that filing).",
+	"anchors": [
+		{
+			"periodEnd": "2000-05-31",
+			"currency": "USD",
+			"revenue": 8995.1,
+			"operatingIncome": 919.2,
+			"quality": "reported",
+			"source": "Nike Form 10-K FY2002, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000089102002001248/v83383ore10vk.htm"
+		},
+		{
+			"periodEnd": "2001-05-31",
+			"currency": "USD",
+			"revenue": 9488.8,
+			"operatingIncome": 921.4,
+			"quality": "reported",
+			"source": "Nike Form 10-K FY2002, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000089102002001248/v83383ore10vk.htm"
+		},
+		{
+			"periodEnd": "2002-05-31",
+			"currency": "USD",
+			"revenue": 9893.0,
+			"operatingIncome": 1017.3,
+			"quality": "reported",
+			"source": "Nike Form 10-K FY2002, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000089102002001248/v83383ore10vk.htm"
+		},
+		{
+			"periodEnd": "2003-05-31",
+			"currency": "USD",
+			"revenue": 10697.0,
+			"operatingIncome": 1123.0,
+			"quality": "reported",
+			"source": "Nike Form 10-K FY2005, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000095012405004551/v10583e10vk.htm"
+		},
+		{
+			"periodEnd": "2004-05-31",
+			"currency": "USD",
+			"revenue": 12253.1,
+			"operatingIncome": 1450.0,
+			"quality": "reported",
+			"source": "Nike Form 10-K FY2005, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000095012405004551/v10583e10vk.htm"
+		},
+		{
+			"periodEnd": "2005-05-31",
+			"currency": "USD",
+			"revenue": 13739.7,
+			"operatingIncome": 1859.8,
+			"quality": "reported",
+			"source": "Nike Form 10-K FY2005, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000095012405004551/v10583e10vk.htm"
+		},
+		{
+			"periodEnd": "2006-05-31",
+			"currency": "USD",
+			"revenue": 14954.9,
+			"operatingIncome": 2141.6,
+			"quality": "reported",
+			"source": "Nike Form 10-K FY2008, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000119312508159004/d10k.htm"
+		},
+		{
+			"periodEnd": "2007-05-31",
+			"currency": "USD",
+			"revenue": 16325.9,
+			"operatingIncome": 2199.9,
+			"quality": "reported",
+			"source": "Nike Form 10-K FY2008, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000119312508159004/d10k.htm"
+		},
+		{
+			"periodEnd": "2008-05-31",
+			"currency": "USD",
+			"revenue": 18627.0,
+			"operatingIncome": 2502.9,
+			"quality": "reported",
+			"source": "Nike Form 10-K FY2008, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000119312508159004/d10k.htm"
+		},
+		{
+			"periodEnd": "2009-05-31",
+			"currency": "USD",
+			"revenue": 19176,
+			"operatingIncome": 1957,
+			"quality": "reported",
+			"source": "Nike Form 10-K FY2011, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000119312511194791/R2.htm"
+		},
+		{
+			"periodEnd": "2010-05-31",
+			"currency": "USD",
+			"revenue": 19014,
+			"operatingIncome": 2517,
+			"quality": "reported",
+			"source": "Nike Form 10-K FY2011, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000119312511194791/R2.htm"
+		},
+		{
+			"periodEnd": "2011-05-31",
+			"currency": "USD",
+			"revenue": 20862,
+			"operatingIncome": 2844,
+			"quality": "reported",
+			"source": "Nike Form 10-K FY2011, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000119312511194791/R2.htm"
+		},
+		{
+			"periodEnd": "2012-05-31",
+			"currency": "USD",
+			"revenue": 23331,
+			"operatingIncome": 3011,
+			"quality": "reported",
+			"source": "Nike Form 10-K FY2014, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018714000097/R2.htm"
+		}
+	]
+}

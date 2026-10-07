@@ -1,0 +1,127 @@
+{
+	"id": "apple",
+	"name": "Apple",
+	"type": "tech",
+	"country": "US",
+	"reportingCurrency": "USD",
+	"notes": "Revenue = Net sales; operating income = 'Operating income' line. FY ends last Saturday of September. FY2007 uses the 2010 10-K/A restated figures (retrospective iPhone/Apple TV revenue recognition change); FY2005-2006 as reported in FY2007 10-K (pre-restatement). FY2026 (ends 2026-09-26) not yet filed.",
+	"anchors": [
+		{
+			"periodEnd": "2000-09-30",
+			"currency": "USD",
+			"revenue": 7983,
+			"operatingIncome": 522,
+			"quality": "reported",
+			"source": "Apple Form 10-K FY2002, Consolidated Statements of Operations",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320193/000104746902007674/a2096490z10-k.htm"
+		},
+		{
+			"periodEnd": "2001-09-29",
+			"currency": "USD",
+			"revenue": 5363,
+			"operatingIncome": -344,
+			"quality": "reported",
+			"source": "Apple Form 10-K FY2002, Consolidated Statements of Operations",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320193/000104746902007674/a2096490z10-k.htm"
+		},
+		{
+			"periodEnd": "2002-09-28",
+			"currency": "USD",
+			"revenue": 5742,
+			"operatingIncome": 17,
+			"quality": "reported",
+			"source": "Apple Form 10-K FY2004, Consolidated Statements of Operations",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320193/000104746904035975/a2147337z10-k.htm"
+		},
+		{
+			"periodEnd": "2003-09-27",
+			"currency": "USD",
+			"revenue": 6207,
+			"operatingIncome": -1,
+			"quality": "reported",
+			"source": "Apple Form 10-K FY2004, Consolidated Statements of Operations",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320193/000104746904035975/a2147337z10-k.htm"
+		},
+		{
+			"periodEnd": "2004-09-25",
+			"currency": "USD",
+			"revenue": 8279,
+			"operatingIncome": 326,
+			"quality": "reported",
+			"source": "Apple Form 10-K FY2004, Consolidated Statements of Operations",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320193/000104746904035975/a2147337z10-k.htm"
+		},
+		{
+			"periodEnd": "2005-09-24",
+			"currency": "USD",
+			"revenue": 13931,
+			"operatingIncome": 1643,
+			"quality": "reported",
+			"source": "Apple Form 10-K FY2007, Consolidated Statements of Operations",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320193/000104746907009340/a2181030z10-k.htm"
+		},
+		{
+			"periodEnd": "2006-09-30",
+			"currency": "USD",
+			"revenue": 19315,
+			"operatingIncome": 2453,
+			"quality": "reported",
+			"source": "Apple Form 10-K FY2007, Consolidated Statements of Operations",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320193/000104746907009340/a2181030z10-k.htm"
+		},
+		{
+			"periodEnd": "2007-09-29",
+			"currency": "USD",
+			"revenue": 24578,
+			"operatingIncome": 4407,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-10-012091 (10-K/A)); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2008-09-27",
+			"currency": "USD",
+			"revenue": 37491,
+			"operatingIncome": 8327,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-10-238044); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2009-09-26",
+			"currency": "USD",
+			"revenue": 42905,
+			"operatingIncome": 11740,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-10-238044); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2010-09-25",
+			"currency": "USD",
+			"revenue": 65225,
+			"operatingIncome": 18385,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-10-238044); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2011-09-24",
+			"currency": "USD",
+			"revenue": 108249,
+			"operatingIncome": 33790,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-11-282113); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2012-09-29",
+			"currency": "USD",
+			"revenue": 156508,
+			"operatingIncome": 55241,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-12-444068); revenue tag us-gaap:SalesRevenueNet, operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+		}
+	]
+}

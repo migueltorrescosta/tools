@@ -1,0 +1,127 @@
+{
+	"id": "johnson-johnson",
+	"name": "Johnson & Johnson",
+	"type": "pharma",
+	"country": "US",
+	"reportingCurrency": "USD",
+	"notes": "No operating income line reported; operatingIncome = 'Earnings before provision for taxes on income' (pretax income, continuing operations from FY2023). Revenue = 'Sales to customers'. FY ends Sunday closest to Dec 31; FY2000-2006 period-end dates derived from that rule (FY2007+ confirmed in SEC data). Each year uses figures as first reported in that year's 10-K: FY2022 includes Consumer Health (94,943 / 21,725); FY2023 onward excludes Kenvue (restated FY2022 revenue 79,990). FY2000-2009 from FY2009 Exhibit 13 ten-year table (2007-2009 match XBRL). FY2015 revenue XBRL context end-dated 2015-12-27 though FY ended 2016-01-03. FY2025 pretax 32,581 is unusually high (likely one-off gains; not investigated).",
+	"anchors": [
+		{
+			"periodEnd": "2000-12-31",
+			"currency": "USD",
+			"revenue": 29172,
+			"operatingIncome": 6577,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2009, Exhibit 13 Summary of Operations and Statistical Data 1999-2009 (FY2000)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/200406/000095012310019392/y80744exv13.htm"
+		},
+		{
+			"periodEnd": "2001-12-30",
+			"currency": "USD",
+			"revenue": 32317,
+			"operatingIncome": 7494,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2009, Exhibit 13 Summary of Operations and Statistical Data 1999-2009 (FY2001)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/200406/000095012310019392/y80744exv13.htm"
+		},
+		{
+			"periodEnd": "2002-12-29",
+			"currency": "USD",
+			"revenue": 36298,
+			"operatingIncome": 8799,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2009, Exhibit 13 Summary of Operations and Statistical Data 1999-2009 (FY2002)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/200406/000095012310019392/y80744exv13.htm"
+		},
+		{
+			"periodEnd": "2003-12-28",
+			"currency": "USD",
+			"revenue": 41862,
+			"operatingIncome": 9771,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2009, Exhibit 13 Summary of Operations and Statistical Data 1999-2009 (FY2003)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/200406/000095012310019392/y80744exv13.htm"
+		},
+		{
+			"periodEnd": "2005-01-02",
+			"currency": "USD",
+			"revenue": 47348,
+			"operatingIncome": 12331,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2009, Exhibit 13 Summary of Operations and Statistical Data 1999-2009 (FY2004)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/200406/000095012310019392/y80744exv13.htm"
+		},
+		{
+			"periodEnd": "2006-01-01",
+			"currency": "USD",
+			"revenue": 50514,
+			"operatingIncome": 13116,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2009, Exhibit 13 Summary of Operations and Statistical Data 1999-2009 (FY2005)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/200406/000095012310019392/y80744exv13.htm"
+		},
+		{
+			"periodEnd": "2006-12-31",
+			"currency": "USD",
+			"revenue": 53324,
+			"operatingIncome": 14587,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2009, Exhibit 13 Summary of Operations and Statistical Data 1999-2009 (FY2006)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/200406/000095012310019392/y80744exv13.htm"
+		},
+		{
+			"periodEnd": "2007-12-30",
+			"currency": "USD",
+			"revenue": 61095,
+			"operatingIncome": 13283,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2009, Exhibit 13 Summary of Operations and Statistical Data 1999-2009 (FY2007)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/200406/000095012310019392/y80744exv13.htm"
+		},
+		{
+			"periodEnd": "2008-12-28",
+			"currency": "USD",
+			"revenue": 63747,
+			"operatingIncome": 16929,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2009, Exhibit 13 Summary of Operations and Statistical Data 1999-2009 (FY2008)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/200406/000095012310019392/y80744exv13.htm"
+		},
+		{
+			"periodEnd": "2010-01-03",
+			"currency": "USD",
+			"revenue": 61897,
+			"operatingIncome": 15755,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2009, Exhibit 13 Summary of Operations and Statistical Data 1999-2009 (FY2009)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/200406/000095012310019392/y80744exv13.htm"
+		},
+		{
+			"periodEnd": "2011-01-02",
+			"currency": "USD",
+			"revenue": 61587,
+			"operatingIncome": 16947,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2010 (accn 0000950123-11-018128), XBRL via SEC companyconcept API; revenue from SalesRevenueGoodsNet, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/SalesRevenueGoodsNet.json"
+		},
+		{
+			"periodEnd": "2012-01-01",
+			"currency": "USD",
+			"revenue": 65030,
+			"operatingIncome": 12361,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2011 (accn 0001193125-12-075565), XBRL via SEC companyconcept API; revenue from SalesRevenueGoodsNet, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/SalesRevenueGoodsNet.json"
+		},
+		{
+			"periodEnd": "2012-12-30",
+			"currency": "USD",
+			"revenue": 67224,
+			"operatingIncome": 13775,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2012 (accn 0000200406-13-000038), XBRL via SEC companyconcept API; revenue from SalesRevenueGoodsNet, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/SalesRevenueGoodsNet.json"
+		}
+	]
+}

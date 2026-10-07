@@ -1,0 +1,28 @@
+{
+	"id": "ferrari",
+	"name": "Ferrari",
+	"type": "automotive",
+	"country": "IT",
+	"reportingCurrency": "EUR",
+	"notes": "operatingIncome = 'Operating profit (EBIT)' (IFRS). Revenue = net revenues. EUR millions; 2017+ converted from EUR thousands in XBRL income statements. Pre-2011 omitted: no standalone Ferrari filings (F-1 2015 covers 2012-2014, FY2015 20-F covers 2011-2015). HQ Maranello (legal seat Netherlands).",
+	"anchors": [
+		{
+			"periodEnd": "2011-12-31",
+			"currency": "EUR",
+			"revenue": 2067,
+			"operatingIncome": 298,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2015, Item 3.A Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841616000057/ferrarinv20-f12312015.htm"
+		},
+		{
+			"periodEnd": "2012-12-31",
+			"currency": "EUR",
+			"revenue": 2225,
+			"operatingIncome": 335,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2015, Item 3.A Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841616000057/ferrarinv20-f12312015.htm"
+		}
+	]
+}
