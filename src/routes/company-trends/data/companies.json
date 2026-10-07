@@ -606,6 +606,54 @@
 					"quality": "reported",
 					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-20-000008); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss (FY ending 2019-12-31: revenue USD 161,857m, operating income USD 34,231m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 159905.2,
+					"operatingIncome": 36114.8,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-21-000010); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss (FY ending 2020-12-31: revenue USD 182,527m, operating income USD 41,224m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 217735.8,
+					"operatingIncome": 66523.3,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-22-000019); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss (FY ending 2021-12-31: revenue USD 257,637m, operating income USD 78,714m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 268484.8,
+					"operatingIncome": 71044.5,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-23-000016); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss (FY ending 2022-12-31: revenue USD 282,836m, operating income USD 74,842m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 284279.9,
+					"operatingIncome": 77954.7,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-24-000022); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss (FY ending 2023-12-31: revenue USD 307,394m, operating income USD 84,293m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 323417,
+					"operatingIncome": 103848.5,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-25-000014); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss (FY ending 2024-12-31: revenue USD 350,018m, operating income USD 112,390m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 356677.5,
+					"operatingIncome": 114253.2,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-26-000018); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss (FY ending 2025-12-31: revenue USD 402,836m, operating income USD 129,039m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
 				}
 			]
 		},
@@ -776,6 +824,80 @@
 					"quality": "reported",
 					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001018724-20-000004); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2019-12-31: revenue USD 280,522m, operating income USD 14,541m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001018724/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 338216.5,
+					"operatingIncome": 20061,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001018724-21-000004); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2020-12-31: revenue USD 386,064m, operating income USD 22,899m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001018724/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 397059,
+					"operatingIncome": 21025.9,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001018724-22-000005); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2021-12-31: revenue USD 469,822m, operating income USD 24,879m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001018724/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 487903.3,
+					"operatingIncome": 11626.5,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001018724-23-000004); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2022-12-31: revenue USD 513,983m, operating income USD 12,248m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001018724/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 531564.8,
+					"operatingIncome": 34081,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001018724-24-000008); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2023-12-31: revenue USD 574,785m, operating income USD 36,852m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001018724/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 589474.7,
+					"operatingIncome": 63380,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001018724-25-000004); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2024-12-31: revenue USD 637,959m, operating income USD 68,593m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001018724/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 634776,
+					"operatingIncome": 70811.2,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001018724-26-000004); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2025-12-31: revenue USD 716,924m, operating income USD 79,975m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001018724/us-gaap/OperatingIncomeLoss.json"
+				}
+			]
+		},
+		{
+			"id": "anthropic",
+			"name": "Anthropic",
+			"type": "ai",
+			"reportingCurrency": "USD",
+			"country": "US",
+			"notes": "Private. Figures from Anthropic's confidential IPO prospectus as reviewed by Reuters (Sept 2026), relayed by Capital Brief/Fortune/TNW. operatingIncome = reported operating loss (GAAP). Calendar-year FY. GAAP net loss far larger (2025: $41.97B incl. ~$34B non-cash fair-value charge on convertible financing; 2024: $8.31B) and is NOT used. Pre-2024 years omitted: only run-rates reported, no actual annual revenue + loss.",
+			"points": [
+				{
+					"quarter": "2024Q4",
+					"revenue": 356.7,
+					"operatingIncome": -2753.5,
+					"quality": "estimated",
+					"source": "Reuters review of Anthropic IPO prospectus, via Capital Brief (2024 comparatives: revenue $386M, operating loss $2.98B) (FY ending 2024-12-31: revenue USD 386m, operating income USD -2,980m)",
+					"sourceUrl": "https://www.capitalbrief.com/briefing/anthropics-ipo-prospectus-reveals-usd46b-revenue-surge-and-usd81b-operating-loss-502742cd-1025-43ee-ab7b-cf4c551fbce5/"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 4064.1,
+					"operatingIncome": -7136.5,
+					"quality": "estimated",
+					"source": "Reuters review of Anthropic IPO prospectus, via Capital Brief (FY2025: revenue $4.59B, operating loss $8.06B) (FY ending 2025-12-31: revenue USD 4,590m, operating income USD -8,060m)",
+					"sourceUrl": "https://www.capitalbrief.com/briefing/anthropics-ipo-prospectus-reveals-usd46b-revenue-surge-and-usd81b-operating-loss-502742cd-1025-43ee-ab7b-cf4c551fbce5/"
 				}
 			]
 		},
@@ -945,6 +1067,54 @@
 					"operatingIncome": 56665.2,
 					"quality": "reported",
 					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0000320193-19-000119); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2019-09-28: revenue USD 260,174m, operating income USD 63,930m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2020Q3",
+					"revenue": 245097.8,
+					"operatingIncome": 59184.5,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0000320193-20-000096); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2020-09-26: revenue USD 274,515m, operating income USD 66,288m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2021Q3",
+					"revenue": 305970,
+					"operatingIncome": 91125.1,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0000320193-21-000105); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2021-09-25: revenue USD 365,817m, operating income USD 108,949m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2022Q3",
+					"revenue": 363702.4,
+					"operatingIncome": 110160.9,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0000320193-22-000108); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2022-09-24: revenue USD 394,328m, operating income USD 119,437m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2023Q3",
+					"revenue": 358994.5,
+					"operatingIncome": 107057.2,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0000320193-23-000106); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2023-09-30: revenue USD 383,285m, operating income USD 114,301m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2024Q3",
+					"revenue": 360736.7,
+					"operatingIncome": 113668.9,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0000320193-24-000123); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2024-09-28: revenue USD 391,035m, operating income USD 123,216m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2025Q3",
+					"revenue": 376414.5,
+					"operatingIncome": 120342.7,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0000320193-25-000079); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2025-09-27: revenue USD 416,161m, operating income USD 133,050m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
 				}
 			]
@@ -1116,6 +1286,54 @@
 					"quality": "reported",
 					"source": "ASML Form 20-F FY2021 XBRL facts via SEC companyconcept API: RevenueFromContractWithCustomerExcludingAssessedTax, OperatingIncomeLoss (US GAAP) (FY ending 2019-12-31: revenue EUR 11,820m, operating income EUR 2,790.8m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 13978.5,
+					"operatingIncome": 4051.5,
+					"quality": "reported",
+					"source": "ASML Form 20-F FY2022 XBRL facts via SEC companyconcept API: RevenueFromContractWithCustomerExcludingAssessedTax, OperatingIncomeLoss (US GAAP) (FY ending 2020-12-31: revenue EUR 13,978.5m, operating income EUR 4,051.5m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 18611,
+					"operatingIncome": 6750.1,
+					"quality": "reported",
+					"source": "ASML Form 20-F FY2023 XBRL facts via SEC companyconcept API: RevenueFromContractWithCustomerExcludingAssessedTax, OperatingIncomeLoss (US GAAP) (FY ending 2021-12-31: revenue EUR 18,611m, operating income EUR 6,750.1m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 21173.4,
+					"operatingIncome": 6500.7,
+					"quality": "reported",
+					"source": "ASML Form 20-F FY2024 XBRL facts via SEC companyconcept API: RevenueFromContractWithCustomerExcludingAssessedTax, OperatingIncomeLoss (US GAAP) (FY ending 2022-12-31: revenue EUR 21,173.4m, operating income EUR 6,500.7m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 27558.5,
+					"operatingIncome": 9042.3,
+					"quality": "reported",
+					"source": "ASML Form 20-F FY2025 XBRL facts via SEC companyconcept API: RevenueFromContractWithCustomerExcludingAssessedTax, OperatingIncomeLoss (US GAAP) (FY ending 2023-12-31: revenue EUR 27,558.5m, operating income EUR 9,042.3m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 28262.9,
+					"operatingIncome": 9022.6,
+					"quality": "reported",
+					"source": "ASML Form 20-F FY2025 XBRL facts via SEC companyconcept API: RevenueFromContractWithCustomerExcludingAssessedTax, OperatingIncomeLoss (US GAAP) (FY ending 2024-12-31: revenue EUR 28,262.9m, operating income EUR 9,022.6m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 32667.3,
+					"operatingIncome": 11301.4,
+					"quality": "reported",
+					"source": "ASML Form 20-F FY2025 XBRL facts via SEC companyconcept API: RevenueFromContractWithCustomerExcludingAssessedTax, OperatingIncomeLoss (US GAAP) (FY ending 2025-12-31: revenue EUR 32,667.3m, operating income EUR 11,301.4m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
 				}
 			]
 		},
@@ -1285,6 +1503,54 @@
 					"operatingIncome": 2611.6,
 					"quality": "reported",
 					"source": "AstraZeneca Form 20-F XBRL (SEC companyconcept ifrs-full:Revenue and ifrs-full:ProfitLossFromOperatingActivities), accn 0001104659-20-028557 (FY ending 2019-12-31: revenue USD 24,384m, operating income USD 2,924m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000901832/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 23318.2,
+					"operatingIncome": 4522.2,
+					"quality": "reported",
+					"source": "AstraZeneca Form 20-F XBRL (SEC companyconcept ifrs-full:Revenue and ifrs-full:ProfitLossFromOperatingActivities), accn 0001104659-21-022456 (FY ending 2020-12-31: revenue USD 26,617m, operating income USD 5,162m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000901832/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 31622.1,
+					"operatingIncome": 892.5,
+					"quality": "reported",
+					"source": "AstraZeneca Form 20-F XBRL (SEC companyconcept ifrs-full:Revenue and ifrs-full:ProfitLossFromOperatingActivities), accn 0001104659-22-025720 (FY ending 2021-12-31: revenue USD 37,417m, operating income USD 1,056m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000901832/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 42100.6,
+					"operatingIncome": 3566.4,
+					"quality": "reported",
+					"source": "AstraZeneca Form 20-F XBRL (SEC companyconcept ifrs-full:Revenue and ifrs-full:ProfitLossFromOperatingActivities), accn 0001104659-23-023818 (FY ending 2022-12-31: revenue USD 44,351m, operating income USD 3,757m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000901832/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 42366.3,
+					"operatingIncome": 7576.9,
+					"quality": "reported",
+					"source": "AstraZeneca Form 20-F XBRL (SEC companyconcept ifrs-full:Revenue and ifrs-full:ProfitLossFromOperatingActivities), accn 0001104659-24-025553 (FY ending 2023-12-31: revenue USD 45,811m, operating income USD 8,193m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000901832/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 49963.5,
+					"operatingIncome": 9242.8,
+					"quality": "reported",
+					"source": "AstraZeneca Form 20-F XBRL (SEC companyconcept ifrs-full:Revenue and ifrs-full:ProfitLossFromOperatingActivities), accn 0001104659-25-014750 (FY ending 2024-12-31: revenue USD 54,073m, operating income USD 10,003m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000901832/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 52008.5,
+					"operatingIncome": 12168.3,
+					"quality": "reported",
+					"source": "AstraZeneca Form 20-F XBRL (SEC companyconcept ifrs-full:Revenue and ifrs-full:ProfitLossFromOperatingActivities), accn 0001104659-26-019130 (FY ending 2025-12-31: revenue USD 58,739m, operating income USD 13,743m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000901832/ifrs-full/Revenue.json"
 				}
 			]
@@ -1456,6 +1722,54 @@
 					"quality": "reported",
 					"source": "BMW Group Report 2023, Ten-year Comparison (FY ending 2019-12-31: revenue EUR 104,210m, operating income EUR 7,411m)",
 					"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 98990,
+					"operatingIncome": 4830,
+					"quality": "reported",
+					"source": "BMW Group Report 2023, Ten-year Comparison (FY ending 2020-12-31: revenue EUR 98,990m, operating income EUR 4,830m)",
+					"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 111239,
+					"operatingIncome": 13400,
+					"quality": "reported",
+					"source": "BMW Group Report 2023, Ten-year Comparison (FY ending 2021-12-31: revenue EUR 111,239m, operating income EUR 13,400m)",
+					"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 142610,
+					"operatingIncome": 13999,
+					"quality": "reported",
+					"source": "BMW Group Report 2023, Ten-year Comparison (FY ending 2022-12-31: revenue EUR 142,610m, operating income EUR 13,999m)",
+					"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 155498,
+					"operatingIncome": 18482,
+					"quality": "reported",
+					"source": "BMW Group Report 2023, Ten-year Comparison (FY ending 2023-12-31: revenue EUR 155,498m, operating income EUR 18,482m)",
+					"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 142380,
+					"operatingIncome": 11509,
+					"quality": "reported",
+					"source": "BMW Group FY2025 results press release (12 Mar 2026), key figures table (FY ending 2024-12-31: revenue EUR 142,380m, operating income EUR 11,509m)",
+					"sourceUrl": "https://www.press.bmwgroup.com/global/article/detail/T0456175EN/stable-group-earnings-thanks-to-consistent-strategy-bmw-group-on-track"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 133453,
+					"operatingIncome": 10186,
+					"quality": "reported",
+					"source": "BMW Group FY2025 results press release (12 Mar 2026), key figures table (FY ending 2025-12-31: revenue EUR 133,453m, operating income EUR 10,186m)",
+					"sourceUrl": "https://www.press.bmwgroup.com/global/article/detail/T0456175EN/stable-group-earnings-thanks-to-consistent-strategy-bmw-group-on-track"
 				}
 			]
 		},
@@ -1625,6 +1939,54 @@
 					"operatingIncome": -1764,
 					"quality": "reported",
 					"source": "Boeing Form 10-K FY2019, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API) (FY ending 2019-12-31: revenue USD 76,559m, operating income USD -1,975m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 50950.1,
+					"operatingIncome": -11184.7,
+					"quality": "reported",
+					"source": "Boeing Form 10-K FY2020, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API) (FY ending 2020-12-31: revenue USD 58,158m, operating income USD -12,767m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 52639.5,
+					"operatingIncome": -2452.6,
+					"quality": "reported",
+					"source": "Boeing Form 10-K FY2021, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API) (FY ending 2021-12-31: revenue USD 62,286m, operating income USD -2,902m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 63228.3,
+					"operatingIncome": -3367,
+					"quality": "reported",
+					"source": "Boeing Form 10-K FY2022, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API) (FY ending 2022-12-31: revenue USD 66,608m, operating income USD -3,547m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 71944.4,
+					"operatingIncome": -714.9,
+					"quality": "reported",
+					"source": "Boeing Form 10-K FY2023, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API) (FY ending 2023-12-31: revenue USD 77,794m, operating income USD -773m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 61461.8,
+					"operatingIncome": -9893.3,
+					"quality": "reported",
+					"source": "Boeing Form 10-K FY2024, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API) (FY ending 2024-12-31: revenue USD 66,517m, operating income USD -10,707m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 79212,
+					"operatingIncome": 3790.5,
+					"quality": "reported",
+					"source": "Boeing Form 10-K FY2025, XBRL Revenues / OperatingIncomeLoss (SEC companyconcept API) (FY ending 2025-12-31: revenue USD 89,463m, operating income USD 4,281m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000012927/us-gaap/OperatingIncomeLoss.json"
 				}
 			]
@@ -1796,6 +2158,54 @@
 					"quality": "reported",
 					"source": "BP Form 20-F (acc. 0001628280-21-005241 / 0000313807-22-000012) via SEC XBRL company concept (FY ending 2019-12-31: revenue USD 282,616m, operating income USD 8,154m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 160757.6,
+					"operatingIncome": -21803.5,
+					"quality": "reported",
+					"source": "BP Form 20-F (acc. 0001628280-21-005241 / 0000313807-23-000009) via SEC XBRL company concept (FY ending 2020-12-31: revenue USD 183,500m, operating income USD -24,888m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 138765.5,
+					"operatingIncome": 12868.7,
+					"quality": "reported",
+					"source": "BP Form 20-F FY2023 (acc. 0000313807-24-000008) via SEC XBRL company concept (FY ending 2021-12-31: revenue USD 164,195m, operating income USD 15,227m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 236262.2,
+					"operatingIncome": 14623.3,
+					"quality": "reported",
+					"source": "BP Form 20-F FY2024 (acc. 0000313807-25-000007) via SEC XBRL company concept (FY ending 2022-12-31: revenue USD 248,891m, operating income USD 15,405m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 197013.3,
+					"operatingIncome": 21963.2,
+					"quality": "reported",
+					"source": "BP Form 20-F FY2025 (acc. 0000313807-26-000006) via SEC XBRL company concept (FY ending 2023-12-31: revenue USD 213,032m, operating income USD 23,749m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 179837.4,
+					"operatingIncome": 6266.6,
+					"quality": "reported",
+					"source": "BP Form 20-F FY2025 (acc. 0000313807-26-000006) via SEC XBRL company concept (FY ending 2024-12-31: revenue USD 194,629m, operating income USD 6,782m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 170486,
+					"operatingIncome": 6858.4,
+					"quality": "reported",
+					"source": "BP Form 20-F FY2025 (acc. 0000313807-26-000006) via SEC XBRL company concept (FY ending 2025-12-31: revenue USD 192,549m, operating income USD 7,746m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
 				}
 			]
 		},
@@ -1965,6 +2375,54 @@
 					"operatingIncome": 4944.5,
 					"quality": "reported",
 					"source": "Chevron 10-K FY2021 (acc. 0000093410-22-000019) via SEC XBRL company concept (FY ending 2019-12-31: revenue USD 146,516m, operating income USD 5,536m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 82956.2,
+					"operatingIncome": -6529.3,
+					"quality": "reported",
+					"source": "Chevron 10-K FY2022 (acc. 0000093410-23-000009) via SEC XBRL company concept (FY ending 2020-12-31: revenue USD 94,692m, operating income USD -7,453m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 137303.5,
+					"operatingIncome": 18287.7,
+					"quality": "reported",
+					"source": "Chevron 10-K FY2023 (acc. 0000093410-24-000013) via SEC XBRL company concept (FY ending 2021-12-31: revenue USD 162,465m, operating income USD 21,639m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 233757.1,
+					"operatingIncome": 47153.5,
+					"quality": "reported",
+					"source": "Chevron 10-K FY2024 (acc. 0000093410-25-000009) via SEC XBRL company concept (FY ending 2022-12-31: revenue USD 246,252m, operating income USD 49,674m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 185838.9,
+					"operatingIncome": 27359.5,
+					"quality": "reported",
+					"source": "Chevron 10-K FY2025 (acc. 0000093410-26-000078) via SEC XBRL company concept (FY ending 2023-12-31: revenue USD 200,949m, operating income USD 29,584m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 187380,
+					"operatingIncome": 25415.6,
+					"quality": "reported",
+					"source": "Chevron 10-K FY2025 (acc. 0000093410-26-000078) via SEC XBRL company concept (FY ending 2024-12-31: revenue USD 202,792m, operating income USD 27,506m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 167371.1,
+					"operatingIncome": 17480.8,
+					"quality": "reported",
+					"source": "Chevron 10-K FY2025 (acc. 0000093410-26-000078) via SEC XBRL company concept (FY ending 2025-12-31: revenue USD 189,031m, operating income USD 19,743m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
 				}
 			]
@@ -2136,6 +2594,54 @@
 					"quality": "reported",
 					"source": "Coca-Cola Form 10-K FY2019, Consolidated Statements of Income (FY ending 2019-12-31: revenue USD 37,266m, operating income USD 10,086m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134420000006/R2.htm"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 28922.4,
+					"operatingIncome": 7881.9,
+					"quality": "reported",
+					"source": "Coca-Cola Form 10-K FY2022, Consolidated Statements of Income (FY ending 2020-12-31: revenue USD 33,014m, operating income USD 8,997m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134423000011/R3.htm"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 32668.4,
+					"operatingIncome": 8711.6,
+					"quality": "reported",
+					"source": "Coca-Cola Form 10-K FY2022, Consolidated Statements of Income (FY ending 2021-12-31: revenue USD 38,655m, operating income USD 10,308m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134423000011/R3.htm"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 40822,
+					"operatingIncome": 10355.5,
+					"quality": "reported",
+					"source": "Coca-Cola Form 10-K FY2022, Consolidated Statements of Income (FY ending 2022-12-31: revenue USD 43,004m, operating income USD 10,909m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134423000011/R3.htm"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 42313.6,
+					"operatingIncome": 10460.5,
+					"quality": "reported",
+					"source": "Coca-Cola Form 10-K FY2025, Consolidated Statements of Income (FY ending 2023-12-31: revenue USD 45,754m, operating income USD 11,311m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000162828026010047/R3.htm"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 43484.4,
+					"operatingIncome": 9232.6,
+					"quality": "reported",
+					"source": "Coca-Cola Form 10-K FY2025, Consolidated Statements of Income (FY ending 2024-12-31: revenue USD 47,061m, operating income USD 9,992m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000162828026010047/R3.htm"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 42447.7,
+					"operatingIncome": 12185.1,
+					"quality": "reported",
+					"source": "Coca-Cola Form 10-K FY2025, Consolidated Statements of Income (FY ending 2025-12-31: revenue USD 47,941m, operating income USD 13,762m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000162828026010047/R3.htm"
 				}
 			]
 		},
@@ -2306,6 +2812,62 @@
 					"quality": "reported",
 					"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2019-09-01: revenue USD 152,703m, operating income USD 4,737m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2020Q3",
+					"revenue": 148890.8,
+					"operatingIncome": 4852.6,
+					"quality": "reported",
+					"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2020-08-30: revenue USD 166,761m, operating income USD 5,435m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2021Q3",
+					"revenue": 163875.4,
+					"operatingIncome": 5610.6,
+					"quality": "reported",
+					"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2021-08-29: revenue USD 195,929m, operating income USD 6,708m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2022Q3",
+					"revenue": 209327.6,
+					"operatingIncome": 7187.8,
+					"quality": "reported",
+					"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2022-08-28: revenue USD 226,954m, operating income USD 7,793m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2023Q3",
+					"revenue": 226935,
+					"operatingIncome": 7599.8,
+					"quality": "reported",
+					"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2023-09-03: revenue USD 242,290m, operating income USD 8,114m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2024Q3",
+					"revenue": 234737.4,
+					"operatingIncome": 8565.6,
+					"quality": "reported",
+					"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2024-09-01: revenue USD 254,453m, operating income USD 9,285m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2025Q3",
+					"revenue": 248948,
+					"operatingIncome": 9391.3,
+					"quality": "reported",
+					"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2025-08-31: revenue USD 275,235m, operating income USD 10,383m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2026Q3",
+					"revenue": 260940.9,
+					"operatingIncome": 10057.9,
+					"quality": "reported",
+					"source": "Costco Form 10-K FY2026 (filed 2026-10-07), Consolidated Statements of Income (FY ending 2026-08-30: revenue USD 303,154m, operating income USD 11,685m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/909832/000090983226000093/cost-20260830.htm"
 				}
 			]
 		},
@@ -2475,6 +3037,54 @@
 					"operatingIncome": 4703.3,
 					"quality": "reported",
 					"source": "Eli Lilly Form 10-K FY2019 (accn 0000059478-20-000057), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json) (FY ending 2019-12-31: revenue USD 22,319.5m, operating income USD 5,265.9m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 21498.4,
+					"operatingIncome": 6333.9,
+					"quality": "reported",
+					"source": "Eli Lilly Form 10-K FY2020 (accn 0000059478-21-000083), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json) (FY ending 2020-12-31: revenue USD 24,539.8m, operating income USD 7,229.9m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 23932.6,
+					"operatingIncome": 5202.2,
+					"quality": "reported",
+					"source": "Eli Lilly Form 10-K FY2021 (accn 0000059478-22-000068), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json) (FY ending 2021-12-31: revenue USD 28,318.4m, operating income USD 6,155.5m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 27093.2,
+					"operatingIncome": 6461,
+					"quality": "reported",
+					"source": "Eli Lilly Form 10-K FY2022 (accn 0000059478-23-000082), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json) (FY ending 2022-12-31: revenue USD 28,541.4m, operating income USD 6,806.4m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 31558.2,
+					"operatingIncome": 6061.7,
+					"quality": "reported",
+					"source": "Eli Lilly Form 10-K FY2023 (accn 0000059478-24-000065), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json) (FY ending 2023-12-31: revenue USD 34,124.1m, operating income USD 6,554.6m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 41619.5,
+					"operatingIncome": 11716.7,
+					"quality": "reported",
+					"source": "Eli Lilly Form 10-K FY2024 (accn 0000059478-25-000067), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json) (FY ending 2024-12-31: revenue USD 45,042.7m, operating income USD 12,680.4m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 57710.5,
+					"operatingIncome": 22782.6,
+					"quality": "reported",
+					"source": "Eli Lilly Form 10-K FY2025 (accn 0000059478-26-000013), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json) (FY ending 2025-12-31: revenue USD 65,179m, operating income USD 25,731m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
 				}
 			]
@@ -2646,6 +3256,54 @@
 					"quality": "reported",
 					"source": "Eni Form 20-F FY2021 (acc. 0001104659-22-043979) via SEC XBRL company concept (FY ending 2019-12-31: revenue EUR 69,881m, operating income EUR 6,432m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001002242/ifrs-full/RevenueFromContractsWithCustomers.json"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 43987,
+					"operatingIncome": -3275,
+					"quality": "reported",
+					"source": "Eni Form 20-F FY2022 (acc. 0001554855-23-000224) via SEC XBRL company concept (FY ending 2020-12-31: revenue EUR 43,987m, operating income EUR -3,275m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001002242/ifrs-full/RevenueFromContractsWithCustomers.json"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 76575,
+					"operatingIncome": 12341,
+					"quality": "reported",
+					"source": "Eni Form 20-F FY2023 (acc. 0001554855-24-000249) via SEC XBRL company concept (FY ending 2021-12-31: revenue EUR 76,575m, operating income EUR 12,341m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001002242/ifrs-full/RevenueFromContractsWithCustomers.json"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 132512,
+					"operatingIncome": 17510,
+					"quality": "reported",
+					"source": "Eni Form 20-F FY2024 (acc. 0001554855-25-000286) via SEC XBRL company concept (FY ending 2022-12-31: revenue EUR 132,512m, operating income EUR 17,510m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001002242/ifrs-full/RevenueFromContractsWithCustomers.json"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 93717,
+					"operatingIncome": 8257,
+					"quality": "reported",
+					"source": "Eni Form 20-F FY2025 (acc. 0001554855-26-000390) via SEC XBRL company concept (FY ending 2023-12-31: revenue EUR 93,717m, operating income EUR 8,257m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001002242/ifrs-full/RevenueFromContractsWithCustomers.json"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 88797,
+					"operatingIncome": 5238,
+					"quality": "reported",
+					"source": "Eni Form 20-F FY2025 (acc. 0001554855-26-000390) via SEC XBRL company concept (FY ending 2024-12-31: revenue EUR 88,797m, operating income EUR 5,238m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001002242/ifrs-full/RevenueFromContractsWithCustomers.json"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 82151,
+					"operatingIncome": 5010,
+					"quality": "reported",
+					"source": "Eni Form 20-F FY2025 (acc. 0001554855-26-000390) via SEC XBRL company concept (FY ending 2025-12-31: revenue EUR 82,151m, operating income EUR 5,010m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001002242/ifrs-full/RevenueFromContractsWithCustomers.json"
 				}
 			]
 		},
@@ -2816,6 +3474,54 @@
 					"quality": "reported",
 					"source": "ExxonMobil 10-K FY2021 (acc. 0000034088-22-000011) via SEC XBRL company concept (FY ending 2019-12-31: revenue USD 264,938m, operating income USD 20,056m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 159007.2,
+					"operatingIncome": -25303.3,
+					"quality": "reported",
+					"source": "ExxonMobil 10-K FY2022 (acc. 0000034088-23-000020) via SEC XBRL company concept (FY ending 2020-12-31: revenue USD 181,502m, operating income USD -28,883m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 241401.9,
+					"operatingIncome": 26396.7,
+					"quality": "reported",
+					"source": "ExxonMobil 10-K FY2023 (acc. 0000034088-24-000018) via SEC XBRL company concept (FY ending 2021-12-31: revenue USD 285,640m, operating income USD 31,234m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 392689.8,
+					"operatingIncome": 73807.8,
+					"quality": "reported",
+					"source": "ExxonMobil 10-K FY2024 (acc. 0000034088-25-000010) via SEC XBRL company concept (FY ending 2022-12-31: revenue USD 413,680m, operating income USD 77,753m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 318671.6,
+					"operatingIncome": 48814.1,
+					"quality": "reported",
+					"source": "ExxonMobil 10-K FY2025 (acc. 0000034088-26-000045) via SEC XBRL company concept (FY ending 2023-12-31: revenue USD 344,582m, operating income USD 52,783m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 323016.9,
+					"operatingIncome": 45158.7,
+					"quality": "reported",
+					"source": "ExxonMobil 10-K FY2025 (acc. 0000034088-26-000045) via SEC XBRL company concept (FY ending 2024-12-31: revenue USD 349,585m, operating income USD 48,873m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 294168.9,
+					"operatingIncome": 36539.4,
+					"quality": "reported",
+					"source": "ExxonMobil 10-K FY2025 (acc. 0000034088-26-000045) via SEC XBRL company concept (FY ending 2025-12-31: revenue USD 332,238m, operating income USD 41,268m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
 				}
 			]
 		},
@@ -2898,6 +3604,54 @@
 					"quality": "reported",
 					"source": "Ferrari Form 20-F FY2019, Consolidated Income Statement (FY ending 2019-12-31: revenue EUR 3,766.6m, operating income EUR 917.4m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841620000022/R2.htm"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 3459.8,
+					"operatingIncome": 716.1,
+					"quality": "reported",
+					"source": "Ferrari Form 20-F FY2022, Consolidated Income Statement (FY ending 2020-12-31: revenue EUR 3,459.8m, operating income EUR 716.1m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841623000043/R3.htm"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 4270.9,
+					"operatingIncome": 1075.5,
+					"quality": "reported",
+					"source": "Ferrari Form 20-F FY2022, Consolidated Income Statement (FY ending 2021-12-31: revenue EUR 4,270.9m, operating income EUR 1,075.5m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841623000043/R3.htm"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 5095.3,
+					"operatingIncome": 1227.4,
+					"quality": "reported",
+					"source": "Ferrari Form 20-F FY2022, Consolidated Income Statement (FY ending 2022-12-31: revenue EUR 5,095.3m, operating income EUR 1,227.4m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841623000043/R3.htm"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 5970.1,
+					"operatingIncome": 1617.4,
+					"quality": "reported",
+					"source": "Ferrari Form 20-F FY2025, Consolidated Income Statement (FY ending 2023-12-31: revenue EUR 5,970.1m, operating income EUR 1,617.4m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841626000024/R3.htm"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 6676.7,
+					"operatingIncome": 1887.8,
+					"quality": "reported",
+					"source": "Ferrari Form 20-F FY2025, Consolidated Income Statement (FY ending 2024-12-31: revenue EUR 6,676.7m, operating income EUR 1,887.8m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841626000024/R3.htm"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 7145.8,
+					"operatingIncome": 2109.7,
+					"quality": "reported",
+					"source": "Ferrari Form 20-F FY2025, Consolidated Income Statement (FY ending 2025-12-31: revenue EUR 7,145.8m, operating income EUR 2,109.7m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841626000024/R3.htm"
 				}
 			]
 		},
@@ -3068,6 +3822,54 @@
 					"quality": "reported",
 					"source": "Ford Form 10-K FY2019, Consolidated Income Statement (FY ending 2019-12-31: revenue USD 155,900m, operating income USD -640m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799620000010/R3.htm"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 111386.2,
+					"operatingIncome": -977.7,
+					"quality": "reported",
+					"source": "Ford Form 10-K FY2022, Consolidated Income Statement (FY ending 2020-12-31: revenue USD 127,144m, operating income USD -1,116m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799623000012/R4.htm"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 115225.4,
+					"operatingIncome": 15026.3,
+					"quality": "reported",
+					"source": "Ford Form 10-K FY2022, Consolidated Income Statement (FY ending 2021-12-31: revenue USD 136,341m, operating income USD 17,780m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799623000012/R4.htm"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 150037.1,
+					"operatingIncome": -2863,
+					"quality": "reported",
+					"source": "Ford Form 10-K FY2022, Consolidated Income Statement (FY ending 2022-12-31: revenue USD 158,057m, operating income USD -3,016m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799623000012/R4.htm"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 162942.5,
+					"operatingIncome": 3668.7,
+					"quality": "reported",
+					"source": "Ford Form 10-K FY2025, Consolidated Income Statement (FY ending 2023-12-31: revenue USD 176,191m, operating income USD 3,967m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799626000015/R3.htm"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 170932.8,
+					"operatingIncome": 6683.3,
+					"quality": "reported",
+					"source": "Ford Form 10-K FY2025, Consolidated Income Statement (FY ending 2024-12-31: revenue USD 184,992m, operating income USD 7,233m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799626000015/R3.htm"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 165809.2,
+					"operatingIncome": -10474.5,
+					"quality": "reported",
+					"source": "Ford Form 10-K FY2025, Consolidated Income Statement (FY ending 2025-12-31: revenue USD 187,267m, operating income USD -11,830m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/37996/000003799626000015/R3.htm"
 				}
 			]
 		},
@@ -3230,6 +4032,54 @@
 					"quality": "reported",
 					"source": "GM Form 10-K FY2019, Consolidated Income Statements (FY ending 2019-12-31: revenue USD 137,237m, operating income USD 7,436m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785820000028/R2.htm"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 107304.6,
+					"operatingIncome": 7091.7,
+					"quality": "reported",
+					"source": "GM Form 10-K FY2022, Consolidated Income Statements (FY ending 2020-12-31: revenue USD 122,485m, operating income USD 8,095m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785823000029/R3.htm"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 107334.4,
+					"operatingIncome": 10746.6,
+					"quality": "reported",
+					"source": "GM Form 10-K FY2022, Consolidated Income Statements (FY ending 2021-12-31: revenue USD 127,004m, operating income USD 12,716m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785823000029/R3.htm"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 148782.2,
+					"operatingIncome": 11008.6,
+					"quality": "reported",
+					"source": "GM Form 10-K FY2022, Consolidated Income Statements (FY ending 2022-12-31: revenue USD 156,735m, operating income USD 11,597m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785823000029/R3.htm"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 158920.6,
+					"operatingIncome": 9620.8,
+					"quality": "reported",
+					"source": "GM Form 10-K FY2025, Consolidated Income Statements (FY ending 2023-12-31: revenue USD 171,842m, operating income USD 10,403m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785826000013/R3.htm"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 173196.6,
+					"operatingIncome": 7871.6,
+					"quality": "reported",
+					"source": "GM Form 10-K FY2025, Consolidated Income Statements (FY ending 2024-12-31: revenue USD 187,442m, operating income USD 8,519m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785826000013/R3.htm"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 163818.8,
+					"operatingIncome": 2759.8,
+					"quality": "reported",
+					"source": "GM Form 10-K FY2025, Consolidated Income Statements (FY ending 2025-12-31: revenue USD 185,019m, operating income USD 3,117m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785826000013/R3.htm"
 				}
 			]
 		},
@@ -3391,6 +4241,54 @@
 					"operatingIncome": 7932.4,
 					"quality": "reported",
 					"source": "GSK Form 20-F FY2019 (0001193125-20-065064), XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json) (FY ending 2019-12-31: revenue GBP 33,754m, operating income GBP 6,961m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 38334.5,
+					"operatingIncome": 8749.7,
+					"quality": "reported",
+					"source": "GSK Form 20-F FY2020 (0001193125-21-079417), XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json) (FY ending 2020-12-31: revenue GBP 34,099m, operating income GBP 7,783m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 39676.9,
+					"operatingIncome": 7212.2,
+					"quality": "reported",
+					"source": "GSK Form 20-F FY2021 (0001193125-22-068957), pre-Haleon-demerger basis incl. Consumer Healthcare, XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json) (FY ending 2021-12-31: revenue GBP 34,114m, operating income GBP 6,201m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 34389,
+					"operatingIncome": 7544.1,
+					"quality": "reported",
+					"source": "GSK Form 20-F FY2022 (0001193125-23-067105), continuing operations, XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json) (FY ending 2022-12-31: revenue GBP 29,324m, operating income GBP 6,433m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 34869.4,
+					"operatingIncome": 7755,
+					"quality": "reported",
+					"source": "GSK Form 20-F FY2023 (0001131399-24-000007), XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json) (FY ending 2023-12-31: revenue GBP 30,328m, operating income GBP 6,745m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 37057.1,
+					"operatingIncome": 4749.1,
+					"quality": "reported",
+					"source": "GSK Form 20-F FY2024 (0001131399-25-000007), XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json) (FY ending 2024-12-31: revenue GBP 31,376m, operating income GBP 4,021m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 38136.9,
+					"operatingIncome": 9260.2,
+					"quality": "reported",
+					"source": "GSK Form 20-F FY2025 (0001131399-26-000004), XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json) (FY ending 2025-12-31: revenue GBP 32,667m, operating income GBP 7,932m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
 				}
 			]
@@ -3562,6 +4460,62 @@
 					"quality": "reported",
 					"source": "Inditex Consolidated Annual Accounts 2019, income statement (comparative, pre-IFRS 16) (FY ending 2019-01-31: revenue EUR 26,145m, operating income EUR 4,357m)",
 					"sourceUrl": "https://static.inditex.com/annual_report_2021/en/documents/inditex-consolidated-annual-acounts-2019.pdf"
+				},
+				{
+					"quarter": "2020Q1",
+					"revenue": 28286,
+					"operatingIncome": 4772,
+					"quality": "reported",
+					"source": "Inditex Consolidated Annual Accounts 2019, income statement (IFRS 16) (FY ending 2020-01-31: revenue EUR 28,286m, operating income EUR 4,772m)",
+					"sourceUrl": "https://static.inditex.com/annual_report_2021/en/documents/inditex-consolidated-annual-acounts-2019.pdf"
+				},
+				{
+					"quarter": "2021Q1",
+					"revenue": 20402,
+					"operatingIncome": 1507,
+					"quality": "reported",
+					"source": "Inditex Consolidated Annual Accounts 2021, income statement (comparative) (FY ending 2021-01-31: revenue EUR 20,402m, operating income EUR 1,507m)",
+					"sourceUrl": "https://static.inditex.com/annual_report_2021/en/documents/consolidated-annual-accounts-2021.pdf"
+				},
+				{
+					"quarter": "2022Q1",
+					"revenue": 27716,
+					"operatingIncome": 4282,
+					"quality": "reported",
+					"source": "Inditex Consolidated Annual Accounts 2021, income statement (FY ending 2022-01-31: revenue EUR 27,716m, operating income EUR 4,282m)",
+					"sourceUrl": "https://static.inditex.com/annual_report_2021/en/documents/consolidated-annual-accounts-2021.pdf"
+				},
+				{
+					"quarter": "2023Q1",
+					"revenue": 32569,
+					"operatingIncome": 5520,
+					"quality": "reported",
+					"source": "Inditex FY2023 Results, consolidated income statement (comparative) (FY ending 2023-01-31: revenue EUR 32,569m, operating income EUR 5,520m)",
+					"sourceUrl": "https://www.inditex.com/itxcomweb/api/media/3b2509e1-82e1-4da7-af7c-f1312cee923c/FY23%20Results.pdf?t=1710333346388"
+				},
+				{
+					"quarter": "2024Q1",
+					"revenue": 35947,
+					"operatingIncome": 6809,
+					"quality": "reported",
+					"source": "Inditex FY2023 Results, consolidated income statement (FY ending 2024-01-31: revenue EUR 35,947m, operating income EUR 6,809m)",
+					"sourceUrl": "https://www.inditex.com/itxcomweb/api/media/3b2509e1-82e1-4da7-af7c-f1312cee923c/FY23%20Results.pdf?t=1710333346388"
+				},
+				{
+					"quarter": "2025Q1",
+					"revenue": 38632,
+					"operatingIncome": 7554,
+					"quality": "reported",
+					"source": "Inditex FY2025 Results, consolidated income statement (comparative) (FY ending 2025-01-31: revenue EUR 38,632m, operating income EUR 7,554m)",
+					"sourceUrl": "https://www.inditex.com/itxcomweb/api/media/1da2c9d1-dbca-49fb-9563-982a8a27fae6/INDITEXFullYear2025.pdf?t=1773216267196"
+				},
+				{
+					"quarter": "2026Q1",
+					"revenue": 39864,
+					"operatingIncome": 7997,
+					"quality": "reported",
+					"source": "Inditex FY2025 Results, consolidated income statement (FY ending 2026-01-31: revenue EUR 39,864m, operating income EUR 7,997m)",
+					"sourceUrl": "https://www.inditex.com/itxcomweb/api/media/1da2c9d1-dbca-49fb-9563-982a8a27fae6/INDITEXFullYear2025.pdf?t=1773216267196"
 				}
 			]
 		},
@@ -3731,6 +4685,54 @@
 					"operatingIncome": 19680.6,
 					"quality": "reported",
 					"source": "Intel Form 10-K XBRL (accn 0000050863-20-000011), SEC companyconcept API (FY ending 2019-12-28: revenue USD 71,965m, operating income USD 22,035m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 68216.4,
+					"operatingIncome": 20743.4,
+					"quality": "reported",
+					"source": "Intel Form 10-K XBRL (accn 0000050863-21-000010), SEC companyconcept API (FY ending 2020-12-26: revenue USD 77,867m, operating income USD 23,678m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 66785.3,
+					"operatingIncome": 16442.8,
+					"quality": "reported",
+					"source": "Intel Form 10-K XBRL (accn 0000050863-22-000007), SEC companyconcept API (FY ending 2021-12-25: revenue USD 79,024m, operating income USD 19,456m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 59854.6,
+					"operatingIncome": 2215.6,
+					"quality": "reported",
+					"source": "Intel Form 10-K XBRL (accn 0000050863-23-000006), SEC companyconcept API (FY ending 2022-12-31: revenue USD 63,054m, operating income USD 2,334m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 50150.4,
+					"operatingIncome": 86,
+					"quality": "reported",
+					"source": "Intel Form 10-K XBRL (accn 0000050863-24-000010), SEC companyconcept API (FY ending 2023-12-30: revenue USD 54,228m, operating income USD 93m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 49065.4,
+					"operatingIncome": -10790.5,
+					"quality": "reported",
+					"source": "Intel Form 10-K XBRL (accn 0000050863-25-000009), SEC companyconcept API (FY ending 2024-12-28: revenue USD 53,101m, operating income USD -11,678m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 46796.9,
+					"operatingIncome": -1960.3,
+					"quality": "reported",
+					"source": "Intel Form 10-K XBRL (accn 0000050863-26-000011), SEC companyconcept API (FY ending 2025-12-27: revenue USD 52,853m, operating income USD -2,214m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
 				}
 			]
@@ -3902,6 +4904,54 @@
 					"quality": "reported",
 					"source": "J&J Form 10-K FY2019 (accn 0000200406-20-000010), XBRL via SEC companyconcept API; revenue from RevenueFromContractWithCustomerExcludingAssessedTax, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json) (FY ending 2019-12-29: revenue USD 82,059m, operating income USD 17,328m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 72348.8,
+					"operatingIncome": 14452.4,
+					"quality": "reported",
+					"source": "J&J Form 10-K FY2020 (accn 0000200406-21-000008), XBRL via SEC companyconcept API; revenue from RevenueFromContractWithCustomerExcludingAssessedTax, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json) (FY ending 2021-01-03: revenue USD 82,584m, operating income USD 16,497m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 79251.7,
+					"operatingIncome": 19248.6,
+					"quality": "reported",
+					"source": "J&J Form 10-K FY2021 (accn 0000200406-22-000022), XBRL via SEC companyconcept API; revenue from RevenueFromContractWithCustomerExcludingAssessedTax, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json) (FY ending 2022-01-02: revenue USD 93,775m, operating income USD 22,776m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 90125.6,
+					"operatingIncome": 20622.7,
+					"quality": "reported",
+					"source": "J&J Form 10-K FY2022 (accn 0000200406-23-000016), XBRL via SEC companyconcept API; revenue from RevenueFromContractWithCustomerExcludingAssessedTax, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json) (FY ending 2023-01-01: revenue USD 94,943m, operating income USD 21,725m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 78755.6,
+					"operatingIncome": 13929.4,
+					"quality": "reported",
+					"source": "J&J Form 10-K FY2023 (accn 0000200406-24-000013), XBRL via SEC companyconcept API; revenue from RevenueFromContractWithCustomerExcludingAssessedTax, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json) (FY ending 2023-12-31: revenue USD 85,159m, operating income USD 15,062m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 82070.7,
+					"operatingIncome": 15418.8,
+					"quality": "reported",
+					"source": "J&J Form 10-K FY2024 (accn 0000200406-25-000038), XBRL via SEC companyconcept API; revenue from RevenueFromContractWithCustomerExcludingAssessedTax, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json) (FY ending 2024-12-29: revenue USD 88,821m, operating income USD 16,687m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 83400,
+					"operatingIncome": 28847.7,
+					"quality": "reported",
+					"source": "J&J Form 10-K FY2025 (accn 0000200406-26-000016), XBRL via SEC companyconcept API; revenue from RevenueFromContractWithCustomerExcludingAssessedTax, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json) (FY ending 2025-12-28: revenue USD 94,193m, operating income USD 32,581m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
 				}
 			]
 		},
@@ -4072,6 +5122,54 @@
 					"quality": "reported",
 					"source": "LVMH 2020 annual results press release, condensed consolidated income statement (FY ending 2019-12-31: revenue EUR 53,670m, operating income EUR 11,273m)",
 					"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/ZnVWzJm069VX18md_Pressrelease-LVMHAnnualResults2020.pdf"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 44651,
+					"operatingIncome": 7972,
+					"quality": "reported",
+					"source": "LVMH 2020 annual results press release, condensed consolidated income statement (FY ending 2020-12-31: revenue EUR 44,651m, operating income EUR 7,972m)",
+					"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/ZnVWzJm069VX18md_Pressrelease-LVMHAnnualResults2020.pdf"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 64215,
+					"operatingIncome": 17155,
+					"quality": "reported",
+					"source": "LVMH Financial Documents December 31, 2023, consolidated income statement (FY ending 2021-12-31: revenue EUR 64,215m, operating income EUR 17,155m)",
+					"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/ZmMq-pm069VX1j0w_financial-documents-lvmh-december-31-2023.pdf"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 79184,
+					"operatingIncome": 21001,
+					"quality": "reported",
+					"source": "LVMH Financial Documents December 31, 2023, consolidated income statement (FY ending 2022-12-31: revenue EUR 79,184m, operating income EUR 21,001m)",
+					"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/ZmMq-pm069VX1j0w_financial-documents-lvmh-december-31-2023.pdf"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 86153,
+					"operatingIncome": 22560,
+					"quality": "reported",
+					"source": "LVMH Financial Documents December 31, 2023, consolidated income statement (FY ending 2023-12-31: revenue EUR 86,153m, operating income EUR 22,560m)",
+					"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/ZmMq-pm069VX1j0w_financial-documents-lvmh-december-31-2023.pdf"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 84683,
+					"operatingIncome": 18907,
+					"quality": "reported",
+					"source": "LVMH 2025 annual results press release, condensed consolidated income statement (FY ending 2024-12-31: revenue EUR 84,683m, operating income EUR 18,907m)",
+					"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/aXjoJAIvOtkhB_6z_PressRelease-LVMH2025annualresults.pdf"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 80807,
+					"operatingIncome": 17099,
+					"quality": "reported",
+					"source": "LVMH 2025 annual results press release, condensed consolidated income statement (FY ending 2025-12-31: revenue EUR 80,807m, operating income EUR 17,099m)",
+					"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/aXjoJAIvOtkhB_6z_PressRelease-LVMH2025annualresults.pdf"
 				}
 			]
 		},
@@ -4242,6 +5340,54 @@
 					"quality": "reported",
 					"source": "McDonald's Form 10-K FY2019, Consolidated Statement of Income (FY ending 2019-12-31: revenue USD 21,076.5m, operating income USD 9,069.8m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390820000022/R2.htm"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 16827.2,
+					"operatingIncome": 6416.3,
+					"quality": "reported",
+					"source": "McDonald's Form 10-K FY2022, Consolidated Statement of Income (FY ending 2020-12-31: revenue USD 19,207.8m, operating income USD 7,324m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390823000012/R3.htm"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 19626.3,
+					"operatingIncome": 8752.1,
+					"quality": "reported",
+					"source": "McDonald's Form 10-K FY2022, Consolidated Statement of Income (FY ending 2021-12-31: revenue USD 23,222.9m, operating income USD 10,356m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390823000012/R3.htm"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 22006.3,
+					"operatingIncome": 8895.5,
+					"quality": "reported",
+					"source": "McDonald's Form 10-K FY2022, Consolidated Statement of Income (FY ending 2022-12-31: revenue USD 23,182.6m, operating income USD 9,371m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390823000012/R3.htm"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 23577,
+					"operatingIncome": 10771.2,
+					"quality": "reported",
+					"source": "McDonald's Form 10-K FY2025, Consolidated Statement of Income (FY ending 2023-12-31: revenue USD 25,494m, operating income USD 11,647m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390826000035/R3.htm"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 23950.1,
+					"operatingIncome": 10821.9,
+					"quality": "reported",
+					"source": "McDonald's Form 10-K FY2025, Consolidated Statement of Income (FY ending 2024-12-31: revenue USD 25,920m, operating income USD 11,712m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390826000035/R3.htm"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 23804.4,
+					"operatingIncome": 10973,
+					"quality": "reported",
+					"source": "McDonald's Form 10-K FY2025, Consolidated Statement of Income (FY ending 2025-12-31: revenue USD 26,885m, operating income USD 12,393m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390826000035/R3.htm"
 				}
 			]
 		},
@@ -4412,6 +5558,54 @@
 					"quality": "reported",
 					"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT') (FY ending 2019-12-31: revenue EUR 172,745m, operating income EUR 4,313m)",
 					"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 154309,
+					"operatingIncome": 6603,
+					"quality": "reported",
+					"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT') (FY ending 2020-12-31: revenue EUR 154,309m, operating income EUR 6,603m)",
+					"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 133893,
+					"operatingIncome": 16028,
+					"quality": "reported",
+					"source": "Mercedes-Benz Group Annual Report 2021, table B.08 condensed statement of income (continuing operations, excl. Daimler Truck) (FY ending 2021-12-31: revenue EUR 133,893m, operating income EUR 16,028m)",
+					"sourceUrl": "https://bvb.ro/info/Raportari/DAI/DAI-Annual Report 2021.pdf"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 150017,
+					"operatingIncome": 20458,
+					"quality": "reported",
+					"source": "Mercedes-Benz Group Annual Report 2023, consolidated statement of income (prior-year column) (FY ending 2022-12-31: revenue EUR 150,017m, operating income EUR 20,458m)",
+					"sourceUrl": "https://ir-api.eqs.com/media/document/f5b20e00-4f9e-4cf6-b20a-d16ff5db0c4c/assets/DE0007100000-JA-2023-EQ-E-00.pdf?disposition=inline"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 153218,
+					"operatingIncome": 19660,
+					"quality": "reported",
+					"source": "Mercedes-Benz Group Annual Report 2023, consolidated statement of income (FY ending 2023-12-31: revenue EUR 153,218m, operating income EUR 19,660m)",
+					"sourceUrl": "https://ir-api.eqs.com/media/document/f5b20e00-4f9e-4cf6-b20a-d16ff5db0c4c/assets/DE0007100000-JA-2023-EQ-E-00.pdf?disposition=inline"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 145594,
+					"operatingIncome": 13599,
+					"quality": "reported",
+					"source": "Mercedes-Benz Group FY2025 results press release (12 Feb 2026), key figures table (prior-year column) (FY ending 2024-12-31: revenue EUR 145,594m, operating income EUR 13,599m)",
+					"sourceUrl": "https://media.mercedes-benz.com/en/article/7fd70d14-de24-4e96-bac5-282ef9abc16c"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 132214,
+					"operatingIncome": 5820,
+					"quality": "reported",
+					"source": "Mercedes-Benz Group FY2025 results press release (12 Feb 2026), key figures table (FY ending 2025-12-31: revenue EUR 132,214m, operating income EUR 5,820m)",
+					"sourceUrl": "https://media.mercedes-benz.com/en/article/7fd70d14-de24-4e96-bac5-282ef9abc16c"
 				}
 			]
 		},
@@ -4525,6 +5719,54 @@
 					"operatingIncome": 21423.1,
 					"quality": "reported",
 					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001326801-20-000013); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2019-12-31: revenue USD 70,697m, operating income USD 23,986m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001326801/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 75310.8,
+					"operatingIncome": 28621.9,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001326801-21-000014); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2020-12-31: revenue USD 85,965m, operating income USD 32,671m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001326801/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 99664.9,
+					"operatingIncome": 39512.2,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001326801-22-000018); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2021-12-31: revenue USD 117,929m, operating income USD 46,753m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001326801/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 110692.2,
+					"operatingIncome": 27475.4,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001326801-23-000013); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2022-12-31: revenue USD 116,609m, operating income USD 28,944m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001326801/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 124758.2,
+					"operatingIncome": 43235.6,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001326801-24-000012); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2023-12-31: revenue USD 134,902m, operating income USD 46,751m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001326801/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 151999.1,
+					"operatingIncome": 64107.2,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001326801-25-000017); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2024-12-31: revenue USD 164,501m, operating income USD 69,380m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001326801/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 177938.5,
+					"operatingIncome": 73733.9,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001628280-26-003942); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2025-12-31: revenue USD 200,966m, operating income USD 83,276m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001326801/us-gaap/OperatingIncomeLoss.json"
 				}
 			]
@@ -4696,6 +5938,62 @@
 					"quality": "reported",
 					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001564590-19-027952); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2019-06-30: revenue USD 125,843m, operating income USD 42,959m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000789019/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2020Q2",
+					"revenue": 129334,
+					"operatingIncome": 47892.9,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001564590-20-034944); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2020-06-30: revenue USD 143,015m, operating income USD 52,959m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000789019/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2021Q2",
+					"revenue": 140880.5,
+					"operatingIncome": 58599.1,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001564590-21-039151); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2021-06-30: revenue USD 168,088m, operating income USD 69,916m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000789019/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2022Q2",
+					"revenue": 175901.5,
+					"operatingIncome": 73975.9,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001564590-22-026876); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2022-06-30: revenue USD 198,270m, operating income USD 83,383m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000789019/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2023Q2",
+					"revenue": 202345.6,
+					"operatingIncome": 84525.6,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0000950170-23-035122); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2023-06-30: revenue USD 211,915m, operating income USD 88,523m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000789019/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2024Q2",
+					"revenue": 226647.4,
+					"operatingIncome": 101185.1,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0000950170-24-087843); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2024-06-30: revenue USD 245,122m, operating income USD 109,433m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000789019/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2025Q2",
+					"revenue": 258900,
+					"operatingIncome": 118115.3,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0000950170-25-100235); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2025-06-30: revenue USD 281,724m, operating income USD 128,528m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000789019/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2026Q2",
+					"revenue": 284556.4,
+					"operatingIncome": 133117.8,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-26-323660); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2026-06-30: revenue USD 331,839m, operating income USD 155,237m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000789019/us-gaap/OperatingIncomeLoss.json"
 				}
 			]
 		},
@@ -4865,6 +6163,54 @@
 					"operatingIncome": 2326,
 					"quality": "reported",
 					"source": "Netflix Form 10-K XBRL (accn 0001065280-20-000040), SEC companyconcept API (FY ending 2019-12-31: revenue USD 20,156.4m, operating income USD 2,604.3m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 21898.1,
+					"operatingIncome": 4017,
+					"quality": "reported",
+					"source": "Netflix Form 10-K XBRL (accn 0001065280-21-000040), SEC companyconcept API (FY ending 2020-12-31: revenue USD 24,996.1m, operating income USD 4,585.3m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 25098.4,
+					"operatingIncome": 5235.1,
+					"quality": "reported",
+					"source": "Netflix Form 10-K XBRL (accn 0001065280-22-000036), SEC companyconcept API (FY ending 2021-12-31: revenue USD 29,697.8m, operating income USD 6,194.5m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 30011.4,
+					"operatingIncome": 5347,
+					"quality": "reported",
+					"source": "Netflix Form 10-K XBRL (accn 0001065280-23-000035), SEC companyconcept API (FY ending 2022-12-31: revenue USD 31,615.6m, operating income USD 5,632.8m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 31187.5,
+					"operatingIncome": 6431.1,
+					"quality": "reported",
+					"source": "Netflix Form 10-K XBRL (accn 0001065280-24-000030), SEC companyconcept API (FY ending 2023-12-31: revenue USD 33,723.3m, operating income USD 6,954m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 36036.9,
+					"operatingIncome": 9625.9,
+					"quality": "reported",
+					"source": "Netflix Form 10-K XBRL (accn 0001065280-25-000044), SEC companyconcept API (FY ending 2024-12-31: revenue USD 39,001m, operating income USD 10,417.6m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 40005.8,
+					"operatingIncome": 11799.6,
+					"quality": "reported",
+					"source": "Netflix Form 10-K XBRL (accn 0001065280-26-000034), SEC companyconcept API (FY ending 2025-12-31: revenue USD 45,183m, operating income USD 13,326.6m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
 				}
 			]
@@ -5036,6 +6382,62 @@
 					"quality": "reported",
 					"source": "Nike Form 10-K FY2020, Consolidated Statements of Income (FY ending 2019-05-31: revenue USD 39,117m, operating income USD 4,801m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018720000047/R2.htm"
+				},
+				{
+					"quarter": "2020Q2",
+					"revenue": 33825,
+					"operatingIncome": 2610.8,
+					"quality": "reported",
+					"source": "Nike Form 10-K FY2020, Consolidated Statements of Income (FY ending 2020-05-31: revenue USD 37,403m, operating income USD 2,887m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018720000047/R2.htm"
+				},
+				{
+					"quarter": "2021Q2",
+					"revenue": 37328.9,
+					"operatingIncome": 5582.8,
+					"quality": "reported",
+					"source": "Nike Form 10-K FY2023, Consolidated Statements of Income (FY ending 2021-05-31: revenue USD 44,538m, operating income USD 6,661m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018723000039/R3.htm"
+				},
+				{
+					"quarter": "2022Q2",
+					"revenue": 41440.3,
+					"operatingIncome": 5900.6,
+					"quality": "reported",
+					"source": "Nike Form 10-K FY2023, Consolidated Statements of Income (FY ending 2022-05-31: revenue USD 46,710m, operating income USD 6,651m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018723000039/R3.htm"
+				},
+				{
+					"quarter": "2023Q2",
+					"revenue": 48904.2,
+					"operatingIncome": 5921,
+					"quality": "reported",
+					"source": "Nike Form 10-K FY2023, Consolidated Statements of Income (FY ending 2023-05-31: revenue USD 51,217m, operating income USD 6,201m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018723000039/R3.htm"
+				},
+				{
+					"quarter": "2024Q2",
+					"revenue": 47490.9,
+					"operatingIncome": 6195,
+					"quality": "reported",
+					"source": "Nike Form 10-K FY2026, Consolidated Statements of Income (FY ending 2024-05-31: revenue USD 51,362m, operating income USD 6,700m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018726000088/R3.htm"
+				},
+				{
+					"quarter": "2025Q2",
+					"revenue": 42557.3,
+					"operatingIncome": 3570.3,
+					"quality": "reported",
+					"source": "Nike Form 10-K FY2026, Consolidated Statements of Income (FY ending 2025-05-31: revenue USD 46,309m, operating income USD 3,885m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018726000088/R3.htm"
+				},
+				{
+					"quarter": "2026Q2",
+					"revenue": 39786.9,
+					"operatingIncome": 3344.3,
+					"quality": "reported",
+					"source": "Nike Form 10-K FY2026, Consolidated Statements of Income (FY ending 2026-05-31: revenue USD 46,398m, operating income USD 3,900m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000032018726000088/R3.htm"
 				}
 			]
 		},
@@ -5182,6 +6584,54 @@
 					"quality": "reported",
 					"source": "Novartis Form 20-F FY2020, Consolidated income statement (continuing operations, excl. Alcon) (FY ending 2019-12-31: revenue USD 47,445m, operating income USD 9,086m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000137036821000006/R2.htm"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 42628.4,
+					"operatingIncome": 8893.8,
+					"quality": "reported",
+					"source": "Novartis Form 20-F FY2020, Consolidated income statement (continuing operations, excl. Alcon) (FY ending 2020-12-31: revenue USD 48,659m, operating income USD 10,152m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000137036821000006/R2.htm"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 43630.5,
+					"operatingIncome": 9878.7,
+					"quality": "reported",
+					"source": "Novartis Form 20-F FY2022, Consolidated income statement (incl. Sandoz) (FY ending 2021-12-31: revenue USD 51,626m, operating income USD 11,689m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000137036823000006/R2.htm"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 47980.3,
+					"operatingIncome": 8730.3,
+					"quality": "reported",
+					"source": "Novartis Form 20-F FY2022, Consolidated income statement (incl. Sandoz) (FY ending 2022-12-31: revenue USD 50,545m, operating income USD 9,197m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000137036823000006/R2.htm"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 42023.2,
+					"operatingIncome": 9034.4,
+					"quality": "reported",
+					"source": "Novartis Form 20-F FY2025, Consolidated income statement (continuing operations, excl. Sandoz) (FY ending 2023-12-31: revenue USD 45,440m, operating income USD 9,769m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000111444826000004/R2.htm"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 46493,
+					"operatingIncome": 13438.7,
+					"quality": "reported",
+					"source": "Novartis Form 20-F FY2025, Consolidated income statement (continuing operations, excl. Sandoz) (FY ending 2024-12-31: revenue USD 50,317m, operating income USD 14,544m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000111444826000004/R2.htm"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 48283.5,
+					"operatingIncome": 15622.3,
+					"quality": "reported",
+					"source": "Novartis Form 20-F FY2025, Consolidated income statement (continuing operations, excl. Sandoz) (FY ending 2025-12-31: revenue USD 54,532m, operating income USD 17,644m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000111444826000004/R2.htm"
 				}
 			]
 		},
@@ -5352,6 +6802,88 @@
 					"quality": "reported",
 					"source": "NVIDIA Form 10-K XBRL (accn 0001045810-19-000023), SEC companyconcept API (FY ending 2019-01-27: revenue USD 11,798m, operating income USD 3,804m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2020Q1",
+					"revenue": 9824.1,
+					"operatingIncome": 2560.8,
+					"quality": "reported",
+					"source": "NVIDIA Form 10-K XBRL (accn 0001045810-20-000010), SEC companyconcept API (FY ending 2020-01-26: revenue USD 10,918m, operating income USD 2,846m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2021Q1",
+					"revenue": 14288.6,
+					"operatingIncome": 3883.4,
+					"quality": "reported",
+					"source": "NVIDIA Form 10-K XBRL (accn 0001045810-21-000010), SEC companyconcept API (FY ending 2021-01-31: revenue USD 16,675m, operating income USD 4,532m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2022Q1",
+					"revenue": 23152.6,
+					"operatingIncome": 8637.7,
+					"quality": "reported",
+					"source": "NVIDIA Form 10-K XBRL (accn 0001045810-22-000036), SEC companyconcept API (FY ending 2022-01-30: revenue USD 26,914m, operating income USD 10,041m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2023Q1",
+					"revenue": 25904.5,
+					"operatingIncome": 4056.5,
+					"quality": "reported",
+					"source": "NVIDIA Form 10-K XBRL (accn 0001045810-23-000017), SEC companyconcept API (FY ending 2023-01-29: revenue USD 26,974m, operating income USD 4,224m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2024Q1",
+					"revenue": 56175.1,
+					"operatingIncome": 30402.9,
+					"quality": "reported",
+					"source": "NVIDIA Form 10-K XBRL (accn 0001045810-24-000029), SEC companyconcept API (FY ending 2024-01-28: revenue USD 60,922m, operating income USD 32,972m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2025Q1",
+					"revenue": 121518.3,
+					"operatingIncome": 75848.7,
+					"quality": "reported",
+					"source": "NVIDIA Form 10-K XBRL (accn 0001045810-25-000023), SEC companyconcept API (FY ending 2025-01-26: revenue USD 130,497m, operating income USD 81,453m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2026Q1",
+					"revenue": 186331.3,
+					"operatingIncome": 112510,
+					"quality": "reported",
+					"source": "NVIDIA Form 10-K XBRL (accn 0001045810-26-000021), SEC companyconcept API (FY ending 2026-01-25: revenue USD 215,938m, operating income USD 130,387m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+				}
+			]
+		},
+		{
+			"id": "openai",
+			"name": "OpenAI",
+			"type": "ai",
+			"reportingCurrency": "USD",
+			"country": "US",
+			"notes": "Private. Calendar-year FY. 2024-2025: audited financial statements published by Where's Your Ed At and reported as verified by the Financial Times; operatingIncome = 'loss from operations'. Earlier years omitted: only run-rates or losses of unspecified type were reported. Net losses not used.",
+			"points": [
+				{
+					"quarter": "2024Q4",
+					"revenue": 3418.8,
+					"operatingIncome": -8112.7,
+					"quality": "estimated",
+					"source": "OpenAI audited FY2024 financials (comparatives), published by Where's Your Ed At, verified by FT: revenue $3.7B, loss from operations $8.78B (FY ending 2024-12-31: revenue USD 3,700m, operating income USD -8,780m)",
+					"sourceUrl": "https://wheresyoured.at/exclusive-openai-financials"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 11572.4,
+					"operatingIncome": -18522.9,
+					"quality": "estimated",
+					"source": "OpenAI audited FY2025 financials, published by Where's Your Ed At, verified by FT: revenue $13.07B, loss from operations $20.92B (FY ending 2025-12-31: revenue USD 13,070m, operating income USD -20,920m)",
+					"sourceUrl": "https://wheresyoured.at/exclusive-openai-financials"
 				}
 			]
 		},
@@ -5521,6 +7053,62 @@
 					"operatingIncome": 11863,
 					"quality": "reported",
 					"source": "Oracle Form 10-K XBRL (accn 0001564590-19-023119), SEC companyconcept API (FY ending 2019-05-31: revenue USD 39,506m, operating income USD 13,535m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2020Q2",
+					"revenue": 35330.7,
+					"operatingIncome": 12566.7,
+					"quality": "reported",
+					"source": "Oracle Form 10-K XBRL (accn 0001564590-20-030125), SEC companyconcept API (FY ending 2020-05-31: revenue USD 39,068m, operating income USD 13,896m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2021Q2",
+					"revenue": 33926.9,
+					"operatingIncome": 12750.6,
+					"quality": "reported",
+					"source": "Oracle Form 10-K XBRL (accn 0001564590-21-033616), SEC companyconcept API (FY ending 2021-05-31: revenue USD 40,479m, operating income USD 15,213m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2022Q2",
+					"revenue": 37652,
+					"operatingIncome": 9693.3,
+					"quality": "reported",
+					"source": "Oracle Form 10-K XBRL (accn 0001564590-22-023675), SEC companyconcept API (FY ending 2022-05-31: revenue USD 42,440m, operating income USD 10,926m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2023Q2",
+					"revenue": 47698.2,
+					"operatingIncome": 12501.8,
+					"quality": "reported",
+					"source": "Oracle Form 10-K XBRL (accn 0000950170-23-028914), SEC companyconcept API (FY ending 2023-05-31: revenue USD 49,954m, operating income USD 13,093m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2024Q2",
+					"revenue": 48969.4,
+					"operatingIncome": 14195.9,
+					"quality": "reported",
+					"source": "Oracle Form 10-K XBRL (accn 0000950170-24-075605), SEC companyconcept API (FY ending 2024-05-31: revenue USD 52,961m, operating income USD 15,353m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2025Q2",
+					"revenue": 52748.8,
+					"operatingIncome": 16245.8,
+					"quality": "reported",
+					"source": "Oracle Form 10-K XBRL (accn 0000950170-25-087926), SEC companyconcept API (FY ending 2025-05-31: revenue USD 57,399m, operating income USD 17,678m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2026Q2",
+					"revenue": 57759.5,
+					"operatingIncome": 17669.9,
+					"quality": "reported",
+					"source": "Oracle Form 10-K XBRL (accn 0001193125-26-277521), SEC companyconcept API (FY ending 2026-05-31: revenue USD 67,357m, operating income USD 20,606m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
 				}
 			]
@@ -5692,6 +7280,54 @@
 					"quality": "reported",
 					"source": "Pfizer Form 10-K FY2019, Consolidated Statements of Income (XBRL R2) (FY ending 2019-12-31: revenue USD 51,750m, operating income USD 17,682m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800320000014/R2.htm"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 36488.9,
+					"operatingIncome": 6164,
+					"quality": "reported",
+					"source": "Pfizer Form 10-K FY2022, Consolidated Statements of Income (XBRL R3) (FY ending 2020-12-31: revenue USD 41,651m, operating income USD 7,036m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800323000024/R3.htm"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 68698.6,
+					"operatingIncome": 20545.9,
+					"quality": "reported",
+					"source": "Pfizer Form 10-K FY2022, Consolidated Statements of Income (XBRL R3) (FY ending 2021-12-31: revenue USD 81,288m, operating income USD 24,311m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800323000024/R3.htm"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 95239.2,
+					"operatingIncome": 32966.8,
+					"quality": "reported",
+					"source": "Pfizer Form 10-K FY2022, Consolidated Statements of Income (XBRL R3) (FY ending 2022-12-31: revenue USD 100,330m, operating income USD 34,729m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800323000024/R3.htm"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 55075,
+					"operatingIncome": 978.4,
+					"quality": "reported",
+					"source": "Pfizer Form 10-K FY2025, Consolidated Statements of Operations (XBRL R3) (FY ending 2023-12-31: revenue USD 59,553m, operating income USD 1,058m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800326000026/R3.htm"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 58791.4,
+					"operatingIncome": 7413.3,
+					"quality": "reported",
+					"source": "Pfizer Form 10-K FY2025, Consolidated Statements of Operations (XBRL R3) (FY ending 2024-12-31: revenue USD 63,627m, operating income USD 8,023m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800326000026/R3.htm"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 55408.5,
+					"operatingIncome": 6658.3,
+					"quality": "reported",
+					"source": "Pfizer Form 10-K FY2025, Consolidated Statements of Operations (XBRL R3) (FY ending 2025-12-31: revenue USD 62,579m, operating income USD 7,520m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800326000026/R3.htm"
 				}
 			]
 		},
@@ -5862,6 +7498,62 @@
 					"quality": "reported",
 					"source": "P&G Form 10-K FY2020, Item 6 Selected Financial Data (FY ending 2019-06-30: revenue USD 67,684m, operating income USD 5,487m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042420000053/pg-20200630.htm"
+				},
+				{
+					"quarter": "2020Q2",
+					"revenue": 64162.9,
+					"operatingIncome": 14203.5,
+					"quality": "reported",
+					"source": "P&G Form 10-K FY2020, Item 6 Selected Financial Data (FY ending 2020-06-30: revenue USD 70,950m, operating income USD 15,706m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042420000053/pg-20200630.htm"
+				},
+				{
+					"quarter": "2021Q2",
+					"revenue": 63797.2,
+					"operatingIncome": 15074.7,
+					"quality": "reported",
+					"source": "P&G Form 10-K FY2023, Consolidated Statements of Earnings (FY ending 2021-06-30: revenue USD 76,118m, operating income USD 17,986m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042423000073/R3.htm"
+				},
+				{
+					"quarter": "2022Q2",
+					"revenue": 71140.4,
+					"operatingIncome": 15803.4,
+					"quality": "reported",
+					"source": "P&G Form 10-K FY2023, Consolidated Statements of Earnings (FY ending 2022-06-30: revenue USD 80,187m, operating income USD 17,813m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042423000073/R3.htm"
+				},
+				{
+					"quarter": "2023Q2",
+					"revenue": 78302.9,
+					"operatingIncome": 17315.1,
+					"quality": "reported",
+					"source": "P&G Form 10-K FY2023, Consolidated Statements of Earnings (FY ending 2023-06-30: revenue USD 82,006m, operating income USD 18,134m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042423000073/R3.htm"
+				},
+				{
+					"quarter": "2024Q2",
+					"revenue": 77705.1,
+					"operatingIncome": 17147.3,
+					"quality": "reported",
+					"source": "P&G Form 10-K FY2026, Consolidated Statements of Earnings (FY ending 2024-06-30: revenue USD 84,039m, operating income USD 18,545m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042426000103/R3.htm"
+				},
+				{
+					"quarter": "2025Q2",
+					"revenue": 77455.7,
+					"operatingIncome": 18794.2,
+					"quality": "reported",
+					"source": "P&G Form 10-K FY2026, Consolidated Statements of Earnings (FY ending 2025-06-30: revenue USD 84,284m, operating income USD 20,451m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042426000103/R3.htm"
+				},
+				{
+					"quarter": "2026Q2",
+					"revenue": 74631.1,
+					"operatingIncome": 16934.2,
+					"quality": "reported",
+					"source": "P&G Form 10-K FY2026, Consolidated Statements of Earnings (FY ending 2026-06-30: revenue USD 87,032m, operating income USD 19,748m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042426000103/R3.htm"
 				}
 			]
 		},
@@ -6032,6 +7724,54 @@
 					"quality": "reported",
 					"source": "SAP Form 20-F FY2019, Consolidated Income Statement (IFRS, XBRL R2) (FY ending 2019-12-31: revenue EUR 27,553m, operating income EUR 4,473m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465920025681/R2.htm"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 27338,
+					"operatingIncome": 6623,
+					"quality": "reported",
+					"source": "SAP Form 20-F FY2022, Consolidated Income Statement (IFRS, XBRL R2) (FY ending 2020-12-31: revenue EUR 27,338m, operating income EUR 6,623m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465923027626/R2.htm"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 27842,
+					"operatingIncome": 4656,
+					"quality": "reported",
+					"source": "SAP Form 20-F FY2022, Consolidated Income Statement (IFRS, XBRL R2) (FY ending 2021-12-31: revenue EUR 27,842m, operating income EUR 4,656m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465923027626/R2.htm"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 30871,
+					"operatingIncome": 4670,
+					"quality": "reported",
+					"source": "SAP Form 20-F FY2022, Consolidated Income Statement (IFRS, XBRL R2) (FY ending 2022-12-31: revenue EUR 30,871m, operating income EUR 4,670m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465923027626/R2.htm"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 31207,
+					"operatingIncome": 5799,
+					"quality": "reported",
+					"source": "SAP Form 20-F FY2025, Consolidated Income Statements (IFRS, XBRL R2) (FY ending 2023-12-31: revenue EUR 31,207m, operating income EUR 5,799m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465926020058/R2.htm"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 34176,
+					"operatingIncome": 4665,
+					"quality": "reported",
+					"source": "SAP Form 20-F FY2025, Consolidated Income Statements (IFRS, XBRL R2) (FY ending 2024-12-31: revenue EUR 34,176m, operating income EUR 4,665m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465926020058/R2.htm"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 36800,
+					"operatingIncome": 9617,
+					"quality": "reported",
+					"source": "SAP Form 20-F FY2025, Consolidated Income Statements (IFRS, XBRL R2) (FY ending 2025-12-31: revenue EUR 36,800m, operating income EUR 9,617m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465926020058/R2.htm"
 				}
 			]
 		},
@@ -6193,6 +7933,54 @@
 					"operatingIncome": 22762,
 					"quality": "reported",
 					"source": "Royal Dutch Shell Form 20-F (acc. 0001306965-22-000012) via SEC XBRL company concept (FY ending 2019-12-31: revenue USD 344,877m, operating income USD 25,485m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 158167.1,
+					"operatingIncome": -23624.8,
+					"quality": "reported",
+					"source": "Shell plc Form 20-F (acc. 0001306965-23-000007) via SEC XBRL company concept (FY ending 2020-12-31: revenue USD 180,543m, operating income USD -26,967m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 221003.9,
+					"operatingIncome": 25209.3,
+					"quality": "reported",
+					"source": "Shell plc Form 20-F (acc. 0001306965-25-000025) via SEC XBRL company concept (FY ending 2021-12-31: revenue USD 261,504m, operating income USD 29,829m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 361966,
+					"operatingIncome": 61526.3,
+					"quality": "reported",
+					"source": "Shell plc Form 20-F (acc. 0001306965-25-000027) via SEC XBRL company concept (FY ending 2022-12-31: revenue USD 381,314m, operating income USD 64,815m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 292812.2,
+					"operatingIncome": 30173.7,
+					"quality": "reported",
+					"source": "Shell plc Form 20-F FY2025 (acc. 0001628280-26-017024) via SEC XBRL company concept (FY ending 2023-12-31: revenue USD 316,620m, operating income USD 32,627m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 262704.6,
+					"operatingIncome": 27648,
+					"quality": "reported",
+					"source": "Shell plc Form 20-F FY2025 (acc. 0001628280-26-017024) via SEC XBRL company concept (FY ending 2024-12-31: revenue USD 284,312m, operating income USD 29,922m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 236305.2,
+					"operatingIncome": 26346.4,
+					"quality": "reported",
+					"source": "Shell plc Form 20-F FY2025 (acc. 0001628280-26-017024) via SEC XBRL company concept (FY ending 2025-12-31: revenue USD 266,886m, operating income USD 29,756m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
 				}
 			]
@@ -6364,6 +8152,62 @@
 					"quality": "reported",
 					"source": "Tesco Preliminary Results 2018/19, Group income statement (FY ending 2019-02-23: revenue GBP 63,911m, operating income GBP 2,153m)",
 					"sourceUrl": "https://www.tescoplc.com/media/3u4f1r3d/prelims-results-1819.pdf"
+				},
+				{
+					"quarter": "2020Q1",
+					"revenue": 66391.8,
+					"operatingIncome": 2521.2,
+					"quality": "reported",
+					"source": "Tesco Preliminary Results 2020/21, Group income statement (comparative, Thailand, Malaysia, Poland as discontinued) (FY ending 2020-02-29: revenue GBP 58,091m, operating income GBP 2,206m)",
+					"sourceUrl": "https://www.tescoplc.com/media/757092/_tesco-plc-preliminary-results-2021.pdf"
+				},
+				{
+					"quarter": "2021Q1",
+					"revenue": 64864.3,
+					"operatingIncome": 1945.2,
+					"quality": "reported",
+					"source": "Tesco Preliminary Results 2020/21, Group income statement (FY ending 2021-02-27: revenue GBP 57,887m, operating income GBP 1,736m)",
+					"sourceUrl": "https://www.tescoplc.com/media/757092/_tesco-plc-preliminary-results-2021.pdf"
+				},
+				{
+					"quarter": "2022Q1",
+					"revenue": 72134.2,
+					"operatingIncome": 3010.3,
+					"quality": "reported",
+					"source": "Tesco Preliminary Results 2022/23, Group income statement (comparative) (FY ending 2022-02-26: revenue GBP 61,344m, operating income GBP 2,560m)",
+					"sourceUrl": "https://www.tescoplc.com/media/1ihb5i4l/tesco-plc-preliminary-results-2223-press-release.pdf"
+				},
+				{
+					"quarter": "2023Q1",
+					"revenue": 75570.5,
+					"operatingIncome": 1631.2,
+					"quality": "reported",
+					"source": "Tesco Preliminary Results 2023/24, Group income statement (comparative, restated) (FY ending 2023-02-25: revenue GBP 65,322m, operating income GBP 1,410m)",
+					"sourceUrl": "https://www.tescoplc.com/media/j4chef55/tesco-plc-preliminary-results-2324-100424.pdf"
+				},
+				{
+					"quarter": "2024Q1",
+					"revenue": 79006.6,
+					"operatingIncome": 3268.6,
+					"quality": "reported",
+					"source": "Tesco Preliminary Results 2023/24, Group income statement (FY ending 2024-02-24: revenue GBP 68,187m, operating income GBP 2,821m)",
+					"sourceUrl": "https://www.tescoplc.com/media/j4chef55/tesco-plc-preliminary-results-2324-100424.pdf"
+				},
+				{
+					"quarter": "2025Q1",
+					"revenue": 83079,
+					"operatingIncome": 3221.4,
+					"quality": "reported",
+					"source": "Tesco Preliminary Results 2025/26, Group income statement (comparative) (FY ending 2025-02-22: revenue GBP 69,916m, operating income GBP 2,711m)",
+					"sourceUrl": "https://www.tescoplc.com/media/ch1fbgss/tesco-plc-preliminary-results-statement-fy26.pdf"
+				},
+				{
+					"quarter": "2026Q1",
+					"revenue": 85246,
+					"operatingIncome": 3452.1,
+					"quality": "reported",
+					"source": "Tesco Preliminary Results 2025/26, Group income statement (53 weeks) (FY ending 2026-02-28: revenue GBP 73,712m, operating income GBP 2,985m)",
+					"sourceUrl": "https://www.tescoplc.com/media/ch1fbgss/tesco-plc-preliminary-results-statement-fy26.pdf"
 				}
 			]
 		},
@@ -6477,6 +8321,54 @@
 					"operatingIncome": -61.6,
 					"quality": "reported",
 					"source": "Tesla Form 10-K XBRL (accn 0001564590-20-004475), SEC companyconcept API (FY ending 2019-12-31: revenue USD 24,578m, operating income USD -69m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 27627.5,
+					"operatingIncome": 1746.9,
+					"quality": "reported",
+					"source": "Tesla Form 10-K XBRL (accn 0001564590-21-004599), SEC companyconcept API (FY ending 2020-12-31: revenue USD 31,536m, operating income USD 1,994m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 45487.2,
+					"operatingIncome": 5512.8,
+					"quality": "reported",
+					"source": "Tesla Form 10-K XBRL (accn 0000950170-22-000796), SEC companyconcept API (FY ending 2021-12-31: revenue USD 53,823m, operating income USD 6,523m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 77328.6,
+					"operatingIncome": 12963.1,
+					"quality": "reported",
+					"source": "Tesla Form 10-K XBRL (accn 0000950170-23-001409), SEC companyconcept API (FY ending 2022-12-31: revenue USD 81,462m, operating income USD 13,656m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 89496.3,
+					"operatingIncome": 8222.5,
+					"quality": "reported",
+					"source": "Tesla Form 10-K XBRL (accn 0001628280-24-002390), SEC companyconcept API (FY ending 2023-12-31: revenue USD 96,773m, operating income USD 8,891m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 90265.7,
+					"operatingIncome": 6538.2,
+					"quality": "reported",
+					"source": "Tesla Form 10-K XBRL (accn 0001628280-25-003063), SEC companyconcept API (FY ending 2024-12-31: revenue USD 97,690m, operating income USD 7,076m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 83961.4,
+					"operatingIncome": 3856,
+					"quality": "reported",
+					"source": "Tesla Form 10-K XBRL (accn 0001628280-26-003952), SEC companyconcept API (FY ending 2025-12-31: revenue USD 94,827m, operating income USD 4,355m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
 				}
 			]
@@ -6640,6 +8532,54 @@
 					"quality": "reported",
 					"source": "Total Form 20-F FY2019, consolidated statement of income (XBRL R2); net income 11,438 + taxes 5,872 (FY ending 2019-12-31: revenue USD 200,316m, operating income USD 17,310m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000119312520080490/R2.htm"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 123249,
+					"operatingIncome": -6148.2,
+					"quality": "reported",
+					"source": "TotalEnergies Form 20-F FY2022, consolidated statement of income (XBRL R2); net income -7,336 + taxes 318 (FY ending 2020-12-31: revenue USD 140,685m, operating income USD -7,018m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000110465923036495/R2.htm"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 173980.2,
+					"operatingIncome": 21933.6,
+					"quality": "reported",
+					"source": "TotalEnergies Form 20-F FY2022, consolidated statement of income (XBRL R2); net income 16,366 + taxes 9,587 (FY ending 2021-12-31: revenue USD 205,863m, operating income USD 25,953m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000110465923036495/R2.htm"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 266741,
+					"operatingIncome": 41089.7,
+					"quality": "reported",
+					"source": "TotalEnergies Form 20-F FY2022, consolidated statement of income (XBRL R2); net income 21,044 + taxes 22,242 (FY ending 2022-12-31: revenue USD 280,999m, operating income USD 43,286m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000110465923036495/R2.htm"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 219297.5,
+					"operatingIncome": 32193.4,
+					"quality": "reported",
+					"source": "TotalEnergies Form 20-F FY2025, consolidated statement of income (XBRL R2); net income 21,510 + taxes 13,301 (FY ending 2023-12-31: revenue USD 237,128m, operating income USD 34,811m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000110465926035876/R2.htm"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 198244.4,
+					"operatingIncome": 24768.8,
+					"quality": "reported",
+					"source": "TotalEnergies Form 20-F FY2025, consolidated statement of income (XBRL R2); net income 16,031 + taxes 10,775 (FY ending 2024-12-31: revenue USD 214,550m, operating income USD 26,806m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000110465926035876/R2.htm"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 178142.2,
+					"operatingIncome": 19876.7,
+					"quality": "reported",
+					"source": "TotalEnergies Form 20-F FY2025, consolidated statement of income (XBRL R2); net income 13,357 + taxes 9,092 (FY ending 2025-12-31: revenue USD 201,196m, operating income USD 22,449m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000110465926035876/R2.htm"
 				}
 			]
 		},
@@ -6810,6 +8750,54 @@
 					"quality": "reported",
 					"source": "Unilever Form 20-F 2021, Consolidated income statement (FY ending 2019-12-31: revenue EUR 51,980m, operating income EUR 8,708m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741022000009/R3.htm"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 50724,
+					"operatingIncome": 8303,
+					"quality": "reported",
+					"source": "Unilever Form 20-F 2021, Consolidated income statement (FY ending 2020-12-31: revenue EUR 50,724m, operating income EUR 8,303m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741022000009/R3.htm"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 52444,
+					"operatingIncome": 8702,
+					"quality": "reported",
+					"source": "Unilever Form 20-F 2021, Consolidated income statement (FY ending 2021-12-31: revenue EUR 52,444m, operating income EUR 8,702m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741022000009/R3.htm"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 60073,
+					"operatingIncome": 10755,
+					"quality": "reported",
+					"source": "Unilever Form 20-F 2024, Consolidated income statement (FY ending 2022-12-31: revenue EUR 60,073m, operating income EUR 10,755m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741025000015/R3.htm"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 59604,
+					"operatingIncome": 9758,
+					"quality": "reported",
+					"source": "Unilever Form 20-F 2024, Consolidated income statement (FY ending 2023-12-31: revenue EUR 59,604m, operating income EUR 9,758m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741025000015/R3.htm"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 60761,
+					"operatingIncome": 9400,
+					"quality": "reported",
+					"source": "Unilever Form 20-F 2024, Consolidated income statement (FY ending 2024-12-31: revenue EUR 60,761m, operating income EUR 9,400m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741025000015/R3.htm"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 50503,
+					"operatingIncome": 9037,
+					"quality": "reported",
+					"source": "Unilever Form 20-F 2025, Consolidated income statement (continuing operations, ex-Ice Cream) (FY ending 2025-12-31: revenue EUR 50,503m, operating income EUR 9,037m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741026000007/R3.htm"
 				}
 			]
 		},
@@ -6980,6 +8968,54 @@
 					"quality": "reported",
 					"source": "Volkswagen AG Annual Report 2020, Five-Year Overview (FY ending 2019-12-31: revenue EUR 252,632m, operating income EUR 16,960m)",
 					"sourceUrl": "https://annualreport2020.volkswagenag.com/additional-information/five-year-overview.html"
+				},
+				{
+					"quarter": "2020Q4",
+					"revenue": 222884,
+					"operatingIncome": 9675,
+					"quality": "reported",
+					"source": "Volkswagen AG Annual Report 2020, Five-Year Overview (FY ending 2020-12-31: revenue EUR 222,884m, operating income EUR 9,675m)",
+					"sourceUrl": "https://annualreport2020.volkswagenag.com/additional-information/five-year-overview.html"
+				},
+				{
+					"quarter": "2021Q4",
+					"revenue": 250200,
+					"operatingIncome": 19275,
+					"quality": "reported",
+					"source": "Volkswagen AG Annual Report 2025, Five-Year Review (FY ending 2021-12-31: revenue EUR 250,200m, operating income EUR 19,275m)",
+					"sourceUrl": "https://annualreport2025.volkswagen-group.com/additional-information/five-year-review.html"
+				},
+				{
+					"quarter": "2022Q4",
+					"revenue": 279050,
+					"operatingIncome": 22109,
+					"quality": "reported",
+					"source": "Volkswagen AG Annual Report 2025, Five-Year Review (FY ending 2022-12-31: revenue EUR 279,050m, operating income EUR 22,109m)",
+					"sourceUrl": "https://annualreport2025.volkswagen-group.com/additional-information/five-year-review.html"
+				},
+				{
+					"quarter": "2023Q4",
+					"revenue": 322284,
+					"operatingIncome": 22528,
+					"quality": "reported",
+					"source": "Volkswagen AG Annual Report 2025, Five-Year Review (FY ending 2023-12-31: revenue EUR 322,284m, operating income EUR 22,528m)",
+					"sourceUrl": "https://annualreport2025.volkswagen-group.com/additional-information/five-year-review.html"
+				},
+				{
+					"quarter": "2024Q4",
+					"revenue": 324656,
+					"operatingIncome": 19060,
+					"quality": "reported",
+					"source": "Volkswagen AG Annual Report 2025, Five-Year Review (FY ending 2024-12-31: revenue EUR 324,656m, operating income EUR 19,060m)",
+					"sourceUrl": "https://annualreport2025.volkswagen-group.com/additional-information/five-year-review.html"
+				},
+				{
+					"quarter": "2025Q4",
+					"revenue": 321913,
+					"operatingIncome": 8868,
+					"quality": "reported",
+					"source": "Volkswagen AG Annual Report 2025, Five-Year Review (FY ending 2025-12-31: revenue EUR 321,913m, operating income EUR 8,868m)",
+					"sourceUrl": "https://annualreport2025.volkswagen-group.com/additional-information/five-year-review.html"
 				}
 			]
 		},
@@ -7142,6 +9178,62 @@
 					"quality": "reported",
 					"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2019-01-31: revenue USD 514,405m, operating income USD 21,957m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2020Q1",
+					"revenue": 471465.2,
+					"operatingIncome": 18507.2,
+					"quality": "reported",
+					"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2020-01-31: revenue USD 523,964m, operating income USD 20,568m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2021Q1",
+					"revenue": 479128.2,
+					"operatingIncome": 19321,
+					"quality": "reported",
+					"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2021-01-31: revenue USD 559,151m, operating income USD 22,548m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2022Q1",
+					"revenue": 492707.5,
+					"operatingIncome": 22316.4,
+					"quality": "reported",
+					"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2022-01-31: revenue USD 572,754m, operating income USD 25,942m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2023Q1",
+					"revenue": 587052.5,
+					"operatingIncome": 19618.1,
+					"quality": "reported",
+					"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2023-01-31: revenue USD 611,289m, operating income USD 20,428m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2024Q1",
+					"revenue": 597624.3,
+					"operatingIncome": 24907.3,
+					"quality": "reported",
+					"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2024-01-31: revenue USD 648,125m, operating income USD 27,012m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2025Q1",
+					"revenue": 634130.7,
+					"operatingIncome": 27328.7,
+					"quality": "reported",
+					"source": "Walmart 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2025-01-31: revenue USD 680,985m, operating income USD 29,348m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000104169/us-gaap/Revenues.json"
+				},
+				{
+					"quarter": "2026Q1",
+					"revenue": 615383.2,
+					"operatingIncome": 25735.8,
+					"quality": "reported",
+					"source": "Walmart Form 10-K FY2026, Consolidated Statements of Income (FY ending 2026-01-31: revenue USD 713,163m, operating income USD 29,825m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/104169/000010416926000055/wmt-20260131.htm"
 				}
 			]
 		}

@@ -86,6 +86,60 @@
 			"quality": "reported",
 			"source": "Ferrari Form 20-F FY2019, Consolidated Income Statement",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841620000022/R2.htm"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "EUR",
+			"revenue": 3459.79,
+			"operatingIncome": 716.127,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2022, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841623000043/R3.htm"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "EUR",
+			"revenue": 4270.894,
+			"operatingIncome": 1075.488,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2022, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841623000043/R3.htm"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "EUR",
+			"revenue": 5095.254,
+			"operatingIncome": 1227.382,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2022, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841623000043/R3.htm"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "EUR",
+			"revenue": 5970.146,
+			"operatingIncome": 1617.369,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2025, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841626000024/R3.htm"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "EUR",
+			"revenue": 6676.668,
+			"operatingIncome": 1887.751,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2025, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841626000024/R3.htm"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "EUR",
+			"revenue": 7145.768,
+			"operatingIncome": 2109.716,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2025, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841626000024/R3.htm"
 		}
 	]
 }

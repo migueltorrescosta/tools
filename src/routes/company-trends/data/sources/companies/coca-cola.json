@@ -185,6 +185,60 @@
 			"quality": "reported",
 			"source": "Coca-Cola Form 10-K FY2019, Consolidated Statements of Income",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134420000006/R2.htm"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "USD",
+			"revenue": 33014,
+			"operatingIncome": 8997,
+			"quality": "reported",
+			"source": "Coca-Cola Form 10-K FY2022, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134423000011/R3.htm"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "USD",
+			"revenue": 38655,
+			"operatingIncome": 10308,
+			"quality": "reported",
+			"source": "Coca-Cola Form 10-K FY2022, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134423000011/R3.htm"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "USD",
+			"revenue": 43004,
+			"operatingIncome": 10909,
+			"quality": "reported",
+			"source": "Coca-Cola Form 10-K FY2022, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000002134423000011/R3.htm"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "USD",
+			"revenue": 45754,
+			"operatingIncome": 11311,
+			"quality": "reported",
+			"source": "Coca-Cola Form 10-K FY2025, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000162828026010047/R3.htm"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "USD",
+			"revenue": 47061,
+			"operatingIncome": 9992,
+			"quality": "reported",
+			"source": "Coca-Cola Form 10-K FY2025, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000162828026010047/R3.htm"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "USD",
+			"revenue": 47941,
+			"operatingIncome": 13762,
+			"quality": "reported",
+			"source": "Coca-Cola Form 10-K FY2025, Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/21344/000162828026010047/R3.htm"
 		}
 	]
 }

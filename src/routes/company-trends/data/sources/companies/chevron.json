@@ -185,6 +185,60 @@
 			"quality": "reported",
 			"source": "Chevron 10-K FY2021 (acc. 0000093410-22-000019) via SEC XBRL company concept",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "USD",
+			"revenue": 94692,
+			"operatingIncome": -7453,
+			"quality": "reported",
+			"source": "Chevron 10-K FY2022 (acc. 0000093410-23-000009) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "USD",
+			"revenue": 162465,
+			"operatingIncome": 21639,
+			"quality": "reported",
+			"source": "Chevron 10-K FY2023 (acc. 0000093410-24-000013) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "USD",
+			"revenue": 246252,
+			"operatingIncome": 49674,
+			"quality": "reported",
+			"source": "Chevron 10-K FY2024 (acc. 0000093410-25-000009) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "USD",
+			"revenue": 200949,
+			"operatingIncome": 29584,
+			"quality": "reported",
+			"source": "Chevron 10-K FY2025 (acc. 0000093410-26-000078) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "USD",
+			"revenue": 202792,
+			"operatingIncome": 27506,
+			"quality": "reported",
+			"source": "Chevron 10-K FY2025 (acc. 0000093410-26-000078) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "USD",
+			"revenue": 189031,
+			"operatingIncome": 19743,
+			"quality": "reported",
+			"source": "Chevron 10-K FY2025 (acc. 0000093410-26-000078) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
 		}
 	]
 }

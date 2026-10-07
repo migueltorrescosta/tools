@@ -185,6 +185,60 @@
 			"quality": "reported",
 			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-20-000008); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "USD",
+			"revenue": 182527,
+			"operatingIncome": 41224,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-21-000010); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "USD",
+			"revenue": 257637,
+			"operatingIncome": 78714,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-22-000019); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "USD",
+			"revenue": 282836,
+			"operatingIncome": 74842,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-23-000016); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "USD",
+			"revenue": 307394,
+			"operatingIncome": 84293,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-24-000022); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "USD",
+			"revenue": 350018,
+			"operatingIncome": 112390,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-25-000014); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "USD",
+			"revenue": 402836,
+			"operatingIncome": 129039,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-26-000018); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
 		}
 	]
 }

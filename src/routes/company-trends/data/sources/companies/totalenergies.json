@@ -176,6 +176,60 @@
 			"quality": "reported",
 			"source": "Total Form 20-F FY2019, consolidated statement of income (XBRL R2); net income 11,438 + taxes 5,872",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000119312520080490/R2.htm"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "USD",
+			"revenue": 140685,
+			"operatingIncome": -7018,
+			"quality": "reported",
+			"source": "TotalEnergies Form 20-F FY2022, consolidated statement of income (XBRL R2); net income -7,336 + taxes 318",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000110465923036495/R2.htm"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "USD",
+			"revenue": 205863,
+			"operatingIncome": 25953,
+			"quality": "reported",
+			"source": "TotalEnergies Form 20-F FY2022, consolidated statement of income (XBRL R2); net income 16,366 + taxes 9,587",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000110465923036495/R2.htm"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "USD",
+			"revenue": 280999,
+			"operatingIncome": 43286,
+			"quality": "reported",
+			"source": "TotalEnergies Form 20-F FY2022, consolidated statement of income (XBRL R2); net income 21,044 + taxes 22,242",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000110465923036495/R2.htm"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "USD",
+			"revenue": 237128,
+			"operatingIncome": 34811,
+			"quality": "reported",
+			"source": "TotalEnergies Form 20-F FY2025, consolidated statement of income (XBRL R2); net income 21,510 + taxes 13,301",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000110465926035876/R2.htm"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "USD",
+			"revenue": 214550,
+			"operatingIncome": 26806,
+			"quality": "reported",
+			"source": "TotalEnergies Form 20-F FY2025, consolidated statement of income (XBRL R2); net income 16,031 + taxes 10,775",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000110465926035876/R2.htm"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "USD",
+			"revenue": 201196,
+			"operatingIncome": 22449,
+			"quality": "reported",
+			"source": "TotalEnergies Form 20-F FY2025, consolidated statement of income (XBRL R2); net income 13,357 + taxes 9,092",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/879764/000110465926035876/R2.htm"
 		}
 	]
 }

@@ -185,6 +185,60 @@
 			"quality": "reported",
 			"source": "ASML Form 20-F FY2021 XBRL facts via SEC companyconcept API: RevenueFromContractWithCustomerExcludingAssessedTax, OperatingIncomeLoss (US GAAP)",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "EUR",
+			"revenue": 13978.5,
+			"operatingIncome": 4051.5,
+			"quality": "reported",
+			"source": "ASML Form 20-F FY2022 XBRL facts via SEC companyconcept API: RevenueFromContractWithCustomerExcludingAssessedTax, OperatingIncomeLoss (US GAAP)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "EUR",
+			"revenue": 18611.0,
+			"operatingIncome": 6750.1,
+			"quality": "reported",
+			"source": "ASML Form 20-F FY2023 XBRL facts via SEC companyconcept API: RevenueFromContractWithCustomerExcludingAssessedTax, OperatingIncomeLoss (US GAAP)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "EUR",
+			"revenue": 21173.4,
+			"operatingIncome": 6500.7,
+			"quality": "reported",
+			"source": "ASML Form 20-F FY2024 XBRL facts via SEC companyconcept API: RevenueFromContractWithCustomerExcludingAssessedTax, OperatingIncomeLoss (US GAAP)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "EUR",
+			"revenue": 27558.5,
+			"operatingIncome": 9042.3,
+			"quality": "reported",
+			"source": "ASML Form 20-F FY2025 XBRL facts via SEC companyconcept API: RevenueFromContractWithCustomerExcludingAssessedTax, OperatingIncomeLoss (US GAAP)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "EUR",
+			"revenue": 28262.9,
+			"operatingIncome": 9022.6,
+			"quality": "reported",
+			"source": "ASML Form 20-F FY2025 XBRL facts via SEC companyconcept API: RevenueFromContractWithCustomerExcludingAssessedTax, OperatingIncomeLoss (US GAAP)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "EUR",
+			"revenue": 32667.3,
+			"operatingIncome": 11301.4,
+			"quality": "reported",
+			"source": "ASML Form 20-F FY2025 XBRL facts via SEC companyconcept API: RevenueFromContractWithCustomerExcludingAssessedTax, OperatingIncomeLoss (US GAAP)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000937966/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
 		}
 	]
 }

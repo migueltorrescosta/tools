@@ -185,6 +185,60 @@
 			"quality": "reported",
 			"source": "Eni Form 20-F FY2021 (acc. 0001104659-22-043979) via SEC XBRL company concept",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001002242/ifrs-full/RevenueFromContractsWithCustomers.json"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "EUR",
+			"revenue": 43987,
+			"operatingIncome": -3275,
+			"quality": "reported",
+			"source": "Eni Form 20-F FY2022 (acc. 0001554855-23-000224) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001002242/ifrs-full/RevenueFromContractsWithCustomers.json"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "EUR",
+			"revenue": 76575,
+			"operatingIncome": 12341,
+			"quality": "reported",
+			"source": "Eni Form 20-F FY2023 (acc. 0001554855-24-000249) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001002242/ifrs-full/RevenueFromContractsWithCustomers.json"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "EUR",
+			"revenue": 132512,
+			"operatingIncome": 17510,
+			"quality": "reported",
+			"source": "Eni Form 20-F FY2024 (acc. 0001554855-25-000286) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001002242/ifrs-full/RevenueFromContractsWithCustomers.json"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "EUR",
+			"revenue": 93717,
+			"operatingIncome": 8257,
+			"quality": "reported",
+			"source": "Eni Form 20-F FY2025 (acc. 0001554855-26-000390) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001002242/ifrs-full/RevenueFromContractsWithCustomers.json"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "EUR",
+			"revenue": 88797,
+			"operatingIncome": 5238,
+			"quality": "reported",
+			"source": "Eni Form 20-F FY2025 (acc. 0001554855-26-000390) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001002242/ifrs-full/RevenueFromContractsWithCustomers.json"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "EUR",
+			"revenue": 82151,
+			"operatingIncome": 5010,
+			"quality": "reported",
+			"source": "Eni Form 20-F FY2025 (acc. 0001554855-26-000390) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001002242/ifrs-full/RevenueFromContractsWithCustomers.json"
 		}
 	]
 }

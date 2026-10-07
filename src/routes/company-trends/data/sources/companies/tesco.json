@@ -185,6 +185,69 @@
 			"quality": "reported",
 			"source": "Tesco Preliminary Results 2018/19, Group income statement",
 			"sourceUrl": "https://www.tescoplc.com/media/3u4f1r3d/prelims-results-1819.pdf"
+		},
+		{
+			"periodEnd": "2020-02-29",
+			"currency": "GBP",
+			"revenue": 58091,
+			"operatingIncome": 2206,
+			"quality": "reported",
+			"source": "Tesco Preliminary Results 2020/21, Group income statement (comparative, Thailand, Malaysia, Poland as discontinued)",
+			"sourceUrl": "https://www.tescoplc.com/media/757092/_tesco-plc-preliminary-results-2021.pdf"
+		},
+		{
+			"periodEnd": "2021-02-27",
+			"currency": "GBP",
+			"revenue": 57887,
+			"operatingIncome": 1736,
+			"quality": "reported",
+			"source": "Tesco Preliminary Results 2020/21, Group income statement",
+			"sourceUrl": "https://www.tescoplc.com/media/757092/_tesco-plc-preliminary-results-2021.pdf"
+		},
+		{
+			"periodEnd": "2022-02-26",
+			"currency": "GBP",
+			"revenue": 61344,
+			"operatingIncome": 2560,
+			"quality": "reported",
+			"source": "Tesco Preliminary Results 2022/23, Group income statement (comparative)",
+			"sourceUrl": "https://www.tescoplc.com/media/1ihb5i4l/tesco-plc-preliminary-results-2223-press-release.pdf"
+		},
+		{
+			"periodEnd": "2023-02-25",
+			"currency": "GBP",
+			"revenue": 65322,
+			"operatingIncome": 1410,
+			"quality": "reported",
+			"source": "Tesco Preliminary Results 2023/24, Group income statement (comparative, restated)",
+			"sourceUrl": "https://www.tescoplc.com/media/j4chef55/tesco-plc-preliminary-results-2324-100424.pdf"
+		},
+		{
+			"periodEnd": "2024-02-24",
+			"currency": "GBP",
+			"revenue": 68187,
+			"operatingIncome": 2821,
+			"quality": "reported",
+			"source": "Tesco Preliminary Results 2023/24, Group income statement",
+			"sourceUrl": "https://www.tescoplc.com/media/j4chef55/tesco-plc-preliminary-results-2324-100424.pdf"
+		},
+		{
+			"periodEnd": "2025-02-22",
+			"currency": "GBP",
+			"revenue": 69916,
+			"operatingIncome": 2711,
+			"quality": "reported",
+			"source": "Tesco Preliminary Results 2025/26, Group income statement (comparative)",
+			"sourceUrl": "https://www.tescoplc.com/media/ch1fbgss/tesco-plc-preliminary-results-statement-fy26.pdf"
+		},
+		{
+			"periodEnd": "2026-02-28",
+			"currency": "GBP",
+			"revenue": 73712,
+			"operatingIncome": 2985,
+			"quality": "reported",
+			"source": "Tesco Preliminary Results 2025/26, Group income statement (53 weeks)",
+			"sourceUrl": "https://www.tescoplc.com/media/ch1fbgss/tesco-plc-preliminary-results-statement-fy26.pdf"
 		}
 	]
 }

@@ -185,6 +185,60 @@
 			"quality": "reported",
 			"source": "Intel Form 10-K XBRL (accn 0000050863-20-000011), SEC companyconcept API",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+		},
+		{
+			"periodEnd": "2020-12-26",
+			"currency": "USD",
+			"revenue": 77867.0,
+			"operatingIncome": 23678.0,
+			"quality": "reported",
+			"source": "Intel Form 10-K XBRL (accn 0000050863-21-000010), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+		},
+		{
+			"periodEnd": "2021-12-25",
+			"currency": "USD",
+			"revenue": 79024.0,
+			"operatingIncome": 19456.0,
+			"quality": "reported",
+			"source": "Intel Form 10-K XBRL (accn 0000050863-22-000007), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "USD",
+			"revenue": 63054.0,
+			"operatingIncome": 2334.0,
+			"quality": "reported",
+			"source": "Intel Form 10-K XBRL (accn 0000050863-23-000006), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+		},
+		{
+			"periodEnd": "2023-12-30",
+			"currency": "USD",
+			"revenue": 54228.0,
+			"operatingIncome": 93.0,
+			"quality": "reported",
+			"source": "Intel Form 10-K XBRL (accn 0000050863-24-000010), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+		},
+		{
+			"periodEnd": "2024-12-28",
+			"currency": "USD",
+			"revenue": 53101.0,
+			"operatingIncome": -11678.0,
+			"quality": "reported",
+			"source": "Intel Form 10-K XBRL (accn 0000050863-25-000009), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+		},
+		{
+			"periodEnd": "2025-12-27",
+			"currency": "USD",
+			"revenue": 52853.0,
+			"operatingIncome": -2214.0,
+			"quality": "reported",
+			"source": "Intel Form 10-K XBRL (accn 0000050863-26-000011), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000050863/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
 		}
 	]
 }

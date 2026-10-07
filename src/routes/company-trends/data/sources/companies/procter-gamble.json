@@ -185,6 +185,69 @@
 			"quality": "reported",
 			"source": "P&G Form 10-K FY2020, Item 6 Selected Financial Data",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042420000053/pg-20200630.htm"
+		},
+		{
+			"periodEnd": "2020-06-30",
+			"currency": "USD",
+			"revenue": 70950,
+			"operatingIncome": 15706,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2020, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042420000053/pg-20200630.htm"
+		},
+		{
+			"periodEnd": "2021-06-30",
+			"currency": "USD",
+			"revenue": 76118,
+			"operatingIncome": 17986,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2023, Consolidated Statements of Earnings",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042423000073/R3.htm"
+		},
+		{
+			"periodEnd": "2022-06-30",
+			"currency": "USD",
+			"revenue": 80187,
+			"operatingIncome": 17813,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2023, Consolidated Statements of Earnings",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042423000073/R3.htm"
+		},
+		{
+			"periodEnd": "2023-06-30",
+			"currency": "USD",
+			"revenue": 82006,
+			"operatingIncome": 18134,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2023, Consolidated Statements of Earnings",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042423000073/R3.htm"
+		},
+		{
+			"periodEnd": "2024-06-30",
+			"currency": "USD",
+			"revenue": 84039,
+			"operatingIncome": 18545,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2026, Consolidated Statements of Earnings",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042426000103/R3.htm"
+		},
+		{
+			"periodEnd": "2025-06-30",
+			"currency": "USD",
+			"revenue": 84284,
+			"operatingIncome": 20451,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2026, Consolidated Statements of Earnings",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042426000103/R3.htm"
+		},
+		{
+			"periodEnd": "2026-06-30",
+			"currency": "USD",
+			"revenue": 87032,
+			"operatingIncome": 19748,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2026, Consolidated Statements of Earnings",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042426000103/R3.htm"
 		}
 	]
 }

@@ -1,0 +1,28 @@
+{
+	"id": "openai",
+	"name": "OpenAI",
+	"type": "ai",
+	"country": "US",
+	"reportingCurrency": "USD",
+	"notes": "Private. Calendar-year FY. 2024-2025: audited financial statements published by Where's Your Ed At and reported as verified by the Financial Times; operatingIncome = 'loss from operations'. Earlier years omitted: only run-rates or losses of unspecified type were reported. Net losses not used.",
+	"anchors": [
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "USD",
+			"revenue": 3700,
+			"operatingIncome": -8780,
+			"quality": "estimated",
+			"source": "OpenAI audited FY2024 financials (comparatives), published by Where's Your Ed At, verified by FT: revenue $3.7B, loss from operations $8.78B",
+			"sourceUrl": "https://wheresyoured.at/exclusive-openai-financials"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "USD",
+			"revenue": 13070,
+			"operatingIncome": -20920,
+			"quality": "estimated",
+			"source": "OpenAI audited FY2025 financials, published by Where's Your Ed At, verified by FT: revenue $13.07B, loss from operations $20.92B",
+			"sourceUrl": "https://wheresyoured.at/exclusive-openai-financials"
+		}
+	]
+}

@@ -185,6 +185,60 @@
 			"quality": "reported",
 			"source": "Netflix Form 10-K XBRL (accn 0001065280-20-000040), SEC companyconcept API",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "USD",
+			"revenue": 24996.056,
+			"operatingIncome": 4585.289,
+			"quality": "reported",
+			"source": "Netflix Form 10-K XBRL (accn 0001065280-21-000040), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "USD",
+			"revenue": 29697.844,
+			"operatingIncome": 6194.509,
+			"quality": "reported",
+			"source": "Netflix Form 10-K XBRL (accn 0001065280-22-000036), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "USD",
+			"revenue": 31615.55,
+			"operatingIncome": 5632.831,
+			"quality": "reported",
+			"source": "Netflix Form 10-K XBRL (accn 0001065280-23-000035), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "USD",
+			"revenue": 33723.297,
+			"operatingIncome": 6954.003,
+			"quality": "reported",
+			"source": "Netflix Form 10-K XBRL (accn 0001065280-24-000030), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "USD",
+			"revenue": 39000.966,
+			"operatingIncome": 10417.614,
+			"quality": "reported",
+			"source": "Netflix Form 10-K XBRL (accn 0001065280-25-000044), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "USD",
+			"revenue": 45183.036,
+			"operatingIncome": 13326.603,
+			"quality": "reported",
+			"source": "Netflix Form 10-K XBRL (accn 0001065280-26-000034), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001065280/us-gaap/Revenues.json"
 		}
 	]
 }

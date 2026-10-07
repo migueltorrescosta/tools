@@ -158,6 +158,60 @@
 			"quality": "reported",
 			"source": "Novartis Form 20-F FY2020, Consolidated income statement (continuing operations, excl. Alcon)",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000137036821000006/R2.htm"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "USD",
+			"revenue": 48659,
+			"operatingIncome": 10152,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2020, Consolidated income statement (continuing operations, excl. Alcon)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000137036821000006/R2.htm"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "USD",
+			"revenue": 51626,
+			"operatingIncome": 11689,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2022, Consolidated income statement (incl. Sandoz)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000137036823000006/R2.htm"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "USD",
+			"revenue": 50545,
+			"operatingIncome": 9197,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2022, Consolidated income statement (incl. Sandoz)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000137036823000006/R2.htm"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "USD",
+			"revenue": 45440,
+			"operatingIncome": 9769,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2025, Consolidated income statement (continuing operations, excl. Sandoz)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000111444826000004/R2.htm"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "USD",
+			"revenue": 50317,
+			"operatingIncome": 14544,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2025, Consolidated income statement (continuing operations, excl. Sandoz)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000111444826000004/R2.htm"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "USD",
+			"revenue": 54532,
+			"operatingIncome": 17644,
+			"quality": "reported",
+			"source": "Novartis Form 20-F FY2025, Consolidated income statement (continuing operations, excl. Sandoz)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1114448/000111444826000004/R2.htm"
 		}
 	]
 }

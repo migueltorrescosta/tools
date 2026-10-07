@@ -185,6 +185,60 @@
 			"quality": "reported",
 			"source": "Pfizer Form 10-K FY2019, Consolidated Statements of Income (XBRL R2)",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800320000014/R2.htm"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "USD",
+			"revenue": 41651,
+			"operatingIncome": 7036,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2022, Consolidated Statements of Income (XBRL R3)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800323000024/R3.htm"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "USD",
+			"revenue": 81288,
+			"operatingIncome": 24311,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2022, Consolidated Statements of Income (XBRL R3)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800323000024/R3.htm"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "USD",
+			"revenue": 100330,
+			"operatingIncome": 34729,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2022, Consolidated Statements of Income (XBRL R3)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800323000024/R3.htm"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "USD",
+			"revenue": 59553,
+			"operatingIncome": 1058,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2025, Consolidated Statements of Operations (XBRL R3)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800326000026/R3.htm"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "USD",
+			"revenue": 63627,
+			"operatingIncome": 8023,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2025, Consolidated Statements of Operations (XBRL R3)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800326000026/R3.htm"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "USD",
+			"revenue": 62579,
+			"operatingIncome": 7520,
+			"quality": "reported",
+			"source": "Pfizer Form 10-K FY2025, Consolidated Statements of Operations (XBRL R3)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/78003/000007800326000026/R3.htm"
 		}
 	]
 }

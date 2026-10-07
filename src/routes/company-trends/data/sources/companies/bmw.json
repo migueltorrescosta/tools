@@ -185,6 +185,60 @@
 			"quality": "reported",
 			"source": "BMW Group Report 2023, Ten-year Comparison",
 			"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "EUR",
+			"revenue": 98990,
+			"operatingIncome": 4830,
+			"quality": "reported",
+			"source": "BMW Group Report 2023, Ten-year Comparison",
+			"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "EUR",
+			"revenue": 111239,
+			"operatingIncome": 13400,
+			"quality": "reported",
+			"source": "BMW Group Report 2023, Ten-year Comparison",
+			"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "EUR",
+			"revenue": 142610,
+			"operatingIncome": 13999,
+			"quality": "reported",
+			"source": "BMW Group Report 2023, Ten-year Comparison",
+			"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "EUR",
+			"revenue": 155498,
+			"operatingIncome": 18482,
+			"quality": "reported",
+			"source": "BMW Group Report 2023, Ten-year Comparison",
+			"sourceUrl": "https://bmwgroup.com/en/report/2023/downloads/BMW-Group-Ten-year-Comparison-2023-en.pdf"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "EUR",
+			"revenue": 142380,
+			"operatingIncome": 11509,
+			"quality": "reported",
+			"source": "BMW Group FY2025 results press release (12 Mar 2026), key figures table",
+			"sourceUrl": "https://www.press.bmwgroup.com/global/article/detail/T0456175EN/stable-group-earnings-thanks-to-consistent-strategy-bmw-group-on-track"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "EUR",
+			"revenue": 133453,
+			"operatingIncome": 10186,
+			"quality": "reported",
+			"source": "BMW Group FY2025 results press release (12 Mar 2026), key figures table",
+			"sourceUrl": "https://www.press.bmwgroup.com/global/article/detail/T0456175EN/stable-group-earnings-thanks-to-consistent-strategy-bmw-group-on-track"
 		}
 	]
 }

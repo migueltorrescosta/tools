@@ -176,6 +176,60 @@
 			"quality": "reported",
 			"source": "GM Form 10-K FY2019, Consolidated Income Statements",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785820000028/R2.htm"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "USD",
+			"revenue": 122485,
+			"operatingIncome": 8095,
+			"quality": "reported",
+			"source": "GM Form 10-K FY2022, Consolidated Income Statements",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785823000029/R3.htm"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "USD",
+			"revenue": 127004,
+			"operatingIncome": 12716,
+			"quality": "reported",
+			"source": "GM Form 10-K FY2022, Consolidated Income Statements",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785823000029/R3.htm"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "USD",
+			"revenue": 156735,
+			"operatingIncome": 11597,
+			"quality": "reported",
+			"source": "GM Form 10-K FY2022, Consolidated Income Statements",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785823000029/R3.htm"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "USD",
+			"revenue": 171842,
+			"operatingIncome": 10403,
+			"quality": "reported",
+			"source": "GM Form 10-K FY2025, Consolidated Income Statements",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785826000013/R3.htm"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "USD",
+			"revenue": 187442,
+			"operatingIncome": 8519,
+			"quality": "reported",
+			"source": "GM Form 10-K FY2025, Consolidated Income Statements",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785826000013/R3.htm"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "USD",
+			"revenue": 185019,
+			"operatingIncome": 3117,
+			"quality": "reported",
+			"source": "GM Form 10-K FY2025, Consolidated Income Statements",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1467858/000146785826000013/R3.htm"
 		}
 	]
 }

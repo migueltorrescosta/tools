@@ -185,6 +185,60 @@
 			"quality": "reported",
 			"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT')",
 			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "EUR",
+			"revenue": 154309,
+			"operatingIncome": 6603,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "EUR",
+			"revenue": 133893,
+			"operatingIncome": 16028,
+			"quality": "reported",
+			"source": "Mercedes-Benz Group Annual Report 2021, table B.08 condensed statement of income (continuing operations, excl. Daimler Truck)",
+			"sourceUrl": "https://bvb.ro/info/Raportari/DAI/DAI-Annual Report 2021.pdf"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "EUR",
+			"revenue": 150017,
+			"operatingIncome": 20458,
+			"quality": "reported",
+			"source": "Mercedes-Benz Group Annual Report 2023, consolidated statement of income (prior-year column)",
+			"sourceUrl": "https://ir-api.eqs.com/media/document/f5b20e00-4f9e-4cf6-b20a-d16ff5db0c4c/assets/DE0007100000-JA-2023-EQ-E-00.pdf?disposition=inline"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "EUR",
+			"revenue": 153218,
+			"operatingIncome": 19660,
+			"quality": "reported",
+			"source": "Mercedes-Benz Group Annual Report 2023, consolidated statement of income",
+			"sourceUrl": "https://ir-api.eqs.com/media/document/f5b20e00-4f9e-4cf6-b20a-d16ff5db0c4c/assets/DE0007100000-JA-2023-EQ-E-00.pdf?disposition=inline"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "EUR",
+			"revenue": 145594,
+			"operatingIncome": 13599,
+			"quality": "reported",
+			"source": "Mercedes-Benz Group FY2025 results press release (12 Feb 2026), key figures table (prior-year column)",
+			"sourceUrl": "https://media.mercedes-benz.com/en/article/7fd70d14-de24-4e96-bac5-282ef9abc16c"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "EUR",
+			"revenue": 132214,
+			"operatingIncome": 5820,
+			"quality": "reported",
+			"source": "Mercedes-Benz Group FY2025 results press release (12 Feb 2026), key figures table",
+			"sourceUrl": "https://media.mercedes-benz.com/en/article/7fd70d14-de24-4e96-bac5-282ef9abc16c"
 		}
 	]
 }

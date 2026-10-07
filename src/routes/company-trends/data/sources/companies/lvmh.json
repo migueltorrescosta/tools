@@ -185,6 +185,60 @@
 			"quality": "reported",
 			"source": "LVMH 2020 annual results press release, condensed consolidated income statement",
 			"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/ZnVWzJm069VX18md_Pressrelease-LVMHAnnualResults2020.pdf"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "EUR",
+			"revenue": 44651,
+			"operatingIncome": 7972,
+			"quality": "reported",
+			"source": "LVMH 2020 annual results press release, condensed consolidated income statement",
+			"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/ZnVWzJm069VX18md_Pressrelease-LVMHAnnualResults2020.pdf"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "EUR",
+			"revenue": 64215,
+			"operatingIncome": 17155,
+			"quality": "reported",
+			"source": "LVMH Financial Documents December 31, 2023, consolidated income statement",
+			"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/ZmMq-pm069VX1j0w_financial-documents-lvmh-december-31-2023.pdf"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "EUR",
+			"revenue": 79184,
+			"operatingIncome": 21001,
+			"quality": "reported",
+			"source": "LVMH Financial Documents December 31, 2023, consolidated income statement",
+			"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/ZmMq-pm069VX1j0w_financial-documents-lvmh-december-31-2023.pdf"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "EUR",
+			"revenue": 86153,
+			"operatingIncome": 22560,
+			"quality": "reported",
+			"source": "LVMH Financial Documents December 31, 2023, consolidated income statement",
+			"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/ZmMq-pm069VX1j0w_financial-documents-lvmh-december-31-2023.pdf"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "EUR",
+			"revenue": 84683,
+			"operatingIncome": 18907,
+			"quality": "reported",
+			"source": "LVMH 2025 annual results press release, condensed consolidated income statement",
+			"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/aXjoJAIvOtkhB_6z_PressRelease-LVMH2025annualresults.pdf"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "EUR",
+			"revenue": 80807,
+			"operatingIncome": 17099,
+			"quality": "reported",
+			"source": "LVMH 2025 annual results press release, condensed consolidated income statement",
+			"sourceUrl": "https://lvmh-com.cdn.prismic.io/lvmh-com/aXjoJAIvOtkhB_6z_PressRelease-LVMH2025annualresults.pdf"
 		}
 	]
 }

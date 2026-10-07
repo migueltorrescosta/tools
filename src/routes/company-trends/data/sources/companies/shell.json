@@ -176,6 +176,60 @@
 			"quality": "reported",
 			"source": "Royal Dutch Shell Form 20-F (acc. 0001306965-22-000012) via SEC XBRL company concept",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "USD",
+			"revenue": 180543,
+			"operatingIncome": -26967,
+			"quality": "reported",
+			"source": "Shell plc Form 20-F (acc. 0001306965-23-000007) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "USD",
+			"revenue": 261504,
+			"operatingIncome": 29829,
+			"quality": "reported",
+			"source": "Shell plc Form 20-F (acc. 0001306965-25-000025) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "USD",
+			"revenue": 381314,
+			"operatingIncome": 64815,
+			"quality": "reported",
+			"source": "Shell plc Form 20-F (acc. 0001306965-25-000027) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "USD",
+			"revenue": 316620,
+			"operatingIncome": 32627,
+			"quality": "reported",
+			"source": "Shell plc Form 20-F FY2025 (acc. 0001628280-26-017024) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "USD",
+			"revenue": 284312,
+			"operatingIncome": 29922,
+			"quality": "reported",
+			"source": "Shell plc Form 20-F FY2025 (acc. 0001628280-26-017024) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "USD",
+			"revenue": 266886,
+			"operatingIncome": 29756,
+			"quality": "reported",
+			"source": "Shell plc Form 20-F FY2025 (acc. 0001628280-26-017024) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001306965/ifrs-full/Revenue.json"
 		}
 	]
 }

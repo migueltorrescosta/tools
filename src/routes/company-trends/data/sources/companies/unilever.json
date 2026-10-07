@@ -185,6 +185,60 @@
 			"quality": "reported",
 			"source": "Unilever Form 20-F 2021, Consolidated income statement",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741022000009/R3.htm"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "EUR",
+			"revenue": 50724,
+			"operatingIncome": 8303,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2021, Consolidated income statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741022000009/R3.htm"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "EUR",
+			"revenue": 52444,
+			"operatingIncome": 8702,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2021, Consolidated income statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741022000009/R3.htm"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "EUR",
+			"revenue": 60073,
+			"operatingIncome": 10755,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2024, Consolidated income statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741025000015/R3.htm"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "EUR",
+			"revenue": 59604,
+			"operatingIncome": 9758,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2024, Consolidated income statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741025000015/R3.htm"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "EUR",
+			"revenue": 60761,
+			"operatingIncome": 9400,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2024, Consolidated income statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741025000015/R3.htm"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "EUR",
+			"revenue": 50503,
+			"operatingIncome": 9037,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2025, Consolidated income statement (continuing operations, ex-Ice Cream)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741026000007/R3.htm"
 		}
 	]
 }

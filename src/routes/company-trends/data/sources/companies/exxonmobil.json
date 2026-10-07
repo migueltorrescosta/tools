@@ -185,6 +185,60 @@
 			"quality": "reported",
 			"source": "ExxonMobil 10-K FY2021 (acc. 0000034088-22-000011) via SEC XBRL company concept",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "USD",
+			"revenue": 181502,
+			"operatingIncome": -28883,
+			"quality": "reported",
+			"source": "ExxonMobil 10-K FY2022 (acc. 0000034088-23-000020) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "USD",
+			"revenue": 285640,
+			"operatingIncome": 31234,
+			"quality": "reported",
+			"source": "ExxonMobil 10-K FY2023 (acc. 0000034088-24-000018) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "USD",
+			"revenue": 413680,
+			"operatingIncome": 77753,
+			"quality": "reported",
+			"source": "ExxonMobil 10-K FY2024 (acc. 0000034088-25-000010) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "USD",
+			"revenue": 344582,
+			"operatingIncome": 52783,
+			"quality": "reported",
+			"source": "ExxonMobil 10-K FY2025 (acc. 0000034088-26-000045) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "USD",
+			"revenue": 349585,
+			"operatingIncome": 48873,
+			"quality": "reported",
+			"source": "ExxonMobil 10-K FY2025 (acc. 0000034088-26-000045) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "USD",
+			"revenue": 332238,
+			"operatingIncome": 41268,
+			"quality": "reported",
+			"source": "ExxonMobil 10-K FY2025 (acc. 0000034088-26-000045) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000034088/us-gaap/Revenues.json"
 		}
 	]
 }

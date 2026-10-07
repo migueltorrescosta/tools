@@ -185,6 +185,60 @@
 			"quality": "reported",
 			"source": "Volkswagen AG Annual Report 2020, Five-Year Overview",
 			"sourceUrl": "https://annualreport2020.volkswagenag.com/additional-information/five-year-overview.html"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "EUR",
+			"revenue": 222884,
+			"operatingIncome": 9675,
+			"quality": "reported",
+			"source": "Volkswagen AG Annual Report 2020, Five-Year Overview",
+			"sourceUrl": "https://annualreport2020.volkswagenag.com/additional-information/five-year-overview.html"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "EUR",
+			"revenue": 250200,
+			"operatingIncome": 19275,
+			"quality": "reported",
+			"source": "Volkswagen AG Annual Report 2025, Five-Year Review",
+			"sourceUrl": "https://annualreport2025.volkswagen-group.com/additional-information/five-year-review.html"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "EUR",
+			"revenue": 279050,
+			"operatingIncome": 22109,
+			"quality": "reported",
+			"source": "Volkswagen AG Annual Report 2025, Five-Year Review",
+			"sourceUrl": "https://annualreport2025.volkswagen-group.com/additional-information/five-year-review.html"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "EUR",
+			"revenue": 322284,
+			"operatingIncome": 22528,
+			"quality": "reported",
+			"source": "Volkswagen AG Annual Report 2025, Five-Year Review",
+			"sourceUrl": "https://annualreport2025.volkswagen-group.com/additional-information/five-year-review.html"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "EUR",
+			"revenue": 324656,
+			"operatingIncome": 19060,
+			"quality": "reported",
+			"source": "Volkswagen AG Annual Report 2025, Five-Year Review",
+			"sourceUrl": "https://annualreport2025.volkswagen-group.com/additional-information/five-year-review.html"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "EUR",
+			"revenue": 321913,
+			"operatingIncome": 8868,
+			"quality": "reported",
+			"source": "Volkswagen AG Annual Report 2025, Five-Year Review",
+			"sourceUrl": "https://annualreport2025.volkswagen-group.com/additional-information/five-year-review.html"
 		}
 	]
 }

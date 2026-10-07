@@ -185,6 +185,60 @@
 			"quality": "reported",
 			"source": "J&J Form 10-K FY2019 (accn 0000200406-20-000010), XBRL via SEC companyconcept API; revenue from RevenueFromContractWithCustomerExcludingAssessedTax, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json)",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+		},
+		{
+			"periodEnd": "2021-01-03",
+			"currency": "USD",
+			"revenue": 82584,
+			"operatingIncome": 16497,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2020 (accn 0000200406-21-000008), XBRL via SEC companyconcept API; revenue from RevenueFromContractWithCustomerExcludingAssessedTax, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+		},
+		{
+			"periodEnd": "2022-01-02",
+			"currency": "USD",
+			"revenue": 93775,
+			"operatingIncome": 22776,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2021 (accn 0000200406-22-000022), XBRL via SEC companyconcept API; revenue from RevenueFromContractWithCustomerExcludingAssessedTax, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+		},
+		{
+			"periodEnd": "2023-01-01",
+			"currency": "USD",
+			"revenue": 94943,
+			"operatingIncome": 21725,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2022 (accn 0000200406-23-000016), XBRL via SEC companyconcept API; revenue from RevenueFromContractWithCustomerExcludingAssessedTax, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "USD",
+			"revenue": 85159,
+			"operatingIncome": 15062,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2023 (accn 0000200406-24-000013), XBRL via SEC companyconcept API; revenue from RevenueFromContractWithCustomerExcludingAssessedTax, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+		},
+		{
+			"periodEnd": "2024-12-29",
+			"currency": "USD",
+			"revenue": 88821,
+			"operatingIncome": 16687,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2024 (accn 0000200406-25-000038), XBRL via SEC companyconcept API; revenue from RevenueFromContractWithCustomerExcludingAssessedTax, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
+		},
+		{
+			"periodEnd": "2025-12-28",
+			"currency": "USD",
+			"revenue": 94193,
+			"operatingIncome": 32581,
+			"quality": "reported",
+			"source": "J&J Form 10-K FY2025 (accn 0000200406-26-000016), XBRL via SEC companyconcept API; revenue from RevenueFromContractWithCustomerExcludingAssessedTax, pretax from IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest (https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000200406/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
 		}
 	]
 }

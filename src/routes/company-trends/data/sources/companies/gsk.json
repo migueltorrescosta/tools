@@ -176,6 +176,60 @@
 			"quality": "reported",
 			"source": "GSK Form 20-F FY2019 (0001193125-20-065064), XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json)",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "GBP",
+			"revenue": 34099,
+			"operatingIncome": 7783,
+			"quality": "reported",
+			"source": "GSK Form 20-F FY2020 (0001193125-21-079417), XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "GBP",
+			"revenue": 34114,
+			"operatingIncome": 6201,
+			"quality": "reported",
+			"source": "GSK Form 20-F FY2021 (0001193125-22-068957), pre-Haleon-demerger basis incl. Consumer Healthcare, XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "GBP",
+			"revenue": 29324,
+			"operatingIncome": 6433,
+			"quality": "reported",
+			"source": "GSK Form 20-F FY2022 (0001193125-23-067105), continuing operations, XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "GBP",
+			"revenue": 30328,
+			"operatingIncome": 6745,
+			"quality": "reported",
+			"source": "GSK Form 20-F FY2023 (0001131399-24-000007), XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "GBP",
+			"revenue": 31376,
+			"operatingIncome": 4021,
+			"quality": "reported",
+			"source": "GSK Form 20-F FY2024 (0001131399-25-000007), XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "GBP",
+			"revenue": 32667,
+			"operatingIncome": 7932,
+			"quality": "reported",
+			"source": "GSK Form 20-F FY2025 (0001131399-26-000004), XBRL ifrs-full:Revenue / ProfitLossFromOperatingActivities (operatingIncome source: https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/ProfitLossFromOperatingActivities.json)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001131399/ifrs-full/Revenue.json"
 		}
 	]
 }

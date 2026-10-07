@@ -185,6 +185,60 @@
 			"quality": "reported",
 			"source": "AstraZeneca Form 20-F XBRL (SEC companyconcept ifrs-full:Revenue and ifrs-full:ProfitLossFromOperatingActivities), accn 0001104659-20-028557",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000901832/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "USD",
+			"revenue": 26617,
+			"operatingIncome": 5162,
+			"quality": "reported",
+			"source": "AstraZeneca Form 20-F XBRL (SEC companyconcept ifrs-full:Revenue and ifrs-full:ProfitLossFromOperatingActivities), accn 0001104659-21-022456",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000901832/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "USD",
+			"revenue": 37417,
+			"operatingIncome": 1056,
+			"quality": "reported",
+			"source": "AstraZeneca Form 20-F XBRL (SEC companyconcept ifrs-full:Revenue and ifrs-full:ProfitLossFromOperatingActivities), accn 0001104659-22-025720",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000901832/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "USD",
+			"revenue": 44351,
+			"operatingIncome": 3757,
+			"quality": "reported",
+			"source": "AstraZeneca Form 20-F XBRL (SEC companyconcept ifrs-full:Revenue and ifrs-full:ProfitLossFromOperatingActivities), accn 0001104659-23-023818",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000901832/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "USD",
+			"revenue": 45811,
+			"operatingIncome": 8193,
+			"quality": "reported",
+			"source": "AstraZeneca Form 20-F XBRL (SEC companyconcept ifrs-full:Revenue and ifrs-full:ProfitLossFromOperatingActivities), accn 0001104659-24-025553",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000901832/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "USD",
+			"revenue": 54073,
+			"operatingIncome": 10003,
+			"quality": "reported",
+			"source": "AstraZeneca Form 20-F XBRL (SEC companyconcept ifrs-full:Revenue and ifrs-full:ProfitLossFromOperatingActivities), accn 0001104659-25-014750",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000901832/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "USD",
+			"revenue": 58739,
+			"operatingIncome": 13743,
+			"quality": "reported",
+			"source": "AstraZeneca Form 20-F XBRL (SEC companyconcept ifrs-full:Revenue and ifrs-full:ProfitLossFromOperatingActivities), accn 0001104659-26-019130",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000901832/ifrs-full/Revenue.json"
 		}
 	]
 }

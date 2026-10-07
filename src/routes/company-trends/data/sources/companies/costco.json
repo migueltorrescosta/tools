@@ -185,6 +185,69 @@
 			"quality": "reported",
 			"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2020-08-30",
+			"currency": "USD",
+			"revenue": 166761,
+			"operatingIncome": 5435,
+			"quality": "reported",
+			"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2021-08-29",
+			"currency": "USD",
+			"revenue": 195929,
+			"operatingIncome": 6708,
+			"quality": "reported",
+			"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2022-08-28",
+			"currency": "USD",
+			"revenue": 226954,
+			"operatingIncome": 7793,
+			"quality": "reported",
+			"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2023-09-03",
+			"currency": "USD",
+			"revenue": 242290,
+			"operatingIncome": 8114,
+			"quality": "reported",
+			"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2024-09-01",
+			"currency": "USD",
+			"revenue": 254453,
+			"operatingIncome": 9285,
+			"quality": "reported",
+			"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2025-08-31",
+			"currency": "USD",
+			"revenue": 275235,
+			"operatingIncome": 10383,
+			"quality": "reported",
+			"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss)",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2026-08-30",
+			"currency": "USD",
+			"revenue": 303154,
+			"operatingIncome": 11685,
+			"quality": "reported",
+			"source": "Costco Form 10-K FY2026 (filed 2026-10-07), Consolidated Statements of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/909832/000090983226000093/cost-20260830.htm"
 		}
 	]
 }

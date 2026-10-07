@@ -185,6 +185,60 @@
 			"quality": "reported",
 			"source": "SAP Form 20-F FY2019, Consolidated Income Statement (IFRS, XBRL R2)",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465920025681/R2.htm"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "EUR",
+			"revenue": 27338,
+			"operatingIncome": 6623,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2022, Consolidated Income Statement (IFRS, XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465923027626/R2.htm"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "EUR",
+			"revenue": 27842,
+			"operatingIncome": 4656,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2022, Consolidated Income Statement (IFRS, XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465923027626/R2.htm"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "EUR",
+			"revenue": 30871,
+			"operatingIncome": 4670,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2022, Consolidated Income Statement (IFRS, XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465923027626/R2.htm"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "EUR",
+			"revenue": 31207,
+			"operatingIncome": 5799,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2025, Consolidated Income Statements (IFRS, XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465926020058/R2.htm"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "EUR",
+			"revenue": 34176,
+			"operatingIncome": 4665,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2025, Consolidated Income Statements (IFRS, XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465926020058/R2.htm"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "EUR",
+			"revenue": 36800,
+			"operatingIncome": 9617,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2025, Consolidated Income Statements (IFRS, XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465926020058/R2.htm"
 		}
 	]
 }

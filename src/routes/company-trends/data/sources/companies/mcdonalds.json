@@ -185,6 +185,60 @@
 			"quality": "reported",
 			"source": "McDonald's Form 10-K FY2019, Consolidated Statement of Income",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390820000022/R2.htm"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "USD",
+			"revenue": 19207.8,
+			"operatingIncome": 7324.0,
+			"quality": "reported",
+			"source": "McDonald's Form 10-K FY2022, Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390823000012/R3.htm"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "USD",
+			"revenue": 23222.9,
+			"operatingIncome": 10356.0,
+			"quality": "reported",
+			"source": "McDonald's Form 10-K FY2022, Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390823000012/R3.htm"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "USD",
+			"revenue": 23182.6,
+			"operatingIncome": 9371.0,
+			"quality": "reported",
+			"source": "McDonald's Form 10-K FY2022, Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390823000012/R3.htm"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "USD",
+			"revenue": 25494.0,
+			"operatingIncome": 11647.0,
+			"quality": "reported",
+			"source": "McDonald's Form 10-K FY2025, Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390826000035/R3.htm"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "USD",
+			"revenue": 25920.0,
+			"operatingIncome": 11712.0,
+			"quality": "reported",
+			"source": "McDonald's Form 10-K FY2025, Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390826000035/R3.htm"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "USD",
+			"revenue": 26885.0,
+			"operatingIncome": 12393.0,
+			"quality": "reported",
+			"source": "McDonald's Form 10-K FY2025, Consolidated Statement of Income",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/63908/000006390826000035/R3.htm"
 		}
 	]
 }

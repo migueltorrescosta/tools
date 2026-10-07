@@ -185,6 +185,60 @@
 			"quality": "reported",
 			"source": "BP Form 20-F (acc. 0001628280-21-005241 / 0000313807-22-000012) via SEC XBRL company concept",
 			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "USD",
+			"revenue": 183500,
+			"operatingIncome": -24888,
+			"quality": "reported",
+			"source": "BP Form 20-F (acc. 0001628280-21-005241 / 0000313807-23-000009) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "USD",
+			"revenue": 164195,
+			"operatingIncome": 15227,
+			"quality": "reported",
+			"source": "BP Form 20-F FY2023 (acc. 0000313807-24-000008) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "USD",
+			"revenue": 248891,
+			"operatingIncome": 15405,
+			"quality": "reported",
+			"source": "BP Form 20-F FY2024 (acc. 0000313807-25-000007) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "USD",
+			"revenue": 213032,
+			"operatingIncome": 23749,
+			"quality": "reported",
+			"source": "BP Form 20-F FY2025 (acc. 0000313807-26-000006) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "USD",
+			"revenue": 194629,
+			"operatingIncome": 6782,
+			"quality": "reported",
+			"source": "BP Form 20-F FY2025 (acc. 0000313807-26-000006) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "USD",
+			"revenue": 192549,
+			"operatingIncome": 7746,
+			"quality": "reported",
+			"source": "BP Form 20-F FY2025 (acc. 0000313807-26-000006) via SEC XBRL company concept",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
 		}
 	]
 }
