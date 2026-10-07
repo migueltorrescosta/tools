@@ -10,7 +10,6 @@
 		percentTicks,
 		trailSegments,
 		trailUpTo,
-		typeSlot,
 		type Trail,
 		type TrailPoint
 	} from '$lib/company-trends/chart';
@@ -22,11 +21,13 @@
 		qi: number;
 		quarter: string;
 		currency: Currency;
+		/** CSS colour per company id (see assignColors). */
+		colors: Map<string, string>;
 		/** Revenue [min, max] for the log x axis; the margin axis is fixed. */
 		domain: [number, number];
 	}
 
-	let { trails, qi, quarter, currency, domain }: Props = $props();
+	let { trails, qi, quarter, currency, colors, domain }: Props = $props();
 
 	const W = 960;
 	const H = 620;
@@ -68,7 +69,7 @@
 			const last = trail.points[trail.points.length - 1];
 			return {
 				trail,
-				color: `var(--series-${typeSlot(trail.company.type) + 1})`,
+				color: colors.get(trail.company.id) ?? 'var(--text-muted)',
 				points,
 				head: points.length > 0 ? points[points.length - 1] : null,
 				ended: last !== undefined && last.qi < qi

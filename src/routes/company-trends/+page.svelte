@@ -4,10 +4,13 @@
 	import { loadDataset } from '$lib/company-trends/schema';
 	import { companyTypes, filterCompanies } from '$lib/company-trends/filter';
 	import {
+		assignColors,
 		buildTrail,
+		colorMode,
 		formatMoney,
 		formatPercent,
 		logExtent,
+		PALETTE_SIZE,
 		typeSlot
 	} from '$lib/company-trends/chart';
 	import { quarterIndex, quarterLabel, quarterRange } from '$lib/company-trends/series';
@@ -52,6 +55,10 @@
 	// Trails for every company in the chosen currency; filtered views reuse them.
 	const allTrails = $derived(companies.map((c) => buildTrail(c, quarters, currency, dataset.fx)));
 	const visibleTrails = $derived(allTrails.filter((t) => visible.includes(t.company)));
+
+	// Small selections (e.g. one industry) get a colour per company; larger ones per industry.
+	const mode = $derived(colorMode(visibleTrails.length));
+	const colors = $derived(assignColors(visibleTrails));
 
 	// The revenue axis spans every visible point across all quarters, so it stays fixed during
 	// playback; the margin axis is fixed outright.
@@ -168,15 +175,20 @@
 							checked={selectedTypes.includes(type)}
 							onchange={() => (selectedTypes = toggle(selectedTypes, type))}
 						/>
-						<span class="swatch"></span>{type}
+						<span class="swatch" class:neutral={mode === 'company'}></span>{type}
 					</label>
 				{/each}
+				<span class="hint color-mode" data-testid="color-mode"
+					>{mode === 'company'
+						? 'Coloured by company'
+						: `Coloured by industry (select ≤ ${PALETTE_SIZE} companies to colour individually)`}</span
+				>
 			</fieldset>
 		</div>
 
 		<div class="layout">
 			<div class="chart-scroll">
-				<TrendsChart trails={visibleTrails} {qi} {quarter} {currency} {domain} />
+				<TrendsChart trails={visibleTrails} {qi} {quarter} {currency} {colors} {domain} />
 				<div class="legend hint">
 					<span
 						><svg width="14" height="14"><circle cx="7" cy="7" r="4" class="lg reported" /></svg
@@ -212,7 +224,7 @@
 				{#each companiesByType as group (group.type)}
 					<div class="group" class:muted={!selectedTypes.includes(group.type)}>
 						<div class="group-title" style="--c: var(--series-{typeSlot(group.type) + 1})">
-							<span class="swatch"></span>{group.type}
+							<span class="swatch" class:neutral={mode === 'company'}></span>{group.type}
 						</div>
 						{#each group.companies as company (company.id)}
 							<label class="company-row">
@@ -222,6 +234,13 @@
 									checked={selectedIds.includes(company.id)}
 									onchange={() => (selectedIds = toggle(selectedIds, company.id))}
 								/>
+								{#if mode === 'company' && colors.has(company.id)}
+									<span
+										class="swatch"
+										style="--c: {colors.get(company.id)}"
+										data-testid="company-swatch"
+									></span>
+								{/if}
 								{company.name}
 							</label>
 						{/each}
@@ -276,7 +295,7 @@
 </div>
 
 <style>
-	/* Categorical slots (validated for the dark surface): one per company type, in TYPE_ORDER. */
+	/* Industry slots (validated for the dark surface): one per company type, in TYPE_ORDER. */
 	.viz-root {
 		color-scheme: dark;
 		--chart-surface: #13131f;
@@ -293,6 +312,26 @@
 		--series-6: #008300;
 		--series-7: #9085e9;
 		--series-8: #e66767;
+		/*
+		 * Per-company slots, used when <= 12 companies are visible. Ordered so every prefix
+		 * stays maximally separated. validate_palette.js --mode dark --surface #13131f
+		 * --pairs all: CVD PASS (worst 8.4), normal-vision PASS (worst 16.8), contrast PASS
+		 * (all >= 3:1), chroma PASS. Lightness band FAIL by design: six slots sit at OKLCH
+		 * L 0.69-0.79, above the 0.67 dark band, which 12 all-pairs-distinct hues require.
+		 * Direct head labels and sidebar swatches back colour up as secondary encoding.
+		 */
+		--cseries-1: #cfbd00;
+		--cseries-2: #5a3ffc;
+		--cseries-3: #cf0909;
+		--cseries-4: #24c6fc;
+		--cseries-5: #905187;
+		--cseries-6: #3fb475;
+		--cseries-7: #b475fc;
+		--cseries-8: #f399c6;
+		--cseries-9: #007536;
+		--cseries-10: #f37536;
+		--cseries-11: #fc00c6;
+		--cseries-12: #0087c6;
 	}
 
 	.controls {
@@ -361,6 +400,15 @@
 		height: 10px;
 		border-radius: 50%;
 		background: var(--c);
+	}
+
+	.swatch.neutral {
+		background: transparent;
+		box-shadow: inset 0 0 0 1px var(--text-muted);
+	}
+
+	.color-mode {
+		margin-left: auto;
 	}
 
 	.layout {
