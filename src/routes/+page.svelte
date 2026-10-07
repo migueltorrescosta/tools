@@ -64,6 +64,12 @@
 				'Navigate decision trees one answer at a time. Choose a car or find your religion through an interactive question flow.'
 		},
 		{
+			path: '/company-trends',
+			name: 'Company Trends',
+			description:
+				'Animated log-log trajectories of revenue vs operating expenses for 30+ companies since 2000, normalized to EUR with per-point sources.'
+		},
+		{
 			path: '/warhammer-simulator',
 			name: 'Warhammer Simulator',
 			description:

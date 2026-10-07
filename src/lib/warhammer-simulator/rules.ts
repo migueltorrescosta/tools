@@ -129,9 +129,9 @@ export function computeEffectiveStats(
 
 	// Base stats
 	let strength = char.s + weapon.strengthBonus;
-	let attacks = char.a + weapon.attacks;
+	const attacks = char.a + weapon.attacks;
 	let initiative = char.i;
-	let ap = weapon.ap;
+	const ap = weapon.ap;
 
 	// Great Weapon: set initiative to 1 before other modifiers
 	if (weapon.type === 'great-weapon') {
@@ -170,10 +170,10 @@ export function computeEffectiveStats(
 
 	// Special rules parsing
 	let hasRerollHits = false;
-	let hasRerollWounds = false;
+	const hasRerollWounds = false;
 	let hasKillingBlow = false;
 	let hasPoison = false;
-	let hasRegeneration = false;
+	const hasRegeneration = false;
 
 	// Check traits and gifts for special rules (simplified - hardcoded effects)
 	if (char.specialRules.includes('hatred-all') || char.traits.includes('immortal-fury')) {

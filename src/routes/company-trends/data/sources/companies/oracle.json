@@ -1,0 +1,253 @@
+{
+	"id": "oracle",
+	"name": "Oracle",
+	"type": "tech",
+	"country": "US",
+	"reportingCurrency": "USD",
+	"notes": "Revenue = 'Total revenues'; operatingIncome = 'Operating income'. FY ends May 31. FY2000-2002 from old-registrant (CIK 777676) FY2004 10-K; FY2003-2007 from FY2007 10-K (new CIK 1341439 after 2006 holding-company reorganization); FY2008+ from XBRL 10-K facts.",
+	"anchors": [
+		{
+			"periodEnd": "2000-05-31",
+			"currency": "USD",
+			"revenue": 10231.0,
+			"operatingIncome": 3080.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K FY2004, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/777676/000095013404009282/f99870e10vk.htm"
+		},
+		{
+			"periodEnd": "2001-05-31",
+			"currency": "USD",
+			"revenue": 10961.0,
+			"operatingIncome": 3777.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K FY2004, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/777676/000095013404009282/f99870e10vk.htm"
+		},
+		{
+			"periodEnd": "2002-05-31",
+			"currency": "USD",
+			"revenue": 9673.0,
+			"operatingIncome": 3571.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K FY2004, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/777676/000095013404009282/f99870e10vk.htm"
+		},
+		{
+			"periodEnd": "2003-05-31",
+			"currency": "USD",
+			"revenue": 9475.0,
+			"operatingIncome": 3440.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K FY2007, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1341439/000095013407014478/f31530e10vk.htm"
+		},
+		{
+			"periodEnd": "2004-05-31",
+			"currency": "USD",
+			"revenue": 10156.0,
+			"operatingIncome": 3864.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K FY2007, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1341439/000095013407014478/f31530e10vk.htm"
+		},
+		{
+			"periodEnd": "2005-05-31",
+			"currency": "USD",
+			"revenue": 11799.0,
+			"operatingIncome": 4022.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K FY2007, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1341439/000095013407014478/f31530e10vk.htm"
+		},
+		{
+			"periodEnd": "2006-05-31",
+			"currency": "USD",
+			"revenue": 14380.0,
+			"operatingIncome": 4736.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K FY2007, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1341439/000095013407014478/f31530e10vk.htm"
+		},
+		{
+			"periodEnd": "2007-05-31",
+			"currency": "USD",
+			"revenue": 17996.0,
+			"operatingIncome": 5974.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K FY2007, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1341439/000095013407014478/f31530e10vk.htm"
+		},
+		{
+			"periodEnd": "2008-05-31",
+			"currency": "USD",
+			"revenue": 22430.0,
+			"operatingIncome": 7844.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001193125-10-151896), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2009-05-31",
+			"currency": "USD",
+			"revenue": 23252.0,
+			"operatingIncome": 8321.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001193125-10-151896), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2010-05-31",
+			"currency": "USD",
+			"revenue": 26820.0,
+			"operatingIncome": 9062.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001193125-10-151896), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2011-05-31",
+			"currency": "USD",
+			"revenue": 35622.0,
+			"operatingIncome": 12033.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001193125-11-174819), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2012-05-31",
+			"currency": "USD",
+			"revenue": 37121.0,
+			"operatingIncome": 13706.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001193125-12-284007), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2013-05-31",
+			"currency": "USD",
+			"revenue": 37180.0,
+			"operatingIncome": 14684.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001193125-13-272832), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2014-05-31",
+			"currency": "USD",
+			"revenue": 38275.0,
+			"operatingIncome": 14759.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001193125-14-251351), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2015-05-31",
+			"currency": "USD",
+			"revenue": 38226.0,
+			"operatingIncome": 13871.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001193125-15-235239), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2016-05-31",
+			"currency": "USD",
+			"revenue": 37047.0,
+			"operatingIncome": 12604.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001193125-16-628942), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2017-05-31",
+			"currency": "USD",
+			"revenue": 37728.0,
+			"operatingIncome": 12710.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001193125-17-214833), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2018-05-31",
+			"currency": "USD",
+			"revenue": 39831.0,
+			"operatingIncome": 13679.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001193125-18-201034), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2019-05-31",
+			"currency": "USD",
+			"revenue": 39506.0,
+			"operatingIncome": 13535.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001564590-19-023119), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2020-05-31",
+			"currency": "USD",
+			"revenue": 39068.0,
+			"operatingIncome": 13896.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001564590-20-030125), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2021-05-31",
+			"currency": "USD",
+			"revenue": 40479.0,
+			"operatingIncome": 15213.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001564590-21-033616), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2022-05-31",
+			"currency": "USD",
+			"revenue": 42440.0,
+			"operatingIncome": 10926.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001564590-22-023675), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2023-05-31",
+			"currency": "USD",
+			"revenue": 49954.0,
+			"operatingIncome": 13093.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0000950170-23-028914), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2024-05-31",
+			"currency": "USD",
+			"revenue": 52961.0,
+			"operatingIncome": 15353.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0000950170-24-075605), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2025-05-31",
+			"currency": "USD",
+			"revenue": 57399.0,
+			"operatingIncome": 17678.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0000950170-25-087926), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2026-05-31",
+			"currency": "USD",
+			"revenue": 67357.0,
+			"operatingIncome": 20606.0,
+			"quality": "reported",
+			"source": "Oracle Form 10-K XBRL (accn 0001193125-26-277521), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001341439/us-gaap/Revenues.json"
+		}
+	]
+}

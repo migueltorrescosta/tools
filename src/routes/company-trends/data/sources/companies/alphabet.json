@@ -1,0 +1,244 @@
+{
+	"id": "alphabet",
+	"name": "Alphabet (Google)",
+	"type": "tech",
+	"country": "US",
+	"reportingCurrency": "USD",
+	"notes": "Revenue = total revenues; operating income = 'Income from operations'. FY ends Dec 31. 2000-2003 pre-IPO figures from Google's first 10-K (FY2004) five-year table rather than the S-1 (same data). 2012-2013 as originally reported incl. Motorola Mobility (later restated with Motorola as discontinued: 2013 to 55,519/15,403, 2012 OI to 13,834). 2000-2009 stored to the thousand as filed. 2000-2014 from Google Inc. (CIK 1288776), 2015+ Alphabet Inc.",
+	"anchors": [
+		{
+			"periodEnd": "2000-12-31",
+			"currency": "USD",
+			"revenue": 19.108,
+			"operatingIncome": -14.737,
+			"quality": "reported",
+			"source": "Google Inc. Form 10-K FY2004, Item 6 Selected Financial Data (thousands converted to millions)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1288776/000119312505065298/d10k.htm"
+		},
+		{
+			"periodEnd": "2001-12-31",
+			"currency": "USD",
+			"revenue": 86.426,
+			"operatingIncome": 10.964,
+			"quality": "reported",
+			"source": "Google Inc. Form 10-K FY2004, Item 6 Selected Financial Data (thousands converted to millions)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1288776/000119312505065298/d10k.htm"
+		},
+		{
+			"periodEnd": "2002-12-31",
+			"currency": "USD",
+			"revenue": 439.508,
+			"operatingIncome": 186.466,
+			"quality": "reported",
+			"source": "Google Inc. Form 10-K FY2004, Item 6 Selected Financial Data (thousands converted to millions)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1288776/000119312505065298/d10k.htm"
+		},
+		{
+			"periodEnd": "2003-12-31",
+			"currency": "USD",
+			"revenue": 1465.934,
+			"operatingIncome": 342.464,
+			"quality": "reported",
+			"source": "Google Inc. Form 10-K FY2004, Item 6 Selected Financial Data (thousands converted to millions)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1288776/000119312505065298/d10k.htm"
+		},
+		{
+			"periodEnd": "2004-12-31",
+			"currency": "USD",
+			"revenue": 3189.223,
+			"operatingIncome": 640.192,
+			"quality": "reported",
+			"source": "Google Inc. Form 10-K FY2004, Item 6 Selected Financial Data (thousands converted to millions)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1288776/000119312505065298/d10k.htm"
+		},
+		{
+			"periodEnd": "2005-12-31",
+			"currency": "USD",
+			"revenue": 6138.56,
+			"operatingIncome": 2017.278,
+			"quality": "reported",
+			"source": "Google Inc. Form 10-K FY2009, Item 6 Selected Financial Data (thousands converted to millions)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1288776/000119312510030774/d10k.htm"
+		},
+		{
+			"periodEnd": "2006-12-31",
+			"currency": "USD",
+			"revenue": 10604.917,
+			"operatingIncome": 3549.996,
+			"quality": "reported",
+			"source": "Google Inc. Form 10-K FY2009, Item 6 Selected Financial Data (thousands converted to millions)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1288776/000119312510030774/d10k.htm"
+		},
+		{
+			"periodEnd": "2007-12-31",
+			"currency": "USD",
+			"revenue": 16593.986,
+			"operatingIncome": 5084.4,
+			"quality": "reported",
+			"source": "Google Inc. Form 10-K FY2009, Item 6 Selected Financial Data (thousands converted to millions)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1288776/000119312510030774/d10k.htm"
+		},
+		{
+			"periodEnd": "2008-12-31",
+			"currency": "USD",
+			"revenue": 21795.55,
+			"operatingIncome": 6631.969,
+			"quality": "reported",
+			"source": "Google Inc. Form 10-K FY2009, Item 6 Selected Financial Data (thousands converted to millions)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1288776/000119312510030774/d10k.htm"
+		},
+		{
+			"periodEnd": "2009-12-31",
+			"currency": "USD",
+			"revenue": 23650.563,
+			"operatingIncome": 8312.186,
+			"quality": "reported",
+			"source": "Google Inc. Form 10-K FY2009, Item 6 Selected Financial Data (thousands converted to millions)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1288776/000119312510030774/d10k.htm"
+		},
+		{
+			"periodEnd": "2010-12-31",
+			"currency": "USD",
+			"revenue": 29321,
+			"operatingIncome": 10381,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-11-032930 / 0001193125-13-028362); revenue tag us-gaap:Revenues (Google Inc. CIK 1288776), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001288776/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2011-12-31",
+			"currency": "USD",
+			"revenue": 37905,
+			"operatingIncome": 11742,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-12-025336 / 0001193125-13-028362); revenue tag us-gaap:Revenues (Google Inc. CIK 1288776), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001288776/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2012-12-31",
+			"currency": "USD",
+			"revenue": 50175,
+			"operatingIncome": 12760,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001193125-13-028362); revenue tag us-gaap:Revenues (Google Inc. CIK 1288776), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001288776/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "USD",
+			"revenue": 59825,
+			"operatingIncome": 13966,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001288776-14-000020); revenue tag us-gaap:Revenues (Google Inc. CIK 1288776), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001288776/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "USD",
+			"revenue": 66001,
+			"operatingIncome": 16496,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001288776-15-000008); revenue tag us-gaap:Revenues (Google Inc. CIK 1288776), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001288776/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "USD",
+			"revenue": 74989,
+			"operatingIncome": 19360,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-16-000012); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "USD",
+			"revenue": 90272,
+			"operatingIncome": 23716,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-17-000008); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "USD",
+			"revenue": 110855,
+			"operatingIncome": 26146,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-18-000007); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "USD",
+			"revenue": 136819,
+			"operatingIncome": 26321,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-19-000004); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "USD",
+			"revenue": 161857,
+			"operatingIncome": 34231,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-20-000008); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "USD",
+			"revenue": 182527,
+			"operatingIncome": 41224,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-21-000010); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "USD",
+			"revenue": 257637,
+			"operatingIncome": 78714,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-22-000019); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "USD",
+			"revenue": 282836,
+			"operatingIncome": 74842,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-23-000016); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "USD",
+			"revenue": 307394,
+			"operatingIncome": 84293,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-24-000022); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "USD",
+			"revenue": 350018,
+			"operatingIncome": 112390,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-25-000014); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "USD",
+			"revenue": 402836,
+			"operatingIncome": 129039,
+			"quality": "reported",
+			"source": "SEC EDGAR XBRL companyconcept (10-K accn 0001652044-26-000018); revenue tag us-gaap:Revenues / RevenueFromContractWithCustomerExcludingAssessedTax (Alphabet CIK 1652044), operating income us-gaap:OperatingIncomeLoss",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001652044/us-gaap/OperatingIncomeLoss.json"
+		}
+	]
+}

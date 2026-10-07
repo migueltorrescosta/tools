@@ -1,0 +1,244 @@
+{
+	"id": "sap",
+	"name": "SAP",
+	"type": "tech",
+	"country": "DE",
+	"reportingCurrency": "EUR",
+	"notes": "Revenue = 'Total revenue'; operating income = IFRS 'Operating profit' (2006+) / US GAAP 'Operating income' (2000-2005), not non-IFRS. Accounting basis switch: 2000-2005 US GAAP (20-F FY2004/FY2006, reported in EUR thousands, rounded to 0.1m); 2006+ IFRS per 20-F FY2009 restated selected data (2006 US GAAP op income was 2,565.4m vs IFRS 2,503m). 2017-2025 from XBRL income statements of later 20-Fs; 2021-2022 and 2023-2024 figures as presented in FY2022/FY2025 filings (may reflect restatements, e.g. Qualtrics as discontinued operation). FY ends Dec 31.",
+	"anchors": [
+		{
+			"periodEnd": "2000-12-31",
+			"currency": "EUR",
+			"revenue": 6264.6,
+			"operatingIncome": 802.7,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2004, Item 3 Selected Financial Data (US GAAP)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000115697305000351/f00929e20vf.htm"
+		},
+		{
+			"periodEnd": "2001-12-31",
+			"currency": "EUR",
+			"revenue": 7340.8,
+			"operatingIncome": 1312.4,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2004, Item 3 Selected Financial Data (US GAAP)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000115697305000351/f00929e20vf.htm"
+		},
+		{
+			"periodEnd": "2002-12-31",
+			"currency": "EUR",
+			"revenue": 7412.8,
+			"operatingIncome": 1625.7,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2004, Item 3 Selected Financial Data (US GAAP)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000115697305000351/f00929e20vf.htm"
+		},
+		{
+			"periodEnd": "2003-12-31",
+			"currency": "EUR",
+			"revenue": 7024.6,
+			"operatingIncome": 1724.0,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2004, Item 3 Selected Financial Data (US GAAP)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000115697305000351/f00929e20vf.htm"
+		},
+		{
+			"periodEnd": "2004-12-31",
+			"currency": "EUR",
+			"revenue": 7514.5,
+			"operatingIncome": 2018.4,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2004, Item 3 Selected Financial Data (US GAAP)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000115697305000351/f00929e20vf.htm"
+		},
+		{
+			"periodEnd": "2005-12-31",
+			"currency": "EUR",
+			"revenue": 8512.4,
+			"operatingIncome": 2330.7,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2006, Item 3 Selected Financial Data (US GAAP)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000132693207000138/f01557e20vf.htm"
+		},
+		{
+			"periodEnd": "2006-12-31",
+			"currency": "EUR",
+			"revenue": 9402,
+			"operatingIncome": 2503,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2009, Item 3 Selected Financial Data (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000095012310028310/f03280e20vf.htm"
+		},
+		{
+			"periodEnd": "2007-12-31",
+			"currency": "EUR",
+			"revenue": 10256,
+			"operatingIncome": 2698,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2009, Item 3 Selected Financial Data (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000095012310028310/f03280e20vf.htm"
+		},
+		{
+			"periodEnd": "2008-12-31",
+			"currency": "EUR",
+			"revenue": 11575,
+			"operatingIncome": 2701,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2009, Item 3 Selected Financial Data (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000095012310028310/f03280e20vf.htm"
+		},
+		{
+			"periodEnd": "2009-12-31",
+			"currency": "EUR",
+			"revenue": 10672,
+			"operatingIncome": 2588,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2009, Item 3 Selected Financial Data (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000095012310028310/f03280e20vf.htm"
+		},
+		{
+			"periodEnd": "2010-12-31",
+			"currency": "EUR",
+			"revenue": 12464,
+			"operatingIncome": 2591,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2014, Item 3 Selected Financial Data (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000119312515099258/d875102d20f.htm"
+		},
+		{
+			"periodEnd": "2011-12-31",
+			"currency": "EUR",
+			"revenue": 14233,
+			"operatingIncome": 4884,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2014, Item 3 Selected Financial Data (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000119312515099258/d875102d20f.htm"
+		},
+		{
+			"periodEnd": "2012-12-31",
+			"currency": "EUR",
+			"revenue": 16223,
+			"operatingIncome": 4041,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2014, Item 3 Selected Financial Data (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000119312515099258/d875102d20f.htm"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "EUR",
+			"revenue": 16815,
+			"operatingIncome": 4479,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2014, Item 3 Selected Financial Data (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000119312515099258/d875102d20f.htm"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "EUR",
+			"revenue": 17560,
+			"operatingIncome": 4331,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2014, Item 3 Selected Financial Data (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000119312515099258/d875102d20f.htm"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "EUR",
+			"revenue": 20793,
+			"operatingIncome": 4252,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2016, Item 3 Selected Financial Data (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000119312517060157/d344005d20f.htm"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "EUR",
+			"revenue": 22062,
+			"operatingIncome": 5135,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2016, Item 3 Selected Financial Data (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000119312517060157/d344005d20f.htm"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "EUR",
+			"revenue": 23461,
+			"operatingIncome": 4877,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2019, Consolidated Income Statement (IFRS, XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465920025681/R2.htm"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "EUR",
+			"revenue": 24708,
+			"operatingIncome": 5703,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2019, Consolidated Income Statement (IFRS, XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465920025681/R2.htm"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "EUR",
+			"revenue": 27553,
+			"operatingIncome": 4473,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2019, Consolidated Income Statement (IFRS, XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465920025681/R2.htm"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "EUR",
+			"revenue": 27338,
+			"operatingIncome": 6623,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2022, Consolidated Income Statement (IFRS, XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465923027626/R2.htm"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "EUR",
+			"revenue": 27842,
+			"operatingIncome": 4656,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2022, Consolidated Income Statement (IFRS, XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465923027626/R2.htm"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "EUR",
+			"revenue": 30871,
+			"operatingIncome": 4670,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2022, Consolidated Income Statement (IFRS, XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465923027626/R2.htm"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "EUR",
+			"revenue": 31207,
+			"operatingIncome": 5799,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2025, Consolidated Income Statements (IFRS, XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465926020058/R2.htm"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "EUR",
+			"revenue": 34176,
+			"operatingIncome": 4665,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2025, Consolidated Income Statements (IFRS, XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465926020058/R2.htm"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "EUR",
+			"revenue": 36800,
+			"operatingIncome": 9617,
+			"quality": "reported",
+			"source": "SAP Form 20-F FY2025, Consolidated Income Statements (IFRS, XBRL R2)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1000184/000110465926020058/R2.htm"
+		}
+	]
+}

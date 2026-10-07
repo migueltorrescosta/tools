@@ -388,7 +388,13 @@
 	<!-- Search Modal -->
 	{#if searchOpen}
 		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="modal" onkeydown={handleSearchKeydown} role="dialog" aria-label="Search sessions" tabindex="-1">
+		<div
+			class="modal"
+			onkeydown={handleSearchKeydown}
+			role="dialog"
+			aria-label="Search sessions"
+			tabindex="-1"
+		>
 			<div class="modal-header">
 				<span class="modal-title">SEARCH</span>
 				<button class="modal-close" onclick={closeSearch} aria-label="Close search">&times;</button>

@@ -11,7 +11,11 @@ test('Warhammer Simulator - preset selection populates form', async ({ page }) =
 	await page.waitForLoadState('networkidle');
 
 	// Get the preset select for Character A (first select inside first panel)
-	const presetSelect = page.locator('.sim-builder-grid .panel').first().locator('select.algorithm-select').first();
+	const presetSelect = page
+		.locator('.sim-builder-grid .panel')
+		.first()
+		.locator('select.algorithm-select')
+		.first();
 	await presetSelect.waitFor({ state: 'visible' });
 
 	// Select a preset for Character A
@@ -63,8 +67,16 @@ test('Warhammer Simulator - presets loaded for both characters produce different
 	await simCountInput.fill('1000');
 
 	// Get the preset selects for each character panel
-	const selectA = page.locator('.sim-builder-grid .panel').first().locator('select.algorithm-select').first();
-	const selectB = page.locator('.sim-builder-grid .panel').nth(1).locator('select.algorithm-select').first();
+	const selectA = page
+		.locator('.sim-builder-grid .panel')
+		.first()
+		.locator('select.algorithm-select')
+		.first();
+	const selectB = page
+		.locator('.sim-builder-grid .panel')
+		.nth(1)
+		.locator('select.algorithm-select')
+		.first();
 
 	// Load different presets
 	await selectA.selectOption('Chaos Lord');

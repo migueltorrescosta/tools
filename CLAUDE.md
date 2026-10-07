@@ -5,6 +5,7 @@ Collection of interactive utility web apps built with SvelteKit, deployed to Clo
 ## Quality Gates
 
 Run all before committing:
+
 ```bash
 pnpm test:unit
 pnpm run check

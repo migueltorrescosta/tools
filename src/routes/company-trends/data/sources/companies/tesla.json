@@ -1,0 +1,181 @@
+{
+	"id": "tesla",
+	"name": "Tesla",
+	"type": "automotive",
+	"country": "US",
+	"reportingCurrency": "USD",
+	"notes": "Revenue = 'Total revenues'; operatingIncome = 'Income (loss) from operations'. Calendar FY. 2007-2008 pre-IPO from 2010 S-1 summary table (2006 omitted: revenue $0, op loss $30.4M, unplottable on log axis). 2009+ from XBRL 10-K facts (2009-2011 per FY2011 10-K).",
+	"anchors": [
+		{
+			"periodEnd": "2007-12-31",
+			"currency": "USD",
+			"revenue": 0.073,
+			"operatingIncome": -79.933,
+			"quality": "reported",
+			"source": "Tesla Motors Form S-1 (2010-01-29), Summary Consolidated Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1318605/000119312510017054/ds1.htm"
+		},
+		{
+			"periodEnd": "2008-12-31",
+			"currency": "USD",
+			"revenue": 14.742,
+			"operatingIncome": -78.504,
+			"quality": "reported",
+			"source": "Tesla Motors Form S-1 (2010-01-29), Summary Consolidated Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1318605/000119312510017054/ds1.htm"
+		},
+		{
+			"periodEnd": "2009-12-31",
+			"currency": "USD",
+			"revenue": 111.943,
+			"operatingIncome": -51.897,
+			"quality": "reported",
+			"source": "Tesla Form 10-K XBRL (accn 0001193125-12-081990), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2010-12-31",
+			"currency": "USD",
+			"revenue": 116.744,
+			"operatingIncome": -146.838,
+			"quality": "reported",
+			"source": "Tesla Form 10-K XBRL (accn 0001193125-12-081990), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2011-12-31",
+			"currency": "USD",
+			"revenue": 204.242,
+			"operatingIncome": -251.488,
+			"quality": "reported",
+			"source": "Tesla Form 10-K XBRL (accn 0001193125-12-081990), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2012-12-31",
+			"currency": "USD",
+			"revenue": 413.256,
+			"operatingIncome": -394.283,
+			"quality": "reported",
+			"source": "Tesla Form 10-K XBRL (accn 0001193125-13-096241), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "USD",
+			"revenue": 2013.496,
+			"operatingIncome": -61.283,
+			"quality": "reported",
+			"source": "Tesla Form 10-K XBRL (accn 0001193125-14-069681), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "USD",
+			"revenue": 3198.356,
+			"operatingIncome": -186.689,
+			"quality": "reported",
+			"source": "Tesla Form 10-K XBRL (accn 0001564590-15-001031), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "USD",
+			"revenue": 4046.025,
+			"operatingIncome": -716.629,
+			"quality": "reported",
+			"source": "Tesla Form 10-K XBRL (accn 0001564590-16-013195), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "USD",
+			"revenue": 7000.132,
+			"operatingIncome": -667.34,
+			"quality": "reported",
+			"source": "Tesla Form 10-K XBRL (accn 0001564590-17-003118), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "USD",
+			"revenue": 11758.751,
+			"operatingIncome": -1632.086,
+			"quality": "reported",
+			"source": "Tesla Form 10-K XBRL (accn 0001564590-18-002956), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "USD",
+			"revenue": 21461.268,
+			"operatingIncome": -388.073,
+			"quality": "reported",
+			"source": "Tesla Form 10-K XBRL (accn 0001564590-19-003165), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "USD",
+			"revenue": 24578.0,
+			"operatingIncome": -69.0,
+			"quality": "reported",
+			"source": "Tesla Form 10-K XBRL (accn 0001564590-20-004475), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "USD",
+			"revenue": 31536.0,
+			"operatingIncome": 1994.0,
+			"quality": "reported",
+			"source": "Tesla Form 10-K XBRL (accn 0001564590-21-004599), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "USD",
+			"revenue": 53823.0,
+			"operatingIncome": 6523.0,
+			"quality": "reported",
+			"source": "Tesla Form 10-K XBRL (accn 0000950170-22-000796), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "USD",
+			"revenue": 81462.0,
+			"operatingIncome": 13656.0,
+			"quality": "reported",
+			"source": "Tesla Form 10-K XBRL (accn 0000950170-23-001409), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "USD",
+			"revenue": 96773.0,
+			"operatingIncome": 8891.0,
+			"quality": "reported",
+			"source": "Tesla Form 10-K XBRL (accn 0001628280-24-002390), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "USD",
+			"revenue": 97690.0,
+			"operatingIncome": 7076.0,
+			"quality": "reported",
+			"source": "Tesla Form 10-K XBRL (accn 0001628280-25-003063), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "USD",
+			"revenue": 94827.0,
+			"operatingIncome": 4355.0,
+			"quality": "reported",
+			"source": "Tesla Form 10-K XBRL (accn 0001628280-26-003952), SEC companyconcept API",
+			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001318605/us-gaap/Revenues.json"
+		}
+	]
+}

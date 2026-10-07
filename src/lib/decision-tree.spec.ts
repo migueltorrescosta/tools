@@ -7,8 +7,12 @@ import {
 	encodePath,
 	decodePath,
 	isResultNode,
-	isQuestionNode
+	isQuestionNode,
+	type QuestionRow,
+	type AnswerRow,
+	type ResultRow
 } from './decision-tree/graph';
+import treeJson from './decision-tree/data/tree.json';
 import { validateGraph } from './decision-tree/validation';
 import type { RawTree, DecisionGraph, TraversalPath } from './decision-tree/types';
 
@@ -55,15 +59,15 @@ describe('Valid traversal renders alternating rows until result', () => {
 
 		expect(rows.length).toBe(5);
 		expect(rows[0].type).toBe('question');
-		expect((rows[0] as any).node.prompt).toBe('What matters most?');
+		expect((rows[0] as QuestionRow).node.prompt).toBe('What matters most?');
 		expect(rows[1].type).toBe('answer');
-		expect((rows[1] as any).selectedEdgeId).toBe('root|Lowest cost');
+		expect((rows[1] as AnswerRow).selectedEdgeId).toBe('root|Lowest cost');
 		expect(rows[2].type).toBe('question');
-		expect((rows[2] as any).node.prompt).toBe('Mostly city driving?');
+		expect((rows[2] as QuestionRow).node.prompt).toBe('Mostly city driving?');
 		expect(rows[3].type).toBe('answer');
-		expect((rows[3] as any).selectedEdgeId).toBe('q_city|Yes');
+		expect((rows[3] as AnswerRow).selectedEdgeId).toBe('q_city|Yes');
 		expect(rows[4].type).toBe('result');
-		expect((rows[4] as any).node.result).toBe('Hybrid');
+		expect((rows[4] as ResultRow).node.result).toBe('Hybrid');
 	});
 
 	it('renders only the root row when path is empty', () => {
@@ -72,7 +76,7 @@ describe('Valid traversal renders alternating rows until result', () => {
 		expect(rows.length).toBe(2);
 		expect(rows[0].type).toBe('question');
 		expect(rows[1].type).toBe('answer');
-		expect((rows[1] as any).selectedEdgeId).toBeUndefined();
+		expect((rows[1] as AnswerRow).selectedEdgeId).toBeUndefined();
 	});
 });
 
@@ -90,7 +94,7 @@ describe('Changing answer removes downstream rows', () => {
 		const rows = computeRows(graph, newPath);
 
 		expect(rows.length).toBe(5);
-		expect((rows[4] as any).node.result).toBe('Gas Sedan');
+		expect((rows[4] as ResultRow).node.result).toBe('Gas Sedan');
 	});
 
 	it('removes downstream when first answer is changed to a leaf', () => {
@@ -113,7 +117,7 @@ describe('Changing answer removes downstream rows', () => {
 		let path: TraversalPath = ['root|Long path', 'q1|Yes'];
 		let rows = computeRows(g, path);
 		expect(rows[rows.length - 1].type).toBe('result');
-		expect((rows[rows.length - 1] as any).node.result).toBe('Deep result');
+		expect((rows[rows.length - 1] as ResultRow).node.result).toBe('Deep result');
 
 		// Switch to short path
 		path = ['root|Short path'];
@@ -122,7 +126,7 @@ describe('Changing answer removes downstream rows', () => {
 		expect(rows[0].type).toBe('question');
 		expect(rows[1].type).toBe('answer');
 		expect(rows[2].type).toBe('result');
-		expect((rows[2] as any).node.result).toBe('Direct result');
+		expect((rows[2] as ResultRow).node.result).toBe('Direct result');
 	});
 });
 
@@ -294,8 +298,8 @@ describe('Multiple answers to same node', () => {
 		const rowsB = computeRows(graph, ['root|Path B']);
 		expect(rowsA[rowsA.length - 1].type).toBe('result');
 		expect(rowsB[rowsB.length - 1].type).toBe('result');
-		expect((rowsA[rowsA.length - 1] as any).node.result).toBe('Same destination');
-		expect((rowsB[rowsB.length - 1] as any).node.result).toBe('Same destination');
+		expect((rowsA[rowsA.length - 1] as ResultRow).node.result).toBe('Same destination');
+		expect((rowsB[rowsB.length - 1] as ResultRow).node.result).toBe('Same destination');
 	});
 });
 
@@ -331,7 +335,7 @@ describe('Single answer selection', () => {
 describe('Additional validation', () => {
 	it('validates the full merged tree.json successfully', () => {
 		// Import the actual tree data
-		const rawTree = require('./decision-tree/data/tree.json') as RawTree;
+		const rawTree = treeJson as RawTree;
 		const graph = buildGraph(rawTree);
 		const errors = validateGraph(graph);
 		expect(errors).toHaveLength(0);
@@ -381,7 +385,7 @@ describe('Additional validation', () => {
 // ---------------------------------------------------------------------------
 describe('Full tree traversal', () => {
 	it('can traverse the car tree to every result', () => {
-		const raw = require('./decision-tree/data/tree.json') as RawTree;
+		const raw = treeJson as RawTree;
 		const graph = buildGraph(raw);
 		const errors = validateGraph(graph);
 		expect(errors).toHaveLength(0);
@@ -390,11 +394,11 @@ describe('Full tree traversal', () => {
 		const path: TraversalPath = ['root|Choose a car', 'c_q1|Lowest total cost', 'c_q2|Yes'];
 		const rows = computeRows(graph, path);
 		expect(rows[rows.length - 1].type).toBe('result');
-		expect((rows[rows.length - 1] as any).node.result).toBe('Hybrid');
+		expect((rows[rows.length - 1] as ResultRow).node.result).toBe('Hybrid');
 	});
 
 	it('can traverse the religion tree to a deep result', () => {
-		const raw = require('./decision-tree/data/tree.json') as RawTree;
+		const raw = treeJson as RawTree;
 		const graph = buildGraph(raw);
 		const errors = validateGraph(graph);
 		expect(errors).toHaveLength(0);
@@ -403,21 +407,23 @@ describe('Full tree traversal', () => {
 		const path: TraversalPath = ['root|Religion', 'r_q1|Bible', 'r_q4|Yes', 'r_q5|Pope of Rome'];
 		const rows = computeRows(graph, path);
 		expect(rows[rows.length - 1].type).toBe('result');
-		expect((rows[rows.length - 1] as any).node.result).toBe('Roman Catholic');
+		expect((rows[rows.length - 1] as ResultRow).node.result).toBe('Roman Catholic');
 	});
 
 	it('can switch trees by changing the root answer', () => {
-		const raw = require('./decision-tree/data/tree.json') as RawTree;
+		const raw = treeJson as RawTree;
 		const graph = buildGraph(raw);
 
 		// Start with car tree
 		let path: TraversalPath = ['root|Choose a car', 'c_q1|Environmental impact', 'c_q7|Yes'];
 		let rows = computeRows(graph, path);
-		expect((rows[rows.length - 1] as any).node.result).toBe('Battery EV');
+		expect((rows[rows.length - 1] as ResultRow).node.result).toBe('Battery EV');
 
 		// Switch to religion tree at root
 		path = ['root|Religion', 'r_q1|None'];
 		rows = computeRows(graph, path);
-		expect((rows[rows.length - 1] as any).node.result).toBe('Outside major Abrahamic religions');
+		expect((rows[rows.length - 1] as ResultRow).node.result).toBe(
+			'Outside major Abrahamic religions'
+		);
 	});
 });

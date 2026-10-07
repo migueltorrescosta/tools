@@ -1,0 +1,145 @@
+{
+	"id": "ferrari",
+	"name": "Ferrari",
+	"type": "automotive",
+	"country": "IT",
+	"reportingCurrency": "EUR",
+	"notes": "operatingIncome = 'Operating profit (EBIT)' (IFRS). Revenue = net revenues. EUR millions; 2017+ converted from EUR thousands in XBRL income statements. Pre-2011 omitted: no standalone Ferrari filings (F-1 2015 covers 2012-2014, FY2015 20-F covers 2011-2015). HQ Maranello (legal seat Netherlands).",
+	"anchors": [
+		{
+			"periodEnd": "2011-12-31",
+			"currency": "EUR",
+			"revenue": 2067,
+			"operatingIncome": 298,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2015, Item 3.A Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841616000057/ferrarinv20-f12312015.htm"
+		},
+		{
+			"periodEnd": "2012-12-31",
+			"currency": "EUR",
+			"revenue": 2225,
+			"operatingIncome": 335,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2015, Item 3.A Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841616000057/ferrarinv20-f12312015.htm"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "EUR",
+			"revenue": 2335,
+			"operatingIncome": 364,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2015, Item 3.A Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841616000057/ferrarinv20-f12312015.htm"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "EUR",
+			"revenue": 2762,
+			"operatingIncome": 389,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2015, Item 3.A Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841616000057/ferrarinv20-f12312015.htm"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "EUR",
+			"revenue": 2854,
+			"operatingIncome": 444,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2015, Item 3.A Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841616000057/ferrarinv20-f12312015.htm"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "EUR",
+			"revenue": 3105,
+			"operatingIncome": 595,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2016, Item 3.A Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841617000016/ferrarinv20-f12312016.htm"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "EUR",
+			"revenue": 3416.89,
+			"operatingIncome": 775.416,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2019, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841620000022/R2.htm"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "EUR",
+			"revenue": 3420.321,
+			"operatingIncome": 826.507,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2019, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841620000022/R2.htm"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "EUR",
+			"revenue": 3766.615,
+			"operatingIncome": 917.446,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2019, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841620000022/R2.htm"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "EUR",
+			"revenue": 3459.79,
+			"operatingIncome": 716.127,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2022, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841623000043/R3.htm"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "EUR",
+			"revenue": 4270.894,
+			"operatingIncome": 1075.488,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2022, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841623000043/R3.htm"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "EUR",
+			"revenue": 5095.254,
+			"operatingIncome": 1227.382,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2022, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841623000043/R3.htm"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "EUR",
+			"revenue": 5970.146,
+			"operatingIncome": 1617.369,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2025, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841626000024/R3.htm"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "EUR",
+			"revenue": 6676.668,
+			"operatingIncome": 1887.751,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2025, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841626000024/R3.htm"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "EUR",
+			"revenue": 7145.768,
+			"operatingIncome": 2109.716,
+			"quality": "reported",
+			"source": "Ferrari Form 20-F FY2025, Consolidated Income Statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1648416/000164841626000024/R3.htm"
+		}
+	]
+}
