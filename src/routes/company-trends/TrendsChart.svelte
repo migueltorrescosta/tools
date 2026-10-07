@@ -220,7 +220,12 @@
 		>
 
 		{#each drawn as d (d.trail.company.id)}
-			<g class="company" style="--c: {d.color}" data-company={d.trail.company.id}>
+			<g
+				class="company"
+				style="--c: {d.color}"
+				data-company={d.trail.company.id}
+				data-type={d.trail.company.type}
+			>
 				{#each trailSegments(d.points, x, y) as seg, i (i)}
 					<path class="trail {seg.kind}" d={seg.d} />
 				{/each}

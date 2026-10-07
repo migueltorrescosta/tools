@@ -56,7 +56,7 @@ test('Company trends - currency selector relabels axes', async ({ page }) => {
 	const chart = page.getByTestId('trends-chart');
 	await expect(chart).toContainText('€');
 	await page.getByRole('button', { name: 'USD', exact: true }).click();
-	await expect(chart).toContainText('Revenue (trailing 12 months, USD)');
+	await expect(chart).toContainText('Revenue (trailing 12 months, USD, log scale)');
 	await expect(chart).toContainText('$');
 	await page.getByRole('button', { name: 'GBP', exact: true }).click();
 	await expect(chart).toContainText('£');
@@ -74,4 +74,64 @@ test('Company trends - tooltip shows provenance and pins with a source link', as
 	await head.click({ force: true });
 	await expect(tooltip.locator('a').first()).toHaveAttribute('href', /^https?:\/\//);
 	await page.keyboard.press('Escape');
+});
+
+test('Company trends - y axis is operating margin with a 0% break-even line', async ({ page }) => {
+	await page.goto('/company-trends');
+	await expect(page.getByTestId('y-axis-title')).toHaveText(/Operating margin/);
+	await expect(page.getByTestId('breakeven')).toHaveCount(1);
+	const chart = page.getByTestId('trends-chart');
+	await expect(chart).toContainText('−200%');
+	await expect(chart).toContainText('100%');
+});
+
+/** Distinct trail stroke colours per company id. */
+async function trailColors(page: import('@playwright/test').Page) {
+	return page.locator('g.company').evaluateAll((groups) =>
+		groups.map((g) => ({
+			id: g.getAttribute('data-company'),
+			type: g.getAttribute('data-type'),
+			color: getComputedStyle(g.querySelector('path.trail') ?? g).stroke
+		}))
+	);
+}
+
+test('Company trends - a single industry gets one colour per company', async ({ page }) => {
+	await page.goto('/company-trends');
+	await page.getByRole('button', { name: 'all', exact: true }).click();
+	for (const chip of await page.locator('.type-chip').all()) {
+		if (!(await chip.textContent())?.includes('tech')) await chip.getByRole('checkbox').uncheck();
+	}
+	await expect(page.getByTestId('color-mode')).toHaveText('Coloured by company');
+	const colors = await trailColors(page);
+	expect(colors.length).toBeGreaterThan(5);
+	expect(new Set(colors.map((c) => c.color)).size).toBe(colors.length);
+	await expect(page.getByTestId('company-swatch')).toHaveCount(colors.length);
+});
+
+test('Company trends - large selections colour by industry', async ({ page }) => {
+	await page.goto('/company-trends');
+	await page.getByRole('button', { name: 'all', exact: true }).click();
+	await expect(page.getByTestId('color-mode')).toContainText('Coloured by industry');
+	const colors = await trailColors(page);
+	const byType = new Map<string | null, Set<string>>();
+	for (const c of colors) byType.set(c.type, (byType.get(c.type) ?? new Set()).add(c.color));
+	for (const set of byType.values()) expect(set.size).toBe(1);
+	await expect(page.getByTestId('company-swatch')).toHaveCount(0);
+});
+
+test('Company trends - off-scale margins are pinned with a true-value tooltip', async ({
+	page
+}) => {
+	await page.goto('/company-trends');
+	await page.getByRole('button', { name: 'none' }).click();
+	await page.getByRole('checkbox', { name: 'Tesla' }).check();
+	await page.getByTestId('quarter-slider').fill('36');
+	const head = page.getByTestId('offscale-head');
+	await expect(head).toHaveCount(1);
+	await head.hover({ force: true });
+	const tooltip = page.getByTestId('trends-tooltip');
+	await expect(tooltip).toContainText('Tesla');
+	await expect(tooltip).toContainText('off-scale');
+	await expect(tooltip).toContainText(/−\d{1,3}(,\d{3})*\.\d%/);
 });
