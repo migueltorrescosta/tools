@@ -445,7 +445,7 @@
 			"type": "tech",
 			"reportingCurrency": "USD",
 			"country": "US",
-			"notes": "Revenue = total revenues; operating income = 'Income from operations'. FY ends Dec 31. 2000-2003 pre-IPO figures from Google's first 10-K (FY2004) five-year table rather than the S-1 (same data). 2012-2013 as originally reported incl. Motorola Mobility (Alphabet later restated 2013 to 55,519/15,403 with Motorola as discontinued). 2000-2014 from Google Inc. (CIK 1288776), 2015+ Alphabet Inc.",
+			"notes": "Revenue = total revenues; operating income = 'Income from operations'. FY ends Dec 31. 2000-2003 pre-IPO figures from Google's first 10-K (FY2004) five-year table rather than the S-1 (same data). 2012-2013 as originally reported incl. Motorola Mobility (later restated with Motorola as discontinued: 2013 to 55,519/15,403, 2012 OI to 13,834). 2000-2009 stored to the thousand as filed. 2000-2014 from Google Inc. (CIK 1288776), 2015+ Alphabet Inc.",
 			"points": [
 				{
 					"quarter": "2000Q4",
@@ -2278,7 +2278,7 @@
 					"revenue": 161209.4,
 					"operatingIncome": 23552.6,
 					"quality": "reported",
-					"source": "Chevron 10-K (acc. 0000950123-10-048910) via SEC XBRL company concept (FY ending 2007-12-31: revenue USD 220,904m, operating income USD 32,274m)",
+					"source": "Chevron 10-K FY2009 (acc. 0000950123-10-016846) via SEC XBRL company concept (FY ending 2007-12-31: revenue USD 220,904m, operating income USD 32,274m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
 				},
 				{
@@ -2294,7 +2294,7 @@
 					"revenue": 123162.6,
 					"operatingIncome": 13295.3,
 					"quality": "reported",
-					"source": "Chevron 10-K FY2011 (acc. 0000093410-12-002976) via SEC XBRL company concept (FY ending 2009-12-31: revenue USD 171,636m, operating income USD 18,528m)",
+					"source": "Chevron 10-K FY2011 (acc. 0000950123-12-002976) via SEC XBRL company concept (FY ending 2009-12-31: revenue USD 171,636m, operating income USD 18,528m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000093410/us-gaap/Revenues.json"
 				},
 				{
@@ -2722,8 +2722,8 @@
 					"revenue": 48214,
 					"operatingIncome": 1309.7,
 					"quality": "reported",
-					"source": "Costco 10-K XBRL facts via SEC companyconcept API (us-gaap:Revenues; us-gaap:OperatingIncomeLoss) (FY ending 2008-08-31: revenue USD 72,483m, operating income USD 1,969m)",
-					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000909832/us-gaap/Revenues.json"
+					"source": "Costco Form 10-K FY2010, Item 6 Selected Financial Data (net sales 70,977 + membership fees 1,506; operating income 1,969) (FY ending 2008-08-31: revenue USD 72,483m, operating income USD 1,969m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/909832/000119312510230379/d10k.htm"
 				},
 				{
 					"quarter": "2009Q3",
@@ -4089,7 +4089,7 @@
 			"type": "pharma",
 			"reportingCurrency": "GBP",
 			"country": "GB",
-			"notes": "Revenue = Turnover (Group turnover, total reported). operatingIncome = total reported Operating profit (not core). Bases: 2000-2002 UK GAAP (statutory totals incl. merger/restructuring items); 2003-2004 unaudited IFRS restatement; 2005+ IFRS. 2000 operatingIncome is UK GAAP 'Trading profit' (Operating profit row not sourced; for 2001 trading 4,697 vs operating 4,734). 2001 restated for FRS 19, 2007 restated, 2011/2012 restated for IAS 19R. 2015 operating profit inflated by Novartis transaction disposal gains. 2015-2025 from SEC XBRL companyconcept API (revenue URL as sourceUrl; operating profit from ProfitLossFromOperatingActivities endpoint). 2021 is as originally reported incl. Consumer Healthcare; 2022+ continuing operations after July 2022 Haleon demerger (2021 restated continuing ops not used), so a basis break exists at 2021/2022. FY2000 omitted: only a trading-profit line was available, not operating profit.",
+			"notes": "Revenue = Turnover (Group turnover, total reported). operatingIncome = total reported Operating profit (not core). Bases: 2000-2002 UK GAAP (statutory totals incl. merger/restructuring items); 2003-2004 IFRS restatement (2003 statutory total operating profit 6,050 per FY2005 20-F; 6,445 was IFRS business performance before merger/restructuring); 2005+ IFRS. 2000 operatingIncome is UK GAAP 'Trading profit' (Operating profit row not sourced; for 2001 trading 4,697 vs operating 4,734). 2001 restated for FRS 19, 2007 restated, 2011/2012 restated for IAS 19R. 2015 operating profit inflated by Novartis transaction disposal gains. 2015-2025 from SEC XBRL companyconcept API (revenue URL as sourceUrl; operating profit from ProfitLossFromOperatingActivities endpoint). 2021 is as originally reported incl. Consumer Healthcare; 2022+ continuing operations after July 2022 Haleon demerger (2021 restated continuing ops not used), so a basis break exists at 2021/2022. FY2000 omitted: only a trading-profit line was available, not operating profit.",
 			"points": [
 				{
 					"quarter": "2001Q4",
@@ -4110,10 +4110,10 @@
 				{
 					"quarter": "2003Q4",
 					"revenue": 30451.2,
-					"operatingIncome": 9314.6,
+					"operatingIncome": 8743.7,
 					"quality": "reported",
-					"source": "GSK 6-K (Feb 2005) unaudited IFRS restatement of 2003/2004 results (FY ending 2003-12-31: revenue GBP 21,070m, operating income GBP 6,445m)",
-					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1131399/000102123105000130/b782210-6k.htm"
+					"source": "GSK Annual Report / Form 20-F 2005, five-year IFRS record (Turnover; total Operating profit incl. merger/restructuring) (FY ending 2003-12-31: revenue GBP 21,070m, operating income GBP 6,050m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1131399/000102123106000123/b822393.htm"
 				},
 				{
 					"quarter": "2004Q4",
@@ -4299,7 +4299,7 @@
 			"type": "retail",
 			"reportingCurrency": "EUR",
 			"country": "ES",
-			"notes": "Revenue = Net sales (Ventas). Operating income = EBIT (Resultado/Beneficio de explotación; 'Net operating profit (EBIT)'). FY runs Feb 1 - Jan 31; Inditex labels FY by start year (FY2025 ends 2026-01-31). FY1999-FY2003 Spanish GAAP; FY2004+ IFRS (FY2004 IFRS-restated 5,569/922 vs Spanish GAAP 5,670/925). FY2019+ IFRS 16 (FY2018 not restated). FY1999-FY2011 figures from Inditex annual reports retrieved from the UAB library archive of company reports (ddd.uab.cat), not from inditex.com. FY2012-2015 converted from thousands, rounded.",
+			"notes": "Revenue = Net sales (Ventas). Operating income = EBIT (Resultado/Beneficio de explotación; 'Net operating profit (EBIT)'). FY runs Feb 1 - Jan 31; Inditex labels FY by start year (FY2025 ends 2026-01-31). FY1999-FY2003 Spanish GAAP; FY2004+ IFRS (FY2004 IFRS-restated 5,569/922 vs Spanish GAAP 5,670/925). FY2019+ IFRS 16 (FY2018 not restated). FY1999-FY2011 figures from Inditex annual reports retrieved from the UAB library archive of company reports (ddd.uab.cat), not from inditex.com. FY2012-2015 converted from thousands, rounded. FY2009 revenue taken from the audited consolidated income statement (11,084); the multi-year indicator tables in AR2009/AR2011 print a transposed 11,048.",
 			"points": [
 				{
 					"quarter": "2000Q1",
@@ -4383,10 +4383,10 @@
 				},
 				{
 					"quarter": "2010Q1",
-					"revenue": 11048,
+					"revenue": 11084,
 					"operatingIncome": 1729,
 					"quality": "reported",
-					"source": "Inditex Informe Anual 2009, 'Evolución de los principales indicadores' (IFRS), FY2009 (FY ending 2010-01-31: revenue EUR 11,048m, operating income EUR 1,729m)",
+					"source": "Inditex Informe Anual 2009, Pérdidas y Ganancias consolidada (Ventas 11,083,514 / EBIT 1,728,388 thousand EUR), FY2009 (FY ending 2010-01-31: revenue EUR 11,084m, operating income EUR 1,729m)",
 					"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2009ispa.pdf"
 				},
 				{
@@ -4743,7 +4743,7 @@
 			"type": "pharma",
 			"reportingCurrency": "USD",
 			"country": "US",
-			"notes": "No operating income line reported; operatingIncome = 'Earnings before provision for taxes on income' (pretax income, continuing operations from FY2023). Revenue = 'Sales to customers'. FY ends Sunday closest to Dec 31; FY2000-2006 period-end dates derived from that rule (FY2007+ confirmed in SEC data). Each year uses figures as first reported in that year's 10-K: FY2022 includes Consumer Health (94,943 / 21,725); FY2023 onward excludes Kenvue (restated FY2022 revenue 79,990). FY2000-2009 from FY2009 Exhibit 13 ten-year table (2007-2009 match XBRL). FY2015 revenue XBRL context end-dated 2015-12-27 though FY ended 2016-01-03. FY2025 pretax 32,581 is unusually high (likely one-off gains; not investigated).",
+			"notes": "No operating income line reported; operatingIncome = 'Earnings before provision for taxes on income' (pretax income, continuing operations from FY2023). Revenue = 'Sales to customers'. FY ends Sunday closest to Dec 31; FY2000-2006 period-end dates derived from that rule (FY2007+ confirmed in SEC data). Each year uses figures as first reported in that year's 10-K: FY2022 includes Consumer Health (94,943 / 21,725); FY2023 onward excludes Kenvue (restated FY2022 revenue 79,990). FY2000-2009 from FY2009 Exhibit 13 ten-year table (2007-2009 match XBRL). FY2015 is a 53-week year (2014-12-29 to 2016-01-03 in XBRL). FY2025 pretax 32,581 is unusually high (likely one-off gains; not investigated).",
 			"points": [
 				{
 					"quarter": "2000Q4",
@@ -5777,7 +5777,7 @@
 			"type": "tech",
 			"reportingCurrency": "USD",
 			"country": "US",
-			"notes": "Revenue = total revenue; operating income = 'Operating income' line. FY ends June 30. FY2017 onward on ASC 606 basis (FY2017 restated in FY2018 10-K: 96,571 vs 89,950 originally); FY2016 and earlier as originally reported (pre-606). FY2008 OI 22,492 per FY2008 10-K (FY2010 10-K XBRL shows 22,271 recast).",
+			"notes": "Revenue = total revenue; operating income = 'Operating income' line. FY ends June 30. FY2017 onward on ASC 606 basis (FY2017 restated in FY2018 10-K: 96,571 vs 89,950 originally); FY2016 and earlier pre-606: FY2004-2016 as originally reported; FY2002-2003 as restated in the FY2004 10-K for retroactive SFAS 123 stock-compensation expensing (FY2000-2001 not restated, so they exclude stock-comp expense). FY2008 OI 22,492 per FY2008 10-K (FY2010 10-K XBRL shows 22,271 recast).",
 			"points": [
 				{
 					"quarter": "2000Q2",
@@ -6221,7 +6221,7 @@
 			"type": "consumer",
 			"reportingCurrency": "USD",
 			"country": "US",
-			"notes": "Revenue = Revenues. Nike reports no operating income line; operatingIncome = Income before income taxes (FY2000-2002: before cumulative effect of accounting change). FY ends May 31. Each year taken from the cited filing (as reported or as restated in that filing).",
+			"notes": "Revenue = Revenues. Nike reports no operating income line; operatingIncome = Income before income taxes (FY2000-2005: labeled 'Income before income taxes and cumulative effect of accounting change'). FY ends May 31. Each year taken from the cited filing (as reported or as restated in that filing).",
 			"points": [
 				{
 					"quarter": "2000Q2",
@@ -6252,7 +6252,7 @@
 					"revenue": 10203.4,
 					"operatingIncome": 1071.2,
 					"quality": "reported",
-					"source": "Nike Form 10-K FY2005, Item 6 Selected Financial Data (FY ending 2003-05-31: revenue USD 10,697m, operating income USD 1,123m)",
+					"source": "Nike Form 10-K FY2005, Consolidated Statements of Income (FY ending 2003-05-31: revenue USD 10,697m, operating income USD 1,123m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000095012405004551/v10583e10vk.htm"
 				},
 				{
@@ -6260,7 +6260,7 @@
 					"revenue": 10279.3,
 					"operatingIncome": 1216.4,
 					"quality": "reported",
-					"source": "Nike Form 10-K FY2005, Item 6 Selected Financial Data (FY ending 2004-05-31: revenue USD 12,253.1m, operating income USD 1,450m)",
+					"source": "Nike Form 10-K FY2005, Consolidated Statements of Income (FY ending 2004-05-31: revenue USD 12,253.1m, operating income USD 1,450m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000095012405004551/v10583e10vk.htm"
 				},
 				{
@@ -6268,7 +6268,7 @@
 					"revenue": 10796.7,
 					"operatingIncome": 1461.4,
 					"quality": "reported",
-					"source": "Nike Form 10-K FY2005, Item 6 Selected Financial Data (FY ending 2005-05-31: revenue USD 13,739.7m, operating income USD 1,859.8m)",
+					"source": "Nike Form 10-K FY2005, Consolidated Statements of Income (FY ending 2005-05-31: revenue USD 13,739.7m, operating income USD 1,859.8m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000095012405004551/v10583e10vk.htm"
 				},
 				{
@@ -6447,7 +6447,7 @@
 			"type": "pharma",
 			"reportingCurrency": "USD",
 			"country": "CH",
-			"notes": "revenue = 'Net sales (to third parties)' (from continuing operations where split); operatingIncome = 'Operating income'. FY ends Dec 31. Novartis reported in CHF until 2002 and switched to USD from 1 Jan 2003; 2000-2001 are the company's own USD restatements in the FY2003 20-F (group scope at the time, incl. later-divested units), 2002-2006 from FY2006 20-F (Medical Nutrition as discontinued), 2007-2011 from FY2011 20-F (Medical Nutrition and Gerber discontinued), 2012-2016 from FY2016 20-F (restated for 2014-15 portfolio transformation: Vaccines/OTC/Animal Health discontinued), 2017-2018 as originally reported incl. Alcon (spun off Apr 2019), 2019-2020 excl. Alcon, 2021-2022 as reported incl. Sandoz, 2023-2025 excl. Sandoz (spun off Oct 2023). Series mixes restatement scopes; step changes at 2002/2003 boundary (FY2003 20-F gave 2003 sales 24,864 vs 24,049 in FY2006 20-F), 2018->2019 (Alcon) and 2022->2023 (Sandoz) are scope changes, not organic. FY2000-2002 omitted: originally reported in CHF.",
+			"notes": "revenue = 'Net sales (to third parties)' (from continuing operations where split); operatingIncome = 'Operating income'. FY ends Dec 31. Novartis reported in CHF until 2002 and switched to USD from 1 Jan 2003; 2000-2001 are the company's own USD restatements in the FY2003 20-F (group scope at the time, incl. later-divested units), 2002-2006 from FY2006 20-F (Medical Nutrition as discontinued), 2007-2011 from FY2011 20-F (Medical Nutrition and Gerber discontinued), 2012-2016 from FY2016 20-F (restated for 2014-15 portfolio transformation: Vaccines/OTC/Animal Health discontinued), 2017-2018 as originally reported incl. Alcon (spun off Apr 2019), 2019-2020 excl. Alcon, 2021-2022 as reported incl. Sandoz, 2023-2025 excl. Sandoz (spun off Oct 2023). Series mixes restatement scopes; step changes at 2002/2003 boundary (FY2003 20-F gave 2003 sales 24,864 vs 24,049 in FY2006 20-F), 2018->2019 (Alcon) and 2022->2023 (Sandoz) are scope changes, not organic. 2004 operatingIncome is the FY2006 20-F '2004 pro forma' column (restated for IFRS standards adopted 1 Jan 2005, comparable with 2005-2006; audited non-pro-forma 2004 was 6,117). FY2000-2002 omitted: originally reported in CHF.",
 			"points": [
 				{
 					"quarter": "2003Q4",
@@ -6641,7 +6641,7 @@
 			"type": "tech",
 			"reportingCurrency": "USD",
 			"country": "US",
-			"notes": "Revenue = 'Revenue'; operatingIncome = 'Income (loss) from operations'. FY ends last Sunday of January (periodEnd = FY end; e.g. FY2026 ends 2026-01-25). FY2000-2003 from FY2004 10-K (pre-2006 stock-option restatement); FY2004-2007 from FY2008 10-K (restated; FY2004 OI 49.8 vs 90.2 originally). FY2008+ from XBRL 10-K facts (OI concept us-gaap:OperatingIncomeLoss, accn shown in source).",
+			"notes": "Revenue = 'Revenue'; operatingIncome = 'Income (loss) from operations'. FY ends last Sunday of January (periodEnd = FY end; e.g. FY2026 ends 2026-01-25). FY2000-2003 from FY2004 10-K (pre-2006 stock-option restatement); FY2004-2007 from FY2008 10-K (restated; FY2004 OI 49.8 vs 90.2 originally). FY2008+ from XBRL 10-K facts (OI concept us-gaap:OperatingIncomeLoss, accn shown in source; FY2008 OI is not tagged in XBRL and matches the FY2008 10-K Selected Financial Data, 836,346K).",
 			"points": [
 				{
 					"quarter": "2000Q1",
@@ -6797,11 +6797,11 @@
 				},
 				{
 					"quarter": "2019Q1",
-					"revenue": 10189.2,
+					"revenue": 10118.4,
 					"operatingIncome": 3285.3,
 					"quality": "reported",
-					"source": "NVIDIA Form 10-K XBRL (accn 0001045810-19-000023), SEC companyconcept API (FY ending 2019-01-27: revenue USD 11,798m, operating income USD 3,804m)",
-					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/Revenues.json"
+					"source": "NVIDIA Form 10-K XBRL (accn 0001045810-19-000023), SEC companyconcept API (revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax) (FY ending 2019-01-27: revenue USD 11,716m, operating income USD 3,804m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0001045810/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json"
 				},
 				{
 					"quarter": "2020Q1",
@@ -7781,7 +7781,7 @@
 			"type": "energy",
 			"reportingCurrency": "USD",
 			"country": "GB",
-			"notes": "Royal Dutch/Shell Group (2001-2004 via Royal Dutch Petroleum Co filings), Royal Dutch Shell plc 2005-2021, Shell plc 2022+. No consistent operating line: operatingIncome = 'Income before taxation'. Revenue: 2001-2003 US GAAP 'Net proceeds' (sales proceeds less sales taxes/excise duties); 2004+ IFRS 'Revenue' (net of sales taxes). 2001 and 2002 as first reported in Q4 results (later 20-F restated 2001 revenue lower, 122,453); 2004-2005 IFRS from 20-F FY2005. 2015+ from SEC XBRL company concept. 2000 omitted: no fetched source gave Group income before taxation (20-F FY2001 text truncated). FY ends Dec 31.",
+			"notes": "Royal Dutch/Shell Group (2001-2004 via Royal Dutch Petroleum Co filings), Royal Dutch Shell plc 2005-2021, Shell plc 2022+. No consistent operating line: operatingIncome = 'Income before taxation'. Revenue: 2001-2003 US GAAP 'Net proceeds' (sales proceeds less sales taxes/excise duties); 2004+ IFRS 'Revenue' (net of sales taxes). 2001 as first reported in Q4 2002 results (later 20-F restated 2001 revenue lower, 122,453); 2002 and 2003 as restated in the following year's Q4 results (first reported: 2002 net proceeds 179,431; 2003 net proceeds 201,932, income before taxation 23,188); 2004-2005 IFRS from 20-F FY2005. 2015+ from SEC XBRL company concept. 2000 omitted: no fetched source gave Group income before taxation (20-F FY2001 text truncated). FY ends Dec 31.",
 			"points": [
 				{
 					"quarter": "2001Q4",
@@ -8593,10 +8593,10 @@
 			"points": [
 				{
 					"quarter": "2000Q4",
-					"revenue": 46518,
-					"operatingIncome": 3140,
+					"revenue": 47582,
+					"operatingIncome": 3302,
 					"quality": "reported",
-					"source": "Unilever Form 20-F 2001, consolidated profit and loss account (UK GAAP, Group turnover / Group operating profit) (FY ending 2000-12-31: revenue EUR 46,518m, operating income EUR 3,140m)",
+					"source": "Unilever Form 20-F 2001, Financial Review 2000 vs 1999 (UK GAAP, Group turnover / Group operating profit after amortisation and exceptional items) (FY ending 2000-12-31: revenue EUR 47,582m, operating income EUR 3,302m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000102123102000070/unilever_plc20f.htm"
 				},
 				{
@@ -8807,7 +8807,7 @@
 			"type": "automotive",
 			"reportingCurrency": "EUR",
 			"country": "DE",
-			"notes": "Revenue = 'Sales revenue'; operatingIncome = 'Operating profit' / 'Operating result' (after special items) from the Group's five-/ten-year reviews, IFRS throughout. FY = calendar year. Figures exclude the equity-accounted Chinese joint ventures. 2015 operating result (-4,069) is depressed by diesel-issue special items; 2016 (7,103) also includes diesel special items (operating result before special items ~EUR 14.6bn per AR2016). Later reviews restated some years (2004 per IAS 19 amendment in AR2005; 2013 per AR2016; 2017 adjusted in AR2020; 2023 adjusted in AR2025: 22,528 vs 22,576 originally); the restated values are used. 2011 sourced from the Group's Sustainability Report 2011 (company document) because the AR2011/2012 PDFs and online reports were unfetchable.",
+			"notes": "Revenue = 'Sales revenue'; operatingIncome = 'Operating profit' / 'Operating result' (after special items) from the Group's five-/ten-year reviews, IFRS throughout. FY = calendar year. Figures exclude the equity-accounted Chinese joint ventures. 2015 operating result (-4,069) is depressed by diesel-issue special items; 2016 (7,103) also includes diesel special items (operating result before special items ~EUR 14.6bn per AR2016). Later reviews restated some years (2004 per IAS 19 amendment in AR2005; 2013 per AR2016; 2017 adjusted in AR2020; 2022 and 2023 adjusted in AR2025, 2023: 22,528 vs 22,576 originally); the restated values are used. 2011 sourced from the Group's Sustainability Report 2011 (company document) because the AR2011/2012 PDFs and online reports were unfetchable.",
 			"points": [
 				{
 					"quarter": "2000Q4",
@@ -9025,7 +9025,7 @@
 			"type": "retail",
 			"reportingCurrency": "USD",
 			"country": "US",
-			"notes": "Revenue = Total revenues (net sales + membership and other income). Operating income = 'Operating income' (labelled 'Operating profit' in FY2001-FY2004 filings). FY ends Jan 31. FY2000 omitted: FY2002 10-K income statement has no operating income line. FY2001 is on pre-McLane-divestiture basis (includes McLane); FY2002+ exclude McLane, so a step down between FY2001 and FY2002 is a basis change.",
+			"notes": "Revenue = Total revenues (net sales + membership and other income). Operating income = 'Operating income' (labelled 'Operating profit' in FY2001-FY2004 filings). FY ends Jan 31. FY2000 omitted: FY2002 10-K income statement has no operating income line. FY2001 is on pre-McLane-divestiture basis (includes McLane); FY2002+ exclude McLane, so a step down between FY2001 and FY2002 is a basis change. Each year as first reported in its own 10-K (later restatements of FY2009-FY2013 not applied).",
 			"points": [
 				{
 					"quarter": "2001Q1",

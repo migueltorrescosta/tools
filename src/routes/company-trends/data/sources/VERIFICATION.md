@@ -12,6 +12,17 @@ Method:
 - Values that could not be confirmed from a primary source were removed (gaps are interpolated in the chart).
 - Private companies (OpenAI, Anthropic) stay `estimated`; checked only against the cited articles.
 
+## Summary
+
+- Anchors checked: 1046 across 43 companies (2092 values: revenue and operating income).
+- Values corrected: 5 in 4 anchors.
+  - NVIDIA FY2019 revenue 11798 -> 11716 (XBRL RevenueFromContractWithCustomerExcludingAssessedTax, 10-K 0001045810-19-000023).
+  - Inditex FY2009 revenue 11048 -> 11084 (Informe Anual 2009 consolidated income statement; the indicator tables print a transposed 11.048).
+  - GSK FY2003 operating income 6445 -> 6050 (statutory total per Form 20-F 2005 five-year record; 6445 was business performance).
+  - Unilever FY2000 revenue 46518 -> 47582, operating income 3140 -> 3302 (Form 20-F 2001 Financial Review).
+- Anchors removed as unverifiable: none.
+- Source and notes fixes: Costco FY2008 source moved to 10-K FY2010 Item 6 (no XBRL fact); Chevron FY2007/FY2009 accession numbers; Nike FY2003-2005 source label; notes corrected for Alphabet, Microsoft, Johnson & Johnson, NVIDIA, Shell, Walmart, Volkswagen, Novartis, GSK and Inditex.
+
 ## Alphabet (`alphabet`)
 
 - Anchors checked: 26 (revenue + operating income each)
@@ -57,6 +68,16 @@ Method:
 
 - Anchors checked: 26 (revenue + operating income each)
 - Sources: SEC XBRL companyconcept CIK0000937966 (SalesRevenueNet FY2009-2017, RevenueFromContractWithCustomerExcludingAssessedTax FY2016-2025, OperatingIncomeLoss FY2009-2025 incl. 20-F/A entries: FY2009 -165,013k in 20-F/A 0000950123-10-018242, later -163,125k); 20-F FY2004 Item 3 selected data, EUR thousands (FY2000-2004); 20-F FY2009 Item 3.A selected data (FY2005-2009)
+- Corrected:
+  - none
+- Removed / unverifiable:
+  - none
+- sourceUrl fixes: none
+
+## AstraZeneca (`astrazeneca`)
+
+- Anchors checked: 26 (revenue + operating income each)
+- Sources: SEC XBRL companyconcept CIK0000901832 (ifrs-full Revenue, ProfitLossFromOperatingActivities) FY2015-2025; Annual Report and Form 20-F Information PDFs (ddd.uab.cat) Group Financial Record: 2003 report (UK GAAP 2000-2002), 2007 report (IFRS 2003-2005), 2010 report (2006-2008), 2013 report (2009 restated), 2014 report (2010-2014 restated)
 - Corrected:
   - none
 - Removed / unverifiable:
@@ -186,6 +207,16 @@ Method:
 - sourceUrl fixes: none
 - Note: FY2015/FY2016 values (152356/7718, 166380/11684) are as reported in the cited FY2016 10-K (pre-Opel restatement; FY2017 10-K restated FY2016 to 149184/12008), consistent with notes "2017+ restated excl. Opel/Vauxhall".
 
+## GSK (`gsk`)
+
+- Anchors checked: 25 (revenue + operating income each)
+- Sources: SEC XBRL companyconcept CIK0001131399 (ifrs-full Revenue, ProfitLossFromOperatingActivities) FY2015-2025 incl. original 2020/2021 values (accn 0001193125-21-079417, 0001193125-22-068957); results 6-Ks Feb 2003/2005/2007/2009/2011/2013/2014/2015 total income statements FY2001-2014; Form 20-F 2005 (b822393.htm) financial summary and five-year IFRS record FY2003-2005
+- Corrected:
+  - FY2003 (2003-12-31) operatingIncome: 6445 -> 6050 (6445 was IFRS business performance excl. merger/restructuring; statutory total 6,050 per Feb 2005 6-K IFRS restatement table and GSK Form 20-F 2005 five-year record)
+- Removed / unverifiable:
+  - none
+- sourceUrl fixes: FY2003 -> https://www.sec.gov/Archives/edgar/data/1131399/000102123106000123/b822393.htm (source updated; notes amended for 2003 basis)
+
 ## Inditex (`inditex`)
 
 - Anchors checked: 27 (revenue + operating income each)
@@ -208,10 +239,10 @@ Method:
 
 ## Johnson & Johnson (`johnson-johnson`)
 
-- Anchors checked: 25 (revenue + operating income each)
+- Anchors checked: 26 (revenue + operating income each)
 - Sources: SEC XBRL companyconcept CIK0000200406 (SalesRevenueGoodsNet FY2007-2017, RevenueFromContractWithCustomerExcludingAssessedTax FY2016-2025, IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments FY2007-2019, IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest FY2019-2025), matched to each year's own 10-K accn; 10-K FY2009 Exhibit 13 ten-year Summary of Operations (Sales to customers / Earnings before provision for taxes on income) FY2000-2009
 - Corrected:
-  - none (all 50 values match). Notes: removed false claim that the FY2015 revenue XBRL context ends 2015-12-27 (XBRL context is 2014-12-29 to 2016-01-03); replaced with 53-week-year statement.
+  - none (all 52 values match). Notes: removed false claim that the FY2015 revenue XBRL context ends 2015-12-27 (XBRL context is 2014-12-29 to 2016-01-03); replaced with 53-week-year statement.
 - Removed / unverifiable:
   - none
 - sourceUrl fixes: none
@@ -283,6 +314,16 @@ Method:
 - Sources: SEC XBRL companyconcept CIK0000320187 (SalesRevenueNet FY2009-2018, RevenueFromContractWithCustomerExcludingAssessedTax FY2018-2026, IncomeLossFromContinuingOperationsBeforeIncomeTaxes... FY2020-2026); R2/R3 Consolidated Statements of Income in FY2011, FY2014, FY2017, FY2020, FY2023, FY2026 10-Ks (FY2009-2026; FY2012 restated 23,331 in FY2014 10-K vs 24,128 original, stored matches cited filing); 10-K FY2002 Consolidated Statements of Income FY2000-2002; 10-K FY2005 Consolidated Statements of Income FY2003-2005; 10-K FY2008 Item 6 FY2006-2008.
 - Corrected:
   - none (values). Source label for FY2003-2005 changed from "Item 6 Selected Financial Data" to "Consolidated Statements of Income" (Item 6 in that 10-K shows no pretax income row). Notes updated: the "before cumulative effect of accounting change" pretax label applies to FY2000-2005, not only FY2000-2002.
+- Removed / unverifiable:
+  - none
+- sourceUrl fixes: none
+
+## Novartis (`novartis`)
+
+- Anchors checked: 23 (revenue + operating income each)
+- Sources: SEC XBRL companyconcept CIK0001114448 (ifrs-full RevenueFromSaleOfGoods, ProfitLossFromOperatingActivities) FY2016-2025 incl. original vs restated accns; 20-F R2 income statements FY2018/FY2020/FY2022/FY2025; 20-F Item 3.A Selected Financial Data FY2006 (2003-2006), FY2011 (2007-2011), FY2016 (2012-2016)
+- Corrected:
+  - none (values all match). Notes amended: FY2004 operatingIncome 6,243 is the FY2006 20-F "2004 pro forma" column (IFRS standards adopted 2005); audited non-pro-forma 2004 was 6,117. Revenue identical (27,126) in both columns.
 - Removed / unverifiable:
   - none
 - sourceUrl fixes: none
@@ -387,6 +428,17 @@ Method:
 - Removed / unverifiable:
   - none
 - sourceUrl fixes: none
+
+## Unilever (`unilever`)
+
+- Anchors checked: 26 (revenue + operating income each)
+- Sources: SEC XBRL companyconcept CIK0000217410 (ifrs-full Revenue, ProfitLossFromOperatingActivities) FY2016-2025 incl. original vs restated accns; 20-F 2001 Financial Review (2000), 20-F 2003 key performance measures (2001-2003 restated), 20-F 2006 results table (2004), 20-F 2007 selected financial data (2005-2007), 20-F 2010 (2008-2010), 20-F 2015 Item 3 selected financial data (2011-2015)
+- Corrected:
+  - FY2000 (2000-12-31) revenue: 46518 -> 47582 (Unilever 20-F 2001: "Group turnover also increased 16% to EUR 47 582 million"; regional 2000 Group turnover rows sum to 47,582; 2001 51,514 = +8%)
+  - FY2000 (2000-12-31) operatingIncome: 3140 -> 3302 (Unilever 20-F 2001: "Group operating profit was down 23% to EUR 3 302 million"; regional rows sum to 3,302; 2001 5,174 = +57%). Values 46,518/3,140 appear in none of the FY2001/FY2002/FY2003 20-Fs.
+- Removed / unverifiable:
+  - none
+- sourceUrl fixes: none (FY2000 source text updated to Financial Review 2000 vs 1999)
 
 ## Volkswagen Group (`volkswagen`)
 
