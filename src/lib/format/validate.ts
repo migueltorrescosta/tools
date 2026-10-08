@@ -12,8 +12,12 @@ export interface XmlParser {
 	parseFromString(text: string, type: 'application/xml'): Pick<Document, 'getElementsByTagNameNS'>;
 }
 
-/** Namespace Chromium, Firefox and WebKit put their parsererror element in. */
-export const PARSERERROR_NS = 'http://www.mozilla.org/newlayout/xml/parsererror.xml';
+/** Where Firefox puts its parsererror element; Chromium and WebKit use the XHTML namespace. */
+export const FIREFOX_PARSERERROR_NS = 'http://www.mozilla.org/newlayout/xml/parsererror.xml';
+export const XHTML_NS = 'http://www.w3.org/1999/xhtml';
+
+/** Input every XML parser rejects, used to learn which namespace its parsererror uses. */
+export const XML_PROBE = '<';
 
 export const FORMATS = [
 	{ value: 'json', label: 'JSON' },
@@ -24,26 +28,168 @@ export const FORMATS = [
 ] as const;
 
 export function validateJson(text: string): ValidationResult {
-	if (!text.trim()) {
-		return { valid: false, message: 'JSON cannot be empty' };
-	}
 	try {
 		JSON.parse(text);
 		return { valid: true, message: 'Valid JSON' };
 	} catch (e) {
-		const error = e as SyntaxError;
-		const match = error.message.match(/position (\d+)/);
-		if (match) {
-			const pos = parseInt(match[1]);
-			const lines = text.substring(0, pos).split('\n');
-			const line = lines.length;
-			const col = lines[lines.length - 1].length + 1;
+		// Engines disagree on wording and most V8 errors carry no position, so locate the
+		// error with our own scanner and keep the engine message only as a fallback
+		const found = findJsonError(text);
+		if (found) {
+			const pos = lineCol(text, found.offset);
 			return {
 				valid: false,
-				message: `Invalid JSON: ${error.message} at line ${line}, column ${col}`
+				message: `Invalid JSON at line ${pos.line}, column ${pos.col}: ${found.message}`
 			};
 		}
-		return { valid: false, message: `Invalid JSON: ${error.message}` };
+		return { valid: false, message: `Invalid JSON: ${(e as Error).message}` };
+	}
+}
+
+export interface JsonError {
+	/** UTF-16 offset of the offending character (text.length for unexpected end) */
+	offset: number;
+	message: string;
+}
+
+const JSON_NUMBER = /-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/y;
+const JSON_WORD = /[A-Za-z_$][\w$]*/y;
+const JSON_ESCAPES = '"\\/bfnrt';
+
+function describeChar(c: string): string {
+	if (/^[\p{L}\p{N}\p{P}\p{S}]$/u.test(c)) return `'${c}'`;
+	return `U+${c.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0')}`;
+}
+
+/**
+ * First RFC 8259 syntax error in `text`, or null when it is valid JSON. Iterative, so
+ * deeply nested input cannot overflow the stack.
+ */
+export function findJsonError(text: string): JsonError | null {
+	const n = text.length;
+	let i = 0;
+	const err = (message: string, offset = i): JsonError => ({ offset, message });
+	const skipWs = () => {
+		while (i < n && (text[i] === ' ' || text[i] === '\t' || text[i] === '\n' || text[i] === '\r'))
+			i++;
+	};
+	const unexpected = (): JsonError =>
+		i >= n ? err('Unexpected end of input') : err(`Unexpected character ${describeChar(text[i])}`);
+
+	const scanString = (): JsonError | null => {
+		const start = i++;
+		while (i < n) {
+			const c = text[i];
+			if (c === '"') {
+				i++;
+				return null;
+			}
+			if (c === '\\') {
+				const e = text[i + 1];
+				if (e === 'u') {
+					if (!/^[0-9a-fA-F]{4}$/.test(text.slice(i + 2, i + 6)))
+						return err('Bad Unicode escape', i);
+					i += 6;
+				} else if (e !== undefined && JSON_ESCAPES.includes(e)) {
+					i += 2;
+				} else {
+					return err('Bad escaped character', i);
+				}
+				continue;
+			}
+			if (c.charCodeAt(0) < 0x20) return err('Bad control character in string literal');
+			i++;
+		}
+		return err('Unterminated string', start);
+	};
+
+	const scanScalar = (): JsonError | null => {
+		const c = text[i];
+		if (c === '"') return scanString();
+		if (c === '-' || (c >= '0' && c <= '9')) {
+			JSON_NUMBER.lastIndex = i;
+			const m = JSON_NUMBER.exec(text);
+			if (!m) return err('No number after minus sign', i + 1);
+			const end = i + m[0].length;
+			const next = text[end] ?? '';
+			if (next >= '0' && next <= '9') return err('Leading zeros are not allowed', i);
+			if (next === '.') return err('Unterminated fractional number', end + 1);
+			if (next === 'e' || next === 'E') return err('Exponent part is missing a number', end + 1);
+			i = end;
+			return null;
+		}
+		JSON_WORD.lastIndex = i;
+		const word = JSON_WORD.exec(text)?.[0];
+		if (word === 'true' || word === 'false' || word === 'null') {
+			i += word.length;
+			return null;
+		}
+		if (word) return err(`Unexpected token '${word}'`);
+		return unexpected();
+	};
+
+	if (text[0] === '\uFEFF') {
+		return err('Byte order mark (U+FEFF) is not allowed at the start of JSON; remove it', 0);
+	}
+
+	const stack: ('{' | '[')[] = [];
+	// What the next token must be: a value, an object key, or either closing bracket first
+	let want: 'value' | 'key' | 'firstValue' | 'firstKey' = 'value';
+	for (;;) {
+		skipWs();
+		if (want === 'firstKey' || want === 'key') {
+			if (text[i] === '}') {
+				if (want === 'key') return err("Trailing comma before '}'");
+				i++;
+				stack.pop();
+			} else if (text[i] === '"') {
+				const e = scanString();
+				if (e) return e;
+				skipWs();
+				if (text[i] !== ':') return i >= n ? unexpected() : err("Expected ':' after property name");
+				i++;
+				want = 'value';
+				continue;
+			} else {
+				return i >= n ? unexpected() : err('Expected double-quoted property name');
+			}
+		} else if (text[i] === ']' && want === 'firstValue') {
+			i++;
+			stack.pop();
+		} else if (text[i] === ']' && stack.at(-1) === '[') {
+			return err("Trailing comma before ']'");
+		} else if (text[i] === '{' || text[i] === '[') {
+			stack.push(text[i] as '{' | '[');
+			want = text[i] === '{' ? 'firstKey' : 'firstValue';
+			i++;
+			continue;
+		} else {
+			const e = scanScalar();
+			if (e) return e;
+		}
+
+		// A value just ended: close containers until a comma asks for the next one
+		for (;;) {
+			skipWs();
+			const top = stack.at(-1);
+			if (!top) return i < n ? err('Unexpected non-whitespace character after JSON') : null;
+			if (text[i] === ',') {
+				i++;
+				want = top === '{' ? 'key' : 'value';
+				break;
+			}
+			if (text[i] === (top === '{' ? '}' : ']')) {
+				i++;
+				stack.pop();
+				continue;
+			}
+			if (i >= n) return unexpected();
+			return err(
+				top === '{'
+					? "Expected ',' or '}' after property value"
+					: "Expected ',' or ']' after array element"
+			);
+		}
 	}
 }
 
@@ -52,10 +198,6 @@ export function validateJson(text: string): ValidationResult {
 const YAML_NON_PRINTABLE = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x84\x86-\x9F\uFFFE\uFFFF]/;
 
 export function validateYaml(text: string): ValidationResult {
-	if (!text.trim()) {
-		return { valid: false, message: 'YAML cannot be empty' };
-	}
-
 	const lines = text.split('\n');
 	for (let i = 0; i < lines.length; i++) {
 		const m = YAML_NON_PRINTABLE.exec(lines[i]);
@@ -110,14 +252,23 @@ export function describeXmlError(errorText: string): string {
 	return `Invalid XML${location}: ${detail || 'not well-formed'}`;
 }
 
-export function validateXml(text: string, parser: XmlParser = new DOMParser()): ValidationResult {
-	if (!text.trim()) {
-		return { valid: false, message: 'XML cannot be empty' };
-	}
+/**
+ * Namespaces this parser puts its parsererror element in. Browsers disagree (Firefox uses
+ * its own, Chromium and WebKit XHTML), so ask the parser by feeding it known-bad input.
+ */
+function parserErrorNamespaces(parser: XmlParser): string[] {
+	const probe = parser
+		.parseFromString(XML_PROBE, 'application/xml')
+		.getElementsByTagNameNS('*', 'parsererror')[0];
+	return probe?.namespaceURI ? [probe.namespaceURI] : [FIREFOX_PARSERERROR_NS, XHTML_NS];
+}
 
+export function validateXml(text: string, parser: XmlParser = new DOMParser()): ValidationResult {
 	const doc = parser.parseFromString(text, 'application/xml');
 	// Match by namespace: a user element named parsererror is well-formed content
-	const parseError = doc.getElementsByTagNameNS(PARSERERROR_NS, 'parsererror')[0];
+	const parseError = parserErrorNamespaces(parser)
+		.map((ns) => doc.getElementsByTagNameNS(ns, 'parsererror')[0])
+		.find(Boolean);
 
 	if (parseError) {
 		return { valid: false, message: describeXmlError(parseError.textContent ?? '') };
@@ -217,10 +368,6 @@ export function inlineLinkEnd(text: string, start: number): number {
 }
 
 export function validateMarkdown(text: string): ValidationResult {
-	if (!text.trim()) {
-		return { valid: false, message: 'Markdown cannot be empty' };
-	}
-
 	const lines = text.split('\n');
 	let fence: Fence | null = null;
 
@@ -262,33 +409,42 @@ export function validateMarkdown(text: string): ValidationResult {
 	return { valid: true, message: 'Valid Markdown' };
 }
 
+// Plain-text control policy: tab, LF, CR and form feed (page break) are ordinary text.
+// Every other C0 control, DEL and the C1 block are rejected; C1 in pasted text is almost
+// always mis-decoded Windows-1252 (U+0085 is a mangled ellipsis). U+FFFE/U+FFFF are
+// noncharacters.
+// eslint-disable-next-line no-control-regex
+const PLAIN_TEXT_CONTROL = /[\x00-\x08\x0B\x0E-\x1F\x7F-\x9F]/;
+const PLAIN_TEXT_NONCHARACTER = /[\uFFFE\uFFFF]/;
+
+function codePoint(c: string): string {
+	return `U+${c.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0')}`;
+}
+
 export function validatePlainText(text: string): ValidationResult {
-	if (!text.trim()) {
-		return { valid: false, message: 'Text cannot be empty' };
+	const checks: [RegExp, string][] = [
+		[PLAIN_TEXT_CONTROL, 'control character'],
+		[PLAIN_TEXT_NONCHARACTER, 'noncharacter'],
+		// In u-mode a surrogate pair is one code point, so this matches only unpaired halves
+		[/[\uD800-\uDFFF]/u, 'lone surrogate']
+	];
+	for (const [re, kind] of checks) {
+		const m = re.exec(text);
+		if (m) {
+			const pos = lineCol(text, m.index);
+			const why = kind === 'lone surrogate' ? ', which cannot be encoded as UTF-8' : '';
+			return {
+				valid: false,
+				message: `Text contains a ${kind} ${codePoint(m[0])} at line ${pos.line}, column ${pos.col}${why}`
+			};
+		}
 	}
-
-	const invalidBytes = text.match(/[\x00-\x08\x0B\x0C\x0E-\x1F\uFFFE\uFFFF]/); // eslint-disable-line no-control-regex
-	if (invalidBytes) {
-		return { valid: false, message: 'Text contains invalid control characters' };
-	}
-
-	// In u-mode a surrogate pair is one code point, so this matches only unpaired halves
-	const loneSurrogate = /[\uD800-\uDFFF]/u.exec(text);
-	if (loneSurrogate) {
-		const code = loneSurrogate[0].charCodeAt(0).toString(16).toUpperCase();
-		return {
-			valid: false,
-			message: `Text contains a lone surrogate U+${code}, which cannot be encoded as UTF-8`
-		};
-	}
-
 	return { valid: true, message: 'Valid Plain Text' };
 }
 
-export function validateFormat(format: string, content: string): ValidationResult {
-	if (!content.trim()) {
-		return { valid: false, message: 'Content cannot be empty' };
-	}
+/** Validate `content` as `format`; null for blank content, which the page shows as a prompt. */
+export function validateFormat(format: string, content: string): ValidationResult | null {
+	if (!content.trim()) return null;
 
 	switch (format) {
 		case 'json':

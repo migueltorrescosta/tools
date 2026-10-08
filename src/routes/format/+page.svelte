@@ -5,22 +5,33 @@
 
 	let content = $state('');
 	let selectedFormat = $state('json');
-	let validationResult = $state<ValidationResult | null>(null);
+	let copyState = $state<'idle' | 'copied' | 'failed'>('idle');
+	let copyTimer: ReturnType<typeof setTimeout> | undefined;
+	let hydrated = $state(false);
 
-	function validate() {
-		validationResult = validateFormat(selectedFormat, content);
-	}
+	// Blank content (empty or whitespace-only) is null, shown as the neutral placeholder
+	const validationResult: ValidationResult | null = $derived(
+		validateFormat(selectedFormat, content)
+	);
 
-	$effect(() => {
-		if (content) {
-			validate();
-		} else {
-			validationResult = null;
+	const COPY_LABELS = { idle: 'COPY INPUT', copied: 'COPIED', failed: 'COPY FAILED' } as const;
+
+	async function copyInput() {
+		try {
+			await copyToClipboard(content);
+			copyState = 'copied';
+		} catch {
+			// No clipboard permission or an insecure context
+			copyState = 'failed';
 		}
-	});
+		clearTimeout(copyTimer);
+		copyTimer = setTimeout(() => (copyState = 'idle'), 2000);
+	}
 
 	onMount(() => {
 		content = '{\n  "name": "example",\n  "value": 123\n}';
+		hydrated = true;
+		return () => clearTimeout(copyTimer);
 	});
 </script>
 
@@ -28,7 +39,7 @@
 	<title>Format Checker</title>
 </svelte:head>
 
-<div class="container">
+<div class="container" data-hydrated={hydrated || undefined}>
 	<header>
 		<h1>FORMAT CHECKER</h1>
 		<p class="subtitle">Validate JSON, YAML, XML, Markdown & More</p>
@@ -39,11 +50,12 @@
 			<span class="label">FORMAT</span>
 			<span class="hint">Select the format to validate</span>
 		</div>
-		<div class="format-buttons">
+		<div class="format-buttons" role="group" aria-label="Format">
 			{#each formats as format (format.value)}
 				<button
 					class="format-btn"
 					class:active={selectedFormat === format.value}
+					aria-pressed={selectedFormat === format.value}
 					onclick={() => (selectedFormat = format.value)}
 				>
 					{format.label}
@@ -54,10 +66,18 @@
 
 	<div class="content-input-section">
 		<div class="section-header">
-			<span class="label">CONTENT</span>
+			<label class="label" for="format-content">CONTENT</label>
 			<span class="hint">Paste your {selectedFormat.toUpperCase()} content</span>
+			<button
+				class="copy-btn"
+				class:copied={copyState === 'copied'}
+				class:failed={copyState === 'failed'}
+				onclick={copyInput}
+				disabled={!content}>{COPY_LABELS[copyState]}</button
+			>
 		</div>
 		<textarea
+			id="format-content"
 			class="content-input"
 			bind:value={content}
 			placeholder={`Paste your ${selectedFormat.toUpperCase()} here...`}
@@ -70,17 +90,21 @@
 			<span class="dot red"></span>
 			<span class="dot yellow"></span>
 			<span class="dot green"></span>
-			<span class="panel-title">VALIDATION RESULT</span>
-			<button class="copy-btn" onclick={() => copyToClipboard(content)}>COPY</button>
+			<span class="panel-title" id="format-result-title">VALIDATION RESULT</span>
 		</div>
-		<div class="panel-content">
+		<div
+			class="panel-content"
+			role="status"
+			aria-live="polite"
+			aria-labelledby="format-result-title"
+		>
 			{#if validationResult}
 				<div
 					class="result"
 					class:valid={validationResult.valid}
 					class:invalid={!validationResult.valid}
 				>
-					<span class="result-icon">{validationResult.valid ? '✓' : '✗'}</span>
+					<span class="result-icon" aria-hidden="true">{validationResult.valid ? '✓' : '✗'}</span>
 					<span class="result-message">{validationResult.message}</span>
 				</div>
 			{:else}
@@ -127,8 +151,10 @@
 					</ul>
 				{:else}
 					<ul>
-						<li>Must contain non-whitespace text</li>
-						<li>No control characters other than tab, line feed and carriage return</li>
+						<li>
+							No control characters other than tab, line feed, carriage return and form feed (DEL
+							and U+0080-U+009F are rejected)
+						</li>
 						<li>No noncharacters U+FFFE or U+FFFF</li>
 						<li>No lone surrogates (must be encodable as UTF-8)</li>
 					</ul>
@@ -137,3 +163,20 @@
 		</div>
 	</div>
 </div>
+
+<style>
+	.copy-btn.copied {
+		border-color: #4dff6a;
+		color: #4dff6a;
+	}
+
+	.copy-btn.failed {
+		border-color: #ff6666;
+		color: #ff6666;
+	}
+
+	.copy-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+</style>
