@@ -6,25 +6,25 @@
 	import {
 		MIN_CHOICES,
 		MAX_CHOICES,
-		cb32Encode,
-		cb32Decode,
 		cb32Normalize,
-		codeWidth,
-		CB32_CHAR_CLASS,
 		computeChecksum,
 		encodeElection,
 		decodeElection,
-		isValidCode,
+		decodeVote,
+		encodeVote,
+		hasDuplicateChoices,
+		parseStoredVotes,
+		voteCodeWidth as codeLength,
+		votesStorageKey,
 		colorStyle,
-		permToInt,
-		intToPerm,
 		tallyResults,
 		tallyFPTP,
 		tallyIRV,
 		tallyCondorcet,
 		type Election,
 		type Vote,
-		type TallyResult
+		type TallyResult,
+		type IRVResult
 	} from '$lib/rank-vote';
 
 	// --- State ---
@@ -41,6 +41,8 @@
 	let qrModalOpen = $state(false);
 	let qrModalText = $state('');
 	let qrDataUrl = $state('');
+	// Set once onMount has run, so e2e tests do not click before hydration
+	let hydrated = $state(false);
 
 	// --- Toast ---
 	function showToast(message: string) {
@@ -62,9 +64,17 @@
 	}
 
 	// --- Ballot validation ---
+	let duplicateChoices = $derived(
+		choices.filter((c) => c.trim()).length > 1 &&
+			hasDuplicateChoices(choices.filter((c) => c.trim()))
+	);
+
 	function isBallotValid(): boolean {
 		return (
-			title.trim().length > 0 && choices.length >= MIN_CHOICES && choices.every((c) => c.trim())
+			title.trim().length > 0 &&
+			choices.length >= MIN_CHOICES &&
+			choices.every((c) => c.trim()) &&
+			!hasDuplicateChoices(choices)
 		);
 	}
 
@@ -117,7 +127,12 @@
 	async function createBallot() {
 		const trimmedTitle = title.trim();
 		const trimmedChoices = choices.map((c) => c.trim());
-		if (!trimmedTitle || trimmedChoices.length < MIN_CHOICES || trimmedChoices.some((c) => !c))
+		if (
+			!trimmedTitle ||
+			trimmedChoices.length < MIN_CHOICES ||
+			trimmedChoices.some((c) => !c) ||
+			hasDuplicateChoices(trimmedChoices)
+		)
 			return;
 
 		const cs = await computeChecksum(trimmedTitle, trimmedChoices);
@@ -146,8 +161,7 @@
 
 	function copyCode() {
 		if (election) {
-			const code = cb32Encode(permToInt(ranking), codeWidth(election.choices.length));
-			copyToClipboard(code, 'Vote code copied');
+			copyToClipboard(encodeVote(ranking, election.cs), 'Vote code copied');
 		}
 	}
 
@@ -161,79 +175,86 @@
 		if (!election) return;
 
 		const name = voteNameInput.trim();
-		const code = cb32Normalize(voteCodeInput);
-		const numChoices = election.choices.length;
-		const width = codeWidth(numChoices);
+		const code = cb32Normalize(voteCodeInput.trim());
 
-		if (!name || code.length !== width || !isValidCode(code, numChoices)) {
+		if (!name || !decodeVote(code, election.choices.length, election.cs)) {
 			voteFormInvalid = true;
 			return;
 		}
 
 		// Check for duplicate name
-		const dupIndex = votes.findIndex((v) => v.name === name);
-		if (dupIndex !== -1) {
-			votes = votes.filter((_, i) => i !== dupIndex);
+		if (votes.some((v) => v.name === name)) {
+			votes = votes.filter((v) => v.name !== name);
 			showToast(`Replaced previous vote from ${name}`);
 		}
 
 		votes = [...votes, { name, code }];
+		saveVotes();
 		voteNameInput = '';
 		voteCodeInput = '';
 		voteFormInvalid = false;
 	}
 
-	function removeVote(index: number) {
-		votes = votes.filter((_, i) => i !== index);
+	function removeVote(name: string) {
+		votes = votes.filter((v) => v.name !== name);
+		saveVotes();
+		if (expandedVotes.has(name)) toggleVote(name);
 	}
 
-	// --- Expandable vote details ---
-	let expandedVotes = $state<Set<number>>(new Set());
+	// --- Saved votes (per election, so a reload or vote-page visit keeps them) ---
+	function saveVotes() {
+		if (!election) return;
+		try {
+			localStorage.setItem(votesStorageKey(election.cs), JSON.stringify(votes));
+		} catch {
+			// Storage unavailable (private mode, quota): votes stay in memory only
+		}
+	}
 
-	function toggleVote(index: number) {
+	function loadVotes(e: { cs: string; choices: string[] }): Vote[] {
+		try {
+			return parseStoredVotes(localStorage.getItem(votesStorageKey(e.cs)), e.choices.length, e.cs);
+		} catch {
+			return [];
+		}
+	}
+
+	// --- Expandable vote details (keyed by voter name, unique in the list) ---
+	let expandedVotes = $state<Set<string>>(new Set());
+
+	function toggleVote(name: string) {
 		const newSet = new Set(expandedVotes);
-		if (newSet.has(index)) {
-			newSet.delete(index);
+		if (newSet.has(name)) {
+			newSet.delete(name);
 		} else {
-			newSet.add(index);
+			newSet.add(name);
 		}
 		expandedVotes = newSet;
 	}
 
-	function handleVoteKeydown(e: KeyboardEvent, index: number) {
-		if (e.key === 'Enter' || e.key === ' ') {
-			e.preventDefault();
-			toggleVote(index);
-		}
-	}
-
 	// --- Computed values ---
 	let currentVoteCode = $derived(
-		election && ranking.length > 0
-			? cb32Encode(permToInt(ranking), codeWidth(election.choices.length))
-			: ''
+		election && ranking.length > 0 ? encodeVote(ranking, election.cs) : ''
 	);
 
-	let voteCodeWidth = $derived(election ? codeWidth(election.choices.length) : 0);
+	let voteCodeWidth = $derived(election ? codeLength(election.choices.length) : 0);
 
 	// Results for each voting mechanism
-	let resultsFPTP = $derived(
-		election ? tallyFPTP(election.choices, votes) : { results: [], valid: 0 }
+	let resultsFPTP = $derived<TallyResult>(
+		election ? tallyFPTP(election.choices, votes, election.cs) : { results: [], valid: 0 }
 	);
-	let resultsIRV = $derived(
-		election ? tallyIRV(election.choices, votes) : { results: [], valid: 0 }
+	let resultsIRV = $derived<IRVResult>(
+		election
+			? tallyIRV(election.choices, votes, election.cs)
+			: { results: [], valid: 0, rounds: [] }
 	);
 	let resultsBorda = $derived(
-		election ? tallyResults(election.choices, votes) : { results: [], valid: 0 }
+		election ? tallyResults(election.choices, votes, election.cs) : { results: [], valid: 0 }
 	);
 	let resultsCondorcet = $derived(
 		election
-			? tallyCondorcet(election.choices, votes)
+			? tallyCondorcet(election.choices, votes, election.cs)
 			: { results: [], valid: 0, condorcetWinner: null, cycle: false }
-	);
-
-	let voteCodePattern = $derived(
-		election ? `[${CB32_CHAR_CLASS}]{${codeWidth(election.choices.length)}}` : ''
 	);
 
 	// --- Init ---
@@ -276,13 +297,15 @@
 					ranking = [...Array(decodedElection.choices.length).keys()];
 				} else {
 					mode = 'tally';
-					votes = [];
+					votes = loadVotes(decodedElection);
+					expandedVotes = new Set();
 				}
 			});
 		}
 
 		handleHashChange();
 		window.addEventListener('hashchange', handleHashChange);
+		hydrated = true;
 		return () => window.removeEventListener('hashchange', handleHashChange);
 	});
 </script>
@@ -330,7 +353,7 @@
 	</div>
 {/if}
 
-<div class="container">
+<div class="container" data-hydrated={hydrated || undefined}>
 	<header>
 		<h1>RANK VOTE</h1>
 		<p class="subtitle">Ranked Choice Voting</p>
@@ -381,6 +404,9 @@
 						{/if}
 					</div>
 				{/each}
+				{#if duplicateChoices}
+					<p class="form-error" role="alert">Choices must all be different.</p>
+				{/if}
 				{#if choices.length < MAX_CHOICES}
 					<button class="btn-secondary" onclick={addChoice}>+ Add choice</button>
 				{/if}
@@ -479,7 +505,7 @@
 				<!-- Results - 4 columns -->
 				<div class="card section results-card">
 					<div class="section-title">Results</div>
-					<p class="hint">{resultsBorda.valid} vote{resultsBorda.valid > 1 ? 's' : ''}</p>
+					<p class="hint">{resultsBorda.valid} vote{resultsBorda.valid === 1 ? '' : 's'}</p>
 					{#if resultsBorda.valid > 0}
 						<div class="methods-grid">
 							<div class="method-col">
@@ -498,9 +524,51 @@
 									<div class="method-row" style={colorStyle(result.index)}>
 										<span class="method-rank">#{result.rank}</span>
 										<span class="method-text">{result.text}</span>
-										<span class="method-score">{result.score}</span>
+										{#if result.eliminatedRound}
+											<span
+												class="method-score method-out"
+												title="{result.score} vote{result.score === 1
+													? ''
+													: 's'} when eliminated in round {result.eliminatedRound}"
+												>out R{result.eliminatedRound}</span
+											>
+										{:else}
+											<span class="method-score" title="Votes in the final round"
+												>{result.score}</span
+											>
+										{/if}
 									</div>
 								{/each}
+								{#if resultsIRV.rounds.length > 1}
+									<details class="irv-rounds">
+										<summary>Rounds</summary>
+										<table>
+											<thead>
+												<tr>
+													<th scope="col"></th>
+													{#each resultsIRV.rounds as _, r}
+														<th scope="col">R{r + 1}</th>
+													{/each}
+												</tr>
+											</thead>
+											<tbody>
+												{#each election.choices as choice, c}
+													<tr>
+														<th scope="row">{choice}</th>
+														{#each resultsIRV.rounds as round, r}
+															{@const out = resultsIRV.rounds
+																.slice(0, r)
+																.some((prev) => prev.eliminated.includes(c))}
+															<td class:eliminated={round.eliminated.includes(c)}
+																>{out ? '' : round.counts[c]}</td
+															>
+														{/each}
+													</tr>
+												{/each}
+											</tbody>
+										</table>
+									</details>
+								{/if}
 								{#if resultsIRV.tie}
 									<p class="method-note">
 										Tie: {resultsIRV.tie.map((i) => election?.choices[i]).join(', ')}. An
@@ -561,58 +629,58 @@
 							type="text"
 							class="rank-input code-input"
 							placeholder="Code"
+							aria-label="Vote code"
+							aria-invalid={voteFormInvalid}
 							bind:value={voteCodeInput}
+							oninput={() => (voteFormInvalid = false)}
 							required
 							minlength={voteCodeWidth}
 							maxlength={voteCodeWidth}
-							pattern={voteCodePattern}
 							autocapitalize="characters"
 							autocorrect="off"
 							spellcheck="false"
 						/>
 						<button type="submit" class="btn-primary">Add</button>
+						{#if voteFormInvalid}
+							<p class="form-error" role="alert">
+								Invalid code for this ballot. Check for typos: codes are {voteCodeWidth} characters.
+							</p>
+						{/if}
 					</form>
 					{#if votes.length === 0}
 						<p class="empty-state">No votes yet</p>
 					{:else}
 						<div class="votes-list">
-							{#each votes as vote, i}
+							{#each votes as vote (vote.name)}
+								{@const expanded = expandedVotes.has(vote.name)}
 								<div class="vote-entry">
-									<!-- svelte-ignore a11y_click_events_have_key_events -->
-									<div
-										class="vote-entry-header"
-										onclick={() => toggleVote(i)}
-										onkeydown={(e) => handleVoteKeydown(e, i)}
-										role="button"
-										tabindex="0"
-										aria-expanded={expandedVotes.has(i)}
-									>
-										<span class="vote-name">{vote.name}</span>
-										<span class="vote-code-chip">{vote.code}</span>
-										<span class="vote-toggle" class:open={expandedVotes.has(i)}>▼</span>
+									<div class="vote-entry-header">
 										<button
+											type="button"
+											class="vote-entry-toggle"
+											onclick={() => toggleVote(vote.name)}
+											aria-expanded={expanded}
+										>
+											<span class="vote-name">{vote.name}</span>
+											<span class="vote-code-chip">{vote.code}</span>
+											<span class="vote-toggle" class:open={expanded} aria-hidden="true">▼</span>
+										</button>
+										<button
+											type="button"
 											class="remove-vote"
-											onclick={(e) => {
-												e.stopPropagation();
-												removeVote(i);
-											}}
-											aria-label="Remove vote">×</button
+											onclick={() => removeVote(vote.name)}
+											aria-label="Remove vote from {vote.name}">×</button
 										>
 									</div>
-									{#if expandedVotes.has(i)}
+									{#if expanded}
+										{@const perm = decodeVote(vote.code, election.choices.length, election.cs)}
 										<div class="vote-detail">
-											{#if isValidCode(vote.code, election.choices.length)}
-												{@const decoded = cb32Decode(vote.code)}
-												{#if decoded !== null}
-													{@const perm = intToPerm(decoded, election.choices.length)}
-													{#each perm as choiceIdx, r}
-														<div class="vote-detail-row" style={colorStyle(choiceIdx)}>
-															<span class="vote-detail-rank">{r + 1}.</span>
-															<span class="vote-detail-text">{election.choices[choiceIdx]}</span>
-														</div>
-													{/each}
-												{/if}
-											{/if}
+											{#each perm ?? [] as choiceIdx, r}
+												<div class="vote-detail-row" style={colorStyle(choiceIdx)}>
+													<span class="vote-detail-rank">{r + 1}.</span>
+													<span class="vote-detail-text">{election.choices[choiceIdx]}</span>
+												</div>
+											{/each}
 										</div>
 									{/if}
 								</div>
@@ -866,17 +934,33 @@
 	.vote-entry-header {
 		display: flex;
 		align-items: center;
+		padding-right: 0.5rem;
+		gap: 0.25rem;
+	}
+
+	.vote-entry-toggle {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		align-items: center;
 		padding: 0.5rem 0.75rem;
 		gap: 0.5rem;
+		border: none;
+		background: none;
+		color: inherit;
+		font: inherit;
+		text-align: left;
 		cursor: pointer;
+		border-radius: 8px;
 		transition: background 0.15s;
 	}
 
-	.vote-entry-header:hover {
+	.vote-entry-toggle:hover {
 		background: rgba(255, 255, 255, 0.02);
 	}
 
-	.vote-entry-header:focus {
+	.vote-entry-toggle:focus-visible,
+	.remove-vote:focus-visible {
 		outline: 1px solid var(--futuristic-cyan);
 		outline-offset: -1px;
 	}
@@ -1013,6 +1097,52 @@
 		color: var(--futuristic-cyan);
 		font-weight: 600;
 		white-space: nowrap;
+	}
+
+	.method-out {
+		color: var(--futuristic-text-dim);
+		font-weight: 500;
+	}
+
+	.irv-rounds {
+		font-size: 0.7rem;
+		color: var(--futuristic-text-dim);
+		margin-top: 0.25rem;
+		overflow-x: auto;
+	}
+
+	.irv-rounds summary {
+		cursor: pointer;
+	}
+
+	.irv-rounds table {
+		border-collapse: collapse;
+		margin-top: 0.25rem;
+	}
+
+	.irv-rounds th,
+	.irv-rounds td {
+		padding: 0.125rem 0.375rem;
+		text-align: right;
+		white-space: nowrap;
+	}
+
+	.irv-rounds th[scope='row'] {
+		text-align: left;
+		font-weight: 500;
+		max-width: 8rem;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.irv-rounds td.eliminated {
+		text-decoration: line-through;
+	}
+
+	.form-error {
+		color: #ff6666;
+		font-size: 0.8rem;
+		margin: 0;
 	}
 
 	.method-note {
