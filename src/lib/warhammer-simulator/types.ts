@@ -139,8 +139,9 @@ export interface SimulationResults {
 	maxRounds: number;
 	avgDamageA: number;
 	avgDamageB: number;
-	damageDistributionA: number[];
-	damageDistributionB: number[];
+	/** damageHistogramA[d] = number of combats in which A dealt exactly d wounds. */
+	damageHistogramA: number[];
+	damageHistogramB: number[];
 	remainingWoundsA: number[];
 	remainingWoundsB: number[];
 	survivalA: number[]; // survivalAtRound[i] = fraction alive after round i

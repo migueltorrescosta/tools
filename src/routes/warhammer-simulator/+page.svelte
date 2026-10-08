@@ -362,11 +362,11 @@
 		// Damage Distribution histogram
 		const dctx = dmgCanvas.getContext('2d');
 		if (dctx) {
-			// Bin damage values: count how many simulations had each damage amount
-			const maxDmg = Math.max(...r.damageDistributionA, ...r.damageDistributionB, 1);
-			const bins = new Array(maxDmg + 1).fill(0).map((_, i) => i);
-			const countsA = bins.map((d) => r.damageDistributionA.filter((v) => v === d).length);
-			const countsB = bins.map((d) => r.damageDistributionB.filter((v) => v === d).length);
+			// Histograms are pre-binned by the aggregator (index = wounds dealt)
+			const binCount = Math.max(r.damageHistogramA.length, r.damageHistogramB.length, 2);
+			const bins = Array.from({ length: binCount }, (_, i) => i);
+			const countsA = bins.map((d) => r.damageHistogramA[d] ?? 0);
+			const countsB = bins.map((d) => r.damageHistogramB[d] ?? 0);
 
 			dmgChart = new Chart(dctx, {
 				type: 'bar',

@@ -49,7 +49,7 @@ export class MonteCarloController {
 			results.push(engine.run());
 		}
 
-		return this.aggregate(results, n);
+		return aggregateResults(results, n, this.baseSeed);
 	}
 
 	/**
@@ -72,104 +72,116 @@ export class MonteCarloController {
 		}
 		return results;
 	}
+}
 
-	/**
-	 * Aggregate combat results into summary statistics.
-	 */
-	private aggregate(results: CombatResult[], totalRuns: number): SimulationResults {
-		let winsA = 0;
-		let winsB = 0;
-		let mutualKills = 0;
-		let draws = 0;
-		let totalRounds = 0;
-		let totalDamageA = 0;
-		let totalDamageB = 0;
-		const totalWoundsA = this.charA.wounds;
-		const totalWoundsB = this.charB.wounds;
+/**
+ * Increment the count for `value` in a histogram indexed by value, growing it
+ * as needed. O(1) per call, so histograms stay safe for any number of runs.
+ */
+export function addToHistogram(histogram: number[], value: number): void {
+	while (histogram.length <= value) histogram.push(0);
+	histogram[value]++;
+}
 
-		// For histograms
-		const maxRounds = results.reduce((max, r) => Math.max(max, r.rounds), 1);
-		const roundDist = new Array(maxRounds).fill(0);
-		const damageDistA: number[] = [];
-		const damageDistB: number[] = [];
-		const remWoundsA: number[] = [];
-		const remWoundsB: number[] = [];
-		const survivalCountA: number[] = new Array(maxRounds + 1).fill(0);
-		const survivalCountB: number[] = new Array(maxRounds + 1).fill(0);
-		// Everyone starts alive at round 0
-		survivalCountA[0] = totalRuns;
-		survivalCountB[0] = totalRuns;
-		const abilityFreq: Record<string, number> = {};
+/**
+ * Aggregate combat results into summary statistics. Shared by
+ * MonteCarloController and the Web Worker so both report identical numbers.
+ */
+export function aggregateResults(
+	results: CombatResult[],
+	totalRuns: number,
+	seed: number
+): SimulationResults {
+	let winsA = 0;
+	let winsB = 0;
+	let mutualKills = 0;
+	let draws = 0;
+	let totalRounds = 0;
+	let totalDamageA = 0;
+	let totalDamageB = 0;
 
-		for (const result of results) {
-			switch (result.winner) {
-				case 'A':
-					winsA++;
-					break;
-				case 'B':
-					winsB++;
-					break;
-				case 'mutual':
-					mutualKills++;
-					break;
-				case 'draw':
-					draws++;
-					break;
+	// For histograms
+	const maxRounds = results.reduce((max, r) => Math.max(max, r.rounds), 1);
+	const roundDist = new Array(maxRounds).fill(0);
+	const damageHistA: number[] = [];
+	const damageHistB: number[] = [];
+	const remWoundsA: number[] = [];
+	const remWoundsB: number[] = [];
+	const survivalCountA: number[] = new Array(maxRounds + 1).fill(0);
+	const survivalCountB: number[] = new Array(maxRounds + 1).fill(0);
+	// Everyone starts alive at round 0
+	survivalCountA[0] = totalRuns;
+	survivalCountB[0] = totalRuns;
+	const abilityFreq: Record<string, number> = {};
+
+	for (const result of results) {
+		switch (result.winner) {
+			case 'A':
+				winsA++;
+				break;
+			case 'B':
+				winsB++;
+				break;
+			case 'mutual':
+				mutualKills++;
+				break;
+			case 'draw':
+				draws++;
+				break;
+		}
+
+		totalRounds += result.rounds;
+		totalDamageA += result.damageDealtA;
+		totalDamageB += result.damageDealtB;
+
+		// Round distribution (1-indexed to 0-indexed)
+		const idx = Math.min(result.rounds - 1, maxRounds - 1);
+		roundDist[idx] = (roundDist[idx] || 0) + 1;
+
+		addToHistogram(damageHistA, result.damageDealtA);
+		addToHistogram(damageHistB, result.damageDealtB);
+		remWoundsA.push(result.remainingWoundsA);
+		remWoundsB.push(result.remainingWoundsB);
+
+		// Survival curves: track how many survived through each round
+		// (r=0 is already set to totalRuns — everyone starts alive)
+		for (let r = 1; r <= result.rounds && r <= maxRounds; r++) {
+			if (result.remainingWoundsA > 0 || result.winner === 'A') {
+				survivalCountA[r]++;
 			}
-
-			totalRounds += result.rounds;
-			totalDamageA += result.damageDealtA;
-			totalDamageB += result.damageDealtB;
-
-			// Round distribution (1-indexed to 0-indexed)
-			const idx = Math.min(result.rounds - 1, maxRounds - 1);
-			roundDist[idx] = (roundDist[idx] || 0) + 1;
-
-			damageDistA.push(result.damageDealtA);
-			damageDistB.push(result.damageDealtB);
-			remWoundsA.push(result.remainingWoundsA);
-			remWoundsB.push(result.remainingWoundsB);
-
-			// Survival curves: track how many survived through each round
-			// (r=0 is already set to totalRuns — everyone starts alive)
-			for (let r = 1; r <= result.rounds && r <= maxRounds; r++) {
-				if (result.remainingWoundsA > 0 || result.winner === 'A') {
-					survivalCountA[r]++;
-				}
-				if (result.remainingWoundsB > 0 || result.winner === 'B') {
-					survivalCountB[r]++;
-				}
-			}
-
-			// Ability activation frequencies
-			for (const [ability, count] of Object.entries(result.abilityActivations)) {
-				abilityFreq[ability] = (abilityFreq[ability] || 0) + (count > 0 ? 1 : 0);
+			if (result.remainingWoundsB > 0 || result.winner === 'B') {
+				survivalCountB[r]++;
 			}
 		}
 
-		// Convert survival counts to fractions
-		const survivalA = survivalCountA.map((c) => c / totalRuns);
-		const survivalB = survivalCountB.map((c) => c / totalRuns);
-
-		return {
-			totalRuns,
-			winRateA: winsA / totalRuns,
-			winRateB: winsB / totalRuns,
-			mutualKillRate: mutualKills / totalRuns,
-			drawRate: draws / totalRuns,
-			avgRounds: totalRounds / totalRuns,
-			roundDistribution: roundDist,
-			maxRounds,
-			avgDamageA: totalDamageA / totalRuns,
-			avgDamageB: totalDamageB / totalRuns,
-			damageDistributionA: damageDistA,
-			damageDistributionB: damageDistB,
-			remainingWoundsA: remWoundsA,
-			remainingWoundsB: remWoundsB,
-			survivalA,
-			survivalB,
-			abilityFrequencies: abilityFreq,
-			seedUsed: this.baseSeed
-		};
+		// Ability activation frequencies
+		for (const [ability, count] of Object.entries(result.abilityActivations)) {
+			abilityFreq[ability] = (abilityFreq[ability] || 0) + (count > 0 ? 1 : 0);
+		}
 	}
+
+	// Convert survival counts to fractions
+	const survivalA = survivalCountA.map((c) => c / totalRuns);
+	const survivalB = survivalCountB.map((c) => c / totalRuns);
+
+	return {
+		totalRuns,
+		winRateA: winsA / totalRuns,
+		winRateB: winsB / totalRuns,
+		mutualKillRate: mutualKills / totalRuns,
+		drawRate: draws / totalRuns,
+		avgRounds: totalRounds / totalRuns,
+		roundDistribution: roundDist,
+		maxRounds,
+		avgDamageA: totalDamageA / totalRuns,
+		avgDamageB: totalDamageB / totalRuns,
+		damageHistogramA: damageHistA,
+		damageHistogramB: damageHistB,
+		remainingWoundsA: remWoundsA,
+		remainingWoundsB: remWoundsB,
+		survivalA,
+		survivalB,
+		abilityFrequencies: abilityFreq,
+		seedUsed: seed
+	};
 }

@@ -16,9 +16,13 @@ import {
 	resolveSingleAttack
 } from './warhammer-simulator/rules';
 import { CombatEngine } from './warhammer-simulator/combat';
-import { MonteCarloController } from './warhammer-simulator/simulation';
+import {
+	MonteCarloController,
+	aggregateResults,
+	addToHistogram
+} from './warhammer-simulator/simulation';
 import { PRESET_CHARACTERS } from './warhammer-simulator/presets';
-import type { Character } from './warhammer-simulator/types';
+import type { Character, CombatResult } from './warhammer-simulator/types';
 
 // ── RNG Tests ──
 
@@ -603,5 +607,38 @@ describe('Traits, gifts and items', () => {
 		const result = new CombatEngine(both, target, new AlwaysSixRNG()).run();
 		expect(result.abilityActivations['poisoned-attacks']).toBeGreaterThan(0);
 		expect(result.abilityActivations['killing-blow']).toBeUndefined();
+	});
+});
+
+describe('Damage histogram', () => {
+	it('addToHistogram counts values by index', () => {
+		const h: number[] = [];
+		for (const v of [0, 2, 2, 5]) addToHistogram(h, v);
+		expect(h).toEqual([1, 0, 2, 0, 0, 1]);
+	});
+
+	it('bins 200k results without spreading them (no stack overflow) and with exact counts', () => {
+		const N = 200_000;
+		const results: CombatResult[] = Array.from({ length: N }, (_, i) => ({
+			winner: 'A',
+			rounds: 1,
+			damageDealtA: i % 4,
+			damageDealtB: i % 2,
+			remainingWoundsA: 1,
+			remainingWoundsB: 0,
+			abilityActivations: {}
+		}));
+		const agg = aggregateResults(results, N, 1);
+		expect(agg.damageHistogramA).toEqual([N / 4, N / 4, N / 4, N / 4]);
+		expect(agg.damageHistogramB).toEqual([N / 2, N / 2]);
+		expect(Math.max(...agg.damageHistogramA)).toBe(N / 4);
+	});
+
+	it('MonteCarloController histograms sum to the run count', () => {
+		const char = makeChar();
+		const r = new MonteCarloController(char, { ...char }, 5).run(500);
+		expect(r.damageHistogramA.reduce((a, b) => a + b, 0)).toBe(500);
+		expect(r.damageHistogramB.reduce((a, b) => a + b, 0)).toBe(500);
+		expect(r.damageHistogramA.length).toBeLessThanOrEqual(char.wounds + 1);
 	});
 });
