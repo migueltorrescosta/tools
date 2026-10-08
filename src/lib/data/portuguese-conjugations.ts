@@ -130,7 +130,8 @@ type SpellChange = 'none' | 'car' | 'gar' | 'çar';
 
 /**
  * Generate all conjugation forms for a regular Portuguese verb.
- * Handles spelling changes for -car / -gar / -çar verbs in the subjunctive.
+ * Handles spelling changes for -car / -gar / -çar verbs before e-endings
+ * (subjunctive and pretérito perfeito eu).
  */
 function generateConjugations(
 	verb: string,
@@ -139,7 +140,7 @@ function generateConjugations(
 ): Record<string, Record<string, string[]>> {
 	const stem = verb.slice(0, -2);
 
-	// Subjunctive stem adjusts for spelling changes before 'e' endings
+	// Stem adjusted for spelling changes before 'e' endings (subjunctive, perfeito eu)
 	let subjStem = stem;
 	if (spellChange === 'car') subjStem = stem.replace(/c$/, 'qu');
 	else if (spellChange === 'gar') subjStem = stem.replace(/g$/, 'gu');
@@ -157,7 +158,7 @@ function generateConjugations(
 			stem + 'am'
 		];
 		t['pretérito perfeito do indicativo'] = [
-			stem + 'ei',
+			subjStem + 'ei', // spelling change before e: fiquei, cheguei, comecei
 			stem + 'aste',
 			stem + 'ou',
 			stem + 'ámos',

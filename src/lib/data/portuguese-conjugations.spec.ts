@@ -99,6 +99,20 @@ describe('Portuguese conjugation map', () => {
 		expect(map.get('começar:presente do conjuntivo:eu')!.conjugation).toBe('comece');
 	});
 
+	it('chegar/ficar/começar pretérito perfeito eu take the spelling change', () => {
+		expect(map.get('chegar:pretérito perfeito do indicativo:eu')!.conjugation).toBe('cheguei');
+		expect(map.get('ficar:pretérito perfeito do indicativo:eu')!.conjugation).toBe('fiquei');
+		expect(map.get('começar:pretérito perfeito do indicativo:eu')!.conjugation).toBe('comecei');
+	});
+
+	it('spelling change in pretérito perfeito is limited to eu', () => {
+		expect(map.get('chegar:pretérito perfeito do indicativo:tu')!.conjugation).toBe('chegaste');
+		expect(map.get('ficar:pretérito perfeito do indicativo:ele/ela/você')!.conjugation).toBe(
+			'ficou'
+		);
+		expect(map.get('começar:pretérito perfeito do indicativo:nós')!.conjugation).toBe('começámos');
+	});
+
 	it('dever preterito perfeito 3sg = deveu', () => {
 		expect(map.get('dever:pretérito perfeito do indicativo:ele/ela/você')!.conjugation).toBe(
 			'deveu'
@@ -131,6 +145,12 @@ describe('Portuguese conjugation map', () => {
 });
 
 describe('Portuguese validateAnswer', () => {
+	it('accepts eu cheguei and rejects eu chegei', () => {
+		const tense = 'pretérito perfeito do indicativo';
+		expect(validateAnswer('eu cheguei', 'chegar', tense, 'eu', portugueseModule)).toBe(true);
+		expect(validateAnswer('eu chegei', 'chegar', tense, 'eu', portugueseModule)).toBe(false);
+	});
+
 	it('correct ser present', () => {
 		expect(validateAnswer('eu sou', 'ser', 'presente do indicativo', 'eu', portugueseModule)).toBe(
 			true
