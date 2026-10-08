@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { LANGUAGE_REGISTRY, getLanguage, type LanguageModule } from '$lib/data/language-registry';
+	import { languageStorageKeys, loadLanguageState } from '$lib/verbs-storage';
 	import {
 		buildPool,
 		selectCard,
@@ -15,50 +16,6 @@
 		type SessionState,
 		type HistoryEntry
 	} from '$lib/verbs';
-
-	// ─── Helpers ────────────────────────────────────────────────────────────────
-
-	interface LanguageState {
-		verbs: string[];
-		tenses: string[];
-		session: SessionState;
-	}
-
-	function loadLanguageState(langId: string): LanguageState {
-		const module = getLanguage(langId);
-		if (!module) throw new Error(`Unknown language: ${langId}`);
-
-		if (!browser) {
-			return {
-				verbs: [...module.DEFAULT_VERBS],
-				tenses: [...module.DEFAULT_TENSES],
-				session: createFreshSession()
-			};
-		}
-
-		const savedVerbs = localStorage.getItem(`${langId}-verbs-selected`);
-		const savedTenses = localStorage.getItem(`${langId}-verbs-tenses`);
-		const savedSession = localStorage.getItem(`${langId}-verbs-session`);
-
-		const parsedVerbs: string[] = savedVerbs ? JSON.parse(savedVerbs) : [];
-		const parsedTenses: string[] = savedTenses ? JSON.parse(savedTenses) : [];
-
-		const verbs = parsedVerbs.length > 0 ? parsedVerbs : [...module.DEFAULT_VERBS];
-		const tenses = parsedTenses.length > 0 ? parsedTenses : [...module.DEFAULT_TENSES];
-
-		let session: SessionState;
-		if (savedSession) {
-			try {
-				session = JSON.parse(savedSession) as SessionState;
-			} catch {
-				session = createFreshSession();
-			}
-		} else {
-			session = createFreshSession();
-		}
-
-		return { verbs, tenses, session };
-	}
 
 	// ─── Language Selection ────────────────────────────────────────────────────
 
@@ -74,11 +31,7 @@
 	const ALL_TENSES = $derived([...lang.TENSE_LIST].sort());
 
 	// localStorage keys, per-language (for persistence only)
-	const lsKeys = $derived.by(() => ({
-		verbs: `${lang.id}-verbs-selected`,
-		tenses: `${lang.id}-verbs-tenses`,
-		session: `${lang.id}-verbs-session`
-	}));
+	const lsKeys = $derived(languageStorageKeys(lang.id));
 
 	// ─── Language switcher ─────────────────────────────────────────────────────
 
@@ -87,7 +40,7 @@
 
 		// Load state SYNCHRONOUSLY BEFORE updating selectedLanguageId
 		// This prevents the race condition where activePool derives with wrong state
-		const state = loadLanguageState(langId);
+		const state = loadLanguageState(langId, browser ? localStorage : null);
 
 		// Now update everything atomically
 		selectedLanguageId = langId;
@@ -260,7 +213,7 @@
 
 	onMount(() => {
 		// Load initial state synchronously for the default language
-		const state = loadLanguageState(selectedLanguageId);
+		const state = loadLanguageState(selectedLanguageId, browser ? localStorage : null);
 		selectedVerbs = state.verbs;
 		selectedTenses = state.tenses;
 		session = state.session;

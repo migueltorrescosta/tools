@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { italianModule } from '$lib/data/italian-conjugations';
 import { buildConjugationMap } from '$lib/data/italian-conjugations';
 import {
@@ -122,6 +122,58 @@ describe('selectCard', () => {
 			if (card?.verb === 'essere') essereCount++;
 		}
 		expect(essereCount).toBeGreaterThan(60);
+	});
+
+	describe('weight boundaries (stubbed Math.random)', () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		function pickAt(pool: Card[], session: SessionState, offset: number, total: number) {
+			vi.spyOn(Math, 'random').mockReturnValue(offset / total);
+			return selectCard(pool, session, italianModule);
+		}
+
+		it('applies the verb factor: essere 12*2*2=48 per card, avere 2*2*2=8', () => {
+			const pool = buildPool(['essere', 'avere'], ['presente'], {}, italianModule);
+			const session: SessionState = { ...createFreshSession(), wrongVerb: { essere: 10 } };
+			const total = 6 * 48 + 6 * 8; // 336
+			expect(pickAt(pool, session, 0, total)).toEqual(pool[0]);
+			expect(pickAt(pool, session, 47.5, total)).toEqual(pool[0]);
+			expect(pickAt(pool, session, 48.5, total)).toEqual(pool[1]);
+			expect(pickAt(pool, session, 287.5, total)).toEqual(pool[5]);
+			expect(pickAt(pool, session, 288.5, total)?.verb).toBe('avere');
+			expect(pickAt(pool, session, 288.5, total)).toEqual(pool[6]);
+			expect(pickAt(pool, session, 335.5, total)).toEqual(pool[11]);
+		});
+
+		it('applies the tense factor', () => {
+			const pool = buildPool(['essere'], ['presente', 'imperfetto'], {}, italianModule);
+			const session: SessionState = { ...createFreshSession(), wrongTense: { imperfetto: 4 } };
+			// presente: 2*2*2=8 per card (6 cards = 48); imperfetto: 2*6*2=24 per card
+			const total = 6 * 8 + 6 * 24; // 192
+			expect(pickAt(pool, session, 47.5, total)?.tense).toBe('presente');
+			expect(pickAt(pool, session, 48.5, total)?.tense).toBe('imperfetto');
+			expect(pickAt(pool, session, 48 + 23.5, total)).toEqual(pool[6]);
+			expect(pickAt(pool, session, 48 + 24.5, total)).toEqual(pool[7]);
+		});
+
+		it('applies the person factor', () => {
+			const pool = buildPool(['essere'], ['presente'], {}, italianModule);
+			const session: SessionState = { ...createFreshSession(), wrongPerson: { tu: 10 } };
+			// io 8, tu 2*2*12=48, others 8
+			const total = 8 + 48 + 4 * 8; // 88
+			expect(pickAt(pool, session, 7.5, total)?.personIndex).toBe(0);
+			expect(pickAt(pool, session, 8.5, total)?.personIndex).toBe(1);
+			expect(pickAt(pool, session, 55.5, total)?.personIndex).toBe(1);
+			expect(pickAt(pool, session, 56.5, total)?.personIndex).toBe(2);
+		});
+
+		it('returns the last card when random is just below 1', () => {
+			const pool = buildPool(['essere'], ['presente'], {}, italianModule);
+			vi.spyOn(Math, 'random').mockReturnValue(0.999999);
+			expect(selectCard(pool, createFreshSession(), italianModule)).toEqual(pool[5]);
+		});
 	});
 });
 
