@@ -9,6 +9,7 @@ import {
 	generateRsaKeyPair,
 	importPrivateKeyPem,
 	importPublicKeyPem,
+	keyKind,
 	rsaOaepMaxBytes,
 	type Algorithm
 } from './cipher';
@@ -178,5 +179,23 @@ describe('bytesToBase64', () => {
 		const encoded = bytesToBase64(bytes);
 		expect(base64ToBytes(encoded)).toEqual(bytes);
 		expect(bytesToBase64(new Uint8Array([104, 105]))).toBe(btoa('hi'));
+	});
+});
+
+describe('keyless encodings', () => {
+	it('need no key', () => {
+		expect(keyKind('Base64')).toBe('none');
+		expect(keyKind('Hex')).toBe('none');
+		expect(keyKind('ROT13')).toBe('none');
+		expect(keyKind('AES-GCM')).toBe('passphrase');
+		expect(keyKind('AES-CBC')).toBe('passphrase');
+		expect(keyKind('RSA-OAEP')).toBe('keypair');
+	});
+
+	it('encrypt and decrypt with an empty key', async () => {
+		expect(await encrypt('hi', 'Base64', { passphrase: '' })).toBe('aGk=');
+		expect(await decrypt('aGk=', 'Base64', { passphrase: '' })).toBe('hi');
+		expect(await encrypt('hi', 'Hex', {})).toBe('6869');
+		expect(await encrypt('hi', 'ROT13', {})).toBe('uv');
 	});
 });

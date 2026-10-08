@@ -9,6 +9,7 @@
 		generateRsaKeyPair,
 		importPrivateKeyPem,
 		importPublicKeyPem,
+		keyKind,
 		type Algorithm
 	} from '$lib/cipher';
 
@@ -24,7 +25,7 @@
 	let privateKeyPem = $state('');
 	let rsaKeyError = $state('');
 
-	const isRsa = $derived(selectedAlgorithm === 'RSA-OAEP');
+	const kind = $derived(keyKind(selectedAlgorithm));
 
 	const algorithms = ALGORITHMS;
 
@@ -40,7 +41,7 @@
 			return encryptWith(text, algorithm, { publicKey: await importPublicKeyPem(publicKeyPem) });
 		}
 
-		if (!key && algorithm !== 'ROT13') {
+		if (!key && keyKind(algorithm) === 'passphrase') {
 			throw new Error('Encryption key is required');
 		}
 
@@ -61,7 +62,7 @@
 			});
 		}
 
-		if (!key && algorithm !== 'ROT13') {
+		if (!key && keyKind(algorithm) === 'passphrase') {
 			throw new Error('Decryption key is required');
 		}
 
@@ -135,7 +136,7 @@
 		</div>
 	</div>
 
-	{#if isRsa}
+	{#if kind === 'keypair'}
 		<div class="generate-keys-container">
 			<button class="generate-keys-btn" onclick={generateRsaKeys}>
 				<span class="btn-text">GENERATE KEY PAIR</span>
@@ -143,7 +144,7 @@
 			</button>
 		</div>
 
-		<p class="rsa-note">
+		<p class="key-note">
 			Encrypt uses the public key; decrypt needs the matching private key. Save the private key:
 			without it the ciphertext cannot be recovered. A 2048-bit key encrypts at most 190 bytes of
 			UTF-8 text.
@@ -174,7 +175,7 @@
 				></textarea>
 			</div>
 		</div>
-	{:else}
+	{:else if kind === 'passphrase'}
 		<div class="generate-keys-container">
 			<button class="generate-keys-btn" onclick={generateExampleKeys}>
 				<span class="btn-text">GENERATE RANDOM KEYS</span>
@@ -204,6 +205,8 @@
 				/>
 			</div>
 		</div>
+	{:else}
+		<p class="key-note">{selectedAlgorithm} is an encoding, not encryption: it needs no key.</p>
 	{/if}
 
 	<div class="process-btn-container">
@@ -291,7 +294,7 @@
 		white-space: pre;
 	}
 
-	.rsa-note {
+	.key-note {
 		margin: 0 0 1rem;
 		font-size: 0.85rem;
 		color: var(--futuristic-text-dim);

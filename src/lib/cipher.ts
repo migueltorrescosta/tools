@@ -9,6 +9,17 @@ export const ALGORITHMS = ['AES-GCM', 'AES-CBC', 'RSA-OAEP', 'Base64', 'Hex', 'R
 export type Algorithm = (typeof ALGORITHMS)[number];
 export type AesAlgorithm = 'AES-GCM' | 'AES-CBC';
 
+/** What an algorithm needs from the user: a passphrase, an RSA key pair, or nothing. */
+export type KeyKind = 'passphrase' | 'keypair' | 'none';
+
+/** Encodings that transform text without any key. */
+export const KEYLESS: ReadonlySet<Algorithm> = new Set<Algorithm>(['Base64', 'Hex', 'ROT13']);
+
+export function keyKind(algorithm: Algorithm): KeyKind {
+	if (KEYLESS.has(algorithm)) return 'none';
+	return algorithm === 'RSA-OAEP' ? 'keypair' : 'passphrase';
+}
+
 export interface CipherKeys {
 	/** Passphrase for AES-GCM and AES-CBC. */
 	passphrase?: string;
