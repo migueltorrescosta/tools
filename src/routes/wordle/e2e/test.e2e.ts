@@ -71,26 +71,57 @@ test('Wordle Solver - restart game button appears on game over', async ({ page }
 	await page.goto('/wordle');
 	await page.waitForLoadState('networkidle');
 
-	// Trigger game over by submitting invalid pattern
+	// Trigger game over by winning: two clicks per tile turn every tile green
 	const tileInputs = page.locator('.tile-input');
 	for (let i = 0; i < 5; i++) {
+		await tileInputs.nth(i).click();
 		await tileInputs.nth(i).click();
 	}
 
 	await page.locator('button:has-text("Submit")').click();
+	await expect(page.locator('.error-message')).toHaveText('CONGRATULATIONS');
 
-	// Wait for error
-	await page.waitForSelector('.error-message', { timeout: 5000 });
-
-	// Restart button should appear
 	const restartBtn = page.locator('button:has-text("Start New Game")');
 	await expect(restartBtn).toBeVisible();
 
-	// Click restart
 	await restartBtn.click();
 
-	// Game should be reset - submit button should be visible again
 	await expect(page.locator('button:has-text("Submit")')).toBeVisible();
+	await expect(page.locator('.result-tiles')).toHaveCount(0);
+});
+
+test('Wordle Solver - unmatched pattern keeps the row editable', async ({ page }) => {
+	await page.goto('/wordle');
+	await page.waitForLoadState('networkidle');
+
+	// YYYYY is not a key of the root tree
+	const tileInputs = page.locator('.tile-input');
+	for (let i = 0; i < 5; i++) {
+		await tileInputs.nth(i).click();
+	}
+	await page.locator('button:has-text("Submit")').click();
+	await expect(page.locator('.error-message')).toContainText('no words');
+	await expect(page.locator('button:has-text("Start New Game")')).toHaveCount(0);
+
+	// Fix the tiles back to black and resubmit
+	for (let i = 0; i < 5; i++) {
+		await tileInputs.nth(i).press('b');
+	}
+	await page.locator('button:has-text("Submit")').click();
+	await expect(page.locator('.input-tiles')).toHaveText('MULCH');
+});
+
+test('Wordle Solver - undo restores the last row for editing', async ({ page }) => {
+	await page.goto('/wordle');
+	await page.waitForLoadState('networkidle');
+
+	await page.locator('button:has-text("Submit")').click();
+	await expect(page.locator('.input-tiles')).toHaveText('MULCH');
+
+	await page.locator('button:has-text("Undo")').click();
+	await expect(page.locator('.result-tiles')).toHaveCount(0);
+	await expect(page.locator('.input-tiles')).toHaveText('RAISE');
+	await expect(page.locator('button:has-text("Undo")')).toHaveCount(0);
 });
 
 test('Wordle Solver - untouched all-black row submits as BBBBB', async ({ page }) => {

@@ -71,10 +71,35 @@ export function step(tree: SolutionTree, result: string): Step {
 	}
 	const node = tree[result];
 	if (node === undefined) {
-		return { next: tree, word: '', done: true, won: false, error: NO_MATCH_MESSAGE };
+		// Not terminal: the user most likely mis-clicked a tile and can fix it and resubmit.
+		return { next: tree, word: '', done: false, won: false, error: NO_MATCH_MESSAGE };
 	}
 	if (Array.isArray(node.subtree)) {
 		return { next: {}, word: node.word, done: true, won: false, error: '' };
 	}
 	return { next: node.subtree, word: node.word, done: false, won: false, error: '' };
+}
+
+export interface Undo {
+	/** Tree to restore as the current one. */
+	tree: SolutionTree;
+	/** Remaining stack of trees visited before each remaining history row. */
+	visited: SolutionTree[];
+	history: Attempt[];
+	/** The removed row, restored as the editable input row. */
+	attempt: Attempt;
+}
+
+/**
+ * Remove the last accepted row. `visited[i]` is the tree that was current when
+ * `history[i]` was submitted. Returns null when there is nothing to undo.
+ */
+export function undoLast(visited: SolutionTree[], history: Attempt[]): Undo | null {
+	if (history.length === 0 || visited.length !== history.length) return null;
+	return {
+		tree: visited[visited.length - 1],
+		visited: visited.slice(0, -1),
+		history: history.slice(0, -1),
+		attempt: { ...history[history.length - 1] }
+	};
 }

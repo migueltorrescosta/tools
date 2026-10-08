@@ -12,6 +12,8 @@ import {
 	NO_MATCH_MESSAGE,
 	setTile,
 	step,
+	undoLast,
+	type Attempt,
 	type SolutionTree,
 	type TileColor,
 	type TreeNode
@@ -467,6 +469,12 @@ describe('step', () => {
 		expect(s.won).toBe(false);
 	});
 
+	it('does not end the game on an unknown pattern, so the row can be corrected', () => {
+		expect(step(fixture, 'GBBBB').done).toBe(false);
+		// Correcting the mis-clicked tile and resubmitting from the same tree works.
+		expect(step(fixture, 'BBBBB').word).toBe('mulch');
+	});
+
 	it('advances into an internal node and suggests its word', () => {
 		const s = step(fixture, 'BBBBB');
 		expect(s).toEqual({
@@ -513,5 +521,39 @@ describe('newAttempt', () => {
 		const s = step(solutionTree, newAttempt('RAISE').result);
 		expect(s.error).toBe('');
 		expect(s.word).toBe('mulch');
+	});
+});
+
+describe('undoLast', () => {
+	const root: SolutionTree = solutionTree;
+	const afterFirst = step(root, 'BBBBB').next;
+
+	it('returns null when there is nothing to undo', () => {
+		expect(undoLast([], [])).toBeNull();
+	});
+
+	it('restores the previous tree and makes the removed row editable again', () => {
+		const history: Attempt[] = [{ word: 'RAISE', result: 'BBBBB' }];
+		const undone = undoLast([root], history);
+		expect(undone).not.toBeNull();
+		expect(undone!.tree).toBe(root);
+		expect(undone!.visited).toEqual([]);
+		expect(undone!.history).toEqual([]);
+		expect(undone!.attempt).toEqual({ word: 'RAISE', result: 'BBBBB' });
+		expect(undone!.attempt).not.toBe(history[0]);
+	});
+
+	it('only removes the last of several rows', () => {
+		const history: Attempt[] = [
+			{ word: 'RAISE', result: 'BBBBB' },
+			{ word: 'MULCH', result: 'GGGGG' }
+		];
+		const visited = [root, afterFirst];
+		const undone = undoLast(visited, history)!;
+		expect(undone.tree).toBe(afterFirst);
+		expect(undone.visited).toEqual([root]);
+		expect(undone.history).toEqual([history[0]]);
+		expect(history).toHaveLength(2);
+		expect(visited).toHaveLength(2);
 	});
 });

@@ -6,6 +6,7 @@
 		newAttempt,
 		setTile,
 		step,
+		undoLast,
 		type Attempt,
 		type SolutionTree,
 		type TileColor
@@ -13,6 +14,8 @@
 
 	let currentSolutionTree = $state<SolutionTree>(solutionTree);
 	let history = $state<Attempt[]>([]);
+	// visited[i] is the tree that was current when history[i] was submitted.
+	let visited = $state<SolutionTree[]>([]);
 	let nextAttempt = $state<Attempt>(newAttempt('RAISE'));
 	let errorMessage = $state('');
 	let gameOver = $state(false);
@@ -59,6 +62,7 @@
 			return;
 		}
 
+		visited = [...visited, currentSolutionTree];
 		history = [...history, { ...nextAttempt, result }];
 		currentSolutionTree = outcome.next;
 		gameOver = outcome.done;
@@ -73,9 +77,21 @@
 		errorMessage = '';
 	}
 
+	function undoLastRow() {
+		const undone = undoLast(visited, history);
+		if (!undone) return;
+		currentSolutionTree = undone.tree;
+		visited = undone.visited;
+		history = undone.history;
+		nextAttempt = undone.attempt;
+		errorMessage = '';
+		gameOver = false;
+	}
+
 	function restartGame() {
 		currentSolutionTree = solutionTree;
 		history = [];
+		visited = [];
 		nextAttempt = newAttempt('RAISE');
 		errorMessage = '';
 		gameOver = false;
@@ -141,6 +157,9 @@
 								<button class="restart-btn" onclick={restartGame}> Start New Game </button>
 							{:else}
 								<button class="submit-btn" onclick={handleResultSubmission}> Submit </button>
+							{/if}
+							{#if history.length > 0}
+								<button class="submit-btn undo-btn" onclick={undoLastRow}> Undo </button>
 							{/if}
 						</td>
 					</tr>
