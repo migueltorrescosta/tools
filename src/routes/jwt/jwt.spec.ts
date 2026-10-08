@@ -9,6 +9,7 @@ import {
 	parseEncodeInputs,
 	signJwt,
 	signingInput,
+	tokenView,
 	verifyJwt
 } from '$lib/jwt';
 import { createHmac } from 'node:crypto';
@@ -130,6 +131,42 @@ describe('decodeJwt', () => {
 
 	it('decodes the header null segment bnVsbA as a non-object, not invalid JSON', () => {
 		expect(decodeJwt(`bnVsbA${SAMPLE_PAYLOAD}`).headerError).toBe('Header must be a JSON object');
+	});
+});
+
+describe('tokenView', () => {
+	const CLEARED = {
+		headerJson: '',
+		payloadJson: '',
+		payloadError: '',
+		signature: '',
+		signatureError: '',
+		alg: null
+	};
+
+	it('shows the sample token fully', () => {
+		const v = tokenView(SAMPLE_JWT);
+		expect(v.headerError).toBe('');
+		expect(JSON.parse(v.headerJson)).toEqual({ alg: 'HS256', typ: 'JWT' });
+		expect(v.payloadJson).toContain('"name": "John Doe"');
+		expect(v.signature).toBe('SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c');
+		expect(v.alg).toBe('HS256');
+	});
+
+	it('resets every field for an empty token', () => {
+		expect(tokenView('  ')).toEqual({
+			...CLEARED,
+			headerJson: '{\n  "alg": "",\n  "typ": "JWT"\n}',
+			headerError: ''
+		});
+	});
+
+	it.each([
+		['a.b', 'Invalid JWT format'],
+		[SAMPLE_JWT.replace('.', ''), 'Invalid JWT format'],
+		['a.b.c.d.e', 'JWE (encrypted) tokens are not supported']
+	])('clears payload and signature for malformed %s', (t, error) => {
+		expect(tokenView(t)).toEqual({ ...CLEARED, headerError: error });
 	});
 });
 

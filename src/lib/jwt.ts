@@ -121,7 +121,8 @@ export function decodeJwt(token: string): DecodedJwt {
 	};
 	const parts = normalizeToken(token).split('.');
 	if (parts.length !== 3) {
-		result.formatError = 'Invalid JWT format';
+		result.formatError =
+			parts.length === 5 ? 'JWE (encrypted) tokens are not supported' : 'Invalid JWT format';
 		return result;
 	}
 	const header = parseSegment(parts[0], 'Header');
@@ -133,6 +134,46 @@ export function decodeJwt(token: string): DecodedJwt {
 	result.signature = parts[2];
 	result.signatureError = charsetError(parts[2], 'Signature');
 	return result;
+}
+
+/** Everything the page shows for a token, so no field can outlive the token it came from. */
+export interface TokenView {
+	headerJson: string;
+	payloadJson: string;
+	headerError: string;
+	payloadError: string;
+	signature: string;
+	signatureError: string;
+	/** Header alg to select, or null to leave the selection alone. */
+	alg: string | null;
+}
+
+export const EMPTY_HEADER_JSON = '{\n  "alg": "",\n  "typ": "JWT"\n}';
+
+export function tokenView(token: string): TokenView {
+	const view: TokenView = {
+		headerJson: '',
+		payloadJson: '',
+		headerError: '',
+		payloadError: '',
+		signature: '',
+		signatureError: '',
+		alg: null
+	};
+	if (!token.trim()) return { ...view, headerJson: EMPTY_HEADER_JSON };
+	const decoded = decodeJwt(token);
+	if (decoded.formatError) return { ...view, headerError: decoded.formatError };
+	view.headerError = decoded.headerError;
+	if (decoded.header) {
+		view.headerJson = JSON.stringify(decoded.header, null, 2);
+		const alg = decoded.header.alg;
+		view.alg = typeof alg === 'string' && alg ? alg : 'HS256';
+	}
+	view.payloadError = decoded.payloadError;
+	if (decoded.payload) view.payloadJson = JSON.stringify(decoded.payload, null, 2);
+	view.signature = decoded.signature;
+	view.signatureError = decoded.signatureError;
+	return view;
 }
 
 // --- encode ---

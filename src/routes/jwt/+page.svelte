@@ -3,10 +3,10 @@
 	import { copyToClipboard } from '$lib/clipboard';
 	import {
 		ALGORITHMS as algorithms,
-		decodeJwt,
 		isSymmetric,
 		parseEncodeInputs,
 		signJwt,
+		tokenView,
 		verifyJwt,
 		type VerifyResult
 	} from '$lib/jwt';
@@ -29,37 +29,14 @@
 	let signatureError = $state('');
 
 	function decodeToken(t: string) {
-		if (!t.trim()) {
-			headerJson = '{\n  "alg": "",\n  "typ": "JWT"\n}';
-			payloadJson = '';
-			headerError = '';
-			payloadError = '';
-			signatureResult = '';
-			signatureError = '';
-			return;
-		}
-
-		const decoded = decodeJwt(t);
-		if (decoded.formatError) {
-			headerError = decoded.formatError;
-			payloadError = '';
-			return;
-		}
-
-		headerError = decoded.headerError;
-		if (decoded.headerError) {
-			headerJson = '';
-		} else {
-			headerJson = JSON.stringify(decoded.header, null, 2);
-			const alg = decoded.header?.alg;
-			selectedAlgorithm = typeof alg === 'string' && alg ? alg : 'HS256';
-		}
-
-		payloadError = decoded.payloadError;
-		payloadJson = decoded.payloadError ? '' : JSON.stringify(decoded.payload, null, 2);
-
-		signatureResult = decoded.signature;
-		signatureError = decoded.signatureError;
+		const view = tokenView(t);
+		headerJson = view.headerJson;
+		payloadJson = view.payloadJson;
+		headerError = view.headerError;
+		payloadError = view.payloadError;
+		signatureResult = view.signature;
+		signatureError = view.signatureError;
+		if (view.alg) selectedAlgorithm = view.alg;
 	}
 
 	async function encodeToken() {
