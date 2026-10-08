@@ -6,6 +6,7 @@ import {
 	getYear,
 	hasRichContent,
 	isPast,
+	localDateString,
 	sortEventsByDate,
 	type TimelineEvent,
 	type TimelineRow
@@ -118,8 +119,7 @@ describe('Timeline Utilities', () => {
 		});
 
 		it('returns false for today', () => {
-			const today = new Date().toISOString().split('T')[0];
-			expect(isPast(today)).toBe(false);
+			expect(isPast(localDateString())).toBe(false);
 		});
 	});
 

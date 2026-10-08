@@ -21,23 +21,36 @@ export type TimelineRow =
 
 export const COLUMNS = 3;
 
+// Event dates are calendar dates ("YYYY-MM-DD"), not instants. They are never passed to
+// new Date(str), which parses them as UTC midnight and shifts them a day in local time west of UTC.
+
+function parseCalendarDate(dateStr: string): [number, number, number] {
+	const [y, m, d] = dateStr.split('-').map(Number);
+	return [y, m, d];
+}
+
 export function getYear(dateStr: string): number {
-	return new Date(dateStr).getFullYear();
+	return parseCalendarDate(dateStr)[0];
 }
 
 export function formatShortDate(dateStr: string): string {
-	const date = new Date(dateStr);
-	return date.toLocaleDateString('en-GB', {
+	const [y, m, d] = parseCalendarDate(dateStr);
+	return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-GB', {
 		day: '2-digit',
-		month: 'short'
+		month: 'short',
+		timeZone: 'UTC'
 	});
 }
 
-export function isPast(dateStr: string): boolean {
-	const date = new Date(dateStr);
-	const today = new Date();
-	today.setHours(0, 0, 0, 0);
-	return date < today;
+/** The viewer's local calendar date as "YYYY-MM-DD". */
+export function localDateString(now: Date = new Date()): string {
+	const pad = (n: number) => String(n).padStart(2, '0');
+	return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
+
+/** True when the event's calendar date is before the viewer's local today. */
+export function isPast(dateStr: string, now: Date = new Date()): boolean {
+	return dateStr < localDateString(now);
 }
 
 export function hasRichContent(events: TimelineEvent[]): boolean {
@@ -45,7 +58,7 @@ export function hasRichContent(events: TimelineEvent[]): boolean {
 }
 
 export function sortEventsByDate(events: TimelineEvent[]): TimelineEvent[] {
-	return [...events].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+	return [...events].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 }
 
 /**
