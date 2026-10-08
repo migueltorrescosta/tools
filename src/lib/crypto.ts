@@ -32,13 +32,28 @@ export function toHex(str: string): string {
 }
 
 /**
- * Decode a hexadecimal string
+ * Decode a hexadecimal string. Whitespace and one leading 0x are ignored.
  * @param hex - The hex string to decode
  * @returns Decoded string
+ * @throws If the input is not whole hex bytes or the bytes are not valid UTF-8
  */
 export function fromHex(hex: string): string {
-	const bytes = new Uint8Array(hex.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) || []);
-	return new TextDecoder().decode(bytes);
+	const digits = hex.replace(/\s+/g, '').replace(/^0x/i, '');
+	if (!/^[0-9a-f]*$/i.test(digits)) {
+		throw new Error('Invalid hex: only 0-9 and a-f are allowed');
+	}
+	if (digits.length % 2 !== 0) {
+		throw new Error('Invalid hex: odd number of digits');
+	}
+	const bytes = new Uint8Array(digits.length / 2);
+	for (let i = 0; i < bytes.length; i++) {
+		bytes[i] = parseInt(digits.slice(2 * i, 2 * i + 2), 16);
+	}
+	try {
+		return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+	} catch {
+		throw new Error('Hex bytes are not valid UTF-8 text');
+	}
 }
 
 /**

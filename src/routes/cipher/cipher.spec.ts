@@ -70,17 +70,28 @@ describe('Cipher Tool - Encoding Functions', () => {
 			expect(toHex('')).toBe('');
 		});
 
-		it('handles odd-length hex input', () => {
-			// Odd-length hex results in replacement character due to invalid byte
-			const result = fromHex('abc');
-			expect(result.length).toBe(2);
+		it('rejects odd-length hex input', () => {
+			expect(() => fromHex('abc')).toThrow(/odd number/);
 		});
 
-		it('handles hex with spaces', () => {
-			// Spaces don't match /.{1,2}/ properly, decodes partial matches
-			const result = fromHex('48 65 6c 6c 6f');
-			// Each space-separated hex value gets parsed (incorrectly)
-			expect(result.length).toBe(7);
+		it('ignores whitespace between hex bytes', () => {
+			expect(fromHex('48 65 6c 6c 6f')).toBe('Hello');
+			expect(fromHex('4865\n6c6c\t6f')).toBe('Hello');
+		});
+
+		it('accepts one leading 0x prefix and uppercase digits', () => {
+			expect(fromHex('0x41')).toBe('A');
+			expect(fromHex('0X4A4b')).toBe('JK');
+		});
+
+		it('rejects non-hex characters instead of decoding them as NUL', () => {
+			expect(() => fromHex('zz41')).toThrow(/Invalid hex/);
+			expect(() => fromHex('0x0x41')).toThrow(/Invalid hex/);
+		});
+
+		it('rejects bytes that are not valid UTF-8 instead of returning U+FFFD', () => {
+			expect(() => fromHex('ff')).toThrow(/not valid UTF-8/);
+			expect(() => fromHex('e4bd')).toThrow(/not valid UTF-8/);
 		});
 	});
 
@@ -159,12 +170,8 @@ describe('Cipher Tool - Encoding Functions', () => {
 	});
 
 	describe('Error Handling', () => {
-		it('fromHex handles completely invalid input', () => {
-			// Non-hex characters: "xyz" matches "xy" and "z" as two groups
-			// "xy" parses as NaN -> 0, "z" is odd-length and ignored
-			const result = fromHex('xyz');
-			expect(result.length).toBe(2);
-			expect(result.charCodeAt(0)).toBe(0);
+		it('fromHex rejects completely invalid input', () => {
+			expect(() => fromHex('xyz')).toThrow(/Invalid hex/);
 		});
 
 		it('fromHex handles empty hex string', () => {
