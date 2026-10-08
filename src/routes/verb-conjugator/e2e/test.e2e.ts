@@ -3,14 +3,14 @@ import { expect, test, type Page } from '@playwright/test';
 const PERSONS = ['io', 'tu', 'lui/lei', 'noi', 'voi', 'loro'];
 const ESSERE_PRESENTE = ['sono', 'sei', 'è', 'siamo', 'siete', 'sono'];
 
-/** Restrict Italian to essere/presente so the blank card's answer is known. */
+/** Restrict Italian to essere/indicativo presente so the blank card's answer is known. */
 async function seedSingleCardSet(page: Page) {
 	await page.goto('/verb-conjugator');
 	await page.waitForLoadState('networkidle');
 	await page.evaluate(() => {
 		localStorage.clear();
 		localStorage.setItem('italian-verbs-selected', JSON.stringify(['essere']));
-		localStorage.setItem('italian-verbs-tenses', JSON.stringify(['presente']));
+		localStorage.setItem('italian-verbs-tenses', JSON.stringify(['indicativo presente']));
 	});
 	await page.reload();
 	await page.waitForLoadState('networkidle');
@@ -53,4 +53,37 @@ test('Verb conjugator - switching language keeps the Italian session', async ({ 
 	await page.getByRole('button', { name: /Italiano/ }).click();
 	await expect(page.locator('.stats-row')).toContainText('Copertura: 1 / 6');
 	await expect(page.locator('.history-table tr')).toHaveCount(1);
+});
+
+test('Verb conjugator - selected language survives reload', async ({ page }) => {
+	await seedSingleCardSet(page);
+	await page.getByRole('button', { name: /Português/ }).click();
+	await expect(page.locator('.stats-row')).toContainText('Cobertura');
+
+	await page.reload();
+	await page.waitForLoadState('networkidle');
+	await expect(page.getByRole('button', { name: /Português/ })).toHaveClass(/active/);
+});
+
+test('Verb conjugator - answer input and submit button have accessible names', async ({ page }) => {
+	await seedSingleCardSet(page);
+	await expect(page.getByRole('textbox', { name: /^Answer: .+ form$/ })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible();
+});
+
+test('Verb conjugator - imperative never asks for io and shows a dash', async ({ page }) => {
+	await page.goto('/verb-conjugator');
+	await page.waitForLoadState('networkidle');
+	await page.evaluate(() => {
+		localStorage.clear();
+		localStorage.setItem('italian-verbs-selected', JSON.stringify(['parlare']));
+		localStorage.setItem('italian-verbs-tenses', JSON.stringify(['imperativo']));
+	});
+	await page.reload();
+	await page.waitForLoadState('networkidle');
+
+	await expect(page.locator('.stats-row')).toContainText('Copertura: 0 / 5');
+	const ioLine = page.locator('.card-lines .line-content').first();
+	await expect(ioLine).not.toHaveClass(/is-blank/);
+	await expect(ioLine).toContainText('—');
 });

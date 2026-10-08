@@ -193,3 +193,87 @@ describe('Portuguese validateAnswer', () => {
 		).toBe(true);
 	});
 });
+
+describe('Portuguese combined pronouns', () => {
+	const tense = 'presente do indicativo';
+	const third = 'ele/ela/você';
+
+	it.each(['ele/ela/você fala', 'ele ela você fala', 'ele ela fala', 'ele/ela fala', 'você fala'])(
+		'accepts "%s"',
+		(input) => {
+			expect(validateAnswer(input, 'falar', tense, third, portugueseModule)).toBe(true);
+		}
+	);
+
+	it('extracts only the verb after a combined pronoun', () => {
+		expect(portugueseModule.extractConjugation('ele ela você fala', third)).toBe('fala');
+		expect(portugueseModule.extractConjugation('ele ela fala', third)).toBe('fala');
+	});
+
+	it('accepts combined plural pronouns', () => {
+		expect(
+			validateAnswer('eles elas falam', 'falar', tense, 'eles/elas/vocês', portugueseModule)
+		).toBe(true);
+	});
+
+	it('accepts accent-less pronouns but not accent-less verbs', () => {
+		expect(validateAnswer('voce fala', 'falar', tense, third, portugueseModule)).toBe(true);
+		expect(validateAnswer('nos falamos', 'falar', tense, 'nós', portugueseModule)).toBe(true);
+		expect(validateAnswer('voce esta', 'estar', tense, third, portugueseModule)).toBe(false);
+	});
+});
+
+describe('Portuguese imperative first person', () => {
+	it('builds no eu cards for either imperative', () => {
+		const pool = buildPool(
+			['falar'],
+			['imperativo afirmativo', 'imperativo negativo'],
+			{},
+			portugueseModule
+		);
+		expect(pool).toHaveLength(10);
+		expect(pool.some((c) => c.personIndex === 0)).toBe(false);
+	});
+
+	it('rejects the bare pronoun for an imperative eu slot', () => {
+		expect(validateAnswer('eu', 'falar', 'imperativo afirmativo', 'eu', portugueseModule)).toBe(
+			false
+		);
+	});
+});
+
+describe('Portuguese English hints', () => {
+	const hint = (verb: string, tense: string, person: string) =>
+		map.get(`${verb}:${tense}:${person}`)?.translation;
+	const perfeito = 'pretérito perfeito do indicativo';
+
+	it('translates poder presente as "can"', () => {
+		expect(hint('poder', 'presente do indicativo', 'eu')).toBe('I can');
+		expect(hint('poder', 'presente do indicativo', 'ele/ela/você')).toBe('he/she/you can');
+		expect(hint('poder', 'presente do indicativo', 'eles/elas/vocês')).toBe('they/you all can');
+	});
+
+	it('uses third-person agreement for the 3sg present', () => {
+		expect(hint('falar', 'presente do indicativo', 'ele/ela/você')).toBe('he/she speaks');
+		expect(hint('falar', 'presente do indicativo', 'tu')).toBe('you speak');
+	});
+
+	it('picks was or were per person for ser/estar perfeito', () => {
+		for (const verb of ['ser', 'estar']) {
+			expect(hint(verb, perfeito, 'eu')).toBe('I was');
+			expect(hint(verb, perfeito, 'tu')).toBe('you were');
+			expect(hint(verb, perfeito, 'ele/ela/você')).toBe('he/she was');
+			expect(hint(verb, perfeito, 'nós')).toBe('we were');
+			expect(hint(verb, perfeito, 'eles/elas/vocês')).toBe('they/you all were');
+		}
+	});
+
+	it('uses the subjunctive "were" for ser imperfeito do conjuntivo', () => {
+		expect(hint('ser', 'pretérito imperfeito do conjuntivo', 'eu')).toBe('(that) I were');
+	});
+
+	it('never leaves a "was/were" placeholder in any hint', () => {
+		const bad = [...map.values()].filter((e) => e.translation.includes('was/were'));
+		expect(bad.map((e) => `${e.verb}|${e.tense}|${e.person}`)).toEqual([]);
+	});
+});

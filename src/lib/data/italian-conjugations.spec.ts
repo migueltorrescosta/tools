@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { italianModule } from '$lib/data/italian-conjugations';
-import { cardKey, validateAnswer } from '$lib/verbs';
+import { buildPool, cardKey, validateAnswer } from '$lib/verbs';
 
 const { conjugationMap, VERB_LIST, PERSON_LABELS } = italianModule;
 
@@ -14,9 +14,12 @@ describe('Italian conjugation data integrity', () => {
 		expect(corrupt.map((e) => `${e.verb}|${e.tense}|${e.person}`)).toEqual([]);
 	});
 
-	it('has a non-empty form for every slot except imperativo io', () => {
+	it('has a non-empty form for every slot except imperativo io and defective imperativi', () => {
+		const defective = new Set(['potere', 'dovere']);
 		const blank = [...conjugationMap.values()].filter(
-			(e) => e.conjugation.trim() === '' && !(e.tense === 'imperativo' && e.person === 'io')
+			(e) =>
+				e.conjugation.trim() === '' &&
+				!(e.tense === 'imperativo' && (e.person === 'io' || defective.has(e.verb)))
 		);
 		expect(blank.map((e) => `${e.verb}|${e.tense}|${e.person}`)).toEqual([]);
 	});
@@ -108,6 +111,82 @@ describe('Italian -ciare/-giare spelling', () => {
 			true
 		);
 		expect(validateAnswer('io mangierò', 'mangiare', 'futuro semplice', 'io', italianModule)).toBe(
+			false
+		);
+	});
+});
+
+describe('Italian defective and rare slots', () => {
+	it('has no imperativo for potere and dovere, so no cards are built', () => {
+		for (const verb of ['potere', 'dovere']) {
+			for (const person of PERSON_LABELS) {
+				expect(conj(verb, 'imperativo', person), `${verb} ${person}`).toBe('');
+			}
+		}
+		expect(buildPool(['potere', 'dovere'], ['imperativo'], {}, italianModule)).toEqual([]);
+	});
+
+	it('marks defective slots with a dash translation', () => {
+		const entry = conjugationMap.get(cardKey('parlare', 'imperativo', 'io'));
+		expect(entry?.translation).toBe('—');
+	});
+
+	it('uses the attested participio presente capiente for capire', () => {
+		expect(conj('capire', 'participio presente', 'io')).toBe('capiente');
+		expect(conj('sentire', 'participio presente', 'io')).toBe('sentente');
+	});
+});
+
+describe('Italian accepted alternatives', () => {
+	const ok = (input: string, verb: string, tense: string, person: string) =>
+		validateAnswer(input, verb, tense, person, italianModule);
+
+	it('accepts full and truncated imperativo tu forms', () => {
+		expect(ok("tu fa'", 'fare', 'imperativo', 'tu')).toBe(true);
+		expect(ok('tu fai', 'fare', 'imperativo', 'tu')).toBe(true);
+		expect(ok('tu vai', 'andare', 'imperativo', 'tu')).toBe(true);
+		expect(ok('tu stai', 'stare', 'imperativo', 'tu')).toBe(true);
+		expect(ok('tu dai', 'dare', 'imperativo', 'tu')).toBe(true);
+		expect(ok('tu dì', 'dire', 'imperativo', 'tu')).toBe(true);
+		expect(ok('tu fanno', 'fare', 'imperativo', 'tu')).toBe(false);
+	});
+
+	it('accepts the typographic apostrophe from smart punctuation', () => {
+		expect(ok('tu fa\u2019', 'fare', 'imperativo', 'tu')).toBe(true);
+		expect(ok('tu va\u2018', 'andare', 'imperativo', 'tu')).toBe(true);
+	});
+
+	it('accepts passato remoto doublets', () => {
+		expect(ok('io credetti', 'credere', 'passato remoto', 'io')).toBe(true);
+		expect(ok('io credei', 'credere', 'passato remoto', 'io')).toBe(true);
+		expect(ok('io dovetti', 'dovere', 'passato remoto', 'io')).toBe(true);
+		expect(ok('loro dovettero', 'dovere', 'passato remoto', 'loro')).toBe(true);
+	});
+
+	it('accepts the elided aver/esser infinito passato', () => {
+		expect(ok('tu aver parlato', 'parlare', 'infinito passato', 'tu')).toBe(true);
+		expect(ok('noi esser andato', 'andare', 'infinito passato', 'noi')).toBe(true);
+		expect(ok('tu ave parlato', 'parlare', 'infinito passato', 'tu')).toBe(false);
+	});
+});
+
+describe('Italian input normalisation', () => {
+	it('accepts decomposed (NFD) accents', () => {
+		const nfd = 'lui è'.normalize('NFD');
+		expect(nfd).not.toBe('lui è');
+		expect(validateAnswer(nfd, 'essere', 'indicativo presente', 'lui/lei', italianModule)).toBe(
+			true
+		);
+	});
+
+	it('collapses internal runs of whitespace', () => {
+		expect(
+			validateAnswer('io  ho \t parlato', 'parlare', 'passato prossimo', 'io', italianModule)
+		).toBe(true);
+	});
+
+	it('still rejects a missing accent on the verb', () => {
+		expect(validateAnswer('lui e', 'essere', 'indicativo presente', 'lui/lei', italianModule)).toBe(
 			false
 		);
 	});
