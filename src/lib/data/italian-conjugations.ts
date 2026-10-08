@@ -874,6 +874,16 @@ const SIMPLE_TENSES: Tense[] = [
 
 /** Compound tenses: auxiliary in tense T + past participle.
  *  Defined as [auxiliaryTense, pastParticipleSuffix] */
+/** Tenses that do not inflect for person: every person shares one form. */
+const NON_FINITE_TENSES: ReadonlySet<Tense> = new Set<Tense>([
+	'infinito presente',
+	'infinito passato',
+	'participio presente',
+	'participio passato',
+	'gerundio presente',
+	'gerundio passato'
+]);
+
 const COMPOUND_TENSE_MAP: Record<Tense, { auxTense: Tense } | null> = {
 	'indicativo presente': null,
 	'passato prossimo': { auxTense: 'indicativo presente' },
@@ -2286,10 +2296,14 @@ function buildData(): Record<
 				// 2. Check if it's a compound tense
 				else if (COMPOUND_TENSE_MAP[tense]) {
 					const auxTense = COMPOUND_TENSE_MAP[tense]!.auxTense;
+					// Non-finite compounds (infinito/gerundio passato) do not inflect for
+					// person: the aux is the bare infinitive/gerund, stored under io.
+					const nonFinite = NON_FINITE_TENSES.has(tense);
 					// Build compound: aux conjugated in auxTense + past participle
-					const auxForm = AUX[info.aux][auxTense][p];
+					const auxForm = AUX[info.aux][auxTense][nonFinite ? 'io' : p];
 					// Past participle agrees in number when auxiliary is essere
-					const needsPlural = info.aux === 'essere' && (p === 'noi' || p === 'voi' || p === 'loro');
+					const needsPlural =
+						!nonFinite && info.aux === 'essere' && (p === 'noi' || p === 'voi' || p === 'loro');
 					const pp = needsPlural
 						? participioPassatoPlural(verb as Verb)
 						: participioPassato(verb as Verb);
