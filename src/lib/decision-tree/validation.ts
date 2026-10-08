@@ -9,16 +9,27 @@ export function validateGraph(graph: DecisionGraph): string[] {
 		return errors;
 	}
 
+	// 0. Answer labels are unique per question (the label is part of the edge id)
+	for (const edge of graph.duplicateEdges) {
+		errors.push(
+			`Node "${edge.sourceId}" has a duplicate answer "${edge.label}"; answer labels must be unique per question`
+		);
+	}
+
+	// Duplicates still count as written for the structural checks below, so they
+	// do not also surface as a spurious extra root or unreachable node
+	const allEdges = [...graph.edges.values(), ...graph.duplicateEdges];
+
 	// 1. All edge targets exist
-	for (const [edgeId, edge] of graph.edges) {
+	for (const edge of allEdges) {
 		if (!graph.nodes.has(edge.targetId)) {
-			errors.push(`Edge "${edgeId}" references non-existent target node "${edge.targetId}"`);
+			errors.push(`Edge "${edge.id}" references non-existent target node "${edge.targetId}"`);
 		}
 	}
 
 	// 2. Exactly one root node (one node with no incoming edges)
 	const hasIncoming = new Set<string>();
-	for (const edge of graph.edges.values()) {
+	for (const edge of allEdges) {
 		hasIncoming.add(edge.targetId);
 	}
 	const roots: string[] = [];
@@ -40,7 +51,7 @@ export function validateGraph(graph: DecisionGraph): string[] {
 		const queue = [rootId];
 		while (queue.length > 0) {
 			const current = queue.shift()!;
-			const edges = getAnswersForNode(graph, current);
+			const edges = allEdges.filter((e) => e.sourceId === current);
 			for (const edge of edges) {
 				if (!reachable.has(edge.targetId)) {
 					reachable.add(edge.targetId);

@@ -318,6 +318,35 @@ describe('Termination check cost and duplicates', () => {
 	});
 });
 
+describe('Duplicate answer labels', () => {
+	const raw: RawTree = {
+		nodes: [
+			{ id: 'root', type: 'question', content: 'Root?' },
+			{ id: 'a', type: 'result', content: 'A' },
+			{ id: 'b', type: 'result', content: 'B' }
+		],
+		edges: [
+			{ sourceId: 'root', targetId: 'a', label: 'Yes' },
+			{ sourceId: 'root', targetId: 'b', label: 'Yes' }
+		]
+	};
+
+	it('reports the duplicate instead of a spurious extra root', () => {
+		expect(validateGraph(buildGraph(raw))).toEqual([
+			'Node "root" has a duplicate answer "Yes"; answer labels must be unique per question'
+		]);
+	});
+
+	it('keeps edges and edgesBySource consistent so row keys stay unique', () => {
+		const graph = buildGraph(raw);
+		const answers = getAnswersForNode(graph, 'root');
+		expect(answers.map((e) => e.targetId)).toEqual(['a']);
+		expect(new Set(answers.map((e) => e.id)).size).toBe(answers.length);
+		expect(graph.edges.get('root|Yes')?.targetId).toBe('a');
+		expect(graph.duplicateEdges.map((e) => e.targetId)).toEqual(['b']);
+	});
+});
+
 // ---------------------------------------------------------------------------
 // 8. A result node with outgoing edges fails validation
 // ---------------------------------------------------------------------------

@@ -20,6 +20,7 @@ export function buildGraph(raw: RawTree): DecisionGraph {
 	const nodes = new Map<string, Node>();
 	const edges = new Map<string, AnswerEdge>();
 	const edgesBySource = new Map<string, AnswerEdge[]>();
+	const duplicateEdges: AnswerEdge[] = [];
 
 	// Build nodes
 	for (const n of raw.nodes) {
@@ -41,12 +42,17 @@ export function buildGraph(raw: RawTree): DecisionGraph {
 			label: e.label,
 			explanation: e.explanation ?? undefined
 		};
+		hasIncoming.add(e.targetId);
+		// The id is the path key and the UI's each-block key, so keep only the first
+		if (edges.has(edgeId)) {
+			duplicateEdges.push(edge);
+			continue;
+		}
 		edges.set(edgeId, edge);
 		if (!edgesBySource.has(e.sourceId)) {
 			edgesBySource.set(e.sourceId, []);
 		}
 		edgesBySource.get(e.sourceId)!.push(edge);
-		hasIncoming.add(e.targetId);
 	}
 
 	// Determine root: the node with no incoming edges
@@ -58,7 +64,7 @@ export function buildGraph(raw: RawTree): DecisionGraph {
 		}
 	}
 
-	return { nodes, edges, edgesBySource, rootNodeId };
+	return { nodes, edges, edgesBySource, rootNodeId, duplicateEdges };
 }
 
 export function getCurrentNode(graph: DecisionGraph, path: TraversalPath): Node {
