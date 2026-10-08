@@ -11,6 +11,7 @@
 		importPrivateKeyPem,
 		importPublicKeyPem,
 		keyKind,
+		randomKey,
 		type Algorithm
 	} from '$lib/cipher';
 
@@ -104,11 +105,7 @@
 	}
 
 	function generateExampleKeys() {
-		const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-		let key = '';
-		for (let i = 0; i < 16; i++) {
-			key += chars.charAt(Math.floor(Math.random() * chars.length));
-		}
+		const key = randomKey();
 		encryptionKey = key;
 		decryptionKey = key;
 	}

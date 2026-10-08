@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
 	base64ToBytes,
 	bytesToBase64,
@@ -10,8 +10,10 @@ import {
 	generateRsaKeyPair,
 	importPrivateKeyPem,
 	importPublicKeyPem,
+	KEY_ALPHABET,
 	keyKind,
 	PBKDF2_ITERATIONS,
+	randomKey,
 	SALT_LENGTH,
 	rsaOaepMaxBytes,
 	WRONG_KEY_MESSAGE,
@@ -314,5 +316,45 @@ describe('decrypt failure messages', () => {
 		expect(errorMessage(new Error(''), 'Decryption failed')).toBe('Error');
 		expect(errorMessage('boom', 'Decryption failed')).toBe('Decryption failed');
 		expect(errorMessage(new Error('Bad key'), 'Decryption failed')).toBe('Bad key');
+	});
+});
+
+describe('randomKey', () => {
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	it('draws from the CSPRNG, never Math.random', () => {
+		const mathRandom = vi.spyOn(Math, 'random');
+		const getRandomValues = vi.spyOn(crypto, 'getRandomValues');
+		randomKey();
+		expect(mathRandom).not.toHaveBeenCalled();
+		expect(getRandomValues).toHaveBeenCalled();
+	});
+
+	it('has the requested length, at least 128 bits by default, and only alphabet characters', () => {
+		expect(KEY_ALPHABET).toHaveLength(62);
+		const key = randomKey();
+		expect(key.length * Math.log2(62)).toBeGreaterThanOrEqual(128);
+		expect(randomKey(40)).toHaveLength(40);
+		for (let i = 0; i < 50; i++) expect(randomKey()).toMatch(/^[A-Za-z0-9]+$/);
+	});
+
+	it('rejects bytes that would bias the alphabet', () => {
+		// 248..255 are rejected; 0, 61 and 247 map to A, 9 and 9.
+		const bytes = [255, 248, 0, 61, 247];
+		vi.spyOn(crypto, 'getRandomValues').mockImplementation(
+			<T extends ArrayBufferView | null>(array: T): T => {
+				const view = array as unknown as Uint8Array;
+				for (let i = 0; i < view.length; i++) view[i] = bytes.shift() ?? 0;
+				return array;
+			}
+		);
+		expect(randomKey(3)).toBe('A99');
+	});
+
+	it('produces distinct keys', () => {
+		const keys = new Set(Array.from({ length: 100 }, () => randomKey()));
+		expect(keys.size).toBe(100);
 	});
 });

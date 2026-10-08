@@ -47,6 +47,26 @@ export function base64ToBytes(text: string): Uint8Array<ArrayBuffer> {
 	return Uint8Array.from(atob(text.trim()), (c) => c.charCodeAt(0));
 }
 
+export const KEY_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+/** 22 characters of a 62-symbol alphabet is about 131 bits. */
+export const RANDOM_KEY_LENGTH = 22;
+
+/**
+ * Random passphrase from the CSPRNG. Bytes at or above the largest multiple of the alphabet
+ * size are rejected so every character is equally likely.
+ */
+export function randomKey(length = RANDOM_KEY_LENGTH): string {
+	const n = KEY_ALPHABET.length;
+	const limit = 256 - (256 % n);
+	let key = '';
+	while (key.length < length) {
+		for (const byte of crypto.getRandomValues(new Uint8Array(length))) {
+			if (byte < limit && key.length < length) key += KEY_ALPHABET[byte % n];
+		}
+	}
+	return key;
+}
+
 /** PBKDF2-SHA256 work factor (OWASP 2023 minimum). */
 export const PBKDF2_ITERATIONS = 600_000;
 export const SALT_LENGTH = 16;
