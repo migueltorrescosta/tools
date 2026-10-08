@@ -43,18 +43,60 @@ export async function deriveKey(algorithm: AesAlgorithm, passphrase: string): Pr
 	return crypto.subtle.importKey('raw', hash, { name: algorithm }, false, ['encrypt', 'decrypt']);
 }
 
-/** Fresh RSA-OAEP 2048-bit key pair (SHA-256). */
+const RSA_PARAMS: RsaHashedImportParams = { name: 'RSA-OAEP', hash: 'SHA-256' };
+
+/** Fresh RSA-OAEP 2048-bit key pair (SHA-256), exportable so it can be saved as PEM. */
 export function generateRsaKeyPair(): Promise<CryptoKeyPair> {
 	return crypto.subtle.generateKey(
-		{
-			name: 'RSA-OAEP',
-			modulusLength: 2048,
-			publicExponent: new Uint8Array([1, 0, 1]),
-			hash: 'SHA-256'
-		},
+		{ ...RSA_PARAMS, modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]) },
 		true,
 		['encrypt', 'decrypt']
 	);
+}
+
+type PemLabel = 'PUBLIC KEY' | 'PRIVATE KEY';
+
+function toPem(der: ArrayBuffer, label: PemLabel): string {
+	const body = bytesToBase64(new Uint8Array(der)).replace(/.{1,64}/g, '$&\n');
+	return `-----BEGIN ${label}-----\n${body}-----END ${label}-----\n`;
+}
+
+function fromPem(pem: string, label: PemLabel): Uint8Array<ArrayBuffer> {
+	const match = new RegExp(`-----BEGIN ${label}-----([\\s\\S]*?)-----END ${label}-----`).exec(pem);
+	if (!match) throw new Error(`Expected a PEM block "-----BEGIN ${label}-----"`);
+	try {
+		return base64ToBytes(match[1].replace(/\s+/g, ''));
+	} catch {
+		throw new Error(`The ${label.toLowerCase()} PEM body is not valid base64`);
+	}
+}
+
+/** SPKI PEM ("-----BEGIN PUBLIC KEY-----") of an RSA-OAEP public key. */
+export async function exportPublicKeyPem(key: CryptoKey): Promise<string> {
+	return toPem(await crypto.subtle.exportKey('spki', key), 'PUBLIC KEY');
+}
+
+/** PKCS#8 PEM ("-----BEGIN PRIVATE KEY-----") of an RSA-OAEP private key. */
+export async function exportPrivateKeyPem(key: CryptoKey): Promise<string> {
+	return toPem(await crypto.subtle.exportKey('pkcs8', key), 'PRIVATE KEY');
+}
+
+export async function importPublicKeyPem(pem: string): Promise<CryptoKey> {
+	const der = fromPem(pem, 'PUBLIC KEY');
+	try {
+		return await crypto.subtle.importKey('spki', der, RSA_PARAMS, true, ['encrypt']);
+	} catch {
+		throw new Error('Not a valid RSA public key');
+	}
+}
+
+export async function importPrivateKeyPem(pem: string): Promise<CryptoKey> {
+	const der = fromPem(pem, 'PRIVATE KEY');
+	try {
+		return await crypto.subtle.importKey('pkcs8', der, RSA_PARAMS, true, ['decrypt']);
+	} catch {
+		throw new Error('Not a valid RSA private key');
+	}
 }
 
 function requireKey<T>(key: T | undefined, message: string): T {

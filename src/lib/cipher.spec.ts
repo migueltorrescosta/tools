@@ -4,7 +4,11 @@ import {
 	bytesToBase64,
 	decrypt,
 	encrypt,
+	exportPrivateKeyPem,
+	exportPublicKeyPem,
 	generateRsaKeyPair,
+	importPrivateKeyPem,
+	importPublicKeyPem,
 	type Algorithm
 } from './cipher';
 
@@ -115,6 +119,44 @@ describe('RSA-OAEP', () => {
 	it('requires the matching key half', async () => {
 		await expect(encrypt('x', 'RSA-OAEP', {})).rejects.toThrow(/public key/);
 		await expect(decrypt('AAAA', 'RSA-OAEP', {})).rejects.toThrow(/private key/);
+	});
+});
+
+describe('RSA-OAEP PEM keys', () => {
+	it('decrypts with a re-imported private key after the original pair is gone', async () => {
+		const pair = await generateRsaKeyPair();
+		const publicPem = await exportPublicKeyPem(pair.publicKey);
+		const privatePem = await exportPrivateKeyPem(pair.privateKey);
+		expect(publicPem).toMatch(
+			/^-----BEGIN PUBLIC KEY-----\n[A-Za-z0-9+/=\n]+-----END PUBLIC KEY-----\n$/
+		);
+		expect(privatePem).toMatch(/^-----BEGIN PRIVATE KEY-----\n/);
+
+		// Only the PEM text survives a reload; everything below starts from it.
+		const ciphertext = await encrypt('survives reload', 'RSA-OAEP', {
+			publicKey: await importPublicKeyPem(publicPem)
+		});
+		// A later key pair must not affect earlier ciphertexts.
+		await generateRsaKeyPair();
+		const privateKey = await importPrivateKeyPem(privatePem);
+		expect(await decrypt(ciphertext, 'RSA-OAEP', { privateKey })).toBe('survives reload');
+	});
+
+	it('accepts PEM with CRLF line breaks and surrounding whitespace', async () => {
+		const publicPem = await exportPublicKeyPem(rsa.publicKey);
+		const pasted = `\n  ${publicPem.replace(/\n/g, '\r\n')}  `;
+		const ciphertext = await encrypt('hi', 'RSA-OAEP', {
+			publicKey: await importPublicKeyPem(pasted)
+		});
+		expect(await decrypt(ciphertext, 'RSA-OAEP', { privateKey: rsa.privateKey })).toBe('hi');
+	});
+
+	it('rejects the wrong PEM block or a corrupted body with a clear error', async () => {
+		const publicPem = await exportPublicKeyPem(rsa.publicKey);
+		await expect(importPrivateKeyPem(publicPem)).rejects.toThrow(/BEGIN PRIVATE KEY/);
+		await expect(importPublicKeyPem('hello')).rejects.toThrow(/BEGIN PUBLIC KEY/);
+		const truncated = publicPem.replace(/\n[^\n]+\n-----END/, '\n-----END');
+		await expect(importPublicKeyPem(truncated)).rejects.toThrow(/public key/);
 	});
 });
 

@@ -4,7 +4,11 @@
 		ALGORITHMS,
 		decrypt as decryptWith,
 		encrypt as encryptWith,
+		exportPrivateKeyPem,
+		exportPublicKeyPem,
 		generateRsaKeyPair,
+		importPrivateKeyPem,
+		importPublicKeyPem,
 		type Algorithm
 	} from '$lib/cipher';
 
@@ -16,7 +20,11 @@
 	let decryptedText = $state('');
 	let encryptionError = $state('');
 	let decryptionError = $state('');
-	let cachedKeyPair = $state<CryptoKeyPair | null>(null);
+	let publicKeyPem = $state('');
+	let privateKeyPem = $state('');
+	let rsaKeyError = $state('');
+
+	const isRsa = $derived(selectedAlgorithm === 'RSA-OAEP');
 
 	const algorithms = ALGORITHMS;
 
@@ -25,14 +33,17 @@
 			throw new Error('Input text is required');
 		}
 
+		if (algorithm === 'RSA-OAEP') {
+			if (!publicKeyPem.trim()) {
+				throw new Error('A public key is required: generate a key pair or paste a PEM public key');
+			}
+			return encryptWith(text, algorithm, { publicKey: await importPublicKeyPem(publicKeyPem) });
+		}
+
 		if (!key && algorithm !== 'ROT13') {
 			throw new Error('Encryption key is required');
 		}
 
-		if (algorithm === 'RSA-OAEP') {
-			cachedKeyPair = await generateRsaKeyPair();
-			return encryptWith(text, algorithm, { publicKey: cachedKeyPair.publicKey });
-		}
 		return encryptWith(text, algorithm, { passphrase: key });
 	}
 
@@ -41,16 +52,19 @@
 			throw new Error('Encrypted text is required');
 		}
 
+		if (algorithm === 'RSA-OAEP') {
+			if (!privateKeyPem.trim()) {
+				throw new Error('A private key is required: paste the PEM private key of the pair');
+			}
+			return decryptWith(text, algorithm, {
+				privateKey: await importPrivateKeyPem(privateKeyPem)
+			});
+		}
+
 		if (!key && algorithm !== 'ROT13') {
 			throw new Error('Decryption key is required');
 		}
 
-		if (algorithm === 'RSA-OAEP') {
-			if (!cachedKeyPair) {
-				throw new Error('No RSA key pair found. Please encrypt a message first using RSA-OAEP.');
-			}
-			return decryptWith(text, algorithm, { privateKey: cachedKeyPair.privateKey });
-		}
 		return decryptWith(text, algorithm, { passphrase: key });
 	}
 
@@ -73,6 +87,17 @@
 			decryptedText = await decrypt(inputText, selectedAlgorithm, decryptionKey);
 		} catch (e) {
 			decryptionError = e instanceof Error ? e.message : 'Decryption failed';
+		}
+	}
+
+	async function generateRsaKeys() {
+		rsaKeyError = '';
+		try {
+			const pair = await generateRsaKeyPair();
+			publicKeyPem = await exportPublicKeyPem(pair.publicKey);
+			privateKeyPem = await exportPrivateKeyPem(pair.privateKey);
+		} catch (e) {
+			rsaKeyError = e instanceof Error ? e.message : 'Key generation failed';
 		}
 	}
 
@@ -110,35 +135,75 @@
 		</div>
 	</div>
 
-	<div class="generate-keys-container">
-		<button class="generate-keys-btn" onclick={generateExampleKeys}>
-			<span class="btn-text">GENERATE RANDOM KEYS</span>
-			<span class="btn-glow"></span>
-		</button>
-	</div>
+	{#if isRsa}
+		<div class="generate-keys-container">
+			<button class="generate-keys-btn" onclick={generateRsaKeys}>
+				<span class="btn-text">GENERATE KEY PAIR</span>
+				<span class="btn-glow"></span>
+			</button>
+		</div>
 
-	<div class="key-row">
-		<div class="key-input-group">
-			<label class="input-label" for="encryption-key">ENCRYPTION KEY</label>
-			<input
-				id="encryption-key"
-				type="text"
-				class="key-input"
-				bind:value={encryptionKey}
-				placeholder="Enter encryption key"
-			/>
+		<p class="rsa-note">
+			Encrypt uses the public key; decrypt needs the matching private key. Save the private key:
+			without it the ciphertext cannot be recovered.
+		</p>
+		{#if rsaKeyError}
+			<div class="error">{rsaKeyError}</div>
+		{/if}
+
+		<div class="key-row">
+			<div class="key-input-group">
+				<label class="input-label" for="public-key">PUBLIC KEY (PEM, ENCRYPTS)</label>
+				<textarea
+					id="public-key"
+					class="key-input pem-input"
+					bind:value={publicKeyPem}
+					placeholder="-----BEGIN PUBLIC KEY-----"
+					spellcheck="false"
+				></textarea>
+			</div>
+			<div class="key-input-group">
+				<label class="input-label" for="private-key">PRIVATE KEY (PEM, DECRYPTS)</label>
+				<textarea
+					id="private-key"
+					class="key-input pem-input"
+					bind:value={privateKeyPem}
+					placeholder="-----BEGIN PRIVATE KEY-----"
+					spellcheck="false"
+				></textarea>
+			</div>
 		</div>
-		<div class="key-input-group">
-			<label class="input-label" for="decryption-key">DECRYPTION KEY</label>
-			<input
-				id="decryption-key"
-				type="text"
-				class="key-input"
-				bind:value={decryptionKey}
-				placeholder="Enter decryption key"
-			/>
+	{:else}
+		<div class="generate-keys-container">
+			<button class="generate-keys-btn" onclick={generateExampleKeys}>
+				<span class="btn-text">GENERATE RANDOM KEYS</span>
+				<span class="btn-glow"></span>
+			</button>
 		</div>
-	</div>
+
+		<div class="key-row">
+			<div class="key-input-group">
+				<label class="input-label" for="encryption-key">ENCRYPTION KEY</label>
+				<input
+					id="encryption-key"
+					type="text"
+					class="key-input"
+					bind:value={encryptionKey}
+					placeholder="Enter encryption key"
+				/>
+			</div>
+			<div class="key-input-group">
+				<label class="input-label" for="decryption-key">DECRYPTION KEY</label>
+				<input
+					id="decryption-key"
+					type="text"
+					class="key-input"
+					bind:value={decryptionKey}
+					placeholder="Enter decryption key"
+				/>
+			</div>
+		</div>
+	{/if}
 
 	<div class="process-btn-container">
 		<div class="btn-row">
@@ -216,3 +281,18 @@
 		</div>
 	</div>
 </div>
+
+<style>
+	.pem-input {
+		height: 160px;
+		resize: vertical;
+		font-size: 0.75rem;
+		white-space: pre;
+	}
+
+	.rsa-note {
+		margin: 0 0 1rem;
+		font-size: 0.85rem;
+		color: var(--futuristic-text-dim);
+	}
+</style>
