@@ -272,6 +272,16 @@ export function validatePlainText(text: string): ValidationResult {
 		return { valid: false, message: 'Text contains invalid control characters' };
 	}
 
+	// In u-mode a surrogate pair is one code point, so this matches only unpaired halves
+	const loneSurrogate = /[\uD800-\uDFFF]/u.exec(text);
+	if (loneSurrogate) {
+		const code = loneSurrogate[0].charCodeAt(0).toString(16).toUpperCase();
+		return {
+			valid: false,
+			message: `Text contains a lone surrogate U+${code}, which cannot be encoded as UTF-8`
+		};
+	}
+
 	return { valid: true, message: 'Valid Plain Text' };
 }
 

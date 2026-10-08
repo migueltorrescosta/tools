@@ -405,6 +405,21 @@ describe('Format validation functions', () => {
 			expect(result.message).toBe('Text contains invalid control characters');
 		});
 
+		it.each([
+			['a high surrogate', 'a\uD800b', 'D800'],
+			['a low surrogate', 'a\uDC00b', 'DC00'],
+			['a reversed pair', '\uDE00\uD83D', 'DE00']
+		])('rejects %s, which is not UTF-8 encodable', (_name, text, code) => {
+			expect(validatePlainText(text)).toEqual({
+				valid: false,
+				message: `Text contains a lone surrogate U+${code}, which cannot be encoded as UTF-8`
+			});
+		});
+
+		it('accepts a surrogate pair', () => {
+			expect(validatePlainText('emoji \uD83D\uDE00').valid).toBe(true);
+		});
+
 		it('rejects text with U+FFFF', () => {
 			const result = validatePlainText('Hello\uFFFFWorld');
 			expect(result.valid).toBe(false);

@@ -105,11 +105,10 @@
 					</ul>
 				{:else if selectedFormat === 'yaml'}
 					<ul>
-						<li>Must follow YAML 1.2 specification</li>
+						<li>Parsed as YAML 1.2; every document in a --- stream is checked</li>
 						<li>Indentation uses spaces (not tabs)</li>
-						<li>Keys should not be numeric without quoting</li>
-						<li>Multi-part keys must be quoted</li>
-						<li>Block scalars (| , >) must have content</li>
+						<li>Flow collections and quoted strings must be closed</li>
+						<li>No non-printable characters (YAML c-printable set)</li>
 					</ul>
 				{:else if selectedFormat === 'xml'}
 					<ul>
@@ -121,17 +120,17 @@
 					</ul>
 				{:else if selectedFormat === 'markdown'}
 					<ul>
-						<li>Follows CommonMark specification</li>
-						<li>Headings (# - ######) require text</li>
-						<li>Links must have valid URL syntax</li>
-						<li>Code blocks must be closed</li>
+						<li>CommonMark accepts any text; these are lint checks</li>
+						<li>Link destinations with spaces must be wrapped in &lt;&gt; or encoded</li>
 						<li>Self-closing tags only for void elements</li>
+						<li>Fenced code blocks are not checked</li>
 					</ul>
 				{:else}
 					<ul>
-						<li>Must contain visible text</li>
-						<li>No invalid control characters</li>
-						<li>UTF-8 encoded</li>
+						<li>Must contain non-whitespace text</li>
+						<li>No control characters other than tab, line feed and carriage return</li>
+						<li>No noncharacters U+FFFE or U+FFFF</li>
+						<li>No lone surrogates (must be encodable as UTF-8)</li>
 					</ul>
 				{/if}
 			</div>
