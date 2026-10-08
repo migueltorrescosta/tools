@@ -1,67 +1,18 @@
 <script lang="ts">
 	import electedOfficials from '$lib/data/elected_officials.json';
+	import {
+		barGeometry,
+		computeStats,
+		filterGroups,
+		timelineRange,
+		type Politician
+	} from '$lib/volt';
 
-	type Politician = {
-		name: string;
-		startDate: string;
-		endDate: string;
-		position: string;
-		location: string;
-		country: string;
-		url: string;
-	};
-
-	// Parse date string to year (number)
-	// Handles: "DD/MM/YYYY", "MM/YYYY", "YYYY"
-	function parseDate(dateStr: string): number {
-		const parts = dateStr.split('/');
-		if (parts.length === 3) return parseInt(parts[2]);
-		if (parts.length === 2) return parseInt(parts[1]);
-		return parseInt(dateStr);
-	}
-
-	// Process politicians with parsed dates
-	const processed: (Politician & { startYear: number; endYear: number })[] = electedOfficials.map(
-		(p) => ({
-			...p,
-			startYear: parseDate(p.startDate),
-			endYear: parseDate(p.endDate)
-		})
-	);
+	const officials: Politician[] = electedOfficials;
 
 	// Determine timeline range
-	const minYear = Math.min(...processed.map((p) => p.startYear));
-	const maxYear = Math.max(...processed.map((p) => p.endYear));
-	const yearRange = maxYear - minYear + 1;
-
-	// Group by country, then by location
-	type PositionGroup = {
-		location: string;
-		politicians: Politician[];
-	};
-
-	const countryGroups = $derived.by(() => {
-		const groups: Record<string, PositionGroup[]> = {};
-		for (const p of electedOfficials) {
-			if (!groups[p.country]) groups[p.country] = [];
-			// Find if location already exists
-			const existing = groups[p.country].find((g) => g.location === p.location);
-			if (existing) {
-				existing.politicians.push(p);
-			} else {
-				groups[p.country].push({ location: p.location, politicians: [p] });
-			}
-		}
-		// Sort locations by latest start date
-		for (const key of Object.keys(groups)) {
-			groups[key].sort((a, b) => {
-				const aStart = Math.max(...a.politicians.map((p) => parseDate(p.startDate)));
-				const bStart = Math.max(...b.politicians.map((p) => parseDate(p.startDate)));
-				return bStart - aStart;
-			});
-		}
-		return groups;
-	});
+	const timeline = timelineRange(officials);
+	const { minYear, maxYear, yearRange } = timeline;
 
 	// Country colors (lighter for better contrast with dark text)
 	const countryColors: Record<string, string> = {
@@ -93,61 +44,16 @@
 		{ value: '🇫🇷', label: 'France' }
 	];
 
-	const filteredCountries = $derived.by(() => {
-		const groups = countryGroups;
-		if (filterCountry === 'all') return groups;
-		if (filterCountry === '🇪🇺') {
-			// Filter MEPs - group by location
-			const mepsByLoc: Record<string, Politician[]> = {};
-			for (const p of electedOfficials) {
-				if (p.position === 'MEP' || p.position === 'MdEP') {
-					if (!mepsByLoc[p.location]) mepsByLoc[p.location] = [];
-					mepsByLoc[p.location].push(p);
-				}
-			}
-			const result: PositionGroup[] = Object.entries(mepsByLoc).map(([location, politicians]) => ({
-				location,
-				politicians
-			}));
-			return { '🇪🇺': result };
-		}
-		return { [filterCountry]: groups[filterCountry] };
-	});
+	const filteredCountries = $derived(filterGroups(officials, filterCountry));
 
 	// Stats
-	const stats = $derived.by(() => {
-		const all = electedOfficials;
-		return {
-			total: all.length,
-			meps: all.filter((p) => p.position === 'MEP' || p.position === 'MdEP').length,
-			netherlands: all.filter((p) => p.country === '🇳🇱').length,
-			germany: all.filter((p) => p.country === '🇩🇪').length,
-			cyprus: all.filter((p) => p.country === '🇨🇾').length,
-			greece: all.filter((p) => p.country === '🇬🇷').length,
-			romania: all.filter((p) => p.country === '🇷🇴').length,
-			portugal: all.filter((p) => p.country === '🇵🇹').length,
-			italy: all.filter((p) => p.country === '🇮🇹').length,
-			france: all.filter((p) => p.country === '🇫🇷').length
-		};
-	});
+	const stats = computeStats(officials);
 
-	const filteredStats = $derived.by(() => {
-		const filtered = Object.values(filteredCountries).flatMap((groups) =>
-			groups.flatMap((g) => g.politicians)
-		);
-		return {
-			total: filtered.length,
-			meps: filtered.filter((p) => p.position === 'MEP' || p.position === 'MdEP').length,
-			netherlands: filtered.filter((p) => p.country === '🇳🇱').length,
-			germany: filtered.filter((p) => p.country === '🇩🇪').length,
-			cyprus: filtered.filter((p) => p.country === '🇨🇾').length,
-			greece: filtered.filter((p) => p.country === '🇬🇷').length,
-			romania: filtered.filter((p) => p.country === '🇷🇴').length,
-			portugal: filtered.filter((p) => p.country === '🇵🇹').length,
-			italy: filtered.filter((p) => p.country === '🇮🇹').length,
-			france: filtered.filter((p) => p.country === '🇫🇷').length
-		};
-	});
+	const filteredStats = $derived(
+		computeStats(
+			Object.values(filteredCountries).flatMap((groups) => groups.flatMap((g) => g.politicians))
+		)
+	);
 
 	// Sorted summary bars (sorted alphabetically by label text)
 	const sortedBars = $derived.by(() => {
@@ -236,10 +142,7 @@
 								<div class="row-label">{group.location}</div>
 								<div class="row-bar-container" style="height: {barHeight}px;">
 									{#each group.politicians as p, idx (p.name)}
-										{@const start = parseDate(p.startDate)}
-										{@const end = parseDate(p.endDate)}
-										{@const left = ((start - minYear) / yearRange) * 100}
-										{@const width = ((end - start + 1) / yearRange) * 100}
+										{@const { left, width } = barGeometry(p, timeline)}
 										{@const top = idx * 14}
 										<div
 											class="row-bar"
