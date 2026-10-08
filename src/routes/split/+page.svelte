@@ -1,4 +1,15 @@
 <script lang="ts">
+	import {
+		balances,
+		completeRound as runRound,
+		groupDelta,
+		initialValuations,
+		itemFavourites,
+		itemsOf,
+		lptGroups,
+		roundedBalances
+	} from '$lib/split';
+
 	interface Item {
 		id: number;
 		description: string;
@@ -51,29 +62,17 @@
 	function startAlgorithm() {
 		if (people.length < 2 || items.length === 0) return;
 		initialized = true;
-		const prices = items.map((x) => x.price);
-		individualPrices = people
-			.map(() => [...prices])
-			.map((row) => row.map((v) => v + Math.random() - 0.5));
+		individualPrices = initialValuations(
+			items.map((x) => x.price),
+			people.length,
+			Math.random
+		);
 		personSelections = people.map(() => null);
 		setupExperiment();
 	}
 
 	function setupExperiment() {
-		const n = people.length;
-		if (!n || !items.length) {
-			groups = [];
-			return;
-		}
-		const vals = Array(n).fill(0);
-		groups = Array.from({ length: n }, () => [] as number[]);
-		const sorted = [...items].sort((a, b) => b.price - a.price);
-		for (const item of sorted) {
-			let min = 0;
-			for (let g = 1; g < n; g++) if (vals[g] < vals[min]) min = g;
-			groups[min].push(item.id);
-			vals[min] += item.price;
-		}
+		groups = lptGroups(items, people.length);
 	}
 
 	function handleSelectionChange(idx: number, gIdx: number) {
@@ -81,37 +80,22 @@
 	}
 
 	function completeRound() {
-		const factor = 1 + 1 / (0.1 * iterations + 10);
-		let indPrices = individualPrices.map((r) => [...r]);
-		for (let p = 0; p < people.length; p++) {
-			const sel = personSelections[p];
-			if (sel === null) continue;
-			for (let i = 0; i < items.length; i++) {
-				indPrices[p][i] *= groups[sel].includes(items[i].id) ? factor : 1 / factor;
-			}
-		}
-		for (let p = 0; p < indPrices.length; p++) {
-			for (let i = 0; i < items.length; i++)
-				indPrices[p][i] = (indPrices[p][i] + individualPrices[p][i]) / 2;
-		}
-		items = items.map((item, i) => ({
-			...item,
-			price: indPrices.reduce((s, r) => s + r[i], 0) / people.length
-		}));
+		const result = runRound(
+			individualPrices,
+			items.map((i) => i.id),
+			groups,
+			personSelections,
+			iterations
+		);
+		items = items.map((item, i) => ({ ...item, price: result.prices[i] }));
 		iterations++;
-		individualPrices = indPrices;
+		individualPrices = result.valuations;
 		personSelections = people.map(() => null);
 		setupExperiment();
 	}
 
-	function getGroupValue(gIdx: number): number {
-		return groups[gIdx].reduce((s, id) => s + (items.find((i) => i.id === id)?.price || 0), 0);
-	}
-
 	function getGroupDelta(gIdx: number): number {
-		const totalValue = items.reduce((s, i) => s + i.price, 0);
-		const avg = totalValue / people.length;
-		return getGroupValue(gIdx) - avg;
+		return groupDelta(groups[gIdx], items, people.length);
 	}
 
 	function getGroupDesc(gIdx: number): string {
@@ -124,19 +108,7 @@
 
 	// Derived values
 	const itemFavs = $derived(
-		initialized && items.length > 0
-			? items.map((_, col) => {
-					let maxIdx = 0,
-						maxVal = -Infinity;
-					for (let row = 0; row < individualPrices.length; row++) {
-						if (individualPrices[row]?.[col] > maxVal) {
-							maxVal = individualPrices[row][col];
-							maxIdx = row;
-						}
-					}
-					return maxIdx;
-				})
-			: []
+		initialized && items.length > 0 ? itemFavourites(individualPrices, items.length) : []
 	);
 
 	const allSelected = $derived(
@@ -154,18 +126,22 @@
 			: []
 	);
 
-	const suggestedAlloc = $derived(
-		initialized && items.length > 0 && people.length > 0
-			? people.map((p, idx) => {
-					const avg = items.reduce((a, b) => a + b.price, 0) / people.length;
-					const my = itemFavs.map((f, i) => (f === idx ? i : -1)).filter((i) => i >= 0);
-					let d = -avg + (my.length ? my.map((i) => items[i].price).reduce((a, b) => a + b, 0) : 0);
-					let s = (d > 0 ? 'Pay ' : 'Get ') + formatter.format(Math.round(Math.abs(d)));
-					if (my.length) s = my.map((i) => items[i].description).reduce((a, b) => a + ', ' + b, s);
-					return { name: p.name, items: s };
-				})
-			: []
-	);
+	const suggestedAlloc = $derived.by(() => {
+		if (!initialized || items.length === 0 || people.length === 0) return [];
+		const owed = roundedBalances(
+			balances(
+				items.map((i) => i.price),
+				itemFavs,
+				people.length
+			)
+		);
+		return people.map((p, idx) => {
+			const my = itemsOf(itemFavs, idx);
+			let s = (owed[idx] > 0 ? 'Pay ' : 'Get ') + formatter.format(Math.abs(owed[idx]));
+			if (my.length) s = my.map((i) => items[i].description).reduce((a, b) => a + ', ' + b, s);
+			return { name: p.name, items: s };
+		});
+	});
 </script>
 
 <svelte:head><title>Asset Splitting</title></svelte:head>
