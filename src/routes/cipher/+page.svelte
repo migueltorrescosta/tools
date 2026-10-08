@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { copyToClipboard } from '$lib/clipboard';
 	import {
 		ALGORITHMS,
@@ -27,7 +28,26 @@
 	let privateKeyPem = $state('');
 	let rsaKeyError = $state('');
 
+	let hydrated = $state(false);
+	onMount(() => (hydrated = true));
+
+	type OutputPanel = 'encrypted' | 'decrypted';
+	type CopyStatus = 'idle' | 'copied' | 'failed';
+	const COPY_LABEL: Record<CopyStatus, string> = {
+		idle: 'COPY',
+		copied: 'COPIED',
+		failed: 'COPY FAILED'
+	};
+	const COPY_FEEDBACK_MS = 1500;
+	let copyStatus = $state<Record<OutputPanel, CopyStatus>>({
+		encrypted: 'idle',
+		decrypted: 'idle'
+	});
+	const copyTimers: Partial<Record<OutputPanel, ReturnType<typeof setTimeout>>> = {};
+
 	const kind = $derived(keyKind(selectedAlgorithm));
+	const canCopyEncrypted = $derived(!encryptionError && encryptedText !== '');
+	const canCopyDecrypted = $derived(!decryptionError && decryptedText !== '');
 
 	const algorithms = ALGORITHMS;
 
@@ -104,6 +124,29 @@
 		}
 	}
 
+	/** Outputs belong to the algorithm that produced them, so a switch clears them. */
+	function clearOutputs() {
+		encryptedText = '';
+		decryptedText = '';
+		encryptionError = '';
+		decryptionError = '';
+	}
+
+	function useEncryptedAsInput() {
+		inputText = encryptedText;
+	}
+
+	async function copyOutput(panel: OutputPanel, text: string) {
+		clearTimeout(copyTimers[panel]);
+		try {
+			await copyToClipboard(text);
+			copyStatus[panel] = 'copied';
+		} catch {
+			copyStatus[panel] = 'failed';
+		}
+		copyTimers[panel] = setTimeout(() => (copyStatus[panel] = 'idle'), COPY_FEEDBACK_MS);
+	}
+
 	function generateExampleKeys() {
 		const key = randomKey();
 		encryptionKey = key;
@@ -115,7 +158,7 @@
 	<title>Encrypter/Decrypter</title>
 </svelte:head>
 
-<div class="container">
+<div class="container" data-hydrated={hydrated || undefined}>
 	<header>
 		<h1>ENCRYPTER/DECRYPTER</h1>
 		<p class="subtitle">Encrypt & Decrypt Messages</p>
@@ -126,7 +169,7 @@
 			<div class="section-header">
 				<span class="label">ALGORITHM</span>
 			</div>
-			<select class="algorithm-select" bind:value={selectedAlgorithm}>
+			<select class="algorithm-select" bind:value={selectedAlgorithm} onchange={clearOutputs}>
 				{#each algorithms as alg (alg)}
 					<option value={alg}>{alg}</option>
 				{/each}
@@ -227,7 +270,13 @@
 				<span class="dot yellow"></span>
 				<span class="dot green"></span>
 				<span class="panel-title">DECRYPTED</span>
-				<button class="copy-btn" onclick={() => copyToClipboard(decryptedText)}>COPY</button>
+				<button
+					class="copy-btn"
+					class:copy-failed={copyStatus.decrypted === 'failed'}
+					disabled={!canCopyDecrypted}
+					onclick={() => copyOutput('decrypted', decryptedText)}
+					>{COPY_LABEL[copyStatus.decrypted]}</button
+				>
 			</div>
 			<div class="panel-content">
 				{#if decryptionError}
@@ -249,12 +298,13 @@
 				<span class="dot yellow"></span>
 				<span class="dot green"></span>
 				<span class="panel-title">INPUT</span>
+				<span class="panel-hint">ENCRYPT and DECRYPT both read this</span>
 			</div>
 			<div class="panel-content">
 				<textarea
 					class="panel-textarea"
 					bind:value={inputText}
-					placeholder="Enter your message here"
+					placeholder="Plaintext to encrypt, or ciphertext to decrypt"
 					spellcheck="false"
 				></textarea>
 			</div>
@@ -266,7 +316,21 @@
 				<span class="dot yellow"></span>
 				<span class="dot green"></span>
 				<span class="panel-title">ENCRYPTED</span>
-				<button class="copy-btn" onclick={() => copyToClipboard(encryptedText)}>COPY</button>
+				<span class="panel-actions">
+					<button
+						class="copy-btn"
+						disabled={!canCopyEncrypted}
+						title="Copy the ciphertext into INPUT so DECRYPT can read it"
+						onclick={useEncryptedAsInput}>USE AS INPUT</button
+					>
+					<button
+						class="copy-btn"
+						class:copy-failed={copyStatus.encrypted === 'failed'}
+						disabled={!canCopyEncrypted}
+						onclick={() => copyOutput('encrypted', encryptedText)}
+						>{COPY_LABEL[copyStatus.encrypted]}</button
+					>
+				</span>
 			</div>
 			<div class="panel-content">
 				{#if encryptionError}
@@ -290,6 +354,33 @@
 		resize: vertical;
 		font-size: 0.75rem;
 		white-space: pre;
+	}
+
+	.panel-actions {
+		margin-left: auto;
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.panel-actions .copy-btn {
+		margin-left: 0;
+	}
+
+	.panel-hint {
+		margin-left: auto;
+		font-size: 0.7rem;
+		color: var(--futuristic-text-dim);
+	}
+
+	.copy-btn:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+		pointer-events: none;
+	}
+
+	.copy-btn.copy-failed {
+		border-color: #ff7777;
+		color: #ff7777;
 	}
 
 	.key-note {

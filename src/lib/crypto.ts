@@ -2,22 +2,46 @@
  * Reusable cryptographic encoding utilities
  */
 
+const BASE64_CHUNK = 0x8000;
+
 /**
- * Encode a string to Base64
+ * Encode a string to Base64 (UTF-8 bytes, standard alphabet, padded)
  * @param str - The string to encode
  * @returns Base64 encoded string
  */
 export function base64Encode(str: string): string {
-	return btoa(unescape(encodeURIComponent(str)));
+	const bytes = new TextEncoder().encode(str);
+	let binary = '';
+	for (let i = 0; i < bytes.length; i += BASE64_CHUNK) {
+		binary += String.fromCharCode(...bytes.subarray(i, i + BASE64_CHUNK));
+	}
+	return btoa(binary);
 }
 
 /**
- * Decode a Base64 string
+ * Decode a Base64 string. Whitespace is ignored, the URL-safe alphabet (- and _) is accepted,
+ * and missing padding is restored.
  * @param str - The Base64 string to decode
  * @returns Decoded string
+ * @throws If the input is not base64 or the decoded bytes are not valid UTF-8
  */
 export function base64Decode(str: string): string {
-	return decodeURIComponent(escape(atob(str)));
+	const body = str.replace(/\s+/g, '').replace(/-/g, '+').replace(/_/g, '/').replace(/=+$/, '');
+	if (!/^[A-Za-z0-9+/]*$/.test(body)) {
+		throw new Error(
+			'Invalid base64: only A-Z, a-z, 0-9, +, /, - and _ are allowed, with = padding only at the end'
+		);
+	}
+	if (body.length % 4 === 1) {
+		throw new Error('Invalid base64: length is not a whole number of bytes');
+	}
+	const padded = body + '='.repeat((4 - (body.length % 4)) % 4);
+	const bytes = Uint8Array.from(atob(padded), (c) => c.charCodeAt(0));
+	try {
+		return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+	} catch {
+		throw new Error('Base64 bytes are not valid UTF-8 text');
+	}
 }
 
 /**
