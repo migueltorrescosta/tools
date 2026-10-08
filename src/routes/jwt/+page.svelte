@@ -26,6 +26,7 @@
 	// Bumped per verification so a slow earlier result cannot overwrite a newer one
 	let verifySeq = 0;
 	let signatureResult = $state('');
+	let signatureError = $state('');
 
 	function decodeToken(t: string) {
 		if (!t.trim()) {
@@ -34,6 +35,7 @@
 			headerError = '';
 			payloadError = '';
 			signatureResult = '';
+			signatureError = '';
 			return;
 		}
 
@@ -57,6 +59,7 @@
 		payloadJson = decoded.payloadError ? '' : JSON.stringify(decoded.payload, null, 2);
 
 		signatureResult = decoded.signature;
+		signatureError = decoded.signatureError;
 	}
 
 	async function encodeToken() {
@@ -196,6 +199,7 @@
 				<div class="signature-display">
 					<span class="input-label">SIGNATURE</span>
 					<div class="signature-value">{signatureResult || 'Not available'}</div>
+					{#if signatureError}<div class="error-small">{signatureError}</div>{/if}
 				</div>
 
 				{#if verification?.status === 'valid'}

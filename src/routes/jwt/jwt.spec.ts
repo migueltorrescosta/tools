@@ -52,6 +52,7 @@ describe('decodeJwt', () => {
 			header: { alg: 'HS256', typ: 'JWT' },
 			payload: { sub: '1234567890', name: 'John Doe', iat: 1516239022 },
 			signature: 'SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+			signatureError: '',
 			formatError: '',
 			headerError: '',
 			payloadError: ''
@@ -67,7 +68,7 @@ describe('decodeJwt', () => {
 
 	it('reports a header error but still decodes the payload', () => {
 		const d = decodeJwt('invalid!!!' + SAMPLE_PAYLOAD + 'sig');
-		expect(d.headerError).toBe('Header is not base64url');
+		expect(d.headerError).toBe('Header contains characters outside base64url (A-Z a-z 0-9 - _)');
 		expect(d.header).toBeUndefined();
 		expect(d.payloadError).toBe('');
 		expect(d.payload).toEqual({ sub: '1234567890' });
@@ -89,6 +90,27 @@ describe('decodeJwt', () => {
 		expect(d.header).toEqual({ alg: 'HS256' });
 		expect(d.payloadError).toBe('Payload is not valid JSON');
 		expect(d.payload).toBeUndefined();
+	});
+
+	it.each([' ', '\n', '\r\n', '\t ', 'Bearer ', 'bearer  ', '  Bearer\t'])(
+		'ignores %j before and whitespace after a pasted token',
+		(prefix) => {
+			const d = decodeJwt(`${prefix}${SAMPLE_JWT}\n `);
+			expect(d.headerError).toBe('');
+			expect(d.header).toEqual({ alg: 'HS256', typ: 'JWT' });
+			expect(d.signature).toBe('SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c');
+		}
+	);
+
+	it('rejects +, / and = in any segment with a specific error', () => {
+		const [h, p, sig] = SAMPLE_JWT.split('.');
+		expect(decodeJwt(`${h}=.${p}.${sig}`).headerError).toMatch(/Header contains characters/);
+		expect(decodeJwt(`${h}.${p}+.${sig}`).payloadError).toMatch(/Payload contains characters/);
+		expect(decodeJwt(`${h}.${p}.${sig}/=`).signatureError).toMatch(/Signature contains characters/);
+	});
+
+	it('reports a segment of impossible base64 length as not base64url', () => {
+		expect(decodeJwt(`eyJhb${SAMPLE_PAYLOAD}`).headerError).toBe('Header is not base64url');
 	});
 
 	it('keeps an empty signature segment', () => {
@@ -225,6 +247,17 @@ describe('verifyJwt', () => {
 			status: 'valid'
 		});
 		expect((await verifyJwt(SAMPLE_JWT, 'wrong-secret', 'HS256')).status).toBe('invalid');
+	});
+
+	it('verifies a pasted token with surrounding whitespace or a Bearer prefix', async () => {
+		expect(await verifyJwt(`\n Bearer ${SAMPLE_JWT}\n`, 'your-256-bit-secret', 'HS256')).toEqual({
+			status: 'valid'
+		});
+	});
+
+	it('rejects a signature with characters outside base64url', async () => {
+		const r = await verifyJwt(`${SAMPLE_JWT.slice(0, -1)}+`, 'your-256-bit-secret', 'HS256');
+		expect(r).toEqual({ status: 'invalid', message: 'Signature is not base64url' });
 	});
 
 	it('rejects the sample token after a payload byte is flipped', async () => {

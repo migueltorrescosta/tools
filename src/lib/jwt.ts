@@ -50,6 +50,8 @@ export interface DecodedJwt {
 	/** Parsed payload object; undefined when it could not be decoded or is not an object. */
 	payload: JsonObject | undefined;
 	signature: string;
+	/** Set when the signature segment is not base64url. */
+	signatureError: string;
 	/** Set when the token is not three dot-separated segments; header/payload are then undefined. */
 	formatError: string;
 	headerError: string;
@@ -65,11 +67,26 @@ export function isJsonObject(value: unknown): value is JsonObject {
 
 type SegmentName = 'Header' | 'Payload';
 
+const BASE64URL = /^[A-Za-z0-9_-]*$/;
+
+function charsetError(segment: string, name: SegmentName | 'Signature'): string {
+	return BASE64URL.test(segment)
+		? ''
+		: `${name} contains characters outside base64url (A-Z a-z 0-9 - _)`;
+}
+
+/** Strips surrounding whitespace and an `Authorization: Bearer` prefix from a pasted token. */
+export function normalizeToken(token: string): string {
+	return token.trim().replace(/^Bearer\s+/i, '');
+}
+
 /** Decodes one segment to a JSON object, naming the first layer that fails. */
 function parseSegment(
 	segment: string,
 	name: SegmentName
 ): { ok: true; value: JsonObject } | { ok: false; error: string } {
+	const charset = charsetError(segment, name);
+	if (charset) return { ok: false, error: charset };
 	let bytes: Uint8Array<ArrayBuffer>;
 	try {
 		bytes = base64UrlDecodeBytes(segment);
@@ -97,11 +114,12 @@ export function decodeJwt(token: string): DecodedJwt {
 		header: undefined,
 		payload: undefined,
 		signature: '',
+		signatureError: '',
 		formatError: '',
 		headerError: '',
 		payloadError: ''
 	};
-	const parts = token.split('.');
+	const parts = normalizeToken(token).split('.');
 	if (parts.length !== 3) {
 		result.formatError = 'Invalid JWT format';
 		return result;
@@ -113,6 +131,7 @@ export function decodeJwt(token: string): DecodedJwt {
 	if (payload.ok) result.payload = payload.value;
 	else result.payloadError = payload.error;
 	result.signature = parts[2];
+	result.signatureError = charsetError(parts[2], 'Signature');
 	return result;
 }
 
@@ -300,7 +319,7 @@ export async function verifyJwt(
 	keyText: string,
 	alg: string
 ): Promise<VerifyResult> {
-	const parts = token.split('.');
+	const parts = normalizeToken(token).split('.');
 	if (parts.length !== 3) return { status: 'invalid', message: 'Invalid JWT format' };
 	const headerAlg = decodeJwt(token).header?.alg;
 	if (alg === 'none' || headerAlg === 'none') {
@@ -314,6 +333,9 @@ export async function verifyJwt(
 	}
 	if (!algSpec(alg))
 		return { status: 'unsupported', message: `Verification not supported for ${alg}` };
+	if (charsetError(parts[2], 'Signature')) {
+		return { status: 'invalid', message: 'Signature is not base64url' };
+	}
 	let signature: Uint8Array<ArrayBuffer>;
 	try {
 		signature = base64UrlDecodeBytes(parts[2]);
