@@ -11,8 +11,14 @@ import {
 	getMasterBoundaries,
 	getNextSessions,
 	getNowPosition,
+	getEventBounds,
+	getColumnSpan,
+	ROOMS,
 	type Session
 } from './timeline';
+import events from '../data/events.json';
+
+const bundled = events as Session[];
 
 function session(id: string, room: string, start: string, end: string): Session {
 	return {
@@ -24,7 +30,7 @@ function session(id: string, room: string, start: string, end: string): Session 
 		endTime: `2026-06-13T${end}:00+02:00`,
 		description: '',
 		speakers: [],
-		moderator: null,
+		moderators: [],
 		type: 'session'
 	};
 }
@@ -87,18 +93,79 @@ describe('getActiveSessions', () => {
 });
 
 describe('getNextSessions', () => {
-	it('picks the earliest not-yet-ended session per room', () => {
+	it('picks the earliest not-yet-started session per room', () => {
 		const next = getNextSessions(sessions, at('08:00'));
 		expect(next.get('Sala 1')?.id).toBe('a');
 		expect(next.get('Sala 2')?.id).toBe('c');
 	});
 
-	it('drops rooms whose sessions have all ended', () => {
-		const next = getNextSessions(sessions, at('11:15'));
-		expect(next.size).toBe(0);
+	it('drops rooms whose sessions have all started', () => {
+		expect(getNextSessions(sessions, at('11:15')).size).toBe(0);
+		expect(getNextSessions(sessions, at('10:30')).size).toBe(0);
 	});
 
-	it.todo('excludes the session already running (mg-drp8.128)');
+	it('excludes the session already running', () => {
+		const next = getNextSessions(sessions, at('09:00'));
+		expect(next.get('Sala 1')?.id).toBe('b');
+		expect(next.get('Sala 2')?.id).toBe('c');
+	});
+
+	it('never marks an active session as next in the bundled data', () => {
+		const now = new Date('2026-06-13T10:20:00+02:00');
+		const active = new Set(getActiveSessions(bundled, now).map((s) => s.id));
+		const next = getNextSessions(bundled, now);
+		for (const s of next.values()) expect(active.has(s.id), s.id).toBe(false);
+		expect(next.get('Peugeot Arena')?.id).toMatch(/^175-days-human-stories/);
+	});
+});
+
+describe('getEventBounds', () => {
+	it('uses the earliest start and latest end regardless of array order', () => {
+		const shuffled = [sessions[2], sessions[3], sessions[0], sessions[1]];
+		expect(getEventBounds(shuffled)).toEqual({
+			start: at('09:00').getTime(),
+			end: at('11:15').getTime()
+		});
+		expect(getEventBounds([])).toBeNull();
+	});
+
+	it('spans the bundled event until 19:00, not the last array element', () => {
+		expect(getEventBounds(bundled)).toEqual({
+			start: new Date('2026-06-13T07:45:00+02:00').getTime(),
+			end: new Date('2026-06-13T19:00:00+02:00').getTime()
+		});
+	});
+});
+
+describe('getColumnSpan', () => {
+	const brk = (room: string, start: string, end: string): Session => ({
+		...session('brk', room, start, end),
+		type: 'break'
+	});
+
+	it('keeps a regular session in its own room column', () => {
+		expect(getColumnSpan(sessions[2], sessions)).toEqual({ colStart: 4, colEnd: 5 });
+	});
+
+	it('spreads a break over the adjacent free rooms and skips a busy one', () => {
+		const all = [...sessions, session('arena', 'Peugeot Arena', '12:00', '13:00')];
+		expect(getColumnSpan(brk('Peugeot Arena', '12:00', '13:10'), all)).toEqual({
+			colStart: 3,
+			colEnd: 6
+		});
+		expect(getColumnSpan(brk('Sala 3', '09:30', '10:00'), all)).toEqual({
+			colStart: 5,
+			colEnd: 6
+		});
+	});
+
+	it('falls back to its own room when every room is busy', () => {
+		const busy = ROOMS.map((r, k) => session(`s${k}`, r, '09:00', '10:00'));
+		expect(getColumnSpan(brk('Sala 1', '09:00', '10:00'), busy)).toEqual({
+			colStart: 3,
+			colEnd: 4
+		});
+	});
 });
 
 describe('getNowPosition', () => {

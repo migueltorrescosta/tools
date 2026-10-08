@@ -7,7 +7,7 @@ export interface Session {
 	endTime: string;
 	description: string;
 	speakers: { name: string; type: string }[];
-	moderator: string | null;
+	moderators: string[];
 	type: string;
 }
 
@@ -99,7 +99,7 @@ export function getNextSessions(sessions: Session[], now: Date): Map<string, Ses
 	const nowMs = now.getTime();
 	const byRoom = new Map<string, Session[]>();
 	for (const s of sessions) {
-		if (new Date(s.endTime).getTime() <= nowMs) continue;
+		if (new Date(s.startTime).getTime() <= nowMs) continue;
 		const list = byRoom.get(s.room) || [];
 		list.push(s);
 		byRoom.set(s.room, list);
@@ -110,6 +110,61 @@ export function getNextSessions(sessions: Session[], now: Date): Map<string, Ses
 		result.set(room, list[0]);
 	}
 	return result;
+}
+
+/** Earliest start and latest end of the event, as epoch ms; null when there are no sessions */
+export function getEventBounds(sessions: Session[]): { start: number; end: number } | null {
+	if (sessions.length === 0) return null;
+	let start = Infinity;
+	let end = -Infinity;
+	for (const s of sessions) {
+		start = Math.min(start, new Date(s.startTime).getTime());
+		end = Math.max(end, new Date(s.endTime).getTime());
+	}
+	return { start, end };
+}
+
+/** Whether a session occupies the venue rather than a single room (lunch, coffee breaks) */
+export function isVenueWide(session: Session): boolean {
+	return session.type === 'break';
+}
+
+/**
+ * Grid columns (1-indexed, room k is column k + 2) for a session card.
+ * Regular sessions take their own room's column. Venue-wide breaks spread across
+ * the run of adjacent rooms that are free for the whole break, preferring the run
+ * containing the break's own room, so they never paint over a room's programme.
+ * Falls back to the own room when every room is busy.
+ */
+export function getColumnSpan(
+	session: Session,
+	sessions: Session[],
+	rooms: string[] = ROOMS
+): { colStart: number; colEnd: number } {
+	const own = rooms.indexOf(session.room);
+	if (!isVenueWide(session)) return { colStart: own + 2, colEnd: own + 3 };
+	const start = new Date(session.startTime).getTime();
+	const end = new Date(session.endTime).getTime();
+	const busy = rooms.map((room) =>
+		sessions.some(
+			(o) =>
+				o.id !== session.id &&
+				!isVenueWide(o) &&
+				o.room === room &&
+				new Date(o.startTime).getTime() < end &&
+				start < new Date(o.endTime).getTime()
+		)
+	);
+	const runs: [number, number][] = [];
+	for (let k = 0; k < rooms.length; k++) {
+		if (busy[k]) continue;
+		const last = runs[runs.length - 1];
+		if (last && last[1] === k) last[1] = k + 1;
+		else runs.push([k, k + 1]);
+	}
+	if (runs.length === 0) return { colStart: own + 2, colEnd: own + 3 };
+	const [from, to] = runs.find(([a, b]) => a <= own && own < b) ?? runs[0];
+	return { colStart: from + 2, colEnd: to + 2 };
 }
 
 /** Format an ISO time string to "HH:MM" */

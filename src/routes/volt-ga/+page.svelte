@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { page } from '$app/state';
+	import { onMount, tick } from 'svelte';
+	import { copyToClipboard } from '$lib/clipboard';
 	import events from '../volt-ga/data/events.json';
 	import {
 		getMasterBoundaries,
@@ -9,6 +9,8 @@
 		getNowPosition,
 		getActiveSessions,
 		getNextSessions,
+		getEventBounds,
+		getColumnSpan,
 		formatClock,
 		formatTimeRange,
 		formatDuration,
@@ -19,12 +21,19 @@
 		syncFavorites,
 		saveFavorites,
 		updateUrlFavorites,
-		toggleFavorite as toggleFav
+		resolveShared,
+		toggleFavorite as toggleFav,
+		type SharedChoice
 	} from './lib/favorites';
+	import { modal } from './lib/modal';
 	import { searchSessions } from './lib/search';
 	import type { Session } from './lib/timeline';
 
 	const allSessions = events as Session[];
+	const sessionIds: ReadonlySet<string> = new Set(allSessions.map((s) => s.id));
+	const eventBounds = getEventBounds(allSessions);
+	const HIGHLIGHT_MS = 2000;
+	const COPY_STATUS_MS = 2000;
 
 	// ── State ──
 	let now = $state(new Date());
@@ -35,6 +44,11 @@
 	let shareOpen = $state(false);
 	let qrDataUrl = $state('');
 	let highlightId = $state<string | null>(null);
+	let sharedFavorites = $state<string[] | null>(null);
+	let hydrated = $state(false);
+	let copyStatus = $state<'idle' | 'copied' | 'failed'>('idle');
+	let highlightTimer: ReturnType<typeof setTimeout> | undefined;
+	let copyTimer: ReturnType<typeof setTimeout> | undefined;
 
 	// ── Derived ──
 	const boundaries = $derived(getMasterBoundaries(allSessions));
@@ -43,22 +57,11 @@
 	const nextSessions = $derived(getNextSessions(allSessions, now));
 	const nowPosition = $derived(getNowPosition(now, allSessions));
 	const searchResults = $derived(searchSessions(searchQuery, allSessions));
-	const isEventRunning = $derived({
-		before: now.getTime() < new Date(allSessions[0].startTime).getTime(),
-		after: now.getTime() > new Date(allSessions[allSessions.length - 1].endTime).getTime()
-	});
+	const isEventRunning = $derived(
+		eventBounds !== null && eventBounds.start <= now.getTime() && now.getTime() < eventBounds.end
+	);
 	const favSet = $derived(new Set(favorites));
-
-	// Sessions grouped by room
-	const sessionsByRoom = $derived.by(() => {
-		const map = new Map<string, Session[]>();
-		for (const s of allSessions) {
-			const list = map.get(s.room) || [];
-			list.push(s);
-			map.set(s.room, list);
-		}
-		return map;
-	});
+	const sharedSet = $derived(new Set(sharedFavorites ?? []));
 
 	// ── Functions ──
 	function isActive(session: Session): boolean {
@@ -74,12 +77,21 @@
 		return favSet.has(id);
 	}
 
-	function handleToggleFavorite(id: string) {
-		const updated = toggleFav(id, favorites);
+	function setFavorites(updated: string[]) {
 		favorites = updated;
 		saveFavorites(updated);
 		updateUrlFavorites(updated);
 		if (shareOpen) generateQR();
+	}
+
+	function handleToggleFavorite(id: string) {
+		setFavorites(toggleFav(id, favorites));
+	}
+
+	function handleShared(choice: SharedChoice) {
+		if (!sharedFavorites) return;
+		setFavorites(resolveShared(favorites, sharedFavorites, choice));
+		sharedFavorites = null;
 	}
 
 	function openDetail(session: Session) {
@@ -101,13 +113,19 @@
 		searchQuery = '';
 	}
 
-	function selectSearchResult(session: Session) {
+	async function selectSearchResult(session: Session) {
 		closeSearch();
 		highlightId = session.id;
-		scrollToSession(session.id);
-		setTimeout(() => {
+		clearTimeout(highlightTimer);
+		highlightTimer = setTimeout(() => {
 			highlightId = null;
-		}, 2000);
+		}, HIGHLIGHT_MS);
+		scrollToSession(session.id);
+		// After the search dialog has gone and returned focus, move it to the chosen card
+		await tick();
+		document
+			.querySelector<HTMLElement>(`#session-${CSS.escape(session.id)} .card-open`)
+			?.focus({ preventScroll: true });
 	}
 
 	function scrollToSession(sessionId: string) {
@@ -133,9 +151,17 @@
 		shareOpen = false;
 	}
 
-	function copyShareLink() {
-		const url = window.location.href;
-		navigator.clipboard.writeText(url);
+	async function copyShareLink() {
+		try {
+			await copyToClipboard(window.location.href);
+			copyStatus = 'copied';
+		} catch {
+			copyStatus = 'failed';
+		}
+		clearTimeout(copyTimer);
+		copyTimer = setTimeout(() => {
+			copyStatus = 'idle';
+		}, COPY_STATUS_MS);
 	}
 
 	async function generateQR() {
@@ -154,18 +180,6 @@
 		}
 	}
 
-	function handleSearchKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape') closeSearch();
-	}
-
-	function handleDetailKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape') closeDetail();
-	}
-
-	function handleShareKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape') closeShare();
-	}
-
 	function getSpeakerNameList(session: Session): string {
 		if (session.speakers.length === 0) return '';
 		return session.speakers.map((s) => s.name).join(', ');
@@ -173,8 +187,11 @@
 
 	// ── Effects ──
 	$effect(() => {
-		// Init favorites from URL or localStorage
-		favorites = syncFavorites();
+		// Init favorites from localStorage; a differing shared link waits for the user's decision
+		const synced = syncFavorites(sessionIds);
+		favorites = synced.favorites;
+		sharedFavorites = synced.shared;
+		hydrated = true;
 	});
 
 	$effect(() => {
@@ -183,6 +200,13 @@
 			now = new Date();
 		}, 30000);
 		return () => clearInterval(interval);
+	});
+
+	$effect(() => {
+		return () => {
+			clearTimeout(highlightTimer);
+			clearTimeout(copyTimer);
+		};
 	});
 
 	// ── Mount ──
@@ -198,7 +222,7 @@
 	<title>Volt GA Bratislava 2026</title>
 </svelte:head>
 
-<div class="container">
+<div class="container" data-hydrated={hydrated || undefined}>
 	<header>
 		<h1>VOLT GA BRATISLAVA 2026</h1>
 		<p class="subtitle">Saturday 13 June &middot; Schedule</p>
@@ -259,11 +283,23 @@
 			Share
 		</button>
 		<div class="toolbar-status">
-			<span class="status-dot" class:active={!isEventRunning.before && !isEventRunning.after}
-			></span>
+			<span class="status-dot" class:active={isEventRunning}></span>
 			<span class="status-time">{formatClock(now)}</span>
 		</div>
 	</div>
+
+	{#if sharedFavorites}
+		<div class="shared-banner" role="status">
+			<p>
+				{`This link shares ${sharedFavorites.length} ${sharedFavorites.length === 1 ? 'session' : 'sessions'} (outlined below). Your own favorites are unchanged.`}
+			</p>
+			<div class="shared-actions">
+				<button class="toolbar-btn" onclick={() => handleShared('merge')}>Add to mine</button>
+				<button class="toolbar-btn" onclick={() => handleShared('replace')}>Replace mine</button>
+				<button class="toolbar-btn" onclick={() => handleShared('keep')}>Keep mine</button>
+			</div>
+		</div>
+	{/if}
 
 	<!-- Schedule Grid -->
 	<div class="schedule-wrapper">
@@ -293,38 +329,29 @@
 			<!-- Session Cards -->
 			{#each allSessions as session (session.id)}
 				{@const span = getRowSpan(session, boundaries)}
-				{@const roomIdx = roomColumns.indexOf(session.room)}
+				{@const cols = getColumnSpan(session, allSessions, roomColumns)}
 				{@const color = ROOM_COLORS[session.room]}
 				{@const active = isActive(session)}
 				{@const next = isNextInRoom(session)}
 				{@const fav = isFavorited(session.id)}
 				{@const highlighted = highlightId === session.id}
 				{@const isClickable = session.type !== 'buffer' && session.type !== 'break'}
-				<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 				<div
 					id="session-{session.id}"
 					class="session-card"
 					class:active
 					class:next
 					class:favorited={fav}
+					class:shared={sharedSet.has(session.id)}
 					class:highlighted
 					class:clickable={isClickable}
 					class:buffer={session.type === 'buffer'}
 					class:break={session.type === 'break'}
 					style="
 						--room-color: {color};
-						grid-column: {roomIdx + 2} / {roomIdx + 3};
+						grid-column: {cols.colStart} / {cols.colEnd};
 						grid-row: {span.rowStart} / {span.rowEnd};
 					"
-					onclick={isClickable ? () => openDetail(session) : undefined}
-					role={isClickable ? 'button' : 'presentation'}
-					tabindex={isClickable ? 0 : -1}
-					onkeydown={isClickable
-						? (e) => {
-								if (e.key === 'Enter') openDetail(session);
-							}
-						: undefined}
-					aria-label={session.title}
 				>
 					{#if next}
 						<span class="next-badge">NEXT</span>
@@ -332,16 +359,20 @@
 					<button
 						class="fav-btn"
 						class:faved={fav}
-						onclick={(e) => {
-							e.stopPropagation();
-							handleToggleFavorite(session.id);
-						}}
+						onclick={() => handleToggleFavorite(session.id)}
 						aria-label={fav ? 'Remove from favorites' : 'Add to favorites'}
+						aria-pressed={fav}
 					>
 						{fav ? '\u2605' : '\u2606'}
 					</button>
 					<div class="card-content">
-						<div class="card-title">{session.title}</div>
+						{#if isClickable}
+							<button class="card-title card-open" onclick={() => openDetail(session)}>
+								{session.title}
+							</button>
+						{:else}
+							<div class="card-title">{session.title}</div>
+						{/if}
 						<div class="card-time">{formatTimeRange(session.startTime, session.endTime)}</div>
 						{#if session.speakers.length > 0}
 							<div class="card-speakers">{getSpeakerNameList(session)}</div>
@@ -395,11 +426,11 @@
 
 	<!-- Search Modal -->
 	{#if searchOpen}
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="modal"
-			onkeydown={handleSearchKeydown}
+			use:modal={closeSearch}
 			role="dialog"
+			aria-modal="true"
 			aria-label="Search sessions"
 			tabindex="-1"
 		>
@@ -410,9 +441,10 @@
 			<div class="modal-body">
 				<!-- svelte-ignore a11y_autofocus -->
 				<input
+					aria-label="Search sessions"
 					type="text"
 					class="search-input"
-					placeholder="Search by title, description, or speaker..."
+					placeholder="Search by title, description, speaker or moderator..."
 					bind:value={searchQuery}
 					autofocus
 				/>
@@ -427,6 +459,7 @@
 								<span class="search-result-title">{s.title}</span>
 								<span class="search-result-meta">
 									{s.room} &middot; {formatTimeRange(s.startTime, s.endTime)}
+									{#if result.field !== 'title'}&middot; matched {result.field}{/if}
 								</span>
 							</button>
 						{/each}
@@ -440,11 +473,11 @@
 	{#if selectedSession}
 		{@const s = selectedSession}
 		{@const roomColor = ROOM_COLORS[s.room]}
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="modal modal-detail"
-			onkeydown={handleDetailKeydown}
+			use:modal={closeDetail}
 			role="dialog"
+			aria-modal="true"
 			aria-label={s.title}
 			tabindex="-1"
 		>
@@ -472,10 +505,12 @@
 						</ul>
 					</div>
 				{/if}
-				{#if s.moderator}
+				{#if s.moderators.length > 0}
 					<div class="detail-section">
-						<h3 class="detail-section-title">Moderator</h3>
-						<p class="detail-moderator">{s.moderator}</p>
+						<h3 class="detail-section-title">
+							{s.moderators.length === 1 ? 'Moderator' : 'Moderators'}
+						</h3>
+						<p class="detail-moderator">{s.moderators.join(', ')}</p>
 					</div>
 				{/if}
 				<button
@@ -492,11 +527,11 @@
 
 	<!-- Share Modal -->
 	{#if shareOpen}
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
 		<div
 			class="modal modal-share"
-			onkeydown={handleShareKeydown}
+			use:modal={closeShare}
 			role="dialog"
+			aria-modal="true"
 			aria-label="Share schedule"
 			tabindex="-1"
 		>
@@ -511,13 +546,49 @@
 				{:else}
 					<div class="qr-placeholder">Generating QR&hellip;</div>
 				{/if}
-				<button class="copy-link-btn" onclick={copyShareLink}> Copy Link </button>
+				<button class="copy-link-btn" onclick={copyShareLink}>
+					{copyStatus === 'copied'
+						? 'Copied'
+						: copyStatus === 'failed'
+							? 'Copy failed'
+							: 'Copy Link'}
+				</button>
+				<p class="copy-status" role="status">
+					{#if copyStatus === 'copied'}Link copied to clipboard.{:else if copyStatus === 'failed'}Could
+						not copy. Copy the address bar URL instead.{/if}
+				</p>
 			</div>
 		</div>
 	{/if}
 </div>
 
 <style>
+	/* ── Shared-link banner ── */
+	.shared-banner {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem 1rem;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 1rem;
+		padding: 0.75rem;
+		background: var(--futuristic-surface);
+		border: 1px dashed var(--futuristic-cyan);
+		border-radius: 12px;
+		color: var(--futuristic-text);
+		font-size: 0.85rem;
+	}
+
+	.shared-banner p {
+		margin: 0;
+	}
+
+	.shared-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
 	/* ── Toolbar ── */
 	.toolbar {
 		display: flex;
@@ -790,6 +861,40 @@
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 		padding-right: 1.2rem;
+	}
+
+	/* The title button opens the details; its ::after stretches over the whole card */
+	.card-open {
+		background: none;
+		border: none;
+		margin: 0;
+		padding-top: 0;
+		padding-bottom: 0;
+		padding-left: 0;
+		text-align: left;
+		cursor: pointer;
+	}
+
+	.card-open::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		border-radius: 6px;
+	}
+
+	.card-open:focus-visible {
+		outline: none;
+	}
+
+	.card-open:focus-visible::after {
+		outline: 2px solid var(--futuristic-cyan);
+		outline-offset: -2px;
+	}
+
+	.session-card.shared {
+		outline: 2px dashed var(--futuristic-cyan);
+		outline-offset: -2px;
 	}
 
 	.card-time {
@@ -1175,6 +1280,13 @@
 		letter-spacing: 0.1em;
 		cursor: pointer;
 		transition: all 0.3s;
+	}
+
+	.copy-status {
+		min-height: 1.2em;
+		margin: 0;
+		font-size: 0.8rem;
+		color: var(--futuristic-text-dim);
 	}
 
 	.copy-link-btn:hover {
