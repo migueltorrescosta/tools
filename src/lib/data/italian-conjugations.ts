@@ -2289,9 +2289,12 @@ function buildData(): Record<
 				const p = person as Person;
 				let conjugation: string;
 
+				// Non-finite overrides are stored once, under io, and apply to every person
+				const irrForm = irrTense?.[NON_FINITE_TENSES.has(tense) ? 'io' : p];
+
 				// 1. Check irregular override
-				if (irrTense?.[p]) {
-					conjugation = irrTense[p]!;
+				if (irrForm) {
+					conjugation = irrForm;
 				}
 				// 2. Check if it's a compound tense
 				else if (COMPOUND_TENSE_MAP[tense]) {

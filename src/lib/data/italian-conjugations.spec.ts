@@ -13,6 +13,47 @@ describe('Italian conjugation data integrity', () => {
 		const corrupt = [...conjugationMap.values()].filter((e) => /undefined/.test(e.conjugation));
 		expect(corrupt.map((e) => `${e.verb}|${e.tense}|${e.person}`)).toEqual([]);
 	});
+
+	it('has a non-empty form for every slot except imperativo io', () => {
+		const blank = [...conjugationMap.values()].filter(
+			(e) => e.conjugation.trim() === '' && !(e.tense === 'imperativo' && e.person === 'io')
+		);
+		expect(blank.map((e) => `${e.verb}|${e.tense}|${e.person}`)).toEqual([]);
+	});
+
+	it('is person-invariant for every non-finite tense', () => {
+		const nonFinite = [
+			'infinito presente',
+			'infinito passato',
+			'participio presente',
+			'participio passato',
+			'gerundio presente',
+			'gerundio passato'
+		];
+		for (const verb of VERB_LIST) {
+			for (const tense of nonFinite) {
+				const forms = new Set(PERSON_LABELS.map((p) => conj(verb, tense, p)));
+				expect(forms.size, `${verb} ${tense}`).toBe(1);
+			}
+		}
+	});
+});
+
+describe('Italian irregular non-finite forms', () => {
+	it('uses the irregular gerundio and participio presente for every person', () => {
+		for (const person of PERSON_LABELS) {
+			expect(conj('essere', 'gerundio presente', person)).toBe('essendo');
+			expect(conj('fare', 'gerundio presente', person)).toBe('facendo');
+			expect(conj('essere', 'participio presente', person)).toBe('ente');
+		}
+	});
+
+	it('accepts "tu essendo" and rejects the bare pronoun', () => {
+		expect(validateAnswer('tu essendo', 'essere', 'gerundio presente', 'tu', italianModule)).toBe(
+			true
+		);
+		expect(validateAnswer('tu', 'essere', 'gerundio presente', 'tu', italianModule)).toBe(false);
+	});
 });
 
 describe('Italian non-finite compound tenses', () => {
@@ -27,15 +68,6 @@ describe('Italian non-finite compound tenses', () => {
 		for (const person of PERSON_LABELS) {
 			expect(conj('parlare', 'gerundio passato', person)).toBe('avendo parlato');
 			expect(conj('andare', 'gerundio passato', person)).toBe('essendo andato');
-		}
-	});
-
-	it('is person-invariant for every verb', () => {
-		for (const verb of VERB_LIST) {
-			for (const tense of ['infinito passato', 'gerundio passato']) {
-				const forms = new Set(PERSON_LABELS.map((p) => conj(verb, tense, p)));
-				expect(forms.size, `${verb} ${tense}`).toBe(1);
-			}
 		}
 	});
 
