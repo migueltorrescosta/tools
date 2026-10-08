@@ -8,7 +8,7 @@ async function open(page: Page) {
 
 test('Company trends - homepage card links to the tool', async ({ page }) => {
 	await page.goto('/', { waitUntil: 'networkidle' });
-	await page.getByRole('button', { name: /Company Trends/ }).click();
+	await page.getByRole('link', { name: /Company Trends/ }).click();
 	await expect(page).toHaveURL(/\/company-trends$/);
 	await expect(page.locator('h1')).toHaveText('COMPANY TRENDS');
 });

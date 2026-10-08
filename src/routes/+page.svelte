@@ -1,11 +1,6 @@
 <script lang="ts">
 	import { base } from '$app/paths';
-	import { goto } from '$app/navigation';
 	import { routes } from '$lib/routes';
-
-	function navigate(path: string) {
-		goto(path);
-	}
 </script>
 
 <svelte:head>
@@ -19,10 +14,10 @@
 
 	<div class="homepage-grid">
 		{#each routes as route (route.path)}
-			<button class="route-card" onclick={() => navigate(`${base}${route.path}`)}>
+			<a class="route-card" href={`${base}${route.path}`}>
 				<h2>{route.name}</h2>
 				<p>{route.description}</p>
-			</button>
+			</a>
 		{/each}
 	</div>
 </div>
