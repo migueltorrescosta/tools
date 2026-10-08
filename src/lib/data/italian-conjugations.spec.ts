@@ -80,3 +80,35 @@ describe('Italian non-finite compound tenses', () => {
 		).toBe(false);
 	});
 });
+
+describe('Italian -ciare/-giare spelling', () => {
+	it('drops the stem i before e in futuro semplice', () => {
+		expect(conj('mangiare', 'futuro semplice', 'io')).toBe('mangerò');
+		expect(conj('mangiare', 'futuro semplice', 'loro')).toBe('mangeranno');
+		expect(conj('lasciare', 'futuro semplice', 'noi')).toBe('lasceremo');
+	});
+
+	it('drops the stem i before e in condizionale presente', () => {
+		expect(conj('lasciare', 'condizionale presente', 'io')).toBe('lascerei');
+		expect(conj('mangiare', 'condizionale presente', 'lui/lei')).toBe('mangerebbe');
+	});
+
+	it('still drops the stem i before i', () => {
+		expect(conj('mangiare', 'congiuntivo presente', 'noi')).toBe('mangiamo');
+		expect(conj('mangiare', 'indicativo presente', 'tu')).toBe('mangi');
+	});
+
+	it('keeps the stem i before a and o', () => {
+		expect(conj('mangiare', 'imperfetto', 'io')).toBe('mangiavo');
+		expect(conj('lasciare', 'indicativo presente', 'io')).toBe('lascio');
+	});
+
+	it('accepts io mangerò and rejects io mangierò', () => {
+		expect(validateAnswer('io mangerò', 'mangiare', 'futuro semplice', 'io', italianModule)).toBe(
+			true
+		);
+		expect(validateAnswer('io mangierò', 'mangiare', 'futuro semplice', 'io', italianModule)).toBe(
+			false
+		);
+	});
+});

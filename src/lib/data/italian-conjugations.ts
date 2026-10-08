@@ -2165,10 +2165,11 @@ function conjSimple(
 	const info = VERB_INFO[verb];
 	let stem = info.stem;
 
-	// Handle -ciare/-giare orthographic: drop stem's i before i-starting endings
+	// Handle -ciare/-giare orthographic: drop stem's i before i- and e-starting
+	// endings (mangiamo, mangerò, lascerei)
 	if (info.class === 'are-ciare' || info.class === 'are-sciare') {
 		const ending = e[person];
-		if (ending.startsWith('i')) {
+		if (ending.startsWith('i') || ending.startsWith('e')) {
 			stem = stem.slice(0, -1); // mangi → mang, lasci → lasc
 		}
 	}
