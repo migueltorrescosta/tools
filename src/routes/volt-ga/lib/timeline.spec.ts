@@ -3,6 +3,8 @@ import {
 	formatDuration,
 	formatTime,
 	formatTimeRange,
+	boundaryRow,
+	getRowSpan,
 	getActiveSessions,
 	getDurationMinutes,
 	getMasterBoundaries,
@@ -46,6 +48,31 @@ describe('getMasterBoundaries', () => {
 			session('y', 'Sala 2', '08:05', '09:55')
 		]);
 		expect(b).toEqual(['08:05', '09:55', '14:00', '15:00']);
+	});
+});
+
+describe('getRowSpan', () => {
+	const b = getMasterBoundaries(sessions);
+
+	it('puts the first session in the first slot below the header row, next to its label', () => {
+		expect(getRowSpan(sessions[0], b)).toEqual({ rowStart: 2, rowEnd: 4 });
+		expect(boundaryRow(0)).toBe(2);
+	});
+
+	it('starts every card on the row of the time label for its start time', () => {
+		for (const s of sessions) {
+			const span = getRowSpan(s, b);
+			expect(span.rowStart).toBe(boundaryRow(b.indexOf(s.startTime.substring(11, 16))));
+			expect(span.rowStart).toBeGreaterThan(1);
+			expect(span.rowEnd).toBeGreaterThan(span.rowStart);
+		}
+		expect(getRowSpan(sessions[1], b)).toEqual({ rowStart: 4, rowEnd: 6 });
+	});
+
+	it('throws instead of returning row 0 for a time not on the boundaries', () => {
+		expect(() => getRowSpan(session('z', 'Sala 3', '13:00', '14:00'), b)).toThrow(
+			/not on the master/
+		);
 	});
 });
 

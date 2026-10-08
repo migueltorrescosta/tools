@@ -32,6 +32,14 @@ export function getMasterBoundaries(sessions: Session[]): string[] {
 	return Array.from(times).sort((a, b) => toMinutes(a) - toMinutes(b));
 }
 
+/** Grid rows taken by the room-header row above the timeline */
+export const HEADER_ROWS = 1;
+
+/** CSS grid row (1-indexed) of the slot that starts at boundary index i; matches the time labels */
+export function boundaryRow(i: number): number {
+	return i + HEADER_ROWS + 1;
+}
+
 /** Given a session and the master boundaries, compute grid row start/end (1-indexed for CSS Grid) */
 export function getRowSpan(
 	session: Session,
@@ -41,10 +49,12 @@ export function getRowSpan(
 	const end = toTimeStr(session.endTime);
 	const startIdx = boundaries.indexOf(start);
 	const endIdx = boundaries.indexOf(end);
-	// CSS Grid is 1-indexed: first boundary line = 1
+	if (startIdx < 0 || endIdx < 0) {
+		throw new Error(`Session "${session.id}" (${start}-${end}) is not on the master boundaries`);
+	}
 	return {
-		rowStart: startIdx + 1,
-		rowEnd: endIdx + 1
+		rowStart: boundaryRow(startIdx),
+		rowEnd: boundaryRow(endIdx)
 	};
 }
 

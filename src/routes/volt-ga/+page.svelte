@@ -5,6 +5,7 @@
 	import {
 		getMasterBoundaries,
 		getRowSpan,
+		boundaryRow,
 		getNowOffset,
 		getActiveSessions,
 		getNextSessions,
@@ -271,10 +272,10 @@
 			style="grid-template-rows: auto repeat({boundaries.length - 1}, 1fr);"
 		>
 			<!-- Room Headers -->
-			<div class="time-header-cell">Time</div>
-			{#each roomColumns as room (room)}
+			<div class="time-header-cell" style="grid-row: 1; grid-column: 1;">Time</div>
+			{#each roomColumns as room, k (room)}
 				{@const color = ROOM_COLORS[room]}
-				<div class="room-header" style="--room-color: {color};">
+				<div class="room-header" style="--room-color: {color}; grid-row: 1; grid-column: {k + 2};">
 					{room}
 				</div>
 			{/each}
@@ -283,7 +284,7 @@
 			{#each boundaries as b, i (b)}
 				{@const nextBoundary = boundaries[i + 1]}
 				{#if nextBoundary}
-					<div class="time-label" style="grid-row: {i + 2} / {i + 3};">
+					<div class="time-label" style="grid-row: {boundaryRow(i)} / {boundaryRow(i + 1)};">
 						{b}
 					</div>
 				{/if}
