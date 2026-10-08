@@ -1,21 +1,26 @@
 /**
- * For each item, the person who values it most. Ties go to the lowest person
- * index, so the result is deterministic.
+ * For each item, the person who values it most. Items are assigned in order;
+ * among people tied on the highest valuation, the one holding the fewest items
+ * so far wins, then the lowest person index. So exact ties spread across
+ * people instead of always going to whoever was added first.
  */
 export function itemFavourites(
 	valuations: readonly (readonly number[])[],
 	itemCount: number
 ): number[] {
+	const held = Array<number>(valuations.length).fill(0);
 	return Array.from({ length: itemCount }, (_, col) => {
 		let maxIdx = 0;
 		let maxVal = -Infinity;
 		for (let row = 0; row < valuations.length; row++) {
 			const v = valuations[row]?.[col];
-			if (v !== undefined && v > maxVal) {
+			if (v === undefined) continue;
+			if (v > maxVal || (v === maxVal && held[row] < held[maxIdx])) {
 				maxVal = v;
 				maxIdx = row;
 			}
 		}
+		if (valuations.length > 0) held[maxIdx]++;
 		return maxIdx;
 	});
 }
@@ -59,4 +64,16 @@ export function roundedBalances(raw: readonly number[]): number[] {
 /** Indices of the items given to each person. */
 export function itemsOf(favourites: readonly number[], person: number): number[] {
 	return favourites.map((f, i) => (f === person ? i : -1)).filter((i) => i >= 0);
+}
+
+/**
+ * Human-readable settlement for a signed amount (positive = owes money):
+ * "Pay X", "Receive X", or "No payment" when it rounds to zero. Rounds to
+ * whole units first, so values in (-0.5, 0.5) never render as "-0".
+ */
+export function paymentLabel(amount: number, format: (n: number) => string): string {
+	const r = Math.round(amount) + 0;
+	if (r > 0) return `Pay ${format(r)}`;
+	if (r < 0) return `Receive ${format(-r)}`;
+	return 'No payment';
 }

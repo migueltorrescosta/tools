@@ -1,16 +1,23 @@
 import { describe, it, expect } from 'vitest';
 import {
+	STABLE_ROUNDS,
 	balances,
 	completeRound,
 	groupDelta,
 	groupValue,
 	initialValuations,
 	itemFavourites,
+	itemError,
 	itemsOf,
 	lptGroups,
+	nextStableCount,
+	paymentLabel,
+	personError,
 	roundFactor,
 	roundedBalances,
-	seededRng
+	sameAllocation,
+	seededRng,
+	startError
 } from './index';
 
 const car = { id: 0, price: 10000 };
@@ -165,7 +172,7 @@ describe('split favourites', () => {
 		).toEqual([1, 0, 1]);
 	});
 
-	it('breaks ties to the lowest person index', () => {
+	it('breaks ties toward the person holding the fewest items, then lowest index', () => {
 		expect(
 			itemFavourites(
 				[
@@ -174,7 +181,38 @@ describe('split favourites', () => {
 				],
 				2
 			)
-		).toEqual([0, 0]);
+		).toEqual([0, 1]);
+		expect(
+			itemFavourites(
+				[
+					[5, 5, 5, 5],
+					[5, 5, 5, 5],
+					[5, 5, 5, 5]
+				],
+				4
+			)
+		).toEqual([0, 1, 2, 0]);
+	});
+
+	it('still gives a strictly higher valuation precedence over item counts', () => {
+		expect(
+			itemFavourites(
+				[
+					[9, 9, 5],
+					[1, 1, 5]
+				],
+				3
+			)
+		).toEqual([0, 0, 1]);
+		expect(
+			itemFavourites(
+				[
+					[9, 9, 6],
+					[1, 1, 5]
+				],
+				3
+			)
+		).toEqual([0, 0, 0]);
 	});
 
 	it('lists the items given to a person', () => {
@@ -241,5 +279,85 @@ describe('split settlement', () => {
 				expect(Math.abs(v - raw[i])).toBeLessThan(1);
 			});
 		}
+	});
+});
+
+describe('split payment label', () => {
+	const fmt = (n: number) => `€${n}`;
+
+	it('never shows a negative zero', () => {
+		expect(paymentLabel(0.3, fmt)).toBe('No payment');
+		expect(paymentLabel(-0.3, fmt)).toBe('No payment');
+		expect(paymentLabel(0, fmt)).toBe('No payment');
+		expect(paymentLabel(-0, fmt)).toBe('No payment');
+	});
+
+	it('says who pays and who receives, with a positive amount', () => {
+		expect(paymentLabel(20000, fmt)).toBe('Pay €20000');
+		expect(paymentLabel(-20000, fmt)).toBe('Receive €20000');
+		expect(paymentLabel(0.6, fmt)).toBe('Pay €1');
+	});
+
+	it('labels the House group as paying and the Car group as receiving', () => {
+		const items = [car, house];
+		const [houseGroup, carGroup] = lptGroups(items, 2);
+		expect(paymentLabel(groupDelta(houseGroup, items, 2), fmt)).toBe('Pay €20000');
+		expect(paymentLabel(groupDelta(carGroup, items, 2), fmt)).toBe('Receive €20000');
+	});
+});
+
+describe('split convergence', () => {
+	it('compares allocations item by item', () => {
+		expect(sameAllocation([0, 1], [0, 1])).toBe(true);
+		expect(sameAllocation([0, 1], [1, 0])).toBe(false);
+		expect(sameAllocation([0], [0, 1])).toBe(false);
+	});
+
+	it('counts consecutive unchanged rounds and resets on a change', () => {
+		let count = nextStableCount(null, [0, 1], 0);
+		expect(count).toBe(0);
+		count = nextStableCount([0, 1], [0, 1], count);
+		count = nextStableCount([0, 1], [0, 1], count);
+		expect(count).toBe(2);
+		expect(nextStableCount([0, 1], [1, 1], count)).toBe(0);
+	});
+
+	it('settles on a seeded run where both people keep choosing their own group', () => {
+		const items = [car, house];
+		const groups = lptGroups(items, 2);
+		let vals = initialValuations([car.price, house.price], 2, seededRng(5));
+		let last: number[] | null = null;
+		let stable = 0;
+		for (let k = 0; k < 10; k++) {
+			vals = completeRound(vals, [0, 1], groups, [0, 1], k, 60000).valuations;
+			const favs = itemFavourites(vals, 2);
+			stable = nextStableCount(last, favs, stable);
+			last = favs;
+		}
+		expect(stable).toBeGreaterThanOrEqual(STABLE_ROUNDS);
+		// Person 0 keeps picking group 0 (House), person 1 group 1 (Car).
+		expect(last).toEqual([1, 0]);
+	});
+});
+
+describe('split input validation', () => {
+	it('rejects a blank description or a non-positive or missing price', () => {
+		expect(itemError('  ', 10)).toBe('Enter a description.');
+		expect(itemError('Car', 0)).toBe('Enter a price greater than 0.');
+		expect(itemError('Car', -5)).toBe('Enter a price greater than 0.');
+		expect(itemError('Car', null)).toBe('Enter a price greater than 0.');
+		expect(itemError('Car', Number.NaN)).toBe('Enter a price greater than 0.');
+		expect(itemError('Car', 10000)).toBeNull();
+	});
+
+	it('rejects a blank name', () => {
+		expect(personError(' ')).toBe('Enter a name.');
+		expect(personError('Alice')).toBeNull();
+	});
+
+	it('needs at least 2 people and 1 item to start', () => {
+		expect(startError(1, 3)).toBe('Add at least 2 people to start.');
+		expect(startError(2, 0)).toBe('Add at least 1 item to start.');
+		expect(startError(2, 1)).toBeNull();
 	});
 });
