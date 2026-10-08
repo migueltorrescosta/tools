@@ -6,6 +6,7 @@ import {
 	computeRows,
 	encodePath,
 	decodePath,
+	sanitizePath,
 	isResultNode,
 	isQuestionNode,
 	type QuestionRow,
@@ -425,5 +426,69 @@ describe('Full tree traversal', () => {
 		expect((rows[rows.length - 1] as ResultRow).node.result).toBe(
 			'Outside major Abrahamic religions'
 		);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Paths whose edges do not start at the current node (stale, crafted, shared)
+// ---------------------------------------------------------------------------
+describe('Foreign path edges', () => {
+	it('computeRows stops at the root when the first edge leaves another node', () => {
+		const graph = makeCarGraph();
+		const rows = computeRows(graph, ['q_city|Yes']);
+		expect(rows.length).toBe(2);
+		expect(rows[0].type).toBe('question');
+		expect((rows[0] as QuestionRow).node.id).toBe('root');
+		expect(rows[1].type).toBe('answer');
+		expect((rows[1] as AnswerRow).selectedEdgeId).toBeUndefined();
+	});
+
+	it('computeRows does not skip to a result through the real tree', () => {
+		const graph = buildGraph(treeJson as RawTree);
+		const rows = computeRows(graph, ['c_q2|Yes']);
+		expect(rows.map((r) => r.type)).toEqual(['question', 'answer']);
+		expect((rows[1] as AnswerRow).selectedEdgeId).toBeUndefined();
+	});
+
+	it('computeRows stops after the valid prefix', () => {
+		const graph = makeCarGraph();
+		const rows = computeRows(graph, ['root|Lowest cost', 'root|Lowest cost']);
+		expect(rows.map((r) => r.type)).toEqual(['question', 'answer', 'question', 'answer']);
+		expect((rows[1] as AnswerRow).selectedEdgeId).toBe('root|Lowest cost');
+		expect((rows[3] as AnswerRow).selectedEdgeId).toBeUndefined();
+	});
+
+	it('sanitizePath keeps a fully valid path', () => {
+		const graph = makeCarGraph();
+		expect(sanitizePath(graph, ['root|Lowest cost', 'q_city|No'])).toEqual([
+			'root|Lowest cost',
+			'q_city|No'
+		]);
+	});
+
+	it('sanitizePath returns the longest valid prefix', () => {
+		const graph = makeCarGraph();
+		expect(sanitizePath(graph, ['root|Lowest cost', 'gone|Edge', 'q_city|No'])).toEqual([
+			'root|Lowest cost'
+		]);
+		expect(sanitizePath(graph, ['q_city|Yes'])).toEqual([]);
+		expect(sanitizePath(graph, ['root|Lowest cost', 'root|Lowest cost'])).toEqual([
+			'root|Lowest cost'
+		]);
+	});
+
+	it('sanitizePath drops edges past a result node', () => {
+		const graph = makeCarGraph();
+		expect(sanitizePath(graph, ['root|Lowest cost', 'q_city|Yes', 'q_city|No'])).toEqual([
+			'root|Lowest cost',
+			'q_city|Yes'
+		]);
+	});
+
+	it('sanitizePath tolerates corrupt stored values', () => {
+		const graph = makeCarGraph();
+		expect(sanitizePath(graph, null)).toEqual([]);
+		expect(sanitizePath(graph, { p: 1 })).toEqual([]);
+		expect(sanitizePath(graph, ['root|Lowest cost', 42])).toEqual(['root|Lowest cost']);
 	});
 });

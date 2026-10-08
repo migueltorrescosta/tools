@@ -116,26 +116,39 @@ export function computeRows(graph: DecisionGraph, path: TraversalPath): Row[] {
 		// Question row
 		rows.push({ type: 'question', index: rows.length, node });
 
-		// Answer row
+		// Answer row. A path entry only counts if it is an answer to this node.
 		const edges = getAnswersForNode(graph, currentNodeId);
-		const selectedEdgeId = i < path.length ? path[i] : undefined;
-		rows.push({ type: 'answer', index: rows.length, edges, selectedEdgeId });
+		const candidate = i < path.length ? path[i] : undefined;
+		const edge = candidate !== undefined ? graph.edges.get(candidate) : undefined;
+		const followed = edge && edge.sourceId === currentNodeId ? edge : undefined;
+		rows.push({ type: 'answer', index: rows.length, edges, selectedEdgeId: followed?.id });
 
-		// Follow the selected edge
-		if (selectedEdgeId) {
-			const edge = graph.edges.get(selectedEdgeId);
-			if (edge) {
-				currentNodeId = edge.targetId;
-				i++;
-			} else {
-				break;
-			}
-		} else {
-			break;
-		}
+		// Follow the selected edge, or stop at an invalid or missing one
+		if (!followed) break;
+		currentNodeId = followed.targetId;
+		i++;
 	}
 
 	return rows;
+}
+
+/**
+ * Longest prefix of `path` that is a valid walk from the root: each entry is a
+ * known edge leaving the node the previous one reached. Non-arrays and
+ * non-string entries (e.g. from corrupt storage) end the prefix.
+ */
+export function sanitizePath(graph: DecisionGraph, path: unknown): TraversalPath {
+	if (!Array.isArray(path)) return [];
+	const valid: TraversalPath = [];
+	let currentNodeId = graph.rootNodeId;
+	for (const entry of path) {
+		if (typeof entry !== 'string') break;
+		const edge = graph.edges.get(entry);
+		if (!edge || edge.sourceId !== currentNodeId || !graph.nodes.has(edge.targetId)) break;
+		valid.push(entry);
+		currentNodeId = edge.targetId;
+	}
+	return valid;
 }
 
 /** Encode a traversal path URL query parameter value */

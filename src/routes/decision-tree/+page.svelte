@@ -6,7 +6,8 @@
 		computeRows,
 		getAnswersForNode,
 		encodePath,
-		decodePath
+		decodePath,
+		sanitizePath
 	} from '$lib/decision-tree/graph';
 	import { validateGraph } from '$lib/decision-tree/validation';
 	import rawTreeData from '$lib/decision-tree/data/tree.json';
@@ -111,18 +112,17 @@
 	onMount(() => {
 		isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
-		// Restore state: URL takes priority, then localStorage
-		const urlPath = readPathFromUrl();
-		if (urlPath && urlPath.length > 0) {
+		// Restore state: URL takes priority, then localStorage. Both are
+		// trimmed to their longest valid prefix so stale or crafted paths
+		// never reach state.
+		const urlPath = sanitizePath(graph, readPathFromUrl());
+		if (urlPath.length > 0) {
 			traversalPath = urlPath;
 		} else {
 			try {
 				const saved = localStorage.getItem('decision-tree-path');
 				if (saved) {
-					const parsed: TraversalPath = JSON.parse(saved);
-					if (Array.isArray(parsed)) {
-						traversalPath = parsed;
-					}
+					traversalPath = sanitizePath(graph, JSON.parse(saved));
 				}
 			} catch {
 				// Ignore corrupt localStorage
