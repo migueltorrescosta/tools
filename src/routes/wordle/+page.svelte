@@ -1,49 +1,32 @@
 <script lang="ts">
 	import solutionTree from '$lib/wordle-solution';
-
-	interface TreeNode {
-		word: string;
-		subtree: Record<string, TreeNode> | string[];
-	}
+	import {
+		cycleTile as cycleResultTile,
+		getTileColor,
+		setTile,
+		step,
+		type SolutionTree,
+		type TileColor
+	} from '$lib/wordle';
 
 	interface Attempt {
 		word: string;
 		result: string;
 	}
 
-	type TileColor = 'B' | 'Y' | 'G';
-
-	// Solution tree imported from lib
-
-	let currentSolutionTree = $state<Record<string, TreeNode>>(solutionTree);
+	let currentSolutionTree = $state<SolutionTree>(solutionTree);
 	let history = $state<Attempt[]>([]);
 	let nextAttempt = $state<Attempt>({ word: 'RAISE', result: '' });
 	let errorMessage = $state('');
 	let gameOver = $state(false);
-
-	function isValidResult(result: string): boolean {
-		return result.length === 5 && /^[BGY]{5}$/.test(result);
-	}
 
 	function handleResultChange(e: Event) {
 		const target = e.target as HTMLInputElement;
 		nextAttempt = { ...nextAttempt, result: target.value.toUpperCase() };
 	}
 
-	// Interactive tile functions
-	function getTileColor(result: string, index: number): TileColor {
-		return (result[index] as TileColor) || 'B';
-	}
-
 	function cycleTile(index: number) {
-		const colors: TileColor[] = ['B', 'Y', 'G'];
-		const currentColor = getTileColor(nextAttempt.result, index);
-		const currentIndex = colors.indexOf(currentColor);
-		const nextColor = colors[(currentIndex + 1) % 3];
-
-		const chars = nextAttempt.result.padEnd(5, 'B').split('');
-		chars[index] = nextColor;
-		nextAttempt = { ...nextAttempt, result: chars.join('') };
+		nextAttempt = { ...nextAttempt, result: cycleResultTile(nextAttempt.result, index) };
 	}
 
 	function handleTileKeydown(e: KeyboardEvent, index: number) {
@@ -61,9 +44,7 @@
 	}
 
 	function setTileColor(index: number, color: TileColor) {
-		const chars = nextAttempt.result.padEnd(5, 'B').split('');
-		chars[index] = color;
-		nextAttempt = { ...nextAttempt, result: chars.join('') };
+		nextAttempt = { ...nextAttempt, result: setTile(nextAttempt.result, index, color) };
 	}
 
 	function focusTile(index: number) {
@@ -73,39 +54,25 @@
 
 	function handleResultSubmission() {
 		const result = nextAttempt.result.toUpperCase();
+		const outcome = step(currentSolutionTree, result);
 
-		if (!isValidResult(result)) {
-			errorMessage = 'This is not a valid result. Please try again.';
+		if (outcome.error) {
+			errorMessage = outcome.error;
+			gameOver = outcome.done;
 			return;
 		}
 
-		if (result === 'GGGGG') {
-			gameOver = true;
+		history = [...history, { ...nextAttempt, result }];
+		currentSolutionTree = outcome.next;
+		gameOver = outcome.done;
+
+		if (outcome.won) {
 			errorMessage = 'CONGRATULATIONS';
-			history = [...history, { ...nextAttempt, result }];
 			nextAttempt = { word: '🎉🎉🎉', result: '' };
 			return;
 		}
 
-		if (currentSolutionTree[result] === undefined) {
-			errorMessage = 'There are no words satisfying all the results listed. Try again?';
-			gameOver = true;
-			return;
-		}
-
-		const tree = currentSolutionTree[result];
-		const nextWord = typeof tree.subtree === 'string' ? tree.subtree[0] : tree.word;
-
-		history = [...history, { ...nextAttempt, result }];
-		nextAttempt = { word: nextWord.toUpperCase(), result: '' };
-
-		if (typeof tree.subtree === 'object' && !Array.isArray(tree.subtree)) {
-			currentSolutionTree = tree.subtree as Record<string, TreeNode>;
-		} else {
-			currentSolutionTree = {};
-			gameOver = true;
-		}
-
+		nextAttempt = { word: outcome.word.toUpperCase(), result: '' };
 		errorMessage = '';
 	}
 
