@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { LANGUAGE_REGISTRY, getLanguage, type LanguageModule } from '$lib/data/language-registry';
+	import { createPersistGate } from '$lib/persist-gate';
 	import { languageStorageKeys, loadLanguageState } from '$lib/verbs-storage';
 	import {
 		buildPool,
@@ -191,22 +192,24 @@
 
 	// ─── LocalStorage persistence ────────────────────────────────────────────────
 
+	// Closed until onMount has restored saved state, so the initial defaults
+	// never overwrite it.
+	const persist = createPersistGate(browser ? localStorage : null);
+
 	$effect(() => {
-		if (browser && selectedVerbs.length > 0) {
-			localStorage.setItem(lsKeys.verbs, JSON.stringify(selectedVerbs));
+		if (selectedVerbs.length > 0) {
+			persist.write(lsKeys.verbs, JSON.stringify(selectedVerbs));
 		}
 	});
 
 	$effect(() => {
-		if (browser && selectedTenses.length > 0) {
-			localStorage.setItem(lsKeys.tenses, JSON.stringify(selectedTenses));
+		if (selectedTenses.length > 0) {
+			persist.write(lsKeys.tenses, JSON.stringify(selectedTenses));
 		}
 	});
 
 	$effect(() => {
-		if (browser) {
-			localStorage.setItem(lsKeys.session, JSON.stringify(session));
-		}
+		persist.write(lsKeys.session, JSON.stringify(session));
 	});
 
 	// ─── Init ────────────────────────────────────────────────────────────────────
@@ -217,6 +220,7 @@
 		selectedVerbs = state.verbs;
 		selectedTenses = state.tenses;
 		session = state.session;
+		persist.open();
 		pickCard();
 		focusInput();
 	});
