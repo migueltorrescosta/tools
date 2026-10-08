@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import solutionTree from '$lib/wordle-solution';
 	import {
 		cycleTile as cycleResultTile,
@@ -19,6 +20,9 @@
 	let visited = $state<SolutionTree[]>([]);
 	let nextAttempt = $state<Attempt>(newAttempt(OPENER));
 	let errorMessage = $state('');
+	/** Set once the page is interactive, so e2e tests can wait for hydration. */
+	let hydrated = $state(false);
+	onMount(() => (hydrated = true));
 	let gameOver = $state(false);
 
 	function handleResultChange(e: Event) {
@@ -109,7 +113,7 @@
 		<p class="subtitle">Click tiles to set result colors (Black/Yellow/Green)</p>
 	</header>
 
-	<div class="wordle-panel">
+	<div class="wordle-panel" data-hydrated={hydrated || undefined}>
 		<div class="wordle-header">
 			<span class="dot red"></span>
 			<span class="dot yellow"></span>
