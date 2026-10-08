@@ -43,13 +43,14 @@ export class CombatEngine {
 	run(): CombatResult {
 		const abilityActivations: Record<string, number> = {};
 
-		while (this.state.roundNumber < MAX_ROUNDS) {
+		// Check survival before starting a round, so a combat decided in round k
+		// reports exactly k rounds.
+		while (
+			this.state.roundNumber < MAX_ROUNDS &&
+			this.state.charAWounds > 0 &&
+			this.state.charBWounds > 0
+		) {
 			this.state.roundNumber++;
-
-			// Check who is still alive
-			const aAlive = this.state.charAWounds > 0;
-			const bAlive = this.state.charBWounds > 0;
-			if (!aAlive || !bAlive) break;
 
 			// Resolve the round
 			this.resolveRound(abilityActivations);

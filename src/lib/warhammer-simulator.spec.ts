@@ -208,6 +208,29 @@ class AlwaysSixRNG extends SeededRNG {
 }
 
 describe('CombatEngine', () => {
+	it('reports exactly one round for a combat decided in round 1', () => {
+		const killer = makeChar({ a: 1 });
+		const victim = makeChar({ a: 0, wounds: 1 });
+		expect(new CombatEngine(killer, victim, new AlwaysSixRNG()).run().rounds).toBe(1);
+	});
+
+	it('reports k rounds for a combat decided in round k', () => {
+		// One guaranteed wound per round against 3 wounds: dies in round 3.
+		const killer = makeChar({ a: 1 });
+		const victim = makeChar({ a: 0, wounds: 3 });
+		const result = new CombatEngine(killer, victim, new AlwaysSixRNG()).run();
+		expect(result.winner).toBe('A');
+		expect(result.rounds).toBe(3);
+	});
+
+	it('round distribution puts guaranteed round-1 kills in the first bin', () => {
+		const killer = makeChar({ ws: 10, s: 10, a: 10 });
+		const victim = makeChar({ ws: 1, t: 1, a: 0, wounds: 1 });
+		const results = new MonteCarloController(killer, victim, 7).run(200);
+		expect(results.avgRounds).toBe(1);
+		expect(results.roundDistribution).toEqual([200]);
+	});
+
 	it('attributes damage to the side that dealt it', () => {
 		const killer = makeChar({ name: 'Killer', a: 1 });
 		const victim = makeChar({ name: 'Victim', a: 0, wounds: 1 });
