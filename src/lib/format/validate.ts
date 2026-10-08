@@ -126,98 +126,140 @@ export function validateXml(text: string, parser: XmlParser = new DOMParser()): 
 	return { valid: true, message: 'Valid XML' };
 }
 
+// CommonMark defines no invalid documents: every string parses. These are lint checks for
+// constructs that silently stop being what the author meant (a link that renders as text,
+// a non-void tag written as self-closing). Fenced code is skipped per the spec's fence rules.
+// Unbracketed link destinations end at whitespace or an ASCII control character
+// eslint-disable-next-line no-control-regex
+const DESTINATION_END = /[\s\x00-\x1f]/;
+const FENCE_OPEN = /^ {0,3}(`{3,}|~{3,})(.*)$/;
+const VOID_ELEMENTS = new Set([
+	'area',
+	'base',
+	'br',
+	'col',
+	'embed',
+	'hr',
+	'img',
+	'input',
+	'link',
+	'meta',
+	'param',
+	'source',
+	'track',
+	'wbr'
+]);
+
+interface Fence {
+	char: string;
+	length: number;
+}
+
+function openFence(line: string): Fence | null {
+	const m = FENCE_OPEN.exec(line);
+	if (!m) return null;
+	// A backtick fence's info string may not contain backticks (CommonMark 4.5)
+	if (m[1][0] === '`' && m[2].includes('`')) return null;
+	return { char: m[1][0], length: m[1].length };
+}
+
+function closesFence(line: string, fence: Fence): boolean {
+	const m = /^ {0,3}(`{3,}|~{3,})[ \t]*$/.exec(line);
+	return m !== null && m[1][0] === fence.char && m[1].length >= fence.length;
+}
+
+/**
+ * Index just past the `)` closing an inline link whose `(` is at `start`, or -1 when the
+ * text is not a CommonMark link destination with an optional title (CommonMark 6.3).
+ */
+export function inlineLinkEnd(text: string, start: number): number {
+	let i = start + 1;
+	const skipSpace = () => {
+		while (i < text.length && /\s/.test(text[i])) i++;
+	};
+	skipSpace();
+	if (text[i] === '<') {
+		i++;
+		while (i < text.length && text[i] !== '>') {
+			if (text[i] === '<' || text[i] === '\n') return -1;
+			if (text[i] === '\\') i++;
+			i++;
+		}
+		if (text[i] !== '>') return -1;
+		i++;
+	} else {
+		let depth = 0;
+		while (i < text.length && !DESTINATION_END.test(text[i])) {
+			if (text[i] === '\\') i++;
+			else if (text[i] === '(') depth++;
+			else if (text[i] === ')') {
+				if (depth === 0) break;
+				depth--;
+			}
+			i++;
+		}
+		if (depth !== 0) return -1;
+	}
+	const afterDestination = i;
+	skipSpace();
+	const close = { '"': '"', "'": "'", '(': ')' }[text[i]];
+	if (close && i > afterDestination) {
+		i++;
+		while (i < text.length && text[i] !== close) {
+			if (text[i] === '\\') i++;
+			i++;
+		}
+		if (text[i] !== close) return -1;
+		i++;
+		skipSpace();
+	}
+	return text[i] === ')' ? i + 1 : -1;
+}
+
 export function validateMarkdown(text: string): ValidationResult {
 	if (!text.trim()) {
 		return { valid: false, message: 'Markdown cannot be empty' };
 	}
 
-	try {
-		const lines = text.split('\n');
-		let inCodeBlock = false;
-		let codeFenceIndent = 0;
+	const lines = text.split('\n');
+	let fence: Fence | null = null;
 
-		for (let i = 0; i < lines.length; i++) {
-			const line = lines[i];
-			const trimmed = line.trim();
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i];
 
-			if (trimmed.startsWith('```') || trimmed.startsWith('~~~')) {
-				if (!inCodeBlock) {
-					inCodeBlock = true;
-					const indent = line.match(/^(\s*)/)?.[1].length ?? 0;
-					codeFenceIndent = indent;
-				} else {
-					const indent = line.match(/^(\s*)/)?.[1].length ?? 0;
-					if (indent !== codeFenceIndent) {
-						throw new Error(`Code fence at line ${i + 1} has incorrect indentation`);
-					}
-					inCodeBlock = false;
-				}
-				continue;
-			}
+		if (fence) {
+			if (closesFence(line, fence)) fence = null;
+			continue;
+		}
+		fence = openFence(line);
+		if (fence) continue;
 
-			if (inCodeBlock) continue;
-
-			if (line.match(/^#{1,6}\s/)) {
-				const headingText = line.replace(/^#{1,6}\s*/, '');
-				if (headingText.trim() === '') {
-					throw new Error(`Empty heading at line ${i + 1}`);
-				}
-			}
-
-			const linkPattern = /\[([^\]]*)\]\(([^)]*)\)/g;
-			let linkMatch;
-			while ((linkMatch = linkPattern.exec(trimmed)) !== null) {
-				const url = linkMatch[2];
-				if (url.includes(' ') && !url.startsWith('<') && !url.endsWith('>')) {
-					throw new Error(`Invalid link at line ${i + 1}: URL must not contain unescaped spaces`);
-				}
-			}
-
-			const asterisks = (trimmed.match(/\*/g) || []).length;
-			if (asterisks % 2 !== 0 && asterisks > 0) {
-				// Check for unmatched asterisks
-			}
-
-			const htmlTagPattern = /<([a-zA-Z][a-zA-Z0-9]*)[^>]*>/g;
-			let htmlMatch;
-			while ((htmlMatch = htmlTagPattern.exec(trimmed)) !== null) {
-				const tagName = htmlMatch[1].toLowerCase();
-				const selfClosing = trimmed.match(/<[a-zA-Z][^>]*\/>/);
-				if (
-					![
-						'br',
-						'hr',
-						'img',
-						'input',
-						'meta',
-						'link',
-						'area',
-						'base',
-						'col',
-						'embed',
-						'param',
-						'source',
-						'track',
-						'wbr'
-					].includes(tagName) &&
-					selfClosing
-				) {
-					throw new Error(
-						`Invalid self-closing tag at line ${i + 1}: <${tagName}> is not a void element`
-					);
-				}
+		const linkStart = /\[[^\]]*\]\(/g;
+		let linkMatch;
+		while ((linkMatch = linkStart.exec(line)) !== null) {
+			const paren = linkMatch.index + linkMatch[0].length - 1;
+			if (inlineLinkEnd(line, paren) === -1 && /^\([^)]*\s[^)]*\)/.test(line.slice(paren))) {
+				return {
+					valid: false,
+					message: `Markdown lint at line ${i + 1}: link destination contains spaces, so it renders as text; wrap it in <> or encode spaces as %20`
+				};
 			}
 		}
 
-		if (inCodeBlock) {
-			throw new Error('Unclosed code block: missing closing fence');
+		const htmlTagPattern = /<([a-zA-Z][a-zA-Z0-9-]*)[^>]*>/g;
+		let htmlMatch;
+		while ((htmlMatch = htmlTagPattern.exec(line)) !== null) {
+			const tagName = htmlMatch[1].toLowerCase();
+			if (htmlMatch[0].endsWith('/>') && !VOID_ELEMENTS.has(tagName)) {
+				return {
+					valid: false,
+					message: `Markdown lint at line ${i + 1}: <${tagName}/> is not a void element, so HTML ignores the slash and leaves it open`
+				};
+			}
 		}
-
-		return { valid: true, message: 'Valid Markdown (CommonMark)' };
-	} catch (e) {
-		const error = e as Error;
-		return { valid: false, message: `Invalid Markdown: ${error.message}` };
 	}
+
+	return { valid: true, message: 'Valid Markdown' };
 }
 
 export function validatePlainText(text: string): ValidationResult {

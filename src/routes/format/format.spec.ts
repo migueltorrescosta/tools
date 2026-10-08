@@ -247,43 +247,43 @@ describe('Format validation functions', () => {
 		it('validates simple text', () => {
 			const result = validateMarkdown('This is plain text.');
 			expect(result.valid).toBe(true);
-			expect(result.message).toBe('Valid Markdown (CommonMark)');
+			expect(result.message).toBe('Valid Markdown');
 		});
 
 		it('validates headings', () => {
 			const result = validateMarkdown('# Heading 1\n## Heading 2');
 			expect(result.valid).toBe(true);
-			expect(result.message).toBe('Valid Markdown (CommonMark)');
+			expect(result.message).toBe('Valid Markdown');
 		});
 
 		it('validates links', () => {
 			const result = validateMarkdown('[Link](https://example.com)');
 			expect(result.valid).toBe(true);
-			expect(result.message).toBe('Valid Markdown (CommonMark)');
+			expect(result.message).toBe('Valid Markdown');
 		});
 
 		it('validates links with angle brackets', () => {
 			const result = validateMarkdown('[Link](<https://example.com/path with spaces>)');
 			expect(result.valid).toBe(true);
-			expect(result.message).toBe('Valid Markdown (CommonMark)');
+			expect(result.message).toBe('Valid Markdown');
 		});
 
 		it('validates code blocks', () => {
 			const result = validateMarkdown('```\ncode here\n```');
 			expect(result.valid).toBe(true);
-			expect(result.message).toBe('Valid Markdown (CommonMark)');
+			expect(result.message).toBe('Valid Markdown');
 		});
 
 		it('validates tilde code blocks', () => {
 			const result = validateMarkdown('~~~\ncode here\n~~~');
 			expect(result.valid).toBe(true);
-			expect(result.message).toBe('Valid Markdown (CommonMark)');
+			expect(result.message).toBe('Valid Markdown');
 		});
 
 		it('validates void HTML elements', () => {
 			const result = validateMarkdown('Some text<br/>more text');
 			expect(result.valid).toBe(true);
-			expect(result.message).toBe('Valid Markdown (CommonMark)');
+			expect(result.message).toBe('Valid Markdown');
 		});
 
 		it('validates nested markdown with code blocks', () => {
@@ -291,7 +291,7 @@ describe('Format validation functions', () => {
 				'# Title\n\nParagraph\n\n```\nconst x = 1;\n```\n\nMore text'
 			);
 			expect(result.valid).toBe(true);
-			expect(result.message).toBe('Valid Markdown (CommonMark)');
+			expect(result.message).toBe('Valid Markdown');
 		});
 
 		it('rejects empty input', () => {
@@ -306,29 +306,47 @@ describe('Format validation functions', () => {
 			expect(result.valid).toBe(true);
 		});
 
-		it('rejects heading with space but no text', () => {
-			// '# ' with space after # but no text is rejected
-			const result = validateMarkdown('# ');
-			expect(result.valid).toBe(false);
-			expect(result.message).toContain('Empty heading');
+		it('flags a link destination with bare spaces, which renders as text', () => {
+			expect(validateMarkdown('ok\n[Link](https://example.com/path with spaces)')).toEqual({
+				valid: false,
+				message:
+					'Markdown lint at line 2: link destination contains spaces, so it renders as text; wrap it in <> or encode spaces as %20'
+			});
 		});
 
-		it('rejects link with unescaped spaces in URL', () => {
-			const result = validateMarkdown('[Link](https://example.com/path with spaces)');
-			expect(result.valid).toBe(false);
-			expect(result.message).toContain('URL must not contain unescaped spaces');
+		it('flags a non-void self-closing tag', () => {
+			expect(validateMarkdown('Some <div/> text')).toEqual({
+				valid: false,
+				message:
+					'Markdown lint at line 1: <div/> is not a void element, so HTML ignores the slash and leaves it open'
+			});
 		});
 
-		it('rejects unclosed code block', () => {
-			const result = validateMarkdown('```\nunclosed code');
-			expect(result.valid).toBe(false);
-			expect(result.message).toContain('Unclosed code block');
+		// Probe inputs from review finding format/F3: all valid CommonMark the old validator rejected
+		it.each([
+			['a ~~~ line inside a backtick fence', '```\n~~~\n```'],
+			['a closing fence indented differently (0-3 spaces)', '```\ncode\n  ```'],
+			['a 4-backtick fence containing a 3-backtick line', '````\n```\n````'],
+			['a longer closing fence', '```\ncode\n`````'],
+			['a link with a title', '[a](https://x.com "title")'],
+			['a link with a single-quoted title', "[a](https://x.com 'title')"],
+			['a link with a parenthesised title', '[a](https://x.com (title))'],
+			['a link with balanced parentheses in the destination', '[a](https://x.com/foo_(bar))'],
+			['a void self-closing tag after a closed element', '<div>a</div> <br/>'],
+			['an empty ATX heading', '# '],
+			['an empty heading with closing hashes', '## ##'],
+			['an unclosed fence, which runs to the end of the document', '```\nunclosed code'],
+			['a self-closing tag inside an unclosed fence', '~~~\n<div/>']
+		])('accepts %s', (_name, text) => {
+			expect(validateMarkdown(text)).toEqual({ valid: true, message: 'Valid Markdown' });
 		});
 
-		it('rejects non-void self-closing tag', () => {
-			const result = validateMarkdown('Some <div/> text');
-			expect(result.valid).toBe(false);
-			expect(result.message).toContain('is not a void element');
+		it('checks lines after a fence closes', () => {
+			expect(validateMarkdown('```\n<div/>\n```\n<span/>').message).toContain('<span/>');
+		});
+
+		it('does not close a backtick fence with tildes', () => {
+			expect(validateMarkdown('```\n~~~\n<div/>\n```').valid).toBe(true);
 		});
 	});
 
@@ -407,7 +425,7 @@ describe('Format validation functions', () => {
 		it('dispatches to the validator for the format', () => {
 			expect(validateFormat('json', '{}')).toEqual({ valid: true, message: 'Valid JSON' });
 			expect(validateFormat('yaml', 'a: 1').message).toBe('Valid YAML');
-			expect(validateFormat('markdown', '# Hi').message).toBe('Valid Markdown (CommonMark)');
+			expect(validateFormat('markdown', '# Hi').message).toBe('Valid Markdown');
 			expect(validateFormat('plaintext', 'hi').message).toBe('Valid Plain Text');
 			expect(validateFormat('toml', 'a = 1')).toEqual({ valid: false, message: 'Unknown format' });
 		});
