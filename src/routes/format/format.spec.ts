@@ -128,6 +128,49 @@ describe('Format validation functions', () => {
 		it('rejects empty input', () => {
 			expect(validateYaml('')).toEqual({ valid: false, message: 'YAML cannot be empty' });
 		});
+
+		it.each([
+			['a:\n  b: 1', 'nested mapping'],
+			['- a\n- b', 'sequence'],
+			['a: 1\n---\nb: 2', 'multi-document stream'],
+			['description: |\n  line one\n  line two', 'block scalar'],
+			['"123": value\n123: other', 'numeric key'],
+			['- : x', 'sequence of a mapping with an empty key'],
+			['key: value\r\nother: 2\r\n', 'CRLF line endings']
+		])('accepts %j (%s)', (text) => {
+			expect(validateYaml(text)).toEqual({ valid: true, message: 'Valid YAML' });
+		});
+
+		// Probe inputs from review finding format/F1 that the old validator called valid
+		it.each([
+			['key: [unclosed', 1],
+			['a: b: c', 1],
+			['\tkey: tab', 1],
+			['key: "unterminated', 1],
+			['{{{', 1],
+			['a:\n  b: 1\n c: 2', 3],
+			['foo\nbar: baz\n  - x', 1],
+			['key: value\x00with null', 1],
+			['ok: 1\nbad: \x07bell', 2],
+			['a: 1\n---\nb: [', 3]
+		])('rejects %j and reports line %i', (text, line) => {
+			const result = validateYaml(text);
+			expect(result.valid).toBe(false);
+			expect(result.message).toMatch(new RegExp(`^Invalid YAML at line ${line}, column \\d+: \\S`));
+		});
+
+		it('rejects tab indentation with the parser message and position', () => {
+			expect(validateYaml('a:\n\tb: 1')).toEqual({
+				valid: false,
+				message: 'Invalid YAML at line 2, column 1: Tabs are not allowed as indentation'
+			});
+		});
+
+		it('names the non-printable character', () => {
+			expect(validateYaml('key: value\x00with null').message).toBe(
+				'Invalid YAML at line 1, column 11: non-printable character U+0000'
+			);
+		});
 	});
 
 	describe('XML validation', () => {

@@ -1,5 +1,7 @@
 // Format validators shared by the /format page and its spec
 
+import { parseAllDocuments } from 'yaml';
+
 export interface ValidationResult {
 	valid: boolean;
 	message: string;
@@ -42,77 +44,43 @@ export function validateJson(text: string): ValidationResult {
 	}
 }
 
+// YAML 1.2 c-printable: tab, LF, CR, x20-x7E, x85, xA0-xD7FF, xE000-xFFFD and astral planes
+// eslint-disable-next-line no-control-regex
+const YAML_NON_PRINTABLE = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x84\x86-\x9F\uFFFE\uFFFF]/;
+
 export function validateYaml(text: string): ValidationResult {
 	if (!text.trim()) {
 		return { valid: false, message: 'YAML cannot be empty' };
 	}
-	try {
-		// Inline YAML validation logic
-		const lines = text.split('\n');
-		const indentStack: number[] = [0];
-		let inBlockScalar = false;
-		let blockScalarIndent = 0;
 
-		for (let i = 0; i < lines.length; i++) {
-			const line = lines[i];
-
-			if (line.trim() === '' || line.trim().startsWith('#')) {
-				continue;
-			}
-
-			if (inBlockScalar) {
-				const indent = line.match(/^(\s*)/)?.[1].length ?? 0;
-				if (indent < blockScalarIndent && line.trim() !== '') {
-					inBlockScalar = false;
-				} else {
-					continue;
-				}
-			}
-
-			// Detect block scalars (|, >)
-			if (line.trim().match(/^(\||>)\d*(\+|-)?$/)) {
-				inBlockScalar = true;
-				blockScalarIndent = line.match(/^(\s*)/)?.[1].length ?? 0;
-				continue;
-			}
-
-			const currentIndent = line.match(/^(\s*)/)?.[1].length ?? 0;
-			const lastIndent = indentStack[indentStack.length - 1];
-
-			if (line.trim().startsWith('-')) {
-				// List item
-				indentStack.push(currentIndent);
-			} else if (currentIndent > lastIndent) {
-				// Nested key
-				indentStack.push(currentIndent);
-			} else if (currentIndent < lastIndent) {
-				// Going back up the tree
-				while (indentStack.length > 1 && indentStack[indentStack.length - 1] > currentIndent) {
-					indentStack.pop();
-				}
-			}
-
-			// Check for key: value format
-			const keyMatch = line.trim().match(/^-\s+([^:]+):?\s*(.*)$/);
-			if (keyMatch) {
-				const key = keyMatch[1].trim();
-				const value = keyMatch[2].trim();
-				if (!key) {
-					return { valid: false, message: `Invalid YAML at line ${i + 1}: empty key` };
-				}
-				// Check for invalid characters
-				// eslint-disable-next-line no-control-regex
-				const invalidChars = line.trim().match(/[\x00-\x08\x0B\x0C\x0E-\x1F]/);
-				if (invalidChars) {
-					return { valid: false, message: `Invalid YAML: control characters not allowed` };
-				}
-			}
+	const lines = text.split('\n');
+	for (let i = 0; i < lines.length; i++) {
+		const m = YAML_NON_PRINTABLE.exec(lines[i]);
+		if (m) {
+			const code = m[0].charCodeAt(0).toString(16).toUpperCase().padStart(4, '0');
+			return {
+				valid: false,
+				message: `Invalid YAML at line ${i + 1}, column ${m.index + 1}: non-printable character U+${code}`
+			};
 		}
-		return { valid: true, message: 'Valid YAML' };
-	} catch (e) {
-		const error = e as Error;
-		return { valid: false, message: `Invalid YAML: ${error.message}` };
 	}
+
+	for (const doc of parseAllDocuments(text, { prettyErrors: false })) {
+		const error = doc.errors[0];
+		if (error) {
+			const pos = lineCol(text, error.pos[0]);
+			return {
+				valid: false,
+				message: `Invalid YAML at line ${pos.line}, column ${pos.col}: ${error.message}`
+			};
+		}
+	}
+	return { valid: true, message: 'Valid YAML' };
+}
+
+function lineCol(text: string, offset: number): { line: number; col: number } {
+	const before = text.slice(0, offset).split('\n');
+	return { line: before.length, col: before[before.length - 1].length + 1 };
 }
 
 export function validateXml(text: string, parser: XmlParser = new DOMParser()): ValidationResult {
