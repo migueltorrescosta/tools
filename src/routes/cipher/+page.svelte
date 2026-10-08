@@ -145,7 +145,8 @@
 
 		<p class="rsa-note">
 			Encrypt uses the public key; decrypt needs the matching private key. Save the private key:
-			without it the ciphertext cannot be recovered.
+			without it the ciphertext cannot be recovered. A 2048-bit key encrypts at most 190 bytes of
+			UTF-8 text.
 		</p>
 		{#if rsaKeyError}
 			<div class="error">{rsaKeyError}</div>

@@ -9,6 +9,7 @@ import {
 	generateRsaKeyPair,
 	importPrivateKeyPem,
 	importPublicKeyPem,
+	rsaOaepMaxBytes,
 	type Algorithm
 } from './cipher';
 
@@ -101,11 +102,22 @@ describe('AES-CBC', () => {
 });
 
 describe('RSA-OAEP', () => {
-	it('encrypts up to 190 bytes and rejects 191', async () => {
+	it('encrypts up to 190 bytes and rejects 191 with the limit in the message', async () => {
 		const keys = keysFor('RSA-OAEP');
+		expect(rsaOaepMaxBytes(rsa.publicKey)).toBe(190);
 		const max = 'a'.repeat(190);
 		expect(await decrypt(await encrypt(max, 'RSA-OAEP', keys), 'RSA-OAEP', keys)).toBe(max);
-		await expect(encrypt('a'.repeat(191), 'RSA-OAEP', keys)).rejects.toThrow();
+		await expect(encrypt('a'.repeat(191), 'RSA-OAEP', keys)).rejects.toThrow(
+			'RSA-OAEP-2048 limit is 190 bytes; this input is 191 bytes (UTF-8)'
+		);
+	});
+
+	it('counts UTF-8 bytes, not characters, against the limit', async () => {
+		const keys = keysFor('RSA-OAEP');
+		// 63 CJK characters are 189 bytes; 64 are 192.
+		const ok = '世'.repeat(63);
+		expect(await decrypt(await encrypt(ok, 'RSA-OAEP', keys), 'RSA-OAEP', keys)).toBe(ok);
+		await expect(encrypt('世'.repeat(64), 'RSA-OAEP', keys)).rejects.toThrow(/190 bytes/);
 	});
 
 	it('rejects a different key pair', async () => {

@@ -99,6 +99,15 @@ export async function importPrivateKeyPem(pem: string): Promise<CryptoKey> {
 	}
 }
 
+/** SHA-256 digest length: OAEP spends two hashes plus two bytes of each RSA block. */
+const OAEP_HASH_BYTES = 32;
+
+/** Largest plaintext, in UTF-8 bytes, RSA-OAEP (SHA-256) can encrypt with this key: 190 for 2048-bit. */
+export function rsaOaepMaxBytes(key: CryptoKey): number {
+	const { modulusLength } = key.algorithm as RsaHashedKeyAlgorithm;
+	return modulusLength / 8 - 2 * OAEP_HASH_BYTES - 2;
+}
+
 function requireKey<T>(key: T | undefined, message: string): T {
 	if (!key) throw new Error(message);
 	return key;
@@ -132,11 +141,15 @@ export async function encrypt(
 		}
 		case 'RSA-OAEP': {
 			const publicKey = requireKey(keys.publicKey, 'RSA-OAEP needs a public key');
-			const encrypted = await crypto.subtle.encrypt(
-				{ name: 'RSA-OAEP' },
-				publicKey,
-				new TextEncoder().encode(text)
-			);
+			const plaintext = new TextEncoder().encode(text);
+			const max = rsaOaepMaxBytes(publicKey);
+			if (plaintext.length > max) {
+				const bits = (publicKey.algorithm as RsaHashedKeyAlgorithm).modulusLength;
+				throw new Error(
+					`RSA-OAEP-${bits} limit is ${max} bytes; this input is ${plaintext.length} bytes (UTF-8)`
+				);
+			}
+			const encrypted = await crypto.subtle.encrypt({ name: 'RSA-OAEP' }, publicKey, plaintext);
 			return bytesToBase64(new Uint8Array(encrypted));
 		}
 		default:
