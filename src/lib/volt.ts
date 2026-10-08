@@ -23,13 +23,15 @@ export function isMep(p: Politician): boolean {
 	return MEP_POSITIONS.has(p.position);
 }
 
-// Parse date string to year (number)
-// Handles: "DD/MM/YYYY", "MM/YYYY", "YYYY"
+// Parse date string to a fractional year: YYYY + (month-1)/12 + (day-1)/365.
+// Handles: "DD/MM/YYYY", "MM/YYYY", "YYYY". A bare year is Jan 1 of that year,
+// so an end date of "2029" is exclusive (the mandate runs until the start of 2029).
 export function parseDate(dateStr: string): number {
-	const parts = dateStr.split('/');
-	if (parts.length === 3) return parseInt(parts[2]);
-	if (parts.length === 2) return parseInt(parts[1]);
-	return parseInt(dateStr);
+	const parts = dateStr.split('/').map((x) => parseInt(x));
+	const year = parts[parts.length - 1];
+	const month = parts.length >= 2 ? parts[parts.length - 2] : 1;
+	const day = parts.length === 3 ? parts[0] : 1;
+	return year + (month - 1) / 12 + (day - 1) / 365;
 }
 
 // Group by country, then by location; locations sorted by latest start date
@@ -94,17 +96,18 @@ export function computeStats(politicians: Politician[]) {
 export type Timeline = { minYear: number; maxYear: number; yearRange: number };
 
 export function timelineRange(politicians: Politician[]): Timeline {
-	const minYear = Math.min(...politicians.map((p) => parseDate(p.startDate)));
-	const maxYear = Math.max(...politicians.map((p) => parseDate(p.endDate)));
+	const minYear = Math.floor(Math.min(...politicians.map((p) => parseDate(p.startDate))));
+	const maxYear = Math.floor(Math.max(...politicians.map((p) => parseDate(p.endDate))));
 	return { minYear, maxYear, yearRange: maxYear - minYear + 1 };
 }
 
-// Bar position and width as percentages of the timeline
+// Bar position and width as percentages of the timeline; each year cell spans
+// [minYear + i, minYear + i + 1), and the end date is exclusive
 export function barGeometry(p: Politician, t: Timeline): { left: number; width: number } {
 	const start = parseDate(p.startDate);
 	const end = parseDate(p.endDate);
 	return {
 		left: ((start - t.minYear) / t.yearRange) * 100,
-		width: ((end - start + 1) / t.yearRange) * 100
+		width: ((end - start) / t.yearRange) * 100
 	};
 }

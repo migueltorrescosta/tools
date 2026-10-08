@@ -33,6 +33,13 @@ describe('parseDate', () => {
 		expect(Math.floor(parseDate('10/2023'))).toBe(2023);
 		expect(Math.floor(parseDate('16/07/2024'))).toBe(2024);
 	});
+
+	it('keeps month and day precision as a fractional year', () => {
+		expect(parseDate('2029')).toBe(2029);
+		expect(parseDate('03/2026')).toBeCloseTo(2026 + 2 / 12, 6);
+		expect(parseDate('16/07/2024')).toBeCloseTo(2024.541, 3);
+		expect(parseDate('02/07/2019')).toBeGreaterThan(2019.5);
+	});
 });
 
 describe('groupByCountry', () => {
@@ -94,8 +101,7 @@ describe('timeline geometry', () => {
 			person({ startDate: '02/07/2019', endDate: '2029' }),
 			person({ startDate: '03/2026', endDate: '2032' })
 		]);
-		expect(t.minYear).toBe(2019);
-		expect(Math.floor(t.maxYear)).toBe(2032);
+		expect(t).toEqual({ minYear: 2019, maxYear: 2032, yearRange: 14 });
 	});
 
 	it('places a bar within the timeline', () => {
@@ -103,5 +109,20 @@ describe('timeline geometry', () => {
 		const { left, width } = barGeometry(person({ startDate: '16/07/2024', endDate: '2029' }), t);
 		expect(left).toBeGreaterThanOrEqual(0);
 		expect(left + width).toBeLessThanOrEqual(100);
+	});
+
+	it('draws a 16/07/2024 to 2029 mandate as ~4.46 years, not 6', () => {
+		const t = { minYear: 2019, maxYear: 2032, yearRange: 14 };
+		const { left, width } = barGeometry(person({ startDate: '16/07/2024', endDate: '2029' }), t);
+		expect((width / 100) * t.yearRange).toBeCloseTo(4.459, 2);
+		expect((left / 100) * t.yearRange).toBeCloseTo(5.541, 2);
+	});
+
+	it('draws 03/2026 to 2032 as 5.83 years and 2022 to 2026 as 4 years', () => {
+		const t = { minYear: 2019, maxYear: 2032, yearRange: 14 };
+		const years = (s: string, e: string) =>
+			(barGeometry(person({ startDate: s, endDate: e }), t).width / 100) * t.yearRange;
+		expect(years('03/2026', '2032')).toBeCloseTo(6 - 2 / 12, 6);
+		expect(years('2022', '2026')).toBeCloseTo(4, 6);
 	});
 });
