@@ -105,6 +105,21 @@ export function formatTime(iso: string): string {
 	return iso.substring(11, 16);
 }
 
+/** IANA zone of the event; all schedule times are wall-clock times here */
+export const EVENT_TIMEZONE = 'Europe/Bratislava';
+
+const clockFormat = new Intl.DateTimeFormat('en-GB', {
+	hour: '2-digit',
+	minute: '2-digit',
+	hourCycle: 'h23',
+	timeZone: EVENT_TIMEZONE
+});
+
+/** Format an instant as "HH:MM" in event time, independent of the viewer's zone */
+export function formatClock(now: Date): string {
+	return clockFormat.format(now);
+}
+
 /** Format a time range like "09:30 – 10:15" */
 export function formatTimeRange(start: string, end: string): string {
 	return `${formatTime(start)} \u2013 ${formatTime(end)}`;

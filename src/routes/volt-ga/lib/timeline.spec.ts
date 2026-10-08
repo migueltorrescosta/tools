@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+	formatClock,
 	formatDuration,
 	formatTime,
 	formatTimeRange,
@@ -121,6 +122,14 @@ describe('formatting', () => {
 		expect(formatTimeRange('2026-06-13T09:05:00+02:00', '2026-06-13T10:15:00+02:00')).toBe(
 			'09:05 – 10:15'
 		);
+	});
+
+	it('shows the clock in event time (Europe/Bratislava), not UTC', () => {
+		expect(formatClock(new Date('2026-06-13T10:20:00+02:00'))).toBe('10:20');
+		expect(formatClock(new Date('2026-06-13T08:20:00Z'))).toBe('10:20');
+		expect(formatClock(new Date('2026-06-12T22:05:00Z'))).toBe('00:05');
+		// CET in winter
+		expect(formatClock(new Date('2027-01-01T09:20:00Z'))).toBe('10:20');
 	});
 
 	it('formats 45, 60 and 90 minutes', () => {

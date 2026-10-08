@@ -9,7 +9,7 @@
 		getNowOffset,
 		getActiveSessions,
 		getNextSessions,
-		formatTime,
+		formatClock,
 		formatTimeRange,
 		formatDuration,
 		ROOMS,
@@ -261,7 +261,7 @@
 		<div class="toolbar-status">
 			<span class="status-dot" class:active={!isEventRunning.before && !isEventRunning.after}
 			></span>
-			<span class="status-time">{formatTime(now.toISOString())}</span>
+			<span class="status-time">{formatClock(now)}</span>
 		</div>
 	</div>
 
@@ -352,7 +352,7 @@
 
 			<!-- Now Line -->
 			<div class="now-line" style="top: calc({nowOffset * 100}% + 40px);" aria-hidden="true">
-				<span class="now-label">NOW {formatTime(now.toISOString())}</span>
+				<span class="now-label">NOW {formatClock(now)}</span>
 			</div>
 		</div>
 	</div>
