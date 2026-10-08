@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { computeRows, selectAnswer } from './graph';
 	import type { DecisionGraph, TraversalPath } from './types';
 
@@ -14,9 +15,27 @@
 
 	const rows = $derived(computeRows(graph, path));
 
+	// Read out by the live region below whenever a choice reveals a new question or the result
+	const announcement = $derived.by(() => {
+		const last = rows[rows.length - 1];
+		if (last?.type === 'result') return `Result: ${last.node.result}`;
+		const question = rows[rows.length - 2];
+		return question?.type === 'question' ? question.node.prompt : '';
+	});
+
+	let container: HTMLDivElement | undefined = $state();
+
 	function choose(depth: number, edgeId: string) {
 		path = selectAnswer(path, depth, edgeId);
 		revealed = new Set();
+	}
+
+	/** Clear every answer and move focus to the root question's first answer. */
+	async function restart() {
+		path = [];
+		revealed = new Set();
+		await tick();
+		container?.querySelector<HTMLButtonElement>('.answer-btn')?.focus();
 	}
 
 	function toggleExplanation(edgeId: string) {
@@ -26,7 +45,7 @@
 	}
 </script>
 
-<div class="decision-tree-rows">
+<div class="decision-tree-rows" bind:this={container}>
 	{#each rows as row (row.index)}
 		{#if row.type === 'question'}
 			<div class="question-row">
@@ -40,6 +59,7 @@
 						<button
 							class="answer-btn"
 							class:selected={edge.id === row.selectedEdgeId}
+							aria-pressed={edge.id === row.selectedEdgeId}
 							aria-describedby={edge.explanation ? tipId : undefined}
 							onclick={() => choose(row.depth, edge.id)}
 						>
@@ -77,6 +97,14 @@
 		{/if}
 	{/each}
 </div>
+
+<p class="sr-only" role="status">{announcement}</p>
+
+{#if path.length > 0}
+	<div class="restart-row">
+		<button class="restart-btn" onclick={restart}>Start over</button>
+	</div>
+{/if}
 
 <style>
 	/* ── Rows ── */
@@ -235,6 +263,46 @@
 		color: var(--futuristic-cyan);
 		line-height: 1.4;
 		letter-spacing: 0.02em;
+	}
+
+	/* ── Restart ── */
+	.restart-row {
+		display: flex;
+		justify-content: center;
+		margin-bottom: 1.5rem;
+	}
+
+	.restart-btn {
+		padding: 0.4rem 1rem;
+		background: transparent;
+		border: 1px solid var(--futuristic-border);
+		border-radius: 6px;
+		color: var(--futuristic-text-dim);
+		font-family: 'Inter', sans-serif;
+		font-size: 0.8rem;
+		cursor: pointer;
+	}
+
+	.restart-btn:hover {
+		border-color: var(--futuristic-cyan);
+		color: var(--futuristic-cyan);
+	}
+
+	.restart-btn:focus-visible {
+		outline: 2px solid var(--futuristic-cyan);
+		outline-offset: 2px;
+	}
+
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
 	}
 
 	/* ── Mobile ── */

@@ -9,7 +9,12 @@ export function validateGraph(graph: DecisionGraph): string[] {
 		return errors;
 	}
 
-	// 0. Answer labels are unique per question (the label is part of the edge id)
+	// 0. Node ids are unique (buildGraph keeps the first of each)
+	for (const id of new Set(graph.duplicateNodeIds)) {
+		errors.push(`Duplicate node id "${id}"; node ids must be unique`);
+	}
+
+	// Answer labels are unique per question (the label is part of the edge id)
 	for (const edge of graph.duplicateEdges) {
 		errors.push(
 			`Node "${edge.sourceId}" has a duplicate answer "${edge.label}"; answer labels must be unique per question`
@@ -18,14 +23,21 @@ export function validateGraph(graph: DecisionGraph): string[] {
 
 	// Duplicates still count as written for the structural checks below, so they
 	// do not also surface as a spurious extra root or unreachable node
-	const allEdges = [...graph.edges.values(), ...graph.duplicateEdges];
+	const writtenEdges = [...graph.edges.values(), ...graph.duplicateEdges];
 
-	// 1. All edge targets exist
-	for (const edge of allEdges) {
+	// 1. All edge sources and targets exist
+	for (const edge of writtenEdges) {
+		if (!graph.nodes.has(edge.sourceId)) {
+			errors.push(`Edge "${edge.id}" references non-existent source node "${edge.sourceId}"`);
+		}
 		if (!graph.nodes.has(edge.targetId)) {
 			errors.push(`Edge "${edge.id}" references non-existent target node "${edge.targetId}"`);
 		}
 	}
+
+	// An edge from a missing node must not count as an incoming edge, or it would
+	// hide a node that is really an extra root or unreachable
+	const allEdges = writtenEdges.filter((e) => graph.nodes.has(e.sourceId));
 
 	// 2. Exactly one root node (one node with no incoming edges)
 	const hasIncoming = new Set<string>();
@@ -130,21 +142,6 @@ export function validateGraph(graph: DecisionGraph): string[] {
 	// walk from the root can only stop at a result node. A separate path walk
 	// would recurse forever on cycles that miss the root and is exponential on
 	// converging answers.
-
-	return errors;
-}
-
-export function validate(raw: { nodes: unknown[]; edges: unknown[] }): string[] {
-	// Basic structural validation before graph building
-	const errors: string[] = [];
-
-	if (!Array.isArray(raw.nodes) || raw.nodes.length === 0) {
-		errors.push('Tree must contain at least one node');
-	}
-
-	if (!Array.isArray(raw.edges)) {
-		errors.push('Edges must be an array');
-	}
 
 	return errors;
 }

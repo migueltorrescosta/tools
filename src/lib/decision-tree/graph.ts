@@ -21,9 +21,14 @@ export function buildGraph(raw: RawTree): DecisionGraph {
 	const edges = new Map<string, AnswerEdge>();
 	const edgesBySource = new Map<string, AnswerEdge[]>();
 	const duplicateEdges: AnswerEdge[] = [];
+	const duplicateNodeIds: string[] = [];
 
-	// Build nodes
+	// Build nodes. Keep the first of two nodes with the same id, like edges below
 	for (const n of raw.nodes) {
+		if (nodes.has(n.id)) {
+			duplicateNodeIds.push(n.id);
+			continue;
+		}
 		const node: Node =
 			n.type === 'question'
 				? { id: n.id, type: 'question', prompt: n.content }
@@ -42,7 +47,8 @@ export function buildGraph(raw: RawTree): DecisionGraph {
 			label: e.label,
 			explanation: e.explanation ?? undefined
 		};
-		hasIncoming.add(e.targetId);
+		// An edge from a missing node gives no real incoming edge; validateGraph reports it
+		if (nodes.has(e.sourceId)) hasIncoming.add(e.targetId);
 		// The id is the path key and the UI's each-block key, so keep only the first
 		if (edges.has(edgeId)) {
 			duplicateEdges.push(edge);
@@ -64,7 +70,7 @@ export function buildGraph(raw: RawTree): DecisionGraph {
 		}
 	}
 
-	return { nodes, edges, edgesBySource, rootNodeId, duplicateEdges };
+	return { nodes, edges, edgesBySource, rootNodeId, duplicateEdges, duplicateNodeIds };
 }
 
 export function getCurrentNode(graph: DecisionGraph, path: TraversalPath): Node {
@@ -180,7 +186,7 @@ export function restorePath(
 	urlParam: string | null,
 	saved: string | null
 ): TraversalPath {
-	const urlPath = urlParam ? sanitizePath(graph, decodePath(urlParam)) : [];
+	const urlPath = urlParam ? sanitizePath(graph, decodePath(graph, urlParam)) : [];
 	if (urlPath.length > 0) return urlPath;
 	if (!saved) return [];
 	try {
@@ -190,13 +196,44 @@ export function restorePath(
 	}
 }
 
-/** Encode a traversal path URL query parameter value */
-export function encodePath(path: TraversalPath): string {
-	return encodeURIComponent(path.join(','));
+/** Shape of an index-encoded path: answer positions per step, e.g. "0.5.0". */
+const INDEX_PATH = /^\d+(\.\d+)*$/;
+
+/**
+ * Encode a traversal path as the `?p=` value: the position of each chosen
+ * answer among its question's answers, joined with '.'. The result needs no
+ * escaping, so labels containing ',' or '%' cannot corrupt it. Encoding stops
+ * at the first entry that is not an answer of the node the walk has reached.
+ */
+export function encodePath(graph: DecisionGraph, path: TraversalPath): string {
+	const indices: number[] = [];
+	let currentNodeId = graph.rootNodeId;
+	for (const edgeId of path) {
+		const index = getAnswersForNode(graph, currentNodeId).findIndex((e) => e.id === edgeId);
+		if (index < 0) break;
+		indices.push(index);
+		currentNodeId = graph.edges.get(edgeId)!.targetId;
+	}
+	return indices.join('.');
 }
 
-/** Decode a traversal path URL query parameter value */
-export function decodePath(encoded: string): TraversalPath {
+/**
+ * Decode a `?p=` value into edge ids. Index paths ("0.5.0") walk from the root
+ * and stop at the first out-of-range index. Anything else is read as the legacy
+ * format (URI-encoded edge ids joined with ',') so old shared links still open.
+ */
+export function decodePath(graph: DecisionGraph, encoded: string): TraversalPath {
+	if (INDEX_PATH.test(encoded)) {
+		const path: TraversalPath = [];
+		let currentNodeId = graph.rootNodeId;
+		for (const part of encoded.split('.')) {
+			const edge = getAnswersForNode(graph, currentNodeId)[Number(part)];
+			if (!edge) break;
+			path.push(edge.id);
+			currentNodeId = edge.targetId;
+		}
+		return path;
+	}
 	try {
 		return decodeURIComponent(encoded)
 			.split(',')

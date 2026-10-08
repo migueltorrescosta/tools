@@ -138,22 +138,62 @@ describe('Changing answer removes downstream rows', () => {
 // 3. Traversal state persists correctly after refresh / shareable URL
 // ---------------------------------------------------------------------------
 describe('State persistence encoding', () => {
-	it('encodes and decodes a path losslessly', () => {
+	it('encodes a path as answer positions and decodes it losslessly', () => {
+		const graph = buildGraph(treeJson as RawTree);
 		const path: TraversalPath = ['root|Choose a car', 'c_q1|Lowest total cost', 'c_q2|Yes'];
-		const encoded = encodePath(path);
-		const decoded = decodePath(encoded);
-		expect(decoded).toEqual(path);
+		const encoded = encodePath(graph, path);
+		expect(encoded).toMatch(/^\d+(\.\d+)*$/);
+		expect(decodePath(graph, encoded)).toEqual(path);
 	});
 
 	it('handles empty path', () => {
-		expect(decodePath(encodePath([]))).toEqual([]);
+		const graph = makeCarGraph();
+		expect(encodePath(graph, [])).toBe('');
+		expect(decodePath(graph, encodePath(graph, []))).toEqual([]);
 	});
 
-	it('handles special characters in labels', () => {
-		const path: TraversalPath = ['root|A/B test', 'q1|50% chance'];
-		const encoded = encodePath(path);
-		const decoded = decodePath(encoded);
-		expect(decoded).toEqual(path);
+	it('round-trips labels containing commas and percent signs', () => {
+		const graph = buildGraph({
+			nodes: [
+				{ id: 'root', type: 'question', content: 'Sure?' },
+				{ id: 'q1', type: 'question', content: 'Odds?' },
+				{ id: 'r1', type: 'result', content: 'Done' },
+				{ id: 'r2', type: 'result', content: 'Other' }
+			],
+			edges: [
+				{ sourceId: 'root', targetId: 'r2', label: 'No' },
+				{ sourceId: 'root', targetId: 'q1', label: 'Yes, definitely' },
+				{ sourceId: 'q1', targetId: 'r1', label: '50% chance, A/B' }
+			]
+		});
+		const path: TraversalPath = ['root|Yes, definitely', 'q1|50% chance, A/B'];
+		const encoded = encodePath(graph, path);
+		expect(encoded).toBe('1.0');
+		expect(decodePath(graph, encoded)).toEqual(path);
+		// URLSearchParams adds no second layer of escaping
+		const params = new URLSearchParams();
+		params.set('p', encoded);
+		expect(params.toString()).toBe('p=1.0');
+		expect(restorePath(graph, new URLSearchParams(params.toString()).get('p'), null)).toEqual(path);
+	});
+
+	it('encodes only the valid prefix of a path', () => {
+		const graph = makeCarGraph();
+		expect(encodePath(graph, ['root|Lowest cost', 'gone|Edge', 'q_city|No'])).toBe('0');
+	});
+
+	it('decodes up to the first out-of-range answer position', () => {
+		const graph = makeCarGraph();
+		expect(decodePath(graph, '0.1')).toEqual(['root|Lowest cost', 'q_city|No']);
+		expect(decodePath(graph, '0.7.0')).toEqual(['root|Lowest cost']);
+		expect(decodePath(graph, '0.0.0')).toEqual(['root|Lowest cost', 'q_city|Yes']);
+	});
+
+	it('still decodes legacy edge-id links', () => {
+		const graph = makeCarGraph();
+		const legacy = encodeURIComponent(['root|Lowest cost', 'q_city|No'].join(','));
+		expect(decodePath(graph, legacy)).toEqual(['root|Lowest cost', 'q_city|No']);
+		expect(decodePath(graph, '%E0%A4%A')).toEqual([]);
 	});
 });
 
@@ -241,6 +281,42 @@ describe('Missing node references', () => {
 		const errors = validateGraph(graph);
 		expect(errors.some((e) => e.includes('"ghost"'))).toBe(true);
 	});
+
+	it('rejects an edge from a non-existent source without hiding the extra root', () => {
+		const raw: RawTree = {
+			nodes: [
+				{ id: 'root', type: 'question', content: 'Root?' },
+				{ id: 'r1', type: 'result', content: 'Done' },
+				{ id: 'r', type: 'result', content: 'Stranded' }
+			],
+			edges: [
+				{ sourceId: 'root', targetId: 'r1', label: 'Go' },
+				{ sourceId: 'ghost', targetId: 'r', label: 'From nowhere' }
+			]
+		};
+		const graph = buildGraph(raw);
+		const errors = validateGraph(graph);
+		expect(errors).toContain(
+			'Edge "ghost|From nowhere" references non-existent source node "ghost"'
+		);
+		expect(errors).toContain('Multiple root nodes found: root, r');
+	});
+});
+
+describe('Duplicate node ids', () => {
+	it('keeps the first node and reports the duplicate id', () => {
+		const raw: RawTree = {
+			nodes: [
+				{ id: 'root', type: 'question', content: 'Root?' },
+				{ id: 'x', type: 'result', content: 'First' },
+				{ id: 'x', type: 'question', content: 'Second?' }
+			],
+			edges: [{ sourceId: 'root', targetId: 'x', label: 'Go' }]
+		};
+		const graph = buildGraph(raw);
+		expect(graph.nodes.get('x')).toEqual({ id: 'x', type: 'result', result: 'First' });
+		expect(validateGraph(graph)).toEqual(['Duplicate node id "x"; node ids must be unique']);
+	});
 });
 
 // ---------------------------------------------------------------------------
@@ -260,6 +336,28 @@ describe('Unreachable nodes', () => {
 		const errors = validateGraph(graph);
 		// Orphan has no incoming edges, so it's detected as an extra root
 		expect(errors.some((e) => e.includes('orphan'))).toBe(true);
+	});
+
+	it('flags an island whose nodes all have incoming edges', () => {
+		// i1 <-> i2 gives every island node an incoming edge, so root stays the
+		// only root and only the reachability walk can catch the island
+		const raw: RawTree = {
+			nodes: [
+				{ id: 'root', type: 'question', content: 'Root?' },
+				{ id: 'r', type: 'result', content: 'Done' },
+				{ id: 'i1', type: 'question', content: 'Island 1?' },
+				{ id: 'i2', type: 'question', content: 'Island 2?' }
+			],
+			edges: [
+				{ sourceId: 'root', targetId: 'r', label: 'Go' },
+				{ sourceId: 'i1', targetId: 'i2', label: 'Across' },
+				{ sourceId: 'i2', targetId: 'i1', label: 'Back' }
+			]
+		};
+		const errors = validateGraph(buildGraph(raw));
+		expect(errors.some((e) => /root node/i.test(e))).toBe(false);
+		expect(errors).toContain('Node "i1" is not reachable from the root');
+		expect(errors).toContain('Node "i2" is not reachable from the root');
 	});
 });
 
@@ -604,13 +702,10 @@ describe('Foreign path edges', () => {
 	it('restorePath prefers a valid ?p, then the saved path, then the root', () => {
 		const graph = makeCarGraph();
 		const saved = JSON.stringify(['root|Lowest cost', 'q_city|No']);
-		const url = encodePath(['root|Lowest cost', 'q_city|Yes']);
+		const url = encodePath(graph, ['root|Lowest cost', 'q_city|Yes']);
 		expect(restorePath(graph, url, saved)).toEqual(['root|Lowest cost', 'q_city|Yes']);
 		expect(restorePath(graph, null, saved)).toEqual(['root|Lowest cost', 'q_city|No']);
-		expect(restorePath(graph, encodePath(['q_city|Yes']), saved)).toEqual([
-			'root|Lowest cost',
-			'q_city|No'
-		]);
+		expect(restorePath(graph, '5', saved)).toEqual(['root|Lowest cost', 'q_city|No']);
 		expect(restorePath(graph, null, null)).toEqual([]);
 		expect(restorePath(graph, null, '{not json')).toEqual([]);
 	});
