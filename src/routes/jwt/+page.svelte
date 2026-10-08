@@ -2,14 +2,16 @@
 	import { onMount } from 'svelte';
 	import { copyToClipboard } from '$lib/clipboard';
 	import {
-		ALGORITHMS as algorithms,
+		algorithmOptions,
 		describeClaims,
+		headerJsonAlg,
 		isSymmetric,
 		jsonWarnings,
 		parseEncodeInputs,
 		signJwt,
 		tokenView,
 		verifyJwt,
+		withHeaderAlg,
 		type JsonObject,
 		type VerifyResult
 	} from '$lib/jwt';
@@ -34,6 +36,11 @@
 	let decodedPayload = $state<JsonObject | undefined>(undefined);
 	let unsignedBanner = $state('');
 	let now = $state(Date.now());
+	let showSecret = $state(false);
+	let copyStatus = $state('');
+	let hydrated = $state(false);
+	// An unknown header alg (e.g. ES256K) gets its own option so the select never shows a blank
+	const algorithms = $derived(algorithmOptions(selectedAlgorithm));
 	const claims = $derived(describeClaims(decodedPayload, now));
 	// What ENCODE would change: JSON.parse rounds big integers and drops duplicate keys
 	const encodeWarnings = $derived([
@@ -52,7 +59,29 @@
 		decodeWarnings = view.warnings;
 		decodedPayload = view.payload;
 		unsignedBanner = view.unsigned;
+		copyStatus = '';
 		if (view.alg) selectedAlgorithm = view.alg;
+	}
+
+	// The header JSON and the select name the same alg: each edit updates the other
+	function selectAlgorithm(alg: string) {
+		selectedAlgorithm = alg;
+		headerJson = withHeaderAlg(headerJson, alg);
+	}
+
+	function editHeader(text: string) {
+		headerJson = text;
+		const alg = headerJsonAlg(text);
+		if (alg) selectedAlgorithm = alg;
+	}
+
+	async function copy(label: string, text: string) {
+		try {
+			await copyToClipboard(text);
+			copyStatus = `${label} copied`;
+		} catch (e) {
+			copyStatus = `Could not copy ${label.toLowerCase()}: ${e instanceof Error ? e.message : String(e)}`;
+		}
 	}
 
 	async function encodeToken() {
@@ -60,13 +89,13 @@
 		headerError = parsed.ok ? '' : parsed.headerError;
 		payloadError = parsed.ok ? '' : parsed.payloadError;
 		if (!parsed.ok) return;
-		const { header, payload } = parsed;
+		const { header, payload, alg } = parsed;
+		selectedAlgorithm = alg;
 
 		try {
-			token = await signJwt(header, payload, secret, selectedAlgorithm);
+			token = await signJwt(header, payload, secret, alg);
 			encodeError = '';
-			encodeNote =
-				selectedAlgorithm === 'none' ? 'Unsigned token (alg "none"): the signature is empty' : '';
+			encodeNote = alg === 'none' ? 'Unsigned token (alg "none"): the signature is empty' : '';
 		} catch (e) {
 			encodeError = `Not encoded: ${e instanceof Error ? e.message : String(e)}`;
 			encodeNote = '';
@@ -92,6 +121,7 @@
 	});
 
 	onMount(() => {
+		hydrated = true;
 		const clock = setInterval(() => (now = Date.now()), 1000);
 		token =
 			'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
@@ -103,7 +133,7 @@
 	<title>JWT Parser</title>
 </svelte:head>
 
-<div class="container">
+<div class="container" data-hydrated={hydrated || undefined}>
 	<header>
 		<h1>JWT PARSER</h1>
 		<p class="subtitle">Decode, Encode & Verify JSON Web Tokens</p>
@@ -111,10 +141,11 @@
 
 	<div class="token-input-section">
 		<div class="section-header">
-			<span class="label">ENCODED</span>
+			<label class="label" for="token-input">ENCODED</label>
 			<span class="hint">Paste your JWT token</span>
 		</div>
 		<textarea
+			id="token-input"
 			class="token-input"
 			bind:value={token}
 			placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -132,6 +163,8 @@
 		</div>
 	{/if}
 
+	{#if copyStatus}<div class="copy-status" role="status">{copyStatus}</div>{/if}
+
 	<div class="panels">
 		<div class="panel header-panel">
 			<div class="panel-header">
@@ -139,7 +172,12 @@
 				<span class="dot yellow"></span>
 				<span class="dot green"></span>
 				<span class="panel-title">HEADER</span>
-				<button class="copy-btn" onclick={() => copyToClipboard(headerJson)}>COPY</button>
+				<button
+					class="copy-btn"
+					aria-label="Copy header JSON"
+					disabled={!!headerError || !headerJson}
+					onclick={() => copy('Header', headerJson)}>COPY</button
+				>
 			</div>
 			<div class="panel-content">
 				{#if headerError}
@@ -156,7 +194,12 @@
 				<span class="dot yellow"></span>
 				<span class="dot green"></span>
 				<span class="panel-title">PAYLOAD</span>
-				<button class="copy-btn" onclick={() => copyToClipboard(payloadJson)}>COPY</button>
+				<button
+					class="copy-btn"
+					aria-label="Copy payload JSON"
+					disabled={!!payloadError || !payloadJson}
+					onclick={() => copy('Payload', payloadJson)}>COPY</button
+				>
 			</div>
 			<div class="panel-content">
 				{#if payloadError}
@@ -196,20 +239,35 @@
 						<label class="input-label" for="secret-input"
 							>{isSymmetric(selectedAlgorithm) ? 'SECRET' : 'KEY (PEM OR JWK)'}</label
 						>
-						<input
-							id="secret-input"
-							type="text"
-							class="secret-input"
-							bind:value={secret}
-							placeholder={isSymmetric(selectedAlgorithm)
-								? 'secret'
-								: 'public key verifies, private key signs'}
-						/>
+						<div class="secret-row">
+							<input
+								id="secret-input"
+								type={showSecret ? 'text' : 'password'}
+								class="secret-input"
+								autocomplete="off"
+								spellcheck="false"
+								bind:value={secret}
+								placeholder={isSymmetric(selectedAlgorithm)
+									? 'secret'
+									: 'public key verifies, private key signs'}
+							/>
+							<button
+								type="button"
+								class="copy-btn"
+								aria-pressed={showSecret}
+								aria-controls="secret-input"
+								onclick={() => (showSecret = !showSecret)}>{showSecret ? 'HIDE' : 'SHOW'}</button
+							>
+						</div>
 					</div>
 
 					<div class="algorithm-section">
 						<label class="input-label" for="algorithm-select">ALGORITHM</label>
-						<select id="algorithm-select" class="algorithm-select" bind:value={selectedAlgorithm}>
+						<select
+							id="algorithm-select"
+							class="algorithm-select"
+							bind:value={() => selectedAlgorithm, selectAlgorithm}
+						>
 							{#each algorithms as alg (alg)}
 								<option value={alg}>{alg}</option>
 							{/each}
@@ -247,7 +305,7 @@
 				<textarea
 					id="header-json"
 					class="encode-textarea"
-					bind:value={headerJson}
+					bind:value={() => headerJson, editHeader}
 					placeholder={'{"alg": "HS256", "typ": "JWT"}'}
 					spellcheck="false"
 				></textarea>
@@ -284,6 +342,28 @@
 </div>
 
 <style>
+	.secret-row {
+		display: flex;
+		gap: 0.5rem;
+		align-items: center;
+	}
+
+	.secret-row .secret-input {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.copy-btn:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	.copy-status {
+		margin-bottom: 1rem;
+		font-size: 0.8rem;
+		color: var(--futuristic-text-dim);
+	}
+
 	.claim-time {
 		margin-top: 0.25rem;
 		font-size: 0.8rem;

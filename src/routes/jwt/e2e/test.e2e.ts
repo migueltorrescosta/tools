@@ -4,7 +4,7 @@ const SAMPLE_SECRET = 'your-256-bit-secret';
 
 function ui(page: Page) {
 	return {
-		token: page.locator('textarea.token-input'),
+		token: page.getByLabel('ENCODED', { exact: true }),
 		header: page.locator('.header-panel .panel-content'),
 		payload: page.locator('.payload-panel .panel-content'),
 		secret: page.getByLabel(/SECRET|KEY \(PEM OR JWK\)/),
@@ -20,9 +20,10 @@ function decodeSegment(token: string, index: number): unknown {
 	return JSON.parse(Buffer.from(token.split('.')[index], 'base64url').toString('utf-8'));
 }
 
+// Wait for hydration so fills and clicks reach the live handlers
 test.beforeEach(async ({ page }) => {
 	await page.goto('/jwt');
-	await expect(page.locator('h1')).toHaveText('JWT PARSER');
+	await expect(page.locator('.container[data-hydrated]')).toBeVisible();
 });
 
 test('decodes the default sample token into the panels', async ({ page }) => {
@@ -77,4 +78,39 @@ test('an unsigned alg none token shows the unsigned banner', async ({ page }) =>
 	await u.encode.click();
 	await expect(u.token).toHaveValue(/\.$/);
 	await expect(page.getByRole('alert').filter({ hasText: 'Unsigned token' })).toBeVisible();
+});
+
+test('ENCODE keeps an edited header alg and typ and the select follows it', async ({ page }) => {
+	const u = ui(page);
+	await expect(u.payload).toContainText('John Doe');
+	await u.headerJson.fill('{"alg":"none","typ":"at+jwt"}');
+	await expect(u.algorithm).toHaveValue('none');
+	await u.encode.click();
+	await expect(u.token).toHaveValue(/\.$/);
+	expect(decodeSegment(await u.token.inputValue(), 0)).toEqual({ alg: 'none', typ: 'at+jwt' });
+});
+
+test('choosing an algorithm rewrites the header alg', async ({ page }) => {
+	const u = ui(page);
+	await expect(u.payload).toContainText('John Doe');
+	await u.algorithm.selectOption('RS256');
+	await expect(u.headerJson).toHaveValue(/"alg": "RS256"/);
+});
+
+test('an unknown header alg gets its own option and a warning', async ({ page }) => {
+	const u = ui(page);
+	const header = Buffer.from('{"alg":"ES256K"}').toString('base64url');
+	await u.token.fill(`${header}.e30.sig`);
+	await expect(u.algorithm).toHaveValue('ES256K');
+	await expect(page.getByRole('status').first()).toContainText('not a known algorithm');
+});
+
+test('the secret is masked until revealed and copy buttons are named', async ({ page }) => {
+	const u = ui(page);
+	await expect(u.secret).toHaveAttribute('type', 'password');
+	await page.getByRole('button', { name: 'SHOW' }).click();
+	await expect(u.secret).toHaveAttribute('type', 'text');
+	await expect(page.getByRole('button', { name: 'Copy header JSON' })).toBeEnabled();
+	await u.token.fill('part1.part2');
+	await expect(page.getByRole('button', { name: 'Copy header JSON' })).toBeDisabled();
 });

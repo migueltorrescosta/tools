@@ -13,8 +13,30 @@ export const ALGORITHMS = [
 	'PS256',
 	'PS384',
 	'PS512',
+	'EdDSA',
 	'none'
 ] as const;
+
+/** ALGORITHMS plus `selected` when it is not one of them, so a select bound to it always has a matching option. */
+export function algorithmOptions(selected: string): string[] {
+	const known: readonly string[] = ALGORITHMS;
+	return known.includes(selected) ? [...known] : [...known, selected];
+}
+
+/**
+ * Why a header alg cannot be used as-is, or '' when it is a known algorithm. A JWS header
+ * must carry alg as a non-empty string (RFC 7515 4.1.1).
+ */
+export function headerAlgWarning(header: JsonObject): string {
+	if (!('alg' in header)) return 'Header has no alg';
+	const alg = header.alg;
+	if (typeof alg !== 'string') return `Header alg must be a string, got ${JSON.stringify(alg)}`;
+	if (!alg) return 'Header alg is empty';
+	if (!(ALGORITHMS as readonly string[]).includes(alg)) {
+		return `Header alg "${alg}" is not a known algorithm`;
+	}
+	return '';
+}
 
 // --- base64url ---
 
@@ -236,7 +258,7 @@ export interface TokenView {
 	warnings: string[];
 	signature: string;
 	signatureError: string;
-	/** Header alg to select, or null to leave the selection alone. */
+	/** Header alg to select (may be outside ALGORITHMS), or null when the header has no usable alg. */
 	alg: string | null;
 	/** Decoded payload, for claim interpretation. */
 	payload: JsonObject | undefined;
@@ -268,7 +290,9 @@ export function tokenView(token: string): TokenView {
 		view.headerJson = pretty;
 		view.warnings.push(...warnings.map((w) => `Header: ${w}`));
 		const alg = decoded.header.alg;
-		view.alg = typeof alg === 'string' && alg ? alg : 'HS256';
+		view.alg = typeof alg === 'string' && alg ? alg : null;
+		const algWarning = headerAlgWarning(decoded.header);
+		if (algWarning) view.warnings.push(algWarning);
 	}
 	view.payloadError = decoded.payloadError;
 	if (decoded.payload) {
@@ -382,7 +406,7 @@ export function signingInput(header: unknown, payload: unknown): string {
 }
 
 export type EncodeInputs =
-	| { ok: true; header: JsonObject; payload: JsonObject }
+	| { ok: true; header: JsonObject; payload: JsonObject; alg: string }
 	| { ok: false; headerError: string; payloadError: string };
 
 function parseObjectText(text: string, name: SegmentName): JsonObject | string {
@@ -396,16 +420,21 @@ function parseObjectText(text: string, name: SegmentName): JsonObject | string {
 }
 
 /**
- * Parses the ENCODE textareas. Both must be JSON objects; the header gets `alg` and `typ: JWT`
- * set so the token claims the algorithm it is signed with.
+ * Parses the ENCODE textareas. Both must be JSON objects. The header JSON is the source of
+ * truth: its alg is what the token is signed with, and `fallbackAlg` (the selected algorithm)
+ * only fills an absent or empty alg. typ is set to JWT only when the header has none, so values
+ * such as at+jwt (RFC 9068) survive.
  */
 export function parseEncodeInputs(
 	headerJson: string,
 	payloadJson: string,
-	alg: string
+	fallbackAlg: string
 ): EncodeInputs {
-	const header = parseObjectText(headerJson, 'Header');
+	let header = parseObjectText(headerJson, 'Header');
 	const payload = parseObjectText(payloadJson, 'Payload');
+	if (typeof header !== 'string' && 'alg' in header && typeof header.alg !== 'string') {
+		header = `Header alg must be a string, got ${JSON.stringify(header.alg)}`;
+	}
 	if (typeof header === 'string' || typeof payload === 'string') {
 		return {
 			ok: false,
@@ -413,7 +442,26 @@ export function parseEncodeInputs(
 			payloadError: typeof payload === 'string' ? payload : ''
 		};
 	}
-	return { ok: true, header: { ...header, alg, typ: 'JWT' }, payload };
+	const alg = typeof header.alg === 'string' && header.alg ? header.alg : fallbackAlg;
+	return { ok: true, header: { ...header, alg, typ: header.typ ?? 'JWT' }, payload, alg };
+}
+
+/** The alg of header JSON text when it is an object with a non-empty string alg, else null. */
+export function headerJsonAlg(headerJson: string): string | null {
+	const header = parseObjectText(headerJson, 'Header');
+	return typeof header !== 'string' && typeof header.alg === 'string' && header.alg
+		? header.alg
+		: null;
+}
+
+/**
+ * Header JSON text with alg set to `alg`, so choosing an algorithm updates the header that
+ * ENCODE signs. Text that is not a JSON object is returned unchanged.
+ */
+export function withHeaderAlg(headerJson: string, alg: string): string {
+	const header = parseObjectText(headerJson, 'Header');
+	if (typeof header === 'string' || header.alg === alg) return headerJson;
+	return JSON.stringify({ ...header, alg }, null, 2);
 }
 
 /** Builds an unsigned token `<header>.<payload>.` (empty signature segment). */

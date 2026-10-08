@@ -11,6 +11,10 @@ import {
 	inspectJson,
 	jsonWarnings,
 	parseEncodeInputs,
+	algorithmOptions,
+	headerAlgWarning,
+	headerJsonAlg,
+	withHeaderAlg,
 	signJwt,
 	signingInput,
 	unsignedReason,
@@ -332,11 +336,35 @@ describe('unsignedReason', () => {
 describe('parseEncodeInputs', () => {
 	const OBJ = '{"sub":"1"}';
 
-	it('sets alg and typ on the header and keeps the payload', () => {
-		expect(parseEncodeInputs('{"kid":"k","alg":"HS256"}', OBJ, 'RS256')).toEqual({
+	it('keeps the header alg and typ instead of overriding them with the selection', () => {
+		expect(parseEncodeInputs('{"alg":"RS256","typ":"at+jwt"}', OBJ, 'HS256')).toEqual({
 			ok: true,
-			header: { kid: 'k', alg: 'RS256', typ: 'JWT' },
-			payload: { sub: '1' }
+			header: { alg: 'RS256', typ: 'at+jwt' },
+			payload: { sub: '1' },
+			alg: 'RS256'
+		});
+	});
+
+	it.each(['{"kid":"k"}', '{"kid":"k","alg":""}'])(
+		'fills a missing or empty alg from the selection and typ JWT for %s',
+		(json) => {
+			expect(parseEncodeInputs(json, OBJ, 'RS256')).toEqual({
+				ok: true,
+				header: { kid: 'k', alg: 'RS256', typ: 'JWT' },
+				payload: { sub: '1' },
+				alg: 'RS256'
+			});
+		}
+	);
+
+	it.each([
+		['{"alg":5}', 'Header alg must be a string, got 5'],
+		['{"alg":null}', 'Header alg must be a string, got null']
+	])('rejects non-string alg in %s', (json, headerError) => {
+		expect(parseEncodeInputs(json, OBJ, 'HS256')).toEqual({
+			ok: false,
+			headerError,
+			payloadError: ''
 		});
 	});
 
@@ -365,6 +393,54 @@ describe('parseEncodeInputs', () => {
 			headerError: 'Invalid header JSON',
 			payloadError: 'Invalid payload JSON'
 		});
+	});
+});
+
+describe('header alg sync', () => {
+	it('reads a non-empty string alg from header JSON', () => {
+		expect(headerJsonAlg('{"alg":"ES256K"}')).toBe('ES256K');
+		expect(headerJsonAlg('{"alg":""}')).toBeNull();
+		expect(headerJsonAlg('{"alg":1}')).toBeNull();
+		expect(headerJsonAlg('{')).toBeNull();
+	});
+
+	it('writes the selected alg into header JSON and keeps other members', () => {
+		const out = withHeaderAlg('{"alg":"HS256","typ":"at+jwt","kid":"k"}', 'RS256');
+		expect(JSON.parse(out)).toEqual({ alg: 'RS256', typ: 'at+jwt', kid: 'k' });
+	});
+
+	it('leaves header JSON untouched when alg already matches or it is not an object', () => {
+		const same = '{ "alg": "HS256" }';
+		expect(withHeaderAlg(same, 'HS256')).toBe(same);
+		expect(withHeaderAlg('{oops', 'HS256')).toBe('{oops');
+		expect(withHeaderAlg('[1]', 'HS256')).toBe('[1]');
+	});
+});
+
+describe('header alg options', () => {
+	it('lists EdDSA', () => {
+		expect(algorithmOptions('HS256')).toContain('EdDSA');
+	});
+
+	it('adds an unknown selected alg as its own option', () => {
+		expect(algorithmOptions('HS256')).not.toContain('ES256K');
+		expect(algorithmOptions('ES256K').at(-1)).toBe('ES256K');
+	});
+
+	it.each([
+		['{"alg":"ES256K"}', 'ES256K', 'Header alg "ES256K" is not a known algorithm'],
+		['{"alg":""}', null, 'Header alg is empty'],
+		['{"alg":7}', null, 'Header alg must be a string, got 7'],
+		['{"typ":"JWT"}', null, 'Header has no alg']
+	])('tokenView of header %s selects %s and warns', (header, alg, warning) => {
+		const v = tokenView(`${base64UrlEncode(header)}.${base64UrlEncode('{}')}.sig`);
+		expect(v.alg).toBe(alg);
+		expect(v.warnings).toEqual([warning]);
+	});
+
+	it('does not warn for a known alg', () => {
+		expect(tokenView(SAMPLE_JWT).warnings).toEqual([]);
+		expect(headerAlgWarning({ alg: 'EdDSA' })).toBe('');
 	});
 });
 
