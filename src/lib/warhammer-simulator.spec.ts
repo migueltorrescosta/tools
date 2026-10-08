@@ -274,14 +274,36 @@ describe('CombatEngine', () => {
 		expect(result.rounds).toBe(50);
 	});
 
-	it('equal stats with equal initiative produce both outcomes', () => {
+	it('the same seed reproduces the same combat exactly', () => {
 		const char = makeChar();
-		const rng = new SeededRNG(42);
-		const engine = new CombatEngine(char, { ...char }, rng);
-		const result = engine.run();
-		expect(['A', 'B', 'mutual', 'draw']).toContain(result.winner);
-		expect(result.rounds).toBeGreaterThanOrEqual(1);
-		expect(result.rounds).toBeLessThanOrEqual(50);
+		const run = () => new CombatEngine(char, { ...char }, new SeededRNG(42)).run();
+		expect(run()).toEqual(run());
+	});
+
+	it('mirror-image fighters win equally often (within 4 sigma)', () => {
+		const char = makeChar();
+		const N = 4000;
+		const r = new MonteCarloController(char, { ...char }, 42).run(N);
+		const sigma = Math.sqrt((r.winRateA + r.winRateB) / N);
+		expect(Math.abs(r.winRateA - r.winRateB)).toBeLessThan(4 * sigma);
+		expect(r.winRateA).toBeGreaterThan(0.2);
+		expect(r.mutualKillRate).toBeGreaterThan(0);
+	});
+
+	it('3 attacks at 4+/4+ with no save average 0.75 wounds (MC vs analytic, 3 sigma)', () => {
+		const attacker = makeChar({ a: 3 });
+		const stats = computeEffectiveStats(attacker, false, 1);
+		const rng = new SeededRNG(77);
+		const N = 50_000;
+		let total = 0;
+		for (let i = 0; i < N; i++) {
+			for (let k = 0; k < stats.attacks; k++) {
+				total += resolveSingleAttack(rng, attacker, attacker, stats, stats);
+			}
+		}
+		// Binomial(3, 1/4): mean 0.75, variance 3 * 1/4 * 3/4 = 0.5625.
+		const sigmaMean = Math.sqrt(0.5625 / N);
+		expect(Math.abs(total / N - 0.75)).toBeLessThan(3 * sigmaMean);
 	});
 
 	it('character with vastly superior stats wins more often', () => {
@@ -419,10 +441,51 @@ describe('MonteCarloController', () => {
 		const results = controller.run(100);
 
 		expect(results.totalRuns).toBe(100);
-		expect(
-			results.winRateA + results.winRateB + results.mutualKillRate + results.drawRate
-		).toBeCloseTo(1.0, 1);
-		expect(results.avgRounds).toBeGreaterThan(0);
+		const counts = [
+			results.winRateA,
+			results.winRateB,
+			results.mutualKillRate,
+			results.drawRate
+		].map((rate) => Math.round(rate * 100));
+		expect(counts.reduce((a, b) => a + b, 0)).toBe(100);
+		expect(results.avgRounds).toBeGreaterThanOrEqual(1);
+	});
+
+	it('aggregateResults computes exact statistics from known results', () => {
+		const base = { remainingWoundsA: 1, remainingWoundsB: 1, abilityActivations: {} };
+		const results: CombatResult[] = [
+			{ ...base, winner: 'A', rounds: 1, damageDealtA: 3, damageDealtB: 0, remainingWoundsB: 0 },
+			{ ...base, winner: 'B', rounds: 2, damageDealtA: 1, damageDealtB: 3, remainingWoundsA: 0 },
+			{
+				...base,
+				winner: 'mutual',
+				rounds: 3,
+				damageDealtA: 3,
+				damageDealtB: 3,
+				remainingWoundsA: 0,
+				remainingWoundsB: 0,
+				abilityActivations: { 'killing-blow': 2 }
+			},
+			{ ...base, winner: 'draw', rounds: 50, damageDealtA: 0, damageDealtB: 0 }
+		];
+		const agg = aggregateResults(results, 4, 9);
+		expect([agg.winRateA, agg.winRateB, agg.mutualKillRate, agg.drawRate]).toEqual([
+			0.25, 0.25, 0.25, 0.25
+		]);
+		expect(agg.avgRounds).toBe(56 / 4);
+		expect(agg.maxRounds).toBe(50);
+		expect(agg.roundDistribution[0]).toBe(1);
+		expect(agg.roundDistribution[1]).toBe(1);
+		expect(agg.roundDistribution[2]).toBe(1);
+		expect(agg.roundDistribution[49]).toBe(1);
+		expect(agg.roundDistribution.reduce((a, b) => a + b, 0)).toBe(4);
+		expect(agg.avgDamageA).toBe(7 / 4);
+		expect(agg.avgDamageB).toBe(6 / 4);
+		expect(agg.damageHistogramA).toEqual([1, 1, 0, 2]);
+		expect(agg.damageHistogramB).toEqual([2, 0, 0, 2]);
+		// Frequency counts combats in which the ability fired, not activations.
+		expect(agg.abilityFrequencies).toEqual({ 'killing-blow': 1 });
+		expect(agg.seedUsed).toBe(9);
 	});
 
 	it('round distribution sums to total runs', () => {
@@ -442,14 +505,10 @@ describe('MonteCarloController', () => {
 		expect(results.survivalA[0]).toBe(1.0);
 		expect(results.survivalB[0]).toBe(1.0);
 
-		// Survival should be non-increasing
+		// Survival must be non-increasing, with no tolerance.
 		for (let i = 1; i < results.survivalA.length; i++) {
-			if (results.survivalA[i] !== undefined) {
-				expect(results.survivalA[i]).toBeLessThanOrEqual(results.survivalA[i - 1] + 0.01);
-			}
-			if (results.survivalB[i] !== undefined) {
-				expect(results.survivalB[i]).toBeLessThanOrEqual(results.survivalB[i - 1] + 0.01);
-			}
+			expect(results.survivalA[i]).toBeLessThanOrEqual(results.survivalA[i - 1]);
+			expect(results.survivalB[i]).toBeLessThanOrEqual(results.survivalB[i - 1]);
 		}
 	});
 });
