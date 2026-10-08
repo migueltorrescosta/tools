@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import rawSolutionTree from '$lib/wordle-solution';
 
 import {
+	answerMessage,
+	colorName,
 	cycleColor,
 	cycleTile,
 	EMPTY_RESULT,
@@ -13,6 +15,7 @@ import {
 	OPENER,
 	setTile,
 	step,
+	tileLabel,
 	undoLast,
 	type Attempt,
 	type SolutionTree,
@@ -444,6 +447,7 @@ describe('step', () => {
 			word: '',
 			done: false,
 			won: false,
+			solved: false,
 			error: INVALID_RESULT_MESSAGE
 		});
 	});
@@ -475,15 +479,43 @@ describe('step', () => {
 			word: 'mulch',
 			done: false,
 			won: false,
+			solved: false,
 			error: ''
 		});
 	});
 
-	it('suggests the answer when the pattern leads to a leaf', () => {
+	it('reaching a leaf names the answer and keeps the game open for the confirming GGGGG', () => {
 		const s = step(fixture, 'YBBBB');
-		expect(s.word).toBe('other');
-		expect(s.next).toEqual({});
-		expect(s.error).toBe('');
+		expect(s).toEqual({
+			next: {},
+			word: 'other',
+			done: false,
+			won: false,
+			solved: true,
+			error: ''
+		});
+		expect(step(s.next, 'GGGGG')).toMatchObject({ won: true, done: true, error: '' });
+	});
+
+	it('after a leaf, any result other than GGGGG is a correctable no-match', () => {
+		const leaf = step(fixture, 'YBBBB');
+		expect(step(leaf.next, 'GBBBB')).toMatchObject({
+			done: false,
+			won: false,
+			error: NO_MATCH_MESSAGE
+		});
+	});
+
+	it('an internal node is not reported as solved', () => {
+		expect(step(fixture, 'BBBBB').solved).toBe(false);
+	});
+
+	it('follows the real tree to a leaf: RAISE BGGBG -> WINDY GYBBB -> WAIVE', () => {
+		const first = step(solutionTree, 'BGGBG');
+		expect(first).toMatchObject({ word: 'windy', solved: false, done: false });
+		const second = step(first.next, 'GYBBB');
+		expect(second).toMatchObject({ word: 'waive', solved: true, done: false, error: '' });
+		expect(step(second.next, 'GGGGG').won).toBe(true);
 	});
 
 	it('does not mutate the tree it is given', () => {
@@ -625,5 +657,26 @@ describe('Solution tree consistency with Wordle scoring', () => {
 
 	it('stores no GGGGG keys', () => {
 		expect(leaves.flatMap((l) => l.steps).filter((s) => s.key === 'GGGGG')).toEqual([]);
+	});
+});
+
+describe('answerMessage', () => {
+	it('names the remaining word in upper case and says how to finish', () => {
+		expect(answerMessage('waive')).toBe(
+			'Answer: WAIVE. Play it, mark every tile green and Submit.'
+		);
+	});
+});
+
+describe('tile accessibility labels', () => {
+	it('names every colour', () => {
+		expect(colorName('B')).toBe('black');
+		expect(colorName('Y')).toBe('yellow');
+		expect(colorName('G')).toBe('green');
+	});
+
+	it('labels a tile with letter, 1-based position and colour', () => {
+		expect(tileLabel('R', 0, 'B')).toBe('R, position 1: black');
+		expect(tileLabel('E', 4, 'G')).toBe('E, position 5: green');
 	});
 });

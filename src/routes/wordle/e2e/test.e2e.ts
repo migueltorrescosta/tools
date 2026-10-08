@@ -91,6 +91,45 @@ test('Wordle Solver - happy path suggests the next word and records history up t
 	await submitBtn.click();
 	await expect(page.locator('.error-message')).toHaveText('CONGRATULATIONS');
 	await expect(page.locator('button:has-text("Start New Game")')).toBeVisible();
+	// The input row is gone once the game is won: no placeholder glyphs, nothing to click.
+	await expect(page.locator('.tile-input')).toHaveCount(0);
+});
+
+test('Wordle Solver - reaching a leaf names the answer and GGGGG confirms it', async ({ page }) => {
+	await open(page);
+	const tileInputs = page.locator('.tile-input');
+	const submitBtn = page.locator('button:has-text("Submit")');
+
+	// RAISE scored BGGBG: the tree suggests WINDY
+	for (const i of [1, 2, 4]) await tileInputs.nth(i).press('g');
+	await submitBtn.click();
+	await expect(page.locator('.input-tiles')).toHaveText('WINDY');
+
+	// WINDY scored GYBBB: only WAIVE is left
+	await tileInputs.nth(0).press('g');
+	await tileInputs.nth(1).press('y');
+	await submitBtn.click();
+	await expect(page.locator('.input-tiles')).toHaveText('WAIVE');
+	await expect(page.locator('.error-message')).toContainText('Answer: WAIVE');
+	await expect(submitBtn).toBeVisible();
+
+	for (let i = 0; i < 5; i++) await tileInputs.nth(i).press('g');
+	await submitBtn.click();
+	await expect(page.locator('.error-message')).toHaveText('CONGRATULATIONS');
+	await expect(page.locator('.tile-input')).toHaveCount(0);
+});
+
+test('Wordle Solver - tiles expose letter, position and colour to assistive tech', async ({
+	page
+}) => {
+	await open(page);
+
+	await expect(page.getByRole('button', { name: /R, position 1: black/ })).toBeVisible();
+	await page.getByRole('button', { name: /A, position 2: black/ }).press('y');
+	await expect(page.getByRole('button', { name: /A, position 2: yellow/ })).toBeVisible();
+
+	await page.locator('button:has-text("Submit")').click();
+	await expect(page.getByRole('img', { name: 'A, position 2: yellow' })).toBeVisible();
 });
 
 test('Wordle Solver - restart game button appears on game over', async ({ page }) => {

@@ -2,13 +2,16 @@
 	import { onMount } from 'svelte';
 	import solutionTree from '$lib/wordle-solution';
 	import {
+		answerMessage,
 		cycleTile as cycleResultTile,
 		getTileColor,
 		newAttempt,
 		OPENER,
 		setTile,
 		step,
+		tileLabel,
 		undoLast,
+		WIN_MESSAGE,
 		type Attempt,
 		type SolutionTree,
 		type TileColor
@@ -19,15 +22,16 @@
 	// visited[i] is the tree that was current when history[i] was submitted.
 	let visited = $state<SolutionTree[]>([]);
 	let nextAttempt = $state<Attempt>(newAttempt(OPENER));
-	let errorMessage = $state('');
+	let message = $state('');
+	let messageKind = $state<'error' | 'success' | 'info'>('error');
 	/** Set once the page is interactive, so e2e tests can wait for hydration. */
 	let hydrated = $state(false);
 	onMount(() => (hydrated = true));
 	let gameOver = $state(false);
 
-	function handleResultChange(e: Event) {
-		const target = e.target as HTMLInputElement;
-		nextAttempt = { ...nextAttempt, result: target.value.toUpperCase() };
+	function showMessage(text: string, kind: typeof messageKind = 'error') {
+		message = text;
+		messageKind = kind;
 	}
 
 	function cycleTile(index: number) {
@@ -62,7 +66,7 @@
 		const outcome = step(currentSolutionTree, result);
 
 		if (outcome.error) {
-			errorMessage = outcome.error;
+			showMessage(outcome.error);
 			gameOver = outcome.done;
 			return;
 		}
@@ -73,13 +77,13 @@
 		gameOver = outcome.done;
 
 		if (outcome.won) {
-			errorMessage = 'CONGRATULATIONS';
-			nextAttempt = newAttempt('🎉🎉🎉');
+			// The input row is hidden once the game is over, so it needs no word.
+			showMessage(WIN_MESSAGE, 'success');
 			return;
 		}
 
 		nextAttempt = newAttempt(outcome.word.toUpperCase());
-		errorMessage = '';
+		showMessage(outcome.solved ? answerMessage(outcome.word) : '', 'info');
 	}
 
 	function undoLastRow() {
@@ -89,7 +93,7 @@
 		visited = undone.visited;
 		history = undone.history;
 		nextAttempt = undone.attempt;
-		errorMessage = '';
+		showMessage('');
 		gameOver = false;
 	}
 
@@ -98,7 +102,7 @@
 		history = [];
 		visited = [];
 		nextAttempt = newAttempt(OPENER);
-		errorMessage = '';
+		showMessage('');
 		gameOver = false;
 	}
 </script>
@@ -133,7 +137,10 @@
 											class="tile"
 											class:black={attempt.result[i] === 'B'}
 											class:yellow={attempt.result[i] === 'Y'}
-											class:green={attempt.result[i] === 'G'}>{attempt.word[i]}</span
+											class:green={attempt.result[i] === 'G'}
+											role="img"
+											aria-label={tileLabel(attempt.word[i], i, getTileColor(attempt.result, i))}
+											>{attempt.word[i]}</span
 										>
 									{/each}
 								</div>
@@ -142,20 +149,27 @@
 					{/each}
 					<tr>
 						<td class="word-cell current">
-							<div class="input-tiles">
-								{#each Array(5) as _, i}
-									<button
-										class="tile-input"
-										class:black={getTileColor(nextAttempt.result, i) === 'B'}
-										class:yellow={getTileColor(nextAttempt.result, i) === 'Y'}
-										class:green={getTileColor(nextAttempt.result, i) === 'G'}
-										onclick={() => cycleTile(i)}
-										onkeydown={(e) => handleTileKeydown(e, i)}
-										title="Click to cycle: Black (not in word) → Yellow → Green. Keys: 1/B=Black, 2/Y=Yellow, 3/G=Green, Arrow keys to navigate"
-										>{nextAttempt.word[i]}</button
-									>
-								{/each}
-							</div>
+							{#if !gameOver}
+								<div class="input-tiles">
+									{#each Array(5) as _, i}
+										<button
+											class="tile-input"
+											class:black={getTileColor(nextAttempt.result, i) === 'B'}
+											class:yellow={getTileColor(nextAttempt.result, i) === 'Y'}
+											class:green={getTileColor(nextAttempt.result, i) === 'G'}
+											onclick={() => cycleTile(i)}
+											onkeydown={(e) => handleTileKeydown(e, i)}
+											aria-label={tileLabel(
+												nextAttempt.word[i],
+												i,
+												getTileColor(nextAttempt.result, i)
+											)}
+											title="Click to cycle: Black (not in word) → Yellow → Green. Keys: 1/B=Black, 2/Y=Yellow, 3/G=Green, Arrow keys to navigate"
+											>{nextAttempt.word[i]}</button
+										>
+									{/each}
+								</div>
+							{/if}
 						</td>
 						<td class="result-cell">
 							{#if gameOver}
@@ -171,11 +185,17 @@
 				</tbody>
 			</table>
 
-			{#if errorMessage}
-				<div class="error-message" class:success={errorMessage === 'CONGRATULATIONS'}>
-					{errorMessage}
-				</div>
-			{/if}
+			<div role="status">
+				{#if message}
+					<div
+						class="error-message"
+						class:success={messageKind === 'success'}
+						class:info={messageKind === 'info'}
+					>
+						{message}
+					</div>
+				{/if}
+			</div>
 		</div>
 	</div>
 
@@ -198,8 +218,30 @@
 		After entering your guess in the actual Wordle game, look at the colored tiles to see which
 		letters are in the correct position (green), which letters are in the word but the wrong
 		position (yellow), and which letters are not in the word at all (black). Click on the colored
-		tiles in this tool to match what you saw, then click Submit. The tool will suggest the next best
-		word to try based on all your previous results, helping you solve the puzzle in fewer guesses by
-		narrowing down the possible answers.
+		tiles in this tool to match what you saw, then click Submit, and the tool shows the next word to
+		play.
+		<p>
+			The suggestions follow a fixed, precomputed decision tree: open with RAISE and play every
+			suggested word exactly as shown. If you opened with a different word or played anything else,
+			the remaining suggestions no longer apply. Some suggestions are probe words that can never be
+			the answer: they are chosen because their colours split the remaining candidates best. When
+			only one candidate is left the tool says so; play it and mark every tile green to finish.
+		</p>
+		<p>
+			Normal mode only: some suggestions ignore letters you already found, so Wordle's Hard Mode
+			will reject them.
+		</p>
 	</div>
 </div>
+
+<style>
+	.error-message.info {
+		background: rgba(0, 245, 255, 0.08);
+		border-color: rgba(0, 245, 255, 0.4);
+		color: #8ff8ff;
+	}
+
+	.wordle-explanation p {
+		margin: 0.75rem 0 0;
+	}
+</style>

@@ -12,6 +12,12 @@ export const OPENER = 'RAISE';
 export const WIN_RESULT = 'GGGGG';
 export const INVALID_RESULT_MESSAGE = 'This is not a valid result. Please try again.';
 export const NO_MATCH_MESSAGE = 'There are no words satisfying all the results listed. Try again?';
+export const WIN_MESSAGE = 'CONGRATULATIONS';
+
+/** Shown when the tree is down to one word: the user still has to play it and confirm GGGGG. */
+export function answerMessage(word: string): string {
+	return `Answer: ${word.toUpperCase()}. Play it, mark every tile green and Submit.`;
+}
 
 const COLORS: TileColor[] = ['B', 'Y', 'G'];
 
@@ -30,6 +36,17 @@ export function newAttempt(word: string): Attempt {
 
 export function isValidResult(result: string): boolean {
 	return /^[BGY]{5}$/.test(result);
+}
+
+const COLOR_NAMES: Record<TileColor, string> = { B: 'black', Y: 'yellow', G: 'green' };
+
+export function colorName(color: TileColor): string {
+	return COLOR_NAMES[color];
+}
+
+/** Accessible name for a tile, so its colour is not conveyed by CSS alone. */
+export function tileLabel(letter: string, index: number, color: TileColor): string {
+	return `${letter}, position ${index + 1}: ${colorName(color)}`;
 }
 
 export function getTileColor(result: string, index: number): TileColor {
@@ -59,6 +76,11 @@ export interface Step {
 	done: boolean;
 	/** True when the submitted result is all green. */
 	won: boolean;
+	/**
+	 * True when `word` is the only remaining candidate. The game stays open so the
+	 * user can play it and confirm GGGGG; `next` is empty, so any other result is a no-match.
+	 */
+	solved: boolean;
 	/** Error to show; when non-empty the submission is not recorded. */
 	error: string;
 }
@@ -66,20 +88,34 @@ export interface Step {
 /** Advance the solver by one submitted result. Pure: never mutates `tree`. */
 export function step(tree: SolutionTree, result: string): Step {
 	if (!isValidResult(result)) {
-		return { next: tree, word: '', done: false, won: false, error: INVALID_RESULT_MESSAGE };
+		return {
+			next: tree,
+			word: '',
+			done: false,
+			won: false,
+			solved: false,
+			error: INVALID_RESULT_MESSAGE
+		};
 	}
 	if (result === WIN_RESULT) {
-		return { next: {}, word: '', done: true, won: true, error: '' };
+		return { next: {}, word: '', done: true, won: true, solved: false, error: '' };
 	}
 	const node = tree[result];
 	if (node === undefined) {
 		// Not terminal: the user most likely mis-clicked a tile and can fix it and resubmit.
-		return { next: tree, word: '', done: false, won: false, error: NO_MATCH_MESSAGE };
+		return {
+			next: tree,
+			word: '',
+			done: false,
+			won: false,
+			solved: false,
+			error: NO_MATCH_MESSAGE
+		};
 	}
 	if (Array.isArray(node.subtree)) {
-		return { next: {}, word: node.word, done: true, won: false, error: '' };
+		return { next: {}, word: node.word, done: false, won: false, solved: true, error: '' };
 	}
-	return { next: node.subtree, word: node.word, done: false, won: false, error: '' };
+	return { next: node.subtree, word: node.word, done: false, won: false, solved: false, error: '' };
 }
 
 export interface Undo {
