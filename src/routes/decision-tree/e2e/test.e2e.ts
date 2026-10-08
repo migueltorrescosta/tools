@@ -97,6 +97,24 @@ test.describe('Decision Tree E2E', () => {
 		await expect(questions.last()).toHaveText('Need 3 rows?');
 	});
 
+	// 3b. Saved path restores without a query string (localStorage)
+	test('state restores from localStorage when visiting without ?p', async ({ page }) => {
+		await page.locator('.answer-row').nth(0).getByRole('button', { name: 'Choose a car' }).click();
+		await page
+			.locator('.answer-row')
+			.nth(1)
+			.getByRole('button', { name: 'Family practicality' })
+			.click();
+		await expect(page).toHaveURL(/\?p=/);
+
+		await page.goto('/decision-tree');
+
+		const questions = page.locator('.question-prompt');
+		await expect(questions).toHaveCount(3);
+		await expect(questions.last()).toHaveText('Need 3 rows?');
+		await expect(page).toHaveURL(/\?p=/);
+	});
+
 	// 4. Shareable URL restores state
 	test('shareable URL restores traversal state', async ({ page }) => {
 		// Navigate to a result

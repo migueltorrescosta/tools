@@ -157,6 +157,26 @@ export function sanitizePath(graph: DecisionGraph, path: unknown): TraversalPath
 	return valid;
 }
 
+/**
+ * The path to start from: the `?p=` value if it yields a valid non-empty
+ * prefix, else the saved JSON from storage, else the root. Both are trimmed to
+ * their longest valid prefix so stale or crafted paths never reach state.
+ */
+export function restorePath(
+	graph: DecisionGraph,
+	urlParam: string | null,
+	saved: string | null
+): TraversalPath {
+	const urlPath = urlParam ? sanitizePath(graph, decodePath(urlParam)) : [];
+	if (urlPath.length > 0) return urlPath;
+	if (!saved) return [];
+	try {
+		return sanitizePath(graph, JSON.parse(saved));
+	} catch {
+		return [];
+	}
+}
+
 /** Encode a traversal path URL query parameter value */
 export function encodePath(path: TraversalPath): string {
 	return encodeURIComponent(path.join(','));

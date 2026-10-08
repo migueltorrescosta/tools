@@ -1,14 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import {
-		buildGraph,
-		computeRows,
-		getAnswersForNode,
-		encodePath,
-		decodePath,
-		sanitizePath
-	} from '$lib/decision-tree/graph';
+	import { browser } from '$app/environment';
+	import { createPersistGate } from '$lib/persist-gate';
+	import { buildGraph, computeRows, encodePath, restorePath } from '$lib/decision-tree/graph';
 	import { validateGraph } from '$lib/decision-tree/validation';
 	import rawTreeData from '$lib/decision-tree/data/tree.json';
 	import type { DecisionGraph, TraversalPath, RawTree } from '$lib/decision-tree/types';
@@ -43,12 +38,6 @@
 				})()
 	);
 	// --- URL helpers ---
-	function readPathFromUrl(): TraversalPath | null {
-		const p = page.url.searchParams.get('p');
-		if (!p) return null;
-		return decodePath(p);
-	}
-
 	function writePathToUrl(path: TraversalPath) {
 		const params = new URLSearchParams(page.url.search);
 		if (path.length > 0) {
@@ -102,9 +91,16 @@
 	}
 
 	// --- Autosave & URL sync ---
+	const STORAGE_KEY = 'decision-tree-path';
+	// Closed until onMount has restored the saved path: this effect runs before
+	// onMount and would otherwise overwrite the saved path and ?p with [].
+	const persist = createPersistGate(browser ? localStorage : null);
+
 	$effect(() => {
 		const path = traversalPath;
-		localStorage.setItem('decision-tree-path', JSON.stringify(path));
+		const json = JSON.stringify(path);
+		if (!persist.isOpen) return;
+		persist.write(STORAGE_KEY, json);
 		writePathToUrl(path);
 	});
 
@@ -112,22 +108,15 @@
 	onMount(() => {
 		isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
-		// Restore state: URL takes priority, then localStorage. Both are
-		// trimmed to their longest valid prefix so stale or crafted paths
-		// never reach state.
-		const urlPath = sanitizePath(graph, readPathFromUrl());
-		if (urlPath.length > 0) {
-			traversalPath = urlPath;
-		} else {
-			try {
-				const saved = localStorage.getItem('decision-tree-path');
-				if (saved) {
-					traversalPath = sanitizePath(graph, JSON.parse(saved));
-				}
-			} catch {
-				// Ignore corrupt localStorage
-			}
+		// Restore state: URL takes priority, then localStorage
+		let saved: string | null = null;
+		try {
+			saved = localStorage.getItem(STORAGE_KEY);
+		} catch {
+			// Storage blocked: start from the URL or the root
 		}
+		traversalPath = restorePath(graph, page.url.searchParams.get('p'), saved);
+		persist.open();
 	});
 </script>
 

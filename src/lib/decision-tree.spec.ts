@@ -7,6 +7,7 @@ import {
 	encodePath,
 	decodePath,
 	sanitizePath,
+	restorePath,
 	isResultNode,
 	isQuestionNode,
 	type QuestionRow,
@@ -577,6 +578,20 @@ describe('Foreign path edges', () => {
 			'root|Lowest cost',
 			'q_city|Yes'
 		]);
+	});
+
+	it('restorePath prefers a valid ?p, then the saved path, then the root', () => {
+		const graph = makeCarGraph();
+		const saved = JSON.stringify(['root|Lowest cost', 'q_city|No']);
+		const url = encodePath(['root|Lowest cost', 'q_city|Yes']);
+		expect(restorePath(graph, url, saved)).toEqual(['root|Lowest cost', 'q_city|Yes']);
+		expect(restorePath(graph, null, saved)).toEqual(['root|Lowest cost', 'q_city|No']);
+		expect(restorePath(graph, encodePath(['q_city|Yes']), saved)).toEqual([
+			'root|Lowest cost',
+			'q_city|No'
+		]);
+		expect(restorePath(graph, null, null)).toEqual([]);
+		expect(restorePath(graph, null, '{not json')).toEqual([]);
 	});
 
 	it('sanitizePath tolerates corrupt stored values', () => {
