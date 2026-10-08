@@ -75,32 +75,37 @@ describe('SeededRNG', () => {
 // ── Tables Tests ──
 
 describe('WS To-Hit Table', () => {
-	it('returns 3+ when attacker WS >= defender WS × 2', () => {
+	// Independent oracle for The Old World combat to-hit chart.
+	function rulebookToHit(attacker: number, target: number): number {
+		if (attacker > target) return 3;
+		if (target > 2 * attacker) return 5;
+		return 4;
+	}
+
+	it('matches the rulebook chart over the full WS 1..10 grid', () => {
+		for (let a = 1; a <= 10; a++) {
+			for (let d = 1; d <= 10; d++) {
+				expect(getToHitTarget(a, d), `WS${a} vs WS${d}`).toBe(rulebookToHit(a, d));
+			}
+		}
+	});
+
+	it('pins the cases the old ratio table got wrong', () => {
+		expect(getToHitTarget(5, 4)).toBe(3);
 		expect(getToHitTarget(8, 4)).toBe(3);
-		expect(getToHitTarget(6, 3)).toBe(3);
-		expect(getToHitTarget(10, 5)).toBe(3);
+		expect(getToHitTarget(4, 5)).toBe(4);
+		expect(getToHitTarget(2, 4)).toBe(4);
+		expect(getToHitTarget(3, 6)).toBe(4);
+		expect(getToHitTarget(2, 5)).toBe(5);
+		expect(getToHitTarget(1, 5)).toBe(5);
 	});
 
-	it('returns 4+ when attacker WS > defender WS (but not double)', () => {
-		expect(getToHitTarget(5, 4)).toBe(4);
-		expect(getToHitTarget(7, 5)).toBe(4);
-	});
-
-	it('returns 4+ when WS equal', () => {
-		expect(getToHitTarget(4, 4)).toBe(4);
-		expect(getToHitTarget(7, 7)).toBe(4);
-	});
-
-	it('returns 5+ when attacker WS < defender WS (but more than half)', () => {
-		expect(getToHitTarget(4, 5)).toBe(5);
-		expect(getToHitTarget(3, 4)).toBe(5);
-		expect(getToHitTarget(5, 7)).toBe(5);
-	});
-
-	it('returns 6+ when attacker WS <= defender WS / 2', () => {
-		expect(getToHitTarget(2, 4)).toBe(6);
-		expect(getToHitTarget(3, 6)).toBe(6);
-		expect(getToHitTarget(1, 5)).toBe(6);
+	it('never requires 6+ in melee', () => {
+		for (let a = 1; a <= 10; a++) {
+			for (let d = 1; d <= 10; d++) {
+				expect(getToHitTarget(a, d)).toBeLessThanOrEqual(5);
+			}
+		}
 	});
 });
 

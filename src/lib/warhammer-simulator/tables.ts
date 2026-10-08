@@ -6,28 +6,24 @@
  */
 
 // ── Weapon Skill To-Hit Table ──
-// Returns the minimum D6 roll needed to hit (2+ through 6+).
+// Returns the minimum D6 roll needed to hit in combat, per The Old World chart:
+//   attacker WS higher than target            -> 3+
+//   attacker WS equal or lower                -> 4+
+//   target WS more than double attacker's WS  -> 5+
+// Rules note: some readings of the chart add a 2+ row when the attacker's WS is
+// more than double the target's. That row is not confirmed against the rulebook,
+// so it is deliberately not modelled; a superior attacker always needs 3+.
 export function getToHitTarget(attackerWS: number, defenderWS: number): number {
-	if (attackerWS >= defenderWS * 2) {
-		return 3; // 3+ to hit (WS double or more)
-	} else if (attackerWS > defenderWS) {
-		return 4; // 4+ to hit (WS greater)
-	} else if (attackerWS === defenderWS) {
-		return 4; // 4+ to hit (WS equal)
-	} else if (attackerWS * 2 > defenderWS) {
-		return 5; // 5+ to hit (WS less but more than half)
-	} else {
-		return 6; // 6+ to hit (WS half or less)
-	}
+	if (attackerWS > defenderWS) return 3;
+	if (defenderWS > attackerWS * 2) return 5;
+	return 4;
 }
 
 // Returns a human-readable label for the WS comparison.
 export function getWSComparisonLabel(attackerWS: number, defenderWS: number): string {
-	if (attackerWS >= defenderWS * 2) return 'WS double or more (3+)';
-	if (attackerWS > defenderWS) return 'WS greater (4+)';
-	if (attackerWS === defenderWS) return 'WS equal (4+)';
-	if (attackerWS * 2 > defenderWS) return 'WS less (5+)';
-	return 'WS half or less (6+)';
+	if (attackerWS > defenderWS) return 'WS higher (3+)';
+	if (defenderWS > attackerWS * 2) return 'Target WS more than double (5+)';
+	return 'WS equal or lower (4+)';
 }
 
 // ── Strength vs Toughness Wound Table ──
