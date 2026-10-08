@@ -10,11 +10,12 @@ Run all before committing:
 pnpm test:unit
 pnpm run check
 pnpm run lint
+pnpm test:e2e
 ```
 
 - `check` runs svelte-check (TypeScript type checking, strict mode).
-- `lint` runs ESLint.
-- Playwright e2e tests (`pnpm test:e2e`) are not part of the standard gate but should be run for UI changes.
+- `lint` runs Prettier and ESLint.
+- `test:e2e` runs Playwright against `pnpm dev` on port 5173. Every route has a suite in `src/routes/<route>/e2e/`; the index has one in `src/routes/e2e/`. Set `CI=1` so Playwright starts its own server instead of reusing whatever already listens on 5173.
 
 ## Structure
 
