@@ -4,9 +4,11 @@ import rawSolutionTree from '$lib/wordle-solution';
 import {
 	cycleColor,
 	cycleTile,
+	EMPTY_RESULT,
 	getTileColor,
 	INVALID_RESULT_MESSAGE,
 	isValidResult,
+	newAttempt,
 	NO_MATCH_MESSAGE,
 	setTile,
 	step,
@@ -495,5 +497,21 @@ describe('step', () => {
 		expect(s.error).toBe('');
 		expect(s.word).toBe('mulch');
 		expect(s.next).toBe(solutionTree.BBBBB.subtree);
+	});
+});
+
+describe('newAttempt', () => {
+	it('starts with the result the untouched (all-black) tiles show', () => {
+		const attempt = newAttempt('RAISE');
+		expect(attempt).toEqual({ word: 'RAISE', result: EMPTY_RESULT });
+		for (let i = 0; i < 5; i++) {
+			expect(getTileColor(attempt.result, i)).toBe(attempt.result[i]);
+		}
+	});
+
+	it('submitting an untouched row is accepted: RAISE scored all black suggests MULCH', () => {
+		const s = step(solutionTree, newAttempt('RAISE').result);
+		expect(s.error).toBe('');
+		expect(s.word).toBe('mulch');
 	});
 });

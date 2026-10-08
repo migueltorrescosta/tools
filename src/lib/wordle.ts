@@ -13,6 +13,19 @@ export const NO_MATCH_MESSAGE = 'There are no words satisfying all the results l
 
 const COLORS: TileColor[] = ['B', 'Y', 'G'];
 
+/** Untouched tiles render black, so an untouched row means all black. */
+export const EMPTY_RESULT = 'BBBBB';
+
+export interface Attempt {
+	word: string;
+	result: string;
+}
+
+/** A fresh input row: its result matches the all-black tiles the user sees. */
+export function newAttempt(word: string): Attempt {
+	return { word, result: EMPTY_RESULT };
+}
+
 export function isValidResult(result: string): boolean {
 	return /^[BGY]{5}$/.test(result);
 }

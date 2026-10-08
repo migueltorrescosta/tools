@@ -3,20 +3,17 @@
 	import {
 		cycleTile as cycleResultTile,
 		getTileColor,
+		newAttempt,
 		setTile,
 		step,
+		type Attempt,
 		type SolutionTree,
 		type TileColor
 	} from '$lib/wordle';
 
-	interface Attempt {
-		word: string;
-		result: string;
-	}
-
 	let currentSolutionTree = $state<SolutionTree>(solutionTree);
 	let history = $state<Attempt[]>([]);
-	let nextAttempt = $state<Attempt>({ word: 'RAISE', result: '' });
+	let nextAttempt = $state<Attempt>(newAttempt('RAISE'));
 	let errorMessage = $state('');
 	let gameOver = $state(false);
 
@@ -68,18 +65,18 @@
 
 		if (outcome.won) {
 			errorMessage = 'CONGRATULATIONS';
-			nextAttempt = { word: '🎉🎉🎉', result: '' };
+			nextAttempt = newAttempt('🎉🎉🎉');
 			return;
 		}
 
-		nextAttempt = { word: outcome.word.toUpperCase(), result: '' };
+		nextAttempt = newAttempt(outcome.word.toUpperCase());
 		errorMessage = '';
 	}
 
 	function restartGame() {
 		currentSolutionTree = solutionTree;
 		history = [];
-		nextAttempt = { word: 'RAISE', result: '' };
+		nextAttempt = newAttempt('RAISE');
 		errorMessage = '';
 		gameOver = false;
 	}

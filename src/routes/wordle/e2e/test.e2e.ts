@@ -92,3 +92,19 @@ test('Wordle Solver - restart game button appears on game over', async ({ page }
 	// Game should be reset - submit button should be visible again
 	await expect(page.locator('button:has-text("Submit")')).toBeVisible();
 });
+
+test('Wordle Solver - untouched all-black row submits as BBBBB', async ({ page }) => {
+	await page.goto('/wordle');
+	await page.waitForLoadState('networkidle');
+
+	await page.locator('button:has-text("Submit")').click();
+
+	await expect(page.locator('.error-message')).toHaveCount(0);
+	const historyTiles = page.locator('.result-tiles .tile');
+	await expect(historyTiles).toHaveCount(5);
+	for (let i = 0; i < 5; i++) {
+		await expect(historyTiles.nth(i)).toHaveClass(/black/);
+	}
+	await expect(page.locator('.result-tiles')).toHaveText('RAISE');
+	await expect(page.locator('.input-tiles')).toHaveText('MULCH');
+});
