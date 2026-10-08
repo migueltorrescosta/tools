@@ -93,6 +93,8 @@ export interface QuestionRow {
 export interface AnswerRow {
 	type: 'answer';
 	index: number;
+	/** Position of this answer in the traversal path (0 for the root question). */
+	depth: number;
 	edges: AnswerEdge[];
 	selectedEdgeId?: string;
 }
@@ -127,7 +129,13 @@ export function computeRows(graph: DecisionGraph, path: TraversalPath): Row[] {
 		const candidate = i < path.length ? path[i] : undefined;
 		const edge = candidate !== undefined ? graph.edges.get(candidate) : undefined;
 		const followed = edge && edge.sourceId === currentNodeId ? edge : undefined;
-		rows.push({ type: 'answer', index: rows.length, edges, selectedEdgeId: followed?.id });
+		rows.push({
+			type: 'answer',
+			index: rows.length,
+			depth: i,
+			edges,
+			selectedEdgeId: followed?.id
+		});
 
 		// Follow the selected edge, or stop at an invalid or missing one
 		if (!followed) break;
@@ -155,6 +163,11 @@ export function sanitizePath(graph: DecisionGraph, path: unknown): TraversalPath
 		currentNodeId = edge.targetId;
 	}
 	return valid;
+}
+
+/** Choose `edgeId` as the answer at `depth`, dropping every later answer. */
+export function selectAnswer(path: TraversalPath, depth: number, edgeId: string): TraversalPath {
+	return [...path.slice(0, depth), edgeId];
 }
 
 /**

@@ -3,7 +3,13 @@
 	import { page } from '$app/state';
 	import { browser } from '$app/environment';
 	import { createPersistGate } from '$lib/persist-gate';
-	import { buildGraph, computeRows, encodePath, restorePath } from '$lib/decision-tree/graph';
+	import {
+		buildGraph,
+		computeRows,
+		encodePath,
+		restorePath,
+		selectAnswer as choose
+	} from '$lib/decision-tree/graph';
 	import { validateGraph } from '$lib/decision-tree/validation';
 	import rawTreeData from '$lib/decision-tree/data/tree.json';
 	import type { DecisionGraph, TraversalPath, RawTree } from '$lib/decision-tree/types';
@@ -51,14 +57,8 @@
 	}
 
 	// --- Answer selection ---
-	function selectAnswer(edgeId: string, rowIndex: number) {
-		// rowIndex is the answer row's index in visibleRows
-		// Answer rows are: index 1, 3, 5, 7, ...
-		// Path position = (rowIndex - 1) / 2
-		const pathIndex = (rowIndex - 1) / 2;
-
-		// Truncate path up to this position and append the new edge
-		traversalPath = [...traversalPath.slice(0, pathIndex), edgeId];
+	function selectAnswer(edgeId: string, depth: number) {
+		traversalPath = choose(traversalPath, depth, edgeId);
 
 		// Clear revealed explanations on path change
 		revealedExplanations = new Set();
@@ -143,13 +143,13 @@
 							class="answer-btn"
 							class:selected={edge.id === row.selectedEdgeId}
 							class:has-explanation={!!edge.explanation}
-							onclick={() => selectAnswer(edge.id, row.index)}
+							onclick={() => selectAnswer(edge.id, row.depth)}
 							onmouseenter={() => showExplanation(edge.id)}
 							onmouseleave={() => hideExplanation(edge.id)}
 							onkeydown={(e) => {
 								if (e.key === 'Enter' || e.key === ' ') {
 									e.preventDefault();
-									selectAnswer(edge.id, row.index);
+									selectAnswer(edge.id, row.depth);
 								}
 							}}
 						>

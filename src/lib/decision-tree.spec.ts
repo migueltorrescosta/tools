@@ -8,6 +8,7 @@ import {
 	decodePath,
 	sanitizePath,
 	restorePath,
+	selectAnswer,
 	isResultNode,
 	isQuestionNode,
 	type QuestionRow,
@@ -91,9 +92,10 @@ describe('Changing answer removes downstream rows', () => {
 		const graph = makeCarGraph();
 		const path: TraversalPath = ['root|Lowest cost', 'q_city|Yes'];
 
-		// User changes the first answer to a different branch
-		const newPath: TraversalPath = ['root|Lowest cost', 'q_city|No'];
-		const rows = computeRows(graph, newPath);
+		// User changes the answer on the second question, read off its answer row
+		const row = computeRows(graph, path)[3] as AnswerRow;
+		expect(row.depth).toBe(1);
+		const rows = computeRows(graph, selectAnswer(path, row.depth, 'q_city|No'));
 
 		expect(rows.length).toBe(5);
 		expect((rows[4] as ResultRow).node.result).toBe('Gas Sedan');
@@ -416,10 +418,31 @@ describe('Single answer selection', () => {
 	});
 
 	it('selecting a different answer replaces the previous selection for that position', () => {
-		// This tests the UI logic: replacing path at a given index
 		const path: TraversalPath = ['root|Choose a car', 'c_q1|Lowest total cost'];
-		const newPath: TraversalPath = [...path.slice(0, 1), 'c_q1|Fun / Performance'];
-		expect(newPath).toEqual(['root|Choose a car', 'c_q1|Fun / Performance']);
+		expect(selectAnswer(path, 1, 'c_q1|Fun / Performance')).toEqual([
+			'root|Choose a car',
+			'c_q1|Fun / Performance'
+		]);
+		expect(path).toEqual(['root|Choose a car', 'c_q1|Lowest total cost']);
+	});
+
+	it('selecting at depth 0 on a 3-edge path returns a 1-edge path', () => {
+		const path: TraversalPath = ['root|Religion', 'r_q1|Bible', 'r_q4|Yes'];
+		expect(selectAnswer(path, 0, 'root|Choose a car')).toEqual(['root|Choose a car']);
+	});
+
+	it('selecting at the frontier appends', () => {
+		expect(selectAnswer(['root|Religion'], 1, 'r_q1|Bible')).toEqual([
+			'root|Religion',
+			'r_q1|Bible'
+		]);
+	});
+
+	it('answer rows carry their path depth', () => {
+		const graph = buildGraph(treeJson as RawTree);
+		const rows = computeRows(graph, ['root|Religion', 'r_q1|Bible', 'r_q4|Yes']);
+		const depths = rows.filter((r): r is AnswerRow => r.type === 'answer').map((r) => r.depth);
+		expect(depths).toEqual([0, 1, 2, 3]);
 	});
 });
 
