@@ -124,7 +124,10 @@ test('Asset Splitting - invalid input shows a message', async ({ page }) => {
 	await page.getByLabel('Item price in euros').fill('0');
 	await page.getByRole('button', { name: 'Add Item' }).click();
 	await expect(page.getByText('Enter a price greater than 0.')).toBeVisible();
-	await expect(page.getByRole('cell', { name: 'Car', exact: true })).toHaveCount(0);
+	// Rejected input stays in the entry row for correction. That row's cell takes the
+	// textbox value as its accessible name, so check for the added row's Delete button
+	await expect(page.getByLabel('Item description')).toHaveValue('Car');
+	await expect(page.getByRole('button', { name: 'Delete Car' })).toHaveCount(0);
 });
 
 test('Asset Splitting - items can be deleted and the round view can go back', async ({ page }) => {
