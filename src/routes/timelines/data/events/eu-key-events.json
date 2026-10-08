@@ -2,9 +2,9 @@
 	{
 		"id": 2,
 		"emoji": "📅",
-		"date": "2027-01-01",
+		"date": "2022-07-19",
 		"title": "Albania Accession Talks",
-		"description": "Albania begins formal EU accession negotiations."
+		"description": "Albania formally opens EU accession negotiations at its first intergovernmental conference with the EU."
 	},
 	{
 		"id": 33,
@@ -28,17 +28,10 @@
 		"description": "Ukraine is granted EU candidate status, a historic decision amid the Russia-Ukraine war."
 	},
 	{
-		"id": 60,
-		"emoji": "📅",
-		"date": "2026-01-01",
-		"title": "Constitution Renewal Debate",
-		"description": "Member states begin negotiations on EU constitutional reforms to improve decision-making."
-	},
-	{
 		"id": 83,
 		"emoji": "📅",
 		"date": "2004-05-01",
-		"title": "EU Membership",
+		"title": "Hungary Joins EU",
 		"description": "Hungary becomes member of the European Union with the 2004 expansion."
 	},
 	{
@@ -52,14 +45,14 @@
 		"id": 99,
 		"emoji": "📅",
 		"date": "1999-01-01",
-		"title": "Euro Entry",
-		"description": " Netherlands transitions to the euro currency."
+		"title": "Netherlands Adopts Euro",
+		"description": "Netherlands adopts the euro as one of the eleven founding Eurozone members."
 	},
 	{
 		"id": 103,
 		"emoji": "📅",
 		"date": "2023-01-01",
-		"title": "Eurozone Expansion",
+		"title": "Croatia Joins Euro",
 		"description": "Croatia becomes the 20th member of the Eurozone, adopting the euro currency."
 	},
 	{
@@ -67,35 +60,35 @@
 		"emoji": "📅",
 		"date": "2022-06-23",
 		"title": "Georgia EU Perspective",
-		"description": "Georgia is granted EU candidate perspective amid ongoing reforms."
+		"description": "European Council recognises Georgia's European perspective, deferring candidate status pending reforms."
 	},
 	{
 		"id": 175,
 		"emoji": "📅",
-		"date": "1957-01-01",
-		"title": "Joins EEC",
-		"description": "West Germany becomes founding member of the European Economic Community."
+		"date": "1958-01-01",
+		"title": "West Germany Joins EEC",
+		"description": "West Germany becomes a founding member of the European Economic Community as the Treaty of Rome enters into force."
 	},
 	{
 		"id": 176,
 		"emoji": "📅",
 		"date": "2004-05-01",
-		"title": "Joins EU",
+		"title": "Poland Joins EU",
 		"description": "Poland, the largest of the 2004 expansion countries, joins the European Union."
 	},
 	{
 		"id": 177,
 		"emoji": "📅",
 		"date": "1999-01-01",
-		"title": "Joins Euro",
+		"title": "Ireland Joins Euro",
 		"description": "Ireland adopts the euro as part of the initial Eurozone launch."
 	},
 	{
 		"id": 186,
 		"emoji": "📅",
-		"date": "2027-01-01",
-		"title": "KosovoEU Talks",
-		"description": "Kosovo begins EU visa liberalization dialogue."
+		"date": "2024-01-01",
+		"title": "Kosovo Visa-Free Travel",
+		"description": "Kosovo citizens gain visa-free travel to the Schengen area, concluding the visa liberalisation dialogue launched in 2012."
 	},
 	{
 		"id": 217,
@@ -107,16 +100,16 @@
 	{
 		"id": 226,
 		"emoji": "📅",
-		"date": "2025-01-01",
+		"date": "2024-12-01",
 		"title": "New Commission Takes Office",
-		"description": "New European Commission under President begins term with focus on competitiveness and green transition."
+		"description": "Second European Commission under President Ursula von der Leyen begins its term with a focus on competitiveness and the green transition."
 	},
 	{
 		"id": 290,
 		"emoji": "📅",
-		"date": "1957-01-01",
-		"title": "Ratifies Treaty",
-		"description": "French National Assembly ratifies the Treaty of Rome, paving way for EEC implementation."
+		"date": "1957-07-09",
+		"title": "France Ratifies Treaty of Rome",
+		"description": "French National Assembly approves ratification of the Treaty of Rome, paving the way for EEC implementation."
 	},
 	{
 		"id": 369,
@@ -128,15 +121,8 @@
 	{
 		"id": 370,
 		"emoji": "📅",
-		"date": "1957-01-01",
+		"date": "1957-03-25",
 		"title": "Treaty of Rome",
 		"description": "Six founding members sign the Treaty of Rome, establishing the European Economic Community (EEC)."
-	},
-	{
-		"id": 394,
-		"emoji": "📅",
-		"date": "2027-01-01",
-		"title": "Western Balkans Accession",
-		"description": "New Western Balkan countries begin accession talks for EU membership."
 	}
 ]

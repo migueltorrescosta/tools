@@ -733,6 +733,9 @@ h1 {
 }
 
 .route-card {
+	display: block;
+	color: inherit;
+	text-align: center;
 	background: var(--futuristic-surface);
 	border: 1px solid var(--futuristic-border);
 	border-radius: 12px;

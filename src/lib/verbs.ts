@@ -1,4 +1,4 @@
-import type { LanguageModule, ConjugationMap } from '$lib/data/language-registry';
+import type { LanguageModule } from '$lib/data/language-registry';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -37,10 +37,83 @@ export interface SessionState {
 	history: HistoryEntry[];
 }
 
+/** Most recent answers kept in a session; older ones are dropped. */
+export const HISTORY_LIMIT = 200;
+
 // ─── Card key helpers ────────────────────────────────────────────────────────
 
 export function cardKey(verb: string, tense: string, person: string): string {
 	return `${verb}:${tense}:${person}`;
+}
+
+/**
+ * True when the slot has a form to practise. Unknown verbs/tenses (e.g. stale
+ * selections from storage) and defective slots stored as '' (imperative 1sg,
+ * potere/dovere imperativo) are not playable.
+ */
+export function isPlayable(
+	verb: string,
+	tense: string,
+	person: string,
+	module: LanguageModule
+): boolean {
+	const entry = module.conjugationMap.get(cardKey(verb, tense, person));
+	return entry !== undefined && entry.conjugation !== '';
+}
+
+// ─── Answer normalisation ────────────────────────────────────────────────────
+
+/**
+ * Canonical form for comparing answers: NFC, typographic apostrophes folded to
+ * ', runs of whitespace collapsed, trimmed and lowercased. Accents are kept.
+ */
+export function normalizeAnswer(text: string): string {
+	return text
+		.normalize('NFC')
+		.replace(/[\u2018\u2019\u02bc]/g, "'")
+		.replace(/\s+/g, ' ')
+		.trim()
+		.toLowerCase();
+}
+
+/** Remove diacritics: "él" → "el", "você" → "voce". */
+export function stripAccents(text: string): string {
+	return text.normalize('NFD').replace(/\p{M}/gu, '').normalize('NFC');
+}
+
+/**
+ * Pronoun prefixes accepted for a person label, longest first so that a
+ * combined form ("él ella") is tried before its parts ("él"). For "a/b/c"
+ * this yields the label, "a b c", "a/b", "a b", then each part, plus the
+ * accent-less spelling of each ("tu" for "tú").
+ */
+export function personPrefixes(label: string): string[] {
+	const base = normalizeAnswer(label);
+	const candidates = [base];
+	if (base.includes('/')) {
+		const parts = base.split('/').map((v) => v.trim());
+		candidates.push(parts.join(' '));
+		if (parts.length > 2) {
+			candidates.push(parts.slice(0, 2).join('/'), parts.slice(0, 2).join(' '));
+		}
+		candidates.push(...parts);
+	}
+	const withAccentless = candidates.flatMap((c) => [c, stripAccents(c)]);
+	return [...new Set(withAccentless)].sort((a, b) => b.length - a.length);
+}
+
+/**
+ * Strip the expected pronoun from a full-line answer and return the rest
+ * (normalised). Returns '' when only the pronoun was typed and null when the
+ * line does not start with an accepted pronoun.
+ */
+export function extractAfterPerson(input: string, expectedPersonLabel: string): string | null {
+	const normalized = normalizeAnswer(input);
+	for (const prefix of personPrefixes(expectedPersonLabel)) {
+		if (normalized === prefix) return '';
+		if (normalized.startsWith(prefix + ' ')) return normalized.slice(prefix.length + 1);
+	}
+	return null;
 }
 
 // ─── Pool building ───────────────────────────────────────────────────────────
@@ -59,9 +132,10 @@ export function buildPool(
 
 	for (const verb of verbs) {
 		for (const tense of tenses) {
-			// Total 6 cards per (verb, tense) — one for each missing person
-			for (let personIndex = 0; personIndex < 6; personIndex++) {
+			// Up to 6 cards per (verb, tense) — one for each playable person
+			for (let personIndex = 0; personIndex < module.PERSON_LABELS.length; personIndex++) {
 				const person = module.PERSON_LABELS[personIndex];
+				if (!isPlayable(verb, tense, person, module)) continue;
 				const key = cardKey(verb, tense, person);
 				const correctCount = correctCounts[key] ?? 0;
 				if (correctCount >= 2) continue; // removal rule
@@ -107,8 +181,8 @@ export function selectCard(
 // ─── Validation ──────────────────────────────────────────────────────────────
 
 /**
- * Validate a user's full-line answer against the canonical conjugation.
- * Returns true if the extracted conjugation matches the canon.
+ * Validate a user's full-line answer against the canonical conjugation or one
+ * of its accepted alternatives. Both sides go through normalizeAnswer.
  */
 export function validateAnswer(
 	userInput: string,
@@ -119,12 +193,13 @@ export function validateAnswer(
 ): boolean {
 	const key = cardKey(verb, tense, person);
 	const entry = module.conjugationMap.get(key);
-	if (!entry) return false;
+	if (!entry || entry.conjugation === '') return false;
 
-	const extracted = module.extractConjugation(userInput, person);
+	const extracted = module.extractConjugation(normalizeAnswer(userInput), person);
 	if (extracted === null) return false;
 
-	return extracted === entry.conjugation.trim().toLowerCase();
+	const accepted = [entry.conjugation, ...(entry.alternatives ?? [])].map(normalizeAnswer);
+	return accepted.includes(normalizeAnswer(extracted));
 }
 
 // ─── Wagner-Fischer diff ──────────────────────────────────────────────────────
@@ -267,7 +342,8 @@ export function processAnswer(
 		newWrongPerson[person] = (newWrongPerson[person] ?? 0) + 1;
 	}
 
-	const userVerb = module.extractConjugation(userInput.trim(), person) ?? userInput.trim();
+	const userVerb =
+		module.extractConjugation(normalizeAnswer(userInput), person) ?? userInput.trim();
 	const diff = computeDiff(userVerb, correctConjugation.trim());
 
 	const newHistory: HistoryEntry = {
@@ -287,7 +363,7 @@ export function processAnswer(
 		wrongTense: newWrongTense,
 		wrongPerson: newWrongPerson,
 		correctCounts: newCorrectCounts,
-		history: [newHistory, ...session.history]
+		history: [newHistory, ...session.history].slice(0, HISTORY_LIMIT)
 	};
 }
 
@@ -299,7 +375,7 @@ export interface CoverageStats {
 }
 
 /**
- * Coverage = cards with ≥1 correct answer / total possible cards
+ * Coverage = cards with ≥1 correct answer / total playable cards
  */
 export function getCoverage(
 	correctCounts: Record<string, number>,
@@ -307,12 +383,14 @@ export function getCoverage(
 	selectedTenses: string[],
 	module: LanguageModule
 ): CoverageStats {
-	const denominator = selectedVerbs.length * selectedTenses.length * 6;
+	let denominator = 0;
 	let numerator = 0;
 
 	for (const verb of selectedVerbs) {
 		for (const tense of selectedTenses) {
 			for (const person of module.PERSON_LABELS) {
+				if (!isPlayable(verb, tense, person, module)) continue;
+				denominator++;
 				const key = cardKey(verb, tense, person);
 				if ((correctCounts[key] ?? 0) >= 1) {
 					numerator++;

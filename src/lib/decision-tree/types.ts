@@ -43,6 +43,10 @@ export interface DecisionGraph {
 	edges: Map<string, AnswerEdge>;
 	edgesBySource: Map<string, AnswerEdge[]>;
 	rootNodeId: string;
+	/** Edges dropped because an earlier answer from the same node has the same label (id). */
+	duplicateEdges: AnswerEdge[];
+	/** Ids of nodes dropped because an earlier node has the same id. */
+	duplicateNodeIds: string[];
 }
 
 export type TraversalPath = string[];

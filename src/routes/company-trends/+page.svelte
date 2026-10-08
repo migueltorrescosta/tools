@@ -1,20 +1,28 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import datasetJson from './data/companies.json';
 	import TrendsChart from './TrendsChart.svelte';
 	import { loadDataset } from '$lib/company-trends/schema';
-	import { companyTypes, filterCompanies } from '$lib/company-trends/filter';
+	import { companyTypes, DEFAULT_COMPANY_IDS, filterCompanies } from '$lib/company-trends/filter';
 	import {
 		assignColors,
 		buildTrail,
 		colorMode,
 		formatMoney,
 		formatPercent,
-		logExtent,
+		latestUpTo,
+		pointSources,
+		REVENUE_FLOOR,
+		revenueDomain,
 		PALETTE_SIZE,
 		typeSlot
 	} from '$lib/company-trends/chart';
 	import { quarterIndex, quarterLabel, quarterRange } from '$lib/company-trends/series';
 	import type { Currency } from '$lib/company-trends/fx';
+
+	// Set once the page is interactive; e2e tests wait for it before clicking.
+	let hydrated = $state(false);
+	onMount(() => (hydrated = true));
 
 	const { dataset, errors } = loadDataset(datasetJson);
 	const companies = errors.length === 0 ? dataset.companies : [];
@@ -27,22 +35,7 @@
 	);
 	const quarters = quarterRange(FIRST_QUARTER, quarterLabel(lastQi));
 
-	/** A readable default subset spanning every type; the rest are one click away. */
-	const DEFAULT_IDS = [
-		'apple',
-		'amazon',
-		'nvidia',
-		'tesla',
-		'volkswagen',
-		'exxonmobil',
-		'walmart',
-		'pfizer',
-		'netflix',
-		'anthropic',
-		'boeing',
-		'coca-cola'
-	];
-	const defaults = companies.filter((c) => DEFAULT_IDS.includes(c.id)).map((c) => c.id);
+	const defaults = companies.filter((c) => DEFAULT_COMPANY_IDS.includes(c.id)).map((c) => c.id);
 
 	let currency = $state<Currency>('EUR');
 	let selectedIds = $state<string[]>(defaults.length > 0 ? defaults : companies.map((c) => c.id));
@@ -58,13 +51,20 @@
 
 	// Small selections (e.g. one industry) get a colour per company; larger ones per industry.
 	const mode = $derived(colorMode(visibleTrails.length));
-	const colors = $derived(assignColors(visibleTrails));
+	// Company-mode palette slots from the previous assignment, so toggling a company keeps
+	// every other company's colour. Plain (non-reactive) memory: it only feeds the next run.
+	let colorSlots = new Map<string, number>();
+	const colors = $derived.by(() => {
+		const { colors, slots } = assignColors(visibleTrails, colorSlots);
+		colorSlots = slots;
+		return colors;
+	});
 
 	// The revenue axis spans every visible point across all quarters, so it stays fixed during
-	// playback; the margin axis is fixed outright.
+	// playback, floored so a pre-revenue filing cannot stretch it; the margin axis is fixed.
 	const domain = $derived.by((): [number, number] => {
 		const values = visibleTrails.flatMap((t) => t.points.map((p) => p.revenue));
-		return logExtent(values) ?? [1, 1e6];
+		return revenueDomain(values) ?? [REVENUE_FLOOR, 1e6];
 	});
 
 	const quarter = $derived(quarterLabel(qi));
@@ -97,11 +97,10 @@
 
 	const tableRows = $derived(
 		visibleTrails
-			.map((t) => {
-				const upTo = t.points.filter((p) => p.qi <= qi);
-				return { trail: t, point: upTo[upTo.length - 1] };
+			.flatMap((t) => {
+				const point = latestUpTo(t, qi);
+				return point ? [{ trail: t, point }] : [];
 			})
-			.filter((r) => r.point !== undefined)
 			.sort((a, b) => b.point.revenue - a.point.revenue)
 	);
 </script>
@@ -110,7 +109,7 @@
 	<title>Company Trends</title>
 </svelte:head>
 
-<div class="viz-root container">
+<div class="viz-root container" data-hydrated={hydrated || undefined}>
 	<header>
 		<h1>COMPANY TRENDS</h1>
 		<p class="subtitle">
@@ -261,6 +260,7 @@
 						<th>Op. expenses</th>
 						<th>Op. income</th>
 						<th>Op. margin</th>
+						<th>Source</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -273,6 +273,19 @@
 							<td>{formatMoney(row.point.expenses, currency)}</td>
 							<td>{formatMoney(row.point.operatingIncome, currency)}</td>
 							<td>{row.point.margin === null ? '—' : formatPercent(row.point.margin, 1)}</td>
+							<td class="source-cell">
+								{#if row.point.quality === 'interpolated'}interpolated between{/if}
+								{#each pointSources(row.trail, row.point) as s, i (s.quarter)}
+									{#if i > 0}and{/if}
+									{#if s.sourceUrl}
+										<a href={s.sourceUrl} target="_blank" rel="noreferrer" title={s.source}
+											>{row.point.quality === 'interpolated' ? s.quarter : s.source}</a
+										>
+									{:else}
+										<span title={s.source}>{s.quarter}</span>
+									{/if}
+								{/each}
+							</td>
 						</tr>
 					{/each}
 				</tbody>
@@ -531,6 +544,13 @@
 	th:nth-child(n + 4) {
 		text-align: right;
 		font-family: 'JetBrains Mono', monospace;
+	}
+
+	td.source-cell,
+	th:last-child {
+		text-align: left;
+		font-family: inherit;
+		max-width: 22rem;
 	}
 
 	@media (max-width: 900px) {

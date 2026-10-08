@@ -1,317 +1,554 @@
 [
 	{
+		"id": 260,
+		"emoji": "🇫🇮",
+		"date": "2024-02-11",
+		"title": "Finland Presidential Election",
+		"description": "Alexander Stubb (National Coalition) defeats Pekka Haavisto in the runoff with 51.6% of the vote, succeeding Sauli Niinistö, who was term-limited.",
+		"url": "https://en.wikipedia.org/wiki/2024_Finnish_presidential_election"
+	},
+	{
+		"id": 192,
+		"emoji": "🇵🇹",
+		"date": "2024-03-10",
+		"title": "Portugal Legislative Election",
+		"description": "Snap election after PM António Costa's resignation. Centre-right Democratic Alliance (AD) wins most seats (80 of 230) without a majority; Chega becomes third-largest party with 50 seats.",
+		"url": "https://en.wikipedia.org/wiki/2024_Portuguese_legislative_election"
+	},
+	{
+		"id": 2001,
+		"emoji": "🇸🇰",
+		"date": "2024-04-06",
+		"title": "Slovakia Presidential Election",
+		"description": "Peter Pellegrini defeats Ivan Korčok in the runoff with 53.1%, succeeding Zuzana Čaputová, who did not seek re-election.",
+		"url": "https://en.wikipedia.org/wiki/2024_Slovak_presidential_election"
+	},
+	{
+		"id": 243,
+		"emoji": "🇭🇷",
+		"date": "2024-04-17",
+		"title": "Croatia Parliamentary Election",
+		"description": "HDZ wins most seats (61 of 151) but loses its majority. Andrej Plenković secures a third term as PM in coalition with the right-wing Homeland Movement (DP).",
+		"url": "https://en.wikipedia.org/wiki/2024_Croatian_parliamentary_election"
+	},
+	{
+		"id": 2002,
+		"emoji": "🇱🇹",
+		"date": "2024-05-26",
+		"title": "Lithuania Presidential Election",
+		"description": "Incumbent Gitanas Nausėda re-elected president, defeating PM Ingrida Šimonytė in the runoff with 75.3% of the vote.",
+		"url": "https://en.wikipedia.org/wiki/2024_Lithuanian_presidential_election"
+	},
+	{
+		"id": 118,
+		"emoji": "🇧🇪",
+		"date": "2024-06-09",
+		"title": "Belgium Federal Election",
+		"description": "Flemish nationalist N-VA becomes largest party with 24 of 150 seats. Bart De Wever is sworn in as PM of the 'Arizona' coalition on 3 February 2025, about 240 days later.",
+		"url": "https://en.wikipedia.org/wiki/2024_Belgian_federal_election"
+	},
+	{
 		"id": 100,
 		"emoji": "🇪🇺",
 		"date": "2024-06-09",
 		"title": "European Parliament Elections",
-		"description": "EU citizens vote across 27 member states for 720 MEPs. Centre-right EPP remains largest group with 188 seats, far-right makes significant gains."
+		"description": "EU citizens vote across 27 member states for 720 MEPs. Centre-right EPP remains largest group with 188 seats, far-right makes significant gains.",
+		"url": "https://en.wikipedia.org/wiki/2024_European_Parliament_election"
+	},
+	{
+		"id": 372,
+		"emoji": "🇬🇧",
+		"date": "2024-07-04",
+		"title": "UK General Election",
+		"description": "Labour Party wins massive landslide, ending 14 years of Conservative rule. Keir Starmer becomes Prime Minister.",
+		"url": "https://en.wikipedia.org/wiki/2024_United_Kingdom_general_election"
+	},
+	{
+		"id": 2003,
+		"emoji": "🇫🇷",
+		"date": "2024-07-07",
+		"title": "France Legislative Election",
+		"description": "Snap election called by Macron after EU elections setback. Left-wing New Popular Front wins most seats (about 180 of 577) but no majority, producing a hung parliament; Michel Barnier becomes PM in September.",
+		"url": "https://en.wikipedia.org/wiki/2024_French_legislative_election"
+	},
+	{
+		"id": 224,
+		"emoji": "🇦🇹",
+		"date": "2024-09-29",
+		"title": "Austria National Election",
+		"description": "Freedom Party (FPÖ) wins most seats with 28.8%, the first far-right first place in post-war Austria. It is left out of government: an ÖVP–SPÖ–NEOS coalition under Christian Stocker takes office in March 2025.",
+		"url": "https://en.wikipedia.org/wiki/2024_Austrian_legislative_election"
+	},
+	{
+		"id": 2004,
+		"emoji": "🇱🇹",
+		"date": "2024-10-13",
+		"title": "Lithuania Parliamentary Election",
+		"description": "Social Democrats (LSDP) win most seats (52 of 141) after the 27 October runoff round, replacing Ingrida Šimonytė's centre-right government; Gintautas Paluckas becomes PM.",
+		"url": "https://en.wikipedia.org/wiki/2024_Lithuanian_parliamentary_election"
+	},
+	{
+		"id": 2005,
+		"emoji": "🇧🇬",
+		"date": "2024-10-27",
+		"title": "Bulgaria Parliamentary Election",
+		"description": "GERB–SDS remains largest party in the sixth snap election since 2021. Rosen Zhelyazkov forms a GERB-led minority government in January 2025.",
+		"url": "https://en.wikipedia.org/wiki/October_2024_Bulgarian_parliamentary_election"
+	},
+	{
+		"id": 273,
+		"emoji": "🇷🇴",
+		"date": "2024-11-24",
+		"title": "Romania Presidential Election (Round 1, Annulled)",
+		"description": "Pro-Russian candidate Călin Georgescu surprises with first-place finish. Constitutional Court annuls the election on 6 December over alleged Russian interference.",
+		"url": "https://en.wikipedia.org/wiki/2024_Romanian_presidential_election"
+	},
+	{
+		"id": 2006,
+		"emoji": "🇷🇴",
+		"date": "2024-12-01",
+		"title": "Romania Parliamentary Election",
+		"description": "PSD remains largest party while far-right AUR finishes second with 18%. A pro-European PSD–PNL–UDMR coalition under Marcel Ciolacu takes office on 23 December.",
+		"url": "https://en.wikipedia.org/wiki/2024_Romanian_parliamentary_election"
+	},
+	{
+		"id": 2007,
+		"emoji": "🇭🇷",
+		"date": "2025-01-12",
+		"title": "Croatia Presidential Election",
+		"description": "President Zoran Milanović wins re-election in a landslide runoff, taking 74.7% against HDZ-backed Dragan Primorac.",
+		"url": "https://en.wikipedia.org/wiki/2024%E2%80%9325_Croatian_presidential_election"
+	},
+	{
+		"id": 119,
+		"emoji": "🇩🇪",
+		"date": "2025-02-23",
+		"title": "Germany Federal Election",
+		"description": "CDU/CSU wins with 28.5% under Friedrich Merz; AfD second with 20.8%. Merz is elected chancellor on 6 May 2025 at the head of a CDU/CSU–SPD coalition.",
+		"url": "https://en.wikipedia.org/wiki/2025_German_federal_election"
+	},
+	{
+		"id": 274,
+		"emoji": "🇷🇴",
+		"date": "2025-05-04",
+		"title": "Romania Presidential Election (Round 1, Re-run)",
+		"description": "Far-right George Simion (AUR) leads first round of re-run election with 41%, following annulment of the 2024 vote due to foreign interference.",
+		"url": "https://en.wikipedia.org/wiki/2025_Romanian_presidential_election"
+	},
+	{
+		"id": 2008,
+		"emoji": "🇵🇹",
+		"date": "2025-05-18",
+		"title": "Portugal Parliamentary Election",
+		"description": "Third election in just over three years. Democratic Alliance (AD) wins 91 of 230 seats, short of a majority; Chega overtakes the Socialists for second place. Luís Montenegro stays on as PM.",
+		"url": "https://en.wikipedia.org/wiki/2025_Portuguese_legislative_election"
+	},
+	{
+		"id": 268,
+		"emoji": "🇵🇱",
+		"date": "2025-05-18",
+		"title": "Poland Presidential Election (Round 1)",
+		"description": "Centrist Rafał Trzaskowski (31.4%) and PiS-backed Karol Nawrocki (29.5%) advance to runoff in closely contested first round.",
+		"url": "https://en.wikipedia.org/wiki/2025_Polish_presidential_election"
+	},
+	{
+		"id": 2009,
+		"emoji": "🇷🇴",
+		"date": "2025-05-18",
+		"title": "Romania Presidential Election (Runoff)",
+		"description": "Pro-EU Nicușor Dan defeats far-right George Simion with 53.6% in a comeback from second place in round one. Election seen as crucial test for Romania's Western alignment.",
+		"url": "https://en.wikipedia.org/wiki/2025_Romanian_presidential_election"
+	},
+	{
+		"id": 275,
+		"emoji": "🇵🇱",
+		"date": "2025-06-01",
+		"title": "Poland Presidential Election (Runoff)",
+		"description": "Karol Nawrocki wins with 50.9% against Warsaw mayor Rafał Trzaskowski in narrow runoff.",
+		"url": "https://en.wikipedia.org/wiki/2025_Polish_presidential_election"
+	},
+	{
+		"id": 2010,
+		"emoji": "🇨🇿",
+		"date": "2025-10-04",
+		"title": "Czech Republic Parliamentary Election",
+		"description": "Andrej Babiš's ANO wins with 34.5% and 80 of 200 seats, ousting Petr Fiala's centre-right coalition. Babiš becomes PM in December 2025 in coalition with SPD and Motorists.",
+		"url": "https://en.wikipedia.org/wiki/2025_Czech_parliamentary_election"
+	},
+	{
+		"id": 261,
+		"emoji": "🇮🇪",
+		"date": "2025-10-24",
+		"title": "Ireland Presidential Election",
+		"description": "Left-wing independent Catherine Connolly wins with 63.4% of first-preference votes, defeating Fine Gael's Heather Humphreys.",
+		"url": "https://en.wikipedia.org/wiki/2025_Irish_presidential_election"
+	},
+	{
+		"id": 269,
+		"emoji": "🇵🇹",
+		"date": "2026-01-18",
+		"title": "Portugal Presidential Election (Round 1)",
+		"description": "Marcelo Rebelo de Sousa is term-limited. Socialist António José Seguro (about 31%) and Chega leader André Ventura (about 23.5%) advance to runoff.",
+		"url": "https://en.wikipedia.org/wiki/2026_Portuguese_presidential_election"
+	},
+	{
+		"id": 276,
+		"emoji": "🇵🇹",
+		"date": "2026-02-08",
+		"title": "Portugal Presidential Election (Runoff)",
+		"description": "António José Seguro defeats André Ventura in the runoff with 66.8% of the vote.",
+		"url": "https://en.wikipedia.org/wiki/2026_Portuguese_presidential_election"
+	},
+	{
+		"id": 245,
+		"emoji": "🇸🇮",
+		"date": "2026-03-22",
+		"title": "Slovenia Parliamentary Election",
+		"description": "Robert Golob's Freedom Movement narrowly finishes first with 29 of 90 seats, one ahead of SDS, but loses its majority. Janez Janša forms a right-wing coalition and becomes PM for a fourth time.",
+		"url": "https://en.wikipedia.org/wiki/2026_Slovenian_parliamentary_election"
+	},
+	{
+		"id": 2015,
+		"emoji": "🇩🇰",
+		"date": "2026-03-24",
+		"title": "Denmark General Election",
+		"description": "Snap election: Mette Frederiksen's Social Democrats remain largest party (38 seats) on their lowest vote share since 1903. Neither bloc wins a majority; Frederiksen forms a centre-left minority government in June.",
+		"url": "https://en.wikipedia.org/wiki/2026_Danish_general_election"
+	},
+	{
+		"id": 2012,
+		"emoji": "🇭🇺",
+		"date": "2026-04-12",
+		"title": "Hungary Parliamentary Election",
+		"description": "Péter Magyar's Tisza Party wins a two-thirds supermajority (141 of 199 seats), ending Viktor Orbán's 16-year Fidesz government. Magyar becomes PM on 9 May 2026.",
+		"url": "https://en.wikipedia.org/wiki/2026_Hungarian_parliamentary_election"
+	},
+	{
+		"id": 2013,
+		"emoji": "🇧🇬",
+		"date": "2026-04-19",
+		"title": "Bulgaria Parliamentary Election",
+		"description": "Snap election after the Zhelyazkov government resigns amid anti-corruption protests. Former president Rumen Radev's Progressive Bulgaria wins an absolute majority (131 of 240 seats) in the eighth parliamentary election since 2021.",
+		"url": "https://en.wikipedia.org/wiki/2026_Bulgarian_parliamentary_election"
+	},
+	{
+		"id": 132,
+		"emoji": "🇲🇹",
+		"date": "2026-05-30",
+		"title": "Malta General Election",
+		"description": "Robert Abela's Labour Party wins a fourth consecutive election with 51.8% of the vote, defeating Alex Borg's Nationalist Party.",
+		"url": "https://en.wikipedia.org/wiki/2026_Maltese_general_election"
+	},
+	{
+		"id": 262,
+		"emoji": "🇪🇪",
+		"date": "2026-09-02",
+		"title": "Estonia Presidential Election",
+		"description": "Alar Karis does not seek a second term. Riigikogu elects Chancellor of Justice Ülle Madise president in the first round with 71 of 101 votes.",
+		"url": "https://en.wikipedia.org/wiki/2026_Estonian_presidential_election"
+	},
+	{
+		"id": 133,
+		"emoji": "🇸🇪",
+		"date": "2026-09-13",
+		"title": "Sweden General Election",
+		"description": "Social Democrats become largest party with 28%. The centre-left opposition wins 176 of 349 seats against 173 for the Tidö parties; Ulf Kristersson resigns and Magdalena Andersson begins government talks.",
+		"url": "https://en.wikipedia.org/wiki/2026_Swedish_general_election"
+	},
+	{
+		"id": 2014,
+		"emoji": "🇱🇻",
+		"date": "2026-10-03",
+		"title": "Latvia Parliamentary Election",
+		"description": "Andris Kulbergs's United List becomes largest party with 35.8% and 41 of 100 Saeima seats.",
+		"url": "https://en.wikipedia.org/wiki/2026_Latvian_parliamentary_election"
+	},
+	{
+		"id": 323,
+		"emoji": "🇨🇿",
+		"date": "2026-10-09",
+		"title": "Czech Republic Senate Election",
+		"description": "Scheduled first round (9–10 October) for 27 of the Senate's 81 seats, with runoffs on 16–17 October.",
+		"url": "https://en.wikipedia.org/wiki/2026_Czech_Senate_election"
+	},
+	{
+		"id": 2017,
+		"emoji": "🇧🇬",
+		"date": "2026-10-25",
+		"title": "Bulgaria Presidential Election",
+		"description": "Scheduled first round of presidential election; a runoff follows if no candidate wins a majority. Incumbent Iliana Iotova seeks a full term.",
+		"url": "https://en.wikipedia.org/wiki/2026_Bulgarian_presidential_election"
+	},
+	{
+		"id": 134,
+		"emoji": "🇪🇸",
+		"date": "2026-11-29",
+		"title": "Spain General Election",
+		"description": "Scheduled snap election to the Congress of Deputies and Senate, called by PM Pedro Sánchez after parliament rejected his housing decrees.",
+		"url": "https://en.wikipedia.org/wiki/Next_Spanish_general_election"
+	},
+	{
+		"id": 244,
+		"emoji": "🇪🇪",
+		"date": "2027-03-07",
+		"title": "Estonia Parliamentary Election",
+		"description": "Scheduled Riigikogu election for all 101 seats, due by 7 March 2027.",
+		"url": "https://en.wikipedia.org/wiki/Next_Estonian_parliamentary_election"
+	},
+	{
+		"id": 270,
+		"emoji": "🇫🇷",
+		"date": "2027-04-18",
+		"title": "France Presidential Election (Round 1)",
+		"description": "Scheduled first round. Incumbent Emmanuel Macron is term-limited and cannot stand.",
+		"url": "https://en.wikipedia.org/wiki/2027_French_presidential_election"
+	},
+	{
+		"id": 277,
+		"emoji": "🇫🇷",
+		"date": "2027-05-02",
+		"title": "France Presidential Election (Runoff)",
+		"description": "Scheduled second round, held if no candidate wins an absolute majority in the first round.",
+		"url": "https://en.wikipedia.org/wiki/2027_French_presidential_election"
+	},
+	{
+		"id": 246,
+		"emoji": "🇬🇷",
+		"date": "2027-07-25",
+		"title": "Greece Parliamentary Election",
+		"description": "Scheduled parliamentary election, due by 25 July 2027. PM Kyriakos Mitsotakis has signalled a spring 2027 vote.",
+		"url": "https://en.wikipedia.org/wiki/Next_Greek_parliamentary_election"
+	},
+	{
+		"id": 2016,
+		"emoji": "🇮🇹",
+		"date": "2027-12-22",
+		"title": "Italy Parliamentary Election",
+		"description": "Scheduled election to the Chamber of Deputies and Senate, due by 22 December 2027.",
+		"url": "https://en.wikipedia.org/wiki/Next_Italian_general_election"
+	},
+	{
+		"id": 263,
+		"emoji": "🇨🇾",
+		"date": "2028-02-29",
+		"title": "Cyprus Presidential Election",
+		"description": "Scheduled presidential election, due in February 2028. Incumbent Nikos Christodoulides is eligible for a second term.",
+		"url": "https://en.wikipedia.org/wiki/2028_Cypriot_presidential_election"
+	},
+	{
+		"id": 135,
+		"emoji": "🇱🇺",
+		"date": "2028-10-08",
+		"title": "Luxembourg General Election",
+		"description": "Scheduled Chamber of Deputies election, due on or before 8 October 2028.",
+		"url": "https://en.wikipedia.org/wiki/Next_Luxembourg_general_election"
+	},
+	{
+		"id": 247,
+		"emoji": "🇱🇹",
+		"date": "2028-10-08",
+		"title": "Lithuania Parliamentary Election",
+		"description": "Scheduled Seimas election, with a second round two weeks later.",
+		"url": "https://en.wikipedia.org/wiki/Next_Lithuanian_parliamentary_election"
+	},
+	{
+		"id": 2019,
+		"emoji": "🇷🇴",
+		"date": "2028-11-30",
+		"title": "Romania Parliamentary Election",
+		"description": "Scheduled election to the Chamber of Deputies and Senate, due on or before 30 November 2028.",
+		"url": "https://en.wikipedia.org/wiki/Next_Romanian_parliamentary_election"
+	},
+	{
+		"id": 2018,
+		"emoji": "🇦🇹",
+		"date": "2028-12-31",
+		"title": "Austria Presidential Election",
+		"description": "Scheduled presidential election, due by 2028. Incumbent Alexander Van der Bellen is term-limited and cannot stand.",
+		"url": "https://en.wikipedia.org/wiki/2028_Austrian_presidential_election"
+	},
+	{
+		"id": 2020,
+		"emoji": "🇩🇪",
+		"date": "2029-03-25",
+		"title": "Germany Federal Election",
+		"description": "Scheduled Bundestag election, due on or before 25 March 2029.",
+		"url": "https://en.wikipedia.org/wiki/Next_German_federal_election"
+	},
+	{
+		"id": 2021,
+		"emoji": "🇸🇰",
+		"date": "2029-04-14",
+		"title": "Slovakia Presidential Election",
+		"description": "Scheduled presidential election, due by April 2029 (at least 60 days before the term ends in June). President Peter Pellegrini is eligible for re-election.",
+		"url": "https://en.wikipedia.org/wiki/Next_Slovak_presidential_election"
+	},
+	{
+		"id": 2023,
+		"emoji": "🇱🇹",
+		"date": "2029-05-13",
+		"title": "Lithuania Presidential Election",
+		"description": "Scheduled presidential election. Incumbent Gitanas Nausėda is term-limited.",
+		"url": "https://en.wikipedia.org/wiki/2029_Lithuanian_presidential_election"
 	},
 	{
 		"id": 101,
 		"emoji": "🇪🇺",
-		"date": "2029-06-06",
+		"date": "2029-06-10",
 		"title": "European Parliament Elections",
-		"description": "EU citizens across 27 member states elect 720 Members of European Parliament for 2029-2034 term."
+		"description": "Scheduled for 7–10 June 2029: EU citizens across 27 member states elect 720 Members of European Parliament for the 2029–2034 term.",
+		"url": "https://en.wikipedia.org/wiki/2029_European_Parliament_election"
+	},
+	{
+		"id": 120,
+		"emoji": "🇧🇪",
+		"date": "2029-06-10",
+		"title": "Belgium Federal Election",
+		"description": "Scheduled Chamber of Representatives election, due in 2029 and held together with the European Parliament elections.",
+		"url": "https://en.wikipedia.org/wiki/Next_Belgian_federal_election"
+	},
+	{
+		"id": 193,
+		"emoji": "🇫🇷",
+		"date": "2029-06-17",
+		"title": "France Legislative Election",
+		"description": "Scheduled National Assembly election, due by June 2029 unless the Assembly is dissolved earlier.",
+		"url": "https://en.wikipedia.org/wiki/Next_French_legislative_election"
+	},
+	{
+		"id": 248,
+		"emoji": "🇵🇹",
+		"date": "2029-10-14",
+		"title": "Portugal Parliamentary Election",
+		"description": "Scheduled Assembly of the Republic election, due by 14 October 2029.",
+		"url": "https://en.wikipedia.org/wiki/Next_Portuguese_legislative_election"
+	},
+	{
+		"id": 225,
+		"emoji": "🇦🇹",
+		"date": "2029-10-24",
+		"title": "Austria National Election",
+		"description": "Scheduled National Council election, due by October 2029.",
+		"url": "https://en.wikipedia.org/wiki/Next_Austrian_legislative_election"
+	},
+	{
+		"id": 2024,
+		"emoji": "🇨🇿",
+		"date": "2029-10-31",
+		"title": "Czech Republic Parliamentary Election",
+		"description": "Scheduled Chamber of Deputies election, due by October 2029.",
+		"url": "https://en.wikipedia.org/wiki/Next_Czech_parliamentary_election"
+	},
+	{
+		"id": 264,
+		"emoji": "🇭🇷",
+		"date": "2030-01-19",
+		"title": "Croatia Presidential Election",
+		"description": "Scheduled presidential election, due by January 2030. Incumbent Zoran Milanović is term-limited.",
+		"url": "https://en.wikipedia.org/wiki/Next_Croatian_presidential_election"
+	},
+	{
+		"id": 265,
+		"emoji": "🇫🇮",
+		"date": "2030-01-27",
+		"title": "Finland Presidential Election",
+		"description": "Scheduled first round of presidential election. Incumbent Alexander Stubb is eligible for re-election.",
+		"url": "https://en.wikipedia.org/wiki/Elections_in_Finland"
+	},
+	{
+		"id": 136,
+		"emoji": "🇮🇪",
+		"date": "2030-01-31",
+		"title": "Ireland General Election",
+		"description": "Scheduled Dáil Éireann election, due no later than January 2030.",
+		"url": "https://en.wikipedia.org/wiki/Next_Irish_general_election"
+	},
+	{
+		"id": 249,
+		"emoji": "🇸🇮",
+		"date": "2030-03-22",
+		"title": "Slovenia Parliamentary Election",
+		"description": "Scheduled National Assembly election, due on or before 22 March 2030.",
+		"url": "https://en.wikipedia.org/wiki/Next_Slovenian_parliamentary_election"
+	},
+	{
+		"id": 2028,
+		"emoji": "🇩🇰",
+		"date": "2030-03-23",
+		"title": "Denmark General Election",
+		"description": "Scheduled Folketing election, due on or before 23 March 2030.",
+		"url": "https://en.wikipedia.org/wiki/Next_Danish_general_election"
+	},
+	{
+		"id": 271,
+		"emoji": "🇵🇱",
+		"date": "2030-05-19",
+		"title": "Poland Presidential Election (Round 1)",
+		"description": "Scheduled first round, due by May 2030. Incumbent Karol Nawrocki is eligible for re-election.",
+		"url": "https://en.wikipedia.org/wiki/Elections_in_Poland"
+	},
+	{
+		"id": 2026,
+		"emoji": "🇭🇺",
+		"date": "2030-05-26",
+		"title": "Hungary Parliamentary Election",
+		"description": "Scheduled National Assembly election, due in April or May 2030.",
+		"url": "https://en.wikipedia.org/wiki/Next_Hungarian_parliamentary_election"
+	},
+	{
+		"id": 278,
+		"emoji": "🇵🇱",
+		"date": "2030-06-02",
+		"title": "Poland Presidential Election (Runoff)",
+		"description": "Scheduled second round, held if no candidate wins a majority in the first round.",
+		"url": "https://en.wikipedia.org/wiki/Elections_in_Poland"
+	},
+	{
+		"id": 137,
+		"emoji": "🇸🇪",
+		"date": "2030-09-08",
+		"title": "Sweden General Election",
+		"description": "Scheduled Riksdag election, held on the second Sunday of September.",
+		"url": "https://en.wikipedia.org/wiki/Elections_in_Sweden"
+	},
+	{
+		"id": 2027,
+		"emoji": "🇱🇻",
+		"date": "2030-10-05",
+		"title": "Latvia Parliamentary Election",
+		"description": "Scheduled Saeima election, held on the first Saturday of October.",
+		"url": "https://en.wikipedia.org/wiki/Elections_in_Latvia"
+	},
+	{
+		"id": 272,
+		"emoji": "🇵🇹",
+		"date": "2031-01-31",
+		"title": "Portugal Presidential Election (Round 1)",
+		"description": "Scheduled presidential election, due in January 2031. Incumbent António José Seguro is eligible for a second term.",
+		"url": "https://en.wikipedia.org/wiki/2031_Portuguese_presidential_election"
+	},
+	{
+		"id": 266,
+		"emoji": "🇮🇪",
+		"date": "2032-11-11",
+		"title": "Ireland Presidential Election",
+		"description": "Scheduled presidential election, due by November 2032 at the end of Catherine Connolly's seven-year term.",
+		"url": "https://en.wikipedia.org/wiki/Next_Irish_presidential_election"
+	},
+	{
+		"id": 267,
+		"emoji": "🇨🇾",
+		"date": "2033-02-28",
+		"title": "Cyprus Presidential Election",
+		"description": "Scheduled presidential election, due by February 2033.",
+		"url": "https://en.wikipedia.org/wiki/Elections_in_Cyprus"
 	},
 	{
 		"id": 102,
 		"emoji": "🇪🇺",
-		"date": "2034-06-06",
+		"date": "2034-06-30",
 		"title": "European Parliament Elections",
-		"description": "EU citizens elect Members of European Parliament for 2034-2039 term."
-	},
-	{
-		"id": 118,
-		"emoji": "🗳️",
-		"date": "2024-06-09",
-		"title": "Federal Election",
-		"description": "Flemish nationalist N-VA becomes largest party, but coalition talks drag on for over 200 days amid regional tensions."
-	},
-	{
-		"id": 119,
-		"emoji": "🗳️",
-		"date": "2025-02-23",
-		"title": "Federal Election",
-		"description": "CDU/CSU wins decisive victory under Friedrich Merz. Coalition negotiations begin with SPD for 'Germany Alliance' government."
-	},
-	{
-		"id": 120,
-		"emoji": "🗳️",
-		"date": "2029-06-09",
-		"title": "Federal Election",
-		"description": "Federal elections to Chamber of Representatives and Senate following five-year term."
-	},
-	{
-		"id": 131,
-		"emoji": "📅",
-		"date": "2024-11-01",
-		"title": "General Election",
-		"description": "Mette Frederiksen's Social Democrats win again but lose parliamentary majority, leading to minority government formation."
-	},
-	{
-		"id": 132,
-		"emoji": "📅",
-		"date": "2025-10-12",
-		"title": "General Election",
-		"description": "Robert Abela's Labour Party wins third consecutive term with increased parliamentary majority."
-	},
-	{
-		"id": 133,
-		"emoji": "📅",
-		"date": "2026-09-13",
-		"title": "General Election",
-		"description": "Next scheduled parliamentary election following four-year legislative term."
-	},
-	{
-		"id": 134,
-		"emoji": "📅",
-		"date": "2027-12-01",
-		"title": "General Election",
-		"description": "Congress of Deputies and Senate elections. Political fragmentation continues to challenge government formation."
-	},
-	{
-		"id": 135,
-		"emoji": "📅",
-		"date": "2028-10-08",
-		"title": "General Election",
-		"description": "Chamber of Deputies election following five-year legislative term."
-	},
-	{
-		"id": 136,
-		"emoji": "📅",
-		"date": "2029-11-29",
-		"title": "General Election",
-		"description": "Dáil Éireann election following five-year legislative term."
-	},
-	{
-		"id": 137,
-		"emoji": "📅",
-		"date": "2030-09-14",
-		"title": "General Election",
-		"description": "Riksdag election following four-year legislative term."
-	},
-	{
-		"id": 192,
-		"emoji": "📅",
-		"date": "2024-03-10",
-		"title": "Legislative Election",
-		"description": "Center-right Democratic Alliance (AD) wins snap election after PM Costa's resignation. Far-right Chega emerges as third-largest party in Portuguese parliament."
-	},
-	{
-		"id": 193,
-		"emoji": "📅",
-		"date": "2027-06-20",
-		"title": "Legislative Election",
-		"description": "Parliamentary elections following presidential election. Outcome shapes government formation."
-	},
-	{
-		"id": 224,
-		"emoji": "📅",
-		"date": "2024-09-29",
-		"title": "National Election",
-		"description": "Freedom Party (FPÖ) becomes first far-right party to win national election in post-war Austria. Coalition negotiations begin without clear path to government."
-	},
-	{
-		"id": 225,
-		"emoji": "📅",
-		"date": "2029-09-29",
-		"title": "National Election",
-		"description": "National Council election following five-year legislative term."
-	},
-	{
-		"id": 243,
-		"emoji": "🗳️",
-		"date": "2024-04-17",
-		"title": "Parliamentary Election",
-		"description": "HDZ wins narrow victory but loses absolute majority. Andrej Plenković continues as PM with HDZ-DPMIO coalition government."
-	},
-	{
-		"id": 244,
-		"emoji": "🗳️",
-		"date": "2025-03-09",
-		"title": "Parliamentary Election",
-		"description": "Reform Party and Centre Party neck-and-neck. Coalition negotiations determine next government amid tight results."
-	},
-	{
-		"id": 245,
-		"emoji": "🗳️",
-		"date": "2026-03-22",
-		"title": "Parliamentary Election",
-		"description": "Next scheduled parliamentary election following standard four-year legislative term."
-	},
-	{
-		"id": 246,
-		"emoji": "🗳️",
-		"date": "2027-06-21",
-		"title": "Parliamentary Election",
-		"description": "New Democracy wins second term under Kyriakos Mitsotakis with focus on economic growth and infrastructure development."
-	},
-	{
-		"id": 247,
-		"emoji": "🗳️",
-		"date": "2028-10-13",
-		"title": "Parliamentary Election",
-		"description": "Seimas election following four-year legislative term."
-	},
-	{
-		"id": 248,
-		"emoji": "🗳️",
-		"date": "2029-05-18",
-		"title": "Parliamentary Election",
-		"description": "Assembly of the Republic election following four-year legislative term."
-	},
-	{
-		"id": 249,
-		"emoji": "🗳️",
-		"date": "2030-11-24",
-		"title": "Parliamentary Election",
-		"description": "National Assembly election following four-year legislative term."
-	},
-	{
-		"id": 260,
-		"emoji": "🗳️",
-		"date": "2024-01-28",
-		"title": "Presidential Election",
-		"description": "Alexander Stubb elected president in runoff against Jussi Halla-aho of the Finns Party, after incumbent Sauli Niinistö chose not to seek re-election."
-	},
-	{
-		"id": 261,
-		"emoji": "🗳️",
-		"date": "2025-10-24",
-		"title": "Presidential Election",
-		"description": "Former Fine Gael leader runs in presidential election amid coalition government dynamics."
-	},
-	{
-		"id": 262,
-		"emoji": "🗳️",
-		"date": "2026-08-30",
-		"title": "Presidential Election",
-		"description": "Presidential election to select head of state. Alar Karis does not stand for re-election."
-	},
-	{
-		"id": 263,
-		"emoji": "🗳️",
-		"date": "2028-02-05",
-		"title": "Presidential Election",
-		"description": "Presidential election to elect leader of Republic of Cyprus. Incumbent Nikos Christodoulides eligible for re-election."
-	},
-	{
-		"id": 264,
-		"emoji": "🗳️",
-		"date": "2029-12-29",
-		"title": "Presidential Election",
-		"description": "Presidential election following five-year term cycle."
-	},
-	{
-		"id": 265,
-		"emoji": "🗳️",
-		"date": "2030-01-28",
-		"title": "Presidential Election",
-		"description": "Presidential election to select head of state. Incumbent Alexander Stubb eligible for re-election."
-	},
-	{
-		"id": 266,
-		"emoji": "🗳️",
-		"date": "2032-10-24",
-		"title": "Presidential Election",
-		"description": "Presidential election following seven-year term cycle."
-	},
-	{
-		"id": 267,
-		"emoji": "🗳️",
-		"date": "2033-02-05",
-		"title": "Presidential Election",
-		"description": "Presidential election following five-year term cycle."
-	},
-	{
-		"id": 268,
-		"emoji": "🗳️",
-		"date": "2025-05-18",
-		"title": "Presidential Election (Round 1)",
-		"description": "Conservative Karol Nawrocki and centrist Rafał Trzaskowski advance to runoff in closely contested first round."
-	},
-	{
-		"id": 269,
-		"emoji": "🗳️",
-		"date": "2026-01-18",
-		"title": "Presidential Election (Round 1)",
-		"description": "Marcelo Rebelo de Sousa does not stand for re-election. Multiple candidates contest presidency."
-	},
-	{
-		"id": 270,
-		"emoji": "🗳️",
-		"date": "2027-04-11",
-		"title": "Presidential Election (Round 1)",
-		"description": "Presidential election without incumbent Emmanuel Macron (term-limited). Multiple candidates from across political spectrum."
-	},
-	{
-		"id": 271,
-		"emoji": "🗳️",
-		"date": "2030-05-18",
-		"title": "Presidential Election (Round 1)",
-		"description": "Presidential election following five-year term cycle."
-	},
-	{
-		"id": 272,
-		"emoji": "🗳️",
-		"date": "2031-01-18",
-		"title": "Presidential Election (Round 1)",
-		"description": "Presidential election following five-year term cycle."
-	},
-	{
-		"id": 273,
-		"emoji": "📅",
-		"date": "2024-11-24",
-		"title": "Presidential Election (Round 1, Annulled)",
-		"description": "Pro-Russian candidate Călin Georgescu surprises with first-place finish. Constitutional Court later annuls election due to Russian TikTok manipulation allegations."
-	},
-	{
-		"id": 274,
-		"emoji": "📅",
-		"date": "2025-05-04",
-		"title": "Presidential Election (Round 1, Re-run)",
-		"description": "George Simion (AUR) leads first round of re-run election following annulment of 2024 vote due to foreign interference."
-	},
-	{
-		"id": 275,
-		"emoji": "🗳️",
-		"date": "2025-06-01",
-		"title": "Presidential Election (Runoff)",
-		"description": "Karol Nawrocki wins closely contested presidential election against Warsaw mayor Rafał Trzaskowski in narrow runoff."
-	},
-	{
-		"id": 276,
-		"emoji": "🗳️",
-		"date": "2026-02-08",
-		"title": "Presidential Election (Runoff)",
-		"description": "Second round of presidential election if no candidate achieves absolute majority in first round."
-	},
-	{
-		"id": 277,
-		"emoji": "🗳️",
-		"date": "2027-04-25",
-		"title": "Presidential Election (Runoff)",
-		"description": "Second round of presidential election if no candidate achieves absolute majority."
-	},
-	{
-		"id": 278,
-		"emoji": "🗳️",
-		"date": "2030-06-01",
-		"title": "Presidential Election (Runoff)",
-		"description": "Second round of presidential election if needed."
-	},
-	{
-		"id": 323,
-		"emoji": "📅",
-		"date": "2026-09-20",
-		"title": "Senate Election",
-		"description": "Senate by-elections and partial renewal of one-third of Senate seats."
-	},
-	{
-		"id": 372,
-		"emoji": "📅",
-		"date": "2024-07-04",
-		"title": "UK General Election",
-		"description": "Labour Party wins massive landslide, ending 14 years of Conservative rule. Keir Starmer becomes Prime Minister."
+		"description": "Scheduled election, due by June 2034: EU citizens elect Members of European Parliament for the 2034–2039 term.",
+		"url": "https://en.wikipedia.org/wiki/Elections_to_the_European_Parliament"
 	}
 ]

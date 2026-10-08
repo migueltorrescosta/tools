@@ -1,4 +1,23 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import {
+		STABLE_ROUNDS,
+		balances,
+		completeRound as runRound,
+		groupDelta,
+		groupValue,
+		initialValuations,
+		itemError,
+		itemFavourites,
+		itemsOf,
+		lptGroups,
+		nextStableCount,
+		paymentLabel,
+		personError,
+		roundedBalances,
+		startError
+	} from '$lib/split';
+
 	interface Item {
 		id: number;
 		description: string;
@@ -14,23 +33,35 @@
 		currency: 'EUR',
 		maximumFractionDigits: 0
 	});
+	const fmt = (n: number) => formatter.format(n);
+
+	let hydrated = $state(false);
+	onMount(() => (hydrated = true));
 
 	let items = $state<Item[]>([]);
 	let newItem = $state<Item>({ id: 0, description: '', price: 0 });
 	let people = $state<Person[]>([]);
 	let newPerson = $state<Person>({ id: 0, name: '' });
+	let itemMsg = $state<string | null>(null);
+	let personMsg = $state<string | null>(null);
 	let initialized = $state(false);
 	let individualPrices = $state<number[][]>([]);
 	let iterations = $state(0);
 	let groups = $state<number[][]>([]);
 	let personSelections = $state<(number | null)[]>([]);
+	/** Prices as entered before START; their sum is the estate value every round conserves. */
+	let enteredPrices = $state<number[]>([]);
+	/** Allocation after the previous completed round (null before the first). */
+	let lastFavs = $state<number[] | null>(null);
+	/** Consecutive completed rounds with an unchanged allocation. */
+	let stableFor = $state(0);
 
 	function addItem(e: Event) {
 		e.preventDefault();
-		if (newItem.price > 0 && newItem.description.trim()) {
-			items = [...items, { ...newItem }];
-			newItem = { id: newItem.id + 1, description: '', price: 0 };
-		}
+		itemMsg = itemError(newItem.description, newItem.price);
+		if (itemMsg) return;
+		items = [...items, { ...newItem, description: newItem.description.trim() }];
+		newItem = { id: newItem.id + 1, description: '', price: 0 };
 	}
 
 	function deleteItem(id: number) {
@@ -42,38 +73,39 @@
 
 	function addPerson(e: Event) {
 		e.preventDefault();
-		if (newPerson.name.trim()) {
-			people = [...people, { ...newPerson }];
-			newPerson = { id: newPerson.id + 1, name: '' };
-		}
+		personMsg = personError(newPerson.name);
+		if (personMsg) return;
+		people = [...people, { ...newPerson, name: newPerson.name.trim() }];
+		newPerson = { id: newPerson.id + 1, name: '' };
 	}
 
+	const startMsg = $derived(startError(people.length, items.length));
+
 	function startAlgorithm() {
-		if (people.length < 2 || items.length === 0) return;
+		if (startMsg) return;
 		initialized = true;
-		const prices = items.map((x) => x.price);
-		individualPrices = people
-			.map(() => [...prices])
-			.map((row) => row.map((v) => v + Math.random() - 0.5));
+		enteredPrices = items.map((x) => x.price);
+		individualPrices = initialValuations(enteredPrices, people.length, Math.random);
 		personSelections = people.map(() => null);
+		lastFavs = null;
+		stableFor = 0;
 		setupExperiment();
 	}
 
+	/** Leave the round view, discarding round history and restoring the entered prices. */
+	function backToSetup() {
+		items = items.map((item, i) => ({ ...item, price: enteredPrices[i] ?? item.price }));
+		initialized = false;
+		iterations = 0;
+		individualPrices = [];
+		groups = [];
+		personSelections = [];
+		lastFavs = null;
+		stableFor = 0;
+	}
+
 	function setupExperiment() {
-		const n = people.length;
-		if (!n || !items.length) {
-			groups = [];
-			return;
-		}
-		const vals = Array(n).fill(0);
-		groups = Array.from({ length: n }, () => [] as number[]);
-		const sorted = [...items].sort((a, b) => b.price - a.price);
-		for (const item of sorted) {
-			let min = 0;
-			for (let g = 1; g < n; g++) if (vals[g] < vals[min]) min = g;
-			groups[min].push(item.id);
-			vals[min] += item.price;
-		}
+		groups = lptGroups(items, people.length);
 	}
 
 	function handleSelectionChange(idx: number, gIdx: number) {
@@ -81,96 +113,57 @@
 	}
 
 	function completeRound() {
-		const factor = 1 + 1 / (0.1 * iterations + 10);
-		let indPrices = individualPrices.map((r) => [...r]);
-		for (let p = 0; p < people.length; p++) {
-			const sel = personSelections[p];
-			if (sel === null) continue;
-			for (let i = 0; i < items.length; i++) {
-				indPrices[p][i] *= groups[sel].includes(items[i].id) ? factor : 1 / factor;
-			}
-		}
-		for (let p = 0; p < indPrices.length; p++) {
-			for (let i = 0; i < items.length; i++)
-				indPrices[p][i] = (indPrices[p][i] + individualPrices[p][i]) / 2;
-		}
-		items = items.map((item, i) => ({
-			...item,
-			price: indPrices.reduce((s, r) => s + r[i], 0) / people.length
-		}));
+		const result = runRound(
+			individualPrices,
+			items.map((i) => i.id),
+			groups,
+			personSelections,
+			iterations,
+			enteredPrices.reduce((a, b) => a + b, 0)
+		);
+		items = items.map((item, i) => ({ ...item, price: result.prices[i] }));
 		iterations++;
-		individualPrices = indPrices;
+		individualPrices = result.valuations;
+		const favs = itemFavourites(result.valuations, items.length);
+		stableFor = nextStableCount(lastFavs, favs, stableFor);
+		lastFavs = favs;
 		personSelections = people.map(() => null);
 		setupExperiment();
 	}
 
-	function getGroupValue(gIdx: number): number {
-		return groups[gIdx].reduce((s, id) => s + (items.find((i) => i.id === id)?.price || 0), 0);
-	}
-
-	function getGroupDelta(gIdx: number): number {
-		const totalValue = items.reduce((s, i) => s + i.price, 0);
-		const avg = totalValue / people.length;
-		return getGroupValue(gIdx) - avg;
-	}
-
-	function getGroupDesc(gIdx: number): string {
-		if (!groups[gIdx]?.length) return '(empty)';
-		return groups[gIdx]
-			.map((id) => items.find((i) => i.id === id)?.description)
-			.filter(Boolean)
-			.join(', ');
-	}
-
 	// Derived values
 	const itemFavs = $derived(
-		initialized && items.length > 0
-			? items.map((_, col) => {
-					let maxIdx = 0,
-						maxVal = -Infinity;
-					for (let row = 0; row < individualPrices.length; row++) {
-						if (individualPrices[row]?.[col] > maxVal) {
-							maxVal = individualPrices[row][col];
-							maxIdx = row;
-						}
-					}
-					return maxIdx;
-				})
-			: []
+		initialized && items.length > 0 ? itemFavourites(individualPrices, items.length) : []
 	);
 
 	const allSelected = $derived(
 		initialized && personSelections.length > 0 && personSelections.every((s) => s !== null)
 	);
 
-	const allocationDeltas = $derived(
-		initialized && items.length > 0 && people.length > 0
-			? people.map((_, idx) => {
-					const avg = items.reduce((a, b) => a + b.price, 0) / people.length;
-					const my = itemFavs.map((f, i) => (f === idx ? i : -1)).filter((i) => i >= 0);
-					let d = -avg + (my.length ? my.map((i) => items[i].price).reduce((a, b) => a + b, 0) : 0);
-					return (d > 0 ? 'Pay ' : 'Get ') + formatter.format(Math.round(Math.abs(d)));
-				})
-			: []
-	);
+	const settled = $derived(stableFor >= STABLE_ROUNDS);
 
-	const suggestedAlloc = $derived(
-		initialized && items.length > 0 && people.length > 0
-			? people.map((p, idx) => {
-					const avg = items.reduce((a, b) => a + b.price, 0) / people.length;
-					const my = itemFavs.map((f, i) => (f === idx ? i : -1)).filter((i) => i >= 0);
-					let d = -avg + (my.length ? my.map((i) => items[i].price).reduce((a, b) => a + b, 0) : 0);
-					let s = (d > 0 ? 'Pay ' : 'Get ') + formatter.format(Math.round(Math.abs(d)));
-					if (my.length) s = my.map((i) => items[i].description).reduce((a, b) => a + ', ' + b, s);
-					return { name: p.name, items: s };
-				})
-			: []
-	);
+	const suggestedAlloc = $derived.by(() => {
+		if (!initialized || items.length === 0 || people.length === 0) return [];
+		const owed = roundedBalances(
+			balances(
+				items.map((i) => i.price),
+				itemFavs,
+				people.length
+			)
+		);
+		return people.map((p, idx) => ({
+			name: p.name,
+			items: itemsOf(itemFavs, idx)
+				.map((i) => items[i].description)
+				.join(', '),
+			payment: paymentLabel(owed[idx], fmt)
+		}));
+	});
 </script>
 
 <svelte:head><title>Asset Splitting</title></svelte:head>
 
-<div class="container">
+<div class="container" data-hydrated={hydrated || undefined}>
 	<header>
 		<h1>ASSET SPLITTING</h1>
 		<p class="subtitle">Fair Division Tool</p>
@@ -178,57 +171,100 @@
 
 	{#if !initialized}
 		<div class="section">
-			<div class="section-header"><span class="label">People</span></div>
-			<div class="split-flex">
-				{#each people as p}<div class="split-person-item">
-						<button class="split-delete-btn" onclick={() => deletePerson(p.id)}>Del</button>{p.name}
-					</div>{/each}
-				<form class="split-add-person-form" onsubmit={addPerson}>
-					<input type="submit" value="Add" /><input
-						type="text"
-						bind:value={newPerson.name}
-						placeholder="Name"
-					/>
-				</form>
-			</div>
+			<div class="section-header"><span class="label" id="people-label">People</span></div>
+			<ul class="split-flex split-list" aria-labelledby="people-label">
+				{#each people as p (p.id)}<li class="split-person-item">
+						<button
+							class="split-delete-btn"
+							aria-label="Delete {p.name}"
+							onclick={() => deletePerson(p.id)}>Del</button
+						>{p.name}
+					</li>{/each}
+			</ul>
+			<form class="split-add-person-form" onsubmit={addPerson} novalidate>
+				<input type="submit" value="Add" aria-label="Add person" /><input
+					type="text"
+					bind:value={newPerson.name}
+					placeholder="Name"
+					aria-label="Person name"
+					aria-invalid={personMsg ? 'true' : undefined}
+					aria-describedby={personMsg ? 'person-error' : undefined}
+				/>
+			</form>
+			{#if personMsg}<p id="person-error" class="split-error" role="alert">{personMsg}</p>{/if}
 		</div>
 
 		<div class="section">
 			<div class="section-header"><span class="label">Items</span></div>
 			<div class="result-panel">
+				<form id="add-item-form" onsubmit={addItem} novalidate></form>
 				<table class="split-table">
-					<thead><tr><th>Description</th><th>Estimated Price</th></tr></thead>
+					<thead
+						><tr
+							><th>Description</th><th>Estimated Price</th><th
+								><span class="split-sr-only">Actions</span></th
+							></tr
+						></thead
+					>
 					<tbody>
-						{#each items as item}
-							<tr><td>{item.description}</td><td>{formatter.format(Math.round(item.price))}</td></tr
+						{#each items as item (item.id)}
+							<tr
+								><td>{item.description}</td><td>{fmt(Math.round(item.price))}</td><td
+									><button
+										class="split-delete-btn"
+										aria-label="Delete {item.description}"
+										onclick={() => deleteItem(item.id)}>Del</button
+									></td
+								></tr
 							>
 						{/each}
 						<tr class="add-item-row"
 							><td
 								><input
 									type="text"
+									form="add-item-form"
 									class="split-input"
 									bind:value={newItem.description}
 									placeholder="Description"
+									aria-label="Item description"
+									aria-invalid={itemMsg ? 'true' : undefined}
+									aria-describedby={itemMsg ? 'item-error' : undefined}
 								/></td
 							><td
 								><input
 									type="number"
+									form="add-item-form"
 									class="split-input"
+									min="0"
+									step="any"
 									bind:value={newItem.price}
 									placeholder="Price"
+									aria-label="Item price in euros"
+									aria-invalid={itemMsg ? 'true' : undefined}
+									aria-describedby={itemMsg ? 'item-error' : undefined}
 								/></td
-							><td><button class="split-add-btn" onclick={addItem}>Add Item</button></td></tr
+							><td
+								><button type="submit" form="add-item-form" class="split-add-btn">Add Item</button
+								></td
+							></tr
 						>
 					</tbody>
 				</table>
+				{#if itemMsg}<p id="item-error" class="split-error" role="alert">{itemMsg}</p>{/if}
 			</div>
 		</div>
 
 		<div class="process-btn-container">
-			<button type="button" id="start-algorithm" class="process-btn" onclick={startAlgorithm}
+			<button
+				type="button"
+				id="start-algorithm"
+				class="process-btn"
+				disabled={startMsg !== null}
+				aria-describedby={startMsg ? 'start-error' : undefined}
+				onclick={startAlgorithm}
 				><span class="btn-text">START</span><span class="btn-glow"></span></button
 			>
+			{#if startMsg}<p id="start-error" class="hint">{startMsg}</p>{/if}
 		</div>
 	{/if}
 
@@ -237,7 +273,7 @@
 			<div class="section">
 				<div class="section-header"><span class="label">People</span></div>
 				<div class="split-flex">
-					{#each people as p}<div class="split-person-item">{p.name}</div>{/each}
+					{#each people as p (p.id)}<div class="split-person-item">{p.name}</div>{/each}
 				</div>
 			</div>
 
@@ -247,11 +283,8 @@
 					<table class="split-table">
 						<thead><tr><th>Description</th><th>Estimated Price</th></tr></thead>
 						<tbody>
-							{#each items as item}
-								<tr
-									><td>{item.description}</td><td>{formatter.format(Math.round(item.price))}</td
-									></tr
-								>
+							{#each items as item (item.id)}
+								<tr><td>{item.description}</td><td>{fmt(Math.round(item.price))}</td></tr>
 							{/each}
 						</tbody>
 					</table>
@@ -259,14 +292,30 @@
 			</div>
 
 			<div class="section">
-				<div class="section-header"><span class="label">Suggested Split</span></div>
-				<div class="result-panel">
-					<table class="split-table">
-						<thead><tr><th class="w-30">Person</th><th>Items</th></tr></thead><tbody
-							>{#each suggestedAlloc as a}<tr><td>{a.name}</td><td>{a.items}</td></tr>{/each}</tbody
-						>
-					</table>
+				<div class="section-header">
+					<span class="label" id="suggested-label">Suggested Split</span>
 				</div>
+				{#if iterations === 0}
+					<p class="hint">Complete a round to see a suggested split.</p>
+				{:else}
+					<p class="hint" data-testid="split-stability">
+						{#if settled}
+							Allocation stable for {stableFor} rounds.
+						{:else}
+							Provisional: allocation stable for {stableFor} of {STABLE_ROUNDS} rounds.
+						{/if}
+					</p>
+					<div class="result-panel" class:split-provisional={!settled}>
+						<table class="split-table" aria-labelledby="suggested-label">
+							<thead><tr><th class="w-30">Person</th><th>Items</th><th>Settlement</th></tr></thead
+							><tbody
+								>{#each suggestedAlloc as a, i (i)}<tr
+										><td>{a.name}</td><td>{a.items || '(none)'}</td><td>{a.payment}</td></tr
+									>{/each}</tbody
+							>
+						</table>
+					</div>
+				{/if}
 			</div>
 		</div>
 
@@ -277,17 +326,20 @@
 			</div>
 			<div class="panel-content split-experiment-content">
 				<div class="groups-row">
-					{#each groups as g, gi}
-						<div class="group-col">
+					{#each groups as g, gi (gi)}
+						<div class="group-col" data-testid="split-group">
 							<div class="group-title">Group {gi + 1}</div>
 							<div class="group-items">
-								{#each g as itemId}
+								{#each g as itemId (itemId)}
 									{@const item = items.find((i) => i.id === itemId)}
 									{#if item}<div class="group-item">{item.description}</div>{/if}
 								{/each}
 								{#if g.length === 0}<div class="group-item empty">(empty)</div>{/if}
 							</div>
-							<div class="group-value">{formatter.format(-Math.round(getGroupDelta(gi)))}</div>
+							<div class="group-value">Worth {fmt(Math.round(groupValue(g, items)))}</div>
+							<div class="hint">
+								Taker: {paymentLabel(groupDelta(g, items, people.length), fmt)}
+							</div>
 						</div>
 					{/each}
 				</div>
@@ -295,14 +347,16 @@
 					Select your preferred group. Each person chooses independently.
 				</p>
 				<div class="selection-row-horizontal">
-					{#each people as p, pi}<div class="selection-col">
-							<span class="selection-name">{p.name}</span><select
+					{#each people as p, pi (p.id)}<div class="selection-col">
+							<label class="selection-name" for="split-choice-{p.id}">{p.name}</label><select
+								id="split-choice-{p.id}"
 								class="algorithm-select"
+								aria-label="{p.name}'s group choice"
 								value={personSelections[pi] ?? ''}
 								onchange={(e) =>
 									handleSelectionChange(pi, parseInt((e.target as HTMLSelectElement).value))}
-								><option value="" disabled>Select group...</option>{#each groups as g, gi}<option
-										value={gi}>Group {gi + 1}</option
+								><option value="" disabled>Select group...</option
+								>{#each groups as _g, gi (gi)}<option value={gi}>Group {gi + 1}</option
 									>{/each}</select
 							>
 						</div>{/each}
@@ -314,7 +368,45 @@
 					style="opacity:{allSelected ? 1 : 0.5};cursor:{allSelected ? 'pointer' : 'not-allowed'}"
 					><span class="btn-text">COMPLETE ROUND</span><span class="btn-glow"></span></button
 				>
+				<button type="button" class="split-add-btn split-back-btn" onclick={backToSetup}
+					>Back to setup</button
+				>
+				<p class="hint">Going back discards all rounds and restores the entered prices.</p>
 			</div>
 		</div>
 	{/if}
 </div>
+
+<style>
+	.split-list {
+		list-style: none;
+		margin: 0 0 0.5rem;
+		padding: 0;
+	}
+	.split-error {
+		color: #ff6b6b;
+		font-size: 0.85rem;
+		margin: 0.5rem 0 0;
+	}
+	.split-provisional {
+		opacity: 0.6;
+	}
+	.split-back-btn {
+		margin-top: 1rem;
+	}
+	.split-sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+	#start-algorithm:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+</style>

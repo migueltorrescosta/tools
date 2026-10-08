@@ -51,7 +51,8 @@ export const ANNUAL_CADENCE = 4;
 
 /**
  * Densify a company's anchors onto the quarter grid and convert to `currency`.
- * Conversion uses each quarter's own rate, so trails reflect FX moves too.
+ * Conversion uses the fiscal-year rate ending at each quarter (the rate the build used),
+ * so a company shown in its reporting currency reproduces its filed figures.
  */
 export function buildTrail(
 	company: Company,
@@ -97,6 +98,46 @@ export function trailUpTo(trail: Trail, qi: number): TrailPoint[] {
 	return trail.points.filter((p) => p.qi <= qi);
 }
 
+/** The trail's latest point at or before `qi`; undefined before its first point. */
+export function latestUpTo(trail: Trail, qi: number): TrailPoint | undefined {
+	let latest: TrailPoint | undefined;
+	for (const p of trail.points) {
+		if (p.qi > qi) break;
+		latest = p;
+	}
+	return latest;
+}
+
+/** Whether a point can be placed on the chart (positive revenue for the log axis, a margin). */
+export function isDrawable(p: TrailPoint): boolean {
+	return p.revenue > 0 && p.margin !== null;
+}
+
+/** A trail as drawn at quarter `qi`. */
+export interface DrawnTrail {
+	trail: Trail;
+	/** Every point up to `qi`, drawable or not: undrawable ones break the line. */
+	path: TrailPoint[];
+	/** Drawable points up to `qi`: markers and hit-testing. */
+	points: TrailPoint[];
+	head: TrailPoint | null;
+	/** True once the company's dataset has ended before `qi`. */
+	ended: boolean;
+}
+
+export function drawTrail(trail: Trail, qi: number): DrawnTrail {
+	const path = trailUpTo(trail, qi);
+	const points = path.filter(isDrawable);
+	const last = trail.points[trail.points.length - 1];
+	return {
+		trail,
+		path,
+		points,
+		head: points.length > 0 ? points[points.length - 1] : null,
+		ended: last !== undefined && last.qi < qi
+	};
+}
+
 export interface LogScale {
 	(value: number): number;
 	domain: [number, number];
@@ -130,6 +171,24 @@ export function logExtent(values: Iterable<number>): [number, number] | null {
 	let hi = 10 ** Math.ceil(Math.log10(max));
 	if (hi <= lo) hi = lo * 10;
 	return [lo, hi];
+}
+
+/**
+ * Lowest revenue the default x axis reaches (millions in the display currency).
+ * Pre-revenue filings (Tesla FY2007: USD 0.073m) would otherwise stretch the axis
+ * across extra decades for one point; points below are pinned to the left edge.
+ */
+export const REVENUE_FLOOR = 10;
+
+/** The revenue axis domain: {@link logExtent} with its lower bound raised to `floor`. */
+export function revenueDomain(
+	values: Iterable<number>,
+	floor = REVENUE_FLOOR
+): [number, number] | null {
+	const extent = logExtent(values);
+	if (!extent) return null;
+	const lo = Math.max(extent[0], floor);
+	return [lo, Math.max(extent[1], lo * 10)];
 }
 
 /** Tick values at 1·10^k (major) and, when the domain spans few decades, 2 and 5 as well. */
@@ -214,46 +273,72 @@ export function colorMode(visibleCount: number): ColorMode {
 }
 
 /**
- * CSS colour per company id. Small selections get one palette slot per company,
- * in name order over the visible set; larger ones share their industry's slot.
+ * CSS colour per company id. Small selections get one palette slot per company; larger
+ * ones share their industry's slot. Without `previous`, slots follow name order over the
+ * visible set. With `previous` (the last company-mode slots, 1-based), companies that
+ * held a slot keep it and newcomers take the lowest free slots in name order, so ticking
+ * a company on or off never recolours the others.
  */
-export function assignColors(trails: readonly Trail[]): Map<string, string> {
+export function assignColors(
+	trails: readonly Trail[],
+	previous: ReadonlyMap<string, number> = new Map()
+): { colors: Map<string, string>; slots: Map<string, number> } {
 	const colors = new Map<string, string>();
 	if (colorMode(trails.length) === 'industry') {
 		for (const t of trails) {
 			colors.set(t.company.id, `var(--series-${typeSlot(t.company.type) + 1})`);
 		}
-		return colors;
+		return { colors, slots: new Map(previous) };
 	}
 	const sorted = [...trails].sort(
 		(a, b) =>
 			a.company.name.localeCompare(b.company.name) || a.company.id.localeCompare(b.company.id)
 	);
-	sorted.forEach((t, i) => colors.set(t.company.id, `var(--cseries-${i + 1})`));
-	return colors;
+	const slots = new Map<string, number>();
+	const taken = new Set<number>();
+	for (const t of sorted) {
+		const slot = previous.get(t.company.id);
+		if (slot !== undefined && slot >= 1 && slot <= PALETTE_SIZE && !taken.has(slot)) {
+			slots.set(t.company.id, slot);
+			taken.add(slot);
+		}
+	}
+	let next = 1;
+	for (const t of sorted) {
+		if (slots.has(t.company.id)) continue;
+		while (taken.has(next)) next++;
+		slots.set(t.company.id, next);
+		taken.add(next);
+	}
+	for (const t of sorted) colors.set(t.company.id, `var(--cseries-${slots.get(t.company.id)})`);
+	return { colors, slots };
 }
 
 const SYMBOL: Record<Currency, string> = { EUR: '€', USD: '$', GBP: '£' };
+
+const MONEY_UNITS = [
+	{ divisor: 1e6, unit: 'T' },
+	{ divisor: 1e3, unit: 'B' },
+	{ divisor: 1, unit: 'M' }
+] as const;
 
 /** Compact money label for a value in millions, e.g. `€1.2B`, `$350M`, `£2.4T`. */
 export function formatMoney(millions: number, currency: Currency): string {
 	const sign = millions < 0 ? '−' : '';
 	const abs = Math.abs(millions);
-	let value: number;
-	let unit: string;
-	if (abs >= 1e6) {
-		value = abs / 1e6;
-		unit = 'T';
-	} else if (abs >= 1e3) {
-		value = abs / 1e3;
-		unit = 'B';
-	} else {
-		value = abs;
-		unit = 'M';
+	let u = MONEY_UNITS.findIndex((m) => abs >= m.divisor);
+	if (u === -1) u = MONEY_UNITS.length - 1;
+	const round = (value: number) => {
+		const digits = value >= 100 ? 0 : value >= 10 ? 1 : 2;
+		return Number(value.toFixed(digits));
+	};
+	let rounded = round(abs / MONEY_UNITS[u].divisor);
+	// Rounding can carry into the next unit (999.6M -> 1000M): promote to 1B instead.
+	if (rounded >= 1000 && u > 0) {
+		u -= 1;
+		rounded = round(abs / MONEY_UNITS[u].divisor);
 	}
-	const digits = value >= 100 ? 0 : value >= 10 ? 1 : 2;
-	const text = Number(value.toFixed(digits)).toString();
-	return `${sign}${SYMBOL[currency]}${text}${unit}`;
+	return `${sign}${SYMBOL[currency]}${rounded}${MONEY_UNITS[u].unit}`;
 }
 
 export type SegmentKind = 'solid' | 'gap' | 'clipped';
@@ -315,4 +400,105 @@ export function trailSegments(
 	}
 	flush();
 	return segments;
+}
+
+/** A point under the pointer or pinned, as drawn right now. */
+export interface Hit {
+	trail: Trail;
+	point: TrailPoint;
+}
+
+/** What a hover or pin refers to, independent of currency and the current trail set. */
+export interface HitSelection {
+	companyId: string;
+	quarter: string;
+}
+
+/**
+ * The drawn point a selection refers to in the current trails, or null when that
+ * company is no longer drawn or the quarter is not on screen (e.g. the slider moved
+ * before it). Re-resolving on every change keeps the tooltip in the current currency.
+ */
+export function resolveHit(
+	drawn: readonly { trail: Trail; points: readonly TrailPoint[] }[],
+	sel: HitSelection | null
+): Hit | null {
+	if (!sel) return null;
+	const d = drawn.find((entry) => entry.trail.company.id === sel.companyId);
+	const point = d?.points.find((p) => p.quarter === sel.quarter);
+	return d && point ? { trail: d.trail, point } : null;
+}
+
+/** Hit radius around a point, in chart units. */
+export const HIT_RADIUS = 14;
+
+/**
+ * Squared-distance penalty for interpolated points (except a trail's head), so an anchor
+ * or head wins a tie against a faint interpolated point at the same distance. It only
+ * breaks near-ties: it never lets a farther anchor beat a clearly closer point.
+ */
+export const INTERPOLATED_BIAS = 4;
+
+/**
+ * The drawn point nearest to (`px`, `py`) within {@link HIT_RADIUS}, or null. `x` maps
+ * revenue and `y` maps a margin (clamped to the axis, as drawn) to chart coordinates.
+ */
+export function nearestHit(
+	drawn: readonly Pick<DrawnTrail, 'trail' | 'points' | 'head'>[],
+	px: number,
+	py: number,
+	x: (revenue: number) => number,
+	y: (margin: number) => number
+): Hit | null {
+	let best: Hit | null = null;
+	let bestDist = HIT_RADIUS * HIT_RADIUS;
+	for (const d of drawn) {
+		for (const p of d.points) {
+			const dx = x(p.revenue) - px;
+			const dy = y(clampMargin(p.margin ?? 0).value) - py;
+			const bias = p.quality === 'interpolated' && p !== d.head ? INTERPOLATED_BIAS : 0;
+			const dist = dx * dx + dy * dy + bias;
+			if (dist < bestDist) {
+				bestDist = dist;
+				best = { trail: d.trail, point: p };
+			}
+		}
+	}
+	return best;
+}
+
+/** Tooltip anchor in percent of the chart box, flipped away from the right and bottom edges. */
+export function tooltipPlacement(
+	tx: number,
+	ty: number,
+	width: number,
+	height: number
+): { left: number; top: number; flipX: boolean; flipY: boolean } {
+	return {
+		left: (tx / width) * 100,
+		top: (ty / height) * 100,
+		flipX: tx > width * 0.6,
+		flipY: ty > height * 0.55
+	};
+}
+
+/** A filing backing a drawn point. */
+export interface PointSource {
+	quarter: string;
+	source?: string;
+	sourceUrl?: string;
+}
+
+/**
+ * The filings behind `point`: the point itself for an anchor, or the two anchors an
+ * interpolated point was derived from.
+ */
+export function pointSources(trail: Trail, point: TrailPoint): PointSource[] {
+	if (point.quality !== 'interpolated') {
+		return [{ quarter: point.quarter, source: point.source, sourceUrl: point.sourceUrl }];
+	}
+	return [point.from, point.to]
+		.map((q) => trail.points.find((p) => p.quarter === q))
+		.filter((p): p is TrailPoint => p !== undefined)
+		.map((p) => ({ quarter: p.quarter, source: p.source, sourceUrl: p.sourceUrl }));
 }

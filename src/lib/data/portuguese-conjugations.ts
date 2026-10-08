@@ -1,4 +1,5 @@
 import type { LanguageModule, ConjugationMap } from './language-registry';
+import { extractAfterPerson } from '../verbs';
 
 // ─── Portuguese Data (European Portuguese) ─────────────────────────────────────
 
@@ -130,7 +131,8 @@ type SpellChange = 'none' | 'car' | 'gar' | 'çar';
 
 /**
  * Generate all conjugation forms for a regular Portuguese verb.
- * Handles spelling changes for -car / -gar / -çar verbs in the subjunctive.
+ * Handles spelling changes for -car / -gar / -çar verbs before e-endings
+ * (subjunctive and pretérito perfeito eu).
  */
 function generateConjugations(
 	verb: string,
@@ -139,7 +141,7 @@ function generateConjugations(
 ): Record<string, Record<string, string[]>> {
 	const stem = verb.slice(0, -2);
 
-	// Subjunctive stem adjusts for spelling changes before 'e' endings
+	// Stem adjusted for spelling changes before 'e' endings (subjunctive, perfeito eu)
 	let subjStem = stem;
 	if (spellChange === 'car') subjStem = stem.replace(/c$/, 'qu');
 	else if (spellChange === 'gar') subjStem = stem.replace(/g$/, 'gu');
@@ -157,7 +159,7 @@ function generateConjugations(
 			stem + 'am'
 		];
 		t['pretérito perfeito do indicativo'] = [
-			stem + 'ei',
+			subjStem + 'ei', // spelling change before e: fiquei, cheguei, comecei
 			stem + 'aste',
 			stem + 'ou',
 			stem + 'ámos',
@@ -1085,9 +1087,18 @@ function enTranslate(verb: string, tense: string, person: string): string {
 				if (person === 'vós') return `you all are ${verbTag}`.trim();
 				return `they/you all are ${verbTag}`.trim();
 			}
+			// "can" has no "be able" agreement problem: I can, he/she can
+			if (verb === 'poder') return `${pro} can`;
+			// você takes 3rd-person agreement; keep the hint grammatical with "he/she"
+			if (person === 'ele/ela/você') return `he/she ${info.third}`;
 			return `${pro} ${info.base}`;
 		}
 		case 'pretérito perfeito do indicativo':
+			if (info.past === 'was/were') {
+				if (person === 'eu') return 'I was';
+				if (person === 'ele/ela/você') return 'he/she was';
+				return `${pro} were`;
+			}
 			return `${pro} ${info.past}`;
 		case 'pretérito imperfeito do indicativo': {
 			if (verb === 'ser' || verb === 'estar') {
@@ -1106,6 +1117,8 @@ function enTranslate(verb: string, tense: string, person: string): string {
 		case 'presente do conjuntivo':
 			return `(that) ${pro} ${info.base}`;
 		case 'pretérito imperfeito do conjuntivo':
+			// English subjunctive: "(that) I were", never "was/were"
+			if (info.past === 'was/were') return `(that) ${pro} were`;
 			return `(that) ${pro} ${info.past}`;
 		case 'futuro do conjuntivo':
 			return `(if) ${pro} ${info.base}`;
@@ -1179,58 +1192,12 @@ export const conjugationMap: ConjugationMap = buildConjugationMap();
 /**
  * Extract conjugation from user input for Portuguese.
  * Handles slash variants like:
- * - "ele/ela/você" → accepts "ele", "ela", "você", "ele/ela/você", etc.
+ * - "ele/ela/você" → accepts "ele/ela/você", "ele ela você", "ele ela", "ele", ...
  * - "eles/elas/vocês" → accepts "eles", "elas", "vocês", etc.
+ * Pronouns may be typed without accents ("voce", "nos"); the verb form may not.
  */
 function portugueseExtractConjugation(input: string, expectedPersonLabel: string): string | null {
-	const normalized = input.trim().toLowerCase();
-	const label = expectedPersonLabel.toLowerCase();
-
-	// Try exact label match first
-	if (normalized.startsWith(label + ' ')) {
-		return normalized.slice(label.length).trim();
-	}
-	if (normalized === label) {
-		return '';
-	}
-
-	// Handle variants with "/"
-	if (label.includes('/')) {
-		const variants = label.split('/');
-
-		// Try each variant individually
-		for (const variant of variants) {
-			const v = variant.trim();
-			if (normalized.startsWith(v + ' ')) {
-				return normalized.slice(v.length).trim();
-			}
-			if (normalized === v) {
-				return '';
-			}
-		}
-
-		// Try variants joined with space
-		const spaceJoined = variants.join(' ');
-		if (normalized.startsWith(spaceJoined + ' ')) {
-			return normalized.slice(spaceJoined.length).trim();
-		}
-		if (normalized === spaceJoined) {
-			return '';
-		}
-
-		// Try variants joined with space but only first two (for 3-way splits)
-		if (variants.length === 3) {
-			const firstTwo = variants.slice(0, 2).join(' ');
-			if (normalized.startsWith(firstTwo + ' ')) {
-				return normalized.slice(firstTwo.length).trim();
-			}
-			if (normalized === firstTwo) {
-				return '';
-			}
-		}
-	}
-
-	return null;
+	return extractAfterPerson(input, expectedPersonLabel);
 }
 
 // ─── Default selections ──────────────────────────────────────────────────────

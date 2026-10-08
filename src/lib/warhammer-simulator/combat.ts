@@ -1,4 +1,4 @@
-import type { Character, CombatResult, CombatState, Winner } from './types';
+import type { Character, Charger, CombatResult, CombatState, Winner } from './types';
 import { SeededRNG } from './rng';
 import { computeEffectiveStats, resolveSingleAttack } from './rules';
 import type { EffectiveStats } from './rules';
@@ -14,50 +14,48 @@ export class CombatEngine {
 	private charB: Character;
 	private rng: SeededRNG;
 	private state: CombatState;
-	private chargePersists: boolean;
-	private chargeBonus: number;
+	private charger: Charger;
+	private deathRoundA: number | null = null;
+	private deathRoundB: number | null = null;
 
-	constructor(
-		charA: Character,
-		charB: Character,
-		rng: SeededRNG,
-		chargePersists = false,
-		chargeBonus = 3
-	) {
+	constructor(charA: Character, charB: Character, rng: SeededRNG, charger: Charger = 'none') {
 		this.charA = charA;
 		this.charB = charB;
 		this.rng = rng;
-		this.chargePersists = chargePersists;
-		this.chargeBonus = chargeBonus;
+		this.charger = charger;
 		this.state = {
 			charAWounds: charA.wounds,
 			charBWounds: charB.wounds,
-			roundNumber: 0,
-			chargeA: true,
-			chargeB: true,
-			activeEffects: []
+			roundNumber: 0
 		};
+	}
+
+	/** True while `side` is charging: only the charger, and only in round 1 (TOW). */
+	private isCharging(side: 'A' | 'B'): boolean {
+		return this.charger === side && this.state.roundNumber === 1;
 	}
 
 	/** Run the complete combat and return results. */
 	run(): CombatResult {
 		const abilityActivations: Record<string, number> = {};
 
-		while (this.state.roundNumber < MAX_ROUNDS) {
+		// Check survival before starting a round, so a combat decided in round k
+		// reports exactly k rounds.
+		while (
+			this.state.roundNumber < MAX_ROUNDS &&
+			this.state.charAWounds > 0 &&
+			this.state.charBWounds > 0
+		) {
 			this.state.roundNumber++;
-
-			// Check who is still alive
-			const aAlive = this.state.charAWounds > 0;
-			const bAlive = this.state.charBWounds > 0;
-			if (!aAlive || !bAlive) break;
 
 			// Resolve the round
 			this.resolveRound(abilityActivations);
 
-			// Charge persists only if toggled, and only after round 1
-			if (this.state.roundNumber === 1 && !this.chargePersists) {
-				this.state.chargeA = false;
-				this.state.chargeB = false;
+			if (this.deathRoundA === null && this.state.charAWounds <= 0) {
+				this.deathRoundA = this.state.roundNumber;
+			}
+			if (this.deathRoundB === null && this.state.charBWounds <= 0) {
+				this.deathRoundB = this.state.roundNumber;
 			}
 		}
 
@@ -70,8 +68,9 @@ export class CombatEngine {
 		if (!aAlive || !bAlive) return;
 
 		// Compute effective stats for this round
-		const statsA = computeEffectiveStats(this.charA, this.state.chargeA, this.state.roundNumber);
-		const statsB = computeEffectiveStats(this.charB, this.state.chargeB, this.state.roundNumber);
+		const round = this.state.roundNumber;
+		const statsA = computeEffectiveStats(this.charA, this.isCharging('A'), round, this.charB);
+		const statsB = computeEffectiveStats(this.charB, this.isCharging('B'), round, this.charA);
 
 		// Determine initiative order
 		const initOrder = this.determineInitiative(statsA, statsB);
@@ -118,20 +117,29 @@ export class CombatEngine {
 		}
 	}
 
-	/** Determine who strikes first. Returns 'simultaneous' or [first, second]. */
+	/**
+	 * Determine who strikes first. Returns 'simultaneous' or [first, second].
+	 * Strike order, highest priority first:
+	 *   1. the charger, in round 1 only, regardless of Initiative;
+	 *   2. models without Strikes Last;
+	 *   3. models with Strikes Last (great weapon).
+	 * Within the same priority, higher Initiative strikes first; equal
+	 * Initiative strikes simultaneously.
+	 * Rules note: Strikes Last overrides the charge, so a charging great-weapon
+	 * wielder still strikes after its opponent.
+	 */
 	private determineInitiative(
 		statsA: EffectiveStats,
 		statsB: EffectiveStats
 	): 'simultaneous' | ['A', 'B'] | ['B', 'A'] {
-		// Apply charge bonus to initiative
-		let initA = statsA.initiative;
-		let initB = statsB.initiative;
+		const priority = (side: 'A' | 'B', stats: EffectiveStats) =>
+			stats.strikesLast ? 0 : this.isCharging(side) ? 2 : 1;
+		const pA = priority('A', statsA);
+		const pB = priority('B', statsB);
+		if (pA !== pB) return pA > pB ? ['A', 'B'] : ['B', 'A'];
 
-		if (this.state.chargeA) initA += this.chargeBonus;
-		if (this.state.chargeB) initB += this.chargeBonus;
-
-		if (initA > initB) return ['A', 'B'];
-		if (initB > initA) return ['B', 'A'];
+		if (statsA.initiative > statsB.initiative) return ['A', 'B'];
+		if (statsB.initiative > statsA.initiative) return ['B', 'A'];
 		return 'simultaneous';
 	}
 
@@ -146,27 +154,19 @@ export class CombatEngine {
 		let totalDamage = 0;
 		const attackCount = attackerStats.attacks;
 
+		const onActivate = (id: string) => {
+			abilityActivations[id] = (abilityActivations[id] || 0) + 1;
+		};
+
 		for (let i = 0; i < attackCount; i++) {
-			const dmg = resolveSingleAttack(
+			totalDamage += resolveSingleAttack(
 				this.rng,
 				attacker,
 				defender,
 				attackerStats,
 				defenderStats,
-				this.state.chargeA // simplified: assumes attacker is A for charge check
+				onActivate
 			);
-			totalDamage += dmg;
-
-			if (dmg > 0) {
-				// Track ability activations (simplified)
-				if (attackerStats.hasKillingBlow) {
-					abilityActivations['killing-blow'] = (abilityActivations['killing-blow'] || 0) + 1;
-				}
-				if (attackerStats.hasPoison) {
-					abilityActivations['poisoned-attacks'] =
-						(abilityActivations['poisoned-attacks'] || 0) + 1;
-				}
-			}
 		}
 
 		return totalDamage;
@@ -190,10 +190,13 @@ export class CombatEngine {
 		return {
 			winner,
 			rounds: this.state.roundNumber,
-			damageDealtA: this.charA.wounds - this.state.charAWounds,
-			damageDealtB: this.charB.wounds - this.state.charBWounds,
+			// Damage dealt BY each side is the wounds the opponent lost.
+			damageDealtA: this.charB.wounds - this.state.charBWounds,
+			damageDealtB: this.charA.wounds - this.state.charAWounds,
 			remainingWoundsA: this.state.charAWounds,
 			remainingWoundsB: this.state.charBWounds,
+			deathRoundA: this.deathRoundA,
+			deathRoundB: this.deathRoundB,
 			abilityActivations
 		};
 	}

@@ -14,9 +14,6 @@ CB32_VAL['O'] = 0;
 CB32_VAL['I'] = 1;
 CB32_VAL['L'] = 1;
 
-// Character class for valid Crockford Base32 chars (after normalization)
-export const CB32_CHAR_CLASS = '0-9A-HJ-KM-NP-TV-Z';
-
 // --- Factorial ---
 export function factorial(n: number): number {
 	let r = 1;
@@ -138,6 +135,7 @@ export function decodeElection(b64: string): Election | null {
 		)
 			return null;
 		if (data.choices.some((c: unknown) => typeof c !== 'string' || !c.trim())) return null;
+		if (hasDuplicateChoices(data.choices)) return null;
 		if (typeof data.cs !== 'string') return null;
 		return data;
 	} catch {
@@ -145,10 +143,73 @@ export function decodeElection(b64: string): Election | null {
 	}
 }
 
-// --- Vote code validation ---
-export function isValidCode(code: string, numChoices: number): boolean {
-	const num = cb32Decode(code);
-	return num !== null && num < factorial(numChoices);
+// --- Duplicate choices ---
+// Choices that differ only in case or surrounding whitespace look identical
+// on the ballot, so voters could not tell them apart.
+export function hasDuplicateChoices(choices: string[]): boolean {
+	return new Set(choices.map((c) => c.trim().toLowerCase())).size !== choices.length;
+}
+
+// --- Vote codes ---
+// A vote code is the Lehmer index of the ranking in Crockford Base32
+// (codeWidth(n) digits) followed by one check symbol. The check symbol is a
+// Luhn mod 32 digit computed over the election checksum followed by the
+// index digits. Luhn mod N with even N catches every single-character
+// substitution and most adjacent transpositions, and folding in the
+// checksum rejects most codes cast for a different election.
+
+const B64U = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+
+function luhnCheckDigit(digits: number[]): number {
+	const N = CB32.length;
+	let factor = 2;
+	let sum = 0;
+	for (let i = digits.length - 1; i >= 0; i--) {
+		const addend = factor * digits[i];
+		sum += Math.floor(addend / N) + (addend % N);
+		factor = factor === 2 ? 1 : 2;
+	}
+	return (N - (sum % N)) % N;
+}
+
+function checkSymbol(payload: string, cs: string): string {
+	const salt: number[] = [];
+	for (const ch of cs) {
+		const v = Math.max(0, B64U.indexOf(ch));
+		salt.push(v >> 5, v & 31);
+	}
+	const digits = [...payload].map((ch) => CB32_VAL[ch]);
+	return CB32[luhnCheckDigit([...salt, ...digits])];
+}
+
+/** Length of a full vote code (index digits plus check symbol) for n choices. */
+export function voteCodeWidth(n: number): number {
+	return codeWidth(n) + 1;
+}
+
+/** Encode a ranking (choice indices, best first) as a vote code for this election. */
+export function encodeVote(perm: number[], cs: string): string {
+	const payload = cb32Encode(permToInt(perm), codeWidth(perm.length));
+	return payload + checkSymbol(payload, cs);
+}
+
+/**
+ * Decode a vote code into a ranking, or null when it is the wrong length,
+ * out of range, or fails the check symbol. Input is normalised first, so
+ * lowercase and the Crockford look-alikes O, I and L are accepted.
+ */
+export function decodeVote(code: string, numChoices: number, cs: string): number[] | null {
+	const norm = cb32Normalize(code);
+	if (norm.length !== voteCodeWidth(numChoices)) return null;
+	const payload = norm.slice(0, -1);
+	const num = cb32Decode(payload);
+	if (num === null || num >= factorial(numChoices)) return null;
+	if (checkSymbol(payload, cs) !== norm[norm.length - 1]) return null;
+	return intToPerm(num, numChoices);
+}
+
+export function isValidCode(code: string, numChoices: number, cs: string): boolean {
+	return decodeVote(code, numChoices, cs) !== null;
 }
 
 // --- Color palette ---
@@ -180,8 +241,7 @@ export function colorStyle(index: number): string {
 	return `background:${color.bg};border-left-color:${color.border}`;
 }
 
-// --- Borda count tally ---
-// rank 0 (top) = N-1 points, rank N-1 = 0 points
+// --- Votes ---
 
 export interface Vote {
 	name: string;
@@ -193,28 +253,39 @@ export interface Result {
 	score: number;
 	index: number;
 	rank: number;
+	/** IRV only: the round the candidate was eliminated in (1-based). */
+	eliminatedRound?: number;
 }
 
 export interface TallyResult {
 	results: Result[];
 	valid: number;
+	/**
+	 * IRV only: candidate indices that share first place because an
+	 * elimination tie could not be broken and different resolutions elect
+	 * different winners. Absent when the winner is unique.
+	 */
+	tie?: number[];
 }
 
-export function tallyResults(choices: string[], votes: Vote[]): TallyResult {
-	const n = choices.length;
-	const scores = new Array(n).fill(0);
-	let valid = 0;
-
+// Rankings of every vote whose code is valid for this election
+function decodeBallots(n: number, votes: Vote[], cs: string): number[][] {
+	const ballots: number[][] = [];
 	for (const v of votes) {
-		const decoded = cb32Decode(v.code);
-		if (!isValidCode(v.code, n) || decoded === null) continue;
-		const perm = intToPerm(decoded, n);
-		for (let r = 0; r < n; r++) {
-			scores[perm[r]] += n - 1 - r;
-		}
-		valid++;
+		const perm = decodeVote(v.code, n, cs);
+		if (perm) ballots.push(perm);
 	}
+	return ballots;
+}
 
+// Competition ranking ("1224") over results already sorted best first
+function assignRanks(results: Result[], same: (a: Result, b: Result) => boolean) {
+	for (let i = 0; i < results.length; i++) {
+		results[i].rank = i === 0 || !same(results[i], results[i - 1]) ? i + 1 : results[i - 1].rank;
+	}
+}
+
+function rankByScore(choices: string[], scores: number[]): Result[] {
 	const results: Result[] = choices.map((text, i) => ({
 		text,
 		score: scores[i],
@@ -222,175 +293,228 @@ export function tallyResults(choices: string[], votes: Vote[]): TallyResult {
 		rank: 0
 	}));
 	results.sort((a, b) => b.score - a.score || a.index - b.index);
+	assignRanks(results, (a, b) => a.score === b.score);
+	return results;
+}
 
-	// Competition ranking for ties
-	for (let i = 0; i < results.length; i++) {
-		results[i].rank =
-			i === 0 || results[i].score !== results[i - 1].score ? i + 1 : results[i - 1].rank;
+// --- Borda count tally ---
+// rank 0 (top) = N-1 points, rank N-1 = 0 points
+
+export function tallyResults(choices: string[], votes: Vote[], cs: string): TallyResult {
+	const n = choices.length;
+	const ballots = decodeBallots(n, votes, cs);
+	const scores = new Array(n).fill(0);
+	for (const perm of ballots) {
+		for (let r = 0; r < n; r++) {
+			scores[perm[r]] += n - 1 - r;
+		}
 	}
-
-	return { results, valid };
+	return { results: rankByScore(choices, scores), valid: ballots.length };
 }
 
 // --- First Past The Post (FPTP) ---
 // Count first choices only; most votes wins
 
-export function tallyFPTP(choices: string[], votes: Vote[]): TallyResult {
+export function tallyFPTP(choices: string[], votes: Vote[], cs: string): TallyResult {
 	const n = choices.length;
+	const ballots = decodeBallots(n, votes, cs);
 	const firstChoiceVotes = new Array(n).fill(0);
-	let valid = 0;
-
-	for (const v of votes) {
-		const decoded = cb32Decode(v.code);
-		if (!isValidCode(v.code, n) || decoded === null) continue;
-		const perm = intToPerm(decoded, n);
-		firstChoiceVotes[perm[0]]++;
-		valid++;
-	}
-
-	const results: Result[] = choices.map((text, i) => ({
-		text,
-		score: firstChoiceVotes[i],
-		index: i,
-		rank: 0
-	}));
-	results.sort((a, b) => b.score - a.score || a.index - b.index);
-
-	// Competition ranking for ties
-	for (let i = 0; i < results.length; i++) {
-		results[i].rank =
-			i === 0 || results[i].score !== results[i - 1].score ? i + 1 : results[i - 1].rank;
-	}
-
-	return { results, valid };
+	for (const perm of ballots) firstChoiceVotes[perm[0]]++;
+	return { results: rankByScore(choices, firstChoiceVotes), valid: ballots.length };
 }
 
 // --- Instant Runoff Voting (IRV) ---
-// Eliminate lowest, redistribute until someone has >50%
-// Score: round eliminated in (winner gets n)
+// Eliminate lowest, redistribute until someone has >50%.
+// Score: the candidate's vote count in the last round they took part in.
+// Ranking: winner (or tied winners) first, then by how long a candidate
+// survived, then by that last-round count.
+//
+// Ties for last place never depend on the order choices were listed in:
+// 1. Backward tie-break: among the tied, keep only those lowest in the
+//    previous round, then the round before, and so on.
+// 2. If still tied, explore every way of resolving the tie. When all lead to
+//    the same winner, the tied candidates are eliminated together (they share
+//    a rank). Otherwise the count stops and every possible winner shares
+//    first place, reported in `tie`.
 
-export function tallyIRV(choices: string[], votes: Vote[]): TallyResult {
-	const n = choices.length;
-	let valid = 0;
+export interface IRVRound {
+	/** First-choice counts among candidates still active (0 for eliminated ones). */
+	counts: number[];
+	/** Candidates eliminated at the end of this round; empty in the final round. */
+	eliminated: number[];
+}
 
-	// Decode all valid votes into arrays of preferences
-	const ballots: number[][] = [];
-	for (const v of votes) {
-		const decoded = cb32Decode(v.code);
-		if (!isValidCode(v.code, n) || decoded === null) continue;
-		ballots.push(intToPerm(decoded, n));
-		valid++;
+export interface IRVResult extends TallyResult {
+	rounds: IRVRound[];
+}
+
+function firstChoiceCounts(ballots: number[][], active: (i: number) => boolean, n: number) {
+	const counts = new Array(n).fill(0);
+	for (const ballot of ballots) {
+		for (const choice of ballot) {
+			if (active(choice)) {
+				counts[choice]++;
+				break;
+			}
+		}
 	}
+	return counts;
+}
+
+// Every candidate that can win IRV from the given active set under some
+// resolution of the remaining last-place ties. Memoised by active bitmask.
+function irvPossibleWinners(
+	ballots: number[][],
+	n: number,
+	mask: number,
+	memo: Map<number, number[]>
+): number[] {
+	const cached = memo.get(mask);
+	if (cached) return cached;
+	const isActive = (i: number) => (mask & (1 << i)) !== 0;
+	const active: number[] = [];
+	for (let i = 0; i < n; i++) if (isActive(i)) active.push(i);
+
+	let winners: number[];
+	const counts = firstChoiceCounts(ballots, isActive, n);
+	const majority = active.find((c) => counts[c] > ballots.length / 2);
+	if (majority !== undefined) {
+		winners = [majority];
+	} else if (active.length === 1) {
+		winners = active;
+	} else {
+		const minCount = Math.min(...active.map((c) => counts[c]));
+		const found = new Set<number>();
+		for (const c of active) {
+			if (counts[c] !== minCount) continue;
+			for (const w of irvPossibleWinners(ballots, n, mask & ~(1 << c), memo)) found.add(w);
+		}
+		winners = [...found].sort((a, b) => a - b);
+	}
+	memo.set(mask, winners);
+	return winners;
+}
+
+export function tallyIRV(choices: string[], votes: Vote[], cs: string): IRVResult {
+	const n = choices.length;
+	const ballots = decodeBallots(n, votes, cs);
+	const valid = ballots.length;
 
 	if (valid === 0) {
 		const results: Result[] = choices.map((text, i) => ({ text, score: 0, index: i, rank: 0 }));
-		return { results, valid: 0 };
+		return { results, valid: 0, rounds: [] };
 	}
 
-	// Simulate IRV to track elimination round for each candidate
 	const active = new Set<number>();
 	for (let i = 0; i < n; i++) active.add(i);
 
 	const eliminationRound = new Array(n).fill(0);
-	let round = 1;
+	const lastCount = new Array(n).fill(0);
+	const rounds: IRVRound[] = [];
+	const memo = new Map<number, number[]>();
 	let winner: number | null = null;
+	let tie: number[] | undefined;
 
-	while (active.size > 0 && winner === null) {
+	while (active.size > 0) {
 		// Count first-choice votes among active candidates
-		const counts = new Array(n).fill(0);
-		for (const ballot of ballots) {
-			for (const choice of ballot) {
-				if (active.has(choice)) {
-					counts[choice]++;
-					break;
-				}
-			}
-		}
+		const counts = firstChoiceCounts(ballots, (c) => active.has(c), n);
+		for (const c of active) lastCount[c] = counts[c];
+		const round: IRVRound = { counts, eliminated: [] };
+		rounds.push(round);
 
-		const totalActiveVotes = Array.from(active).reduce((sum, i) => sum + counts[i], 0);
-		if (totalActiveVotes === 0) break;
-
-		// Check for winner with >50%
+		// Every ballot ranks every candidate, so a majority of valid ballots
+		// is a majority of continuing ballots
 		for (const choice of active) {
 			if (counts[choice] > valid / 2) {
 				winner = choice;
 				break;
 			}
 		}
-
 		if (winner !== null) break;
-
-		// Find lowest and eliminate
-		let minCount = Infinity;
-		for (const choice of active) {
-			if (counts[choice] < minCount) minCount = counts[choice];
-		}
-
-		const minChoices: number[] = [];
-		for (const choice of active) {
-			if (counts[choice] === minCount) minChoices.push(choice);
-		}
 
 		if (active.size === 1) {
 			winner = Array.from(active)[0];
 			break;
 		}
 
-		// Sort by index to break ties deterministically
-		minChoices.sort((a, b) => a - b);
-		const eliminated = minChoices[0];
-		active.delete(eliminated);
-		eliminationRound[eliminated] = round;
-		round++;
-	}
+		// Find lowest
+		const minCount = Math.min(...Array.from(active).map((c) => counts[c]));
+		let tied = Array.from(active).filter((c) => counts[c] === minCount);
 
-	// Score: winner gets n, each eliminated gets their elimination round
-	// Final round survivors (not winner) get n-1
-	const results: Result[] = choices.map((text, i) => ({
-		text,
-		score: 0,
-		index: i,
-		rank: 0
-	}));
+		// Backward tie-break through earlier rounds, most recent first
+		for (let r = rounds.length - 2; r >= 0 && tied.length > 1; r--) {
+			const earlier = rounds[r].counts;
+			const low = Math.min(...tied.map((c) => earlier[c]));
+			tied = tied.filter((c) => earlier[c] === low);
+		}
 
-	for (let i = 0; i < n; i++) {
-		if (i === winner) {
-			results[i].score = n;
-		} else if (eliminationRound[i] > 0) {
-			results[i].score = eliminationRound[i];
-		} else {
-			// Still active but didn't win - final round survivor
-			results[i].score = n - 1;
+		if (tied.length > 1) {
+			let mask = 0;
+			for (const c of active) mask |= 1 << c;
+			const possible = irvPossibleWinners(ballots, n, mask, memo);
+			if (possible.length > 1) {
+				tie = possible;
+				break;
+			}
+			// Order among the tied cannot change the winner: drop them together
+		}
+
+		round.eliminated = tied;
+		for (const c of tied) {
+			active.delete(c);
+			eliminationRound[c] = rounds.length;
 		}
 	}
 
-	// Sort by score descending, then by index for ties
-	results.sort((a, b) => b.score - a.score || a.index - b.index);
+	const first = (i: number) => i === winner || (tie?.includes(i) ?? false);
+	// Survivors outrank anyone eliminated; later eliminations outrank earlier ones
+	const stage = (i: number) => (eliminationRound[i] === 0 ? Infinity : eliminationRound[i]);
 
-	// Assign ranks
-	for (let i = 0; i < results.length; i++) {
-		results[i].rank =
-			i === 0 || results[i].score !== results[i - 1].score ? i + 1 : results[i - 1].rank;
-	}
+	const results: Result[] = choices.map((text, i) => ({
+		text,
+		score: lastCount[i],
+		index: i,
+		rank: 0,
+		...(eliminationRound[i] > 0 ? { eliminatedRound: eliminationRound[i] } : {})
+	}));
+	results.sort(
+		(a, b) =>
+			Number(first(b.index)) - Number(first(a.index)) ||
+			stage(b.index) - stage(a.index) ||
+			b.score - a.score ||
+			a.index - b.index
+	);
+	assignRanks(results, (a, b) =>
+		first(a.index) && first(b.index)
+			? true
+			: first(a.index) === first(b.index) &&
+				stage(a.index) === stage(b.index) &&
+				a.score === b.score
+	);
 
-	return { results, valid };
+	return tie ? { results, valid, rounds, tie } : { results, valid, rounds };
 }
 
-// --- Condorcet Method ---
-// Pairwise comparisons; winner beats all others
+// --- Condorcet winner + Copeland ranking ---
+// Pairwise comparisons. The Condorcet winner beats every other candidate
+// head to head and may not exist. The ranking is Copeland (pairwise wins
+// minus pairwise losses), which can put a non-Condorcet candidate first.
 
-export function tallyCondorcet(choices: string[], votes: Vote[]): TallyResult {
+export interface CondorcetResult extends TallyResult {
+	/** Candidate index that beats every other head to head, or null. */
+	condorcetWinner: number | null;
+	/**
+	 * True when every candidate loses at least one head-to-head contest, so the
+	 * strict majority preferences contain a cycle. False when there is a
+	 * Condorcet winner or the absence of one is due to pairwise ties only.
+	 */
+	cycle: boolean;
+}
+
+export function tallyCondorcet(choices: string[], votes: Vote[], cs: string): CondorcetResult {
 	const n = choices.length;
-	let valid = 0;
-
-	// Decode all valid votes
-	const ballots: number[][] = [];
-	for (const v of votes) {
-		const decoded = cb32Decode(v.code);
-		if (!isValidCode(v.code, n) || decoded === null) continue;
-		ballots.push(intToPerm(decoded, n));
-		valid++;
-	}
+	const ballots = decodeBallots(n, votes, cs);
+	const valid = ballots.length;
 
 	// Pairwise matrix: pairwise[i][j] = votes for i over j
 	const pairwise = Array.from({ length: n }, () => new Array(n).fill(0));
@@ -423,20 +547,51 @@ export function tallyCondorcet(choices: string[], votes: Vote[]): TallyResult {
 		}
 	}
 
-	// Condorcet winner has wins against all others
-	const results: Result[] = choices.map((text, i) => ({
-		text,
-		score: wins[i] - losses[i], // Net wins
-		index: i,
-		rank: 0
-	}));
-	results.sort((a, b) => b.score - a.score || a.index - b.index);
-
-	// Assign ranks
-	for (let i = 0; i < results.length; i++) {
-		results[i].rank =
-			i === 0 || results[i].score !== results[i - 1].score ? i + 1 : results[i - 1].rank;
+	// Condorcet winner beats all others; there is at most one
+	let condorcetWinner: number | null = null;
+	if (valid > 0) {
+		for (let i = 0; i < n; i++) if (wins[i] === n - 1) condorcetWinner = i;
 	}
+	const cycle = valid > 0 && condorcetWinner === null && losses.every((l) => l > 0);
 
-	return { results, valid };
+	// Copeland ranking: net pairwise wins
+	const results = rankByScore(
+		choices,
+		wins.map((w, i) => w - losses[i])
+	);
+
+	return { results, valid, condorcetWinner, cycle };
+}
+
+// --- Saved votes ---
+// The tally page keeps entered votes in localStorage per election so a
+// reload or a trip to the vote page does not lose them.
+
+export function votesStorageKey(cs: string): string {
+	return `rank-vote:votes:${cs}`;
+}
+
+/**
+ * Parse saved votes, keeping only well-formed entries with a code valid for
+ * this election and the last entry for each name. Never throws.
+ */
+export function parseStoredVotes(raw: string | null, numChoices: number, cs: string): Vote[] {
+	if (!raw) return [];
+	let data: unknown;
+	try {
+		data = JSON.parse(raw);
+	} catch {
+		return [];
+	}
+	if (!Array.isArray(data)) return [];
+	const byName = new Map<string, Vote>();
+	for (const item of data) {
+		if (typeof item !== 'object' || item === null) continue;
+		const { name, code } = item as Record<string, unknown>;
+		if (typeof name !== 'string' || !name.trim() || typeof code !== 'string') continue;
+		if (!isValidCode(code, numChoices, cs)) continue;
+		byName.delete(name);
+		byName.set(name, { name, code: cb32Normalize(code) });
+	}
+	return [...byName.values()];
 }

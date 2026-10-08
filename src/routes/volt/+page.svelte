@@ -1,180 +1,60 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import electedOfficials from '$lib/data/elected_officials.json';
+	import {
+		barGeometry,
+		computeStats,
+		countryColor,
+		countryLabel,
+		DATA_AS_OF,
+		describeMandate,
+		filterGroups,
+		fractionalYear,
+		isFormer,
+		isGroupEntry,
+		parseDate,
+		summaryBars,
+		timelinePercent,
+		timelineRange,
+		type Politician
+	} from '$lib/volt';
 
-	type Politician = {
-		name: string;
-		startDate: string;
-		endDate: string;
-		position: string;
-		location: string;
-		country: string;
-		url: string;
-	};
+	const officials: Politician[] = electedOfficials;
 
-	// Parse date string to year (number)
-	// Handles: "DD/MM/YYYY", "MM/YYYY", "YYYY"
-	function parseDate(dateStr: string): number {
-		const parts = dateStr.split('/');
-		if (parts.length === 3) return parseInt(parts[2]);
-		if (parts.length === 2) return parseInt(parts[1]);
-		return parseInt(dateStr);
-	}
+	const timeline = timelineRange(officials);
+	const { minYear, maxYear, yearRange } = timeline;
 
-	// Process politicians with parsed dates
-	const processed: (Politician & { startYear: number; endYear: number })[] = electedOfficials.map(
-		(p) => ({
-			...p,
-			startYear: parseDate(p.startDate),
-			endYear: parseDate(p.endDate)
-		})
-	);
-
-	// Determine timeline range
-	const minYear = Math.min(...processed.map((p) => p.startYear));
-	const maxYear = Math.max(...processed.map((p) => p.endYear));
-	const yearRange = maxYear - minYear + 1;
-
-	// Group by country, then by location
-	type PositionGroup = {
-		location: string;
-		politicians: Politician[];
-	};
-
-	const countryGroups = $derived.by(() => {
-		const groups: Record<string, PositionGroup[]> = {};
-		for (const p of electedOfficials) {
-			if (!groups[p.country]) groups[p.country] = [];
-			// Find if location already exists
-			const existing = groups[p.country].find((g) => g.location === p.location);
-			if (existing) {
-				existing.politicians.push(p);
-			} else {
-				groups[p.country].push({ location: p.location, politicians: [p] });
-			}
-		}
-		// Sort locations by latest start date
-		for (const key of Object.keys(groups)) {
-			groups[key].sort((a, b) => {
-				const aStart = Math.max(...a.politicians.map((p) => parseDate(p.startDate)));
-				const bStart = Math.max(...b.politicians.map((p) => parseDate(p.startDate)));
-				return bStart - aStart;
-			});
-		}
-		return groups;
+	// Server render uses the data date; the client switches to the real date on mount
+	let now = $state(parseDate(DATA_AS_OF));
+	let hydrated = $state(false);
+	onMount(() => {
+		now = fractionalYear(new Date());
+		hydrated = true;
 	});
+	const todayPct = $derived(timelinePercent(now, timeline));
 
-	// Country colors (lighter for better contrast with dark text)
-	const countryColors: Record<string, string> = {
-		'🇩🇪': '#FFEA00', // Germany - bright gold
-		'🇳🇱': '#FF9933', // Netherlands - light orange
-		'🇬🇷': '#3399FF', // Greece - bright blue
-		'🇨🇾': '#FF7733', // Cyprus - coral orange
-		'🇷🇴': '#3366CC', // Romania - medium blue
-		'🇵🇹': '#00AC00', // Portugal - green
-		'🇮🇹': '#009999', // Italy - teal
-		'🇫🇷': '#E30717', // France - red
-		'🇪🇺': '#4477DD' // EU - softer blue
-	};
+	// 'all', the EU flag (MEPs) or a country flag present in the data
+	let filterCountry = $state('all');
 
-	type CountryFilter = 'all' | '🇪🇺' | '🇳🇱' | '🇩🇪' | '🇨🇾' | '🇬🇷' | '🇷🇴' | '🇵🇹' | '🇮🇹' | '🇫🇷';
+	const filteredCountries = $derived(filterGroups(officials, filterCountry));
 
-	let filterCountry = $state<CountryFilter>('all');
-
-	const countries: { value: CountryFilter; label: string }[] = [
-		{ value: 'all', label: 'All Countries' },
-		{ value: '🇪🇺', label: 'European Parliament' },
-		{ value: '🇳🇱', label: 'Netherlands' },
-		{ value: '🇩🇪', label: 'Germany' },
-		{ value: '🇨🇾', label: 'Cyprus' },
-		{ value: '🇬🇷', label: 'Greece' },
-		{ value: '🇷🇴', label: 'Romania' },
-		{ value: '🇵🇹', label: 'Portugal' },
-		{ value: '🇮🇹', label: 'Italy' },
-		{ value: '🇫🇷', label: 'France' }
-	];
-
-	const filteredCountries = $derived.by(() => {
-		const groups = countryGroups;
-		if (filterCountry === 'all') return groups;
-		if (filterCountry === '🇪🇺') {
-			// Filter MEPs - group by location
-			const mepsByLoc: Record<string, Politician[]> = {};
-			for (const p of electedOfficials) {
-				if (p.position === 'MEP' || p.position === 'MdEP') {
-					if (!mepsByLoc[p.location]) mepsByLoc[p.location] = [];
-					mepsByLoc[p.location].push(p);
-				}
-			}
-			const result: PositionGroup[] = Object.entries(mepsByLoc).map(([location, politicians]) => ({
-				location,
-				politicians
-			}));
-			return { '🇪🇺': result };
-		}
-		return { [filterCountry]: groups[filterCountry] };
-	});
-
-	// Stats
-	const stats = $derived.by(() => {
-		const all = electedOfficials;
-		return {
-			total: all.length,
-			meps: all.filter((p) => p.position === 'MEP' || p.position === 'MdEP').length,
-			netherlands: all.filter((p) => p.country === '🇳🇱').length,
-			germany: all.filter((p) => p.country === '🇩🇪').length,
-			cyprus: all.filter((p) => p.country === '🇨🇾').length,
-			greece: all.filter((p) => p.country === '🇬🇷').length,
-			romania: all.filter((p) => p.country === '🇷🇴').length,
-			portugal: all.filter((p) => p.country === '🇵🇹').length,
-			italy: all.filter((p) => p.country === '🇮🇹').length,
-			france: all.filter((p) => p.country === '🇫🇷').length
-		};
-	});
-
-	const filteredStats = $derived.by(() => {
-		const filtered = Object.values(filteredCountries).flatMap((groups) =>
-			groups.flatMap((g) => g.politicians)
-		);
-		return {
-			total: filtered.length,
-			meps: filtered.filter((p) => p.position === 'MEP' || p.position === 'MdEP').length,
-			netherlands: filtered.filter((p) => p.country === '🇳🇱').length,
-			germany: filtered.filter((p) => p.country === '🇩🇪').length,
-			cyprus: filtered.filter((p) => p.country === '🇨🇾').length,
-			greece: filtered.filter((p) => p.country === '🇬🇷').length,
-			romania: filtered.filter((p) => p.country === '🇷🇴').length,
-			portugal: filtered.filter((p) => p.country === '🇵🇹').length,
-			italy: filtered.filter((p) => p.country === '🇮🇹').length,
-			france: filtered.filter((p) => p.country === '🇫🇷').length
-		};
-	});
-
-	// Sorted summary bars (sorted alphabetically by label text)
-	const sortedBars = $derived.by(() => {
-		const bars = [
-			{ key: 'all', label: 'All', count: filteredStats.total, flag: '🌍' },
-			{ key: 'cyprus', label: 'Cyprus', count: filteredStats.cyprus, flag: '🇨🇾' },
-			{ key: 'france', label: 'France', count: filteredStats.france, flag: '🇫🇷' },
-			{ key: 'germany', label: 'Germany', count: filteredStats.germany, flag: '🇩🇪' },
-			{ key: 'greece', label: 'Greece', count: filteredStats.greece, flag: '🇬🇷' },
-			{ key: 'italy', label: 'Italy', count: filteredStats.italy, flag: '🇮🇹' },
-			{ key: 'netherlands', label: 'Netherlands', count: filteredStats.netherlands, flag: '🇳🇱' },
-			{ key: 'portugal', label: 'Portugal', count: filteredStats.portugal, flag: '🇵🇹' },
-			{ key: 'romania', label: 'Romania', count: filteredStats.romania, flag: '🇷🇴' },
-			{ key: 'meps', label: 'MEPs', count: filteredStats.meps, flag: '🇪🇺' }
-		];
-		return bars.sort((a, b) => a.label.localeCompare(b.label));
-	});
+	// Buttons always show unfiltered counts, so other countries never read as empty
+	const stats = computeStats(officials);
+	const bars = summaryBars(stats);
+	const maxCount = Math.max(1, ...bars.map((b) => b.count));
 </script>
 
 <svelte:head>
 	<title>Volt Representatives</title>
 </svelte:head>
 
-<div class="container">
+<div class="container" data-hydrated={hydrated || undefined}>
 	<header>
 		<h1>VOLT REPRESENTATIVES</h1>
-		<p class="subtitle">Elected politicians of the pan-European party Volt Europa</p>
+		<p class="subtitle">
+			Current and former elected politicians of the pan-European party Volt Europa
+		</p>
+		<p class="as-of">Data as of {DATA_AS_OF}</p>
 	</header>
 
 	<div class="summary-panel">
@@ -186,76 +66,97 @@
 		</div>
 		<div class="panel-content">
 			<div class="bar-chart">
-				{#each sortedBars as bar (bar.key)}
+				{#each bars as bar (bar.filter)}
+					{@const active = filterCountry === bar.filter}
 					<button
 						class="bar-row"
-						class:active={filterCountry === bar.flag ||
-							(bar.key === 'all' && filterCountry === 'all')}
-						onclick={() =>
-							(filterCountry = bar.key === 'all' ? 'all' : (bar.flag as CountryFilter))}
+						class:active
+						aria-pressed={active}
+						onclick={() => (filterCountry = bar.filter)}
 					>
 						<span class="bar-label">{bar.flag} {bar.label}</span>
 						<div class="bar-container">
-							<div
-								class="bar-fill"
-								style="width: {stats.total > 0 ? (bar.count / stats.total) * 100 : 0}%"
-							></div>
+							<div class="bar-fill" style="width: {(bar.count / maxCount) * 100}%"></div>
 						</div>
 						<span class="bar-value">{bar.count}</span>
 					</button>
 				{/each}
 			</div>
+			{#if stats.groupEntries > 0}
+				<p class="panel-note">
+					Counts are named individuals; {stats.groupEntries} rows stand for a council group of unknown
+					size and are not counted.
+				</p>
+			{/if}
 		</div>
 	</div>
 
 	<!-- Timeline Header -->
 	<div class="gantt-scroll-wrapper">
-		<div class="timeline-header">
-			<div class="timeline-label">TIMELINE ({minYear} - {maxYear})</div>
-			<div class="timeline-scale">
-				{#each Array(yearRange) as _, i}
-					<span class="year-marker">{minYear + i}</span>
+		<div class="gantt-inner">
+			<div class="timeline-header">
+				<div class="timeline-label">TIMELINE ({minYear} - {maxYear})</div>
+				<div class="timeline-scale">
+					{#each Array(yearRange) as _, i (i)}
+						<span class="year-marker" data-year={minYear + i}>{minYear + i}</span>
+					{/each}
+				</div>
+			</div>
+
+			<!-- Gantt Chart -->
+			<div class="gantt-container">
+				{#each Object.entries(filteredCountries) as [country, positions] (country)}
+					{@const color = countryColor(country)}
+					{@const totalCount = positions.reduce(
+						(sum, g) => sum + g.politicians.filter((p) => !isGroupEntry(p)).length,
+						0
+					)}
+					<div class="gantt-country">
+						<div class="country-header">
+							<span class="country-flag" aria-hidden="true">{country}</span>
+							<span class="country-name">{countryLabel(country)}</span>
+							<span class="country-count">{totalCount}</span>
+						</div>
+						<div class="country-rows">
+							{#each positions as group (group.location)}
+								{@const barHeight = group.politicians.length * 14}
+								<div class="gantt-row">
+									<div class="row-label">{group.location}</div>
+									<div class="row-bar-container" style="height: {barHeight}px;">
+										{#if todayPct !== null}
+											<div class="today-line" style="left: {todayPct}%" aria-hidden="true"></div>
+										{/if}
+										{#each group.politicians as p, idx (p.name)}
+											{@const { left, width } = barGeometry(p, timeline)}
+											{@const top = idx * 14}
+											{@const summary = describeMandate(p, now)}
+											<div
+												class="row-bar"
+												class:former={isFormer(p, now)}
+												class:group-entry={isGroupEntry(p)}
+												style="left: {left}%; width: {width}%; background: {color}; top: {top}px; height: 14px;"
+												title={summary}
+											>
+												<a
+													href={p.url}
+													target="_blank"
+													rel="noopener noreferrer"
+													class="bar-link"
+													aria-label={summary}
+												>
+													<span class="bar-text">{p.name} ({p.position})</span>
+												</a>
+											</div>
+										{/each}
+									</div>
+								</div>
+							{:else}
+								<p class="empty-state">No representatives recorded for this filter.</p>
+							{/each}
+						</div>
+					</div>
 				{/each}
 			</div>
-		</div>
-
-		<!-- Gantt Chart -->
-		<div class="gantt-container">
-			{#each Object.entries(filteredCountries) as [country, positions] (country)}
-				{@const color = countryColors[country] || '#888'}
-				{@const totalCount = positions.reduce((sum, g) => sum + g.politicians.length, 0)}
-				<div class="gantt-country">
-					<div class="country-header">
-						<span class="country-flag">{country}</span>
-						<span class="country-count">{totalCount}</span>
-					</div>
-					<div class="country-rows">
-						{#each positions as group (group.location)}
-							{@const barHeight = group.politicians.length * 14}
-							<div class="gantt-row">
-								<div class="row-label">{group.location}</div>
-								<div class="row-bar-container" style="height: {barHeight}px;">
-									{#each group.politicians as p, idx (p.name)}
-										{@const start = parseDate(p.startDate)}
-										{@const end = parseDate(p.endDate)}
-										{@const left = ((start - minYear) / yearRange) * 100}
-										{@const width = ((end - start + 1) / yearRange) * 100}
-										{@const top = idx * 14}
-										<div
-											class="row-bar"
-											style="left: {left}%; width: {width}%; background: {color}; top: {top}px; height: 14px;"
-										>
-											<a href={p.url} target="_blank" rel="noopener noreferrer" class="bar-link">
-												<span class="bar-text">{p.name} ({p.position})</span>
-											</a>
-										</div>
-									{/each}
-								</div>
-							</div>
-						{/each}
-					</div>
-				</div>
-			{/each}
 		</div>
 	</div>
 </div>
@@ -288,12 +189,15 @@
 		padding: 0 1rem;
 	}
 
+	/* Header and rows share one min-width, so year cells stay over the bar track */
+	.gantt-inner {
+		min-width: 800px;
+	}
+
 	.timeline-scale {
 		display: flex;
 		justify-content: space-between;
 		padding-left: 200px;
-		padding-right: 1rem;
-		min-width: 800px;
 	}
 
 	.year-marker {
@@ -346,6 +250,12 @@
 
 	.country-flag {
 		font-size: 1.25rem;
+	}
+
+	.country-name {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--futuristic-text);
 	}
 
 	.country-count {
@@ -406,6 +316,47 @@
 		transform: scaleY(1.1);
 		box-shadow: 0 0 12px currentColor;
 		z-index: 5;
+	}
+
+	/* Grayscale keeps luminance, so black text keeps its contrast on former bars */
+	.row-bar.former {
+		filter: grayscale(1);
+	}
+
+	.row-bar.group-entry {
+		background-image: repeating-linear-gradient(
+			135deg,
+			transparent 0 6px,
+			rgba(255, 255, 255, 0.35) 6px 9px
+		) !important;
+	}
+
+	.today-line {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		width: 2px;
+		margin-left: -1px;
+		background: var(--futuristic-magenta);
+		z-index: 6;
+		pointer-events: none;
+	}
+
+	.empty-state {
+		padding: 0.5rem 1rem;
+		font-size: 0.8rem;
+		color: var(--futuristic-text-dim);
+	}
+
+	.as-of,
+	.panel-note {
+		font-size: 0.75rem;
+		color: var(--futuristic-text-dim);
+	}
+
+	.panel-note {
+		margin: 0;
+		padding: 0 0.75rem 0.75rem;
 	}
 
 	.bar-link {
@@ -483,9 +434,12 @@
 
 	/* Mobile styles */
 	@media (max-width: 768px) {
+		.gantt-inner {
+			min-width: 600px;
+		}
+
 		.timeline-scale {
 			padding-left: 120px;
-			min-width: 600px;
 		}
 
 		.gantt-row {
@@ -519,9 +473,12 @@
 	}
 
 	@media (max-width: 480px) {
+		.gantt-inner {
+			min-width: 500px;
+		}
+
 		.timeline-scale {
 			padding-left: 100px;
-			min-width: 500px;
 		}
 
 		.gantt-row {

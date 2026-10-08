@@ -2,7 +2,8 @@ import type { CharacterPreset } from './types';
 
 /**
  * Preset character profiles representing major factions.
- * Each preset defines a complete character for quick-loading.
+ * Each preset defines a complete character for quick-loading. specialRules
+ * lists only rules the simulator models (see isModelledSpecialRule).
  */
 export const PRESET_CHARACTERS: CharacterPreset[] = [
 	{
@@ -20,9 +21,7 @@ export const PRESET_CHARACTERS: CharacterPreset[] = [
 		weapon: 'great-weapon',
 		shield: 'none',
 		traits: ['immortal-fury'],
-		giftPoints: 25,
-		wizardLevel: 'not-wizard',
-		specialRules: ['mark-of-chaos', 'fear'],
+		specialRules: [],
 		description:
 			'A Khornate Chaos Lord with a Great Weapon, clad in Full Plate — a brutal melee powerhouse.'
 	},
@@ -40,9 +39,7 @@ export const PRESET_CHARACTERS: CharacterPreset[] = [
 		weapon: 'hand-weapon',
 		shield: 'shield',
 		traits: [],
-		giftPoints: 0,
-		wizardLevel: 'not-wizard',
-		specialRules: ['hold-the-line'],
+		specialRules: [],
 		description: 'A disciplined Empire General with Hand Weapon and Shield — balanced and reliable.'
 	},
 	{
@@ -59,9 +56,7 @@ export const PRESET_CHARACTERS: CharacterPreset[] = [
 		weapon: 'additional-hand-weapon',
 		shield: 'none',
 		traits: ['strength+1'],
-		giftPoints: 20,
-		wizardLevel: 'not-wizard',
-		specialRules: ['animosity', 'waaagh'],
+		specialRules: [],
 		description:
 			'A brutal Orc Warboss with two weapons, hacking through the enemy with raw strength.'
 	},
@@ -79,9 +74,7 @@ export const PRESET_CHARACTERS: CharacterPreset[] = [
 		weapon: 'lance',
 		shield: 'shield',
 		traits: ['ward-5'],
-		giftPoints: 20,
-		wizardLevel: 'not-wizard',
-		specialRules: ['lance-formation', 'blessing-of-the-lady'],
+		specialRules: [],
 		description: 'A Bretonnian Lord with Lance and Shield, devastating on the charge.'
 	},
 	{
@@ -98,9 +91,7 @@ export const PRESET_CHARACTERS: CharacterPreset[] = [
 		weapon: 'great-weapon',
 		shield: 'none',
 		traits: [],
-		giftPoints: 0,
-		wizardLevel: 'not-wizard',
-		specialRules: ['ancestral-grudges', 'relentless', 'stubborn'],
+		specialRules: [],
 		description: 'An unyielding Dwarf Lord in Full Plate with a Great Weapon — tough and deadly.'
 	},
 	{
@@ -117,9 +108,7 @@ export const PRESET_CHARACTERS: CharacterPreset[] = [
 		weapon: 'hand-weapon',
 		shield: 'shield',
 		traits: ['immortal-fury', 'ward-4'],
-		giftPoints: 25,
-		wizardLevel: 'level-2',
-		specialRules: ['undead', 'invocation-of-nehek'],
+		specialRules: [],
 		description: 'A fast, deadly Vampire Lord with Hatred and a 4+ Ward save.'
 	},
 	{
@@ -136,9 +125,7 @@ export const PRESET_CHARACTERS: CharacterPreset[] = [
 		weapon: 'hand-weapon',
 		shield: 'shield',
 		traits: [],
-		giftPoints: 0,
-		wizardLevel: 'not-wizard',
-		specialRules: ['martial-prowess', 'valour-of-ages'],
+		specialRules: [],
 		description: 'A swift High Elf Prince with superior Weapon Skill and Initiative.'
 	},
 	{
@@ -155,8 +142,6 @@ export const PRESET_CHARACTERS: CharacterPreset[] = [
 		weapon: 'additional-hand-weapon',
 		shield: 'none',
 		traits: [],
-		giftPoints: 0,
-		wizardLevel: 'not-wizard',
 		specialRules: ['murderous-prowess', 'hatred-of-high-elves'],
 		description: 'A cruel Dark Elf Dreadlord with twin blades and murderous skill.'
 	}

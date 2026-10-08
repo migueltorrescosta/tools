@@ -4,7 +4,10 @@ export interface ConjugationEntry {
 	verb: string;
 	tense: string;
 	person: string;
+	/** Canonical form; '' marks a defective slot that is never asked. */
 	conjugation: string;
+	/** Other forms accepted as correct (e.g. Italian "fai" for "fa'"). */
+	alternatives?: string[];
 	translation: string;
 }
 
@@ -50,7 +53,9 @@ export interface LanguageModule {
 
 	/**
 	 * Language-specific conjugation extraction from user input.
-	 * E.g. for "lui/lei" accept "lui", "lei", or "lui/lei" prefix.
+	 * E.g. for "lui/lei" accept "lui", "lei", "lui lei" or "lui/lei" prefix.
+	 * Returns the normalised remainder, '' for a bare pronoun, or null when
+	 * the input does not start with an accepted pronoun.
 	 */
 	extractConjugation(input: string, expectedPersonLabel: string): string | null;
 }

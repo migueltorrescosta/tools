@@ -1,12 +1,5 @@
-export interface ConjugationEntry {
-	verb: string;
-	tense: string;
-	person: string;
-	conjugation: string;
-	translation: string;
-}
-
-export type ConjugationMap = Map<string, ConjugationEntry>;
+import type { ConjugationMap, LanguageModule } from './language-registry';
+import { extractAfterPerson } from '../verbs';
 
 // ─── Enums ──────────────────────────────────────────────────────────────────
 
@@ -874,6 +867,16 @@ const SIMPLE_TENSES: Tense[] = [
 
 /** Compound tenses: auxiliary in tense T + past participle.
  *  Defined as [auxiliaryTense, pastParticipleSuffix] */
+/** Tenses that do not inflect for person: every person shares one form. */
+const NON_FINITE_TENSES: ReadonlySet<Tense> = new Set<Tense>([
+	'infinito presente',
+	'infinito passato',
+	'participio presente',
+	'participio passato',
+	'gerundio presente',
+	'gerundio passato'
+]);
+
 const COMPOUND_TENSE_MAP: Record<Tense, { auxTense: Tense } | null> = {
 	'indicativo presente': null,
 	'passato prossimo': { auxTense: 'indicativo presente' },
@@ -1281,13 +1284,7 @@ const IRREGULAR: Record<string, TenseData> = {
 			voi: 'potreste',
 			loro: 'potrebbero'
 		},
-		imperativo: {
-			tu: 'possi',
-			'lui/lei': 'possa',
-			noi: 'possiamo',
-			voi: 'possiate',
-			loro: 'possano'
-		},
+		// No imperativo: potere is defective there, so every slot stays '' (never asked)
 		'infinito presente': { io: 'potere' },
 		'participio presente': { io: 'potente' },
 		'participio passato': { io: 'potuto' },
@@ -1421,7 +1418,7 @@ const IRREGULAR: Record<string, TenseData> = {
 			voi: 'dovreste',
 			loro: 'dovrebbero'
 		},
-		imperativo: { tu: 'devi', 'lui/lei': 'debba', noi: 'dobbiamo', voi: 'dovete', loro: 'debbano' },
+		// No imperativo: dovere is defective there, so every slot stays '' (never asked)
 		'infinito presente': { io: 'dovere' },
 		'participio presente': { io: 'dovente' },
 		'participio passato': { io: 'dovuto' },
@@ -2155,10 +2152,11 @@ function conjSimple(
 	const info = VERB_INFO[verb];
 	let stem = info.stem;
 
-	// Handle -ciare/-giare orthographic: drop stem's i before i-starting endings
+	// Handle -ciare/-giare orthographic: drop stem's i before i- and e-starting
+	// endings (mangiamo, mangerò, lascerei)
 	if (info.class === 'are-ciare' || info.class === 'are-sciare') {
 		const ending = e[person];
-		if (ending.startsWith('i')) {
+		if (ending.startsWith('i') || ending.startsWith('e')) {
 			stem = stem.slice(0, -1); // mangi → mang, lasci → lasc
 		}
 	}
@@ -2207,8 +2205,10 @@ function participioPresente(verb: Verb): string {
 		case 'ere':
 			return info.stem + 'ente';
 		case 'ire':
-		case 'ire-isco':
 			return info.stem + 'ente';
+		case 'ire-isco':
+			// capire → capiente (attested), not *capente
+			return info.stem + 'iente';
 		case 'irregular':
 			return '';
 	}
@@ -2279,17 +2279,24 @@ function buildData(): Record<
 				const p = person as Person;
 				let conjugation: string;
 
+				// Non-finite overrides are stored once, under io, and apply to every person
+				const irrForm = irrTense?.[NON_FINITE_TENSES.has(tense) ? 'io' : p];
+
 				// 1. Check irregular override
-				if (irrTense?.[p]) {
-					conjugation = irrTense[p]!;
+				if (irrForm) {
+					conjugation = irrForm;
 				}
 				// 2. Check if it's a compound tense
 				else if (COMPOUND_TENSE_MAP[tense]) {
 					const auxTense = COMPOUND_TENSE_MAP[tense]!.auxTense;
+					// Non-finite compounds (infinito/gerundio passato) do not inflect for
+					// person: the aux is the bare infinitive/gerund, stored under io.
+					const nonFinite = NON_FINITE_TENSES.has(tense);
 					// Build compound: aux conjugated in auxTense + past participle
-					const auxForm = AUX[info.aux][auxTense][p];
+					const auxForm = AUX[info.aux][auxTense][nonFinite ? 'io' : p];
 					// Past participle agrees in number when auxiliary is essere
-					const needsPlural = info.aux === 'essere' && (p === 'noi' || p === 'voi' || p === 'loro');
+					const needsPlural =
+						!nonFinite && info.aux === 'essere' && (p === 'noi' || p === 'voi' || p === 'loro');
 					const pp = needsPlural
 						? participioPassatoPlural(verb as Verb)
 						: participioPassato(verb as Verb);
@@ -2317,7 +2324,8 @@ function buildData(): Record<
 					}
 				}
 
-				const translation = enTranslate(verb as Verb, p, tense, info.en);
+				// Defective slots (imperativo io, potere/dovere imperativo) have no form
+				const translation = conjugation === '' ? '—' : enTranslate(verb as Verb, p, tense, info.en);
 				tData[p] = { conjugation, translation };
 			}
 
@@ -2328,6 +2336,35 @@ function buildData(): Record<
 	}
 
 	return data;
+}
+
+// ─── Accepted alternative forms ─────────────────────────────────────────────
+
+/** Forms accepted besides the canonical one, keyed "verb:tense:person". */
+const ALTERNATIVES: Record<string, string[]> = {
+	// Imperativo tu: full and truncated forms are both standard
+	'fare:imperativo:tu': ['fai', 'fa'],
+	'andare:imperativo:tu': ['vai', 'va'],
+	'stare:imperativo:tu': ['stai', 'sta'],
+	'dare:imperativo:tu': ['dai', 'da', 'dà'],
+	'dire:imperativo:tu': ['dì'],
+	// Passato remoto doublets
+	'credere:passato remoto:io': ['credetti'],
+	'credere:passato remoto:lui/lei': ['credette'],
+	'credere:passato remoto:loro': ['credettero'],
+	'dovere:passato remoto:io': ['dovetti'],
+	'dovere:passato remoto:lui/lei': ['dové'],
+	'dovere:passato remoto:loro': ['doverono']
+};
+
+/** Alternatives for one slot, including the elided "aver/esser" infinito passato. */
+function alternativesFor(verb: Verb, tense: Tense, person: Person, conjugation: string): string[] {
+	const alts = [...(ALTERNATIVES[`${verb}:${tense}:${person}`] ?? [])];
+	if (tense === 'infinito passato') {
+		const elided = conjugation.replace(/^(aver|esser)e /, '$1 ');
+		if (elided !== conjugation) alts.push(elided);
+	}
+	return alts;
 }
 
 // ─── Build and export ───────────────────────────────────────────────────────
@@ -2341,11 +2378,13 @@ export function buildConjugationMap(): ConjugationMap {
 		for (const tense of ALL_TENSES) {
 			for (const person of ALL_PERSONS) {
 				const entry = data[verb][tense][person];
+				const alternatives = alternativesFor(verb, tense, person, entry.conjugation);
 				map.set(`${verb}:${tense}:${person}`, {
 					verb,
 					tense,
 					person,
 					conjugation: entry.conjugation,
+					...(alternatives.length > 0 && { alternatives }),
 					translation: entry.translation
 				});
 			}
@@ -2358,37 +2397,12 @@ export const conjugationMap: ConjugationMap = buildConjugationMap();
 
 // ─── Italian LanguageModule ──────────────────────────────────────────────────
 
-import type { LanguageModule } from './language-registry';
-
 /**
  * Extract conjugation from user input for Italian.
- * Handles "lui/lei" alternative forms.
+ * Accepts "lui/lei", "lui lei", "lui" or "lei" for the third person.
  */
 function italianExtractConjugation(input: string, expectedPersonLabel: string): string | null {
-	const normalized = input.trim().toLowerCase();
-	const label = expectedPersonLabel.toLowerCase();
-
-	// Try exact label match first
-	if (normalized.startsWith(label + ' ')) {
-		return normalized.slice(label.length).trim();
-	}
-	if (normalized === label) {
-		return ''; // just the label, no conjugation
-	}
-
-	// For "lui/lei" also accept "lui lei", "lei", and "lui"
-	if (label === 'lui/lei') {
-		for (const alt of ['lui lei', 'lei', 'lui']) {
-			if (normalized.startsWith(alt + ' ')) {
-				return normalized.slice(alt.length).trim();
-			}
-			if (normalized === alt) {
-				return '';
-			}
-		}
-	}
-
-	return null;
+	return extractAfterPerson(input, expectedPersonLabel);
 }
 
 const DEFAULT_VERBS_IT: string[] = [

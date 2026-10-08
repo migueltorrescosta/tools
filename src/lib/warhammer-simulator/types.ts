@@ -30,8 +30,6 @@ export type ArmourType = 'none' | 'light' | 'heavy' | 'full-plate';
 
 export type ShieldType = 'none' | 'shield';
 
-export type WizardLevel = 'not-wizard' | 'level-1' | 'level-2' | 'level-3' | 'level-4';
-
 export type RerollSource = 'always' | 'single-use';
 
 // ── Core Models ──
@@ -61,7 +59,9 @@ export interface ShieldStats {
 
 export interface Character {
 	name: string;
+	/** Matters only as the target of Hatred (e.g. 'hatred-of-high-elves'). */
 	faction: Faction;
+	/** Flavour only: Marks of Chaos are not simulated. */
 	mark?: MarkOfChaos;
 	ws: number;
 	s: number;
@@ -69,14 +69,15 @@ export interface Character {
 	a: number;
 	i: number;
 	wounds: number;
-	armourSave: number; // 2 through 7 (7 = no armour save)
 	wardSave: number; // 2 through 7, or 0 = no ward save
 	weapon: WeaponType;
 	armour: ArmourType;
 	shield: ShieldType;
 	traits: string[];
-	giftPoints: number;
-	wizardLevel: WizardLevel;
+	/**
+	 * Special rule ids. Only the ids accepted by isModelledSpecialRule (rules.ts)
+	 * affect the duel: 'hatred-all', 'hatred-of-<faction>' and 'murderous-prowess'.
+	 */
 	specialRules: string[];
 }
 
@@ -95,8 +96,6 @@ export interface CharacterPreset {
 	weapon: WeaponType;
 	shield: ShieldType;
 	traits: string[];
-	giftPoints: number;
-	wizardLevel: WizardLevel;
 	specialRules: string[];
 	description: string;
 }
@@ -105,6 +104,9 @@ export interface CharacterPreset {
 
 export type Winner = 'A' | 'B' | 'mutual' | 'draw';
 
+/** Which side charged into the duel, if any. */
+export type Charger = 'A' | 'B' | 'none';
+
 export interface CombatResult {
 	winner: Winner;
 	rounds: number;
@@ -112,6 +114,9 @@ export interface CombatResult {
 	damageDealtB: number;
 	remainingWoundsA: number;
 	remainingWoundsB: number;
+	/** Round in which A was slain, or null if A survived the combat. */
+	deathRoundA: number | null;
+	deathRoundB: number | null;
 	abilityActivations: Record<string, number>;
 }
 
@@ -119,9 +124,6 @@ export interface CombatState {
 	charAWounds: number;
 	charBWounds: number;
 	roundNumber: number;
-	chargeA: boolean;
-	chargeB: boolean;
-	activeEffects: string[];
 }
 
 // ── Simulation ──
@@ -137,11 +139,13 @@ export interface SimulationResults {
 	maxRounds: number;
 	avgDamageA: number;
 	avgDamageB: number;
-	damageDistributionA: number[];
-	damageDistributionB: number[];
+	/** damageHistogramA[d] = number of combats in which A dealt exactly d wounds. */
+	damageHistogramA: number[];
+	damageHistogramB: number[];
 	remainingWoundsA: number[];
 	remainingWoundsB: number[];
-	survivalA: number[]; // survivalAtRound[i] = fraction alive after round i
+	/** survivalA[r] = fraction of combats in which A is still alive after round r (r = 0..maxRounds). */
+	survivalA: number[];
 	survivalB: number[];
 	abilityFrequencies: Record<string, number>;
 	seedUsed: number;
@@ -152,8 +156,7 @@ export interface SimulationJob {
 	charB: Character;
 	totalSimulations: number;
 	seed: number;
-	chargePersists: boolean;
-	chargeBonus: number;
+	charger: Charger;
 }
 
 export interface SimulationProgress {

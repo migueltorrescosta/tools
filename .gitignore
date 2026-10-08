@@ -24,8 +24,6 @@ vite.config.ts.timestamp-*
 # Playwright
 test-results
 
-*storybook.log
-storybook-static
 # Cloudflare Types
 /worker-configuration.d.ts
 

@@ -17,7 +17,7 @@
 				"type": "internal"
 			}
 		],
-		"moderator": null,
+		"moderators": [],
 		"type": "session"
 	},
 	{
@@ -42,7 +42,7 @@
 				"type": "external"
 			}
 		],
-		"moderator": null,
+		"moderators": [],
 		"type": "session"
 	},
 	{
@@ -83,7 +83,7 @@
 				"type": "internal"
 			}
 		],
-		"moderator": null,
+		"moderators": [],
 		"type": "session"
 	},
 	{
@@ -108,7 +108,7 @@
 				"type": "internal"
 			}
 		],
-		"moderator": null,
+		"moderators": [],
 		"type": "session"
 	},
 	{
@@ -129,7 +129,7 @@
 				"type": "internal"
 			}
 		],
-		"moderator": null,
+		"moderators": [],
 		"type": "session"
 	},
 	{
@@ -150,7 +150,7 @@
 				"type": "internal"
 			}
 		],
-		"moderator": null,
+		"moderators": [],
 		"type": "session"
 	},
 	{
@@ -179,7 +179,7 @@
 				"type": "external"
 			}
 		],
-		"moderator": "Eva Babitzová",
+		"moderators": ["Eva Babitzová"],
 		"type": "session"
 	},
 	{
@@ -196,7 +196,7 @@
 				"type": "internal"
 			}
 		],
-		"moderator": null,
+		"moderators": [],
 		"type": "session"
 	},
 	{
@@ -233,7 +233,7 @@
 				"type": "external"
 			}
 		],
-		"moderator": "Jong Chan Lim (Jon)",
+		"moderators": ["Jong Chan Lim (Jon)"],
 		"type": "session"
 	},
 	{
@@ -258,7 +258,7 @@
 				"type": "external"
 			}
 		],
-		"moderator": null,
+		"moderators": [],
 		"type": "session"
 	},
 	{
@@ -270,7 +270,7 @@
 		"endTime": "2026-06-13T13:10:00+02:00",
 		"description": "",
 		"speakers": [],
-		"moderator": null,
+		"moderators": [],
 		"type": "break"
 	},
 	{
@@ -287,7 +287,7 @@
 				"type": "internal"
 			}
 		],
-		"moderator": "Chris Luth",
+		"moderators": ["Chris Luth"],
 		"type": "session"
 	},
 	{
@@ -299,7 +299,7 @@
 		"endTime": "2026-06-13T14:50:00+02:00",
 		"description": "Vote #5: Co-Presidents\nThe GA will be asked to rank the candidates for Co-Presidents, with no obligation to rank all of them : \n- Electra Rome Dochtsi (Volt Greece & Denmark)\n- Grit Zwingenberger (Volt Germany)\n- Inês Bravo Figueiredo (Volt Portugal)\n- Leon Dönch (Volt Germany & Austria)\n- Mels Michiel Klabbers (Volt Netherlands)\n- Marina Rrika (Volt Albania)\n- Sabrina Hinz (Volt Germany)\n- Sven Franck (Volt France)",
 		"speakers": [],
-		"moderator": "Chris Luth",
+		"moderators": ["Chris Luth"],
 		"type": "session"
 	},
 	{
@@ -311,7 +311,7 @@
 		"endTime": "2026-06-13T15:10:00+02:00",
 		"description": "Vote #6 : Treasurer\nThe GA will be asked to rank the candidates for Treasurer, with no obligation to rank all of them : \n- Adrien Copros (Volt France)\n- Alberto Spatola (Volt Italy & Volt Belgium)\n- Christophe Quirynen (Volt Switzerland & Volt Belgium) \n- Mihaela Siritanu (Volt Romania)\n\nView their profiles here and see how they answered the questions here",
 		"speakers": [],
-		"moderator": "Chris Luth",
+		"moderators": ["Chris Luth"],
 		"type": "session"
 	},
 	{
@@ -323,7 +323,7 @@
 		"endTime": "2026-06-13T15:40:00+02:00",
 		"description": "Vote #7 : Non-Executive\nThe GA will be asked to rank the candidates for Non-Executive board members, with no obligation to rank all of them: \n- Bill Lanyon (Volt France)\n- Carlo Federico De Simon (Volt Germany)\n- Chan Uk Jun (Volt Germany)\n- Federico Moscogiuri (Volt UK)\n- Götz Leander Hübner (Volt Germany)\n- Iulian Alexandru Boicu (Volt Romania)\n- Jeffrey Ludwig (Volt Germany)\n- Jetse Frederik de Vries (Volt Netherlands)\n- Jörn Aldag (Volt Germany)\n- Laurent Ledoux (Volt Belgium)\n- Marieke Koekkoek (Volt Netherlands)\n- Marina Rrika (Volt Albania)\n- Mihaela Siritanu (Volt Romania)\n- Nathan Liefting (Volt Albania)\n- Ole Moors (Volt Netherlands)\n- Olette Bollen (Volt Netherlands)\n- Oliver Forberich (Volt France)\n- Rodoula Demetriades (Volt Cyprus)\n- Slavomir Manasek (Volt Czechia)\n- Timothy der Weduwen (Volt Netherlands) (withdrew)\n\nView their profiles here and see how they answered the questions here",
 		"speakers": [],
-		"moderator": "Chris Luth",
+		"moderators": ["Chris Luth"],
 		"type": "session"
 	},
 	{
@@ -335,14 +335,14 @@
 		"endTime": "2026-06-13T15:55:00+02:00",
 		"description": "",
 		"speakers": [],
-		"moderator": null,
+		"moderators": [],
 		"type": "buffer"
 	},
 	{
 		"id": "executive-board-renumeration",
 		"day": "saturday",
 		"room": "Peugeot Arena",
-		"title": "Executive Board renumeration",
+		"title": "Executive Board remuneration",
 		"startTime": "2026-06-13T15:55:00+02:00",
 		"endTime": "2026-06-13T16:10:00+02:00",
 		"description": "Vote #8 Vote on the Executive Salary\nVote #8 Vote on the Executive Salary\nDuring a review of the compensation scheme, the Compensation Committee identified that the executive salary figure for the new Board of Directors of Volt Europa is not in line with the compensation scheme. To rectify this misalignment, the board asks the GA to again vote on the remuneration of the executive directors pursuant to article 13.3.d of the Articles of Association.\nThe GA is asked to approve:\n- Starting salary is 110% of the Executive grade of the Compensation Scheme which is €53,130 gross per annum in Belgium (salary adjusted for purchasing power parity, dependents and yearly inflation) \n- Salary increases 5% per year (one grade step) to a maximum €63,000 hard cap which trumps the purchasing power parity adjustment\nThe GA is asked to APPROVE/REJECT  this rate of remuneration.",
@@ -352,7 +352,7 @@
 				"type": "internal"
 			}
 		],
-		"moderator": null,
+		"moderators": [],
 		"type": "session"
 	},
 	{
@@ -389,7 +389,7 @@
 				"type": "internal"
 			}
 		],
-		"moderator": "Francesca Romana D'Antuono,Reinier van Lanschot",
+		"moderators": ["Francesca Romana D'Antuono", "Reinier van Lanschot"],
 		"type": "session"
 	},
 	{
@@ -410,7 +410,7 @@
 				"type": "external"
 			}
 		],
-		"moderator": null,
+		"moderators": [],
 		"type": "session"
 	},
 	{
@@ -431,7 +431,7 @@
 				"type": "internal"
 			}
 		],
-		"moderator": null,
+		"moderators": [],
 		"type": "session"
 	},
 	{
@@ -452,7 +452,7 @@
 				"type": "internal"
 			}
 		],
-		"moderator": null,
+		"moderators": [],
 		"type": "session"
 	},
 	{
@@ -485,7 +485,7 @@
 				"type": "external"
 			}
 		],
-		"moderator": "Diane Jeanblanc",
+		"moderators": ["Diane Jeanblanc"],
 		"type": "session"
 	},
 	{
@@ -502,7 +502,7 @@
 				"type": "internal"
 			}
 		],
-		"moderator": null,
+		"moderators": [],
 		"type": "session"
 	},
 	{
@@ -527,7 +527,7 @@
 				"type": "internal"
 			}
 		],
-		"moderator": null,
+		"moderators": [],
 		"type": "session"
 	},
 	{
@@ -556,7 +556,7 @@
 				"type": "external"
 			}
 		],
-		"moderator": "Sebastian Schäffer",
+		"moderators": ["Sebastian Schäffer"],
 		"type": "session"
 	},
 	{
@@ -577,7 +577,7 @@
 				"type": "internal"
 			}
 		],
-		"moderator": null,
+		"moderators": [],
 		"type": "session"
 	},
 	{
@@ -598,7 +598,7 @@
 				"type": "internal"
 			}
 		],
-		"moderator": null,
+		"moderators": [],
 		"type": "session"
 	}
 ]

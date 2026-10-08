@@ -1,15 +1,21 @@
 <script lang="ts">
 	import {
 		clampMargin,
+		drawTrail,
 		formatMoney,
 		formatPercent,
 		linearScale,
 		logScale,
 		logTicks,
 		MARGIN_DOMAIN,
+		nearestHit,
 		percentTicks,
+		resolveHit,
+		tooltipPlacement,
 		trailSegments,
-		trailUpTo,
+		type DrawnTrail,
+		type Hit,
+		type HitSelection,
 		type Trail,
 		type TrailPoint
 	} from '$lib/company-trends/chart';
@@ -33,7 +39,9 @@
 	const H = 620;
 	const M = { top: 20, right: 30, bottom: 56, left: 76 };
 
-	const x = $derived(logScale(domain, [M.left, W - M.right]));
+	const xScale = $derived(logScale(domain, [M.left, W - M.right]));
+	/** Plot x of a revenue, pinned to the left edge below the axis floor. */
+	const x = $derived((v: number) => xScale(Math.max(v, domain[0])));
 	const y = linearScale(MARGIN_DOMAIN, [H - M.bottom, M.top]);
 	const xTicks = $derived(logTicks(domain));
 	const yTicks = percentTicks(MARGIN_DOMAIN);
@@ -54,37 +62,27 @@
 		return `M${cx - size},${base}L${cx + size},${base}L${cx},${tip}Z`;
 	}
 
-	interface Drawn {
-		trail: Trail;
+	interface Drawn extends DrawnTrail {
 		color: string;
-		points: TrailPoint[];
-		head: TrailPoint | null;
-		/** True once the company's dataset has ended before the current quarter. */
-		ended: boolean;
 	}
 
 	const drawn = $derived<Drawn[]>(
-		trails.map((trail) => {
-			const points = trailUpTo(trail, qi).filter((p) => p.revenue > 0 && p.margin !== null);
-			const last = trail.points[trail.points.length - 1];
-			return {
-				trail,
-				color: colors.get(trail.company.id) ?? 'var(--text-muted)',
-				points,
-				head: points.length > 0 ? points[points.length - 1] : null,
-				ended: last !== undefined && last.qi < qi
-			};
-		})
+		trails.map((trail) => ({
+			...drawTrail(trail, qi),
+			color: colors.get(trail.company.id) ?? 'var(--text-muted)'
+		}))
 	);
 
-	interface Hit {
-		trail: Trail;
-		point: TrailPoint;
-	}
+	// Selections, not point objects: re-resolved against the current trails so a
+	// currency, filter or quarter change never shows a stale point.
+	let hovered = $state<HitSelection | null>(null);
+	let pinned = $state<HitSelection | null>(null);
+	const pinnedHit = $derived(resolveHit(drawn, pinned));
+	const active = $derived(pinnedHit ?? resolveHit(drawn, hovered));
 
-	let hovered = $state<Hit | null>(null);
-	let pinned = $state<Hit | null>(null);
-	const active = $derived(pinned ?? hovered);
+	function selectionOf(hit: Hit | null): HitSelection | null {
+		return hit && { companyId: hit.trail.company.id, quarter: hit.point.quarter };
+	}
 
 	let svgEl: SVGSVGElement | undefined = $state();
 
@@ -93,31 +91,18 @@
 		const rect = svgEl.getBoundingClientRect();
 		const px = ((event.clientX - rect.left) / rect.width) * W;
 		const pointerY = ((event.clientY - rect.top) / rect.height) * H;
-		let best: Hit | null = null;
-		let bestDist = 14 * 14;
-		for (const d of drawn) {
-			for (const p of d.points) {
-				const dx = x(p.revenue) - px;
-				const dy = py(p) - pointerY;
-				const dist = dx * dx + dy * dy;
-				// Prefer anchors and heads over faint interpolated points at equal distance.
-				const bias = p.quality === 'interpolated' && p !== d.head ? 4 : 0;
-				if (dist + bias < bestDist) {
-					bestDist = dist + bias;
-					best = { trail: d.trail, point: p };
-				}
-			}
-		}
-		return best;
+		return nearestHit(drawn, px, pointerY, x, y);
 	}
 
 	function onMove(event: PointerEvent) {
-		hovered = nearest(event);
+		hovered = selectionOf(nearest(event));
 	}
 
 	function onClick(event: MouseEvent) {
-		const hit = nearest(event);
-		pinned = hit && pinned && hit.point === pinned.point ? null : hit;
+		const hit = selectionOf(nearest(event));
+		const same =
+			hit && pinnedHit && hit.companyId === pinned?.companyId && hit.quarter === pinned.quarter;
+		pinned = same ? null : hit;
 	}
 
 	function onKey(event: KeyboardEvent) {
@@ -139,17 +124,9 @@
 	}
 
 	// Tooltip placement in percent of the chart box, flipped away from the edges.
-	const tip = $derived.by(() => {
-		if (!active) return null;
-		const tx = x(active.point.revenue);
-		const ty = py(active.point);
-		return {
-			left: (tx / W) * 100,
-			top: (ty / H) * 100,
-			flipX: tx > W * 0.6,
-			flipY: ty > H * 0.55
-		};
-	});
+	const tip = $derived(
+		active ? tooltipPlacement(x(active.point.revenue), py(active.point), W, H) : null
+	);
 </script>
 
 <svelte:window onkeydown={onKey} />
@@ -226,7 +203,7 @@
 				data-company={d.trail.company.id}
 				data-type={d.trail.company.type}
 			>
-				{#each trailSegments(d.points, x, y) as seg, i (i)}
+				{#each trailSegments(d.path, x, y) as seg, i (i)}
 					<path class="trail {seg.kind}" d={seg.d} />
 				{/each}
 				{#each d.points as p (p.qi)}
@@ -295,7 +272,7 @@
 		{@const c = active.trail.company}
 		<div
 			class="tooltip"
-			class:pinned={pinned !== null}
+			class:pinned={pinnedHit !== null}
 			class:flip-x={tip.flipX}
 			class:flip-y={tip.flipY}
 			style="left: {tip.left}%; top: {tip.top}%"
@@ -306,7 +283,7 @@
 			<div class="tt-head">
 				<strong>{c.name}</strong>
 				<span>{p.quarter}</span>
-				{#if pinned}
+				{#if pinnedHit}
 					<button class="tt-close" aria-label="Close" onclick={() => (pinned = null)}>×</button>
 				{/if}
 			</div>
@@ -314,6 +291,7 @@
 				<span class="badge {p.quality}">{QUALITY_LABEL[p.quality]}</span>
 				{#if p.gap}<span class="badge gap">data gap</span>{/if}
 				{#if clipOf(p)}<span class="badge offscale">off-scale</span>{/if}
+				{#if p.revenue < domain[0]}<span class="badge offscale">below axis</span>{/if}
 			</div>
 			<dl>
 				<dt>Op. margin</dt>
@@ -343,7 +321,7 @@
 				{/if}
 			</div>
 			{#if c.notes}<div class="tt-notes dim">{c.notes}</div>{/if}
-			{#if !pinned}<div class="dim tt-hint">Click to pin and follow links</div>{/if}
+			{#if !pinnedHit}<div class="dim tt-hint">Click to pin and follow links</div>{/if}
 		</div>
 	{/if}
 </div>

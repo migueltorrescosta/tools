@@ -1,37 +1,29 @@
 import { describe, it, expect } from 'vitest';
-import solutionTree from '$lib/wordle-solution';
+import rawSolutionTree from '$lib/wordle-solution';
 
-// Type definitions matching the component
-interface TreeNode {
-	word: string;
-	subtree: Record<string, TreeNode> | string[];
-}
+import {
+	answerMessage,
+	colorName,
+	cycleColor,
+	cycleTile,
+	EMPTY_RESULT,
+	getTileColor,
+	INVALID_RESULT_MESSAGE,
+	isValidResult,
+	newAttempt,
+	NO_MATCH_MESSAGE,
+	OPENER,
+	setTile,
+	step,
+	tileLabel,
+	undoLast,
+	type Attempt,
+	type SolutionTree,
+	type TileColor,
+	type TreeNode
+} from '$lib/wordle';
 
-// ============================================================================
-// Pure functions extracted from the component for testing
-// ============================================================================
-
-type TileColor = 'B' | 'Y' | 'G';
-
-function isValidResult(result: string): boolean {
-	return result.length === 5 && /^[BGY]{5}$/.test(result);
-}
-
-function getTileColor(result: string, index: number): TileColor {
-	return (result[index] as TileColor) || 'B';
-}
-
-function cycleTileColor(currentColor: TileColor): TileColor {
-	const colors: TileColor[] = ['B', 'Y', 'G'];
-	const currentIndex = colors.indexOf(currentColor);
-	return colors[(currentIndex + 1) % 3];
-}
-
-function setTileColorAtIndex(result: string, index: number, color: TileColor): string {
-	const chars = result.padEnd(5, 'B').split('');
-	chars[index] = color;
-	return chars.join('');
-}
+const solutionTree: SolutionTree = rawSolutionTree;
 
 // ============================================================================
 // Solution tree validation helpers
@@ -242,70 +234,56 @@ describe('Tile Color Functions', () => {
 		});
 	});
 
-	describe('cycleTileColor', () => {
+	describe('cycleColor', () => {
 		it('should cycle B -> Y -> G -> B', () => {
-			expect(cycleTileColor('B')).toBe('Y');
-			expect(cycleTileColor('Y')).toBe('G');
-			expect(cycleTileColor('G')).toBe('B');
+			expect(cycleColor('B')).toBe('Y');
+			expect(cycleColor('Y')).toBe('G');
+			expect(cycleColor('G')).toBe('B');
 		});
 
 		it('should cycle correctly multiple times', () => {
 			let color: TileColor = 'B';
-			color = cycleTileColor(color);
+			color = cycleColor(color);
 			expect(color).toBe('Y');
-			color = cycleTileColor(color);
+			color = cycleColor(color);
 			expect(color).toBe('G');
-			color = cycleTileColor(color);
+			color = cycleColor(color);
 			expect(color).toBe('B');
-			color = cycleTileColor(color);
+			color = cycleColor(color);
 			expect(color).toBe('Y');
 		});
 	});
 
-	describe('setTileColorAtIndex', () => {
+	describe('setTile', () => {
 		it('should set color at specific index', () => {
-			expect(setTileColorAtIndex('BBBBB', 0, 'G')).toBe('GBBBB');
-			expect(setTileColorAtIndex('BBBBB', 4, 'Y')).toBe('BBBBY');
-			expect(setTileColorAtIndex('BBBBB', 2, 'G')).toBe('BBGBB');
+			expect(setTile('BBBBB', 0, 'G')).toBe('GBBBB');
+			expect(setTile('BBBBB', 4, 'Y')).toBe('BBBBY');
+			expect(setTile('BBBBB', 2, 'G')).toBe('BBGBB');
 		});
 
 		it('should pad short strings with B', () => {
-			expect(setTileColorAtIndex('', 0, 'G')).toBe('GBBBB');
+			expect(setTile('', 0, 'G')).toBe('GBBBB');
 			// For index 3 with 'BB' as input: 'BB' + padEnd to 5 = 'BBBBB', then set index 3 to Y = 'BBBYB'
-			expect(setTileColorAtIndex('BB', 3, 'Y')).toBe('BBBYB');
-			expect(setTileColorAtIndex('', 4, 'G')).toBe('BBBBG');
+			expect(setTile('BB', 3, 'Y')).toBe('BBBYB');
+			expect(setTile('', 4, 'G')).toBe('BBBBG');
 		});
 
 		it('should handle multiple index updates', () => {
 			let result = 'BBBBB';
-			result = setTileColorAtIndex(result, 0, 'G');
-			result = setTileColorAtIndex(result, 2, 'Y');
-			result = setTileColorAtIndex(result, 4, 'G');
+			result = setTile(result, 0, 'G');
+			result = setTile(result, 2, 'Y');
+			result = setTile(result, 4, 'G');
 			expect(result).toBe('GBYBG');
 		});
 	});
 });
 
 describe('Game Logic', () => {
-	describe('Win condition', () => {
-		it('should detect winning result (all green)', () => {
-			const winningResult = 'GGGGG';
-			expect(isValidResult(winningResult)).toBe(true);
-			expect(winningResult).toBe('GGGGG');
-		});
-
-		it('should identify winning result pattern', () => {
-			const result = 'GGGGG';
-			const isWin = result === 'GGGGG';
-			expect(isWin).toBe(true);
-		});
-	});
-
 	describe('Color assignment consistency', () => {
 		it('should produce valid result strings from tile operations', () => {
 			let result = '';
 			for (let i = 0; i < 5; i++) {
-				result = setTileColorAtIndex(result, i, 'B');
+				result = setTile(result, i, 'B');
 			}
 			expect(isValidResult(result)).toBe(true);
 			expect(result).toBe('BBBBB');
@@ -313,9 +291,9 @@ describe('Game Logic', () => {
 
 		it('should handle mixed color assignments', () => {
 			let result = 'BBBBB';
-			result = setTileColorAtIndex(result, 0, 'G');
-			result = setTileColorAtIndex(result, 2, 'Y');
-			result = setTileColorAtIndex(result, 4, 'G');
+			result = setTile(result, 0, 'G');
+			result = setTile(result, 2, 'Y');
+			result = setTile(result, 4, 'G');
 
 			expect(isValidResult(result)).toBe(true);
 			expect(getTileColor(result, 0)).toBe('G');
@@ -354,16 +332,11 @@ describe('Game Logic', () => {
 			const currentNode = solutionTree['BBBBB'] as TreeNode;
 			expect(currentNode).toBeDefined();
 
-			// Navigate using a valid result
+			// Navigate using a result known to sit under BBBBB
 			const result1 = 'BGBBG';
-			if (
-				currentNode.subtree &&
-				!Array.isArray(currentNode.subtree) &&
-				currentNode.subtree[result1]
-			) {
-				const nextNode = currentNode.subtree[result1];
-				expect(nextNode.word).toBeDefined();
-			}
+			expect(currentNode.subtree).toHaveProperty(result1);
+			const nextNode = (currentNode.subtree as Record<string, TreeNode>)[result1];
+			expect(nextNode.word).toBe('quoth');
 		});
 	});
 });
@@ -388,39 +361,6 @@ describe('Edge Cases', () => {
 		expect(isValidResult('BgYgb')).toBe(false);
 		expect(isValidResult('BGYgb')).toBe(false);
 	});
-
-	it('tree should not have circular references', () => {
-		const visitedPaths = new Set<string>();
-
-		function checkForCycles(node: Record<string, TreeNode>, currentPath: string[]): boolean {
-			for (const [key, value] of Object.entries(node)) {
-				// Create a unique path identifier
-				const pathKey = [...currentPath, key].join('-');
-
-				if (visitedPaths.has(pathKey)) {
-					return true; // Cycle detected
-				}
-				visitedPaths.add(pathKey);
-
-				if (!Array.isArray(value) && value.subtree) {
-					if (Array.isArray(value.subtree)) {
-						// Leaf node - don't recurse
-					} else {
-						// Recurse into subtree
-						if (checkForCycles(value.subtree, [...currentPath, key])) {
-							return true;
-						}
-					}
-				}
-
-				// Remove path after processing to allow different paths
-				visitedPaths.delete(pathKey);
-			}
-			return false;
-		}
-
-		expect(checkForCycles(solutionTree, [])).toBe(false);
-	});
 });
 
 describe('Real game scenarios', () => {
@@ -430,42 +370,26 @@ describe('Real game scenarios', () => {
 		expect(currentNode).toBeDefined();
 		expect(currentNode.word.length).toBe(5);
 
-		// Simulate first guess result (e.g., BGBYG)
-		const result = 'BGBYG';
+		// Simulate the result of the second guess (mulch): BYYBB
+		const result = 'BYYBB';
 
 		// Validate result is valid
 		expect(isValidResult(result)).toBe(true);
 
-		// Get next word from subtree if it exists
-		if (currentNode.subtree && !Array.isArray(currentNode.subtree) && currentNode.subtree[result]) {
-			const nextNode = currentNode.subtree[result];
-			expect(nextNode.word).toBeDefined();
-			expect(nextNode.word.length).toBe(5);
+		// The result must lead to a further guess, not a leaf
+		expect(currentNode.subtree).toHaveProperty(result);
+		const nextNode = (currentNode.subtree as Record<string, TreeNode>)[result];
+		expect(nextNode.word).toBe('flunk');
+		expect(Array.isArray(nextNode.subtree)).toBe(false);
 
-			// Cycle one tile
-			const newColor = cycleTileColor(getTileColor(result, 0));
-			expect(newColor).toBe('Y');
+		// Cycle one tile
+		const newColor = cycleColor(getTileColor(result, 0));
+		expect(newColor).toBe('Y');
 
-			// Update result
-			const updatedResult = setTileColorAtIndex(result, 0, newColor);
-			expect(updatedResult).toBe('YGBYG');
-			expect(isValidResult(updatedResult)).toBe(true);
-		}
-	});
-
-	it('should simulate winning game', () => {
-		// All guesses must be valid
-		const guesses = [{ result: 'BBGBG' }, { result: 'YYGBG' }, { result: 'GGGGG' }];
-
-		// Verify all results are valid
-		guesses.forEach((guess) => {
-			expect(isValidResult(guess.result)).toBe(true);
-		});
-
-		// Verify final guess is winning
-		const finalResult = guesses[2].result;
-		expect(finalResult).toBe('GGGGG');
-		expect(finalResult === 'GGGGG').toBe(true);
+		// Update result
+		const updatedResult = setTile(result, 0, newColor);
+		expect(updatedResult).toBe('YYYBB');
+		expect(isValidResult(updatedResult)).toBe(true);
 	});
 
 	it('should simulate game over (no valid words)', () => {
@@ -492,9 +416,267 @@ describe('Real game scenarios', () => {
 
 		const leaf = findLeafNode(solutionTree);
 		expect(leaf).not.toBeNull();
-		if (leaf) {
-			expect(leaf.word.length).toBe(5);
-			expect(isValidWord(leaf.word)).toBe(true);
+		expect(leaf!.word.length).toBe(5);
+		expect(isValidWord(leaf!.word)).toBe(true);
+	});
+});
+
+describe('cycleTile', () => {
+	it('cycles the tile at the index and pads the rest with B', () => {
+		expect(cycleTile('', 0)).toBe('YBBBB');
+		expect(cycleTile('YBBBB', 0)).toBe('GBBBB');
+		expect(cycleTile('GBBBB', 0)).toBe('BBBBB');
+		expect(cycleTile('BGBYG', 3)).toBe('BGBGG');
+	});
+});
+
+describe('step', () => {
+	const fixture: SolutionTree = {
+		BBBBB: {
+			word: 'mulch',
+			subtree: {
+				BBBBG: { word: 'pinch', subtree: ['pinch'] }
+			}
+		},
+		YBBBB: { word: 'other', subtree: ['other'] }
+	};
+
+	it('rejects an invalid result without advancing or ending the game', () => {
+		expect(step(fixture, 'BBBB')).toEqual({
+			next: fixture,
+			word: '',
+			done: false,
+			won: false,
+			solved: false,
+			error: INVALID_RESULT_MESSAGE
+		});
+	});
+
+	it('ends the game as won on GGGGG', () => {
+		const s = step(fixture, 'GGGGG');
+		expect(s.won).toBe(true);
+		expect(s.done).toBe(true);
+		expect(s.error).toBe('');
+	});
+
+	it('reports an unknown pattern as an error and keeps the current tree', () => {
+		const s = step(fixture, 'GBBBB');
+		expect(s.error).toBe(NO_MATCH_MESSAGE);
+		expect(s.next).toBe(fixture);
+		expect(s.won).toBe(false);
+	});
+
+	it('does not end the game on an unknown pattern, so the row can be corrected', () => {
+		expect(step(fixture, 'GBBBB').done).toBe(false);
+		// Correcting the mis-clicked tile and resubmitting from the same tree works.
+		expect(step(fixture, 'BBBBB').word).toBe('mulch');
+	});
+
+	it('advances into an internal node and suggests its word', () => {
+		const s = step(fixture, 'BBBBB');
+		expect(s).toEqual({
+			next: (fixture.BBBBB as TreeNode).subtree,
+			word: 'mulch',
+			done: false,
+			won: false,
+			solved: false,
+			error: ''
+		});
+	});
+
+	it('reaching a leaf names the answer and keeps the game open for the confirming GGGGG', () => {
+		const s = step(fixture, 'YBBBB');
+		expect(s).toEqual({
+			next: {},
+			word: 'other',
+			done: false,
+			won: false,
+			solved: true,
+			error: ''
+		});
+		expect(step(s.next, 'GGGGG')).toMatchObject({ won: true, done: true, error: '' });
+	});
+
+	it('after a leaf, any result other than GGGGG is a correctable no-match', () => {
+		const leaf = step(fixture, 'YBBBB');
+		expect(step(leaf.next, 'GBBBB')).toMatchObject({
+			done: false,
+			won: false,
+			error: NO_MATCH_MESSAGE
+		});
+	});
+
+	it('an internal node is not reported as solved', () => {
+		expect(step(fixture, 'BBBBB').solved).toBe(false);
+	});
+
+	it('follows the real tree to a leaf: RAISE BGGBG -> WINDY GYBBB -> WAIVE', () => {
+		const first = step(solutionTree, 'BGGBG');
+		expect(first).toMatchObject({ word: 'windy', solved: false, done: false });
+		const second = step(first.next, 'GYBBB');
+		expect(second).toMatchObject({ word: 'waive', solved: true, done: false, error: '' });
+		expect(step(second.next, 'GGGGG').won).toBe(true);
+	});
+
+	it('does not mutate the tree it is given', () => {
+		const before = JSON.stringify(fixture);
+		step(fixture, 'BBBBB');
+		step(fixture, 'GBBBB');
+		expect(JSON.stringify(fixture)).toBe(before);
+	});
+
+	it('follows the real tree: RAISE scored BBBBB suggests MULCH', () => {
+		const s = step(solutionTree, 'BBBBB');
+		expect(s.error).toBe('');
+		expect(s.word).toBe('mulch');
+		expect(s.next).toBe(solutionTree.BBBBB.subtree);
+	});
+});
+
+describe('newAttempt', () => {
+	it('starts with the result the untouched (all-black) tiles show', () => {
+		const attempt = newAttempt('RAISE');
+		expect(attempt).toEqual({ word: 'RAISE', result: EMPTY_RESULT });
+		for (let i = 0; i < 5; i++) {
+			expect(getTileColor(attempt.result, i)).toBe(attempt.result[i]);
 		}
+	});
+
+	it('submitting an untouched row is accepted: RAISE scored all black suggests MULCH', () => {
+		const s = step(solutionTree, newAttempt('RAISE').result);
+		expect(s.error).toBe('');
+		expect(s.word).toBe('mulch');
+	});
+});
+
+describe('undoLast', () => {
+	const root: SolutionTree = solutionTree;
+	const afterFirst = step(root, 'BBBBB').next;
+
+	it('returns null when there is nothing to undo', () => {
+		expect(undoLast([], [])).toBeNull();
+	});
+
+	it('restores the previous tree and makes the removed row editable again', () => {
+		const history: Attempt[] = [{ word: 'RAISE', result: 'BBBBB' }];
+		const undone = undoLast([root], history);
+		expect(undone).not.toBeNull();
+		expect(undone!.tree).toBe(root);
+		expect(undone!.visited).toEqual([]);
+		expect(undone!.history).toEqual([]);
+		expect(undone!.attempt).toEqual({ word: 'RAISE', result: 'BBBBB' });
+		expect(undone!.attempt).not.toBe(history[0]);
+	});
+
+	it('only removes the last of several rows', () => {
+		const history: Attempt[] = [
+			{ word: 'RAISE', result: 'BBBBB' },
+			{ word: 'MULCH', result: 'GGGGG' }
+		];
+		const visited = [root, afterFirst];
+		const undone = undoLast(visited, history)!;
+		expect(undone.tree).toBe(afterFirst);
+		expect(undone.visited).toEqual([root]);
+		expect(undone.history).toEqual([history[0]]);
+		expect(history).toHaveLength(2);
+		expect(visited).toHaveLength(2);
+	});
+});
+
+/** Reference Wordle scorer: greens first, then yellows limited by the unmatched letter counts. */
+function score(guess: string, answer: string): string {
+	const result: TileColor[] = Array(5).fill('B');
+	const unmatched: Record<string, number> = {};
+	for (let i = 0; i < 5; i++) {
+		if (guess[i] === answer[i]) result[i] = 'G';
+		else unmatched[answer[i]] = (unmatched[answer[i]] ?? 0) + 1;
+	}
+	for (let i = 0; i < 5; i++) {
+		if (result[i] !== 'G' && (unmatched[guess[i]] ?? 0) > 0) {
+			result[i] = 'Y';
+			unmatched[guess[i]]--;
+		}
+	}
+	return result.join('');
+}
+
+describe('score (reference)', () => {
+	it('handles duplicate letters', () => {
+		expect(score('abbey', 'babes')).toBe('YYGGB');
+		expect(score('speed', 'abide')).toBe('BBYBY');
+		expect(score('eerie', 'sweet')).toBe('YYBBB');
+	});
+});
+
+describe('Solution tree consistency with Wordle scoring', () => {
+	interface Leaf {
+		answer: string;
+		steps: { guess: string; key: string }[];
+		subtree: string[];
+	}
+
+	function collectLeaves(tree: SolutionTree, guess: string, steps: Leaf['steps']): Leaf[] {
+		return Object.entries(tree).flatMap(([key, node]) => {
+			const path = [...steps, { guess, key }];
+			return Array.isArray(node.subtree)
+				? [{ answer: node.word, steps: path, subtree: node.subtree }]
+				: collectLeaves(node.subtree, node.word, path);
+		});
+	}
+
+	const leaves = collectLeaves(solutionTree, OPENER.toLowerCase(), []);
+
+	it('has leaves to check', () => {
+		expect(leaves.length).toBeGreaterThan(100);
+	});
+
+	it('every key equals score(guess, answer) on the path to each answer', () => {
+		const mismatches = leaves.flatMap((leaf) =>
+			leaf.steps
+				.filter(({ guess, key }) => score(guess, leaf.answer) !== key)
+				.map(({ guess, key }) => `${leaf.answer}: ${guess} -> ${key}`)
+		);
+		expect(mismatches).toEqual([]);
+	});
+
+	it('has unique answers', () => {
+		const answers = leaves.map((l) => l.answer);
+		expect(new Set(answers).size).toBe(answers.length);
+	});
+
+	it('each leaf holds exactly its own answer', () => {
+		const bad = leaves.filter((l) => l.subtree.length !== 1 || l.subtree[0] !== l.answer);
+		expect(bad.map((l) => l.answer)).toEqual([]);
+	});
+
+	it('solves every answer within six guesses', () => {
+		// Guesses: one per step on the path, plus the final guess of the answer itself.
+		const tooDeep = leaves.filter((l) => l.steps.length + 1 > 6);
+		expect(tooDeep.map((l) => l.answer)).toEqual([]);
+	});
+
+	it('stores no GGGGG keys', () => {
+		expect(leaves.flatMap((l) => l.steps).filter((s) => s.key === 'GGGGG')).toEqual([]);
+	});
+});
+
+describe('answerMessage', () => {
+	it('names the remaining word in upper case and says how to finish', () => {
+		expect(answerMessage('waive')).toBe(
+			'Answer: WAIVE. Play it, mark every tile green and Submit.'
+		);
+	});
+});
+
+describe('tile accessibility labels', () => {
+	it('names every colour', () => {
+		expect(colorName('B')).toBe('black');
+		expect(colorName('Y')).toBe('yellow');
+		expect(colorName('G')).toBe('green');
+	});
+
+	it('labels a tile with letter, 1-based position and colour', () => {
+		expect(tileLabel('R', 0, 'B')).toBe('R, position 1: black');
+		expect(tileLabel('E', 4, 'G')).toBe('E, position 5: green');
 	});
 });

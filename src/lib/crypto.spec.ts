@@ -19,6 +19,45 @@ describe('Encryption functions', () => {
 			const decoded = base64Decode(encoded);
 			expect(decoded).toBe(original);
 		});
+
+		it('round-trips non-ASCII text', () => {
+			const original = 'Grüße, 世界 🔐';
+			expect(base64Decode(base64Encode(original))).toBe(original);
+		});
+
+		it('encodes non-ASCII text as UTF-8 bytes', () => {
+			expect(base64Encode('é')).toBe('w6k=');
+		});
+
+		it('encodes a large input without overflowing the call stack', () => {
+			const original = 'a'.repeat(200_000);
+			expect(base64Decode(base64Encode(original))).toBe(original);
+		});
+
+		it('accepts the URL-safe alphabet', () => {
+			expect(base64Decode('SGVsbG8_')).toBe('Hello?');
+			expect(base64Decode('Pz8-')).toBe('??>');
+		});
+
+		it('accepts missing padding and ignores whitespace', () => {
+			expect(base64Decode('aGk')).toBe('hi');
+			expect(base64Decode(' SGVs\nbG8= ')).toBe('Hello');
+		});
+
+		it('rejects bytes that are not UTF-8 with a specific error', () => {
+			expect(() => base64Decode('/w==')).toThrow('Base64 bytes are not valid UTF-8 text');
+		});
+
+		it('rejects characters outside the base64 alphabets', () => {
+			expect(() => base64Decode('SGVs*G8=')).toThrow(/^Invalid base64: only/);
+			expect(() => base64Decode('aGk=aGk=')).toThrow(/^Invalid base64: only/);
+		});
+
+		it('rejects a length that is not a whole number of bytes', () => {
+			expect(() => base64Decode('aGkhx')).toThrow(
+				'Invalid base64: length is not a whole number of bytes'
+			);
+		});
 	});
 
 	describe('Hex', () => {

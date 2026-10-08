@@ -1,4 +1,5 @@
 import type { LanguageModule, ConjugationMap, ConjugationEntry } from './language-registry';
+import { extractAfterPerson } from '../verbs';
 
 // ─── Spanish Data ────────────────────────────────────────────────────────────
 
@@ -934,6 +935,9 @@ function enTranslate(verb: string, tense: string, person: string): string {
 			return `${pro} used to ${info.base}`;
 		}
 		case 'pretérito indefinido':
+			if (info.past === 'was/were') {
+				return `${pro} ${person === 'yo' || person === 'él/ella' ? 'was' : 'were'}`;
+			}
 			return `${pro} ${info.past}`;
 		case 'pretérito pluscuamperfecto':
 			return `${pro} had ${info.pp}`;
@@ -952,6 +956,8 @@ function enTranslate(verb: string, tense: string, person: string): string {
 		case 'subjuntivo presente':
 			return `(that) ${pro} ${info.base}`;
 		case 'subjuntivo imperfecto':
+			// English subjunctive: "(that) I were", never "was/were"
+			if (info.past === 'was/were') return `(that) ${pro} were`;
 			return `(that) ${pro} ${info.past}`;
 		case 'subjuntivo pretérito perfecto':
 			return `(that) ${pro} have ${info.pp}`;
@@ -1042,48 +1048,12 @@ export const conjugationMap: ConjugationMap = buildConjugationMap();
 /**
  * Extract conjugation from user input for Spanish.
  * Handles slash variants like:
- * - "él/ella" → accepts "él", "ella", "él/ella", "él ella"
- * - "nosotros/nosotras" → accepts "nosotros", "nosotras", "nosotros/nosotras"
- * etc.
+ * - "él/ella" → accepts "él/ella", "él ella", "ella", "él"
+ * - "nosotros/nosotras" → accepts "nosotros", "nosotras", "nosotros nosotras", ...
+ * Pronouns may be typed without accents ("tu", "el"); the verb form may not.
  */
 function spanishExtractConjugation(input: string, expectedPersonLabel: string): string | null {
-	const normalized = input.trim().toLowerCase();
-	const label = expectedPersonLabel.toLowerCase();
-
-	// Try exact label match first
-	if (normalized.startsWith(label + ' ')) {
-		return normalized.slice(label.length).trim();
-	}
-	if (normalized === label) {
-		return '';
-	}
-
-	// Handle variants with "/"
-	if (label.includes('/')) {
-		const variants = label.split('/');
-
-		// Try each variant individually
-		for (const variant of variants) {
-			const v = variant.trim();
-			if (normalized.startsWith(v + ' ')) {
-				return normalized.slice(v.length).trim();
-			}
-			if (normalized === v) {
-				return '';
-			}
-		}
-
-		// Try variants joined with space (e.g. "él ella" for "él/ella")
-		const spaceJoined = variants.join(' ');
-		if (normalized.startsWith(spaceJoined + ' ')) {
-			return normalized.slice(spaceJoined.length).trim();
-		}
-		if (normalized === spaceJoined) {
-			return '';
-		}
-	}
-
-	return null;
+	return extractAfterPerson(input, expectedPersonLabel);
 }
 
 // ─── Default selections ──────────────────────────────────────────────────────

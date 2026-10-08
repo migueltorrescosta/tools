@@ -16,26 +16,53 @@ test('Timelines - loads with dynamic imports', async ({ page }) => {
 });
 
 test('Timelines - switch between timelines', async ({ page }) => {
-	// Start on a known non-rich timeline for deterministic behavior
 	await page.goto('/timelines?t=eu-elections');
+	const firstTitle = page.locator('.event-card .event-title').first();
+	await expect(firstTitle).toBeVisible({ timeout: 10000 });
+	// Titles can repeat across years (e.g. two Finland presidential elections), so count
+	// every card with that title instead of requiring a unique match.
+	const electionTitles = page.locator('.event-card .event-title').filter({
+		hasText: new RegExp(
+			`^${((await firstTitle.textContent()) ?? '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`
+		)
+	});
+	expect(await electionTitles.count()).toBeGreaterThan(0);
 
-	// Wait for initial event cards to load
-	await expect(page.locator('.event-card').first()).toBeVisible({ timeout: 10000 });
-
-	// Count initial events
-	const initialEventCount = await page.locator('.event-card').count();
-	expect(initialEventCount).toBeGreaterThan(0);
-
-	// Select a different timeline
 	await page.selectOption('.timeline-select', 'eu-key-events');
 
-	// Wait for events to update
-	await expect(page.locator('.event-card').first()).toBeVisible({ timeout: 10000 });
+	// The URL follows the selection, the new timeline renders and the old one is gone.
+	await expect(page).toHaveURL(/[?&]t=eu-key-events(&|$)/);
+	await expect(page.getByText('Treaty of Rome', { exact: true })).toBeVisible({ timeout: 10000 });
+	await expect(electionTitles).toHaveCount(0);
 
-	// Check that events changed (should be a different set)
-	const newEventCount = await page.locator('.event-card').count();
-	expect(newEventCount).not.toBe(initialEventCount);
-	expect(newEventCount).toBeGreaterThan(0);
+	// Year separators run in ascending order.
+	const years = (await page.locator('.year-label').allTextContents()).map(Number);
+	expect(years.length).toBeGreaterThan(1);
+	expect(years).toEqual([...years].sort((x, y) => x - y));
+});
+
+test('Timelines - invalid ?t falls back to a timeline and writes it to the URL', async ({
+	page
+}) => {
+	await page.goto('/timelines?t=bogus');
+	await expect(page.locator('.event-card, .rich-event-card').first()).toBeVisible({
+		timeout: 15000
+	});
+	const selected = await page.locator('.timeline-select').inputValue();
+	expect(selected).not.toBe('bogus');
+	await expect(page).toHaveURL(new RegExp(`[?&]t=${selected}(&|$)`));
+});
+
+test('Timelines - focusing a card shows its description', async ({ page }) => {
+	await page.goto('/timelines?t=eu-elections');
+	const info = page.locator('.event-card .event-info').first();
+	await expect(info).toBeVisible({ timeout: 10000 });
+
+	await info.focus();
+	const tooltip = page.getByRole('tooltip');
+	await expect(tooltip).toBeVisible();
+	await expect(tooltip).not.toHaveText('');
+	await expect(info).toHaveAttribute('aria-describedby', 'timeline-event-tooltip');
 });
 
 test('Timelines - verify URL parameter', async ({ page }) => {

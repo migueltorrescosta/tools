@@ -23,14 +23,14 @@
 	{
 		"id": "ward-5",
 		"name": "Talisman of Protection",
-		"description": "Grants a 5+ ward save.",
+		"description": "Grants a 5+ ward save (keeps a better innate ward).",
 		"cost": 20,
 		"category": "item"
 	},
 	{
 		"id": "ward-4",
 		"name": "Talisman of Preservation",
-		"description": "Grants a 4+ ward save.",
+		"description": "Grants a 4+ ward save (keeps a better innate ward).",
 		"cost": 35,
 		"category": "item"
 	},
@@ -85,8 +85,8 @@
 	},
 	{
 		"id": "regeneration",
-		"name": "Regeneration",
-		"description": "At the end of each round, on a 4+, recover 1 wound (up to starting wounds).",
+		"name": "Regeneration (4+)",
+		"description": "Regeneration (4+): a 4+ save against each unsaved wound, taken after armour. Does not stack with a ward save; the better of the two is used.",
 		"cost": 25,
 		"category": "gift"
 	},

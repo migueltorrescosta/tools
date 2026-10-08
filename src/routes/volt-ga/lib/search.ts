@@ -2,40 +2,35 @@ import type { Session } from './timeline';
 
 export interface SearchResult {
 	session: Session;
-	field: 'title' | 'description' | 'speaker';
+	field: 'title' | 'description' | 'speaker' | 'moderator';
 }
 
-/** Search sessions by query, matching title, description, and speaker names */
+/** Lower-case and strip diacritics so "Schaffer", "Schäffer" (NFC) and its NFD form compare equal */
+export function foldText(text: string): string {
+	return text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+}
+
+/**
+ * Search sessions by title, description, speaker and moderator names, ignoring case and
+ * diacritics. Each session appears once, tagged with its first matching field, and
+ * results are ordered by start time.
+ */
 export function searchSessions(query: string, sessions: Session[]): SearchResult[] {
-	const q = query.trim().toLowerCase();
+	const q = foldText(query.trim());
 	if (!q) return [];
+	const matches = (text: string) => foldText(text).includes(q);
 	const results: SearchResult[] = [];
-	const seen = new Set<string>();
 
 	for (const session of sessions) {
-		// Match title
-		if (session.title.toLowerCase().includes(q)) {
-			if (!seen.has(session.id)) {
-				results.push({ session, field: 'title' });
-				seen.add(session.id);
-			}
-		}
-		// Match description
-		if (!seen.has(session.id) && session.description.toLowerCase().includes(q)) {
-			results.push({ session, field: 'description' });
-			seen.add(session.id);
-		}
-		// Match speaker names
-		if (!seen.has(session.id)) {
-			for (const speaker of session.speakers) {
-				if (speaker.name.toLowerCase().includes(q)) {
-					results.push({ session, field: 'speaker' });
-					seen.add(session.id);
-					break;
-				}
-			}
-		}
+		let field: SearchResult['field'] | null = null;
+		if (matches(session.title)) field = 'title';
+		else if (matches(session.description)) field = 'description';
+		else if (session.speakers.some((s) => matches(s.name))) field = 'speaker';
+		else if (session.moderators.some(matches)) field = 'moderator';
+		if (field) results.push({ session, field });
 	}
 
-	return results;
+	return results.sort(
+		(a, b) => new Date(a.session.startTime).getTime() - new Date(b.session.startTime).getTime()
+	);
 }

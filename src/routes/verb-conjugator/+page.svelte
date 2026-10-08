@@ -2,6 +2,13 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import { LANGUAGE_REGISTRY, getLanguage, type LanguageModule } from '$lib/data/language-registry';
+	import { createPersistGate } from '$lib/persist-gate';
+	import {
+		LANGUAGE_STORAGE_KEY,
+		languageStorageKeys,
+		loadLanguageState,
+		loadSelectedLanguage
+	} from '$lib/verbs-storage';
 	import {
 		buildPool,
 		selectCard,
@@ -15,50 +22,6 @@
 		type SessionState,
 		type HistoryEntry
 	} from '$lib/verbs';
-
-	// ─── Helpers ────────────────────────────────────────────────────────────────
-
-	interface LanguageState {
-		verbs: string[];
-		tenses: string[];
-		session: SessionState;
-	}
-
-	function loadLanguageState(langId: string): LanguageState {
-		const module = getLanguage(langId);
-		if (!module) throw new Error(`Unknown language: ${langId}`);
-
-		if (!browser) {
-			return {
-				verbs: [...module.DEFAULT_VERBS],
-				tenses: [...module.DEFAULT_TENSES],
-				session: createFreshSession()
-			};
-		}
-
-		const savedVerbs = localStorage.getItem(`${langId}-verbs-selected`);
-		const savedTenses = localStorage.getItem(`${langId}-verbs-tenses`);
-		const savedSession = localStorage.getItem(`${langId}-verbs-session`);
-
-		const parsedVerbs: string[] = savedVerbs ? JSON.parse(savedVerbs) : [];
-		const parsedTenses: string[] = savedTenses ? JSON.parse(savedTenses) : [];
-
-		const verbs = parsedVerbs.length > 0 ? parsedVerbs : [...module.DEFAULT_VERBS];
-		const tenses = parsedTenses.length > 0 ? parsedTenses : [...module.DEFAULT_TENSES];
-
-		let session: SessionState;
-		if (savedSession) {
-			try {
-				session = JSON.parse(savedSession) as SessionState;
-			} catch {
-				session = createFreshSession();
-			}
-		} else {
-			session = createFreshSession();
-		}
-
-		return { verbs, tenses, session };
-	}
 
 	// ─── Language Selection ────────────────────────────────────────────────────
 
@@ -74,11 +37,7 @@
 	const ALL_TENSES = $derived([...lang.TENSE_LIST].sort());
 
 	// localStorage keys, per-language (for persistence only)
-	const lsKeys = $derived.by(() => ({
-		verbs: `${lang.id}-verbs-selected`,
-		tenses: `${lang.id}-verbs-tenses`,
-		session: `${lang.id}-verbs-session`
-	}));
+	const lsKeys = $derived(languageStorageKeys(lang.id));
 
 	// ─── Language switcher ─────────────────────────────────────────────────────
 
@@ -87,7 +46,7 @@
 
 		// Load state SYNCHRONOUSLY BEFORE updating selectedLanguageId
 		// This prevents the race condition where activePool derives with wrong state
-		const state = loadLanguageState(langId);
+		const state = loadLanguageState(langId, browser ? localStorage : null);
 
 		// Now update everything atomically
 		selectedLanguageId = langId;
@@ -123,8 +82,12 @@
 
 	let coverage = $derived(getCoverage(session.correctCounts, selectedVerbs, selectedTenses, lang));
 	let accuracy = $derived(getAccuracy(session.history));
+	// No playable slot at all (e.g. only potere + imperativo): nothing to complete
+	let hasNoForms = $derived(
+		coverage.denominator === 0 && selectedVerbs.length > 0 && selectedTenses.length > 0
+	);
 	let isComplete = $derived(
-		activePool.length === 0 && selectedVerbs.length > 0 && selectedTenses.length > 0
+		activePool.length === 0 && selectedVerbs.length > 0 && selectedTenses.length > 0 && !hasNoForms
 	);
 
 	// ─── Card lines data ─────────────────────────────────────────────────────────
@@ -132,7 +95,7 @@
 	let cardLines = $derived.by(() => {
 		const card = currentCard;
 		if (!card) return [];
-		return lang.PERSON_LABELS.map((person, i) => {
+		return lang.PERSON_LABELS.map((person) => {
 			const key = cardKey(card.verb, card.tense, person);
 			const entry = lang.conjugationMap.get(key);
 			return {
@@ -230,7 +193,11 @@
 		userInput = '';
 		isSubmitting = false;
 		if (browser) {
-			localStorage.removeItem(lsKeys.session);
+			try {
+				localStorage.removeItem(lsKeys.session);
+			} catch {
+				// Storage unavailable; the fresh session is still used in memory
+			}
 		}
 		pickCard();
 		setTimeout(focusInput, 50);
@@ -238,32 +205,50 @@
 
 	// ─── LocalStorage persistence ────────────────────────────────────────────────
 
+	// Closed until onMount has restored saved state, so the initial defaults
+	// never overwrite it.
+	const persist = createPersistGate(browser ? localStorage : null);
+
+	/** Persist through the gate; a full or blocked storage must not break the page. */
+	function save(key: string, value: string) {
+		try {
+			persist.write(key, value);
+		} catch {
+			// QuotaExceededError / SecurityError: keep working without persistence
+		}
+	}
+
 	$effect(() => {
-		if (browser && selectedVerbs.length > 0) {
-			localStorage.setItem(lsKeys.verbs, JSON.stringify(selectedVerbs));
+		save(LANGUAGE_STORAGE_KEY, selectedLanguageId);
+	});
+
+	$effect(() => {
+		if (selectedVerbs.length > 0) {
+			save(lsKeys.verbs, JSON.stringify(selectedVerbs));
 		}
 	});
 
 	$effect(() => {
-		if (browser && selectedTenses.length > 0) {
-			localStorage.setItem(lsKeys.tenses, JSON.stringify(selectedTenses));
+		if (selectedTenses.length > 0) {
+			save(lsKeys.tenses, JSON.stringify(selectedTenses));
 		}
 	});
 
 	$effect(() => {
-		if (browser) {
-			localStorage.setItem(lsKeys.session, JSON.stringify(session));
-		}
+		save(lsKeys.session, JSON.stringify(session));
 	});
 
 	// ─── Init ────────────────────────────────────────────────────────────────────
 
 	onMount(() => {
-		// Load initial state synchronously for the default language
-		const state = loadLanguageState(selectedLanguageId);
+		// Restore the last language, then its state, before opening the gate
+		const storage = browser ? localStorage : null;
+		selectedLanguageId = loadSelectedLanguage(storage, selectedLanguageId);
+		const state = loadLanguageState(selectedLanguageId, storage);
 		selectedVerbs = state.verbs;
 		selectedTenses = state.tenses;
 		session = state.session;
+		persist.open();
 		pickCard();
 		focusInput();
 	});
@@ -305,7 +290,11 @@
 		<!-- Top-left: Conjugations -->
 		<div class="conjugation-col">
 			<section class="section">
-				{#if isComplete}
+				{#if hasNoForms}
+					<p class="empty-pool-text">
+						These tenses have no forms for the selected verbs. Select another verb or tense.
+					</p>
+				{:else if isComplete}
 					<div class="completion">
 						<p class="completion-text">Congratulations. Restart?</p>
 						<button class="process-btn restart-btn-x" onclick={restart}>
@@ -334,7 +323,7 @@
 													<span class="line-blank">______</span>
 												{:else}
 													<span class="line-person">{line.person}</span>
-													<span class="line-conjugation">{line.conjugation}</span>
+													<span class="line-conjugation">{line.conjugation || '—'}</span>
 												{/if}
 											</span>
 										</span>
@@ -355,12 +344,16 @@
 									type="text"
 									bind:value={userInput}
 									placeholder={blankTranslation}
+									aria-label="Answer: {lang.PERSON_LABELS[currentCard.personIndex]} form"
 									onkeydown={handleKeydown}
 									spellcheck="false"
 									autocomplete="off"
 								/>
-								<button class="submit-verb-btn" onclick={handleSubmit} disabled={!userInput.trim()}
-									>↵</button
+								<button
+									class="submit-verb-btn"
+									aria-label="Submit"
+									onclick={handleSubmit}
+									disabled={!userInput.trim()}>↵</button
 								>
 							</div>
 						</div>

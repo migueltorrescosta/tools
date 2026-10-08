@@ -1,4 +1,4 @@
-import type { Currency, FxTable } from './fx';
+import { fxQuartersFor, type Currency, type FxTable } from './fx';
 import { isQuarterLabel, quarterIndex, type CompanyPoint } from './series';
 
 export interface Meta {
@@ -131,6 +131,7 @@ export function validateDataset(data: unknown): string[] {
 		}
 
 		let prevIndex = -Infinity;
+		let ordered = true;
 		points.forEach((rawPoint, pi) => {
 			const pointPath = `${path}.points[${pi}]`;
 			if (typeof rawPoint !== 'object' || rawPoint === null) {
@@ -172,14 +173,39 @@ export function validateDataset(data: unknown): string[] {
 				const qi = quarterIndex(quarter);
 				if (qi === prevIndex) {
 					errors.push(`${pointPath}: duplicate quarter '${quarter}'`);
+					ordered = false;
 				} else if (qi < prevIndex) {
 					errors.push(`${pointPath}: quarter '${quarter}' out of order`);
-				} else if (!(quarter in fxRates)) {
-					errors.push(`${pointPath}: no fx rates for quarter '${quarter}'`);
+					ordered = false;
 				}
 				prevIndex = qi;
+			} else {
+				ordered = false;
 			}
 		});
+
+		// The chart converts every quarter from the first to the last point (interpolated ones
+		// too) with fiscal-year rates, so each of those quarters' fiscal years must be covered.
+		if (ordered) {
+			const first = points[0] as { quarter: string };
+			const last = points[points.length - 1] as { quarter: string };
+			const missing = fxQuartersFor(first.quarter, last.quarter).filter((q) => {
+				const entry = fxRates[q] as Record<string, unknown> | null | undefined;
+				return (['USD', 'GBP'] as const).some((c) => {
+					const rate = entry?.[c];
+					return typeof rate !== 'number' || !Number.isFinite(rate) || rate <= 0;
+				});
+			});
+			if (missing.length > 0) {
+				errors.push(
+					`${path}: no fx rates for ${missing.length} quarter(s) its trail needs: ${
+						missing.length <= 3
+							? missing.join(', ')
+							: `${missing[0]}, …, ${missing[missing.length - 1]}`
+					}`
+				);
+			}
+		}
 	});
 
 	return errors;

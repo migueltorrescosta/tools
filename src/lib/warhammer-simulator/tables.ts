@@ -6,44 +6,39 @@
  */
 
 // ── Weapon Skill To-Hit Table ──
-// Returns the minimum D6 roll needed to hit (2+ through 6+).
+// Returns the minimum D6 roll needed to hit in combat, per The Old World chart:
+//   attacker WS higher than target            -> 3+
+//   attacker WS equal or lower                -> 4+
+//   target WS more than double attacker's WS  -> 5+
+// Rules note: some readings of the chart add a 2+ row when the attacker's WS is
+// more than double the target's. That row is not confirmed against the rulebook,
+// so it is deliberately not modelled; a superior attacker always needs 3+.
 export function getToHitTarget(attackerWS: number, defenderWS: number): number {
-	if (attackerWS >= defenderWS * 2) {
-		return 3; // 3+ to hit (WS double or more)
-	} else if (attackerWS > defenderWS) {
-		return 4; // 4+ to hit (WS greater)
-	} else if (attackerWS === defenderWS) {
-		return 4; // 4+ to hit (WS equal)
-	} else if (attackerWS * 2 > defenderWS) {
-		return 5; // 5+ to hit (WS less but more than half)
-	} else {
-		return 6; // 6+ to hit (WS half or less)
-	}
+	if (attackerWS > defenderWS) return 3;
+	if (defenderWS > attackerWS * 2) return 5;
+	return 4;
 }
 
 // Returns a human-readable label for the WS comparison.
 export function getWSComparisonLabel(attackerWS: number, defenderWS: number): string {
-	if (attackerWS >= defenderWS * 2) return 'WS double or more (3+)';
-	if (attackerWS > defenderWS) return 'WS greater (4+)';
-	if (attackerWS === defenderWS) return 'WS equal (4+)';
-	if (attackerWS * 2 > defenderWS) return 'WS less (5+)';
-	return 'WS half or less (6+)';
+	if (attackerWS > defenderWS) return 'WS higher (3+)';
+	if (defenderWS > attackerWS * 2) return 'Target WS more than double (5+)';
+	return 'WS equal or lower (4+)';
 }
 
 // ── Strength vs Toughness Wound Table ──
-// Returns the minimum D6 roll needed to wound (2+ through 6+).
+// Returns the minimum D6 roll needed to wound, per The Old World chart, which
+// depends only on the difference S - T:
+//   S >= T+2 -> 2+,  S = T+1 -> 3+,  S = T -> 4+,  S = T-1 -> 5+,  S <= T-2 -> 6+
+// Rules note: older editions had an "impossible" band for very low S; this
+// models the TOW reading where any S can wound on a 6+.
 export function getToWoundTarget(strength: number, toughness: number): number {
-	if (strength >= toughness * 2) {
-		return 2; // 2+ to wound (S double or more)
-	} else if (strength > toughness) {
-		return 3; // 3+ to wound (S greater)
-	} else if (strength === toughness) {
-		return 4; // 4+ to wound (S equal)
-	} else if (strength * 2 > toughness) {
-		return 5; // 5+ to wound (S less but more than half)
-	} else {
-		return 6; // 6+ to wound (S half or less)
-	}
+	const d = strength - toughness;
+	if (d >= 2) return 2;
+	if (d === 1) return 3;
+	if (d === 0) return 4;
+	if (d === -1) return 5;
+	return 6;
 }
 
 /**
