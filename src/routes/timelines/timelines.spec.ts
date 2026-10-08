@@ -1,6 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
 	buildTimelineRows,
+	createTimelineLoader,
 	formatShortDate,
 	getYear,
 	hasRichContent,
@@ -219,5 +220,60 @@ describe('Rich Content Handling', () => {
 		const events = [1, 2, 3, 4, 5, 6, 7].map((i) => ({ ...mockEvents[0], id: i }));
 		const eventRows = buildTimelineRows(events, false).filter((r) => r.type === 'events');
 		expect(eventRows.map((r) => r.events.length)).toEqual([3, 3, 1]);
+	});
+});
+
+describe('createTimelineLoader', () => {
+	const ev = (id: string): Event[] => [
+		{ id: 1, emoji: '📅', date: '2024-01-01', title: `${id}-event`, description: '' }
+	];
+
+	function deferredImporter() {
+		const pending = new Map<
+			string,
+			{ resolve: (e: Event[]) => void; reject: (e: Error) => void }
+		>();
+		const importer = vi.fn(
+			(id: string) =>
+				new Promise<Event[]>((resolve, reject) => pending.set(id, { resolve, reject }))
+		);
+		return { importer, pending };
+	}
+
+	it('keeps the latest selection when an earlier import resolves last', async () => {
+		const { importer, pending } = deferredImporter();
+		const loader = createTimelineLoader(importer);
+
+		const slow = loader.load('a');
+		const fast = loader.load('b');
+		pending.get('b')!.resolve(ev('b'));
+		expect(await fast).toEqual(ev('b'));
+		pending.get('a')!.resolve(ev('a'));
+		expect(await slow).toBeNull();
+
+		expect(loader.cache.get('a')).toEqual(ev('a'));
+		expect(loader.cache.get('b')).toEqual(ev('b'));
+	});
+
+	it('serves cached events without importing again', async () => {
+		const { importer, pending } = deferredImporter();
+		const loader = createTimelineLoader(importer);
+		const first = loader.load('a');
+		pending.get('a')!.resolve(ev('a'));
+		await first;
+		expect(await loader.load('a')).toEqual(ev('a'));
+		expect(importer).toHaveBeenCalledTimes(1);
+	});
+
+	it('swallows failures of superseded loads but rethrows the current one', async () => {
+		const { importer, pending } = deferredImporter();
+		const loader = createTimelineLoader(importer);
+		const stale = loader.load('a');
+		const current = loader.load('b');
+		pending.get('a')!.reject(new Error('a failed'));
+		expect(await stale).toBeNull();
+		pending.get('b')!.reject(new Error('b failed'));
+		await expect(current).rejects.toThrow('b failed');
+		expect(loader.cache.has('b')).toBe(false);
 	});
 });

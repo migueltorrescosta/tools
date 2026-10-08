@@ -4,6 +4,7 @@
 	import timelinesData from './data/timelines.json';
 	import {
 		buildTimelineRows,
+		createTimelineLoader,
 		formatShortDate,
 		hasRichContent,
 		isPast,
@@ -27,8 +28,9 @@
 		content: ''
 	});
 
-	// Cache for loaded timeline events
-	const timelineCache = new Map<string, TimelineEvent[]>();
+	const timelineLoader = createTimelineLoader(
+		async (id) => (await import(`./data/events/${id}.json`)).default as TimelineEvent[]
+	);
 
 	function showTooltip(event: MouseEvent, content: string) {
 		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
@@ -51,23 +53,19 @@
 			return;
 		}
 
+		const id = selectedTimelineId;
 		loading = true;
 
 		try {
-			// Load events for the selected timeline (with caching)
-			let events: TimelineEvent[];
-			if (timelineCache.has(selectedTimelineId)) {
-				events = timelineCache.get(selectedTimelineId)!;
-			} else {
-				const module = await import(`./data/events/${selectedTimelineId}.json`);
-				events = module.default as TimelineEvent[];
-				timelineCache.set(selectedTimelineId, events);
-			}
-
+			const events = await timelineLoader.load(id);
+			// A newer selection superseded this load; it owns the state and the spinner.
+			if (events === null) return;
 			filteredEvents = sortEventsByDate(events);
 			timelineRows = buildTimelineRows(filteredEvents, hasRichContent(filteredEvents));
-		} finally {
 			loading = false;
+		} catch (error) {
+			loading = false;
+			throw error;
 		}
 	}
 

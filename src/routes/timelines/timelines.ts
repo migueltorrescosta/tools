@@ -79,3 +79,33 @@ export function buildTimelineRows(events: TimelineEvent[], rich: boolean): Timel
 	}
 	return rows;
 }
+
+export type TimelineImporter = (id: string) => Promise<TimelineEvent[]>;
+
+/**
+ * Loads timeline events through `importer`, caching by the id that was requested.
+ * Only the most recent `load` call resolves with events; a call superseded by a newer one
+ * resolves with null (also when it fails), so a slow earlier response can never replace
+ * the selected timeline's events.
+ */
+export function createTimelineLoader(importer: TimelineImporter) {
+	const cache = new Map<string, TimelineEvent[]>();
+	let latest = 0;
+
+	async function load(id: string): Promise<TimelineEvent[] | null> {
+		const token = ++latest;
+		let events = cache.get(id);
+		if (!events) {
+			try {
+				events = await importer(id);
+			} catch (error) {
+				if (token !== latest) return null;
+				throw error;
+			}
+			cache.set(id, events);
+		}
+		return token === latest ? events : null;
+	}
+
+	return { cache, load };
+}
