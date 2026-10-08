@@ -138,21 +138,13 @@ export function computeEffectiveStats(
 		initiative = 1;
 	}
 
-	// Charge bonus: conditional strength from flail/lance
-	if (isCharging && weapon.special.includes('charge-strength-only')) {
-		// Already applied via strengthBonus, but flails/lances only get STR on charge
-		// (strengthBonus is already in the stats above, but we only apply it if charging)
-		if (!isCharging) {
-			strength = char.s; // remove strength bonus if not charging
-		}
-	} else if (!isCharging && weapon.special.includes('charge-strength-only')) {
-		strength = char.s; // remove charge-only strength bonus
+	// Flails and lances only get their Strength bonus while charging.
+	if (!isCharging && weapon.special.includes('charge-strength-only')) {
+		strength = char.s;
 	}
 
-	// Charge initiative bonus
-	if (isCharging) {
-		initiative += 3; // standard +3 for charging (varies by circumstance)
-	}
+	// The charge Initiative bonus is applied once, by CombatEngine, from the
+	// user-set chargeBonus; it is not added here.
 
 	// Armour save calculation: base armour + shield + parry + special
 	let armourSave = armour.save;
@@ -223,8 +215,7 @@ export function resolveSingleAttack(
 	attacker: Character,
 	defender: Character,
 	attackerStats: EffectiveStats,
-	defenderStats: EffectiveStats,
-	isAttackerCharging: boolean
+	defenderStats: EffectiveStats
 ): number {
 	// 1. Hit roll
 	const hitReroll = attackerStats.hasRerollHits ? ('always' as RerollSource) : undefined;

@@ -4,6 +4,7 @@
 	import type {
 		Character,
 		CharacterPreset,
+		Charger,
 		SimulationResults,
 		SimulationJob,
 		WorkerMessage,
@@ -211,6 +212,7 @@
 
 	// ── Simulation state ──
 	let simCount = $state(100000);
+	let charger = $state<Charger>('none');
 	let chargePersists = $state(false);
 	let chargeBonus = $state(3);
 	let isRunning = $state(false);
@@ -283,6 +285,7 @@
 			charB: JSON.parse(JSON.stringify(charB)),
 			totalSimulations: simCount,
 			seed: Date.now(),
+			charger,
 			chargePersists,
 			chargeBonus
 		};
@@ -861,8 +864,21 @@
 					/>
 				</div>
 				<div class="field-group">
-					<label class="input-label" for="charge-bonus">Charge Bonus</label>
-					<select id="charge-bonus" class="algorithm-select" bind:value={chargeBonus}>
+					<label class="input-label" for="charger">Charger</label>
+					<select id="charger" class="algorithm-select" bind:value={charger}>
+						<option value="none">No charge</option>
+						<option value="A">{charA.name}</option>
+						<option value="B">{charB.name}</option>
+					</select>
+				</div>
+				<div class="field-group">
+					<label class="input-label" for="charge-bonus">Charge Initiative Bonus</label>
+					<select
+						id="charge-bonus"
+						class="algorithm-select"
+						bind:value={chargeBonus}
+						disabled={charger === 'none'}
+					>
 						<option value={1}>+1</option>
 						<option value={2}>+2</option>
 						<option value={3}>+3</option>
@@ -870,7 +886,7 @@
 				</div>
 				<div class="field-group checkbox-group">
 					<label class="input-label">
-						<input type="checkbox" bind:checked={chargePersists} />
+						<input type="checkbox" bind:checked={chargePersists} disabled={charger === 'none'} />
 						Charge persists after round 1
 					</label>
 				</div>

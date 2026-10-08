@@ -3,7 +3,7 @@
  * off the main thread, keeping the UI responsive.
  *
  * Messages:
- *   - Receive: SimulationJob { charA, charB, totalSimulations, seed, chargePersists, chargeBonus }
+ *   - Receive: SimulationJob { charA, charB, totalSimulations, seed, charger, chargePersists, chargeBonus }
  *   - Send:    SimulationProgress { type: 'progress', progress, elapsedMs }
  *   - Send:    SimulationComplete { type: 'complete', results }
  */
@@ -14,9 +14,16 @@ import type { SimulationJob, SimulationResults, CombatResult } from './types';
 const PROGRESS_INTERVAL = 0.01; // report every 1%
 
 self.onmessage = (e: MessageEvent<SimulationJob>) => {
-	const { charA, charB, totalSimulations, seed, chargePersists, chargeBonus } = e.data;
+	const { charA, charB, totalSimulations, seed, charger, chargePersists, chargeBonus } = e.data;
 
-	const controller = new MonteCarloController(charA, charB, seed, chargePersists, chargeBonus);
+	const controller = new MonteCarloController(
+		charA,
+		charB,
+		seed,
+		chargePersists,
+		chargeBonus,
+		charger
+	);
 	const batchSize = Math.max(1, Math.floor(totalSimulations * PROGRESS_INTERVAL));
 
 	const allResults: CombatResult[] = [];

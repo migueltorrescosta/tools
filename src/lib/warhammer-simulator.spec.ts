@@ -345,12 +345,16 @@ describe('CombatEngine', () => {
 		expect(stats.initiative).toBe(1); // GW overrides to 1
 	});
 
-	it('charger gets initiative bonus', () => {
+	it('computeEffectiveStats adds no hidden charge Initiative bonus', () => {
 		const char = makeChar({ i: 4 });
-		const statsCharging = computeEffectiveStats(char, true, 1);
-		const statsNotCharging = computeEffectiveStats(char, false, 1);
-		expect(statsCharging.initiative).toBe(7); // 4 + 3
-		expect(statsNotCharging.initiative).toBe(4);
+		expect(computeEffectiveStats(char, true, 1).initiative).toBe(4);
+		expect(computeEffectiveStats(char, false, 1).initiative).toBe(4);
+	});
+
+	it('flail Strength bonus applies only while charging', () => {
+		const flail = makeChar({ s: 4, weapon: 'flail' });
+		expect(computeEffectiveStats(flail, true, 1).strength).toBe(6);
+		expect(computeEffectiveStats(flail, false, 1).strength).toBe(4);
 	});
 });
 
@@ -442,5 +446,46 @@ describe('MonteCarloController', () => {
 				expect(results.survivalB[i]).toBeLessThanOrEqual(results.survivalB[i - 1] + 0.01);
 			}
 		}
+	});
+});
+
+describe('Charge', () => {
+	// Fragile duellists: whoever strikes first usually wins.
+	const duellist = makeChar({ ws: 4, s: 4, t: 3, a: 2, i: 4, wounds: 1 });
+	const N = 4000;
+	const winA = (charger: 'A' | 'B' | 'none', bonus: number, a = duellist, b = duellist) =>
+		new MonteCarloController(a, { ...b }, 11, false, bonus, charger).run(N).winRateA;
+
+	it('no charger gives a symmetric duel', () => {
+		const r = new MonteCarloController(duellist, { ...duellist }, 11, false, 3, 'none').run(N);
+		expect(Math.abs(r.winRateA - r.winRateB)).toBeLessThan(0.05);
+	});
+
+	it('charging raises the charger win rate', () => {
+		const run = (charger: 'A' | 'B' | 'none') =>
+			new MonteCarloController(duellist, { ...duellist }, 11, false, 1, charger).run(N);
+		const none = run('none');
+		expect(run('A').winRateA).toBeGreaterThan(none.winRateA + 0.1);
+		expect(run('B').winRateB).toBeGreaterThan(none.winRateB + 0.1);
+	});
+
+	it('the charge bonus size changes the outcome when it flips strike order', () => {
+		const slow = { ...duellist, i: 3 };
+		const fast = { ...duellist, i: 5 };
+		// +1: I4 vs I5, B still strikes first. +3: I6 vs I5, A strikes first.
+		expect(winA('A', 3, slow, fast)).toBeGreaterThan(winA('A', 1, slow, fast) + 0.1);
+	});
+
+	it('charge only lasts round 1 unless chargePersists', () => {
+		const a = makeChar({ a: 1, wounds: 2, i: 3 });
+		const b = makeChar({ a: 1, wounds: 2, i: 4 });
+		// Every roll is a 6: each strike lands one wound. A charges with +3 (I6 vs I4).
+		// Round 1: A strikes first -> B 1 wound left; B strikes -> A 1 wound left.
+		// Round 2 without persist: B (I4) strikes first and kills A.
+		const once = new CombatEngine(a, b, new AlwaysSixRNG(), false, 3, 'A').run();
+		expect(once.winner).toBe('B');
+		// With persist: A (I6) strikes first in round 2 and kills B.
+		const persist = new CombatEngine(a, b, new AlwaysSixRNG(), true, 3, 'A').run();
+		expect(persist.winner).toBe('A');
 	});
 });

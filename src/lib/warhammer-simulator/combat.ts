@@ -1,4 +1,4 @@
-import type { Character, CombatResult, CombatState, Winner } from './types';
+import type { Character, Charger, CombatResult, CombatState, Winner } from './types';
 import { SeededRNG } from './rng';
 import { computeEffectiveStats, resolveSingleAttack } from './rules';
 import type { EffectiveStats } from './rules';
@@ -22,7 +22,8 @@ export class CombatEngine {
 		charB: Character,
 		rng: SeededRNG,
 		chargePersists = false,
-		chargeBonus = 3
+		chargeBonus = 3,
+		charger: Charger = 'none'
 	) {
 		this.charA = charA;
 		this.charB = charB;
@@ -33,8 +34,9 @@ export class CombatEngine {
 			charAWounds: charA.wounds,
 			charBWounds: charB.wounds,
 			roundNumber: 0,
-			chargeA: true,
-			chargeB: true,
+			// Only the side that charged gets charge effects.
+			chargeA: charger === 'A',
+			chargeB: charger === 'B',
 			activeEffects: []
 		};
 	}
@@ -124,7 +126,11 @@ export class CombatEngine {
 		statsA: EffectiveStats,
 		statsB: EffectiveStats
 	): 'simultaneous' | ['A', 'B'] | ['B', 'A'] {
-		// Apply charge bonus to initiative
+		// Charge bonus: the charger adds chargeBonus to its Initiative while its
+		// charge is active (round 1, or every round if chargePersists).
+		// Rules note: the exact TOW strike-order treatment of chargers is modelled
+		// as this user-set Initiative bonus; a large bonus (e.g. +10) reproduces a
+		// strict "chargers strike first" reading.
 		let initA = statsA.initiative;
 		let initB = statsB.initiative;
 
@@ -148,14 +154,7 @@ export class CombatEngine {
 		const attackCount = attackerStats.attacks;
 
 		for (let i = 0; i < attackCount; i++) {
-			const dmg = resolveSingleAttack(
-				this.rng,
-				attacker,
-				defender,
-				attackerStats,
-				defenderStats,
-				this.state.chargeA // simplified: assumes attacker is A for charge check
-			);
+			const dmg = resolveSingleAttack(this.rng, attacker, defender, attackerStats, defenderStats);
 			totalDamage += dmg;
 
 			if (dmg > 0) {

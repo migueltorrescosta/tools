@@ -1,4 +1,4 @@
-import type { Character, CombatResult, SimulationResults, Winner } from './types';
+import type { Character, Charger, CombatResult, SimulationResults, Winner } from './types';
 import { SeededRNG } from './rng';
 import { CombatEngine } from './combat';
 
@@ -12,19 +12,22 @@ export class MonteCarloController {
 	private baseSeed: number;
 	private chargePersists: boolean;
 	private chargeBonus: number;
+	private charger: Charger;
 
 	constructor(
 		charA: Character,
 		charB: Character,
 		baseSeed: number,
 		chargePersists = false,
-		chargeBonus = 3
+		chargeBonus = 3,
+		charger: Charger = 'none'
 	) {
 		this.charA = charA;
 		this.charB = charB;
 		this.baseSeed = baseSeed;
 		this.chargePersists = chargePersists;
 		this.chargeBonus = chargeBonus;
+		this.charger = charger;
 	}
 
 	/**
@@ -40,7 +43,8 @@ export class MonteCarloController {
 				this.charB,
 				rng,
 				this.chargePersists,
-				this.chargeBonus
+				this.chargeBonus,
+				this.charger
 			);
 			results.push(engine.run());
 		}
@@ -61,7 +65,8 @@ export class MonteCarloController {
 				this.charB,
 				rng,
 				this.chargePersists,
-				this.chargeBonus
+				this.chargeBonus,
+				this.charger
 			);
 			results.push(engine.run());
 		}

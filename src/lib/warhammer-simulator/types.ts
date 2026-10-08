@@ -104,6 +104,9 @@ export interface CharacterPreset {
 
 export type Winner = 'A' | 'B' | 'mutual' | 'draw';
 
+/** Which side charged into the duel, if any. */
+export type Charger = 'A' | 'B' | 'none';
+
 export interface CombatResult {
 	winner: Winner;
 	rounds: number;
@@ -151,6 +154,7 @@ export interface SimulationJob {
 	charB: Character;
 	totalSimulations: number;
 	seed: number;
+	charger: Charger;
 	chargePersists: boolean;
 	chargeBonus: number;
 }
