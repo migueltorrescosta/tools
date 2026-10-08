@@ -119,6 +119,20 @@ export class CombatEngine {
 				this.state.charAWounds = Math.max(0, this.state.charAWounds - dmg);
 			}
 		}
+
+		// End of round effects
+		this.state.charAWounds = this.regenerate(
+			this.charA,
+			this.state.charAWounds,
+			statsA,
+			abilityActivations
+		);
+		this.state.charBWounds = this.regenerate(
+			this.charB,
+			this.state.charBWounds,
+			statsB,
+			abilityActivations
+		);
 	}
 
 	/** Determine who strikes first. Returns 'simultaneous' or [first, second]. */
@@ -153,23 +167,38 @@ export class CombatEngine {
 		let totalDamage = 0;
 		const attackCount = attackerStats.attacks;
 
-		for (let i = 0; i < attackCount; i++) {
-			const dmg = resolveSingleAttack(this.rng, attacker, defender, attackerStats, defenderStats);
-			totalDamage += dmg;
+		const onActivate = (id: string) => {
+			abilityActivations[id] = (abilityActivations[id] || 0) + 1;
+		};
 
-			if (dmg > 0) {
-				// Track ability activations (simplified)
-				if (attackerStats.hasKillingBlow) {
-					abilityActivations['killing-blow'] = (abilityActivations['killing-blow'] || 0) + 1;
-				}
-				if (attackerStats.hasPoison) {
-					abilityActivations['poisoned-attacks'] =
-						(abilityActivations['poisoned-attacks'] || 0) + 1;
-				}
-			}
+		for (let i = 0; i < attackCount; i++) {
+			totalDamage += resolveSingleAttack(
+				this.rng,
+				attacker,
+				defender,
+				attackerStats,
+				defenderStats,
+				onActivate
+			);
 		}
 
 		return totalDamage;
+	}
+
+	/**
+	 * Regeneration (per data/gift-traits.json): at the end of each round a
+	 * surviving character recovers 1 wound on a 4+, up to its starting Wounds.
+	 */
+	private regenerate(
+		char: Character,
+		wounds: number,
+		stats: EffectiveStats,
+		abilityActivations: Record<string, number>
+	): number {
+		if (!stats.hasRegeneration || wounds <= 0 || wounds >= char.wounds) return wounds;
+		if (this.rng.rollD6() < 4) return wounds;
+		abilityActivations['regeneration'] = (abilityActivations['regeneration'] || 0) + 1;
+		return wounds + 1;
 	}
 
 	private createResult(abilityActivations: Record<string, number>): CombatResult {

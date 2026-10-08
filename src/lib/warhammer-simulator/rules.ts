@@ -33,6 +33,40 @@ export function getShieldStats(type: string): ShieldStats {
 
 // ── Combat Resolution Functions ──
 
+/** Outcome of a to-hit or to-wound roll, keeping the natural D6 that counted. */
+export interface RollOutcome {
+	success: boolean;
+	/** The natural roll that stood (the reroll, if one was taken). */
+	natural: number;
+}
+
+/** Roll against a target number with an optional single reroll of a failure. */
+function rollWithReroll(rng: SeededRNG, target: number, reroll?: RerollSource): RollOutcome {
+	let natural = rng.rollD6();
+	if (natural < target && reroll) natural = rng.rollD6();
+	return { success: natural >= target, natural };
+}
+
+/** Roll to hit, reporting the natural roll (for poison). */
+export function rollToHit(
+	rng: SeededRNG,
+	attackerWS: number,
+	defenderWS: number,
+	reroll?: RerollSource
+): RollOutcome {
+	return rollWithReroll(rng, getToHitTarget(attackerWS, defenderWS), reroll);
+}
+
+/** Roll to wound, reporting the natural roll (for killing blow). */
+export function rollToWound(
+	rng: SeededRNG,
+	strength: number,
+	toughness: number,
+	reroll?: RerollSource
+): RollOutcome {
+	return rollWithReroll(rng, getToWoundTarget(strength, toughness), reroll);
+}
+
 /**
  * Resolve a single attack roll.
  * Returns true if the attack hits.
@@ -43,16 +77,7 @@ export function resolveHit(
 	defenderWS: number,
 	reroll?: RerollSource
 ): boolean {
-	const target = getToHitTarget(attackerWS, defenderWS);
-	const roll = rng.rollD6();
-	const hit = roll >= target;
-
-	// Single-layer reroll
-	if (!hit && reroll) {
-		return rng.rollD6() >= target;
-	}
-
-	return hit;
+	return rollToHit(rng, attackerWS, defenderWS, reroll).success;
 }
 
 /**
@@ -65,15 +90,7 @@ export function resolveWound(
 	toughness: number,
 	reroll?: RerollSource
 ): boolean {
-	const target = getToWoundTarget(strength, toughness);
-	const roll = rng.rollD6();
-	const wound = roll >= target;
-
-	if (!wound && reroll) {
-		return rng.rollD6() >= target;
-	}
-
-	return wound;
+	return rollToWound(rng, strength, toughness, reroll).success;
 }
 
 /**
@@ -102,6 +119,7 @@ export function resolveWardSave(rng: SeededRNG, wardSave: number): boolean {
 
 export interface EffectiveStats {
 	strength: number;
+	toughness: number;
 	attacks: number;
 	initiative: number;
 	ap: number;
@@ -111,6 +129,7 @@ export interface EffectiveStats {
 	hasKillingBlow: boolean;
 	hasPoison: boolean;
 	hasRegeneration: boolean;
+	ignoresArmour: boolean;
 	wardSave: number;
 }
 
@@ -129,7 +148,8 @@ export function computeEffectiveStats(
 
 	// Base stats
 	let strength = char.s + weapon.strengthBonus;
-	const attacks = char.a + weapon.attacks;
+	let toughness = char.t;
+	let attacks = char.a + weapon.attacks;
 	let initiative = char.i;
 	const ap = weapon.ap;
 
@@ -160,39 +180,42 @@ export function computeEffectiveStats(
 	// Ward save from items/traits
 	let wardSave = char.wardSave;
 
-	// Special rules parsing
-	let hasRerollHits = false;
-	const hasRerollWounds = false;
-	let hasKillingBlow = false;
-	let hasPoison = false;
-	const hasRegeneration = false;
+	// Special rules, gifts and items. Effects follow each entry's description in
+	// data/gift-traits.json; "first round" items apply only in round 1.
+	const firstRound = roundNumber === 1;
+	const has = (id: string) => char.traits.includes(id);
 
-	// Check traits and gifts for special rules (simplified - hardcoded effects)
-	if (char.specialRules.includes('hatred-all') || char.traits.includes('immortal-fury')) {
-		hasRerollHits = true;
-	}
-	if (char.traits.includes('poisoned-attacks')) {
-		hasPoison = true;
-	}
-	if (char.traits.includes('killing-blow')) {
-		hasKillingBlow = true;
-	}
+	const hasRerollHits =
+		char.specialRules.includes('hatred-all') ||
+		has('immortal-fury') ||
+		(has('reroll-hits') && firstRound);
+	const hasRerollWounds = has('reroll-wounds') && firstRound;
+	const hasKillingBlow = has('killing-blow');
+	const hasPoison = has('poisoned-attacks');
+	const hasRegeneration = has('regeneration');
+	const ignoresArmour = has('blasted-standard');
 
-	// Items affecting stats
-	if (char.traits.includes('strength+1')) {
-		strength += 1;
+	if (has('strength+1')) strength += 1;
+	if (has('strength-boost') && firstRound) strength += 1;
+	if (has('toughness-boost') && firstRound) toughness += 1;
+	if (has('attacks+1') && firstRound) attacks += 1;
+	// Daemonic Mount: the duel assumes the character is mounted on it.
+	if (has('daemonic-mount')) {
+		attacks += 1;
+		toughness += 1;
 	}
-	if (char.traits.includes('armour-boost')) {
+	if (has('armour-boost')) {
 		armourSave = clampSave(armourSave - 1);
 	}
-	if (char.traits.includes('ward-4')) {
+	if (has('ward-4')) {
 		wardSave = 4;
-	} else if (char.traits.includes('ward-5')) {
+	} else if (has('ward-5')) {
 		wardSave = 5;
 	}
 
 	return {
 		strength,
+		toughness,
 		attacks,
 		initiative,
 		ap,
@@ -202,41 +225,52 @@ export function computeEffectiveStats(
 		hasKillingBlow,
 		hasPoison,
 		hasRegeneration,
+		ignoresArmour,
 		wardSave
 	};
 }
 
 /**
  * Resolve a single attack from attacker against defender.
- * Returns the number of wounds dealt (0 or 1 for now).
+ * Returns the number of wounds dealt: 0, 1, or the defender's full starting
+ * Wounds when a Killing Blow slays outright.
+ * `onActivate` is called with a trait id each time that trait actually fires.
  */
 export function resolveSingleAttack(
 	rng: SeededRNG,
 	attacker: Character,
 	defender: Character,
 	attackerStats: EffectiveStats,
-	defenderStats: EffectiveStats
+	defenderStats: EffectiveStats,
+	onActivate?: (id: string) => void
 ): number {
 	// 1. Hit roll
 	const hitReroll = attackerStats.hasRerollHits ? ('always' as RerollSource) : undefined;
-	const hits = resolveHit(rng, attacker.ws, defender.ws, hitReroll);
-	if (!hits) return 0;
+	const hit = rollToHit(rng, attacker.ws, defender.ws, hitReroll);
+	if (!hit.success) return 0;
 
-	// 2. Poison check (autowound on 6 to hit)
-	// For simplification, we model poison as a flat % boost in the engine
-	// since the hit roll is abstracted
+	// 2. Poisoned Attacks: a natural 6 to hit wounds automatically.
+	const poisoned = attackerStats.hasPoison && hit.natural === 6;
+	let killingBlow = false;
 
-	// 3. Wound roll
-	const woundReroll = attackerStats.hasRerollWounds ? ('always' as RerollSource) : undefined;
-	const wounds = resolveWound(rng, attackerStats.strength, defender.t, woundReroll);
-	if (!wounds) return 0;
-
-	// 4. Killing blow: if natural 6 was rolled to wound (we approximate this)
-	// For simplicity, KB is handled at the engine level
+	if (poisoned) {
+		onActivate?.('poisoned-attacks');
+	} else {
+		// 3. Wound roll
+		const woundReroll = attackerStats.hasRerollWounds ? ('always' as RerollSource) : undefined;
+		const wound = rollToWound(rng, attackerStats.strength, defenderStats.toughness, woundReroll);
+		if (!wound.success) return 0;
+		// 4. Killing Blow: a natural 6 to wound slays outright, no armour save.
+		// Rules note: an auto-wound from poison has no wound roll, so it cannot
+		// also trigger Killing Blow. Ward saves still apply, as in TOW.
+		killingBlow = attackerStats.hasKillingBlow && wound.natural === 6;
+	}
 
 	// 5. Armour save (AP reduces the defender's save)
-	const saveSuccessful = resolveArmourSave(rng, defenderStats.armourSave, attackerStats.ap);
-	if (saveSuccessful) return 0;
+	if (!killingBlow && !attackerStats.ignoresArmour) {
+		const saveSuccessful = resolveArmourSave(rng, defenderStats.armourSave, attackerStats.ap);
+		if (saveSuccessful) return 0;
+	}
 
 	// 6. Ward save
 	if (defenderStats.wardSave >= 2 && defenderStats.wardSave <= 6) {
@@ -244,6 +278,9 @@ export function resolveSingleAttack(
 		if (wardSuccessful) return 0;
 	}
 
-	// Damage inflicted
+	if (killingBlow) {
+		onActivate?.('killing-blow');
+		return defender.wounds;
+	}
 	return 1;
 }

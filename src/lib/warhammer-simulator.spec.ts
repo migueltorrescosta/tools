@@ -12,7 +12,8 @@ import {
 	resolveArmourSave,
 	resolveWardSave,
 	computeEffectiveStats,
-	getWeaponStats
+	getWeaponStats,
+	resolveSingleAttack
 } from './warhammer-simulator/rules';
 import { CombatEngine } from './warhammer-simulator/combat';
 import { MonteCarloController } from './warhammer-simulator/simulation';
@@ -487,5 +488,120 @@ describe('Charge', () => {
 		// With persist: A (I6) strikes first in round 2 and kills B.
 		const persist = new CombatEngine(a, b, new AlwaysSixRNG(), true, 3, 'A').run();
 		expect(persist.winner).toBe('A');
+	});
+});
+
+describe('Traits, gifts and items', () => {
+	// Baseline: WS4 v WS4 hits on 4+, S4 v T4 wounds on 4+, no save -> p = 1/4.
+	const N = 120_000;
+	const tol = (p: number) => 4 * Math.sqrt((p * (1 - p)) / N);
+
+	/** Monte Carlo per-attack probability that an attack inflicts damage. */
+	function damageRate(attacker: Character, defender: Character, round = 1): number {
+		const rng = new SeededRNG(2024);
+		const aStats = computeEffectiveStats(attacker, false, round);
+		const dStats = computeEffectiveStats(defender, false, round);
+		let hits = 0;
+		for (let i = 0; i < N; i++) {
+			if (resolveSingleAttack(rng, attacker, defender, aStats, dStats) > 0) hits++;
+		}
+		return hits / N;
+	}
+
+	function expectRate(attacker: Character, defender: Character, p: number, round = 1) {
+		expect(Math.abs(damageRate(attacker, defender, round) - p)).toBeLessThan(tol(p));
+	}
+
+	const plain = makeChar();
+	const plated = makeChar({ armour: 'full-plate', shield: 'shield' }); // 2+ save
+
+	it('baseline matches the analytic 1/4', () => {
+		expectRate(plain, plain, 1 / 4);
+	});
+
+	it('Poisoned Attacks: natural 6 to hit auto-wounds (1/6 + 2/6 * 1/2 = 1/3)', () => {
+		expectRate(makeChar({ traits: ['poisoned-attacks'] }), plain, 1 / 3);
+	});
+
+	it('Killing Blow: natural 6 to wound ignores armour (1/2 * (1/6 + 2/6 * 1/6) = 1/9)', () => {
+		expectRate(plated, plated, 1 / 24);
+		expectRate(makeChar({ traits: ['killing-blow'] }), plated, 1 / 9);
+	});
+
+	it('Killing Blow slays a multi-wound target outright', () => {
+		const kb = makeChar({ a: 1, traits: ['killing-blow'] });
+		const victim = makeChar({ a: 0, wounds: 5, armour: 'full-plate', shield: 'shield' });
+		const result = new CombatEngine(kb, victim, new AlwaysSixRNG()).run();
+		expect(result.rounds).toBe(1);
+		expect(result.damageDealtA).toBe(5);
+		expect(result.abilityActivations['killing-blow']).toBe(1);
+	});
+
+	it('Blasted Standard ignores armour saves (2+ save -> 1/4)', () => {
+		expectRate(makeChar({ traits: ['blasted-standard'] }), plated, 1 / 4);
+	});
+
+	it('Helm of Confusion rerolls failed hits in round 1 only (3/4 * 1/2 = 3/8)', () => {
+		const helm = makeChar({ traits: ['reroll-hits'] });
+		expectRate(helm, plain, 3 / 8, 1);
+		expectRate(helm, plain, 1 / 4, 2);
+	});
+
+	it('Potion of Strength rerolls failed wounds in round 1 only (1/2 * 3/4 = 3/8)', () => {
+		const potion = makeChar({ traits: ['reroll-wounds'] });
+		expectRate(potion, plain, 3 / 8, 1);
+		expectRate(potion, plain, 1 / 4, 2);
+	});
+
+	it('Strength Potion gives +1 S in round 1 only (1/2 * 2/3 = 1/3)', () => {
+		const potion = makeChar({ traits: ['strength-boost'] });
+		expectRate(potion, plain, 1 / 3, 1);
+		expectRate(potion, plain, 1 / 4, 2);
+	});
+
+	it('Toughness Potion gives +1 T in round 1 only (1/2 * 1/3 = 1/6)', () => {
+		const potion = makeChar({ traits: ['toughness-boost'] });
+		expectRate(plain, potion, 1 / 6, 1);
+		expectRate(plain, potion, 1 / 4, 2);
+	});
+
+	it('Potion of Speed gives +1 Attack in round 1 only', () => {
+		const potion = makeChar({ a: 3, traits: ['attacks+1'] });
+		expect(computeEffectiveStats(potion, false, 1).attacks).toBe(4);
+		expect(computeEffectiveStats(potion, false, 2).attacks).toBe(3);
+	});
+
+	it('Daemonic Mount gives +1 Attack and +1 Toughness', () => {
+		const mounted = computeEffectiveStats(makeChar({ traits: ['daemonic-mount'] }), false, 2);
+		expect(mounted.attacks).toBe(4);
+		expect(mounted.toughness).toBe(5);
+		expectRate(plain, makeChar({ traits: ['daemonic-mount'] }), 1 / 6, 2);
+	});
+
+	it('Regeneration recovers a wound at the end of each round', () => {
+		// Every roll is a 6: B wounds A once per round, A regenerates it back.
+		const regen = makeChar({ a: 0, wounds: 2, traits: ['regeneration'] });
+		const hitter = makeChar({ a: 1 });
+		const withRegen = new CombatEngine(regen, hitter, new AlwaysSixRNG()).run();
+		expect(withRegen.winner).toBe('draw');
+		expect(withRegen.remainingWoundsA).toBe(2);
+		expect(withRegen.abilityActivations['regeneration']).toBe(50);
+
+		const without = new CombatEngine(
+			makeChar({ a: 0, wounds: 2 }),
+			hitter,
+			new AlwaysSixRNG()
+		).run();
+		expect(without.winner).toBe('B');
+		expect(without.rounds).toBe(2);
+	});
+
+	it('activation counters only fire when the trait actually triggers', () => {
+		// Natural 6s: poison auto-wounds on every attack, so no Killing Blow roll exists.
+		const both = makeChar({ a: 2, traits: ['poisoned-attacks', 'killing-blow'] });
+		const target = makeChar({ a: 0, wounds: 10 });
+		const result = new CombatEngine(both, target, new AlwaysSixRNG()).run();
+		expect(result.abilityActivations['poisoned-attacks']).toBeGreaterThan(0);
+		expect(result.abilityActivations['killing-blow']).toBeUndefined();
 	});
 });

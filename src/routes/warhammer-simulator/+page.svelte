@@ -14,7 +14,7 @@
 		Faction,
 		MarkOfChaos
 	} from '$lib/warhammer-simulator/types';
-	import { getWeaponStats, getArmourStats, getShieldStats } from '$lib/warhammer-simulator/rules';
+	import { computeEffectiveStats } from '$lib/warhammer-simulator/rules';
 	import armouryData from '$lib/warhammer-simulator/data/armoury.json';
 	import factionsData from '$lib/warhammer-simulator/data/factions.json';
 	import giftTraitsData from '$lib/warhammer-simulator/data/gift-traits.json';
@@ -84,51 +84,11 @@
 	let charA = $state<Character>(createDefaultChar('A'));
 	let charB = $state<Character>(createDefaultChar('B'));
 
-	// Derive display stats for each character
+	// Derive display stats for each character from the engine's own rules
+	// (round 1, not charging), so the panel always matches the simulation.
 	function deriveDisplayStats(char: Character) {
-		const weapon = getWeaponStats(char.weapon);
-		const armour = getArmourStats(char.armour);
-		const shield = getShieldStats(char.shield);
-
-		let effectiveStr = char.s + weapon.strengthBonus;
-		let effectiveAtt = char.a + weapon.attacks;
-		let effectiveInit = char.i;
-		let effectiveAp = weapon.ap;
-
-		if (weapon.type === 'great-weapon') {
-			effectiveInit = 1;
-		}
-
-		let armourVal = armour.save;
-		if (char.shield === 'shield') {
-			armourVal -= shield.saveBonus;
-			if (char.weapon === 'hand-weapon') {
-				armourVal -= shield.parryBonus;
-			}
-		}
-		armourVal = Math.max(2, Math.min(7, Math.round(armourVal)));
-
-		// Trait effects
-		if (char.traits.includes('strength+1')) effectiveStr += 1;
-		if (char.traits.includes('armour-boost')) armourVal = Math.max(2, armourVal - 1);
-
-		const wardVal = char.traits.includes('ward-4')
-			? 4
-			: char.traits.includes('ward-5')
-				? 5
-				: char.wardSave;
-
 		return {
-			strength: effectiveStr,
-			attacks: effectiveAtt,
-			initiative: effectiveInit,
-			ap: effectiveAp,
-			armourSave: armourVal,
-			wardSave: wardVal,
-			hasRerollHits:
-				char.traits.includes('immortal-fury') || char.specialRules.includes('hatred-all'),
-			hasKillingBlow: char.traits.includes('killing-blow'),
-			hasPoison: char.traits.includes('poisoned-attacks'),
+			...computeEffectiveStats(char, false, 1),
 			giftPoints: char.traits.reduce((sum, t) => {
 				const found = traitsList.find((tr) => tr.id === t);
 				return sum + (found?.cost || 0);
@@ -657,7 +617,12 @@
 						<span>AP {statsA.ap}</span>
 						<span>Armour {statsA.armourSave}+</span>
 						<span>Ward {statsA.wardSave > 0 ? statsA.wardSave + '+' : 'None'}</span>
-						<span>Rerolls {statsA.hasRerollHits ? 'Hits' : 'None'}</span>
+						<span>T {statsA.toughness}</span>
+						<span
+							>Rerolls {[statsA.hasRerollHits && 'Hits', statsA.hasRerollWounds && 'Wounds']
+								.filter(Boolean)
+								.join(', ') || 'None'}</span
+						>
 						<span>Gift {statsA.giftPoints}pts</span>
 					</div>
 				</div>
@@ -834,7 +799,12 @@
 						<span>AP {statsB.ap}</span>
 						<span>Armour {statsB.armourSave}+</span>
 						<span>Ward {statsB.wardSave > 0 ? statsB.wardSave + '+' : 'None'}</span>
-						<span>Rerolls {statsB.hasRerollHits ? 'Hits' : 'None'}</span>
+						<span>T {statsB.toughness}</span>
+						<span
+							>Rerolls {[statsB.hasRerollHits && 'Hits', statsB.hasRerollWounds && 'Wounds']
+								.filter(Boolean)
+								.join(', ') || 'None'}</span
+						>
 						<span>Gift {statsB.giftPoints}pts</span>
 					</div>
 				</div>
