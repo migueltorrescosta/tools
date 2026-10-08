@@ -2,14 +2,15 @@
 	import datasetJson from './data/companies.json';
 	import TrendsChart from './TrendsChart.svelte';
 	import { loadDataset } from '$lib/company-trends/schema';
-	import { companyTypes, filterCompanies } from '$lib/company-trends/filter';
+	import { companyTypes, DEFAULT_COMPANY_IDS, filterCompanies } from '$lib/company-trends/filter';
 	import {
 		assignColors,
 		buildTrail,
 		colorMode,
 		formatMoney,
 		formatPercent,
-		logExtent,
+		REVENUE_FLOOR,
+		revenueDomain,
 		PALETTE_SIZE,
 		typeSlot
 	} from '$lib/company-trends/chart';
@@ -27,22 +28,7 @@
 	);
 	const quarters = quarterRange(FIRST_QUARTER, quarterLabel(lastQi));
 
-	/** A readable default subset spanning every type; the rest are one click away. */
-	const DEFAULT_IDS = [
-		'apple',
-		'amazon',
-		'nvidia',
-		'tesla',
-		'volkswagen',
-		'exxonmobil',
-		'walmart',
-		'pfizer',
-		'netflix',
-		'anthropic',
-		'boeing',
-		'coca-cola'
-	];
-	const defaults = companies.filter((c) => DEFAULT_IDS.includes(c.id)).map((c) => c.id);
+	const defaults = companies.filter((c) => DEFAULT_COMPANY_IDS.includes(c.id)).map((c) => c.id);
 
 	let currency = $state<Currency>('EUR');
 	let selectedIds = $state<string[]>(defaults.length > 0 ? defaults : companies.map((c) => c.id));
@@ -61,10 +47,10 @@
 	const colors = $derived(assignColors(visibleTrails));
 
 	// The revenue axis spans every visible point across all quarters, so it stays fixed during
-	// playback; the margin axis is fixed outright.
+	// playback, floored so a pre-revenue filing cannot stretch it; the margin axis is fixed.
 	const domain = $derived.by((): [number, number] => {
 		const values = visibleTrails.flatMap((t) => t.points.map((p) => p.revenue));
-		return logExtent(values) ?? [1, 1e6];
+		return revenueDomain(values) ?? [REVENUE_FLOOR, 1e6];
 	});
 
 	const quarter = $derived(quarterLabel(qi));

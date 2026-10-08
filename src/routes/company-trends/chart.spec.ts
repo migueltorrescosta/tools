@@ -14,6 +14,8 @@ import {
 	PALETTE_SIZE,
 	percentTicks,
 	resolveHit,
+	REVENUE_FLOOR,
+	revenueDomain,
 	trailSegments,
 	trailUpTo,
 	typeSlot,
@@ -23,7 +25,9 @@ import {
 } from '$lib/company-trends/chart';
 import type { FxTable } from '$lib/company-trends/fx';
 import type { Company } from '$lib/company-trends/schema';
+import { DEFAULT_COMPANY_IDS } from '$lib/company-trends/filter';
 import { quarterRange, type CompanyPoint } from '$lib/company-trends/series';
+import bundled from './data/companies.json';
 
 const anchor = (quarter: string, revenue: number, operatingIncome: number): CompanyPoint => ({
 	quarter,
@@ -116,6 +120,30 @@ describe('buildTrail', () => {
 
 	it('cuts a trail at a quarter index', () => {
 		expect(trailUpTo(trail, 4).map((p) => p.quarter)).toEqual(['2000Q4', '2001Q1']);
+	});
+});
+
+describe('revenueDomain', () => {
+	it('raises the lower bound to the floor and keeps at least one decade', () => {
+		expect(revenueDomain([0.05, 38, 600000])).toEqual([REVENUE_FLOOR, 1e6]);
+		expect(revenueDomain([0.05, 2])).toEqual([REVENUE_FLOOR, 100]);
+		expect(revenueDomain([250, 7200])).toEqual([100, 10000]);
+		expect(revenueDomain([0, -1])).toBeNull();
+	});
+
+	it('keeps Tesla FY2007 from stretching the default selection axis', () => {
+		const qs = quarterRange('2000Q1', '2026Q4');
+		const defaults = (bundled.companies as unknown as Company[]).filter((c) =>
+			DEFAULT_COMPANY_IDS.includes(c.id)
+		);
+		expect(defaults.map((c) => c.id)).toContain('tesla');
+		for (const currency of ['EUR', 'USD', 'GBP'] as const) {
+			const trails = defaults.map((c) => buildTrail(c, qs, currency, bundled.fx as FxTable));
+			const values = trails.flatMap((t) => t.points.map((p) => p.revenue));
+			// Unfloored, Tesla's USD 0.073m filing pulls the axis down to 0.01
+			expect(logExtent(values)![0]).toBeLessThan(0.1);
+			expect(revenueDomain(values)).toEqual([10, 1e6]);
+		}
 	});
 });
 

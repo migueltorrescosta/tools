@@ -36,7 +36,9 @@
 	const H = 620;
 	const M = { top: 20, right: 30, bottom: 56, left: 76 };
 
-	const x = $derived(logScale(domain, [M.left, W - M.right]));
+	const xScale = $derived(logScale(domain, [M.left, W - M.right]));
+	/** Plot x of a revenue, pinned to the left edge below the axis floor. */
+	const x = $derived((v: number) => xScale(Math.max(v, domain[0])));
 	const y = linearScale(MARGIN_DOMAIN, [H - M.bottom, M.top]);
 	const xTicks = $derived(logTicks(domain));
 	const yTicks = percentTicks(MARGIN_DOMAIN);
@@ -321,6 +323,7 @@
 				<span class="badge {p.quality}">{QUALITY_LABEL[p.quality]}</span>
 				{#if p.gap}<span class="badge gap">data gap</span>{/if}
 				{#if clipOf(p)}<span class="badge offscale">off-scale</span>{/if}
+				{#if p.revenue < domain[0]}<span class="badge offscale">below axis</span>{/if}
 			</div>
 			<dl>
 				<dt>Op. margin</dt>

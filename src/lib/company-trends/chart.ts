@@ -133,6 +133,24 @@ export function logExtent(values: Iterable<number>): [number, number] | null {
 	return [lo, hi];
 }
 
+/**
+ * Lowest revenue the default x axis reaches (millions in the display currency).
+ * Pre-revenue filings (Tesla FY2007: USD 0.073m) would otherwise stretch the axis
+ * across extra decades for one point; points below are pinned to the left edge.
+ */
+export const REVENUE_FLOOR = 10;
+
+/** The revenue axis domain: {@link logExtent} with its lower bound raised to `floor`. */
+export function revenueDomain(
+	values: Iterable<number>,
+	floor = REVENUE_FLOOR
+): [number, number] | null {
+	const extent = logExtent(values);
+	if (!extent) return null;
+	const lo = Math.max(extent[0], floor);
+	return [lo, Math.max(extent[1], lo * 10)];
+}
+
 /** Tick values at 1·10^k (major) and, when the domain spans few decades, 2 and 5 as well. */
 export function logTicks(domain: [number, number]): { value: number; major: boolean }[] {
 	const [lo, hi] = domain;
