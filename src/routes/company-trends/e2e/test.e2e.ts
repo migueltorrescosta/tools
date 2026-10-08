@@ -104,6 +104,18 @@ test('Company trends - a pinned tooltip closes when its company is deselected', 
 	await expect(page.getByTestId('trends-tooltip')).toHaveCount(0);
 });
 
+test('Company trends - table view links each row to its source filing', async ({ page }) => {
+	await page.goto('/company-trends');
+	await page.locator('.table-view summary').click();
+	const row = page.locator('.table-view tbody tr', { hasText: 'Apple' });
+	await expect(row.getByRole('link').first()).toHaveAttribute('href', /^https?:\/\//);
+
+	// An interpolated quarter links both bracketing filings
+	await page.getByTestId('quarter-slider').fill('41');
+	await expect(row).toContainText('interpolated between');
+	await expect(row.getByRole('link')).toHaveCount(2);
+});
+
 test('Company trends - y axis is operating margin with a 0% break-even line', async ({ page }) => {
 	await page.goto('/company-trends');
 	await expect(page.getByTestId('y-axis-title')).toHaveText(/Operating margin/);

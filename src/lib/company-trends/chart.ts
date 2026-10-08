@@ -362,3 +362,24 @@ export function resolveHit(
 	const point = d?.points.find((p) => p.quarter === sel.quarter);
 	return d && point ? { trail: d.trail, point } : null;
 }
+
+/** A filing backing a drawn point. */
+export interface PointSource {
+	quarter: string;
+	source?: string;
+	sourceUrl?: string;
+}
+
+/**
+ * The filings behind `point`: the point itself for an anchor, or the two anchors an
+ * interpolated point was derived from.
+ */
+export function pointSources(trail: Trail, point: TrailPoint): PointSource[] {
+	if (point.quality !== 'interpolated') {
+		return [{ quarter: point.quarter, source: point.source, sourceUrl: point.sourceUrl }];
+	}
+	return [point.from, point.to]
+		.map((q) => trail.points.find((p) => p.quarter === q))
+		.filter((p): p is TrailPoint => p !== undefined)
+		.map((p) => ({ quarter: p.quarter, source: p.source, sourceUrl: p.sourceUrl }));
+}

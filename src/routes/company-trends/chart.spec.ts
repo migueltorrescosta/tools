@@ -13,6 +13,7 @@ import {
 	MARGIN_DOMAIN,
 	PALETTE_SIZE,
 	percentTicks,
+	pointSources,
 	resolveHit,
 	REVENUE_FLOOR,
 	revenueDomain,
@@ -144,6 +145,24 @@ describe('revenueDomain', () => {
 			expect(logExtent(values)![0]).toBeLessThan(0.1);
 			expect(revenueDomain(values)).toEqual([10, 1e6]);
 		}
+	});
+});
+
+describe('pointSources', () => {
+	const trail = buildTrail(company, quarters, 'EUR', fx);
+	const at = (q: string) => trail.points.find((p) => p.quarter === q)!;
+
+	it('cites the anchor itself', () => {
+		expect(pointSources(trail, at('2001Q4'))).toEqual([
+			{ quarter: '2001Q4', source: 'report 2001Q4', sourceUrl: 'https://example.com/2001Q4' }
+		]);
+	});
+
+	it('cites both bracketing anchors of an interpolated point', () => {
+		expect(pointSources(trail, at('2002Q2')).map((s) => s.sourceUrl)).toEqual([
+			'https://example.com/2001Q4',
+			'https://example.com/2003Q4'
+		]);
 	});
 });
 

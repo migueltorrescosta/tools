@@ -9,6 +9,7 @@
 		colorMode,
 		formatMoney,
 		formatPercent,
+		pointSources,
 		REVENUE_FLOOR,
 		revenueDomain,
 		PALETTE_SIZE,
@@ -247,6 +248,7 @@
 						<th>Op. expenses</th>
 						<th>Op. income</th>
 						<th>Op. margin</th>
+						<th>Source</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -259,6 +261,19 @@
 							<td>{formatMoney(row.point.expenses, currency)}</td>
 							<td>{formatMoney(row.point.operatingIncome, currency)}</td>
 							<td>{row.point.margin === null ? '—' : formatPercent(row.point.margin, 1)}</td>
+							<td class="source-cell">
+								{#if row.point.quality === 'interpolated'}interpolated between{/if}
+								{#each pointSources(row.trail, row.point) as s, i (s.quarter)}
+									{#if i > 0}and{/if}
+									{#if s.sourceUrl}
+										<a href={s.sourceUrl} target="_blank" rel="noreferrer" title={s.source}
+											>{row.point.quality === 'interpolated' ? s.quarter : s.source}</a
+										>
+									{:else}
+										<span title={s.source}>{s.quarter}</span>
+									{/if}
+								{/each}
+							</td>
 						</tr>
 					{/each}
 				</tbody>
@@ -517,6 +532,13 @@
 	th:nth-child(n + 4) {
 		text-align: right;
 		font-family: 'JetBrains Mono', monospace;
+	}
+
+	td.source-cell,
+	th:last-child {
+		text-align: left;
+		font-family: inherit;
+		max-width: 22rem;
 	}
 
 	@media (max-width: 900px) {
