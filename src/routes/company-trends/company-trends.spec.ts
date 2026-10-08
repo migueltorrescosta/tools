@@ -474,18 +474,63 @@ describe('bundled companies.json', () => {
 		const drift: string[] = [];
 		for (const company of dataset.companies) {
 			for (const { point: p, filed: f } of anchorsAsFiled(company)) {
-				// Stored EUR values carry the build's rounding; allow that plus 0.1%.
+				// Stored EUR values keep six significant digits, so the round trip is exact to 1e-4.
 				for (const [shown, want] of [
 					[p.revenue, f.revenue],
 					[p.operatingIncome, f.operatingIncome]
 				]) {
-					if (Math.abs(shown - want) > Math.max(1e-3 * Math.abs(want), 0.1)) {
+					if (Math.abs(shown - want) > 1e-4 * Math.abs(want)) {
 						drift.push(`${company.id} ${p.quarter}: shown ${shown} filed ${want}`);
 					}
 				}
 			}
 		}
 		expect(drift).toEqual([]);
+	});
+
+	interface SourceAnchor {
+		periodEnd: string;
+		revenue: number;
+		operatingIncome: number;
+	}
+	const sources = import.meta.glob<{ id: string; anchors: SourceAnchor[] }>(
+		'./data/sources/companies/*.json',
+		{ eager: true, import: 'default' }
+	);
+	const sourceAnchors = new Map(Object.values(sources).map((s) => [s.id, s.anchors]));
+
+	it('keeps every stored margin equal to the filed margin', () => {
+		// Margin does not depend on currency, so any drift is a build rounding bug.
+		const drift: string[] = [];
+		for (const company of dataset.companies) {
+			for (const p of company.points) {
+				const anchor = sourceAnchors
+					.get(company.id)
+					?.find((a) => p.source?.includes(`(FY ending ${a.periodEnd}:`));
+				if (!anchor) {
+					drift.push(`${company.id} ${p.quarter}: no source anchor`);
+					continue;
+				}
+				expect(filed(p.source)).toMatchObject({
+					revenue: anchor.revenue,
+					operatingIncome: anchor.operatingIncome
+				});
+				const want = anchor.operatingIncome / anchor.revenue;
+				const stored = p.operatingIncome / p.revenue;
+				if (Math.abs(stored - want) > 1e-3 * Math.abs(want)) {
+					drift.push(`${company.id} ${p.quarter}: stored ${stored} filed ${want}`);
+				}
+			}
+		}
+		expect(drift).toEqual([]);
+	});
+
+	it('keeps Tesla FY2007 at its filed USD 0.073m revenue', () => {
+		const tesla = dataset.companies.find((c) => c.id === 'tesla')!;
+		const { point, filed: f } = anchorsAsFiled(tesla).find((a) => a.point.quarter === '2007Q4')!;
+		expect(f).toMatchObject({ revenue: 0.073, operatingIncome: -79.933 });
+		expect(point.revenue).toBeCloseTo(0.073, 6);
+		expect(point.margin).toBeCloseTo(-79.933 / 0.073, 0);
 	});
 
 	it('shows ExxonMobil 2008 revenue as the filed USD 477,359m', () => {

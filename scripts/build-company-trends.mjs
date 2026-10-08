@@ -30,9 +30,22 @@ for (const [quarter, entry] of Object.entries(fxSource.rates)) {
 
 const fxTable = { base: 'EUR', rates };
 
+// Enough to keep thousand-precision filings and margins exact to well under 0.01%.
+const SIGNIFICANT_DIGITS = 6;
+
 function round(value, digits) {
 	const f = 10 ** digits;
 	return Math.round(value * f) / f;
+}
+
+/**
+ * Round to `digits` significant digits. EUR values span 0.05 to 600,000 millions, so a
+ * fixed number of decimals would wipe out small filings (Tesla FY2007 revenue USD 0.073m).
+ */
+function roundSignificant(value, digits) {
+	if (value === 0 || !Number.isFinite(value)) return value;
+	const decimals = digits - 1 - Math.floor(Math.log10(Math.abs(value)));
+	return decimals > 0 ? round(value, decimals) : Math.round(value);
 }
 
 function quarterIndex(label) {
@@ -46,7 +59,12 @@ function quarterOfPeriodEnd(iso) {
 	return `${date.getUTCFullYear()}Q${Math.floor(date.getUTCMonth() / 3) + 1}`;
 }
 
-const fmt = (n) => n.toLocaleString('en-US', { maximumFractionDigits: 1 });
+/** A filed figure as filed: every digit kept, thousands separated. */
+function fmt(n) {
+	const [int, frac] = String(n).split('.');
+	const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+	return frac === undefined ? grouped : `${grouped}.${frac}`;
+}
 
 const companies = [];
 for (const file of readdirSync(join(SOURCES, 'companies')).sort()) {
@@ -59,8 +77,8 @@ for (const file of readdirSync(join(SOURCES, 'companies')).sort()) {
 		const rate = a.currency === 'EUR' ? 1 : fiscalYearRate(quarter, a.currency, fxTable);
 		points.set(quarter, {
 			quarter,
-			revenue: round(a.revenue / rate, 1),
-			operatingIncome: round(a.operatingIncome / rate, 1),
+			revenue: roundSignificant(a.revenue / rate, SIGNIFICANT_DIGITS),
+			operatingIncome: roundSignificant(a.operatingIncome / rate, SIGNIFICANT_DIGITS),
 			quality: a.quality,
 			source: `${a.source} (FY ending ${a.periodEnd}: revenue ${a.currency} ${fmt(a.revenue)}m, operating income ${a.currency} ${fmt(a.operatingIncome)}m)`,
 			sourceUrl: a.sourceUrl
