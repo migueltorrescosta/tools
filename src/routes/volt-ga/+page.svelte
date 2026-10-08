@@ -6,7 +6,7 @@
 		getMasterBoundaries,
 		getRowSpan,
 		boundaryRow,
-		getNowOffset,
+		getNowPosition,
 		getActiveSessions,
 		getNextSessions,
 		formatClock,
@@ -41,7 +41,7 @@
 	const roomColumns = $derived(ROOMS);
 	const activeSessions = $derived(getActiveSessions(allSessions, now));
 	const nextSessions = $derived(getNextSessions(allSessions, now));
-	const nowOffset = $derived(getNowOffset(now, boundaries));
+	const nowPosition = $derived(getNowPosition(now, allSessions));
 	const searchResults = $derived(searchSessions(searchQuery, allSessions));
 	const isEventRunning = $derived({
 		before: now.getTime() < new Date(allSessions[0].startTime).getTime(),
@@ -350,10 +350,17 @@
 				</div>
 			{/each}
 
-			<!-- Now Line -->
-			<div class="now-line" style="top: calc({nowOffset * 100}% + 40px);" aria-hidden="true">
-				<span class="now-label">NOW {formatClock(now)}</span>
-			</div>
+			<!-- Now Line: absolutely positioned inside the grid row that contains now -->
+			{#if nowPosition}
+				<div
+					class="now-line"
+					style="grid-row: {nowPosition.row} / {nowPosition.row +
+						1}; grid-column: 1 / -1; top: {nowPosition.fraction * 100}%;"
+					aria-hidden="true"
+				>
+					<span class="now-label">NOW {formatClock(now)}</span>
+				</div>
+			{/if}
 		</div>
 	</div>
 

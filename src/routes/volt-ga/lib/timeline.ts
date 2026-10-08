@@ -58,18 +58,30 @@ export function getRowSpan(
 	};
 }
 
-/** Compute how far "now" is through the timeline as a fraction 0-1 */
-export function getNowOffset(now: Date, boundaries: string[]): number {
-	if (boundaries.length < 2) return 0;
-	const first = toMinutes(boundaries[0]);
-	const last = toMinutes(boundaries[boundaries.length - 1]);
-	const totalMinutes = last - first;
-	if (totalMinutes <= 0) return 0;
-
-	const nowMinutes = now.getHours() * 60 + now.getMinutes();
-	if (nowMinutes <= first) return 0;
-	if (nowMinutes >= last) return 1;
-	return (nowMinutes - first) / totalMinutes;
+/**
+ * Locate "now" on the schedule grid: the grid row of the boundary interval that
+ * contains it, plus the fraction through that interval. Rows are equal height
+ * regardless of duration, so the position must be per-row, not linear in minutes.
+ * Works on absolute instants, so the viewer's timezone and date are irrelevant.
+ * Returns null when now is outside the event (before the first start, at or after the last end).
+ */
+export function getNowPosition(
+	now: Date,
+	sessions: Session[]
+): { row: number; fraction: number } | null {
+	const instants = Array.from(
+		new Set(
+			sessions.flatMap((s) => [new Date(s.startTime).getTime(), new Date(s.endTime).getTime()])
+		)
+	).sort((x, y) => x - y);
+	const t = now.getTime();
+	if (instants.length < 2 || t < instants[0] || t >= instants[instants.length - 1]) return null;
+	let i = 0;
+	while (t >= instants[i + 1]) i++;
+	return {
+		row: boundaryRow(i),
+		fraction: (t - instants[i]) / (instants[i + 1] - instants[i])
+	};
 }
 
 /** Get sessions currently active (startTime <= now < endTime) */

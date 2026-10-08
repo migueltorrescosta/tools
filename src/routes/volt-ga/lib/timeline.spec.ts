@@ -10,7 +10,7 @@ import {
 	getDurationMinutes,
 	getMasterBoundaries,
 	getNextSessions,
-	getNowOffset,
+	getNowPosition,
 	type Session
 } from './timeline';
 
@@ -101,19 +101,48 @@ describe('getNextSessions', () => {
 	it.todo('excludes the session already running (mg-drp8.128)');
 });
 
-describe('getNowOffset', () => {
-	const b = ['09:00', '10:00', '11:00'];
+describe('getNowPosition', () => {
+	const b = getMasterBoundaries(sessions); // 09:00 09:30 09:45 10:30 11:15
 
-	it('clamps before the first and after the last boundary', () => {
-		expect(getNowOffset(at('08:00'), b)).toBe(0);
-		expect(getNowOffset(at('12:00'), b)).toBe(1);
+	it('is the row of the containing interval plus the fraction through it', () => {
+		expect(getNowPosition(at('09:00'), sessions)).toEqual({ row: boundaryRow(0), fraction: 0 });
+		expect(getNowPosition(at('09:15'), sessions)).toEqual({ row: boundaryRow(0), fraction: 0.5 });
+		// 09:45 starts interval 2 exactly, even though it is 45/135 of the way in minutes
+		expect(getNowPosition(at('09:45'), sessions)).toEqual({ row: boundaryRow(2), fraction: 0 });
+		expect(getNowPosition(at('10:00'), sessions)).toEqual({
+			row: boundaryRow(2),
+			fraction: 1 / 3
+		});
+		expect(getNowPosition(at('11:00'), sessions)?.row).toBe(boundaryRow(b.length - 2));
 	});
 
-	it('returns 0 for fewer than two boundaries', () => {
-		expect(getNowOffset(at('09:30'), ['09:00'])).toBe(0);
+	it('lines up with the card rows from getRowSpan', () => {
+		for (const s of sessions) {
+			expect(getNowPosition(new Date(s.startTime), sessions)?.row).toBe(getRowSpan(s, b).rowStart);
+		}
 	});
 
-	it.todo('follows the row layout, event timezone and date (mg-drp8.127)');
+	it('returns null before the first start and from the last end on', () => {
+		expect(getNowPosition(at('08:59'), sessions)).toBeNull();
+		expect(getNowPosition(at('11:15'), sessions)).toBeNull();
+		expect(getNowPosition(at('12:00'), sessions)).toBeNull();
+	});
+
+	it('returns null on another date at the same time of day', () => {
+		expect(getNowPosition(new Date('2027-01-01T10:00:00+02:00'), sessions)).toBeNull();
+		expect(getNowPosition(new Date('2026-06-14T10:00:00+02:00'), sessions)).toBeNull();
+	});
+
+	it('uses the event instant, not the viewer timezone', () => {
+		// 10:00 CEST written as UTC and as London time
+		const expected = { row: boundaryRow(2), fraction: 1 / 3 };
+		expect(getNowPosition(new Date('2026-06-13T08:00:00Z'), sessions)).toEqual(expected);
+		expect(getNowPosition(new Date('2026-06-13T09:00:00+01:00'), sessions)).toEqual(expected);
+	});
+
+	it('returns null with fewer than two boundaries', () => {
+		expect(getNowPosition(at('09:00'), [])).toBeNull();
+	});
 });
 
 describe('formatting', () => {
