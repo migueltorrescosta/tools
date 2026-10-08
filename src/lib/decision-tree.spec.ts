@@ -192,6 +192,32 @@ describe('Cycle detection', () => {
 		expect(errors.some((e) => e.toLowerCase().includes('cycle'))).toBe(true);
 	});
 
+	it('reports a cycle that does not contain the root instead of overflowing', () => {
+		// root -> a -> b -> a, b -> r: the only node without incoming edges is
+		// root, so the graph has a single root and the cycle a <-> b misses it.
+		const raw: RawTree = {
+			nodes: [
+				{ id: 'root', type: 'question', content: 'Root?' },
+				{ id: 'a', type: 'question', content: 'A?' },
+				{ id: 'b', type: 'question', content: 'B?' },
+				{ id: 'r', type: 'result', content: 'R' }
+			],
+			edges: [
+				{ sourceId: 'root', targetId: 'a', label: 'Go' },
+				{ sourceId: 'a', targetId: 'b', label: 'Next' },
+				{ sourceId: 'b', targetId: 'a', label: 'Back' },
+				{ sourceId: 'b', targetId: 'r', label: 'Done' }
+			]
+		};
+		const graph = buildGraph(raw);
+		expect(graph.rootNodeId).toBe('root');
+		let errors: string[] = [];
+		expect(() => {
+			errors = validateGraph(graph);
+		}).not.toThrow();
+		expect(errors.some((e) => e.toLowerCase().includes('cycle'))).toBe(true);
+	});
+
 	it('accepts a DAG with no cycles', () => {
 		const graph = makeCarGraph();
 		const errors = validateGraph(graph);

@@ -114,37 +114,11 @@ export function validateGraph(graph: DecisionGraph): string[] {
 		}
 	}
 
-	// 7. All paths terminate in a result node
-	if (roots.length === 1) {
-		const rootId = roots[0];
-		const pathEndErrors = validateAllPathsTerminate(graph, rootId);
-		errors.push(...pathEndErrors);
-	}
-
-	return errors;
-}
-
-function validateAllPathsTerminate(graph: DecisionGraph, nodeId: string): string[] {
-	const errors: string[] = [];
-	const node = graph.nodes.get(nodeId);
-	if (!node) return errors;
-
-	if (isResultNode(node)) {
-		return errors; // Terminal node, valid path end
-	}
-
-	const edges = getAnswersForNode(graph, nodeId);
-	if (edges.length === 0) {
-		errors.push(
-			`Question node "${nodeId}" has no answers — paths reaching it cannot terminate in a result`
-		);
-		return errors;
-	}
-
-	for (const edge of edges) {
-		const subErrors = validateAllPathsTerminate(graph, edge.targetId);
-		errors.push(...subErrors);
-	}
+	// Every path ends in a result follows from the checks above: on an acyclic
+	// graph where each question has an answer and every edge target exists, a
+	// walk from the root can only stop at a result node. A separate path walk
+	// would recurse forever on cycles that miss the root and is exponential on
+	// converging answers.
 
 	return errors;
 }
