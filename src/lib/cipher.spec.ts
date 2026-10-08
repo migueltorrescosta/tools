@@ -21,7 +21,7 @@ const keysFor = (algorithm: Algorithm) =>
 		: { passphrase: 'correct horse battery staple' };
 
 describe('round-trips', () => {
-	const algorithms: Algorithm[] = ['AES-GCM', 'RSA-OAEP', 'Base64', 'Hex', 'ROT13'];
+	const algorithms: Algorithm[] = ['AES-GCM', 'AES-CBC', 'RSA-OAEP', 'Base64', 'Hex', 'ROT13'];
 	for (const algorithm of algorithms) {
 		it(`${algorithm} round-trips ASCII and unicode`, async () => {
 			for (const text of ['hello world', UNICODE]) {
@@ -66,6 +66,33 @@ describe('AES-GCM', () => {
 
 	it('requires a passphrase', async () => {
 		await expect(encrypt('x', 'AES-GCM', {})).rejects.toThrow(/Key is required/);
+	});
+});
+
+describe('AES-CBC', () => {
+	const keys = { passphrase: 'secret' };
+
+	it('prefixes a 16-byte IV and round-trips', async () => {
+		const ciphertext = await encrypt('a', 'AES-CBC', keys);
+		// 16-byte IV + one padded 16-byte block.
+		expect(base64ToBytes(ciphertext)).toHaveLength(32);
+		expect(await decrypt(ciphertext, 'AES-CBC', keys)).toBe('a');
+	});
+
+	it('round-trips 1 MB', async () => {
+		const text = 'y'.repeat(1 << 20);
+		expect(await decrypt(await encrypt(text, 'AES-CBC', keys), 'AES-CBC', keys)).toBe(text);
+	});
+
+	it('rejects ciphertext no longer than the IV with a clear error', async () => {
+		const short = bytesToBase64(new Uint8Array(16));
+		await expect(decrypt(short, 'AES-CBC', keys)).rejects.toThrow(/too short/);
+	});
+
+	it('never returns the plaintext for a wrong key', async () => {
+		const ciphertext = await encrypt('secret message', 'AES-CBC', keys);
+		const result = await decrypt(ciphertext, 'AES-CBC', { passphrase: 'wrong' }).catch(() => null);
+		expect(result).not.toBe('secret message');
 	});
 });
 

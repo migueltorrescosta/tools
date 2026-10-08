@@ -18,7 +18,8 @@ export interface CipherKeys {
 	privateKey?: CryptoKey;
 }
 
-const IV_LENGTH = 12;
+/** IV bytes per AES mode: GCM uses a 96-bit nonce, CBC needs one full 128-bit block. */
+export const IV_LENGTH: Record<AesAlgorithm, number> = { 'AES-GCM': 12, 'AES-CBC': 16 };
 
 const BASE64_CHUNK = 0x8000;
 
@@ -76,7 +77,7 @@ export async function encrypt(
 		case 'AES-GCM':
 		case 'AES-CBC': {
 			const key = await deriveKey(algorithm, keys.passphrase ?? '');
-			const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));
+			const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH[algorithm]));
 			const encrypted = await crypto.subtle.encrypt(
 				{ name: algorithm, iv },
 				key,
@@ -116,12 +117,13 @@ export async function decrypt(
 		case 'AES-GCM':
 		case 'AES-CBC': {
 			const key = await deriveKey(algorithm, keys.passphrase ?? '');
+			const ivLength = IV_LENGTH[algorithm];
 			const combined = base64ToBytes(text);
-			if (combined.length <= IV_LENGTH) throw new Error('Ciphertext is too short');
+			if (combined.length <= ivLength) throw new Error('Ciphertext is too short');
 			const decrypted = await crypto.subtle.decrypt(
-				{ name: algorithm, iv: combined.slice(0, IV_LENGTH) },
+				{ name: algorithm, iv: combined.slice(0, ivLength) },
 				key,
-				combined.slice(IV_LENGTH)
+				combined.slice(ivLength)
 			);
 			return new TextDecoder().decode(decrypted);
 		}
