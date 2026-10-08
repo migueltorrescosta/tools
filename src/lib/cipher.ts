@@ -47,11 +47,52 @@ export function base64ToBytes(text: string): Uint8Array<ArrayBuffer> {
 	return Uint8Array.from(atob(text.trim()), (c) => c.charCodeAt(0));
 }
 
-/** AES key from a passphrase (SHA-256 of its UTF-8 bytes). */
-export async function deriveKey(algorithm: AesAlgorithm, passphrase: string): Promise<CryptoKey> {
+/** PBKDF2-SHA256 work factor (OWASP 2023 minimum). */
+export const PBKDF2_ITERATIONS = 600_000;
+export const SALT_LENGTH = 16;
+/**
+ * AES ciphertext format tag. v1 output is `v1:` + base64(salt || iv || ciphertext), with the key
+ * derived from the passphrase by PBKDF2-SHA256 over the salt. `:` is outside the base64
+ * alphabet, so untagged ciphertexts from the earlier unsalted format are told apart.
+ */
+export const AES_FORMAT = 'v1';
+
+/** AES-256 key from a passphrase and salt via PBKDF2-SHA256. */
+export async function deriveKey(
+	algorithm: AesAlgorithm,
+	passphrase: string,
+	salt: Uint8Array<ArrayBuffer>
+): Promise<CryptoKey> {
 	if (!passphrase) throw new Error(`Key is required for ${algorithm}`);
-	const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(passphrase));
-	return crypto.subtle.importKey('raw', hash, { name: algorithm }, false, ['encrypt', 'decrypt']);
+	const material = await crypto.subtle.importKey(
+		'raw',
+		new TextEncoder().encode(passphrase),
+		'PBKDF2',
+		false,
+		['deriveKey']
+	);
+	return crypto.subtle.deriveKey(
+		{ name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
+		material,
+		{ name: algorithm, length: 256 },
+		false,
+		['encrypt', 'decrypt']
+	);
+}
+
+/** Bytes after the format tag, or a clear error for untagged or unknown-version input. */
+function parseAesCiphertext(text: string): Uint8Array<ArrayBuffer> {
+	const trimmed = text.trim();
+	const match = /^(v\d+):(.*)$/s.exec(trimmed);
+	if (!match) {
+		throw new Error(
+			`Unrecognised ciphertext: expected the "${AES_FORMAT}:" prefix. Ciphertexts from the old unsalted format can no longer be decrypted.`
+		);
+	}
+	if (match[1] !== AES_FORMAT) {
+		throw new Error(`Unsupported ciphertext version "${match[1]}"; this tool reads ${AES_FORMAT}`);
+	}
+	return base64ToBytes(match[2]);
 }
 
 const RSA_PARAMS: RsaHashedImportParams = { name: 'RSA-OAEP', hash: 'SHA-256' };
@@ -138,17 +179,19 @@ export async function encrypt(
 			return rot13(text);
 		case 'AES-GCM':
 		case 'AES-CBC': {
-			const key = await deriveKey(algorithm, keys.passphrase ?? '');
+			const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
+			const key = await deriveKey(algorithm, keys.passphrase ?? '', salt);
 			const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH[algorithm]));
 			const encrypted = await crypto.subtle.encrypt(
 				{ name: algorithm, iv },
 				key,
 				new TextEncoder().encode(text)
 			);
-			const combined = new Uint8Array(iv.length + encrypted.byteLength);
-			combined.set(iv);
-			combined.set(new Uint8Array(encrypted), iv.length);
-			return bytesToBase64(combined);
+			const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+			combined.set(salt);
+			combined.set(iv, salt.length);
+			combined.set(new Uint8Array(encrypted), salt.length + iv.length);
+			return `${AES_FORMAT}:${bytesToBase64(combined)}`;
 		}
 		case 'RSA-OAEP': {
 			const publicKey = requireKey(keys.publicKey, 'RSA-OAEP needs a public key');
@@ -182,14 +225,15 @@ export async function decrypt(
 			return rot13(text);
 		case 'AES-GCM':
 		case 'AES-CBC': {
-			const key = await deriveKey(algorithm, keys.passphrase ?? '');
-			const ivLength = IV_LENGTH[algorithm];
-			const combined = base64ToBytes(text);
-			if (combined.length <= ivLength) throw new Error('Ciphertext is too short');
+			if (!keys.passphrase) throw new Error(`Key is required for ${algorithm}`);
+			const combined = parseAesCiphertext(text);
+			const header = SALT_LENGTH + IV_LENGTH[algorithm];
+			if (combined.length <= header) throw new Error('Ciphertext is too short');
+			const key = await deriveKey(algorithm, keys.passphrase, combined.slice(0, SALT_LENGTH));
 			const decrypted = await crypto.subtle.decrypt(
-				{ name: algorithm, iv: combined.slice(0, ivLength) },
+				{ name: algorithm, iv: combined.slice(SALT_LENGTH, header) },
 				key,
-				combined.slice(ivLength)
+				combined.slice(header)
 			);
 			return new TextDecoder().decode(decrypted);
 		}
