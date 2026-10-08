@@ -4,6 +4,7 @@ import {
 	bytesToBase64,
 	decrypt,
 	encrypt,
+	errorMessage,
 	exportPrivateKeyPem,
 	exportPublicKeyPem,
 	generateRsaKeyPair,
@@ -13,6 +14,7 @@ import {
 	PBKDF2_ITERATIONS,
 	SALT_LENGTH,
 	rsaOaepMaxBytes,
+	WRONG_KEY_MESSAGE,
 	type Algorithm
 } from './cipher';
 
@@ -267,5 +269,50 @@ describe('keyless encodings', () => {
 		expect(await decrypt('aGk=', 'Base64', { passphrase: '' })).toBe('hi');
 		expect(await encrypt('hi', 'Hex', {})).toBe('6869');
 		expect(await encrypt('hi', 'ROT13', {})).toBe('uv');
+	});
+});
+
+describe('decrypt failure messages', () => {
+	it('reports a wrong AES-GCM key as wrong key, not a generic OperationError', async () => {
+		const ciphertext = await encrypt('secret', 'AES-GCM', { passphrase: 'right' });
+		await expect(decrypt(ciphertext, 'AES-GCM', { passphrase: 'wrong' })).rejects.toThrow(
+			WRONG_KEY_MESSAGE
+		);
+	});
+
+	it('reports tampered AES-GCM ciphertext the same way', async () => {
+		const keys = { passphrase: 'k' };
+		const bytes = payload(await encrypt('secret', 'AES-GCM', keys));
+		bytes[bytes.length - 1] ^= 1;
+		await expect(decrypt(`v1:${bytesToBase64(bytes)}`, 'AES-GCM', keys)).rejects.toThrow(
+			WRONG_KEY_MESSAGE
+		);
+	});
+
+	it('reports a wrong AES-CBC key as wrong key whenever it fails', async () => {
+		const ciphertext = await encrypt('secret message', 'AES-CBC', { passphrase: 'right' });
+		for (const passphrase of ['wrong', 'also wrong', 'nope']) {
+			const result = await decrypt(ciphertext, 'AES-CBC', { passphrase }).catch(
+				(e: Error) => e.message
+			);
+			expect(result).toBe(WRONG_KEY_MESSAGE);
+		}
+	});
+
+	it('reports a mismatched RSA private key as wrong key', async () => {
+		const other = await generateRsaKeyPair();
+		const ciphertext = await encrypt('hi', 'RSA-OAEP', { publicKey: rsa.publicKey });
+		await expect(decrypt(ciphertext, 'RSA-OAEP', { privateKey: other.privateKey })).rejects.toThrow(
+			WRONG_KEY_MESSAGE
+		);
+	});
+
+	it('errorMessage never returns an empty string for an empty-message DOMException', () => {
+		expect(errorMessage(new DOMException('', 'OperationError'), 'Decryption failed')).toBe(
+			'OperationError'
+		);
+		expect(errorMessage(new Error(''), 'Decryption failed')).toBe('Error');
+		expect(errorMessage('boom', 'Decryption failed')).toBe('Decryption failed');
+		expect(errorMessage(new Error('Bad key'), 'Decryption failed')).toBe('Bad key');
 	});
 });

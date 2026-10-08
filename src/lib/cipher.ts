@@ -160,6 +160,40 @@ export function rsaOaepMaxBytes(key: CryptoKey): number {
 	return modulusLength / 8 - 2 * OAEP_HASH_BYTES - 2;
 }
 
+export const WRONG_KEY_MESSAGE = 'Wrong key or corrupted ciphertext';
+
+/**
+ * A non-empty message for any thrown value. WebCrypto failures are DOMExceptions whose message
+ * is generic or, in Chromium, empty, so the name and then the fallback stand in.
+ */
+export function errorMessage(e: unknown, fallback: string): string {
+	if (e instanceof Error || e instanceof DOMException) return e.message || e.name || fallback;
+	return fallback;
+}
+
+/** Decrypt with WebCrypto and decode UTF-8, mapping auth, padding and decoding failures to one clear error. */
+async function decryptToText(
+	params: AlgorithmIdentifier | AesGcmParams | AesCbcParams | RsaOaepParams,
+	key: CryptoKey,
+	data: Uint8Array<ArrayBuffer>
+): Promise<string> {
+	let decrypted: ArrayBuffer;
+	try {
+		decrypted = await crypto.subtle.decrypt(params, key, data);
+	} catch (e) {
+		if (e instanceof DOMException && e.name === 'OperationError') {
+			throw new Error(WRONG_KEY_MESSAGE, { cause: e });
+		}
+		throw e;
+	}
+	try {
+		// A wrong CBC key can pass the padding check; garbage bytes rarely form valid UTF-8.
+		return new TextDecoder('utf-8', { fatal: true }).decode(decrypted);
+	} catch (e) {
+		throw new Error(WRONG_KEY_MESSAGE, { cause: e });
+	}
+}
+
 function requireKey<T>(key: T | undefined, message: string): T {
 	if (!key) throw new Error(message);
 	return key;
@@ -230,21 +264,15 @@ export async function decrypt(
 			const header = SALT_LENGTH + IV_LENGTH[algorithm];
 			if (combined.length <= header) throw new Error('Ciphertext is too short');
 			const key = await deriveKey(algorithm, keys.passphrase, combined.slice(0, SALT_LENGTH));
-			const decrypted = await crypto.subtle.decrypt(
+			return decryptToText(
 				{ name: algorithm, iv: combined.slice(SALT_LENGTH, header) },
 				key,
 				combined.slice(header)
 			);
-			return new TextDecoder().decode(decrypted);
 		}
 		case 'RSA-OAEP': {
 			const privateKey = requireKey(keys.privateKey, 'RSA-OAEP needs a private key');
-			const decrypted = await crypto.subtle.decrypt(
-				{ name: 'RSA-OAEP' },
-				privateKey,
-				base64ToBytes(text)
-			);
-			return new TextDecoder().decode(decrypted);
+			return decryptToText({ name: 'RSA-OAEP' }, privateKey, base64ToBytes(text));
 		}
 		default:
 			throw new Error('Unsupported algorithm');

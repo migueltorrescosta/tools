@@ -4,6 +4,7 @@
 		ALGORITHMS,
 		decrypt as decryptWith,
 		encrypt as encryptWith,
+		errorMessage,
 		exportPrivateKeyPem,
 		exportPublicKeyPem,
 		generateRsaKeyPair,
@@ -76,7 +77,7 @@
 		try {
 			encryptedText = await encrypt(inputText, selectedAlgorithm, encryptionKey);
 		} catch (e) {
-			encryptionError = e instanceof Error ? e.message : 'Encryption failed';
+			encryptionError = errorMessage(e, 'Encryption failed');
 		}
 	}
 
@@ -87,7 +88,7 @@
 		try {
 			decryptedText = await decrypt(inputText, selectedAlgorithm, decryptionKey);
 		} catch (e) {
-			decryptionError = e instanceof Error ? e.message : 'Decryption failed';
+			decryptionError = errorMessage(e, 'Decryption failed');
 		}
 	}
 
@@ -98,7 +99,7 @@
 			publicKeyPem = await exportPublicKeyPem(pair.publicKey);
 			privateKeyPem = await exportPrivateKeyPem(pair.privateKey);
 		} catch (e) {
-			rsaKeyError = e instanceof Error ? e.message : 'Key generation failed';
+			rsaKeyError = errorMessage(e, 'Key generation failed');
 		}
 	}
 
