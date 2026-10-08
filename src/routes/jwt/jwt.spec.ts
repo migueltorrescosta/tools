@@ -6,6 +6,7 @@ import {
 	base64UrlEncodeBytes,
 	decodeJwt,
 	encodeJwt,
+	signJwt,
 	signingInput,
 	verifyJwt
 } from '$lib/jwt';
@@ -158,6 +159,8 @@ async function asymmetricToken(alg: keyof typeof ASYMMETRIC) {
 	return {
 		token: `${input}.${base64UrlEncodeBytes(new Uint8Array(sig))}`,
 		pem: toPem(await crypto.subtle.exportKey('spki', pair.publicKey), 'PUBLIC KEY'),
+		privatePem: toPem(await crypto.subtle.exportKey('pkcs8', pair.privateKey), 'PRIVATE KEY'),
+		publicKey: pair.publicKey,
 		publicJwk: JSON.stringify(await crypto.subtle.exportKey('jwk', pair.publicKey)),
 		privateJwk: JSON.stringify(await crypto.subtle.exportKey('jwk', pair.privateKey))
 	};
@@ -245,5 +248,72 @@ describe('verifyJwt', () => {
 		expect((await verifyJwt(`${h}.${p}.!!!`, 'your-256-bit-secret', 'HS256')).status).toBe(
 			'invalid'
 		);
+	});
+});
+
+describe('signJwt', () => {
+	const samplePayload = { sub: '1234567890', name: 'John Doe', iat: 1516239022 };
+
+	it('reproduces the jwt.io sample token for HS256', async () => {
+		const t = await signJwt(
+			{ alg: 'HS256', typ: 'JWT' },
+			samplePayload,
+			'your-256-bit-secret',
+			'HS256'
+		);
+		expect(t).toBe(SAMPLE_JWT);
+	});
+
+	it.each(['HS256', 'HS384', 'HS512'] as const)(
+		'matches a node:crypto HMAC for %s',
+		async (alg) => {
+			const payload = { sub: 'abc', n: 1 };
+			const t = await signJwt({ alg, typ: 'JWT' }, payload, 's3cr3t', alg);
+			expect(t).toBe(hmacToken(alg, payload, 's3cr3t'));
+			expect(t.split('.')[2]).not.toBe('');
+		}
+	);
+
+	it.each(Object.keys(ASYMMETRIC) as (keyof typeof ASYMMETRIC)[])(
+		'signs %s with a private PEM or JWK so the public key verifies it',
+		async (alg) => {
+			const { pem, privatePem, privateJwk, publicJwk, publicKey } = await asymmetricToken(alg);
+			for (const key of [privatePem, privateJwk]) {
+				const t = await signJwt({ alg, typ: 'JWT' }, { sub: 'y' }, key, alg);
+				const [h, p, sig] = t.split('.');
+				const ok = await crypto.subtle.verify(
+					ASYMMETRIC[alg].sign,
+					publicKey,
+					base64UrlDecodeBytes(sig),
+					new TextEncoder().encode(`${h}.${p}`)
+				);
+				expect(ok).toBe(true);
+				expect(await verifyJwt(t, pem, alg)).toEqual({ status: 'valid' });
+				expect(await verifyJwt(t, privatePem, alg)).toEqual({ status: 'valid' });
+			}
+			await expect(signJwt({ alg }, {}, pem, alg)).rejects.toThrow('PRIVATE KEY');
+			await expect(signJwt({ alg }, {}, publicJwk, alg)).rejects.toThrow('private key');
+		},
+		20000
+	);
+
+	it('refuses to sign without a key instead of emitting an empty signature', async () => {
+		await expect(signJwt({ alg: 'HS256' }, {}, '', 'HS256')).rejects.toThrow(
+			'Enter a secret to sign HS256'
+		);
+		await expect(signJwt({ alg: 'RS256' }, {}, '', 'RS256')).rejects.toThrow('private key');
+		await expect(signJwt({ alg: 'RS256' }, {}, 'a-secret', 'RS256')).rejects.toThrow('PRIVATE KEY');
+	});
+
+	it('refuses algorithms it cannot sign', async () => {
+		await expect(signJwt({ alg: 'EdDSA' }, {}, 'k', 'EdDSA')).rejects.toThrow(
+			'Signing not supported for EdDSA'
+		);
+	});
+
+	it('emits an empty signature only for alg none', async () => {
+		const t = await signJwt({ alg: 'none' }, { sub: 'x' }, 'ignored', 'none');
+		expect(t).toBe(encodeJwt({ alg: 'none' }, { sub: 'x' }));
+		expect(t.endsWith('.')).toBe(true);
 	});
 });

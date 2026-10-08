@@ -4,8 +4,8 @@
 	import {
 		ALGORITHMS as algorithms,
 		decodeJwt,
-		encodeJwt,
 		isSymmetric,
+		signJwt,
 		verifyJwt,
 		type VerifyResult
 	} from '$lib/jwt';
@@ -19,6 +19,8 @@
 	);
 	let headerError = $state('');
 	let payloadError = $state('');
+	let encodeError = $state('');
+	let encodeNote = $state('');
 	let verification = $state<VerifyResult | null>(null);
 	// Bumped per verification so a slow earlier result cannot overwrite a newer one
 	let verifySeq = 0;
@@ -56,7 +58,7 @@
 		signatureResult = decoded.signature;
 	}
 
-	function encodeToken() {
+	async function encodeToken() {
 		let header: Record<string, unknown>;
 		let payload: Record<string, unknown>;
 
@@ -79,7 +81,15 @@
 		header.alg = selectedAlgorithm;
 		header.typ = 'JWT';
 
-		token = encodeJwt(header, payload);
+		try {
+			token = await signJwt(header, payload, secret, selectedAlgorithm);
+			encodeError = '';
+			encodeNote =
+				selectedAlgorithm === 'none' ? 'Unsigned token (alg "none"): the signature is empty' : '';
+		} catch (e) {
+			encodeError = `Not encoded: ${e instanceof Error ? e.message : String(e)}`;
+			encodeNote = '';
+		}
 	}
 
 	$effect(() => {
@@ -175,7 +185,7 @@
 				<div class="signature-row">
 					<div class="secret-section">
 						<label class="input-label" for="secret-input"
-							>{isSymmetric(selectedAlgorithm) ? 'SECRET' : 'PUBLIC KEY (PEM OR JWK)'}</label
+							>{isSymmetric(selectedAlgorithm) ? 'SECRET' : 'KEY (PEM OR JWK)'}</label
 						>
 						<input
 							id="secret-input"
@@ -184,7 +194,7 @@
 							bind:value={secret}
 							placeholder={isSymmetric(selectedAlgorithm)
 								? 'secret'
-								: '-----BEGIN PUBLIC KEY----- ... or {"kty": ...}'}
+								: 'public key verifies, private key signs'}
 						/>
 					</div>
 
@@ -218,7 +228,7 @@
 	<div class="encode-section">
 		<div class="section-header">
 			<span class="label">DECODE & ENCODE</span>
-			<span class="hint">Modify header and payload, then encode</span>
+			<span class="hint">Modify header and payload, then sign with the key above</span>
 		</div>
 
 		<div class="encode-inputs">
@@ -248,8 +258,12 @@
 		</div>
 
 		<button class="encode-btn" onclick={encodeToken}>
-			<span class="btn-text">ENCODE TOKEN</span>
+			<span class="btn-text"
+				>{selectedAlgorithm === 'none' ? 'ENCODE UNSIGNED' : 'SIGN & ENCODE'}</span
+			>
 			<span class="btn-glow"></span>
 		</button>
+		{#if encodeError}<div class="error-small" role="alert">{encodeError}</div>{/if}
+		{#if encodeNote}<div class="key-warning">{encodeNote}</div>{/if}
 	</div>
 </div>

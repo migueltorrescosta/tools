@@ -177,7 +177,7 @@ const KTY: Record<Family, string> = { HS: 'oct', RS: 'RSA', PS: 'RSA', ES: 'EC' 
 
 /**
  * Imports `keyText` for `alg` and `usage`. HS* takes the secret as UTF-8 text (or an oct JWK);
- * RS/PS/ES take a PEM (SPKI public key for verify, PKCS#8 private key for sign) or a JWK.
+ * RS/PS/ES take a PEM (SPKI public key or PKCS#8 private key; signing needs the private one) or a JWK.
  * Throws an Error with a user-facing message when the key does not fit the algorithm.
  */
 export async function importJwtKey(
@@ -192,6 +192,9 @@ export async function importJwtKey(
 	if (jwk) {
 		if (jwk.kty !== KTY[spec.family]) {
 			throw new Error(`A ${jwk.kty} key cannot be used with ${alg}`);
+		}
+		if (usage === 'sign' && jwk.kty !== 'oct' && !jwk.d) {
+			throw new Error(`Signing ${alg} needs a private key; this JWK is public`);
 		}
 		// Drop alg (checked by the caller) and, for verify, the private members so a full
 		// key pair JWK imports as its public half.
@@ -209,8 +212,14 @@ export async function importJwtKey(
 			usage
 		]);
 	}
+	const privateDer = pemBody(keyText, 'PRIVATE KEY');
+	if (usage === 'verify' && privateDer) {
+		// A private key verifies through its public half, taken from the JWK export
+		const priv = await crypto.subtle.importKey('pkcs8', privateDer, params, true, ['sign']);
+		return importJwtKey(JSON.stringify(await crypto.subtle.exportKey('jwk', priv)), alg, usage);
+	}
 	const label = usage === 'verify' ? 'PUBLIC KEY' : 'PRIVATE KEY';
-	const der = pemBody(keyText, label);
+	const der = usage === 'verify' ? pemBody(keyText, label) : privateDer;
 	if (!der) {
 		throw new Error(`${alg} needs a PEM "${label}" or a JWK`);
 	}
@@ -263,4 +272,33 @@ export async function verifyJwt(
 		return { status: 'error', message: e instanceof Error ? e.message : String(e) };
 	}
 	return ok ? { status: 'valid' } : { status: 'invalid', message: 'Signature does not match' };
+}
+
+// --- sign ---
+
+/**
+ * Builds a signed token. HS* signs with the secret, RS/PS/ES with a PKCS#8 PEM or private JWK,
+ * and `none` yields an unsigned token with an empty signature segment. Throws an Error with a
+ * user-facing message when the algorithm or key cannot sign, so no token falsely claims a signature.
+ */
+export async function signJwt(
+	header: unknown,
+	payload: unknown,
+	keyText: string,
+	alg: string
+): Promise<string> {
+	if (alg === 'none') return encodeJwt(header, payload);
+	const spec = algSpec(alg);
+	if (!spec) throw new Error(`Signing not supported for ${alg}`);
+	if (!keyText) {
+		throw new Error(
+			spec.family === 'HS'
+				? `Enter a secret to sign ${alg}`
+				: `Signing ${alg} needs a private key (PKCS#8 PEM or JWK)`
+		);
+	}
+	const key = await importJwtKey(keyText, alg, 'sign');
+	const input = signingInput(header, payload);
+	const sig = await crypto.subtle.sign(signParams(spec), key, new TextEncoder().encode(input));
+	return `${input}.${base64UrlEncodeBytes(new Uint8Array(sig))}`;
 }
