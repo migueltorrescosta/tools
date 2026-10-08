@@ -3,7 +3,7 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
 	retries: 1,
 	webServer: {
-		command: 'npm run dev',
+		command: 'pnpm dev',
 		port: 5173,
 		reuseExistingServer: !process.env.CI,
 		timeout: 120000
