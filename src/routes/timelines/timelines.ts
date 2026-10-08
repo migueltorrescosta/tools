@@ -122,3 +122,16 @@ export function createTimelineLoader(importer: TimelineImporter) {
 
 	return { cache, load };
 }
+
+/**
+ * The timeline to show for a `?t` value: that id when it names a timeline, otherwise a
+ * random one (`random` returns a number in [0, 1), like Math.random).
+ */
+export function pickTimelineId(
+	timelines: Timeline[],
+	requested: string | null,
+	random: () => number
+): string {
+	if (requested && timelines.some((t) => t.id === requested)) return requested;
+	return timelines[Math.floor(random() * timelines.length)].id;
+}

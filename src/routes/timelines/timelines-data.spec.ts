@@ -76,6 +76,16 @@ describe.each(timelines.map((t) => [t.id] as const))('events/%s.json', (id) => {
 		expect(bad.map((e) => `${e.id}:${e.url}`)).toEqual([]);
 	});
 
+	it('dates arXiv papers in the month their arXiv id encodes', () => {
+		// New-style arXiv ids start with the YYMM of first submission (arxiv.org/abs/2201.11903).
+		const bad: string[] = [];
+		for (const e of events) {
+			const match = e.url && /arxiv\.org\/abs\/(\d{2})(\d{2})\.\d{4,5}/.exec(e.url);
+			if (match && !e.date.startsWith(`20${match[1]}-${match[2]}-`)) bad.push(`${e.id}:${e.date}`);
+		}
+		expect(bad).toEqual([]);
+	});
+
 	it('has both rich fields on every event when the timeline is rich', () => {
 		const rich = events.some((e) => e.conceptDescription || e.valueAdd);
 		const bad = rich
@@ -163,5 +173,14 @@ describe('events/eu-elections.json country identity', () => {
 			seen.add(key);
 		}
 		expect(dups).toEqual([]);
+	});
+});
+
+describe('arXiv date check', () => {
+	it('covers the arXiv-linked LLM papers', () => {
+		const arxiv = (eventsFor('llm-breakthroughs') ?? []).filter((e) =>
+			e.url?.includes('arxiv.org/abs/')
+		);
+		expect(arxiv.length).toBeGreaterThan(10);
 	});
 });

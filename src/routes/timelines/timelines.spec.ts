@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 import {
 	buildTimelineRows,
 	createTimelineLoader,
@@ -7,6 +7,7 @@ import {
 	hasRichContent,
 	isPast,
 	localDateString,
+	pickTimelineId,
 	sortEventsByDate,
 	type TimelineEvent,
 	type TimelineRow
@@ -108,18 +109,45 @@ describe('Timeline Utilities', () => {
 	});
 
 	describe('isPast', () => {
-		it('returns true for dates in the past', () => {
+		// Pin both the zone and the clock so results do not depend on where or when the suite
+		// runs. Local times are built with new Date(y, m, d, h, min), i.e. in the pinned zone.
+		const originalTz = process.env.TZ;
+		beforeEach(() => {
+			process.env.TZ = 'Europe/Rome';
+			vi.useFakeTimers();
+		});
+		afterEach(() => {
+			vi.useRealTimers();
+			if (originalTz === undefined) delete process.env.TZ;
+			else process.env.TZ = originalTz;
+		});
+
+		it('returns true for dates before today', () => {
+			vi.setSystemTime(new Date(2026, 5, 15, 12, 0));
 			expect(isPast('2020-01-01')).toBe(true);
-			expect(isPast('2024-01-01')).toBe(true);
+			expect(isPast('2026-06-14')).toBe(true);
 		});
 
 		it('returns false for future dates', () => {
-			expect(isPast('2030-12-31')).toBe(false);
+			vi.setSystemTime(new Date(2026, 5, 15, 12, 0));
+			expect(isPast('2026-06-16')).toBe(false);
 			expect(isPast('2099-06-15')).toBe(false);
 		});
 
-		it('returns false for today', () => {
-			expect(isPast(localDateString())).toBe(false);
+		it('returns false for today, including when local and UTC dates differ', () => {
+			// 00:30 in Rome (summer time) is still the previous day in UTC; 23:30 is late in the day.
+			for (const [h, m] of [
+				[0, 30],
+				[12, 0],
+				[23, 30]
+			]) {
+				vi.setSystemTime(new Date(2026, 5, 15, h, m));
+				expect(localDateString()).toBe('2026-06-15');
+				expect(isPast('2026-06-15')).toBe(false);
+				expect(isPast('2026-06-14')).toBe(true);
+			}
+			vi.setSystemTime(new Date(2026, 5, 15, 0, 30));
+			expect(new Date().toISOString().slice(0, 10)).toBe('2026-06-14');
 		});
 	});
 
@@ -275,5 +303,26 @@ describe('createTimelineLoader', () => {
 		pending.get('b')!.reject(new Error('b failed'));
 		await expect(current).rejects.toThrow('b failed');
 		expect(loader.cache.has('b')).toBe(false);
+	});
+});
+
+describe('pickTimelineId', () => {
+	const timelines = [
+		{ id: 'a', shortTitle: 'A', description: '' },
+		{ id: 'b', shortTitle: 'B', description: '' },
+		{ id: 'c', shortTitle: 'C', description: '' }
+	];
+	const never = () => {
+		throw new Error('random must not be used for a valid ?t');
+	};
+
+	it('keeps a ?t that names a timeline', () => {
+		expect(pickTimelineId(timelines, 'b', never)).toBe('b');
+	});
+
+	it('falls back to a random timeline for a missing or unknown ?t', () => {
+		expect(pickTimelineId(timelines, null, () => 0)).toBe('a');
+		expect(pickTimelineId(timelines, '', () => 0.5)).toBe('b');
+		expect(pickTimelineId(timelines, 'bogus', () => 0.999)).toBe('c');
 	});
 });

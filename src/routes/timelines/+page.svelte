@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
+	import { replaceState } from '$app/navigation';
 	import timelinesData from './data/timelines.json';
+	import TimelineView from './TimelineView.svelte';
 	import {
 		buildTimelineRows,
 		createTimelineLoader,
-		formatShortDate,
 		hasRichContent,
-		isPast,
+		pickTimelineId,
 		sortEventsByDate,
 		type Timeline,
 		type TimelineEvent,
@@ -20,79 +21,58 @@
 	let filteredEvents = $state<TimelineEvent[]>([]);
 	let timelineRows = $state<TimelineRow[]>([]);
 	let loading = $state(false);
+	let loadError = $state(false);
 	const isRichContent = $derived(hasRichContent(filteredEvents));
-	let tooltipState = $state<{ visible: boolean; x: number; y: number; content: string }>({
-		visible: false,
-		x: 0,
-		y: 0,
-		content: ''
-	});
 
 	const timelineLoader = createTimelineLoader(
 		async (id) => (await import(`./data/events/${id}.json`)).default as TimelineEvent[]
 	);
 
-	function showTooltip(event: MouseEvent, content: string) {
-		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-		tooltipState = {
-			visible: true,
-			x: rect.left + rect.width / 2,
-			y: rect.top - 8,
-			content
-		};
-	}
+	/**
+	 * The single entry point for every selection (URL, random fallback, dropdown): loads the
+	 * timeline and writes it to ?t so the address bar always names what is on screen.
+	 */
+	async function selectTimeline(id: string) {
+		selectedTimelineId = id;
+		loading = true;
+		loadError = false;
 
-	function hideTooltip() {
-		tooltipState = { ...tooltipState, visible: false };
-	}
-
-	async function updateFilteredEvents() {
-		if (!selectedTimelineId) {
+		let events: TimelineEvent[] | null;
+		try {
+			events = await timelineLoader.load(id);
+		} catch (error) {
+			// A failed chunk import (deploy skew, offline) must not leave the previous
+			// timeline's events under the new title.
+			console.error(`Failed to load timeline "${id}"`, error);
 			filteredEvents = [];
 			timelineRows = [];
+			loadError = true;
+			loading = false;
 			return;
 		}
+		// A newer selection superseded this load; it owns the state, the spinner and the URL.
+		if (events === null) return;
 
-		const id = selectedTimelineId;
-		loading = true;
+		filteredEvents = sortEventsByDate(events);
+		timelineRows = buildTimelineRows(filteredEvents, hasRichContent(filteredEvents));
+		loading = false;
 
-		try {
-			const events = await timelineLoader.load(id);
-			// A newer selection superseded this load; it owns the state and the spinner.
-			if (events === null) return;
-			filteredEvents = sortEventsByDate(events);
-			timelineRows = buildTimelineRows(filteredEvents, hasRichContent(filteredEvents));
-			loading = false;
-		} catch (error) {
-			loading = false;
-			throw error;
+		// Written after the await: SvelteKit's replaceState throws before the router has
+		// started, which is still the case while onMount runs.
+		if (page.url.searchParams.get('t') !== id) {
+			const url = new URL(page.url);
+			url.searchParams.set('t', id);
+			replaceState(url, page.state);
 		}
 	}
 
-	async function selectRandomTimeline() {
-		const randomIndex = Math.floor(Math.random() * timelines.length);
-		selectedTimelineId = timelines[randomIndex].id;
-		await updateFilteredEvents();
+	function handleTimelineChange() {
+		if (selectedTimelineId) selectTimeline(selectedTimelineId);
 	}
 
-	async function handleTimelineChange() {
-		if (selectedTimelineId) {
-			await updateFilteredEvents();
-			const url = new URL(window.location.href);
-			url.searchParams.set('t', selectedTimelineId);
-			window.history.replaceState({}, '', url);
-		}
-	}
-
-	// Read timeline from URL on mount, fallback to random
+	// Read the timeline from the URL on mount; a missing or unknown ?t falls back to a random one.
 	onMount(() => {
-		const urlTimelineId = page.url.searchParams.get('t');
-		if (urlTimelineId && timelines.some((t) => t.id === urlTimelineId)) {
-			selectedTimelineId = urlTimelineId;
-			updateFilteredEvents();
-		} else {
-			selectRandomTimeline();
-		}
+		selectTimeline(pickTimelineId(timelines, page.url.searchParams.get('t'), Math.random));
 	});
 </script>
 
@@ -129,66 +109,15 @@
 				<div class="loading-spinner"></div>
 				<span>Loading events...</span>
 			</div>
+		{:else if loadError}
+			<div class="error-state" role="alert">
+				<span>Could not load this timeline.</span>
+				<button type="button" class="retry-button" onclick={handleTimelineChange}>Retry</button>
+			</div>
 		{:else if filteredEvents.length > 0}
-			{#each timelineRows as row, rowIndex (rowIndex)}
-				{#if row.type === 'year'}
-					<div class="year-separator">
-						<span class="year-label">{row.year}</span>
-					</div>
-				{:else if isRichContent}
-					<div class="rich-card-list">
-						{#each row.events as event (event.id)}
-							<div class="rich-event-card">
-								<div class="rich-card-header">
-									<span class="rich-card-emoji">{event.emoji}</span>
-									<a
-										href={event.url}
-										target="_blank"
-										rel="noopener noreferrer"
-										class="rich-card-title">{event.title}</a
-									>
-								</div>
-								<p class="rich-card-description">{event.conceptDescription || event.description}</p>
-								<p class="rich-card-value-add">✦ {event.valueAdd}</p>
-							</div>
-						{/each}
-					</div>
-				{:else}
-					<div class="grid-row">
-						{#each row.events as event (event.id)}
-							<div
-								class="event-card"
-								class:past={isPast(event.date)}
-								onmouseenter={(e) => showTooltip(e, event.description)}
-								onmouseleave={hideTooltip}
-								role="tooltip"
-							>
-								<span class="event-emoji">{event.emoji}</span>
-								<span class="event-date">{formatShortDate(event.date)}</span>
-								{#if event.url}
-									<a
-										href={event.url}
-										target="_blank"
-										rel="noopener noreferrer"
-										class="event-title-link">{event.title}</a
-									>
-								{:else}
-									<span class="event-title">{event.title}</span>
-								{/if}
-							</div>
-						{/each}
-					</div>
-				{/if}
-			{/each}
+			<TimelineView rows={timelineRows} rich={isRichContent} />
 		{:else}
 			<div class="empty-state">No events in this timeline</div>
-		{/if}
-
-		<!-- Global tooltip rendered at container level to avoid overflow clipping -->
-		{#if tooltipState.visible}
-			<div class="global-tooltip" style:left="{tooltipState.x}px" style:top="{tooltipState.y}px">
-				<span class="tooltip-text">{tooltipState.content}</span>
-			</div>
 		{/if}
 	</div>
 </div>
@@ -244,142 +173,6 @@
 		padding: 0.5rem;
 	}
 
-	.year-separator {
-		display: flex;
-		align-items: center;
-		padding: 0.5rem 0;
-		margin: 0.25rem 0;
-	}
-
-	.year-separator::before,
-	.year-separator::after {
-		content: '';
-		flex: 1;
-		height: 1px;
-		background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.3), transparent);
-	}
-
-	.year-label {
-		font-family: 'Orbitron', sans-serif;
-		font-size: 0.7rem;
-		font-weight: 600;
-		color: var(--futuristic-magenta);
-		letter-spacing: 0.15em;
-		padding: 0 1rem;
-		text-shadow: 0 0 8px rgba(255, 0, 255, 0.4);
-	}
-
-	.grid-row {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 0.5rem;
-		padding: 0.15rem 0;
-	}
-
-	.grid-row:not(:last-child) {
-		border-bottom: 1px solid rgba(0, 245, 255, 0.1);
-	}
-
-	.event-card {
-		display: flex;
-		align-items: center;
-		gap: 0.4rem;
-		padding: 0.15rem 0.25rem;
-		position: relative;
-		cursor: default;
-		transition: background-color 0.2s;
-	}
-
-	.event-card:hover {
-		background: rgba(0, 245, 255, 0.05);
-	}
-
-	.event-card.past {
-		opacity: 0.5;
-	}
-
-	.event-card.past .event-title {
-		text-decoration: line-through;
-		text-decoration-color: rgba(200, 212, 222, 0.3);
-	}
-
-	.event-card .event-emoji {
-		font-size: 0.85rem;
-		flex-shrink: 0;
-	}
-
-	.event-card .event-date {
-		font-family: 'Orbitron', sans-serif;
-		font-size: 0.55rem;
-		font-weight: 500;
-		color: var(--futuristic-cyan);
-		letter-spacing: 0.03em;
-		white-space: nowrap;
-		min-width: 60px;
-	}
-
-	.event-card .event-title {
-		font-family: 'Inter', sans-serif;
-		font-size: 0.7rem;
-		font-weight: 400;
-		color: var(--futuristic-text);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.event-card .event-title-link {
-		font-family: 'Inter', sans-serif;
-		font-size: 0.7rem;
-		font-weight: 400;
-		color: var(--futuristic-cyan);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		text-decoration: none;
-		transition: color 0.2s;
-	}
-
-	.event-card .event-title-link:hover {
-		color: var(--futuristic-magenta);
-		text-decoration: underline;
-	}
-
-	/* Global tooltip - positioned fixed to escape overflow clipping */
-	.global-tooltip {
-		position: fixed;
-		transform: translate(-50%, -100%);
-		padding: 0.5rem 0.75rem;
-		background: var(--futuristic-bg);
-		border: 1px solid var(--futuristic-cyan);
-		border-radius: 6px;
-		box-shadow:
-			0 0 20px rgba(0, 245, 255, 0.3),
-			0 4px 12px rgba(0, 0, 0, 0.5);
-		z-index: 9999;
-		max-width: 350px;
-		pointer-events: none;
-		/* Fully opaque background */
-		opacity: 1 !important;
-	}
-
-	.global-tooltip::after {
-		content: '';
-		position: absolute;
-		top: 100%;
-		left: 50%;
-		transform: translateX(-50%);
-		border: 6px solid transparent;
-		border-top-color: var(--futuristic-cyan);
-	}
-
-	.tooltip-text {
-		font-family: 'Inter', sans-serif;
-		font-size: 0.75rem;
-		color: var(--futuristic-text);
-		line-height: 1.4;
-	}
-
 	.empty-state {
 		display: flex;
 		align-items: center;
@@ -401,6 +194,33 @@
 		color: var(--futuristic-text-dim);
 	}
 
+	.error-state {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		height: 200px;
+		font-family: 'Inter', sans-serif;
+		font-size: 1rem;
+		color: var(--futuristic-magenta);
+	}
+
+	.retry-button {
+		background: var(--futuristic-bg);
+		border: 1px solid var(--futuristic-border);
+		border-radius: 6px;
+		padding: 0.35rem 0.75rem;
+		font: inherit;
+		font-size: 0.9rem;
+		color: var(--futuristic-text);
+		cursor: pointer;
+	}
+
+	.retry-button:hover,
+	.retry-button:focus-visible {
+		border-color: var(--futuristic-cyan);
+	}
+
 	.loading-spinner {
 		width: 20px;
 		height: 20px;
@@ -413,86 +233,6 @@
 	@keyframes spin {
 		to {
 			transform: rotate(360deg);
-		}
-	}
-
-	/* Rich content styles */
-	.rich-card-list {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		padding: 0.5rem 0;
-	}
-
-	.rich-card-list:not(:last-child) {
-		border-bottom: 1px solid rgba(0, 245, 255, 0.1);
-	}
-
-	.rich-event-card {
-		display: flex;
-		flex-direction: column;
-		gap: 0.35rem;
-		padding: 0.6rem 0.75rem;
-		background: rgba(0, 245, 255, 0.03);
-		border: 1px solid rgba(0, 245, 255, 0.1);
-		border-radius: 8px;
-		transition:
-			background 0.2s,
-			border-color 0.2s;
-	}
-
-	.rich-event-card:hover {
-		background: rgba(0, 245, 255, 0.06);
-		border-color: rgba(0, 245, 255, 0.2);
-	}
-
-	.rich-card-header {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.rich-card-emoji {
-		font-size: 1.1rem;
-		flex-shrink: 0;
-	}
-
-	.rich-card-title {
-		font-family: 'Orbitron', sans-serif;
-		font-size: 0.75rem;
-		font-weight: 600;
-		color: var(--futuristic-cyan);
-		letter-spacing: 0.04em;
-		text-decoration: none;
-		transition: color 0.2s;
-	}
-
-	.rich-card-title:hover {
-		color: var(--futuristic-magenta);
-		text-decoration: underline;
-	}
-
-	.rich-card-description {
-		font-family: 'Inter', sans-serif;
-		font-size: 0.8rem;
-		color: var(--futuristic-text);
-		line-height: 1.5;
-		margin: 0;
-	}
-
-	.rich-card-value-add {
-		font-family: 'Inter', sans-serif;
-		font-size: 0.8rem;
-		color: var(--futuristic-magenta);
-		line-height: 1.5;
-		margin: 0;
-		padding-left: 1.5rem;
-		opacity: 0.9;
-	}
-
-	@media (max-width: 600px) {
-		.grid-row {
-			grid-template-columns: 1fr;
 		}
 	}
 </style>

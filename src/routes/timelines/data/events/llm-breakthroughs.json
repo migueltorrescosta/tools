@@ -2,27 +2,27 @@
 	{
 		"id": 1001,
 		"emoji": "🧠",
-		"date": "1997-06-15",
+		"date": "1997-11-15",
 		"title": "Long Short-Term Memory",
-		"description": "Introduced gated recurrent units (LSTMs) that preserve information across long sequences.",
-		"conceptDescription": "Introduced gated recurrent units (LSTMs) that preserve information across long sequences.",
+		"description": "Introduced gated memory cells (LSTM) that preserve information across long sequences.",
+		"conceptDescription": "Introduced gated memory cells (LSTM) that preserve information across long sequences.",
 		"valueAdd": "Enabled models to remember earlier context and learn long-range dependencies in language.",
 		"url": "https://www.bioinf.jku.at/publications/older/2604.pdf"
 	},
 	{
 		"id": 1002,
 		"emoji": "🧠",
-		"date": "2003-06-15",
+		"date": "2003-02-01",
 		"title": "A Neural Probabilistic Language Model",
 		"description": "Learned dense vector embeddings for words instead of sparse symbolic representations.",
 		"conceptDescription": "Learned dense vector embeddings for words instead of sparse symbolic representations.",
-		"valueAdd": "Allowed semantic similarity and analogical reasoning to emerge from learned embeddings.",
+		"valueAdd": "Let similar words share statistical strength, overcoming the sparsity of n-gram models.",
 		"url": "https://www.jmlr.org/papers/volume3/bengio03a/bengio03a.pdf"
 	},
 	{
 		"id": 1003,
 		"emoji": "🧠",
-		"date": "2013-06-15",
+		"date": "2013-01-16",
 		"title": "Word2Vec",
 		"description": "Learned word meanings from unlabeled text by predicting nearby words (word2vec).",
 		"conceptDescription": "Learned word meanings from unlabeled text by predicting nearby words (word2vec).",
@@ -32,7 +32,7 @@
 	{
 		"id": 1004,
 		"emoji": "⚡",
-		"date": "2014-06-15",
+		"date": "2014-09-10",
 		"title": "Sequence to Sequence Learning",
 		"description": "Used encoder–decoder architectures to transform one sequence into another.",
 		"conceptDescription": "Used encoder–decoder architectures to transform one sequence into another.",
@@ -42,7 +42,7 @@
 	{
 		"id": 1005,
 		"emoji": "⚡",
-		"date": "2014-06-15",
+		"date": "2014-09-01",
 		"title": "Neural Attention Mechanisms",
 		"description": "Allowed models to focus dynamically on relevant parts of the input during generation.",
 		"conceptDescription": "Allowed models to focus dynamically on relevant parts of the input during generation.",
@@ -52,7 +52,7 @@
 	{
 		"id": 1006,
 		"emoji": "⚡",
-		"date": "2015-06-15",
+		"date": "2015-06-09",
 		"title": "Pointer Networks",
 		"description": "Enabled models to explicitly reference or copy elements from the input.",
 		"conceptDescription": "Enabled models to explicitly reference or copy elements from the input.",
@@ -62,7 +62,7 @@
 	{
 		"id": 1007,
 		"emoji": "⚡",
-		"date": "2017-06-15",
+		"date": "2017-06-12",
 		"title": "Transformer Architecture",
 		"description": "Replaced recurrence with self-attention to model all token relationships in parallel.",
 		"conceptDescription": "Replaced recurrence with self-attention to model all token relationships in parallel.",
@@ -72,7 +72,7 @@
 	{
 		"id": 1008,
 		"emoji": "⚡",
-		"date": "2017-06-15",
+		"date": "2017-06-12",
 		"title": "Positional Encoding",
 		"description": "Injected sequence order information into attention-only models.",
 		"conceptDescription": "Injected sequence order information into attention-only models.",
@@ -82,7 +82,7 @@
 	{
 		"id": 1009,
 		"emoji": "📏",
-		"date": "2018-06-15",
+		"date": "2018-06-11",
 		"title": "Generative Pre-Training (GPT)",
 		"description": "Trained large language models on massive unlabeled corpora before downstream adaptation.",
 		"conceptDescription": "Trained large language models on massive unlabeled corpora before downstream adaptation.",
@@ -92,7 +92,7 @@
 	{
 		"id": 1010,
 		"emoji": "📏",
-		"date": "2018-06-15",
+		"date": "2018-10-11",
 		"title": "BERT",
 		"description": "Learned token representations using both left and right context simultaneously.",
 		"conceptDescription": "Learned token representations using both left and right context simultaneously.",
@@ -102,7 +102,7 @@
 	{
 		"id": 1011,
 		"emoji": "📏",
-		"date": "2019-06-15",
+		"date": "2019-02-14",
 		"title": "GPT-2",
 		"description": "Demonstrated that scaling autoregressive language models improves broad generative abilities.",
 		"conceptDescription": "Demonstrated that scaling autoregressive language models improves broad generative abilities.",
@@ -112,7 +112,7 @@
 	{
 		"id": 1012,
 		"emoji": "📏",
-		"date": "2020-06-15",
+		"date": "2020-01-23",
 		"title": "Neural Scaling Laws",
 		"description": "Showed predictable performance improvements from scaling parameters, data, and compute.",
 		"conceptDescription": "Showed predictable performance improvements from scaling parameters, data, and compute.",
@@ -122,7 +122,7 @@
 	{
 		"id": 1013,
 		"emoji": "📏",
-		"date": "2020-06-15",
+		"date": "2020-05-28",
 		"title": "GPT-3 / In-Context Learning",
 		"description": "Demonstrated that models can perform tasks from examples embedded in prompts.",
 		"conceptDescription": "Demonstrated that models can perform tasks from examples embedded in prompts.",
@@ -132,7 +132,7 @@
 	{
 		"id": 1014,
 		"emoji": "🎯",
-		"date": "2021-06-15",
+		"date": "2022-01-28",
 		"title": "Chain-of-Thought Reasoning",
 		"description": "Encouraged models to generate intermediate reasoning steps before answers.",
 		"conceptDescription": "Encouraged models to generate intermediate reasoning steps before answers.",
@@ -142,7 +142,7 @@
 	{
 		"id": 1015,
 		"emoji": "🎯",
-		"date": "2021-06-15",
+		"date": "2021-12-17",
 		"title": "WebGPT",
 		"description": "Enabled language models to interact with web browsers and external information sources.",
 		"conceptDescription": "Enabled language models to interact with web browsers and external information sources.",
@@ -152,7 +152,7 @@
 	{
 		"id": 1016,
 		"emoji": "🎯",
-		"date": "2022-06-15",
+		"date": "2021-09-03",
 		"title": "Instruction Tuning",
 		"description": "Fine-tuned models on natural-language instructions and demonstrations.",
 		"conceptDescription": "Fine-tuned models on natural-language instructions and demonstrations.",
@@ -162,7 +162,7 @@
 	{
 		"id": 1017,
 		"emoji": "🎯",
-		"date": "2022-06-15",
+		"date": "2022-03-04",
 		"title": "RLHF (Human Preference Alignment)",
 		"description": "Optimized model outputs using human preference rankings (RLHF).",
 		"conceptDescription": "Optimized model outputs using human preference rankings (RLHF).",
@@ -172,7 +172,7 @@
 	{
 		"id": 1018,
 		"emoji": "🎯",
-		"date": "2022-06-15",
+		"date": "2022-10-06",
 		"title": "ReAct",
 		"description": "Combined reasoning traces with external actions like search or API calls.",
 		"conceptDescription": "Combined reasoning traces with external actions like search or API calls.",
@@ -182,7 +182,7 @@
 	{
 		"id": 1019,
 		"emoji": "🎯",
-		"date": "2022-06-15",
+		"date": "2023-03-20",
 		"title": "Reflexion",
 		"description": "Allowed agents to critique prior failures and iteratively improve behavior.",
 		"conceptDescription": "Allowed agents to critique prior failures and iteratively improve behavior.",
@@ -192,7 +192,7 @@
 	{
 		"id": 1020,
 		"emoji": "🤖",
-		"date": "2023-06-15",
+		"date": "2020-05-22",
 		"title": "Retrieval-Augmented Generation (RAG)",
 		"description": "Combined language models with external retrieval systems.",
 		"conceptDescription": "Combined language models with external retrieval systems.",
@@ -202,7 +202,7 @@
 	{
 		"id": 1021,
 		"emoji": "🤖",
-		"date": "2023-06-15",
+		"date": "2023-02-09",
 		"title": "Toolformer",
 		"description": "Trained models to reliably invoke APIs and software tools.",
 		"conceptDescription": "Trained models to reliably invoke APIs and software tools.",
@@ -212,7 +212,7 @@
 	{
 		"id": 1022,
 		"emoji": "🤖",
-		"date": "2023-06-15",
+		"date": "2023-04-07",
 		"title": "Generative Agents",
 		"description": "Introduced long-term memory streams with retrieval and reflection mechanisms for agents.",
 		"conceptDescription": "Introduced long-term memory streams with retrieval and reflection mechanisms for agents.",
@@ -222,7 +222,7 @@
 	{
 		"id": 1023,
 		"emoji": "🤖",
-		"date": "2023-06-15",
+		"date": "2023-05-25",
 		"title": "Voyager",
 		"description": "Agents stored and reused learned behaviors as executable skills.",
 		"conceptDescription": "Agents stored and reused learned behaviors as executable skills.",
@@ -232,7 +232,7 @@
 	{
 		"id": 1024,
 		"emoji": "🤖",
-		"date": "2023-06-15",
+		"date": "2023-03-31",
 		"title": "CAMEL",
 		"description": "Multiple LLM agents cooperated through role-based communication.",
 		"conceptDescription": "Multiple LLM agents cooperated through role-based communication.",
@@ -242,7 +242,7 @@
 	{
 		"id": 1025,
 		"emoji": "🤖",
-		"date": "2023-06-15",
+		"date": "2023-03-30",
 		"title": "AutoGPT",
 		"description": "Agents recursively planned and executed subtasks toward high-level goals.",
 		"conceptDescription": "Agents recursively planned and executed subtasks toward high-level goals.",
@@ -252,7 +252,7 @@
 	{
 		"id": 1026,
 		"emoji": "🤖",
-		"date": "2023-06-15",
+		"date": "2021-01-11",
 		"title": "Mixture-of-Experts (Switch Transformers)",
 		"description": "Activated only subsets of model parameters for each token.",
 		"conceptDescription": "Activated only subsets of model parameters for each token.",
@@ -262,7 +262,7 @@
 	{
 		"id": 1027,
 		"emoji": "🤖",
-		"date": "2024-06-15",
+		"date": "2024-02-21",
 		"title": "LongRoPE",
 		"description": "Extended Transformer context windows to millions of tokens.",
 		"conceptDescription": "Extended Transformer context windows to millions of tokens.",
@@ -272,21 +272,21 @@
 	{
 		"id": 1028,
 		"emoji": "🤖",
-		"date": "2024-06-15",
+		"date": "2024-05-06",
 		"title": "SWE-agent",
-		"description": "Combined planning, memory, retrieval, and tools into iterative autonomous workflows.",
-		"conceptDescription": "Combined planning, memory, retrieval, and tools into iterative autonomous workflows.",
+		"description": "Introduced an agent-computer interface letting language model agents navigate repositories, edit code, and run tests.",
+		"conceptDescription": "Introduced an agent-computer interface letting language model agents navigate repositories, edit code, and run tests.",
 		"valueAdd": "Enabled coding agents capable of debugging, editing, testing, and executing multi-step tasks autonomously.",
 		"url": "https://arxiv.org/abs/2405.15793"
 	},
 	{
 		"id": 1029,
 		"emoji": "🤖",
-		"date": "2024-06-15",
-		"title": "OpenDevin",
+		"date": "2024-07-23",
+		"title": "OpenDevin (OpenHands)",
 		"description": "Integrated terminals, editors, browsers, and execution environments into agent loops.",
 		"conceptDescription": "Integrated terminals, editors, browsers, and execution environments into agent loops.",
 		"valueAdd": "Enabled agents to interact with real developer tooling and complete end-to-end coding workflows.",
-		"url": "https://github.com/OpenDevin/OpenDevin"
+		"url": "https://arxiv.org/abs/2407.16741"
 	}
 ]
