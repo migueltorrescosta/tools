@@ -5,7 +5,15 @@ import {
 	type Company,
 	type Dataset
 } from '$lib/company-trends/schema';
-import { convert, convertFromEur, convertToEur, type FxTable } from '$lib/company-trends/fx';
+import {
+	convert,
+	convertFromEur,
+	convertToEur,
+	fiscalYearRate,
+	type Currency,
+	type FxTable
+} from '$lib/company-trends/fx';
+import { buildTrail, type TrailPoint } from '$lib/company-trends/chart';
 import {
 	deriveExpenses,
 	interpolateSeries,
@@ -210,6 +218,33 @@ describe('fx conversion', () => {
 // Filtering
 // ---------------------------------------------------------------------------
 
+describe('fiscalYearRate', () => {
+	const table: FxTable = {
+		base: 'EUR',
+		rates: {
+			'2000Q1': { USD: 1.0 },
+			'2000Q2': { USD: 1.1 },
+			'2000Q3': { USD: 1.2 },
+			'2000Q4': { USD: 1.3 },
+			'2001Q1': { USD: 1.8 }
+		}
+	};
+
+	it('averages the four quarters ending at the quarter', () => {
+		expect(fiscalYearRate('2001Q1', 'USD', table)).toBeCloseTo((1.1 + 1.2 + 1.3 + 1.8) / 4, 12);
+		expect(convertFromEur(100, '2001Q1', 'USD', table)).toBeCloseTo(135, 10);
+		expect(convertToEur(135, '2001Q1', 'USD', table)).toBeCloseTo(100, 10);
+	});
+
+	it('averages fewer quarters at the start of the table', () => {
+		expect(fiscalYearRate('2000Q2', 'USD', table)).toBeCloseTo(1.05, 12);
+	});
+
+	it('throws when a quarter inside the fiscal year has no rate', () => {
+		expect(() => fiscalYearRate('2001Q2', 'USD', table)).toThrow(/2001Q2/);
+	});
+});
+
 describe('filterCompanies', () => {
 	const companies: Company[] = [
 		{
@@ -406,5 +441,57 @@ describe('loadDataset', () => {
 describe('bundled companies.json', () => {
 	it('passes schema validation', () => {
 		expect(validateDataset(bundled)).toEqual([]);
+	});
+
+	// Margin and native-currency figures must survive the EUR round trip: the display
+	// converts back with the same fiscal-year rate the build converted with.
+	const dataset = bundled as Dataset;
+	const lastQuarter = dataset.companies
+		.flatMap((c) => c.points.map((p) => p.quarter))
+		.reduce((a, b) => (quarterIndex(a) > quarterIndex(b) ? a : b));
+	const quarters = quarterRange('2000Q1', lastQuarter);
+	const filed = (source: string | undefined) => {
+		const m = /revenue (\w+) (-?[\d,.]+)m, operating income \w+ (-?[\d,.]+)m/.exec(source ?? '');
+		if (!m) throw new Error(`no filed figures in source: ${source}`);
+		const num = (s: string) => Number(s.replace(/,/g, ''));
+		return { currency: m[1], revenue: num(m[2]), operatingIncome: num(m[3]) };
+	};
+	/** Each anchor shown in the currency it was filed in (usually the reporting currency). */
+	const anchorsAsFiled = (company: Company) => {
+		const trails = new Map<Currency, TrailPoint[]>();
+		return company.points.map((anchor) => {
+			const f = filed(anchor.source);
+			const currency = f.currency as Currency;
+			if (!trails.has(currency)) {
+				trails.set(currency, buildTrail(company, quarters, currency, dataset.fx).points);
+			}
+			const point = trails.get(currency)!.find((p) => p.quarter === anchor.quarter)!;
+			return { point, filed: f };
+		});
+	};
+
+	it('shows each anchor in its filing currency as filed', () => {
+		const drift: string[] = [];
+		for (const company of dataset.companies) {
+			for (const { point: p, filed: f } of anchorsAsFiled(company)) {
+				// Stored EUR values carry the build's rounding; allow that plus 0.1%.
+				for (const [shown, want] of [
+					[p.revenue, f.revenue],
+					[p.operatingIncome, f.operatingIncome]
+				]) {
+					if (Math.abs(shown - want) > Math.max(1e-3 * Math.abs(want), 0.1)) {
+						drift.push(`${company.id} ${p.quarter}: shown ${shown} filed ${want}`);
+					}
+				}
+			}
+		}
+		expect(drift).toEqual([]);
+	});
+
+	it('shows ExxonMobil 2008 revenue as the filed USD 477,359m', () => {
+		const exxon = dataset.companies.find((c) => c.id === 'exxonmobil')!;
+		const { point, filed: f } = anchorsAsFiled(exxon).find((a) => a.point.quarter === '2008Q4')!;
+		expect(f).toMatchObject({ currency: 'USD', revenue: 477359 });
+		expect(point.revenue).toBeCloseTo(477359, -1);
 	});
 });

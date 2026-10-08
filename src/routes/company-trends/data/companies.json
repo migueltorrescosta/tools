@@ -1,8 +1,8 @@
 {
 	"meta": {
-		"generated": "2026-10-07",
+		"generated": "2026-10-08",
 		"units": "EUR millions, fiscal-year (trailing twelve months) totals placed at the fiscal year-end quarter",
-		"fxMethodology": "ECB quarterly average euro reference rates (foreign currency units per EUR), hardcoded. USD/GBP fiscal-year figures are converted to EUR with the mean of the quarterly rates over the fiscal year; display in USD/GBP reconverts each quarter at that quarter’s rate. Rates taken from the ECB EXR series (Q.USD.EUR.SP00.A, Q.GBP.EUR.SP00.A) via the DBnomics mirror of the ECB Data Portal.",
+		"fxMethodology": "ECB quarterly average euro reference rates (foreign currency units per EUR), hardcoded. USD/GBP fiscal-year figures are converted to EUR with the mean of the quarterly rates over the fiscal year; display in USD/GBP reconverts each quarter with the same fiscal-year mean rate, so reporting-currency figures match the filings. Rates taken from the ECB EXR series (Q.USD.EUR.SP00.A, Q.GBP.EUR.SP00.A) via the DBnomics mirror of the ECB Data Portal.",
 		"fxSource": "https://data.ecb.europa.eu/data/datasets/EXR"
 	},
 	"fx": {

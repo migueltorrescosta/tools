@@ -51,7 +51,8 @@ export const ANNUAL_CADENCE = 4;
 
 /**
  * Densify a company's anchors onto the quarter grid and convert to `currency`.
- * Conversion uses each quarter's own rate, so trails reflect FX moves too.
+ * Conversion uses the fiscal-year rate ending at each quarter (the rate the build used),
+ * so a company shown in its reporting currency reproduces its filed figures.
  */
 export function buildTrail(
 	company: Company,

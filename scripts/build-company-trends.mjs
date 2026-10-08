@@ -14,6 +14,7 @@
 // Usage: node scripts/build-company-trends.mjs [--until <year>]
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fiscalYearRate } from '../src/lib/company-trends/fx.ts';
 
 const DATA = 'src/routes/company-trends/data';
 const SOURCES = join(DATA, 'sources');
@@ -27,6 +28,8 @@ for (const [quarter, entry] of Object.entries(fxSource.rates)) {
 	rates[quarter] = { USD: round(entry.USD, 5), GBP: round(entry.GBP, 5) };
 }
 
+const fxTable = { base: 'EUR', rates };
+
 function round(value, digits) {
 	const f = 10 ** digits;
 	return Math.round(value * f) / f;
@@ -37,26 +40,10 @@ function quarterIndex(label) {
 	return (Number(m[1]) - 2000) * 4 + Number(m[2]) - 1;
 }
 
-function quarterLabel(index) {
-	return `${2000 + Math.floor(index / 4)}Q${(index % 4) + 1}`;
-}
-
 function quarterOfPeriodEnd(iso) {
 	const date = new Date(`${iso}T00:00:00Z`);
 	date.setUTCDate(date.getUTCDate() - 7);
 	return `${date.getUTCFullYear()}Q${Math.floor(date.getUTCMonth() / 3) + 1}`;
-}
-
-/** Mean foreign-units-per-EUR rate over the four quarters ending at `quarter`. */
-function fiscalYearRate(quarter, currency) {
-	const end = quarterIndex(quarter);
-	const values = [];
-	for (let i = Math.max(0, end - 3); i <= end; i++) {
-		const rate = rates[quarterLabel(i)]?.[currency];
-		if (rate === undefined) throw new Error(`missing ${currency} rate for ${quarterLabel(i)}`);
-		values.push(rate);
-	}
-	return values.reduce((a, b) => a + b, 0) / values.length;
 }
 
 const fmt = (n) => n.toLocaleString('en-US', { maximumFractionDigits: 1 });
@@ -69,7 +56,7 @@ for (const file of readdirSync(join(SOURCES, 'companies')).sort()) {
 		const quarter = quarterOfPeriodEnd(a.periodEnd);
 		const year = Number(quarter.slice(0, 4));
 		if (year < 2000 || year > untilYear || year > 2026) continue;
-		const rate = a.currency === 'EUR' ? 1 : fiscalYearRate(quarter, a.currency);
+		const rate = a.currency === 'EUR' ? 1 : fiscalYearRate(quarter, a.currency, fxTable);
 		points.set(quarter, {
 			quarter,
 			revenue: round(a.revenue / rate, 1),
@@ -98,7 +85,7 @@ const dataset = {
 		units:
 			'EUR millions, fiscal-year (trailing twelve months) totals placed at the fiscal year-end quarter',
 		fxMethodology:
-			'ECB quarterly average euro reference rates (foreign currency units per EUR), hardcoded. USD/GBP fiscal-year figures are converted to EUR with the mean of the quarterly rates over the fiscal year; display in USD/GBP reconverts each quarter at that quarter’s rate. Rates taken from the ECB EXR series (Q.USD.EUR.SP00.A, Q.GBP.EUR.SP00.A) via the DBnomics mirror of the ECB Data Portal.',
+			'ECB quarterly average euro reference rates (foreign currency units per EUR), hardcoded. USD/GBP fiscal-year figures are converted to EUR with the mean of the quarterly rates over the fiscal year; display in USD/GBP reconverts each quarter with the same fiscal-year mean rate, so reporting-currency figures match the filings. Rates taken from the ECB EXR series (Q.USD.EUR.SP00.A, Q.GBP.EUR.SP00.A) via the DBnomics mirror of the ECB Data Portal.',
 		fxSource: 'https://data.ecb.europa.eu/data/datasets/EXR'
 	},
 	fx: { base: 'EUR', rates },
