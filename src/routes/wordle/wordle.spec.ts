@@ -328,16 +328,11 @@ describe('Game Logic', () => {
 			const currentNode = solutionTree['BBBBB'] as TreeNode;
 			expect(currentNode).toBeDefined();
 
-			// Navigate using a valid result
+			// Navigate using a result known to sit under BBBBB
 			const result1 = 'BGBBG';
-			if (
-				currentNode.subtree &&
-				!Array.isArray(currentNode.subtree) &&
-				currentNode.subtree[result1]
-			) {
-				const nextNode = currentNode.subtree[result1];
-				expect(nextNode.word).toBeDefined();
-			}
+			expect(currentNode.subtree).toHaveProperty(result1);
+			const nextNode = (currentNode.subtree as Record<string, TreeNode>)[result1];
+			expect(nextNode.word).toBe('quoth');
 		});
 	});
 });
@@ -371,27 +366,26 @@ describe('Real game scenarios', () => {
 		expect(currentNode).toBeDefined();
 		expect(currentNode.word.length).toBe(5);
 
-		// Simulate first guess result (e.g., BGBYG)
-		const result = 'BGBYG';
+		// Simulate the result of the second guess (mulch): BYYBB
+		const result = 'BYYBB';
 
 		// Validate result is valid
 		expect(isValidResult(result)).toBe(true);
 
-		// Get next word from subtree if it exists
-		if (currentNode.subtree && !Array.isArray(currentNode.subtree) && currentNode.subtree[result]) {
-			const nextNode = currentNode.subtree[result];
-			expect(nextNode.word).toBeDefined();
-			expect(nextNode.word.length).toBe(5);
+		// The result must lead to a further guess, not a leaf
+		expect(currentNode.subtree).toHaveProperty(result);
+		const nextNode = (currentNode.subtree as Record<string, TreeNode>)[result];
+		expect(nextNode.word).toBe('flunk');
+		expect(Array.isArray(nextNode.subtree)).toBe(false);
 
-			// Cycle one tile
-			const newColor = cycleColor(getTileColor(result, 0));
-			expect(newColor).toBe('Y');
+		// Cycle one tile
+		const newColor = cycleColor(getTileColor(result, 0));
+		expect(newColor).toBe('Y');
 
-			// Update result
-			const updatedResult = setTile(result, 0, newColor);
-			expect(updatedResult).toBe('YGBYG');
-			expect(isValidResult(updatedResult)).toBe(true);
-		}
+		// Update result
+		const updatedResult = setTile(result, 0, newColor);
+		expect(updatedResult).toBe('YYYBB');
+		expect(isValidResult(updatedResult)).toBe(true);
 	});
 
 	it('should simulate game over (no valid words)', () => {
@@ -418,10 +412,8 @@ describe('Real game scenarios', () => {
 
 		const leaf = findLeafNode(solutionTree);
 		expect(leaf).not.toBeNull();
-		if (leaf) {
-			expect(leaf.word.length).toBe(5);
-			expect(isValidWord(leaf.word)).toBe(true);
-		}
+		expect(leaf!.word.length).toBe(5);
+		expect(isValidWord(leaf!.word)).toBe(true);
 	});
 });
 
