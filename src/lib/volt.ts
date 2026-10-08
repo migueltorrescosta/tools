@@ -17,6 +17,19 @@ export type CountryGroups = Record<string, PositionGroup[]>;
 
 export const EU_FLAG = '🇪🇺';
 
+// Country colors (lighter for better contrast with dark text)
+export const COUNTRY_COLORS: Record<string, string> = {
+	'🇩🇪': '#FFEA00', // Germany - bright gold
+	'🇳🇱': '#FF9933', // Netherlands - light orange
+	'🇬🇷': '#3399FF', // Greece - bright blue
+	'🇨🇾': '#FF7733', // Cyprus - coral orange
+	'🇷🇴': '#3366CC', // Romania - medium blue
+	'🇵🇹': '#00AC00', // Portugal - green
+	'🇮🇹': '#009999', // Italy - teal
+	'🇫🇷': '#E30717', // France - red
+	[EU_FLAG]: '#4477DD' // EU - softer blue
+};
+
 const MEP_POSITIONS = new Set(['MEP', 'MdEP']);
 
 export function isMep(p: Politician): boolean {
@@ -26,12 +39,18 @@ export function isMep(p: Politician): boolean {
 // Parse date string to a fractional year: YYYY + (month-1)/12 + (day-1)/365.
 // Handles: "DD/MM/YYYY", "MM/YYYY", "YYYY". A bare year is Jan 1 of that year,
 // so an end date of "2029" is exclusive (the mandate runs until the start of 2029).
+// Anything else (ISO dates, "present", "", "15.07.2029", month 13) throws.
+const DATE_RE = /^(?:(\d{2})\/)?(?:(\d{2})\/)?(\d{4})$/;
+
 export function parseDate(dateStr: string): number {
-	const parts = dateStr.split('/').map((x) => parseInt(x));
-	const year = parts[parts.length - 1];
-	const month = parts.length >= 2 ? parts[parts.length - 2] : 1;
-	const day = parts.length === 3 ? parts[0] : 1;
-	return year + (month - 1) / 12 + (day - 1) / 365;
+	const m = DATE_RE.exec(dateStr);
+	if (!m) throw new Error(`Invalid date "${dateStr}": expected DD/MM/YYYY, MM/YYYY or YYYY`);
+	// With one prefix group the regex fills the first; it is the month, not the day
+	const [day, month] = m[2] !== undefined ? [+m[1], +m[2]] : [1, m[1] !== undefined ? +m[1] : 1];
+	if (month < 1 || month > 12 || day < 1 || day > 31) {
+		throw new Error(`Invalid date "${dateStr}": day or month out of range`);
+	}
+	return +m[3] + (month - 1) / 12 + (day - 1) / 365;
 }
 
 // Group by country, then by location; locations sorted by latest start date

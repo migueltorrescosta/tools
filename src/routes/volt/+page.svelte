@@ -2,6 +2,7 @@
 	import electedOfficials from '$lib/data/elected_officials.json';
 	import {
 		barGeometry,
+		COUNTRY_COLORS,
 		computeStats,
 		filterGroups,
 		timelineRange,
@@ -14,18 +15,7 @@
 	const timeline = timelineRange(officials);
 	const { minYear, maxYear, yearRange } = timeline;
 
-	// Country colors (lighter for better contrast with dark text)
-	const countryColors: Record<string, string> = {
-		'🇩🇪': '#FFEA00', // Germany - bright gold
-		'🇳🇱': '#FF9933', // Netherlands - light orange
-		'🇬🇷': '#3399FF', // Greece - bright blue
-		'🇨🇾': '#FF7733', // Cyprus - coral orange
-		'🇷🇴': '#3366CC', // Romania - medium blue
-		'🇵🇹': '#00AC00', // Portugal - green
-		'🇮🇹': '#009999', // Italy - teal
-		'🇫🇷': '#E30717', // France - red
-		'🇪🇺': '#4477DD' // EU - softer blue
-	};
+	const countryColors = COUNTRY_COLORS;
 
 	type CountryFilter = 'all' | '🇪🇺' | '🇳🇱' | '🇩🇪' | '🇨🇾' | '🇬🇷' | '🇷🇴' | '🇵🇹' | '🇮🇹' | '🇫🇷';
 

@@ -40,6 +40,13 @@ describe('parseDate', () => {
 		expect(parseDate('16/07/2024')).toBeCloseTo(2024.541, 3);
 		expect(parseDate('02/07/2019')).toBeGreaterThan(2019.5);
 	});
+
+	it.each(['present', '', '2029-07-15', '15.07.2029', '7/2029', '13/2029', '32/01/2029', '29'])(
+		'rejects malformed date %j instead of returning NaN or a bogus year',
+		(s) => {
+			expect(() => parseDate(s)).toThrow(/Invalid date/);
+		}
+	);
 });
 
 describe('groupByCountry', () => {
