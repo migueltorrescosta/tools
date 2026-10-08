@@ -4,6 +4,7 @@
 	import {
 		ALGORITHMS as algorithms,
 		isSymmetric,
+		jsonWarnings,
 		parseEncodeInputs,
 		signJwt,
 		tokenView,
@@ -27,6 +28,12 @@
 	let verifySeq = 0;
 	let signatureResult = $state('');
 	let signatureError = $state('');
+	let decodeWarnings = $state<string[]>([]);
+	// What ENCODE would change: JSON.parse rounds big integers and drops duplicate keys
+	const encodeWarnings = $derived([
+		...jsonWarnings(headerJson).map((w) => `Header: ${w}`),
+		...jsonWarnings(payloadJson).map((w) => `Payload: ${w}`)
+	]);
 
 	function decodeToken(t: string) {
 		const view = tokenView(t);
@@ -36,6 +43,7 @@
 		payloadError = view.payloadError;
 		signatureResult = view.signature;
 		signatureError = view.signatureError;
+		decodeWarnings = view.warnings;
 		if (view.alg) selectedAlgorithm = view.alg;
 	}
 
@@ -103,6 +111,12 @@
 			spellcheck="false"
 		></textarea>
 	</div>
+
+	{#if decodeWarnings.length}
+		<div class="key-warning" role="status">
+			{#each decodeWarnings as warning, i (i)}<div>{warning}</div>{/each}
+		</div>
+	{/if}
 
 	<div class="panels">
 		<div class="panel header-panel">
@@ -229,6 +243,11 @@
 			>
 			<span class="btn-glow"></span>
 		</button>
+		{#if encodeWarnings.length}
+			<div class="key-warning">
+				{#each encodeWarnings as warning, i (i)}<div>ENCODE changes this: {warning}</div>{/each}
+			</div>
+		{/if}
 		{#if encodeError}<div class="error-small" role="alert">{encodeError}</div>{/if}
 		{#if encodeNote}<div class="key-warning">{encodeNote}</div>{/if}
 	</div>

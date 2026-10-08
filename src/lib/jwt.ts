@@ -42,6 +42,90 @@ export function base64UrlDecode(str: string): string {
 	return new TextDecoder('utf-8', { fatal: true }).decode(base64UrlDecodeBytes(str));
 }
 
+// --- raw JSON ---
+
+export interface JsonInspection {
+	/** The input re-indented by two spaces, with every string and number kept verbatim. */
+	pretty: string;
+	/** Values JSON.parse would silently change: unsafe integers, overflow, duplicate keys. */
+	warnings: string[];
+}
+
+/**
+ * Pretty-prints already-valid JSON text without parsing values, so what is shown is what the
+ * token holds, and reports what `JSON.parse` would lose.
+ */
+export function inspectJson(raw: string): JsonInspection {
+	const warnings: string[] = [];
+	let i = 0;
+	const ws = () => {
+		while (i < raw.length && ' \t\n\r'.includes(raw[i])) i++;
+	};
+	const str = (): string => {
+		const start = i++;
+		while (raw[i] !== '"') i += raw[i] === '\\' ? 2 : 1;
+		i++;
+		return raw.slice(start, i);
+	};
+	const num = (): string => {
+		const m = /^-?\d+(\.\d+)?([eE][+-]?\d+)?/.exec(raw.slice(i))!;
+		i += m[0].length;
+		const n = Number(m[0]);
+		if (!Number.isFinite(n)) {
+			warnings.push(`Number ${m[0]} overflows and is read as ${n > 0 ? '' : '-'}Infinity`);
+		} else if (!m[1] && !m[2] && !Number.isSafeInteger(n)) {
+			warnings.push(`Integer ${m[0]} exceeds 2^53 and is read as ${n}`);
+		}
+		return m[0];
+	};
+	const value = (indent: string): string => {
+		ws();
+		const c = raw[i];
+		if (c === '{' || c === '[') {
+			const close = c === '{' ? '}' : ']';
+			const inner = `${indent}  `;
+			const items: string[] = [];
+			const keys = new Set<string>();
+			i++;
+			ws();
+			while (raw[i] !== close) {
+				if (c === '{') {
+					const key = str();
+					const name = JSON.parse(key) as string;
+					if (keys.has(name)) warnings.push(`Duplicate key ${key}: only the last value is kept`);
+					keys.add(name);
+					ws();
+					i++; // ':'
+					items.push(`${inner}${key}: ${value(inner)}`);
+				} else {
+					items.push(`${inner}${value(inner)}`);
+				}
+				ws();
+				if (raw[i] === ',') i++;
+				ws();
+			}
+			i++;
+			return items.length ? `${c}\n${items.join(',\n')}\n${indent}${close}` : `${c}${close}`;
+		}
+		if (c === '"') return str();
+		if (c === '-' || (c >= '0' && c <= '9')) return num();
+		const word = /^(true|false|null)/.exec(raw.slice(i))![0];
+		i += word.length;
+		return word;
+	};
+	return { pretty: value(''), warnings };
+}
+
+/** inspectJson warnings for text that parses as JSON; [] for anything else. */
+export function jsonWarnings(text: string): string[] {
+	try {
+		JSON.parse(text);
+	} catch {
+		return [];
+	}
+	return inspectJson(text).warnings;
+}
+
 // --- decode ---
 
 export interface DecodedJwt {
@@ -49,6 +133,10 @@ export interface DecodedJwt {
 	header: JsonObject | undefined;
 	/** Parsed payload object; undefined when it could not be decoded or is not an object. */
 	payload: JsonObject | undefined;
+	/** Decoded header JSON text exactly as in the token; '' when it could not be decoded. */
+	headerText: string;
+	/** Decoded payload JSON text exactly as in the token; '' when it could not be decoded. */
+	payloadText: string;
 	signature: string;
 	/** Set when the signature segment is not base64url. */
 	signatureError: string;
@@ -84,7 +172,7 @@ export function normalizeToken(token: string): string {
 function parseSegment(
 	segment: string,
 	name: SegmentName
-): { ok: true; value: JsonObject } | { ok: false; error: string } {
+): { ok: true; value: JsonObject; text: string } | { ok: false; error: string } {
 	const charset = charsetError(segment, name);
 	if (charset) return { ok: false, error: charset };
 	let bytes: Uint8Array<ArrayBuffer>;
@@ -106,13 +194,15 @@ function parseSegment(
 		return { ok: false, error: `${name} is not valid JSON` };
 	}
 	if (!isJsonObject(value)) return { ok: false, error: `${name} must be a JSON object` };
-	return { ok: true, value };
+	return { ok: true, value, text };
 }
 
 export function decodeJwt(token: string): DecodedJwt {
 	const result: DecodedJwt = {
 		header: undefined,
 		payload: undefined,
+		headerText: '',
+		payloadText: '',
 		signature: '',
 		signatureError: '',
 		formatError: '',
@@ -126,10 +216,10 @@ export function decodeJwt(token: string): DecodedJwt {
 		return result;
 	}
 	const header = parseSegment(parts[0], 'Header');
-	if (header.ok) result.header = header.value;
+	if (header.ok) [result.header, result.headerText] = [header.value, header.text];
 	else result.headerError = header.error;
 	const payload = parseSegment(parts[1], 'Payload');
-	if (payload.ok) result.payload = payload.value;
+	if (payload.ok) [result.payload, result.payloadText] = [payload.value, payload.text];
 	else result.payloadError = payload.error;
 	result.signature = parts[2];
 	result.signatureError = charsetError(parts[2], 'Signature');
@@ -142,6 +232,8 @@ export interface TokenView {
 	payloadJson: string;
 	headerError: string;
 	payloadError: string;
+	/** What JSON.parse would change in the header or payload (see inspectJson). */
+	warnings: string[];
 	signature: string;
 	signatureError: string;
 	/** Header alg to select, or null to leave the selection alone. */
@@ -156,6 +248,7 @@ export function tokenView(token: string): TokenView {
 		payloadJson: '',
 		headerError: '',
 		payloadError: '',
+		warnings: [],
 		signature: '',
 		signatureError: '',
 		alg: null
@@ -165,12 +258,18 @@ export function tokenView(token: string): TokenView {
 	if (decoded.formatError) return { ...view, headerError: decoded.formatError };
 	view.headerError = decoded.headerError;
 	if (decoded.header) {
-		view.headerJson = JSON.stringify(decoded.header, null, 2);
+		const { pretty, warnings } = inspectJson(decoded.headerText);
+		view.headerJson = pretty;
+		view.warnings.push(...warnings.map((w) => `Header: ${w}`));
 		const alg = decoded.header.alg;
 		view.alg = typeof alg === 'string' && alg ? alg : 'HS256';
 	}
 	view.payloadError = decoded.payloadError;
-	if (decoded.payload) view.payloadJson = JSON.stringify(decoded.payload, null, 2);
+	if (decoded.payload) {
+		const { pretty, warnings } = inspectJson(decoded.payloadText);
+		view.payloadJson = pretty;
+		view.warnings.push(...warnings.map((w) => `Payload: ${w}`));
+	}
 	view.signature = decoded.signature;
 	view.signatureError = decoded.signatureError;
 	return view;

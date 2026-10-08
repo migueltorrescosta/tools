@@ -6,6 +6,8 @@ import {
 	base64UrlEncodeBytes,
 	decodeJwt,
 	encodeJwt,
+	inspectJson,
+	jsonWarnings,
 	parseEncodeInputs,
 	signJwt,
 	signingInput,
@@ -52,6 +54,8 @@ describe('decodeJwt', () => {
 		expect(decodeJwt(SAMPLE_JWT)).toEqual({
 			header: { alg: 'HS256', typ: 'JWT' },
 			payload: { sub: '1234567890', name: 'John Doe', iat: 1516239022 },
+			headerText: '{"alg":"HS256","typ":"JWT"}',
+			payloadText: '{"sub":"1234567890","name":"John Doe","iat":1516239022}',
 			signature: 'SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
 			signatureError: '',
 			formatError: '',
@@ -134,11 +138,74 @@ describe('decodeJwt', () => {
 	});
 });
 
+describe('inspectJson', () => {
+	it.each([
+		'{"sub":"1234567890","name":"John Doe","iat":1516239022}',
+		'{"a":[1,{"b":null,"c":[]},{}],"d":"x\\"y,\\\\","e":-1.5,"f":true}',
+		'[]',
+		'"s"',
+		' { "a" : [ 1 , 2 ] } '
+	])('matches JSON.stringify(_, null, 2) for ordinary JSON %s', (raw) => {
+		expect(inspectJson(raw)).toEqual({
+			pretty: JSON.stringify(JSON.parse(raw), null, 2),
+			warnings: []
+		});
+	});
+
+	it('keeps large integers, overflow and duplicate keys verbatim and warns about each', () => {
+		const raw = '{"id":12345678901234567890,"big":1e400,"neg":-1E999,"dup":1,"dup":2}';
+		const { pretty, warnings } = inspectJson(raw);
+		expect(pretty).toBe(
+			'{\n  "id": 12345678901234567890,\n  "big": 1e400,\n  "neg": -1E999,\n  "dup": 1,\n  "dup": 2\n}'
+		);
+		expect(warnings).toEqual([
+			'Integer 12345678901234567890 exceeds 2^53 and is read as 12345678901234567000',
+			'Number 1e400 overflows and is read as Infinity',
+			'Number -1E999 overflows and is read as -Infinity',
+			'Duplicate key "dup": only the last value is kept'
+		]);
+	});
+
+	it('keeps number spelling such as exponents and trailing zeros', () => {
+		expect(inspectJson('[-1.5e-3,1.0,1E2]').pretty).toBe('[\n  -1.5e-3,\n  1.0,\n  1E2\n]');
+	});
+
+	it('does not flag safe integers, decimals or equal keys in different objects', () => {
+		const raw = '{"n":9007199254740991,"x":1.5,"a":{"k":1},"b":{"k":2}}';
+		expect(inspectJson(raw).warnings).toEqual([]);
+	});
+
+	it('treats keys equal after unescaping as duplicates', () => {
+		expect(inspectJson('{"a":1,"\\u0061":2}').warnings).toEqual([
+			'Duplicate key "\\u0061": only the last value is kept'
+		]);
+	});
+
+	it('jsonWarnings ignores text that is not JSON', () => {
+		expect(jsonWarnings('{oops')).toEqual([]);
+		expect(jsonWarnings('{"a":1,"a":2}')).toHaveLength(1);
+	});
+});
+
 describe('tokenView', () => {
+	it('shows the probe payload verbatim with warnings instead of rounded values', () => {
+		const raw = '{"id":12345678901234567890,"big":1e400,"dup":1,"dup":2}';
+		const v = tokenView(`eyJhbGciOiJIUzI1NiJ9.${base64UrlEncode(raw)}.sig`);
+		expect(v.payloadJson).toContain('"id": 12345678901234567890');
+		expect(v.payloadJson).toContain('"big": 1e400');
+		expect(v.payloadJson).toContain('"dup": 1,\n  "dup": 2');
+		expect(v.warnings).toEqual([
+			'Payload: Integer 12345678901234567890 exceeds 2^53 and is read as 12345678901234567000',
+			'Payload: Number 1e400 overflows and is read as Infinity',
+			'Payload: Duplicate key "dup": only the last value is kept'
+		]);
+	});
+
 	const CLEARED = {
 		headerJson: '',
 		payloadJson: '',
 		payloadError: '',
+		warnings: [],
 		signature: '',
 		signatureError: '',
 		alg: null
