@@ -6,11 +6,12 @@ import {
 	validatePlainText,
 	validateXml,
 	validateYaml,
+	PARSERERROR_NS,
 	type XmlParser
 } from '$lib/format/validate';
 
 // Node has no DOMParser. These stubs return what a browser returns: a document whose
-// querySelector('parsererror') finds the error element (Chromium wording) or nothing.
+// parsererror element in PARSERERROR_NS holds the error text (Chromium wording), or none.
 const CHROMIUM_MISMATCH =
 	'This page contains the following errors:error on line 2 at column 15: Opening and ending tag mismatch: child line 2 and root\nBelow is a rendering of the page up to the first error.';
 
@@ -21,10 +22,10 @@ function stubParser(errorText: string | null): XmlParser & { calls: [string, str
 		parseFromString(text, type) {
 			calls.push([text, type]);
 			return {
-				querySelector: ((sel: string) =>
-					sel === 'parsererror' && errorText !== null
-						? { textContent: errorText }
-						: null) as unknown as Document['querySelector']
+				getElementsByTagNameNS: ((ns: string, name: string) =>
+					ns === PARSERERROR_NS && name === 'parsererror' && errorText !== null
+						? [{ textContent: errorText }]
+						: []) as unknown as Document['getElementsByTagNameNS']
 			};
 		}
 	};
@@ -192,6 +193,23 @@ describe('Format validation functions', () => {
 			expect(result.message).toBe(
 				'Invalid XML at line 2, column 15: This page contains the following errors:error on line 2 at column 15: Opening and ending tag mismatch: child line 2 and root'
 			);
+		});
+
+		it('accepts a user element named parsererror outside the error namespace', () => {
+			// What a browser returns for <root><parsererror/></root>: the element exists in no
+			// namespace, so a local-name lookup finds it and a namespaced lookup does not
+			const userElement = { textContent: '' };
+			const parser = {
+				parseFromString: () => ({
+					querySelector: (sel: string) => (sel === 'parsererror' ? userElement : null),
+					getElementsByTagNameNS: (ns: string, name: string) =>
+						(ns === '*' || ns === '') && name === 'parsererror' ? [userElement] : []
+				})
+			} as unknown as XmlParser;
+			expect(validateXml('<root><parsererror/></root>', parser)).toEqual({
+				valid: true,
+				message: 'Valid XML'
+			});
 		});
 
 		it('falls back to a generic message when the parsererror is empty', () => {

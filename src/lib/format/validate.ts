@@ -9,8 +9,11 @@ export interface ValidationResult {
 
 /** The part of DOMParser validateXml needs; injectable so it runs outside a browser. */
 export interface XmlParser {
-	parseFromString(text: string, type: 'application/xml'): Pick<Document, 'querySelector'>;
+	parseFromString(text: string, type: 'application/xml'): Pick<Document, 'getElementsByTagNameNS'>;
 }
+
+/** Namespace Chromium, Firefox and WebKit put their parsererror element in. */
+export const PARSERERROR_NS = 'http://www.mozilla.org/newlayout/xml/parsererror.xml';
 
 export const FORMATS = [
 	{ value: 'json', label: 'JSON' },
@@ -89,7 +92,8 @@ export function validateXml(text: string, parser: XmlParser = new DOMParser()): 
 	}
 
 	const doc = parser.parseFromString(text, 'application/xml');
-	const parseError = doc.querySelector('parsererror');
+	// Match by namespace: a user element named parsererror is well-formed content
+	const parseError = doc.getElementsByTagNameNS(PARSERERROR_NS, 'parsererror')[0];
 
 	if (parseError) {
 		const errorText = parseError.textContent || 'Invalid XML';
