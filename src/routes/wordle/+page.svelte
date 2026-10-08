@@ -4,6 +4,7 @@
 		cycleTile as cycleResultTile,
 		getTileColor,
 		newAttempt,
+		OPENER,
 		setTile,
 		step,
 		undoLast,
@@ -16,7 +17,7 @@
 	let history = $state<Attempt[]>([]);
 	// visited[i] is the tree that was current when history[i] was submitted.
 	let visited = $state<SolutionTree[]>([]);
-	let nextAttempt = $state<Attempt>(newAttempt('RAISE'));
+	let nextAttempt = $state<Attempt>(newAttempt(OPENER));
 	let errorMessage = $state('');
 	let gameOver = $state(false);
 
@@ -92,7 +93,7 @@
 		currentSolutionTree = solutionTree;
 		history = [];
 		visited = [];
-		nextAttempt = newAttempt('RAISE');
+		nextAttempt = newAttempt(OPENER);
 		errorMessage = '';
 		gameOver = false;
 	}

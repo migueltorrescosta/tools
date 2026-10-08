@@ -10,6 +10,7 @@ import {
 	isValidResult,
 	newAttempt,
 	NO_MATCH_MESSAGE,
+	OPENER,
 	setTile,
 	step,
 	undoLast,
@@ -547,5 +548,82 @@ describe('undoLast', () => {
 		expect(undone.history).toEqual([history[0]]);
 		expect(history).toHaveLength(2);
 		expect(visited).toHaveLength(2);
+	});
+});
+
+/** Reference Wordle scorer: greens first, then yellows limited by the unmatched letter counts. */
+function score(guess: string, answer: string): string {
+	const result: TileColor[] = Array(5).fill('B');
+	const unmatched: Record<string, number> = {};
+	for (let i = 0; i < 5; i++) {
+		if (guess[i] === answer[i]) result[i] = 'G';
+		else unmatched[answer[i]] = (unmatched[answer[i]] ?? 0) + 1;
+	}
+	for (let i = 0; i < 5; i++) {
+		if (result[i] !== 'G' && (unmatched[guess[i]] ?? 0) > 0) {
+			result[i] = 'Y';
+			unmatched[guess[i]]--;
+		}
+	}
+	return result.join('');
+}
+
+describe('score (reference)', () => {
+	it('handles duplicate letters', () => {
+		expect(score('abbey', 'babes')).toBe('YYGGB');
+		expect(score('speed', 'abide')).toBe('BBYBY');
+		expect(score('eerie', 'sweet')).toBe('YYBBB');
+	});
+});
+
+describe('Solution tree consistency with Wordle scoring', () => {
+	interface Leaf {
+		answer: string;
+		steps: { guess: string; key: string }[];
+		subtree: string[];
+	}
+
+	function collectLeaves(tree: SolutionTree, guess: string, steps: Leaf['steps']): Leaf[] {
+		return Object.entries(tree).flatMap(([key, node]) => {
+			const path = [...steps, { guess, key }];
+			return Array.isArray(node.subtree)
+				? [{ answer: node.word, steps: path, subtree: node.subtree }]
+				: collectLeaves(node.subtree, node.word, path);
+		});
+	}
+
+	const leaves = collectLeaves(solutionTree, OPENER.toLowerCase(), []);
+
+	it('has leaves to check', () => {
+		expect(leaves.length).toBeGreaterThan(100);
+	});
+
+	it('every key equals score(guess, answer) on the path to each answer', () => {
+		const mismatches = leaves.flatMap((leaf) =>
+			leaf.steps
+				.filter(({ guess, key }) => score(guess, leaf.answer) !== key)
+				.map(({ guess, key }) => `${leaf.answer}: ${guess} -> ${key}`)
+		);
+		expect(mismatches).toEqual([]);
+	});
+
+	it('has unique answers', () => {
+		const answers = leaves.map((l) => l.answer);
+		expect(new Set(answers).size).toBe(answers.length);
+	});
+
+	it('each leaf holds exactly its own answer', () => {
+		const bad = leaves.filter((l) => l.subtree.length !== 1 || l.subtree[0] !== l.answer);
+		expect(bad.map((l) => l.answer)).toEqual([]);
+	});
+
+	it('solves every answer within six guesses', () => {
+		// Guesses: one per step on the path, plus the final guess of the answer itself.
+		const tooDeep = leaves.filter((l) => l.steps.length + 1 > 6);
+		expect(tooDeep.map((l) => l.answer)).toEqual([]);
+	});
+
+	it('stores no GGGGG keys', () => {
+		expect(leaves.flatMap((l) => l.steps).filter((s) => s.key === 'GGGGG')).toEqual([]);
 	});
 });

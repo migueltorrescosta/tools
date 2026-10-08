@@ -7,6 +7,8 @@ export interface TreeNode {
 
 export type SolutionTree = Record<string, TreeNode>;
 
+/** First guess; the root keys of the solution tree are its results. */
+export const OPENER = 'RAISE';
 export const WIN_RESULT = 'GGGGG';
 export const INVALID_RESULT_MESSAGE = 'This is not a valid result. Please try again.';
 export const NO_MATCH_MESSAGE = 'There are no words satisfying all the results listed. Try again?';
