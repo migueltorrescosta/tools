@@ -3,12 +3,14 @@
 	import { copyToClipboard } from '$lib/clipboard';
 	import {
 		ALGORITHMS as algorithms,
+		describeClaims,
 		isSymmetric,
 		jsonWarnings,
 		parseEncodeInputs,
 		signJwt,
 		tokenView,
 		verifyJwt,
+		type JsonObject,
 		type VerifyResult
 	} from '$lib/jwt';
 
@@ -29,6 +31,10 @@
 	let signatureResult = $state('');
 	let signatureError = $state('');
 	let decodeWarnings = $state<string[]>([]);
+	let decodedPayload = $state<JsonObject | undefined>(undefined);
+	let unsignedBanner = $state('');
+	let now = $state(Date.now());
+	const claims = $derived(describeClaims(decodedPayload, now));
 	// What ENCODE would change: JSON.parse rounds big integers and drops duplicate keys
 	const encodeWarnings = $derived([
 		...jsonWarnings(headerJson).map((w) => `Header: ${w}`),
@@ -44,6 +50,8 @@
 		signatureResult = view.signature;
 		signatureError = view.signatureError;
 		decodeWarnings = view.warnings;
+		decodedPayload = view.payload;
+		unsignedBanner = view.unsigned;
 		if (view.alg) selectedAlgorithm = view.alg;
 	}
 
@@ -84,8 +92,10 @@
 	});
 
 	onMount(() => {
+		const clock = setInterval(() => (now = Date.now()), 1000);
 		token =
 			'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+		return () => clearInterval(clock);
 	});
 </script>
 
@@ -111,6 +121,10 @@
 			spellcheck="false"
 		></textarea>
 	</div>
+
+	{#if unsignedBanner}
+		<div class="signature-status invalid" role="alert">{unsignedBanner}</div>
+	{/if}
 
 	{#if decodeWarnings.length}
 		<div class="key-warning" role="status">
@@ -150,6 +164,22 @@
 				{:else}
 					<pre class="json-display">{payloadJson}</pre>
 				{/if}
+				{#if claims.expired}
+					<div class="signature-status invalid">Expired</div>
+				{:else if claims.notYetValid}
+					<div class="signature-status invalid">Not yet valid (nbf)</div>
+				{/if}
+				{#if claims.issuedInFuture}
+					<div class="key-warning">Issued in the future (iat)</div>
+				{/if}
+				{#each claims.times as claim (claim.name)}
+					<div class="claim-time">
+						{claim.name}: {claim.iso} ({claim.relative})
+					</div>
+				{/each}
+				{#each claims.errors as error, i (i)}
+					<div class="error-small">{error}</div>
+				{/each}
 			</div>
 		</div>
 
@@ -252,3 +282,11 @@
 		{#if encodeNote}<div class="key-warning">{encodeNote}</div>{/if}
 	</div>
 </div>
+
+<style>
+	.claim-time {
+		margin-top: 0.25rem;
+		font-size: 0.8rem;
+		color: var(--futuristic-text-dim);
+	}
+</style>

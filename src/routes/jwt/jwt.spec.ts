@@ -5,12 +5,15 @@ import {
 	base64UrlEncode,
 	base64UrlEncodeBytes,
 	decodeJwt,
+	describeClaims,
+	formatRelative,
 	encodeJwt,
 	inspectJson,
 	jsonWarnings,
 	parseEncodeInputs,
 	signJwt,
 	signingInput,
+	unsignedReason,
 	tokenView,
 	verifyJwt
 } from '$lib/jwt';
@@ -208,7 +211,9 @@ describe('tokenView', () => {
 		warnings: [],
 		signature: '',
 		signatureError: '',
-		alg: null
+		alg: null,
+		payload: undefined,
+		unsigned: ''
 	};
 
 	it('shows the sample token fully', () => {
@@ -234,6 +239,93 @@ describe('tokenView', () => {
 		['a.b.c.d.e', 'JWE (encrypted) tokens are not supported']
 	])('clears payload and signature for malformed %s', (t, error) => {
 		expect(tokenView(t)).toEqual({ ...CLEARED, headerError: error });
+	});
+});
+
+describe('describeClaims', () => {
+	// 2026-10-08T12:00:00Z
+	const NOW = Date.UTC(2026, 9, 8, 12) as number;
+	const NOW_S = NOW / 1000;
+
+	it('gives ISO dates and relative times for exp, nbf and iat', () => {
+		const c = describeClaims({ iat: NOW_S - 3600, nbf: NOW_S - 60, exp: NOW_S + 300 }, NOW);
+		expect(c.times).toEqual([
+			{
+				name: 'exp',
+				seconds: NOW_S + 300,
+				iso: '2026-10-08T12:05:00.000Z',
+				relative: 'in 5 minutes'
+			},
+			{
+				name: 'nbf',
+				seconds: NOW_S - 60,
+				iso: '2026-10-08T11:59:00.000Z',
+				relative: '1 minute ago'
+			},
+			{
+				name: 'iat',
+				seconds: NOW_S - 3600,
+				iso: '2026-10-08T11:00:00.000Z',
+				relative: '1 hour ago'
+			}
+		]);
+		expect(c).toMatchObject({
+			expired: false,
+			notYetValid: false,
+			issuedInFuture: false,
+			errors: []
+		});
+	});
+
+	it('flags an expired token, including exactly at exp', () => {
+		expect(describeClaims({ exp: NOW_S - 120 }, NOW).expired).toBe(true);
+		expect(describeClaims({ exp: NOW_S - 120 }, NOW).times[0].relative).toBe('2 minutes ago');
+		expect(describeClaims({ exp: NOW_S }, NOW).expired).toBe(true);
+		expect(describeClaims({ exp: NOW_S + 1 }, NOW).expired).toBe(false);
+	});
+
+	it('flags a token not yet valid and one issued in the future', () => {
+		const c = describeClaims({ nbf: NOW_S + 86400 * 3, iat: NOW_S + 10 }, NOW);
+		expect(c.notYetValid).toBe(true);
+		expect(c.issuedInFuture).toBe(true);
+		expect(c.times[0].relative).toBe('in 3 days');
+	});
+
+	it('reports time claims that are not NumericDates', () => {
+		const c = describeClaims({ exp: '2026-10-08', nbf: 1e20 }, NOW);
+		expect(c.times).toEqual([]);
+		expect(c.errors).toEqual([
+			'exp must be a NumericDate (seconds since 1970), got "2026-10-08"',
+			'nbf must be a NumericDate (seconds since 1970), got 100000000000000000000'
+		]);
+	});
+
+	it('describes the jwt.io sample iat', () => {
+		const c = describeClaims({ iat: 1516239022 }, NOW);
+		expect(c.times[0].iso).toBe('2018-01-18T01:30:22.000Z');
+		expect(c.times[0].relative).toBe('8 years ago');
+	});
+
+	it('formats relative distances in the largest whole unit', () => {
+		expect(formatRelative(0)).toBe('now');
+		expect(formatRelative(1)).toBe('in 1 second');
+		expect(formatRelative(-59)).toBe('59 seconds ago');
+		expect(formatRelative(7200)).toBe('in 2 hours');
+	});
+});
+
+describe('unsignedReason', () => {
+	it('flags alg none and an empty signature, and nothing for a signed token', () => {
+		expect(unsignedReason({ alg: 'none' }, '')).toMatch(/alg "none", empty signature/);
+		expect(unsignedReason({ alg: 'NONE' }, 'abc')).toMatch(/alg "none"/);
+		expect(unsignedReason({ alg: 'HS256' }, '')).toMatch(/empty signature/);
+		expect(unsignedReason({ alg: 'HS256' }, 'abc')).toBe('');
+	});
+
+	it('is set on the token view of an unsigned token', () => {
+		const t = encodeJwt({ alg: 'none', typ: 'JWT' }, { sub: '1' });
+		expect(tokenView(t).unsigned).toMatch(/^Unsigned token/);
+		expect(tokenView(SAMPLE_JWT).unsigned).toBe('');
 	});
 });
 

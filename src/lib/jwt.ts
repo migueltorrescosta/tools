@@ -238,6 +238,10 @@ export interface TokenView {
 	signatureError: string;
 	/** Header alg to select, or null to leave the selection alone. */
 	alg: string | null;
+	/** Decoded payload, for claim interpretation. */
+	payload: JsonObject | undefined;
+	/** Non-empty when the token is unsigned (see unsignedReason). */
+	unsigned: string;
 }
 
 export const EMPTY_HEADER_JSON = '{\n  "alg": "",\n  "typ": "JWT"\n}';
@@ -251,7 +255,9 @@ export function tokenView(token: string): TokenView {
 		warnings: [],
 		signature: '',
 		signatureError: '',
-		alg: null
+		alg: null,
+		payload: undefined,
+		unsigned: ''
 	};
 	if (!token.trim()) return { ...view, headerJson: EMPTY_HEADER_JSON };
 	const decoded = decodeJwt(token);
@@ -270,9 +276,102 @@ export function tokenView(token: string): TokenView {
 		view.payloadJson = pretty;
 		view.warnings.push(...warnings.map((w) => `Payload: ${w}`));
 	}
+	view.payload = decoded.payload;
 	view.signature = decoded.signature;
 	view.signatureError = decoded.signatureError;
+	view.unsigned = unsignedReason(decoded.header, decoded.signature);
 	return view;
+}
+
+// --- claims ---
+
+export const TIME_CLAIMS = ['exp', 'nbf', 'iat'] as const;
+export type TimeClaimName = (typeof TIME_CLAIMS)[number];
+
+export interface TimeClaim {
+	name: TimeClaimName;
+	/** NumericDate: seconds since the Unix epoch (RFC 7519 2). */
+	seconds: number;
+	/** UTC ISO 8601 date. */
+	iso: string;
+	/** Distance from now, e.g. "in 5 minutes" or "2 days ago". */
+	relative: string;
+}
+
+export interface ClaimsSummary {
+	times: TimeClaim[];
+	/** now >= exp. */
+	expired: boolean;
+	/** now < nbf. */
+	notYetValid: boolean;
+	/** iat later than now. */
+	issuedInFuture: boolean;
+	/** Time claims present but not a usable NumericDate. */
+	errors: string[];
+}
+
+const UNITS: [string, number][] = [
+	['year', 365.25 * 86400],
+	['day', 86400],
+	['hour', 3600],
+	['minute', 60],
+	['second', 1]
+];
+
+/** "in 3 hours" / "3 hours ago" for a signed distance in seconds, in the largest whole unit. */
+export function formatRelative(deltaSeconds: number): string {
+	const abs = Math.abs(deltaSeconds);
+	if (abs < 1) return 'now';
+	const [unit, size] = UNITS.find(([, size]) => abs >= size)!;
+	const n = Math.floor(abs / size);
+	const text = `${n} ${unit}${n === 1 ? '' : 's'}`;
+	return deltaSeconds > 0 ? `in ${text}` : `${text} ago`;
+}
+
+/** Largest |ms| a Date can hold. */
+const MAX_DATE_MS = 8.64e15;
+
+/** Interprets exp, nbf and iat against `now` (milliseconds since the epoch). */
+export function describeClaims(payload: JsonObject | undefined, now: number): ClaimsSummary {
+	const summary: ClaimsSummary = {
+		times: [],
+		expired: false,
+		notYetValid: false,
+		issuedInFuture: false,
+		errors: []
+	};
+	if (!payload) return summary;
+	const nowSeconds = now / 1000;
+	for (const name of TIME_CLAIMS) {
+		if (!(name in payload)) continue;
+		const seconds = payload[name];
+		if (typeof seconds !== 'number' || Math.abs(seconds * 1000) > MAX_DATE_MS) {
+			summary.errors.push(
+				`${name} must be a NumericDate (seconds since 1970), got ${JSON.stringify(seconds)}`
+			);
+			continue;
+		}
+		summary.times.push({
+			name,
+			seconds,
+			iso: new Date(seconds * 1000).toISOString(),
+			relative: formatRelative(seconds - nowSeconds)
+		});
+		if (name === 'exp' && nowSeconds >= seconds) summary.expired = true;
+		if (name === 'nbf' && nowSeconds < seconds) summary.notYetValid = true;
+		if (name === 'iat' && seconds > nowSeconds) summary.issuedInFuture = true;
+	}
+	return summary;
+}
+
+/** Why a token carries no signature, or '' when it has one. */
+export function unsignedReason(header: JsonObject | undefined, signature: string): string {
+	const none = typeof header?.alg === 'string' && header.alg.toLowerCase() === 'none';
+	if (none && !signature)
+		return 'Unsigned token (alg "none", empty signature): anyone can forge it';
+	if (none) return 'Unsigned token (alg "none"): it can never be verified';
+	if (!signature) return 'Unsigned token (empty signature): it can never be verified';
+	return '';
 }
 
 // --- encode ---
