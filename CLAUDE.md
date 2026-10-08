@@ -20,7 +20,6 @@ pnpm run lint
 
 - `src/routes/` — SvelteKit pages (format, verb-conjugator, warhammer-simulator, split, wordle, decision-tree, timelines, rank-vote, jwt, volt, volt-ga, cipher, company-trends)
 - `src/lib/` — shared libraries and utilities
-- `src/stories/` — Storybook component stories
 - `static/` — static assets
 
 ## Conventions
