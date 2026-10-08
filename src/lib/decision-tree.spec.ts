@@ -405,16 +405,14 @@ describe('Multiple answers to same node', () => {
 describe('Single answer selection', () => {
 	it('path contains max one edge per question', () => {
 		const graph = makeCarGraph();
-		// Build a path with two answers for the same question — invalid state
+		// Two answers for the root question: invalid state
 		const badPath: TraversalPath = ['root|Lowest cost', 'root|Lowest cost'];
-		// The computeRows function follows the first edge, then tries the second
-		// but since current node changed, the second edge is not from current node
+		// After the first edge the current node is q_city; the second entry leaves
+		// root, not q_city, so it is ignored and traversal stops at q_city
 		const rows = computeRows(graph, badPath);
-		// The second edge "root|Lowest cost" won't match any edge from the current node
-		// so traversal stops — effectively the second edge is ignored
-		expect(rows.length).toBeGreaterThanOrEqual(3);
-		expect(rows[rows.length - 1].type).toBe('answer');
-		// Only one path edge is consumed since the second edge doesn't match
+		expect(rows.map((r) => r.type)).toEqual(['question', 'answer', 'question', 'answer']);
+		expect((rows[2] as QuestionRow).node.id).toBe('q_city');
+		expect((rows[3] as AnswerRow).selectedEdgeId).toBeUndefined();
 	});
 
 	it('selecting a different answer replaces the previous selection for that position', () => {
