@@ -6,6 +6,7 @@ import {
 	base64UrlEncodeBytes,
 	decodeJwt,
 	encodeJwt,
+	parseEncodeInputs,
 	signJwt,
 	signingInput,
 	verifyJwt
@@ -107,6 +108,45 @@ describe('decodeJwt', () => {
 
 	it('decodes the header null segment bnVsbA as a non-object, not invalid JSON', () => {
 		expect(decodeJwt(`bnVsbA${SAMPLE_PAYLOAD}`).headerError).toBe('Header must be a JSON object');
+	});
+});
+
+describe('parseEncodeInputs', () => {
+	const OBJ = '{"sub":"1"}';
+
+	it('sets alg and typ on the header and keeps the payload', () => {
+		expect(parseEncodeInputs('{"kid":"k","alg":"HS256"}', OBJ, 'RS256')).toEqual({
+			ok: true,
+			header: { kid: 'k', alg: 'RS256', typ: 'JWT' },
+			payload: { sub: '1' }
+		});
+	});
+
+	it.each(['null', '"x"', '42', 'true', '[1]'])(
+		'rejects header %s as not an object instead of throwing',
+		(json) => {
+			expect(parseEncodeInputs(json, OBJ, 'HS256')).toEqual({
+				ok: false,
+				headerError: 'Header must be a JSON object',
+				payloadError: ''
+			});
+		}
+	);
+
+	it.each(['null', '"hi"', '5', '[]'])('rejects payload %s as not a claims object', (json) => {
+		expect(parseEncodeInputs('{}', json, 'HS256')).toEqual({
+			ok: false,
+			headerError: '',
+			payloadError: 'Payload must be a JSON object'
+		});
+	});
+
+	it('reports unparsable JSON in both fields at once', () => {
+		expect(parseEncodeInputs('{', '{oops', 'HS256')).toEqual({
+			ok: false,
+			headerError: 'Invalid header JSON',
+			payloadError: 'Invalid payload JSON'
+		});
 	});
 });
 

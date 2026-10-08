@@ -5,6 +5,7 @@
 		ALGORITHMS as algorithms,
 		decodeJwt,
 		isSymmetric,
+		parseEncodeInputs,
 		signJwt,
 		verifyJwt,
 		type VerifyResult
@@ -59,27 +60,11 @@
 	}
 
 	async function encodeToken() {
-		let header: Record<string, unknown>;
-		let payload: Record<string, unknown>;
-
-		try {
-			header = JSON.parse(headerJson);
-		} catch {
-			headerError = 'Invalid header JSON';
-			return;
-		}
-		headerError = '';
-
-		try {
-			payload = JSON.parse(payloadJson);
-		} catch {
-			payloadError = 'Invalid payload JSON';
-			return;
-		}
-		payloadError = '';
-
-		header.alg = selectedAlgorithm;
-		header.typ = 'JWT';
+		const parsed = parseEncodeInputs(headerJson, payloadJson, selectedAlgorithm);
+		headerError = parsed.ok ? '' : parsed.headerError;
+		payloadError = parsed.ok ? '' : parsed.payloadError;
+		if (!parsed.ok) return;
+		const { header, payload } = parsed;
 
 		try {
 			token = await signJwt(header, payload, secret, selectedAlgorithm);

@@ -123,6 +123,41 @@ export function signingInput(header: unknown, payload: unknown): string {
 	return `${base64UrlEncode(JSON.stringify(header))}.${base64UrlEncode(JSON.stringify(payload))}`;
 }
 
+export type EncodeInputs =
+	| { ok: true; header: JsonObject; payload: JsonObject }
+	| { ok: false; headerError: string; payloadError: string };
+
+function parseObjectText(text: string, name: SegmentName): JsonObject | string {
+	let value: unknown;
+	try {
+		value = JSON.parse(text);
+	} catch {
+		return `Invalid ${name.toLowerCase()} JSON`;
+	}
+	return isJsonObject(value) ? value : `${name} must be a JSON object`;
+}
+
+/**
+ * Parses the ENCODE textareas. Both must be JSON objects; the header gets `alg` and `typ: JWT`
+ * set so the token claims the algorithm it is signed with.
+ */
+export function parseEncodeInputs(
+	headerJson: string,
+	payloadJson: string,
+	alg: string
+): EncodeInputs {
+	const header = parseObjectText(headerJson, 'Header');
+	const payload = parseObjectText(payloadJson, 'Payload');
+	if (typeof header === 'string' || typeof payload === 'string') {
+		return {
+			ok: false,
+			headerError: typeof header === 'string' ? header : '',
+			payloadError: typeof payload === 'string' ? payload : ''
+		};
+	}
+	return { ok: true, header: { ...header, alg, typ: 'JWT' }, payload };
+}
+
 /** Builds an unsigned token `<header>.<payload>.` (empty signature segment). */
 export function encodeJwt(header: unknown, payload: unknown): string {
 	return `${signingInput(header, payload)}.`;
