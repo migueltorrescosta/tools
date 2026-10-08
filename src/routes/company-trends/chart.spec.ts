@@ -36,7 +36,8 @@ const anchor = (quarter: string, revenue: number, operatingIncome: number): Comp
 const quarters = quarterRange('2000Q1', '2003Q4');
 const fx: FxTable = {
 	base: 'EUR',
-	rates: Object.fromEntries(quarters.map((q) => [q, { USD: 2, GBP: 0.5 }]))
+	// Rates vary per quarter so the fiscal-year mean differs from the year-end rate
+	rates: Object.fromEntries(quarters.map((q, i) => [q, { USD: 2 + i / 10, GBP: 0.5 + i / 100 }]))
 };
 
 const company: Company = {
@@ -104,10 +105,12 @@ describe('buildTrail', () => {
 		expect(trail.points[0].sourceUrl).toBe('https://example.com/2000Q4');
 	});
 
-	it('converts into the display currency at each quarter rate', () => {
+	it('converts into the display currency at the fiscal-year mean rate', () => {
+		// FY ending 2000Q4 averages 2.0, 2.1, 2.2, 2.3 = 2.15, not the year-end 2.3
 		const usd = buildTrail(company, quarters, 'USD', fx);
-		expect(usd.points[0].revenue).toBe(200);
-		expect(usd.points[0].expenses).toBe(180);
+		expect(usd.points[0].revenue).toBeCloseTo(215, 10);
+		expect(usd.points[0].expenses).toBeCloseTo(193.5, 10);
+		expect(usd.points[0].margin).toBeCloseTo(0.1, 12);
 	});
 
 	it('cuts a trail at a quarter index', () => {
