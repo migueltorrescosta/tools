@@ -86,6 +86,30 @@ function lineCol(text: string, offset: number): { line: number; col: number } {
 	return { line: before.length, col: before[before.length - 1].length + 1 };
 }
 
+// Chromium/WebKit: "This page contains the following errors:error on line 2 at column 15: <msg>\nBelow is a rendering..."
+// Firefox: "XML Parsing Error: <msg>\nLocation: <url>\nLine Number 2, Column 15:<source line and caret>"
+const XML_LINE = /\bline(?: number)?\s+(\d+)/i;
+const XML_COLUMN = /\bcolumn\s+(\d+)/i;
+const XML_BOILERPLATE = [
+	/^\s*This page contains the following errors:/i,
+	/Below is a rendering of the page up to the first error\.?\s*$/i
+];
+const XML_MESSAGE_PREFIX = /^(?:error on line \d+ at column \d+:|XML Parsing Error:)\s*/i;
+
+/** Turn a browser's parsererror text into "Invalid XML at line L, column C: message". */
+export function describeXmlError(errorText: string): string {
+	let text = errorText;
+	for (const re of XML_BOILERPLATE) text = text.replace(re, '');
+	const lineMatch = XML_LINE.exec(text);
+	const colMatch = lineMatch ? XML_COLUMN.exec(text) : null;
+	let location = '';
+	if (lineMatch) location += ` at line ${lineMatch[1]}`;
+	if (colMatch) location += `, column ${colMatch[1]}`;
+	const firstLine = text.split('\n').find((l) => l.trim()) ?? '';
+	const detail = firstLine.trim().replace(XML_MESSAGE_PREFIX, '').trim();
+	return `Invalid XML${location}: ${detail || 'not well-formed'}`;
+}
+
 export function validateXml(text: string, parser: XmlParser = new DOMParser()): ValidationResult {
 	if (!text.trim()) {
 		return { valid: false, message: 'XML cannot be empty' };
@@ -96,13 +120,7 @@ export function validateXml(text: string, parser: XmlParser = new DOMParser()): 
 	const parseError = doc.getElementsByTagNameNS(PARSERERROR_NS, 'parsererror')[0];
 
 	if (parseError) {
-		const errorText = parseError.textContent || 'Invalid XML';
-		const lineMatch = errorText.match(/line (\d+)/i);
-		const colMatch = errorText.match(/column (\d+)/i);
-		let location = '';
-		if (lineMatch) location += ` at line ${lineMatch[1]}`;
-		if (colMatch) location += `, column ${colMatch[1]}`;
-		return { valid: false, message: `Invalid XML${location}: ${errorText.split('\n')[0]}` };
+		return { valid: false, message: describeXmlError(parseError.textContent ?? '') };
 	}
 
 	return { valid: true, message: 'Valid XML' };

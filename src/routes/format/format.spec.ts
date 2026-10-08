@@ -6,6 +6,7 @@ import {
 	validatePlainText,
 	validateXml,
 	validateYaml,
+	describeXmlError,
 	PARSERERROR_NS,
 	type XmlParser
 } from '$lib/format/validate';
@@ -14,6 +15,8 @@ import {
 // parsererror element in PARSERERROR_NS holds the error text (Chromium wording), or none.
 const CHROMIUM_MISMATCH =
 	'This page contains the following errors:error on line 2 at column 15: Opening and ending tag mismatch: child line 2 and root\nBelow is a rendering of the page up to the first error.';
+const FIREFOX_MISMATCH =
+	'XML Parsing Error: mismatched tag. Expected: </child>.\nLocation: http://localhost:5173/format\nLine Number 2, Column 18:  <child></root>\n-----------------^';
 
 function stubParser(errorText: string | null): XmlParser & { calls: [string, string][] } {
 	const calls: [string, string][] = [];
@@ -191,7 +194,7 @@ describe('Format validation functions', () => {
 			const result = validateXml('<root>\n  <child></root>', stubParser(CHROMIUM_MISMATCH));
 			expect(result.valid).toBe(false);
 			expect(result.message).toBe(
-				'Invalid XML at line 2, column 15: This page contains the following errors:error on line 2 at column 15: Opening and ending tag mismatch: child line 2 and root'
+				'Invalid XML at line 2, column 15: Opening and ending tag mismatch: child line 2 and root'
 			);
 		});
 
@@ -215,7 +218,27 @@ describe('Format validation functions', () => {
 		it('falls back to a generic message when the parsererror is empty', () => {
 			expect(validateXml('<a>', stubParser(''))).toEqual({
 				valid: false,
-				message: 'Invalid XML: Invalid XML'
+				message: 'Invalid XML: not well-formed'
+			});
+		});
+
+		describe('describeXmlError', () => {
+			it('reads the line from Firefox "Line Number" wording', () => {
+				expect(describeXmlError(FIREFOX_MISMATCH)).toBe(
+					'Invalid XML at line 2, column 18: mismatched tag. Expected: </child>.'
+				);
+			});
+
+			it('strips the Chromium boilerplate around the message', () => {
+				expect(describeXmlError(CHROMIUM_MISMATCH)).not.toMatch(
+					/This page contains|Below is a rendering/
+				);
+			});
+
+			it('omits a column when no line is reported', () => {
+				expect(describeXmlError('Unexpected token at column 3')).toBe(
+					'Invalid XML: Unexpected token at column 3'
+				);
 			});
 		});
 	});
