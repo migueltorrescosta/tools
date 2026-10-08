@@ -29,7 +29,12 @@ export function createPersistGate(storage: WritableStorage | null): PersistGate 
 			return isOpen;
 		},
 		write(key, value) {
-			if (isOpen && storage) storage.setItem(key, value);
+			if (!isOpen || !storage) return;
+			try {
+				storage.setItem(key, value);
+			} catch {
+				// QuotaExceededError / SecurityError: drop the write, keep the page alive
+			}
 		},
 		open() {
 			isOpen = true;
