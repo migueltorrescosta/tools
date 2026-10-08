@@ -227,7 +227,9 @@
 		election ? tallyResults(election.choices, votes) : { results: [], valid: 0 }
 	);
 	let resultsCondorcet = $derived(
-		election ? tallyCondorcet(election.choices, votes) : { results: [], valid: 0 }
+		election
+			? tallyCondorcet(election.choices, votes)
+			: { results: [], valid: 0, condorcetWinner: null, cycle: false }
 	);
 
 	let voteCodePattern = $derived(
@@ -518,7 +520,7 @@
 								{/each}
 							</div>
 							<div class="method-col">
-								<div class="method-header">Condorcet Method</div>
+								<div class="method-header">Copeland (pairwise)</div>
 								{#each resultsCondorcet.results as result}
 									<div class="method-row" style={colorStyle(result.index)}>
 										<span class="method-rank">#{result.rank}</span>
@@ -526,6 +528,15 @@
 										<span class="method-score">{result.score}</span>
 									</div>
 								{/each}
+								<p class="method-note">
+									{#if resultsCondorcet.condorcetWinner !== null}
+										Condorcet winner: {election?.choices[resultsCondorcet.condorcetWinner]}
+									{:else if resultsCondorcet.cycle}
+										No Condorcet winner (cycle)
+									{:else}
+										No Condorcet winner (pairwise tie)
+									{/if}
+								</p>
 							</div>
 						</div>
 					{:else}

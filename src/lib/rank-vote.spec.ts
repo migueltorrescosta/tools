@@ -410,24 +410,70 @@ describe('Rank Vote - Tally Methods', () => {
 
 			const result = tallyCondorcet(choices, votes);
 
-			// Pairwise: A beats B 2-1, A beats C 2-1, B beats C 2-1
-			// A is Condorcet winner with net +2
+			// Pairwise: A beats B 3-1, A beats C 3-1, B vs C 2-2
+			// A is Condorcet winner with Copeland net +2
+			expect(result.condorcetWinner).toBe(0);
+			expect(result.cycle).toBe(false);
 			expect(result.results[0].text).toBe('A');
+			expect(result.results[0].score).toBe(2);
 		});
 
-		it('handles circular preferences (no Condorcet winner)', () => {
+		it('reports no Condorcet winner for a three-way cycle', () => {
 			const choices = ['A', 'B', 'C'];
 			const votes = votesFromPerms([
-				[0, 1, 2], // A>B, A>C, B>C
-				[1, 2, 0], // B>C, B>A, C>A
-				[2, 0, 1] // C>A, C>B, A>B
+				[0, 1, 2], // A>B>C
+				[1, 2, 0], // B>C>A
+				[2, 0, 1] // C>A>B
 			]);
 
 			const result = tallyCondorcet(choices, votes);
 
-			// Circular: A beats B, B beats C, C beats A - no winner
-			// All have net 0 or similar
-			expect(result.results[0].score).toBeGreaterThanOrEqual(0);
+			// A beats B, B beats C, C beats A, each 2-1: Copeland all 0, all #1
+			expect(result.condorcetWinner).toBeNull();
+			expect(result.cycle).toBe(true);
+			expect(result.results.map((r) => r.score)).toEqual([0, 0, 0]);
+			expect(result.results.map((r) => r.rank)).toEqual([1, 1, 1]);
+		});
+
+		it('has no Condorcet winner even when Copeland gives a unique #1', () => {
+			const choices = ['A', 'B', 'C', 'D', 'E'];
+			const votes = votesFromPerms([
+				[4, 3, 2, 1, 0],
+				[1, 3, 0, 4, 2],
+				[2, 4, 0, 1, 3],
+				[0, 4, 2, 1, 3],
+				[3, 1, 2, 0, 4]
+			]);
+
+			const result = tallyCondorcet(choices, votes);
+
+			// E is alone at the top of the Copeland ranking with net +2, but it
+			// loses at least one head-to-head contest (a winner needs +4).
+			expect(result.results[0].text).toBe('E');
+			expect(result.results[0].score).toBe(2);
+			expect(result.results[1].rank).toBe(2);
+			expect(result.condorcetWinner).toBeNull();
+			expect(result.cycle).toBe(true);
+		});
+
+		it('distinguishes pairwise ties from a cycle', () => {
+			const choices = ['A', 'B', 'C'];
+			const votes = votesFromPerms([
+				[0, 1, 2], // A>B>C
+				[2, 1, 0] // C>B>A
+			]);
+
+			const result = tallyCondorcet(choices, votes);
+
+			// Every contest is 1-1: no winner, but no cycle either
+			expect(result.condorcetWinner).toBeNull();
+			expect(result.cycle).toBe(false);
+		});
+
+		it('has no Condorcet winner without votes', () => {
+			const result = tallyCondorcet(['A', 'B'], []);
+			expect(result.condorcetWinner).toBeNull();
+			expect(result.cycle).toBe(false);
 		});
 	});
 });

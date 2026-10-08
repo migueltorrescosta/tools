@@ -444,10 +444,23 @@ export function tallyIRV(choices: string[], votes: Vote[]): TallyResult {
 	return tie ? { results, valid, tie } : { results, valid };
 }
 
-// --- Condorcet Method ---
-// Pairwise comparisons; winner beats all others
+// --- Condorcet winner + Copeland ranking ---
+// Pairwise comparisons. The Condorcet winner beats every other candidate
+// head to head and may not exist. The ranking is Copeland (pairwise wins
+// minus pairwise losses), which can put a non-Condorcet candidate first.
 
-export function tallyCondorcet(choices: string[], votes: Vote[]): TallyResult {
+export interface CondorcetResult extends TallyResult {
+	/** Candidate index that beats every other head to head, or null. */
+	condorcetWinner: number | null;
+	/**
+	 * True when every candidate loses at least one head-to-head contest, so the
+	 * strict majority preferences contain a cycle. False when there is a
+	 * Condorcet winner or the absence of one is due to pairwise ties only.
+	 */
+	cycle: boolean;
+}
+
+export function tallyCondorcet(choices: string[], votes: Vote[]): CondorcetResult {
 	const n = choices.length;
 	let valid = 0;
 
@@ -491,10 +504,17 @@ export function tallyCondorcet(choices: string[], votes: Vote[]): TallyResult {
 		}
 	}
 
-	// Condorcet winner has wins against all others
+	// Condorcet winner beats all others; there is at most one
+	let condorcetWinner: number | null = null;
+	if (valid > 0) {
+		for (let i = 0; i < n; i++) if (wins[i] === n - 1) condorcetWinner = i;
+	}
+	const cycle = valid > 0 && condorcetWinner === null && losses.every((l) => l > 0);
+
+	// Copeland ranking
 	const results: Result[] = choices.map((text, i) => ({
 		text,
-		score: wins[i] - losses[i], // Net wins
+		score: wins[i] - losses[i], // Net pairwise wins
 		index: i,
 		rank: 0
 	}));
@@ -506,5 +526,5 @@ export function tallyCondorcet(choices: string[], votes: Vote[]): TallyResult {
 			i === 0 || results[i].score !== results[i - 1].score ? i + 1 : results[i - 1].rank;
 	}
 
-	return { results, valid };
+	return { results, valid, condorcetWinner, cycle };
 }
