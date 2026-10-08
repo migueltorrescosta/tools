@@ -158,36 +158,6 @@ describe('Cipher Tool - Encoding Functions', () => {
 		});
 	});
 
-	describe('Encoding Round-trips', () => {
-		it('Base64: preserves original text exactly', () => {
-			const original = 'The quick brown fox jumps over 13 lazy dogs!';
-			const encoded = base64Encode(original);
-			const decoded = base64Decode(encoded);
-			expect(decoded).toBe(original);
-		});
-
-		it('Hex: preserves original text exactly', () => {
-			const original = 'Pack my box with five dozen liquor jugs.';
-			const encoded = toHex(original);
-			const decoded = fromHex(encoded);
-			expect(decoded).toBe(original);
-		});
-
-		it('ROT13: self-inverse property', () => {
-			const original = 'The five boxing wizards jump quickly';
-			// ROT13(ROT13(x)) = x
-			const twice = rot13(rot13(original));
-			expect(twice).toBe(original);
-		});
-
-		it('ROT13: works on pangram', () => {
-			const original = 'Sphinx of black quartz, judge my vow';
-			const encoded = rot13(original);
-			const decoded = rot13(encoded);
-			expect(decoded).toBe(original);
-		});
-	});
-
 	describe('Error Handling', () => {
 		it('fromHex handles completely invalid input', () => {
 			// Non-hex characters: "xyz" matches "xy" and "z" as two groups

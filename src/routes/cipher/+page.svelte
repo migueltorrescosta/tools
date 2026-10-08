@@ -1,8 +1,14 @@
 <script lang="ts">
 	import { copyToClipboard } from '$lib/clipboard';
-	import { base64Encode, base64Decode, toHex, fromHex, rot13 } from '$lib/crypto';
+	import {
+		ALGORITHMS,
+		decrypt as decryptWith,
+		encrypt as encryptWith,
+		generateRsaKeyPair,
+		type Algorithm
+	} from '$lib/cipher';
 
-	let selectedAlgorithm = $state('AES-GCM');
+	let selectedAlgorithm = $state<Algorithm>('AES-GCM');
 	let encryptionKey = $state('');
 	let decryptionKey = $state('');
 	let inputText = $state('');
@@ -12,49 +18,9 @@
 	let decryptionError = $state('');
 	let cachedKeyPair = $state<CryptoKeyPair | null>(null);
 
-	const algorithms = ['AES-GCM', 'AES-CBC', 'RSA-OAEP', 'Base64', 'Hex', 'ROT13'];
+	const algorithms = ALGORITHMS;
 
-	async function generateKey(
-		algorithm: string,
-		keyString: string
-	): Promise<CryptoKey | CryptoKeyPair | string> {
-		if (algorithm === 'Base64' || algorithm === 'Hex' || algorithm === 'ROT13') {
-			return keyString;
-		}
-
-		if (!keyString) {
-			throw new Error('Key is required for ' + algorithm);
-		}
-
-		const encoder = new TextEncoder();
-		const keyData = encoder.encode(keyString);
-
-		if (algorithm.startsWith('AES-')) {
-			const hashBuffer = await crypto.subtle.digest('SHA-256', keyData);
-			return crypto.subtle.importKey('raw', hashBuffer, { name: algorithm }, false, [
-				'encrypt',
-				'decrypt'
-			]);
-		}
-
-		if (algorithm === 'RSA-OAEP') {
-			const keyPair = await crypto.subtle.generateKey(
-				{
-					name: 'RSA-OAEP',
-					modulusLength: 2048,
-					publicExponent: new Uint8Array([1, 0, 1]),
-					hash: 'SHA-256'
-				},
-				true,
-				['encrypt', 'decrypt']
-			);
-			return keyPair;
-		}
-
-		throw new Error('Unsupported algorithm');
-	}
-
-	async function encrypt(text: string, algorithm: string, key: string): Promise<string> {
+	async function encrypt(text: string, algorithm: Algorithm, key: string): Promise<string> {
 		if (!text) {
 			throw new Error('Input text is required');
 		}
@@ -63,45 +29,14 @@
 			throw new Error('Encryption key is required');
 		}
 
-		switch (algorithm) {
-			case 'Base64':
-				return base64Encode(text);
-			case 'Hex':
-				return toHex(text);
-			case 'ROT13':
-				return rot13(text);
-			case 'AES-GCM':
-			case 'AES-CBC': {
-				const cryptoKey = await generateKey(algorithm, key);
-				const iv = crypto.getRandomValues(new Uint8Array(12));
-				const encoder = new TextEncoder();
-				const encrypted = await crypto.subtle.encrypt(
-					{ name: algorithm, iv },
-					cryptoKey as CryptoKey,
-					encoder.encode(text)
-				);
-				const combined = new Uint8Array(iv.length + encrypted.byteLength);
-				combined.set(iv);
-				combined.set(new Uint8Array(encrypted), iv.length);
-				return btoa(String.fromCharCode(...combined));
-			}
-			case 'RSA-OAEP': {
-				const keyPair = (await generateKey(algorithm, key)) as unknown as CryptoKeyPair;
-				cachedKeyPair = keyPair;
-				const encoder = new TextEncoder();
-				const encrypted = await crypto.subtle.encrypt(
-					{ name: 'RSA-OAEP' },
-					keyPair.publicKey,
-					encoder.encode(text)
-				);
-				return btoa(String.fromCharCode(...new Uint8Array(encrypted)));
-			}
-			default:
-				throw new Error('Unsupported algorithm');
+		if (algorithm === 'RSA-OAEP') {
+			cachedKeyPair = await generateRsaKeyPair();
+			return encryptWith(text, algorithm, { publicKey: cachedKeyPair.publicKey });
 		}
+		return encryptWith(text, algorithm, { passphrase: key });
 	}
 
-	async function decrypt(text: string, algorithm: string, key: string): Promise<string> {
+	async function decrypt(text: string, algorithm: Algorithm, key: string): Promise<string> {
 		if (!text) {
 			throw new Error('Encrypted text is required');
 		}
@@ -110,41 +45,13 @@
 			throw new Error('Decryption key is required');
 		}
 
-		switch (algorithm) {
-			case 'Base64':
-				return base64Decode(text);
-			case 'Hex':
-				return fromHex(text);
-			case 'ROT13':
-				return rot13(text);
-			case 'AES-GCM':
-			case 'AES-CBC': {
-				const cryptoKey = await generateKey(algorithm, key);
-				const combined = Uint8Array.from(atob(text), (c) => c.charCodeAt(0));
-				const iv = combined.slice(0, 12);
-				const encrypted = combined.slice(12);
-				const decrypted = await crypto.subtle.decrypt(
-					{ name: algorithm, iv },
-					cryptoKey as CryptoKey,
-					encrypted
-				);
-				return new TextDecoder().decode(decrypted);
+		if (algorithm === 'RSA-OAEP') {
+			if (!cachedKeyPair) {
+				throw new Error('No RSA key pair found. Please encrypt a message first using RSA-OAEP.');
 			}
-			case 'RSA-OAEP': {
-				if (!cachedKeyPair) {
-					throw new Error('No RSA key pair found. Please encrypt a message first using RSA-OAEP.');
-				}
-				const encrypted = Uint8Array.from(atob(text), (c) => c.charCodeAt(0));
-				const decrypted = await crypto.subtle.decrypt(
-					{ name: 'RSA-OAEP' },
-					cachedKeyPair.privateKey,
-					encrypted
-				);
-				return new TextDecoder().decode(decrypted);
-			}
-			default:
-				throw new Error('Unsupported algorithm');
+			return decryptWith(text, algorithm, { privateKey: cachedKeyPair.privateKey });
 		}
+		return decryptWith(text, algorithm, { passphrase: key });
 	}
 
 	async function encryptText() {
