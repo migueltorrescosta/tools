@@ -197,7 +197,31 @@ function makeChar(overrides: Partial<Character> = {}): Character {
 	};
 }
 
+/** RNG stub whose every D6 roll is a natural 6: hits and wounds always land. */
+class AlwaysSixRNG extends SeededRNG {
+	constructor() {
+		super(0);
+	}
+	override rollD6(): number {
+		return 6;
+	}
+}
+
 describe('CombatEngine', () => {
+	it('attributes damage to the side that dealt it', () => {
+		const killer = makeChar({ name: 'Killer', a: 1 });
+		const victim = makeChar({ name: 'Victim', a: 0, wounds: 1 });
+		const result = new CombatEngine(killer, victim, new AlwaysSixRNG()).run();
+		expect(result.winner).toBe('A');
+		expect(result.damageDealtA).toBe(1);
+		expect(result.damageDealtB).toBe(0);
+
+		const mirrored = new CombatEngine(victim, killer, new AlwaysSixRNG()).run();
+		expect(mirrored.winner).toBe('B');
+		expect(mirrored.damageDealtA).toBe(0);
+		expect(mirrored.damageDealtB).toBe(1);
+	});
+
 	it('0 attacks on both sides produces a draw after 50 rounds', () => {
 		const charA = makeChar({ a: 0 });
 		const charB = makeChar({ a: 0 });

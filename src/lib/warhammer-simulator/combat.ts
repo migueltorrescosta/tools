@@ -190,8 +190,9 @@ export class CombatEngine {
 		return {
 			winner,
 			rounds: this.state.roundNumber,
-			damageDealtA: this.charA.wounds - this.state.charAWounds,
-			damageDealtB: this.charB.wounds - this.state.charBWounds,
+			// Damage dealt BY each side is the wounds the opponent lost.
+			damageDealtA: this.charB.wounds - this.state.charBWounds,
+			damageDealtB: this.charA.wounds - this.state.charAWounds,
 			remainingWoundsA: this.state.charAWounds,
 			remainingWoundsB: this.state.charBWounds,
 			abilityActivations
