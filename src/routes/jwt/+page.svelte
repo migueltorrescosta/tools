@@ -48,7 +48,7 @@
 			headerJson = '';
 		} else {
 			headerJson = JSON.stringify(decoded.header, null, 2);
-			const alg = (decoded.header as { alg?: unknown } | null)?.alg;
+			const alg = decoded.header?.alg;
 			selectedAlgorithm = typeof alg === 'string' && alg ? alg : 'HS256';
 		}
 

@@ -45,10 +45,10 @@ export function base64UrlDecode(str: string): string {
 // --- decode ---
 
 export interface DecodedJwt {
-	/** Parsed header JSON; undefined when it could not be decoded. */
-	header: unknown;
-	/** Parsed payload JSON; undefined when it could not be decoded. */
-	payload: unknown;
+	/** Parsed header object; undefined when it could not be decoded or is not an object. */
+	header: JsonObject | undefined;
+	/** Parsed payload object; undefined when it could not be decoded or is not an object. */
+	payload: JsonObject | undefined;
 	signature: string;
 	/** Set when the token is not three dot-separated segments; header/payload are then undefined. */
 	formatError: string;
@@ -56,12 +56,40 @@ export interface DecodedJwt {
 	payloadError: string;
 }
 
-function parseSegment(segment: string): { ok: true; value: unknown } | { ok: false } {
+/** A JWT header or claims set: a JSON object (RFC 7515 4, RFC 7519 7.2). */
+export type JsonObject = Record<string, unknown>;
+
+export function isJsonObject(value: unknown): value is JsonObject {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+type SegmentName = 'Header' | 'Payload';
+
+/** Decodes one segment to a JSON object, naming the first layer that fails. */
+function parseSegment(
+	segment: string,
+	name: SegmentName
+): { ok: true; value: JsonObject } | { ok: false; error: string } {
+	let bytes: Uint8Array<ArrayBuffer>;
 	try {
-		return { ok: true, value: JSON.parse(base64UrlDecode(segment)) };
+		bytes = base64UrlDecodeBytes(segment);
 	} catch {
-		return { ok: false };
+		return { ok: false, error: `${name} is not base64url` };
 	}
+	let text: string;
+	try {
+		text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+	} catch {
+		return { ok: false, error: `${name} is not valid UTF-8` };
+	}
+	let value: unknown;
+	try {
+		value = JSON.parse(text);
+	} catch {
+		return { ok: false, error: `${name} is not valid JSON` };
+	}
+	if (!isJsonObject(value)) return { ok: false, error: `${name} must be a JSON object` };
+	return { ok: true, value };
 }
 
 export function decodeJwt(token: string): DecodedJwt {
@@ -78,12 +106,12 @@ export function decodeJwt(token: string): DecodedJwt {
 		result.formatError = 'Invalid JWT format';
 		return result;
 	}
-	const header = parseSegment(parts[0]);
+	const header = parseSegment(parts[0], 'Header');
 	if (header.ok) result.header = header.value;
-	else result.headerError = 'Invalid header JSON';
-	const payload = parseSegment(parts[1]);
+	else result.headerError = header.error;
+	const payload = parseSegment(parts[1], 'Payload');
 	if (payload.ok) result.payload = payload.value;
-	else result.payloadError = 'Invalid payload JSON';
+	else result.payloadError = payload.error;
 	result.signature = parts[2];
 	return result;
 }
@@ -239,8 +267,7 @@ export async function verifyJwt(
 ): Promise<VerifyResult> {
 	const parts = token.split('.');
 	if (parts.length !== 3) return { status: 'invalid', message: 'Invalid JWT format' };
-	const header = decodeJwt(token).header as { alg?: unknown } | null | undefined;
-	const headerAlg = header && typeof header === 'object' ? header.alg : undefined;
+	const headerAlg = decodeJwt(token).header?.alg;
 	if (alg === 'none' || headerAlg === 'none') {
 		return { status: 'invalid', message: 'alg "none" is unsigned and never verifies' };
 	}

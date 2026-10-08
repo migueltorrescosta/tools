@@ -66,7 +66,7 @@ describe('decodeJwt', () => {
 
 	it('reports a header error but still decodes the payload', () => {
 		const d = decodeJwt('invalid!!!' + SAMPLE_PAYLOAD + 'sig');
-		expect(d.headerError).toBe('Invalid header JSON');
+		expect(d.headerError).toBe('Header is not base64url');
 		expect(d.header).toBeUndefined();
 		expect(d.payloadError).toBe('');
 		expect(d.payload).toEqual({ sub: '1234567890' });
@@ -75,13 +75,18 @@ describe('decodeJwt', () => {
 
 	it('reports a header error for base64 that is not JSON', () => {
 		const d = decodeJwt(`${base64UrlEncode('not json')}${SAMPLE_PAYLOAD}`);
-		expect(d.headerError).toBe('Invalid header JSON');
+		expect(d.headerError).toBe('Header is not valid JSON');
+	});
+
+	it('reports a header error for bytes that are not UTF-8', () => {
+		expect(decodeJwt(`_w${SAMPLE_PAYLOAD}`).headerError).toBe('Header is not valid UTF-8');
+		expect(decodeJwt(`eyJhbGciOiJIUzI1NiJ9._w.`).payloadError).toBe('Payload is not valid UTF-8');
 	});
 
 	it('reports a payload error but still decodes the header', () => {
 		const d = decodeJwt(`eyJhbGciOiJIUzI1NiJ9.${base64UrlEncode('{oops')}.`);
 		expect(d.header).toEqual({ alg: 'HS256' });
-		expect(d.payloadError).toBe('Invalid payload JSON');
+		expect(d.payloadError).toBe('Payload is not valid JSON');
 		expect(d.payload).toBeUndefined();
 	});
 
@@ -89,11 +94,19 @@ describe('decodeJwt', () => {
 		expect(decodeJwt(`eyJhbGciOiJub25lIn0${SAMPLE_PAYLOAD}`).signature).toBe('');
 	});
 
-	it('decodes non-object JSON values without error', () => {
-		const d = decodeJwt(`${base64UrlEncode('null')}.${base64UrlEncode('[1,2]')}.`);
-		expect(d.headerError).toBe('');
-		expect(d.header).toBeNull();
-		expect(d.payload).toEqual([1, 2]);
+	it.each(['null', '"x"', '42', 'true', '[1]'])(
+		'rejects valid JSON %s that is not an object, in header and payload',
+		(json) => {
+			const d = decodeJwt(`${base64UrlEncode(json)}.${base64UrlEncode(json)}.`);
+			expect(d.headerError).toBe('Header must be a JSON object');
+			expect(d.payloadError).toBe('Payload must be a JSON object');
+			expect(d.header).toBeUndefined();
+			expect(d.payload).toBeUndefined();
+		}
+	);
+
+	it('decodes the header null segment bnVsbA as a non-object, not invalid JSON', () => {
+		expect(decodeJwt(`bnVsbA${SAMPLE_PAYLOAD}`).headerError).toBe('Header must be a JSON object');
 	});
 });
 
