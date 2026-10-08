@@ -17,18 +17,63 @@ export type CountryGroups = Record<string, PositionGroup[]>;
 
 export const EU_FLAG = '🇪🇺';
 
-// Country colors (lighter for better contrast with dark text)
-export const COUNTRY_COLORS: Record<string, string> = {
-	'🇩🇪': '#FFEA00', // Germany - bright gold
-	'🇳🇱': '#FF9933', // Netherlands - light orange
-	'🇬🇷': '#3399FF', // Greece - bright blue
-	'🇨🇾': '#FF7733', // Cyprus - coral orange
-	'🇷🇴': '#3366CC', // Romania - medium blue
-	'🇵🇹': '#00AC00', // Portugal - green
-	'🇮🇹': '#009999', // Italy - teal
-	'🇫🇷': '#E30717', // France - red
-	[EU_FLAG]: '#4477DD' // EU - softer blue
+// Date the bundled data was last checked against official sources (DD/MM/YYYY)
+export const DATA_AS_OF = '08/10/2026';
+
+export type CountryInfo = { label: string; color: string };
+
+// Single source of truth for country labels and bar colours. Every colour must
+// reach WCAG AA (4.5:1) against BAR_TEXT_COLOR; volt.spec.ts enforces it.
+export const BAR_TEXT_COLOR = '#000000';
+export const COUNTRIES: Record<string, CountryInfo> = {
+	'🇩🇪': { label: 'Germany', color: '#FFEA00' },
+	'🇳🇱': { label: 'Netherlands', color: '#FF9933' },
+	'🇬🇷': { label: 'Greece', color: '#3399FF' },
+	'🇨🇾': { label: 'Cyprus', color: '#FF7733' },
+	'🇷🇴': { label: 'Romania', color: '#5C8AE6' },
+	'🇵🇹': { label: 'Portugal', color: '#00AC00' },
+	'🇮🇹': { label: 'Italy', color: '#009999' },
+	'🇫🇷': { label: 'France', color: '#FF4D5A' },
+	[EU_FLAG]: { label: 'European Parliament', color: '#4477DD' }
 };
+
+export const FALLBACK_COLOR = '#AAAAAA';
+
+export const COUNTRY_COLORS: Record<string, string> = Object.fromEntries(
+	Object.entries(COUNTRIES).map(([flag, c]) => [flag, c.color])
+);
+
+export function countryLabel(flag: string): string {
+	return COUNTRIES[flag]?.label ?? flag;
+}
+
+export function countryColor(flag: string): string {
+	return COUNTRIES[flag]?.color ?? FALLBACK_COLOR;
+}
+
+function channel(c: number): number {
+	const s = c / 255;
+	return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+}
+
+export function relativeLuminance(hex: string): number {
+	const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
+	if (!m) throw new Error(`Invalid colour "${hex}": expected #RRGGBB`);
+	const [r, g, b] = [m[1], m[2], m[3]].map((h) => channel(parseInt(h, 16)));
+	return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+export function contrastRatio(a: string, b: string): number {
+	const [hi, lo] = [relativeLuminance(a), relativeLuminance(b)].sort((x, y) => y - x);
+	return (hi + 0.05) / (lo + 0.05);
+}
+
+// Rows standing for a list or group of councillors rather than a named person
+const GROUP_ENTRY_RE = /candidates|^Volt /;
+
+export function isGroupEntry(p: Politician): boolean {
+	return GROUP_ENTRY_RE.test(p.name);
+}
 
 const MEP_POSITIONS = new Set(['MEP', 'MdEP']);
 
@@ -96,20 +141,54 @@ export function filterGroups(politicians: Politician[], filter: string): Country
 	return { [filter]: groups[filter] ?? [] };
 }
 
-export function computeStats(politicians: Politician[]) {
-	const byCountry = (flag: string) => politicians.filter((p) => p.country === flag).length;
+export type Stats = {
+	// Named individuals only; group placeholder rows are counted in groupEntries
+	total: number;
+	meps: number;
+	groupEntries: number;
+	byCountry: Record<string, number>;
+};
+
+export function computeStats(politicians: Politician[]): Stats {
+	const people = politicians.filter((p) => !isGroupEntry(p));
+	const byCountry: Record<string, number> = {};
+	for (const p of politicians) byCountry[p.country] ??= 0;
+	for (const p of people) byCountry[p.country]++;
 	return {
-		total: politicians.length,
-		meps: politicians.filter(isMep).length,
-		netherlands: byCountry('🇳🇱'),
-		germany: byCountry('🇩🇪'),
-		cyprus: byCountry('🇨🇾'),
-		greece: byCountry('🇬🇷'),
-		romania: byCountry('🇷🇴'),
-		portugal: byCountry('🇵🇹'),
-		italy: byCountry('🇮🇹'),
-		france: byCountry('🇫🇷')
+		total: people.length,
+		meps: people.filter(isMep).length,
+		groupEntries: politicians.length - people.length,
+		byCountry
 	};
+}
+
+export type SummaryBar = { filter: string; label: string; flag: string; count: number };
+
+// Filter buttons derived from the data: All, one per country present (by label), then MEPs
+export function summaryBars(stats: Stats): SummaryBar[] {
+	const countries = Object.entries(stats.byCountry)
+		.map(([flag, count]) => ({ filter: flag, label: countryLabel(flag), flag, count }))
+		.sort((a, b) => a.label.localeCompare(b.label));
+	return [
+		{ filter: 'all', label: 'All', flag: '🌍', count: stats.total },
+		...countries,
+		{ filter: EU_FLAG, label: 'MEPs', flag: EU_FLAG, count: stats.meps }
+	];
+}
+
+// Fractional year of a calendar date, on the same scale as parseDate
+export function fractionalYear(d: Date): number {
+	return d.getFullYear() + d.getMonth() / 12 + (d.getDate() - 1) / 365;
+}
+
+// A mandate is former once its (exclusive) end date has passed
+export function isFormer(p: Politician, now: number): boolean {
+	return parseDate(p.endDate) <= now;
+}
+
+export function describeMandate(p: Politician, now: number): string {
+	const status = isFormer(p, now) ? ' (former)' : '';
+	return `${p.name}, ${p.position}, ${p.location}: ${p.startDate} to ${p.endDate}${status}`;
 }
 
 export type Timeline = { minYear: number; maxYear: number; yearRange: number };
@@ -118,6 +197,12 @@ export function timelineRange(politicians: Politician[]): Timeline {
 	const minYear = Math.floor(Math.min(...politicians.map((p) => parseDate(p.startDate))));
 	const maxYear = Math.floor(Math.max(...politicians.map((p) => parseDate(p.endDate))));
 	return { minYear, maxYear, yearRange: maxYear - minYear + 1 };
+}
+
+// Position of a fractional year as a percentage of the timeline, or null if outside it
+export function timelinePercent(year: number, t: Timeline): number | null {
+	const pct = ((year - t.minYear) / t.yearRange) * 100;
+	return pct >= 0 && pct <= 100 ? pct : null;
 }
 
 // Bar position and width as percentages of the timeline; each year cell spans

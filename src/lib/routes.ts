@@ -44,7 +44,8 @@ export const routes: ToolRoute[] = [
 	{
 		path: '/volt',
 		name: 'Volt',
-		description: 'Table of elected representatives of the pan-European political party Volt Europa.'
+		description:
+			'Timeline of current and former elected representatives of the pan-European political party Volt Europa.'
 	},
 	{
 		path: '/volt-ga',
