@@ -110,29 +110,24 @@ describe('WS To-Hit Table', () => {
 });
 
 describe('S vs T Wound Table', () => {
-	it('returns 2+ when S >= T × 2', () => {
-		expect(getToWoundTarget(8, 4)).toBe(2);
-		expect(getToWoundTarget(6, 3)).toBe(2);
+	// Independent oracle for The Old World to-wound chart (S - T difference).
+	function rulebookToWound(s: number, t: number): number {
+		return Math.min(6, Math.max(2, 4 - (s - t)));
+	}
+
+	it('matches the rulebook chart over the full S,T 1..10 grid', () => {
+		for (let s = 1; s <= 10; s++) {
+			for (let t = 1; t <= 10; t++) {
+				expect(getToWoundTarget(s, t), `S${s} vs T${t}`).toBe(rulebookToWound(s, t));
+			}
+		}
 	});
 
-	it('returns 3+ when S > T', () => {
-		expect(getToWoundTarget(5, 4)).toBe(3);
-		expect(getToWoundTarget(4, 3)).toBe(3);
-	});
-
-	it('returns 4+ when S == T', () => {
-		expect(getToWoundTarget(4, 4)).toBe(4);
-		expect(getToWoundTarget(5, 5)).toBe(4);
-	});
-
-	it('returns 5+ when S < T (but more than half)', () => {
-		expect(getToWoundTarget(4, 5)).toBe(5);
-		expect(getToWoundTarget(3, 4)).toBe(5);
-	});
-
-	it('returns 6+ when S <= T / 2', () => {
-		expect(getToWoundTarget(2, 4)).toBe(6);
-		expect(getToWoundTarget(3, 6)).toBe(6);
+	it('pins the cases the old ratio table got wrong', () => {
+		expect(getToWoundTarget(6, 4)).toBe(2);
+		expect(getToWoundTarget(7, 5)).toBe(2);
+		expect(getToWoundTarget(3, 5)).toBe(6);
+		expect(getToWoundTarget(4, 6)).toBe(6);
 	});
 });
 

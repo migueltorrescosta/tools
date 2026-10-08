@@ -27,19 +27,18 @@ export function getWSComparisonLabel(attackerWS: number, defenderWS: number): st
 }
 
 // ── Strength vs Toughness Wound Table ──
-// Returns the minimum D6 roll needed to wound (2+ through 6+).
+// Returns the minimum D6 roll needed to wound, per The Old World chart, which
+// depends only on the difference S - T:
+//   S >= T+2 -> 2+,  S = T+1 -> 3+,  S = T -> 4+,  S = T-1 -> 5+,  S <= T-2 -> 6+
+// Rules note: older editions had an "impossible" band for very low S; this
+// models the TOW reading where any S can wound on a 6+.
 export function getToWoundTarget(strength: number, toughness: number): number {
-	if (strength >= toughness * 2) {
-		return 2; // 2+ to wound (S double or more)
-	} else if (strength > toughness) {
-		return 3; // 3+ to wound (S greater)
-	} else if (strength === toughness) {
-		return 4; // 4+ to wound (S equal)
-	} else if (strength * 2 > toughness) {
-		return 5; // 5+ to wound (S less but more than half)
-	} else {
-		return 6; // 6+ to wound (S half or less)
-	}
+	const d = strength - toughness;
+	if (d >= 2) return 2;
+	if (d === 1) return 3;
+	if (d === 0) return 4;
+	if (d === -1) return 5;
+	return 6;
 }
 
 /**
