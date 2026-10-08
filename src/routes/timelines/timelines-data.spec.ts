@@ -99,3 +99,69 @@ describe('event ids', () => {
 		expect(dups).toEqual([]);
 	});
 });
+
+describe('events/eu-elections.json country identity', () => {
+	const events = eventsFor('eu-elections') ?? [];
+	// Title prefix each flag's election must start with, so the grid names the country.
+	const countryByFlag: Record<string, string> = {
+		AT: 'Austria',
+		BE: 'Belgium',
+		BG: 'Bulgaria',
+		CY: 'Cyprus',
+		CZ: 'Czech Republic',
+		DE: 'Germany',
+		DK: 'Denmark',
+		EE: 'Estonia',
+		ES: 'Spain',
+		EU: 'European Parliament',
+		FI: 'Finland',
+		FR: 'France',
+		GB: 'UK',
+		GR: 'Greece',
+		HR: 'Croatia',
+		HU: 'Hungary',
+		IE: 'Ireland',
+		IT: 'Italy',
+		LT: 'Lithuania',
+		LU: 'Luxembourg',
+		LV: 'Latvia',
+		MT: 'Malta',
+		PL: 'Poland',
+		PT: 'Portugal',
+		RO: 'Romania',
+		SE: 'Sweden',
+		SI: 'Slovenia',
+		SK: 'Slovakia'
+	};
+
+	function flagCode(emoji: string): string | null {
+		const points = [...emoji].map((c) => c.codePointAt(0)!);
+		if (points.length !== 2 || points.some((p) => p < 0x1f1e6 || p > 0x1f1ff)) return null;
+		return String.fromCharCode(...points.map((p) => p - 0x1f1e6 + 65));
+	}
+
+	it('uses a known country flag (or the EU flag) and names that country in the title', () => {
+		const bad: string[] = [];
+		for (const e of events) {
+			const code = flagCode(e.emoji);
+			const country = code ? countryByFlag[code] : undefined;
+			if (!country || !e.title.startsWith(`${country} `)) bad.push(`${e.id} ${e.emoji} ${e.title}`);
+		}
+		expect(bad).toEqual([]);
+	});
+
+	it('links every election to a source', () => {
+		expect(events.filter((e) => !e.url).map((e) => e.id)).toEqual([]);
+	});
+
+	it('has unique titles per date', () => {
+		const seen = new Set<string>();
+		const dups: string[] = [];
+		for (const e of events) {
+			const key = `${e.date} ${e.title}`;
+			if (seen.has(key)) dups.push(key);
+			seen.add(key);
+		}
+		expect(dups).toEqual([]);
+	});
+});
