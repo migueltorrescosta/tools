@@ -279,6 +279,45 @@ describe('Question node without answers', () => {
 	});
 });
 
+describe('Termination check cost and duplicates', () => {
+	it('reports a dead-end question reached by two edges exactly once', () => {
+		const raw: RawTree = {
+			nodes: [
+				{ id: 'root', type: 'question', content: 'Root?' },
+				{ id: 'mid', type: 'question', content: 'Mid?' },
+				{ id: 'stuck', type: 'question', content: 'No answers?' }
+			],
+			edges: [
+				{ sourceId: 'root', targetId: 'mid', label: 'Via mid' },
+				{ sourceId: 'root', targetId: 'stuck', label: 'Direct' },
+				{ sourceId: 'mid', targetId: 'stuck', label: 'On' }
+			]
+		};
+		expect(validateGraph(buildGraph(raw))).toEqual(['Question node "stuck" has no answer options']);
+	});
+
+	it('validates a 30-level diamond chain quickly', () => {
+		// Two answers per level converge on the next node: 2^30 root-to-leaf paths
+		const depth = 30;
+		const raw: RawTree = { nodes: [], edges: [] };
+		for (let i = 0; i < depth; i++) {
+			raw.nodes.push({ id: `q${i}`, type: 'question', content: `Level ${i}?` });
+			const next = i + 1 < depth ? `q${i + 1}` : 'end';
+			raw.edges.push({ sourceId: `q${i}`, targetId: next, label: 'Left' });
+			raw.edges.push({ sourceId: `q${i}`, targetId: next, label: 'Right' });
+		}
+		raw.nodes.push({ id: 'end', type: 'result', content: 'Done' });
+		const graph = buildGraph(raw);
+
+		const start = performance.now();
+		const errors = validateGraph(graph);
+		const elapsed = performance.now() - start;
+
+		expect(errors).toEqual([]);
+		expect(elapsed).toBeLessThan(50);
+	});
+});
+
 // ---------------------------------------------------------------------------
 // 8. A result node with outgoing edges fails validation
 // ---------------------------------------------------------------------------
