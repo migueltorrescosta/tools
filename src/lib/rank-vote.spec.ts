@@ -287,7 +287,7 @@ describe('Rank Vote - Tally Methods', () => {
 			expect(result.results.every((r) => r.score > 0)).toBe(true);
 		});
 
-		it('four-choice election with multiple eliminations', () => {
+		it('four-choice election eliminates a harmless bottom tie together', () => {
 			const choices = ['A', 'B', 'C', 'D'];
 			const votes = votesFromPerms([
 				[0, 1, 2, 3], // A
@@ -300,42 +300,101 @@ describe('Rank Vote - Tally Methods', () => {
 
 			const result = tallyIRV(choices, votes);
 
-			// Round 1: A=2, B=1, C=1, D=2
-			// Lowest: B and C tied at 1, B (lower index) eliminated round 1 -> score 1
-			// Round 2: A=4, C=1, D=2 (B's vote goes to A)
-			// Lowest: C eliminated round 2 -> score 2
-			// Round 3: A=4, D=2 (no majority 50% = 3+)
-			// Lowest: D and A tied at A (lower index) eliminated round 3 -> score 3
-			// Round 4: A wins -> gets n = 4
-			// A winner=4, D final survivor=3, C eliminated round 2=2, B eliminated round 1=1
-			expect(result.results[0].text).toBe('A');
-			expect(result.results[0].score).toBe(4);
-			expect(result.results[1].score).toBe(3); // D final survivor
-			expect(result.results[2].score).toBe(2); // C
-			expect(result.results[3].score).toBe(1); // B
+			// Round 1: A=2, B=1, C=1, D=2. B and C tie for last with no earlier
+			// round to break it. A wins whichever goes first, so both are
+			// eliminated together in round 1 (score 1, shared rank).
+			// Round 2: A=4 > 3 -> winner gets n = 4; D survives with n-1 = 3.
+			expect(result.tie).toBeUndefined();
+			const byText = Object.fromEntries(result.results.map((r) => [r.text, r]));
+			expect(byText.A.score).toBe(4);
+			expect(byText.A.rank).toBe(1);
+			expect(byText.D.score).toBe(3);
+			expect(byText.B.score).toBe(1);
+			expect(byText.C.score).toBe(1);
+			expect(byText.B.rank).toBe(byText.C.rank);
 		});
 
-		it('gives each candidate a unique score with 4 choices', () => {
-			const choices = ['A', 'B', 'C', 'D'];
-			const votes = votesFromPerms([
-				[0, 1, 2, 3],
-				[0, 2, 3, 1],
-				[1, 0, 2, 3],
-				[2, 0, 1, 3],
-				[3, 0, 1, 2],
-				[3, 1, 2, 0]
-			]);
+		// A>B>C>D x3, B>C>A>D x2, C>D>A>B x4, D>B>A>C x1
+		// Round 1: A=3, B=2, C=4, D=1 -> D out (to B).
+		// Round 2: A=3, B=3, C=4 -> A/B tie, broken backward by round 1
+		// (B=2 < A=3) -> B out. Round 3: A=4, C=6 > 5 wins.
+		const backwardBallots = [
+			[0, 1, 2, 3],
+			[0, 1, 2, 3],
+			[0, 1, 2, 3],
+			[1, 2, 0, 3],
+			[1, 2, 0, 3],
+			[2, 3, 0, 1],
+			[2, 3, 0, 1],
+			[2, 3, 0, 1],
+			[2, 3, 0, 1],
+			[3, 1, 0, 2]
+		];
 
-			const result = tallyIRV(choices, votes);
-			const scores = result.results.map((r) => r.score);
+		it('gives each candidate a unique score when every tie is broken', () => {
+			const result = tallyIRV(['A', 'B', 'C', 'D'], votesFromPerms(backwardBallots));
+			expect(result.tie).toBeUndefined();
+			const byText = Object.fromEntries(result.results.map((r) => [r.text, r.score]));
+			expect(byText).toEqual({ C: 4, A: 3, B: 2, D: 1 });
+			expect(result.results.map((r) => r.rank)).toEqual([1, 2, 3, 4]);
+		});
 
-			// All scores should be unique: 4, 3, 2, 1
-			const uniqueScores = new Set(scores);
-			expect(uniqueScores.size).toBe(4);
-			expect(scores).toContain(4);
-			expect(scores).toContain(3);
-			expect(scores).toContain(2);
-			expect(scores).toContain(1);
+		// Ballots [A>B>C]x2, [B>A>C]x2, [C>A>B]x2, [C>B>A]x1: A and B tie at 2
+		// in round 1. Whoever is dropped hands the other the win, so neither
+		// list order may decide it.
+		const tiedBallots = [
+			[0, 1, 2],
+			[0, 1, 2],
+			[1, 0, 2],
+			[1, 0, 2],
+			[2, 0, 1],
+			[2, 0, 1],
+			[2, 1, 0]
+		];
+
+		it('does not let listing order decide an unresolvable elimination tie', () => {
+			const ab = tallyIRV(['A', 'B', 'C'], votesFromPerms(tiedBallots));
+			// Same ballots with A and B listed in swapped positions
+			const swapped = tiedBallots.map((p) => p.map((c) => (c === 0 ? 1 : c === 1 ? 0 : c)));
+			const ba = tallyIRV(['B', 'A', 'C'], votesFromPerms(swapped));
+
+			for (const result of [ab, ba]) {
+				const byText = Object.fromEntries(result.results.map((r) => [r.text, r]));
+				expect(byText.A.rank).toBe(1);
+				expect(byText.B.rank).toBe(1);
+				expect(byText.C.rank).toBe(3);
+				expect(
+					result.tie?.map((i) => result.results.find((r) => r.index === i)!.text).sort()
+				).toEqual(['A', 'B']);
+			}
+		});
+
+		it('reports a 50/50 final round as a tie with both ranked first', () => {
+			for (const choices of [
+				['A', 'B'],
+				['B', 'A']
+			]) {
+				const result = tallyIRV(
+					choices,
+					votesFromPerms([
+						[0, 1],
+						[1, 0]
+					])
+				);
+				expect(result.results.map((r) => r.rank)).toEqual([1, 1]);
+				expect(result.tie).toEqual([0, 1]);
+			}
+		});
+
+		it('breaks a bottom tie backward using the previous round, not list order', () => {
+			const swapMap = [1, 0, 2, 3];
+			const swapped = tallyIRV(
+				['B', 'A', 'C', 'D'],
+				votesFromPerms(backwardBallots.map((p) => p.map((c) => swapMap[c])))
+			);
+			expect(swapped.tie).toBeUndefined();
+			const byText = Object.fromEntries(swapped.results.map((r) => [r.text, r.score]));
+			expect(byText).toEqual({ C: 4, A: 3, B: 2, D: 1 });
 		});
 	});
 

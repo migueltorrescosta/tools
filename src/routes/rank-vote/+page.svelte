@@ -499,6 +499,13 @@
 										<span class="method-score">{result.score}</span>
 									</div>
 								{/each}
+								{#if resultsIRV.tie}
+									<p class="method-note">
+										Tie: {resultsIRV.tie.map((i) => election?.choices[i]).join(', ')}. An
+										elimination tie could not be broken and the winner depends on how it is
+										resolved.
+									</p>
+								{/if}
 							</div>
 							<div class="method-col">
 								<div class="method-header">Borda Count</div>
@@ -995,6 +1002,12 @@
 		color: var(--futuristic-cyan);
 		font-weight: 600;
 		white-space: nowrap;
+	}
+
+	.method-note {
+		font-size: 0.7rem;
+		color: var(--futuristic-text-dim);
+		margin: 0.25rem 0 0;
 	}
 
 	.empty-state {

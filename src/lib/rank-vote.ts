@@ -198,6 +198,12 @@ export interface Result {
 export interface TallyResult {
 	results: Result[];
 	valid: number;
+	/**
+	 * IRV only: candidate indices that share first place because an
+	 * elimination tie could not be broken and different resolutions elect
+	 * different winners. Absent when the winner is unique.
+	 */
+	tie?: number[];
 }
 
 export function tallyResults(choices: string[], votes: Vote[]): TallyResult {
@@ -268,6 +274,61 @@ export function tallyFPTP(choices: string[], votes: Vote[]): TallyResult {
 // --- Instant Runoff Voting (IRV) ---
 // Eliminate lowest, redistribute until someone has >50%
 // Score: round eliminated in (winner gets n)
+//
+// Ties for last place never depend on the order choices were listed in:
+// 1. Backward tie-break: among the tied, keep only those lowest in the
+//    previous round, then the round before, and so on.
+// 2. If still tied, explore every way of resolving the tie. When all lead to
+//    the same winner, the tied candidates are eliminated together (they share
+//    a rank). Otherwise the count stops and every possible winner shares
+//    first place, reported in `tie`.
+
+function firstChoiceCounts(ballots: number[][], active: (i: number) => boolean, n: number) {
+	const counts = new Array(n).fill(0);
+	for (const ballot of ballots) {
+		for (const choice of ballot) {
+			if (active(choice)) {
+				counts[choice]++;
+				break;
+			}
+		}
+	}
+	return counts;
+}
+
+// Every candidate that can win IRV from the given active set under some
+// resolution of the remaining last-place ties. Memoised by active bitmask.
+function irvPossibleWinners(
+	ballots: number[][],
+	n: number,
+	mask: number,
+	memo: Map<number, number[]>
+): number[] {
+	const cached = memo.get(mask);
+	if (cached) return cached;
+	const isActive = (i: number) => (mask & (1 << i)) !== 0;
+	const active: number[] = [];
+	for (let i = 0; i < n; i++) if (isActive(i)) active.push(i);
+
+	let winners: number[];
+	const counts = firstChoiceCounts(ballots, isActive, n);
+	const majority = active.find((c) => counts[c] > ballots.length / 2);
+	if (majority !== undefined) {
+		winners = [majority];
+	} else if (active.length === 1) {
+		winners = active;
+	} else {
+		const minCount = Math.min(...active.map((c) => counts[c]));
+		const found = new Set<number>();
+		for (const c of active) {
+			if (counts[c] !== minCount) continue;
+			for (const w of irvPossibleWinners(ballots, n, mask & ~(1 << c), memo)) found.add(w);
+		}
+		winners = [...found].sort((a, b) => a - b);
+	}
+	memo.set(mask, winners);
+	return winners;
+}
 
 export function tallyIRV(choices: string[], votes: Vote[]): TallyResult {
 	const n = choices.length;
@@ -292,20 +353,15 @@ export function tallyIRV(choices: string[], votes: Vote[]): TallyResult {
 	for (let i = 0; i < n; i++) active.add(i);
 
 	const eliminationRound = new Array(n).fill(0);
+	const history: number[][] = [];
+	const memo = new Map<number, number[]>();
 	let round = 1;
 	let winner: number | null = null;
+	let tie: number[] | undefined;
 
-	while (active.size > 0 && winner === null) {
+	while (active.size > 0 && winner === null && tie === undefined) {
 		// Count first-choice votes among active candidates
-		const counts = new Array(n).fill(0);
-		for (const ballot of ballots) {
-			for (const choice of ballot) {
-				if (active.has(choice)) {
-					counts[choice]++;
-					break;
-				}
-			}
-		}
+		const counts = firstChoiceCounts(ballots, (c) => active.has(c), n);
 
 		const totalActiveVotes = Array.from(active).reduce((sum, i) => sum + counts[i], 0);
 		if (totalActiveVotes === 0) break;
@@ -320,27 +376,39 @@ export function tallyIRV(choices: string[], votes: Vote[]): TallyResult {
 
 		if (winner !== null) break;
 
-		// Find lowest and eliminate
-		let minCount = Infinity;
-		for (const choice of active) {
-			if (counts[choice] < minCount) minCount = counts[choice];
-		}
-
-		const minChoices: number[] = [];
-		for (const choice of active) {
-			if (counts[choice] === minCount) minChoices.push(choice);
-		}
-
 		if (active.size === 1) {
 			winner = Array.from(active)[0];
 			break;
 		}
 
-		// Sort by index to break ties deterministically
-		minChoices.sort((a, b) => a - b);
-		const eliminated = minChoices[0];
-		active.delete(eliminated);
-		eliminationRound[eliminated] = round;
+		// Find lowest
+		const minCount = Math.min(...Array.from(active).map((c) => counts[c]));
+		let tied = Array.from(active).filter((c) => counts[c] === minCount);
+
+		// Backward tie-break through earlier rounds, most recent first
+		for (let r = history.length - 1; r >= 0 && tied.length > 1; r--) {
+			const earlier = history[r];
+			const low = Math.min(...tied.map((c) => earlier[c]));
+			tied = tied.filter((c) => earlier[c] === low);
+		}
+		history.push(counts);
+
+		if (tied.length > 1) {
+			let mask = 0;
+			for (const c of active) mask |= 1 << c;
+			const possible = irvPossibleWinners(ballots, n, mask, memo);
+			if (possible.length === 1) {
+				// Order among the tied cannot change the winner: drop them together
+			} else {
+				tie = possible;
+				break;
+			}
+		}
+
+		for (const c of tied) {
+			active.delete(c);
+			eliminationRound[c] = round;
+		}
 		round++;
 	}
 
@@ -354,7 +422,7 @@ export function tallyIRV(choices: string[], votes: Vote[]): TallyResult {
 	}));
 
 	for (let i = 0; i < n; i++) {
-		if (i === winner) {
+		if (i === winner || tie?.includes(i)) {
 			results[i].score = n;
 		} else if (eliminationRound[i] > 0) {
 			results[i].score = eliminationRound[i];
@@ -364,7 +432,7 @@ export function tallyIRV(choices: string[], votes: Vote[]): TallyResult {
 		}
 	}
 
-	// Sort by score descending, then by index for ties
+	// Sort by score descending; equal scores share a rank, index only orders display
 	results.sort((a, b) => b.score - a.score || a.index - b.index);
 
 	// Assign ranks
@@ -373,7 +441,7 @@ export function tallyIRV(choices: string[], votes: Vote[]): TallyResult {
 			i === 0 || results[i].score !== results[i - 1].score ? i + 1 : results[i - 1].rank;
 	}
 
-	return { results, valid };
+	return tie ? { results, valid, tie } : { results, valid };
 }
 
 // --- Condorcet Method ---
