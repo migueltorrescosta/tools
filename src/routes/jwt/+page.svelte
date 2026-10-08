@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { copyToClipboard } from '$lib/clipboard';
+	import { ALGORITHMS as algorithms, decodeJwt, encodeJwt } from '$lib/jwt';
 
 	let token = $state('');
 	let secret = $state('');
@@ -14,35 +15,6 @@
 	let signatureValid = $state<boolean | null>(null);
 	let signatureResult = $state('');
 
-	const algorithms = [
-		'HS256',
-		'HS384',
-		'HS512',
-		'RS256',
-		'RS384',
-		'RS512',
-		'ES256',
-		'ES384',
-		'ES512',
-		'PS256',
-		'PS384',
-		'PS512',
-		'none'
-	];
-
-	function base64UrlEncode(str: string): string {
-		return btoa(unescape(encodeURIComponent(str)))
-			.replace(/\+/g, '-')
-			.replace(/\//g, '_')
-			.replace(/=/g, '');
-	}
-
-	function base64UrlDecode(str: string): string {
-		str = str.replace(/-/g, '+').replace(/_/g, '/');
-		while (str.length % 4) str += '=';
-		return decodeURIComponent(escape(atob(str)));
-	}
-
 	function decodeToken(t: string) {
 		if (!t.trim()) {
 			headerJson = '{\n  "alg": "",\n  "typ": "JWT"\n}';
@@ -54,33 +26,26 @@
 			return;
 		}
 
-		const parts = t.split('.');
-		if (parts.length !== 3) {
-			headerError = 'Invalid JWT format';
+		const decoded = decodeJwt(t);
+		if (decoded.formatError) {
+			headerError = decoded.formatError;
 			payloadError = '';
 			return;
 		}
 
-		try {
-			const header = JSON.parse(base64UrlDecode(parts[0]));
-			headerJson = JSON.stringify(header, null, 2);
-			headerError = '';
-			selectedAlgorithm = header.alg || 'HS256';
-		} catch {
-			headerError = 'Invalid header JSON';
+		headerError = decoded.headerError;
+		if (decoded.headerError) {
 			headerJson = '';
+		} else {
+			headerJson = JSON.stringify(decoded.header, null, 2);
+			const alg = (decoded.header as { alg?: unknown } | null)?.alg;
+			selectedAlgorithm = typeof alg === 'string' && alg ? alg : 'HS256';
 		}
 
-		try {
-			const payload = JSON.parse(base64UrlDecode(parts[1]));
-			payloadJson = JSON.stringify(payload, null, 2);
-			payloadError = '';
-		} catch {
-			payloadError = 'Invalid payload JSON';
-			payloadJson = '';
-		}
+		payloadError = decoded.payloadError;
+		payloadJson = decoded.payloadError ? '' : JSON.stringify(decoded.payload, null, 2);
 
-		signatureResult = parts[2];
+		signatureResult = decoded.signature;
 		signatureValid = null;
 	}
 
@@ -107,9 +72,7 @@
 		header.alg = selectedAlgorithm;
 		header.typ = 'JWT';
 
-		const encodedHeader = base64UrlEncode(JSON.stringify(header));
-		const encodedPayload = base64UrlEncode(JSON.stringify(payload));
-		token = `${encodedHeader}.${encodedPayload}.`;
+		token = encodeJwt(header, payload);
 	}
 
 	$effect(() => {
