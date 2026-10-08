@@ -1,7 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { copyToClipboard } from '$lib/clipboard';
-	import { ALGORITHMS as algorithms, decodeJwt, encodeJwt } from '$lib/jwt';
+	import {
+		ALGORITHMS as algorithms,
+		decodeJwt,
+		encodeJwt,
+		isSymmetric,
+		verifyJwt,
+		type VerifyResult
+	} from '$lib/jwt';
 
 	let token = $state('');
 	let secret = $state('');
@@ -12,7 +19,9 @@
 	);
 	let headerError = $state('');
 	let payloadError = $state('');
-	let signatureValid = $state<boolean | null>(null);
+	let verification = $state<VerifyResult | null>(null);
+	// Bumped per verification so a slow earlier result cannot overwrite a newer one
+	let verifySeq = 0;
 	let signatureResult = $state('');
 
 	function decodeToken(t: string) {
@@ -21,7 +30,6 @@
 			payloadJson = '';
 			headerError = '';
 			payloadError = '';
-			signatureValid = null;
 			signatureResult = '';
 			return;
 		}
@@ -46,7 +54,6 @@
 		payloadJson = decoded.payloadError ? '' : JSON.stringify(decoded.payload, null, 2);
 
 		signatureResult = decoded.signature;
-		signatureValid = null;
 	}
 
 	function encodeToken() {
@@ -77,6 +84,20 @@
 
 	$effect(() => {
 		decodeToken(token);
+	});
+
+	$effect(() => {
+		const t = token;
+		const key = secret;
+		const alg = selectedAlgorithm;
+		const seq = ++verifySeq;
+		if (!t.trim() || (!key && alg !== 'none')) {
+			verification = null;
+			return;
+		}
+		verifyJwt(t, key, alg).then((r) => {
+			if (seq === verifySeq) verification = r;
+		});
 	});
 
 	onMount(() => {
@@ -153,13 +174,17 @@
 			<div class="panel-content">
 				<div class="signature-row">
 					<div class="secret-section">
-						<label class="input-label" for="secret-input">SECRET</label>
+						<label class="input-label" for="secret-input"
+							>{isSymmetric(selectedAlgorithm) ? 'SECRET' : 'PUBLIC KEY (PEM OR JWK)'}</label
+						>
 						<input
 							id="secret-input"
 							type="text"
 							class="secret-input"
 							bind:value={secret}
-							placeholder="secret"
+							placeholder={isSymmetric(selectedAlgorithm)
+								? 'secret'
+								: '-----BEGIN PUBLIC KEY----- ... or {"kty": ...}'}
 						/>
 					</div>
 
@@ -178,10 +203,13 @@
 					<div class="signature-value">{signatureResult || 'Not available'}</div>
 				</div>
 
-				{#if signatureValid === true}
+				{#if verification?.status === 'valid'}
 					<div class="signature-status valid">Signature Verified</div>
-				{:else if signatureValid === false}
+				{:else if verification?.status === 'invalid'}
 					<div class="signature-status invalid">Signature Invalid</div>
+					<div class="error-small">{verification.message}</div>
+				{:else if verification}
+					<div class="key-warning">{verification.message}</div>
 				{/if}
 			</div>
 		</div>

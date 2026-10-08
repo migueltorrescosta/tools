@@ -24,7 +24,7 @@ export function base64UrlEncodeBytes(bytes: Uint8Array): string {
 	return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
-export function base64UrlDecodeBytes(str: string): Uint8Array {
+export function base64UrlDecodeBytes(str: string): Uint8Array<ArrayBuffer> {
 	str = str.replace(/-/g, '+').replace(/_/g, '/');
 	while (str.length % 4) str += '=';
 	const bin = atob(str);
@@ -98,4 +98,169 @@ export function signingInput(header: unknown, payload: unknown): string {
 /** Builds an unsigned token `<header>.<payload>.` (empty signature segment). */
 export function encodeJwt(header: unknown, payload: unknown): string {
 	return `${signingInput(header, payload)}.`;
+}
+
+// --- verify ---
+
+export type VerifyResult =
+	| { status: 'valid' }
+	| { status: 'invalid'; message: string }
+	| { status: 'unsupported'; message: string }
+	| { status: 'error'; message: string };
+
+type Family = 'HS' | 'RS' | 'PS' | 'ES';
+
+interface AlgSpec {
+	family: Family;
+	hash: 'SHA-256' | 'SHA-384' | 'SHA-512';
+	bits: 256 | 384 | 512;
+}
+
+const EC_CURVES = { 256: 'P-256', 384: 'P-384', 512: 'P-521' } as const;
+
+export function algSpec(alg: string): AlgSpec | null {
+	const m = /^(HS|RS|PS|ES)(256|384|512)$/.exec(alg);
+	if (!m) return null;
+	const bits = Number(m[2]) as AlgSpec['bits'];
+	return { family: m[1] as Family, hash: `SHA-${bits}`, bits };
+}
+
+export function isSymmetric(alg: string): boolean {
+	return algSpec(alg)?.family === 'HS';
+}
+
+function importParams(spec: AlgSpec): RsaHashedImportParams | EcKeyImportParams | HmacImportParams {
+	switch (spec.family) {
+		case 'HS':
+			return { name: 'HMAC', hash: spec.hash };
+		case 'RS':
+			return { name: 'RSASSA-PKCS1-v1_5', hash: spec.hash };
+		case 'PS':
+			return { name: 'RSA-PSS', hash: spec.hash };
+		case 'ES':
+			return { name: 'ECDSA', namedCurve: EC_CURVES[spec.bits] };
+	}
+}
+
+function signParams(spec: AlgSpec): AlgorithmIdentifier | RsaPssParams | EcdsaParams {
+	switch (spec.family) {
+		case 'HS':
+			return 'HMAC';
+		case 'RS':
+			return 'RSASSA-PKCS1-v1_5';
+		case 'PS':
+			return { name: 'RSA-PSS', saltLength: spec.bits / 8 };
+		case 'ES':
+			return { name: 'ECDSA', hash: spec.hash };
+	}
+}
+
+function parseJwk(text: string): JsonWebKey | null {
+	if (!text.trim().startsWith('{')) return null;
+	try {
+		const jwk: unknown = JSON.parse(text);
+		return jwk && typeof jwk === 'object' && 'kty' in jwk ? (jwk as JsonWebKey) : null;
+	} catch {
+		return null;
+	}
+}
+
+function pemBody(text: string, label: string): Uint8Array<ArrayBuffer> | null {
+	const m = new RegExp(`-----BEGIN ${label}-----([\\s\\S]*?)-----END ${label}-----`).exec(text);
+	if (!m) return null;
+	return base64UrlDecodeBytes(m[1].replace(/\s+/g, '').replace(/=+$/, ''));
+}
+
+const PRIVATE_JWK_MEMBERS = ['d', 'p', 'q', 'dp', 'dq', 'qi'] as const;
+
+const KTY: Record<Family, string> = { HS: 'oct', RS: 'RSA', PS: 'RSA', ES: 'EC' };
+
+/**
+ * Imports `keyText` for `alg` and `usage`. HS* takes the secret as UTF-8 text (or an oct JWK);
+ * RS/PS/ES take a PEM (SPKI public key for verify, PKCS#8 private key for sign) or a JWK.
+ * Throws an Error with a user-facing message when the key does not fit the algorithm.
+ */
+export async function importJwtKey(
+	keyText: string,
+	alg: string,
+	usage: 'verify' | 'sign'
+): Promise<CryptoKey> {
+	const spec = algSpec(alg);
+	if (!spec) throw new Error(`Unsupported algorithm ${alg}`);
+	const params = importParams(spec);
+	const jwk = parseJwk(keyText);
+	if (jwk) {
+		if (jwk.kty !== KTY[spec.family]) {
+			throw new Error(`A ${jwk.kty} key cannot be used with ${alg}`);
+		}
+		// Drop alg (checked by the caller) and, for verify, the private members so a full
+		// key pair JWK imports as its public half.
+		const material: JsonWebKey = { ...jwk };
+		delete material.alg;
+		delete material.key_ops;
+		if (usage === 'verify') for (const k of PRIVATE_JWK_MEMBERS) delete material[k];
+		return crypto.subtle.importKey('jwk', material, params, false, [usage]);
+	}
+	if (spec.family === 'HS') {
+		if (keyText.includes('-----BEGIN')) {
+			throw new Error(`A PEM key cannot be used as an ${alg} secret`);
+		}
+		return crypto.subtle.importKey('raw', new TextEncoder().encode(keyText), params, false, [
+			usage
+		]);
+	}
+	const label = usage === 'verify' ? 'PUBLIC KEY' : 'PRIVATE KEY';
+	const der = pemBody(keyText, label);
+	if (!der) {
+		throw new Error(`${alg} needs a PEM "${label}" or a JWK`);
+	}
+	return crypto.subtle.importKey(usage === 'verify' ? 'spki' : 'pkcs8', der, params, false, [
+		usage
+	]);
+}
+
+/**
+ * Verifies the token's signature with `keyText` under `alg`. The header alg must equal `alg`
+ * (no algorithm substitution) and `none` never verifies.
+ */
+export async function verifyJwt(
+	token: string,
+	keyText: string,
+	alg: string
+): Promise<VerifyResult> {
+	const parts = token.split('.');
+	if (parts.length !== 3) return { status: 'invalid', message: 'Invalid JWT format' };
+	const header = decodeJwt(token).header as { alg?: unknown } | null | undefined;
+	const headerAlg = header && typeof header === 'object' ? header.alg : undefined;
+	if (alg === 'none' || headerAlg === 'none') {
+		return { status: 'invalid', message: 'alg "none" is unsigned and never verifies' };
+	}
+	if (headerAlg !== alg) {
+		return {
+			status: 'invalid',
+			message: `Header alg ${JSON.stringify(headerAlg)} does not match ${alg}`
+		};
+	}
+	if (!algSpec(alg))
+		return { status: 'unsupported', message: `Verification not supported for ${alg}` };
+	let signature: Uint8Array<ArrayBuffer>;
+	try {
+		signature = base64UrlDecodeBytes(parts[2]);
+	} catch {
+		return { status: 'invalid', message: 'Signature is not base64url' };
+	}
+	let key: CryptoKey;
+	try {
+		key = await importJwtKey(keyText, alg, 'verify');
+	} catch (e) {
+		return { status: 'error', message: e instanceof Error ? e.message : String(e) };
+	}
+	const data = new TextEncoder().encode(`${parts[0]}.${parts[1]}`);
+	let ok: boolean;
+	try {
+		ok = await crypto.subtle.verify(signParams(algSpec(alg)!), key, signature, data);
+	} catch (e) {
+		return { status: 'error', message: e instanceof Error ? e.message : String(e) };
+	}
+	return ok ? { status: 'valid' } : { status: 'invalid', message: 'Signature does not match' };
 }
