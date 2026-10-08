@@ -35,6 +35,8 @@
 	let iterations = $state(0);
 	let groups = $state<number[][]>([]);
 	let personSelections = $state<(number | null)[]>([]);
+	/** Prices as entered before START; their sum is the estate value every round conserves. */
+	let enteredPrices = $state<number[]>([]);
 
 	function addItem(e: Event) {
 		e.preventDefault();
@@ -62,11 +64,8 @@
 	function startAlgorithm() {
 		if (people.length < 2 || items.length === 0) return;
 		initialized = true;
-		individualPrices = initialValuations(
-			items.map((x) => x.price),
-			people.length,
-			Math.random
-		);
+		enteredPrices = items.map((x) => x.price);
+		individualPrices = initialValuations(enteredPrices, people.length, Math.random);
 		personSelections = people.map(() => null);
 		setupExperiment();
 	}
@@ -85,7 +84,8 @@
 			items.map((i) => i.id),
 			groups,
 			personSelections,
-			iterations
+			iterations,
+			enteredPrices.reduce((a, b) => a + b, 0)
 		);
 		items = items.map((item, i) => ({ ...item, price: result.prices[i] }));
 		iterations++;

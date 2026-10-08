@@ -33,13 +33,16 @@ export interface RoundResult {
  * One round: a person who picked a group scales items in it up by the factor
  * and the rest down by it, then averages with their previous valuation.
  * A person with no selection (null) keeps their valuations unchanged.
+ * Every person's row is then rescaled to sum to `total` (the entered estate
+ * value), so the consensus prices always add up to what the user entered.
  */
 export function completeRound(
 	valuations: readonly (readonly number[])[],
 	itemIds: readonly number[],
 	groups: readonly (readonly number[])[],
 	selections: readonly (number | null)[],
-	iteration: number
+	iteration: number,
+	total: number
 ): RoundResult {
 	const factor = roundFactor(iteration);
 	const next = valuations.map((row, p) => {
@@ -51,6 +54,15 @@ export function completeRound(
 			return (scaled + v) / 2;
 		});
 	});
+	for (const row of next) normalise(row, total);
 	const prices = itemIds.map((_, i) => next.reduce((s, r) => s + r[i], 0) / next.length);
 	return { valuations: next, prices };
+}
+
+/** Rescale a row in place so it sums to `total`. Rows summing to 0 are left as is. */
+function normalise(row: number[], total: number): void {
+	const sum = row.reduce((a, b) => a + b, 0);
+	if (sum === 0) return;
+	const k = total / sum;
+	for (let i = 0; i < row.length; i++) row[i] *= k;
 }

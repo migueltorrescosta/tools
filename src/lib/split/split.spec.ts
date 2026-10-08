@@ -72,23 +72,25 @@ describe('split round', () => {
 	it('leaves an unselected person unchanged', () => {
 		const vals = [
 			[10, 20],
-			[30, 40]
+			[20, 10]
 		];
-		const r = completeRound(vals, [0, 1], [[0], [1]], [null, 0], 0);
+		const r = completeRound(vals, [0, 1], [[0], [1]], [null, 0], 0, 30);
 		expect(r.valuations[0]).toEqual([10, 20]);
 	});
 
-	it('scales a selected person by the factor and averages with the old value', () => {
+	it('scales a selected person by the factor, averages with the old value, then renormalises', () => {
 		const f = roundFactor(100);
-		const r = completeRound([[10, 20]], [7, 8], [[7], [8]], [0], 100);
-		expect(r.valuations[0][0]).toBeCloseTo((10 * f + 10) / 2, 12);
-		expect(r.valuations[0][1]).toBeCloseTo((20 / f + 20) / 2, 12);
+		const r = completeRound([[10, 20]], [7, 8], [[7], [8]], [0], 100, 30);
+		const a = (10 * f + 10) / 2;
+		const b = (20 / f + 20) / 2;
+		expect(r.valuations[0][0]).toBeCloseTo((a * 30) / (a + b), 12);
+		expect(r.valuations[0][1]).toBeCloseTo((b * 30) / (a + b), 12);
 		expect(r.prices).toEqual(r.valuations[0]);
 	});
 
 	it('does not mutate its inputs', () => {
 		const vals = [[10, 20]];
-		completeRound(vals, [0, 1], [[0], [1]], [0], 0);
+		completeRound(vals, [0, 1], [[0], [1]], [0], 0, 30);
 		expect(vals).toEqual([[10, 20]]);
 	});
 
@@ -96,14 +98,57 @@ describe('split round', () => {
 		const r = completeRound(
 			[
 				[10, 20],
-				[30, 40]
+				[30, 0]
 			],
 			[0, 1],
 			[[0], [1]],
 			[null, null],
-			0
+			0,
+			30
 		);
-		expect(r.prices).toEqual([20, 30]);
+		expect(r.prices).toEqual([20, 10]);
+	});
+
+	it('conserves the entered total: two people both picking Car for 10 rounds', () => {
+		const items = [car, house];
+		const groups = lptGroups(items, 2);
+		const carGroup = groups.findIndex((g) => g.includes(car.id));
+		let vals = initialValuations([car.price, house.price], 2, seededRng(3));
+		let prices: number[] = [];
+		for (let k = 0; k < 10; k++) {
+			const r = completeRound(vals, [0, 1], groups, [carGroup, carGroup], k, 60000);
+			vals = r.valuations;
+			prices = r.prices;
+		}
+		expect(Math.abs(prices[0] + prices[1] - 60000)).toBeLessThan(1e-9);
+		expect(prices[0]).toBeGreaterThan(car.price);
+	});
+
+	it('conserves the entered total after k rounds of any selection pattern', () => {
+		const rng = seededRng(19);
+		for (let trial = 0; trial < 100; trial++) {
+			const n = 2 + Math.floor(rng() * 4);
+			const items = Array.from({ length: 1 + Math.floor(rng() * 8) }, (_, id) => ({
+				id,
+				price: 1 + Math.round(rng() * 100000)
+			}));
+			const total = items.reduce((s, i) => s + i.price, 0);
+			const groups = lptGroups(items, n);
+			const ids = items.map((i) => i.id);
+			let vals = initialValuations(
+				items.map((i) => i.price),
+				n,
+				rng
+			);
+			const rounds = 1 + Math.floor(rng() * 30);
+			for (let k = 0; k < rounds; k++) {
+				const sel = Array.from({ length: n }, () => (rng() < 0.1 ? null : Math.floor(rng() * n)));
+				const r = completeRound(vals, ids, groups, sel, k, total);
+				vals = r.valuations;
+				const sum = r.prices.reduce((a, b) => a + b, 0);
+				expect(Math.abs(sum - total)).toBeLessThan(1e-9 * total);
+			}
+		}
 	});
 });
 
