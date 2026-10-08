@@ -8,6 +8,22 @@
 	"fx": {
 		"base": "EUR",
 		"rates": {
+			"1999Q1": {
+				"USD": 1.12161,
+				"GBP": 0.68679
+			},
+			"1999Q2": {
+				"USD": 1.05691,
+				"GBP": 0.65784
+			},
+			"1999Q3": {
+				"USD": 1.04857,
+				"GBP": 0.65492
+			},
+			"1999Q4": {
+				"USD": 1.038,
+				"GBP": 0.63632
+			},
 			"2000Q1": {
 				"USD": 0.98645,
 				"GBP": 0.61442
@@ -911,8 +927,8 @@
 			"points": [
 				{
 					"quarter": "2000Q3",
-					"revenue": 8477.85,
-					"operatingIncome": 554.358,
+					"revenue": 8266.35,
+					"operatingIncome": 540.528,
 					"quality": "reported",
 					"source": "Apple Form 10-K FY2002, Consolidated Statements of Operations (FY ending 2000-09-30: revenue USD 7,983m, operating income USD 522m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320193/000104746902007674/a2096490z10-k.htm"
@@ -2655,8 +2671,8 @@
 			"points": [
 				{
 					"quarter": "2000Q3",
-					"revenue": 34157.8,
-					"operatingIncome": 1101.28,
+					"revenue": 33305.6,
+					"operatingIncome": 1073.81,
 					"quality": "reported",
 					"source": "Costco Form 10-K FY2002, Item 6 Selected Financial Data (FY ending 2000-09-03: revenue USD 32,164m, operating income USD 1,037m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/909832/000103221002001631/d10k.htm"
@@ -5781,8 +5797,8 @@
 			"points": [
 				{
 					"quarter": "2000Q2",
-					"revenue": 23916.9,
-					"operatingIncome": 11466.7,
+					"revenue": 22920.4,
+					"operatingIncome": 10988.9,
 					"quality": "reported",
 					"source": "Microsoft Form 10-K FY2004, Item 6 Selected Financial Data (FY ending 2000-06-30: revenue USD 22,956m, operating income USD 11,006m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/789019/000119312504150689/d10k.htm"
@@ -6225,8 +6241,8 @@
 			"points": [
 				{
 					"quarter": "2000Q2",
-					"revenue": 9371.6,
-					"operatingIncome": 957.675,
+					"revenue": 8981.13,
+					"operatingIncome": 917.773,
 					"quality": "reported",
 					"source": "Nike Form 10-K FY2002, Consolidated Statements of Income (FY ending 2000-05-31: revenue USD 8,995.1m, operating income USD 919.2m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/320187/000089102002001248/v83383ore10vk.htm"
@@ -6645,8 +6661,8 @@
 			"points": [
 				{
 					"quarter": "2000Q1",
-					"revenue": 379.649,
-					"operatingIncome": 59.4222,
+					"revenue": 362.723,
+					"operatingIncome": 56.7729,
 					"quality": "reported",
 					"source": "NVIDIA Form 10-K FY2004, Item 6 Selected Financial Data (FY ending 2000-01-30: revenue USD 374.505m, operating income USD 58.617m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1045810/000104581004000007/annualreport.htm"
@@ -6897,8 +6913,8 @@
 			"points": [
 				{
 					"quarter": "2000Q2",
-					"revenue": 10659.2,
-					"operatingIncome": 3208.92,
+					"revenue": 10215.1,
+					"operatingIncome": 3075.22,
 					"quality": "reported",
 					"source": "Oracle Form 10-K FY2004, Item 6 Selected Financial Data (FY ending 2000-05-31: revenue USD 10,231m, operating income USD 3,080m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/777676/000095013404009282/f99870e10vk.htm"
@@ -7341,8 +7357,8 @@
 			"points": [
 				{
 					"quarter": "2000Q2",
-					"revenue": 41623.2,
-					"operatingIncome": 6203.21,
+					"revenue": 39889,
+					"operatingIncome": 5944.76,
 					"quality": "reported",
 					"source": "P&G FY2005 Annual Report (10-K Ex.13), Financial Summary (FY ending 2000-06-30: revenue USD 39,951m, operating income USD 5,954m)",
 					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000095015205007351/l15436aexv13.txt"
@@ -7995,8 +8011,8 @@
 			"points": [
 				{
 					"quarter": "2000Q1",
-					"revenue": 30591.5,
-					"operatingIncome": 1676.38,
+					"revenue": 29328.7,
+					"operatingIncome": 1607.18,
 					"quality": "reported",
 					"source": "Tesco Annual Report 2001, Group profit and loss account (UK GAAP), turnover excl. VAT (FY ending 2000-02-26: revenue GBP 18,796m, operating income GBP 1,030m)",
 					"sourceUrl": "https://www.tescoplc.com/media/1430/annual_report_2001.pdf"

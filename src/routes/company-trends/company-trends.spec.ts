@@ -30,9 +30,13 @@ import bundled from './data/companies.json';
 // Fixtures
 // ---------------------------------------------------------------------------
 
+// A fiscal-year rate needs all four quarters ending at 2000Q1; equal rates keep the
+// conversion arithmetic below exact (fiscalYearRate specs cover varying rates)
 const fx: FxTable = {
 	base: 'EUR',
-	rates: { '2000Q1': { USD: 1.07, GBP: 0.62 } }
+	rates: Object.fromEntries(
+		['1999Q2', '1999Q3', '1999Q4', '2000Q1'].map((q) => [q, { USD: 1.07, GBP: 0.62 }])
+	)
 };
 
 const reported = (
@@ -236,8 +240,32 @@ describe('fiscalYearRate', () => {
 		expect(convertToEur(135, '2001Q1', 'USD', table)).toBeCloseTo(100, 10);
 	});
 
-	it('averages fewer quarters at the start of the table', () => {
-		expect(fiscalYearRate('2000Q2', 'USD', table)).toBeCloseTo(1.05, 12);
+	it('throws instead of averaging fewer quarters at the start of the table', () => {
+		expect(() => fiscalYearRate('2000Q2', 'USD', table)).toThrow(/1999Q3/);
+	});
+
+	it('averages 1999Q2-2000Q1 for a fiscal year ending in 2000Q1', () => {
+		const withPrior: FxTable = {
+			base: 'EUR',
+			rates: {
+				'1999Q1': { USD: 9 },
+				'1999Q2': { USD: 1.06 },
+				'1999Q3': { USD: 1.05 },
+				'1999Q4': { USD: 1.04 },
+				...table.rates
+			}
+		};
+		expect(fiscalYearRate('2000Q1', 'USD', withPrior)).toBeCloseTo(
+			(1.06 + 1.05 + 1.04 + 1.0) / 4,
+			12
+		);
+	});
+
+	it('uses 1999 rates from the bundled table for early-2000 fiscal years', () => {
+		// NVIDIA FY2000 ended 2000-01-30: three of its four quarters are 1999
+		const rate = fiscalYearRate('2000Q1', 'USD', bundled.fx as FxTable);
+		expect(rate).toBeGreaterThan(1.03);
+		expect(rate).toBeLessThan(1.05);
 	});
 
 	it('throws when a quarter inside the fiscal year has no rate', () => {

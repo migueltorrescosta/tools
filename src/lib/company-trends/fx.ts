@@ -8,6 +8,8 @@ export interface FxTable {
 	rates: Record<string, FxRate>;
 }
 
+// Quarter arithmetic relative to 2000Q1; negative for 1999, whose rates the
+// fiscal years ending in early 2000 average over.
 function quarterIndex(label: string): number {
 	const m = /^(\d{4})Q([1-4])$/.exec(label);
 	if (!m) throw new Error(`Invalid quarter label: ${label}`);
@@ -15,7 +17,7 @@ function quarterIndex(label: string): number {
 }
 
 function quarterLabel(index: number): string {
-	return `${2000 + Math.floor(index / 4)}Q${(index % 4) + 1}`;
+	return `${2000 + Math.floor(index / 4)}Q${(((index % 4) + 4) % 4) + 1}`;
 }
 
 /** Number of quarters a fiscal-year (trailing-twelve-month) rate averages over. */
@@ -23,8 +25,9 @@ export const FISCAL_YEAR_QUARTERS = 4;
 
 /**
  * Mean foreign-units-per-EUR rate over the fiscal year ending at `quarter`: the
- * quarterly rates of the four quarters ending there (fewer at the 2000Q1 start of
- * the table). Values are fiscal-year totals, so the build converts filed figures
+ * quarterly rates of the four quarters ending there. Throws when any of them is
+ * missing rather than averaging fewer, which would misprice fiscal years ending
+ * in early 2000 with mostly-1999 trading at 2000 rates. Values are fiscal-year totals, so the build converts filed figures
  * to EUR with this rate and the display must convert back with the same one,
  * otherwise a company shown in its reporting currency would not match its filing.
  */
@@ -34,10 +37,9 @@ export function fiscalYearRate(
 	fx: FxTable
 ): number {
 	const end = quarterIndex(quarter);
-	if (end < 0) throw new Error(`No FX rate for ${currency} at ${quarter}`);
 	let sum = 0;
 	let count = 0;
-	for (let i = Math.max(0, end - FISCAL_YEAR_QUARTERS + 1); i <= end; i++) {
+	for (let i = end - FISCAL_YEAR_QUARTERS + 1; i <= end; i++) {
 		const label = quarterLabel(i);
 		const rate = fx.rates[label]?.[currency];
 		if (rate === undefined || !Number.isFinite(rate) || rate <= 0) {

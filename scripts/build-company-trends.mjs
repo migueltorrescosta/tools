@@ -8,7 +8,8 @@
 // - An anchor is placed at the quarter containing its fiscal-year end (shifted back one
 //   week so 52/53-week years ending in the first days of a quarter stay in the prior one).
 // - Values are fiscal-year (trailing-twelve-month) totals, converted to EUR with the mean
-//   of the ECB quarterly average rates over the fiscal year's quarters (from 2000Q1 on).
+//   of the ECB quarterly average rates over the fiscal year's four quarters (fx.json starts
+//   at 1999Q1 so fiscal years ending in early 2000 average their 1999 quarters).
 // - Only anchors in 2000Q1..2026Q4 are kept; quarters are never extrapolated.
 //
 // Usage: node scripts/build-company-trends.mjs [--until <year>]

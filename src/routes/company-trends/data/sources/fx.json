@@ -1,6 +1,22 @@
 {
 	"source": "ECB EXR series Q.USD.EUR.SP00.A and Q.GBP.EUR.SP00.A (quarterly average of ECB euro reference rates; data-api.ecb.europa.eu returned HTTP 503, fetched via DBnomics ECB mirror): https://api.db.nomics.world/v22/series/ECB/EXR/Q.USD.EUR.SP00.A?observations=1&format=csv ; https://api.db.nomics.world/v22/series/ECB/EXR/Q.GBP.EUR.SP00.A?observations=1&format=csv",
 	"rates": {
+		"1999Q1": {
+			"USD": 1.1216142857,
+			"GBP": 0.6867865079
+		},
+		"1999Q2": {
+			"USD": 1.0569123077,
+			"GBP": 0.6578353846
+		},
+		"1999Q3": {
+			"USD": 1.0485666667,
+			"GBP": 0.654919697
+		},
+		"1999Q4": {
+			"USD": 1.0379953846,
+			"GBP": 0.6363215385
+		},
 		"2000Q1": {
 			"USD": 0.9864523077,
 			"GBP": 0.61442
