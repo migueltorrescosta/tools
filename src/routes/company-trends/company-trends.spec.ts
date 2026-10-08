@@ -60,9 +60,13 @@ const validDataset: Dataset = {
 		fxMethodology: 'ECB quarterly average reference rates',
 		fxSource: 'https://data.ecb.europa.eu/data/datasets/EXR'
 	},
+	// Converting the fiscal years ending 2000Q1..2000Q2 reads every quarter from 1999Q2.
 	fx: {
 		base: 'EUR',
 		rates: {
+			'1999Q2': { USD: 1.05, GBP: 0.6 },
+			'1999Q3': { USD: 1.06, GBP: 0.61 },
+			'1999Q4': { USD: 1.06, GBP: 0.61 },
 			'2000Q1': { USD: 1.07, GBP: 0.62 },
 			'2000Q2': { USD: 1.08, GBP: 0.63 }
 		}
@@ -450,6 +454,27 @@ describe('validateDataset', () => {
 			quarter: '2010Q1'
 		});
 		expect(validateDataset(broken).some((e) => e.includes('2010Q1'))).toBe(true);
+	});
+
+	it('requires fx rates for every quarter between anchors, not just at them', () => {
+		// The chart converts interpolated quarters too: a missing middle rate would throw
+		// in buildTrail the first time USD or GBP is chosen.
+		const broken = clone();
+		for (const q of ['2000Q3', '2000Q4', '2001Q1']) broken.fx.rates[q] = { USD: 1.1, GBP: 0.64 };
+		broken.companies[0].points[1].quarter = '2001Q1';
+		expect(validateDataset(broken)).toEqual([]);
+
+		delete broken.fx.rates['2000Q3'];
+		const errors = validateDataset(broken);
+		expect(errors).toHaveLength(1);
+		expect(errors[0]).toContain('companies[0]');
+		expect(errors[0]).toContain('2000Q3');
+	});
+
+	it('requires the three quarters before the first anchor for its fiscal-year rate', () => {
+		const broken = clone();
+		delete broken.fx.rates['1999Q2'];
+		expect(validateDataset(broken).some((e) => e.includes('1999Q2'))).toBe(true);
 	});
 });
 

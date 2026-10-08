@@ -1,16 +1,19 @@
 <script lang="ts">
 	import {
 		clampMargin,
+		drawTrail,
 		formatMoney,
 		formatPercent,
 		linearScale,
 		logScale,
 		logTicks,
 		MARGIN_DOMAIN,
+		nearestHit,
 		percentTicks,
 		resolveHit,
+		tooltipPlacement,
 		trailSegments,
-		trailUpTo,
+		type DrawnTrail,
 		type Hit,
 		type HitSelection,
 		type Trail,
@@ -59,27 +62,15 @@
 		return `M${cx - size},${base}L${cx + size},${base}L${cx},${tip}Z`;
 	}
 
-	interface Drawn {
-		trail: Trail;
+	interface Drawn extends DrawnTrail {
 		color: string;
-		points: TrailPoint[];
-		head: TrailPoint | null;
-		/** True once the company's dataset has ended before the current quarter. */
-		ended: boolean;
 	}
 
 	const drawn = $derived<Drawn[]>(
-		trails.map((trail) => {
-			const points = trailUpTo(trail, qi).filter((p) => p.revenue > 0 && p.margin !== null);
-			const last = trail.points[trail.points.length - 1];
-			return {
-				trail,
-				color: colors.get(trail.company.id) ?? 'var(--text-muted)',
-				points,
-				head: points.length > 0 ? points[points.length - 1] : null,
-				ended: last !== undefined && last.qi < qi
-			};
-		})
+		trails.map((trail) => ({
+			...drawTrail(trail, qi),
+			color: colors.get(trail.company.id) ?? 'var(--text-muted)'
+		}))
 	);
 
 	// Selections, not point objects: re-resolved against the current trails so a
@@ -100,22 +91,7 @@
 		const rect = svgEl.getBoundingClientRect();
 		const px = ((event.clientX - rect.left) / rect.width) * W;
 		const pointerY = ((event.clientY - rect.top) / rect.height) * H;
-		let best: Hit | null = null;
-		let bestDist = 14 * 14;
-		for (const d of drawn) {
-			for (const p of d.points) {
-				const dx = x(p.revenue) - px;
-				const dy = py(p) - pointerY;
-				const dist = dx * dx + dy * dy;
-				// Prefer anchors and heads over faint interpolated points at equal distance.
-				const bias = p.quality === 'interpolated' && p !== d.head ? 4 : 0;
-				if (dist + bias < bestDist) {
-					bestDist = dist + bias;
-					best = { trail: d.trail, point: p };
-				}
-			}
-		}
-		return best;
+		return nearestHit(drawn, px, pointerY, x, y);
 	}
 
 	function onMove(event: PointerEvent) {
@@ -148,17 +124,9 @@
 	}
 
 	// Tooltip placement in percent of the chart box, flipped away from the edges.
-	const tip = $derived.by(() => {
-		if (!active) return null;
-		const tx = x(active.point.revenue);
-		const ty = py(active.point);
-		return {
-			left: (tx / W) * 100,
-			top: (ty / H) * 100,
-			flipX: tx > W * 0.6,
-			flipY: ty > H * 0.55
-		};
-	});
+	const tip = $derived(
+		active ? tooltipPlacement(x(active.point.revenue), py(active.point), W, H) : null
+	);
 </script>
 
 <svelte:window onkeydown={onKey} />
@@ -235,7 +203,7 @@
 				data-company={d.trail.company.id}
 				data-type={d.trail.company.type}
 			>
-				{#each trailSegments(d.points, x, y) as seg, i (i)}
+				{#each trailSegments(d.path, x, y) as seg, i (i)}
 					<path class="trail {seg.kind}" d={seg.d} />
 				{/each}
 				{#each d.points as p (p.qi)}

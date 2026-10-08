@@ -107,6 +107,18 @@ describe('buildDataset', () => {
 		expect(out.companies).toEqual([]);
 	});
 
+	it('rejects a missing or non-integer untilYear instead of keeping every anchor', () => {
+		// `--until` with no value or a typo reaches buildDataset as Number(...) = NaN
+		for (const untilYear of [Number.NaN, Number('20x5'), 2020.5]) {
+			expect(() =>
+				buildDataset(fx, [source([anchor('2007-03-31', 10, 1)])], {
+					untilYear,
+					generated: '2026-01-01'
+				})
+			).toThrow(/untilYear/);
+		}
+	});
+
 	it('throws when the fiscal year lacks a rate instead of averaging fewer quarters', () => {
 		expect(() =>
 			buildDataset(fx, [source([anchor('2006-12-31', 10, 1)])], { generated: '2026-01-01' })

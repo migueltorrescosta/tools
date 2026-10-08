@@ -24,6 +24,18 @@ function quarterLabel(index: number): string {
 export const FISCAL_YEAR_QUARTERS = 4;
 
 /**
+ * Every quarter whose rates converting fiscal years ending `first`..`last` reads:
+ * from three quarters before `first` through `last`.
+ */
+export function fxQuartersFor(first: string, last: string): string[] {
+	const quarters: string[] = [];
+	for (let i = quarterIndex(first) - FISCAL_YEAR_QUARTERS + 1; i <= quarterIndex(last); i++) {
+		quarters.push(quarterLabel(i));
+	}
+	return quarters;
+}
+
+/**
  * Mean foreign-units-per-EUR rate over the fiscal year ending at `quarter`: the
  * quarterly rates of the four quarters ending there. Throws when any of them is
  * missing rather than averaging fewer, which would misprice fiscal years ending

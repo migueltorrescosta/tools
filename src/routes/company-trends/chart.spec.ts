@@ -4,19 +4,24 @@ import {
 	buildTrail,
 	clampMargin,
 	colorMode,
+	drawTrail,
 	formatMoney,
 	formatPercent,
+	HIT_RADIUS,
+	latestUpTo,
 	linearScale,
 	logExtent,
 	logScale,
 	logTicks,
 	MARGIN_DOMAIN,
+	nearestHit,
 	PALETTE_SIZE,
 	percentTicks,
 	pointSources,
 	resolveHit,
 	REVENUE_FLOOR,
 	revenueDomain,
+	tooltipPlacement,
 	trailSegments,
 	trailUpTo,
 	typeSlot,
@@ -121,6 +126,139 @@ describe('buildTrail', () => {
 
 	it('cuts a trail at a quarter index', () => {
 		expect(trailUpTo(trail, 4).map((p) => p.quarter)).toEqual(['2000Q4', '2001Q1']);
+	});
+});
+
+describe('latestUpTo (table rows)', () => {
+	const trail = buildTrail(company, quarters, 'EUR', fx);
+
+	it('picks the latest point at or before the quarter', () => {
+		expect(latestUpTo(trail, 5)?.quarter).toBe('2001Q2');
+		expect(latestUpTo(trail, 3)?.quarter).toBe('2000Q4');
+	});
+
+	it('keeps a company whose data ended before the quarter at its last point', () => {
+		expect(latestUpTo(trail, 40)?.quarter).toBe('2003Q4');
+	});
+
+	it('leaves out a company that has not started yet', () => {
+		expect(latestUpTo(trail, 2)).toBeUndefined();
+	});
+});
+
+describe('drawTrail', () => {
+	const x = (v: number) => v;
+	const y = (v: number) => v;
+
+	it('breaks the line at a zero-revenue anchor between drawable ones', () => {
+		const zeroMid = buildTrail(
+			{
+				...company,
+				points: [anchor('2000Q4', 100, 10), anchor('2001Q4', 0, -5), anchor('2002Q4', 300, 30)]
+			},
+			quarters,
+			'EUR',
+			fx
+		);
+		const d = drawTrail(zeroMid, 15);
+		expect(d.path.some((p) => p.quarter === '2001Q4')).toBe(true);
+		expect(d.points.some((p) => p.quarter === '2001Q4')).toBe(false);
+		const segs = trailSegments(d.path, x, y);
+		expect(segs).toHaveLength(2);
+		expect(segs.every((s) => s.kind === 'solid')).toBe(true);
+		expect(d.head?.quarter).toBe('2002Q4');
+	});
+
+	it('marks a trail ended only once the quarter is past its last point', () => {
+		const trail = buildTrail(company, quarters, 'EUR', fx);
+		expect(drawTrail(trail, 15).ended).toBe(false);
+		expect(drawTrail(trail, 16).ended).toBe(true);
+		expect(drawTrail(trail, 16).head?.quarter).toBe('2003Q4');
+	});
+
+	it('has no head before the first point', () => {
+		const d = drawTrail(buildTrail(company, quarters, 'EUR', fx), 2);
+		expect(d.points).toEqual([]);
+		expect(d.head).toBeNull();
+		expect(d.ended).toBe(false);
+	});
+});
+
+describe('nearestHit', () => {
+	const ident = (v: number) => v;
+	const trail = buildTrail(company, quarters, 'EUR', fx);
+	const at = (
+		quarter: string,
+		revenue: number,
+		margin: number,
+		quality: TrailPoint['quality']
+	): TrailPoint => ({
+		quarter,
+		qi: 0,
+		revenue,
+		expenses: 0,
+		operatingIncome: 0,
+		margin,
+		quality,
+		gap: false
+	});
+
+	it('prefers an anchor over an interpolated point at equal distance, in either order', () => {
+		const interp = at('2001Q1', 10, 0, 'interpolated');
+		const anchorPt = at('2001Q4', 20, 0, 'reported');
+		const head = at('2003Q4', 1000, 0, 'reported');
+		for (const points of [
+			[interp, anchorPt, head],
+			[anchorPt, interp, head]
+		]) {
+			expect(nearestHit([{ trail, points, head }], 15, 0, ident, ident)?.point).toBe(anchorPt);
+		}
+	});
+
+	it('treats an interpolated head like an anchor', () => {
+		const interp = at('2001Q1', 10, 0, 'interpolated');
+		const head = at('2001Q2', 20, 0, 'interpolated');
+		expect(nearestHit([{ trail, points: [interp, head], head }], 15, 0, ident, ident)?.point).toBe(
+			head
+		);
+	});
+
+	it('still picks a clearly closer interpolated point over an anchor', () => {
+		const interp = at('2001Q1', 10, 0, 'interpolated');
+		const anchorPt = at('2001Q4', 20, 0, 'reported');
+		const hit = nearestHit(
+			[{ trail, points: [anchorPt, interp], head: null }],
+			13,
+			0,
+			ident,
+			ident
+		);
+		expect(hit?.point).toBe(interp);
+	});
+
+	it('returns null beyond the hit radius', () => {
+		const p = at('2001Q4', 0, 0, 'reported');
+		const drawn = [{ trail, points: [p], head: p }];
+		expect(nearestHit(drawn, HIT_RADIUS - 0.5, 0, ident, ident)?.point).toBe(p);
+		expect(nearestHit(drawn, HIT_RADIUS, 0, ident, ident)).toBeNull();
+	});
+
+	it('hit-tests off-scale margins where they are drawn, pinned to the axis edge', () => {
+		const p = at('2001Q4', 0, -9, 'reported');
+		expect(nearestHit([{ trail, points: [p], head: p }], 0, -2, ident, ident)?.point).toBe(p);
+	});
+});
+
+describe('tooltipPlacement', () => {
+	it('positions in percent and flips away from the right and bottom edges', () => {
+		expect(tooltipPlacement(100, 100, 1000, 500)).toEqual({
+			left: 10,
+			top: 20,
+			flipX: false,
+			flipY: false
+		});
+		expect(tooltipPlacement(600, 275, 1000, 500)).toMatchObject({ flipX: false, flipY: false });
+		expect(tooltipPlacement(601, 276, 1000, 500)).toMatchObject({ flipX: true, flipY: true });
 	});
 });
 
@@ -238,6 +376,14 @@ describe('formatMoney', () => {
 		expect(formatMoney(2_400_000, 'EUR')).toBe('€2.4T');
 		expect(formatMoney(-56.4, 'EUR')).toBe('−€56.4M');
 	});
+
+	it('promotes the unit when rounding carries to 1000', () => {
+		expect(formatMoney(999.6, 'EUR')).toBe('€1B');
+		expect(formatMoney(999_960, 'USD')).toBe('$1T');
+		expect(formatMoney(-999.6, 'GBP')).toBe('−£1B');
+		expect(formatMoney(999.4, 'EUR')).toBe('€999M');
+		expect(formatMoney(99.996, 'EUR')).toBe('€100M');
+	});
 });
 
 describe('linear and percent helpers', () => {
@@ -335,7 +481,7 @@ describe('colour assignment', () => {
 		const tech = Array.from({ length: 11 }, (_, i) =>
 			trailOf(`c${i}`, `Co ${String.fromCharCode(75 - i)}`, 'tech')
 		);
-		const colors = assignColors(tech);
+		const { colors } = assignColors(tech);
 		expect(new Set(colors.values()).size).toBe(11);
 		expect(colors.get('c10')).toBe('var(--cseries-1)');
 		expect(colors.get('c0')).toBe('var(--cseries-11)');
@@ -343,15 +489,58 @@ describe('colour assignment', () => {
 
 	it('is deterministic regardless of input order', () => {
 		const a = [trailOf('a', 'Alpha', 'tech'), trailOf('b', 'Beta', 'energy')];
-		expect(assignColors(a)).toEqual(assignColors([...a].reverse()));
+		expect(assignColors(a).colors).toEqual(assignColors([...a].reverse()).colors);
 	});
 
 	it('falls back to industry slots beyond the palette size', () => {
 		const many = Array.from({ length: 13 }, (_, i) =>
 			trailOf(`c${i}`, `Co ${i}`, i % 2 ? 'energy' : 'tech')
 		);
-		const colors = assignColors(many);
+		const { colors } = assignColors(many);
 		expect(colors.get('c0')).toBe(`var(--series-${typeSlot('tech') + 1})`);
 		expect(colors.get('c1')).toBe(`var(--series-${typeSlot('energy') + 1})`);
+	});
+
+	it('keeps existing colours when a company is added or removed', () => {
+		const base = [
+			trailOf('b', 'Beta', 'tech'),
+			trailOf('d', 'Delta', 'tech'),
+			trailOf('f', 'Foxtrot', 'tech')
+		];
+		const first = assignColors(base);
+		// "Alpha" sorts first: by name rank it would push every other company down a slot.
+		const added = assignColors([trailOf('a', 'Alpha', 'tech'), ...base], first.slots);
+		for (const t of base)
+			expect(added.colors.get(t.company.id)).toBe(first.colors.get(t.company.id));
+		expect(added.colors.get('a')).toBe('var(--cseries-4)');
+
+		// Removing Delta frees its slot for the next newcomer; the others stay put.
+		const removed = assignColors(
+			[
+				trailOf('a', 'Alpha', 'tech'),
+				trailOf('b', 'Beta', 'tech'),
+				trailOf('f', 'Foxtrot', 'tech')
+			],
+			added.slots
+		);
+		expect(removed.colors.get('a')).toBe(added.colors.get('a'));
+		expect(removed.colors.get('f')).toBe(added.colors.get('f'));
+		const readded = assignColors(
+			[...base, trailOf('a', 'Alpha', 'tech'), trailOf('c', 'Charlie', 'tech')],
+			removed.slots
+		);
+		expect(readded.colors.get('c')).toBe(first.colors.get('d'));
+		expect(readded.colors.get('d')).toBe('var(--cseries-5)');
+	});
+
+	it('remembers company slots across an industry-coloured interlude', () => {
+		const few = [trailOf('b', 'Beta', 'tech'), trailOf('z', 'Zulu', 'tech')];
+		const first = assignColors(few);
+		const many = Array.from({ length: 13 }, (_, i) => trailOf(`c${i}`, `Aa ${i}`, 'tech'));
+		const industry = assignColors([...few, ...many], first.slots);
+		expect(industry.colors.get('b')).toBe(`var(--series-${typeSlot('tech') + 1})`);
+		const back = assignColors([trailOf('a', 'Alpha', 'tech'), ...few], industry.slots);
+		expect(back.colors.get('b')).toBe(first.colors.get('b'));
+		expect(back.colors.get('z')).toBe(first.colors.get('z'));
 	});
 });

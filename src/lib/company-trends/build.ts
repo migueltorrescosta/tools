@@ -105,6 +105,9 @@ export function buildDataset(
 	sources: SourceCompany[],
 	{ untilYear = 9999, generated }: BuildOptions
 ) {
+	if (!Number.isInteger(untilYear)) {
+		throw new Error(`untilYear must be an integer year, got ${String(untilYear)}`);
+	}
 	const fx = buildFxTable(fxSource);
 	const companies = [];
 	for (const raw of sources) {

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import datasetJson from './data/companies.json';
 	import TrendsChart from './TrendsChart.svelte';
 	import { loadDataset } from '$lib/company-trends/schema';
@@ -9,6 +10,7 @@
 		colorMode,
 		formatMoney,
 		formatPercent,
+		latestUpTo,
 		pointSources,
 		REVENUE_FLOOR,
 		revenueDomain,
@@ -17,6 +19,10 @@
 	} from '$lib/company-trends/chart';
 	import { quarterIndex, quarterLabel, quarterRange } from '$lib/company-trends/series';
 	import type { Currency } from '$lib/company-trends/fx';
+
+	// Set once the page is interactive; e2e tests wait for it before clicking.
+	let hydrated = $state(false);
+	onMount(() => (hydrated = true));
 
 	const { dataset, errors } = loadDataset(datasetJson);
 	const companies = errors.length === 0 ? dataset.companies : [];
@@ -45,7 +51,14 @@
 
 	// Small selections (e.g. one industry) get a colour per company; larger ones per industry.
 	const mode = $derived(colorMode(visibleTrails.length));
-	const colors = $derived(assignColors(visibleTrails));
+	// Company-mode palette slots from the previous assignment, so toggling a company keeps
+	// every other company's colour. Plain (non-reactive) memory: it only feeds the next run.
+	let colorSlots = new Map<string, number>();
+	const colors = $derived.by(() => {
+		const { colors, slots } = assignColors(visibleTrails, colorSlots);
+		colorSlots = slots;
+		return colors;
+	});
 
 	// The revenue axis spans every visible point across all quarters, so it stays fixed during
 	// playback, floored so a pre-revenue filing cannot stretch it; the margin axis is fixed.
@@ -84,11 +97,10 @@
 
 	const tableRows = $derived(
 		visibleTrails
-			.map((t) => {
-				const upTo = t.points.filter((p) => p.qi <= qi);
-				return { trail: t, point: upTo[upTo.length - 1] };
+			.flatMap((t) => {
+				const point = latestUpTo(t, qi);
+				return point ? [{ trail: t, point }] : [];
 			})
-			.filter((r) => r.point !== undefined)
 			.sort((a, b) => b.point.revenue - a.point.revenue)
 	);
 </script>
@@ -97,7 +109,7 @@
 	<title>Company Trends</title>
 </svelte:head>
 
-<div class="viz-root container">
+<div class="viz-root container" data-hydrated={hydrated || undefined}>
 	<header>
 		<h1>COMPANY TRENDS</h1>
 		<p class="subtitle">
