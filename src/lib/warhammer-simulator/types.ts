@@ -69,7 +69,6 @@ export interface Character {
 	a: number;
 	i: number;
 	wounds: number;
-	armourSave: number; // 2 through 7 (7 = no armour save)
 	wardSave: number; // 2 through 7, or 0 = no ward save
 	weapon: WeaponType;
 	armour: ArmourType;

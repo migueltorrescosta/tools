@@ -69,7 +69,6 @@
 			a: 3,
 			i: 4,
 			wounds: 3,
-			armourSave: 7,
 			wardSave: 0,
 			weapon: 'hand-weapon',
 			armour: 'none',
@@ -144,7 +143,6 @@
 		const preset = presets.find((p) => p.name === presetName);
 		if (!preset) return;
 
-		const armourStat = getArmourStats(preset.armourType);
 		const char: Character = {
 			name: preset.name,
 			faction: preset.faction,
@@ -155,7 +153,6 @@
 			a: preset.a,
 			i: preset.i,
 			wounds: preset.wounds,
-			armourSave: armourStat.save,
 			wardSave: preset.wardSave,
 			weapon: preset.weapon,
 			armour: preset.armourType,

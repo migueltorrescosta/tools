@@ -184,7 +184,6 @@ function makeChar(overrides: Partial<Character> = {}): Character {
 		a: 3,
 		i: 4,
 		wounds: 3,
-		armourSave: 7,
 		wardSave: 0,
 		weapon: 'hand-weapon',
 		armour: 'none',
@@ -231,6 +230,21 @@ describe('CombatEngine', () => {
 		expect(results.roundDistribution).toEqual([200]);
 	});
 
+	it('derives the armour save from armour and shield (full plate + shield + parry = 2+)', () => {
+		const tank = makeChar({ armour: 'full-plate', shield: 'shield' });
+		expect(computeEffectiveStats(tank, false, 1).armourSave).toBe(2);
+		expect(computeEffectiveStats(makeChar(), false, 1).armourSave).toBe(7);
+	});
+
+	it('armour from equipment blocks wounds in the engine', () => {
+		// Every roll is a 6: every attack hits and wounds, and every 2+ save passes.
+		const attacker = makeChar({ a: 3 });
+		const tank = makeChar({ a: 0, wounds: 1, armour: 'full-plate', shield: 'shield' });
+		const result = new CombatEngine(attacker, tank, new AlwaysSixRNG()).run();
+		expect(result.winner).toBe('draw');
+		expect(result.damageDealtA).toBe(0);
+	});
+
 	it('attributes damage to the side that dealt it', () => {
 		const killer = makeChar({ name: 'Killer', a: 1 });
 		const victim = makeChar({ name: 'Victim', a: 0, wounds: 1 });
@@ -266,7 +280,15 @@ describe('CombatEngine', () => {
 	});
 
 	it('character with vastly superior stats wins more often', () => {
-		const strong = makeChar({ ws: 10, a: 10, s: 10, t: 10, wounds: 10, armourSave: 2 });
+		const strong = makeChar({
+			ws: 10,
+			a: 10,
+			s: 10,
+			t: 10,
+			wounds: 10,
+			armour: 'full-plate',
+			shield: 'shield'
+		});
 		const weak = makeChar({ ws: 1, a: 1, s: 1, t: 1, wounds: 1 });
 
 		const controller = new MonteCarloController(strong, weak, 1234);
@@ -278,7 +300,7 @@ describe('CombatEngine', () => {
 
 	it('mutual kill is recorded when both die simultaneously', () => {
 		// Set up both to deal guaranteed wounds and have no saves
-		const glassCannon = makeChar({ ws: 10, s: 10, a: 10, t: 1, wounds: 1, armourSave: 7 });
+		const glassCannon = makeChar({ ws: 10, s: 10, a: 10, t: 1, wounds: 1 });
 
 		const controller = new MonteCarloController(glassCannon, { ...glassCannon }, 42);
 		const results = controller.run(500);
@@ -288,8 +310,24 @@ describe('CombatEngine', () => {
 	});
 
 	it('hard cap at 50 rounds prevents infinite loops', () => {
-		const tank1 = makeChar({ ws: 1, s: 1, a: 1, t: 10, wounds: 10, armourSave: 2 });
-		const tank2 = makeChar({ ws: 1, s: 1, a: 1, t: 10, wounds: 10, armourSave: 2 });
+		const tank1 = makeChar({
+			ws: 1,
+			s: 1,
+			a: 1,
+			t: 10,
+			wounds: 10,
+			armour: 'full-plate',
+			shield: 'shield'
+		});
+		const tank2 = makeChar({
+			ws: 1,
+			s: 1,
+			a: 1,
+			t: 10,
+			wounds: 10,
+			armour: 'full-plate',
+			shield: 'shield'
+		});
 
 		const controller = new MonteCarloController(tank1, tank2, 42);
 		const results = controller.run(100);
