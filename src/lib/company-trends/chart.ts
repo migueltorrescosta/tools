@@ -317,3 +317,30 @@ export function trailSegments(
 	flush();
 	return segments;
 }
+
+/** A point under the pointer or pinned, as drawn right now. */
+export interface Hit {
+	trail: Trail;
+	point: TrailPoint;
+}
+
+/** What a hover or pin refers to, independent of currency and the current trail set. */
+export interface HitSelection {
+	companyId: string;
+	quarter: string;
+}
+
+/**
+ * The drawn point a selection refers to in the current trails, or null when that
+ * company is no longer drawn or the quarter is not on screen (e.g. the slider moved
+ * before it). Re-resolving on every change keeps the tooltip in the current currency.
+ */
+export function resolveHit(
+	drawn: readonly { trail: Trail; points: readonly TrailPoint[] }[],
+	sel: HitSelection | null
+): Hit | null {
+	if (!sel) return null;
+	const d = drawn.find((entry) => entry.trail.company.id === sel.companyId);
+	const point = d?.points.find((p) => p.quarter === sel.quarter);
+	return d && point ? { trail: d.trail, point } : null;
+}

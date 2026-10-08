@@ -13,6 +13,7 @@ import {
 	MARGIN_DOMAIN,
 	PALETTE_SIZE,
 	percentTicks,
+	resolveHit,
 	trailSegments,
 	trailUpTo,
 	typeSlot,
@@ -115,6 +116,38 @@ describe('buildTrail', () => {
 
 	it('cuts a trail at a quarter index', () => {
 		expect(trailUpTo(trail, 4).map((p) => p.quarter)).toEqual(['2000Q4', '2001Q1']);
+	});
+});
+
+describe('resolveHit', () => {
+	const drawnAt = (currency: 'EUR' | 'USD', qi: number, companies = [company]) =>
+		companies.map((c) => {
+			const trail = buildTrail(c, quarters, currency, fx);
+			return { trail, points: trailUpTo(trail, qi) };
+		});
+	const sel = { companyId: 'acme', quarter: '2000Q4' };
+
+	it('re-resolves a selection in the new currency', () => {
+		const eur = resolveHit(drawnAt('EUR', 15), sel)!;
+		const usd = resolveHit(drawnAt('USD', 15), sel)!;
+		expect(eur.point.revenue).toBe(100);
+		expect(usd.point.revenue).toBeCloseTo(215, 10);
+		expect(usd.point.quarter).toBe('2000Q4');
+		expect(usd.trail.company.id).toBe('acme');
+	});
+
+	it('returns null when the company is no longer drawn', () => {
+		expect(resolveHit(drawnAt('EUR', 15, []), sel)).toBeNull();
+	});
+
+	it('returns null when the current quarter is before the selection', () => {
+		expect(resolveHit(drawnAt('EUR', 2), sel)).toBeNull();
+		expect(resolveHit(drawnAt('EUR', 3), sel)?.point.quarter).toBe('2000Q4');
+	});
+
+	it('returns null without a selection or for an unknown quarter', () => {
+		expect(resolveHit(drawnAt('EUR', 15), null)).toBeNull();
+		expect(resolveHit(drawnAt('EUR', 15), { companyId: 'acme', quarter: '1999Q4' })).toBeNull();
 	});
 });
 

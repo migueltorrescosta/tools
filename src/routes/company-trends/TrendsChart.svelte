@@ -8,8 +8,11 @@
 		logTicks,
 		MARGIN_DOMAIN,
 		percentTicks,
+		resolveHit,
 		trailSegments,
 		trailUpTo,
+		type Hit,
+		type HitSelection,
 		type Trail,
 		type TrailPoint
 	} from '$lib/company-trends/chart';
@@ -77,14 +80,16 @@
 		})
 	);
 
-	interface Hit {
-		trail: Trail;
-		point: TrailPoint;
-	}
+	// Selections, not point objects: re-resolved against the current trails so a
+	// currency, filter or quarter change never shows a stale point.
+	let hovered = $state<HitSelection | null>(null);
+	let pinned = $state<HitSelection | null>(null);
+	const pinnedHit = $derived(resolveHit(drawn, pinned));
+	const active = $derived(pinnedHit ?? resolveHit(drawn, hovered));
 
-	let hovered = $state<Hit | null>(null);
-	let pinned = $state<Hit | null>(null);
-	const active = $derived(pinned ?? hovered);
+	function selectionOf(hit: Hit | null): HitSelection | null {
+		return hit && { companyId: hit.trail.company.id, quarter: hit.point.quarter };
+	}
 
 	let svgEl: SVGSVGElement | undefined = $state();
 
@@ -112,12 +117,14 @@
 	}
 
 	function onMove(event: PointerEvent) {
-		hovered = nearest(event);
+		hovered = selectionOf(nearest(event));
 	}
 
 	function onClick(event: MouseEvent) {
-		const hit = nearest(event);
-		pinned = hit && pinned && hit.point === pinned.point ? null : hit;
+		const hit = selectionOf(nearest(event));
+		const same =
+			hit && pinnedHit && hit.companyId === pinned?.companyId && hit.quarter === pinned.quarter;
+		pinned = same ? null : hit;
 	}
 
 	function onKey(event: KeyboardEvent) {
@@ -295,7 +302,7 @@
 		{@const c = active.trail.company}
 		<div
 			class="tooltip"
-			class:pinned={pinned !== null}
+			class:pinned={pinnedHit !== null}
 			class:flip-x={tip.flipX}
 			class:flip-y={tip.flipY}
 			style="left: {tip.left}%; top: {tip.top}%"
@@ -306,7 +313,7 @@
 			<div class="tt-head">
 				<strong>{c.name}</strong>
 				<span>{p.quarter}</span>
-				{#if pinned}
+				{#if pinnedHit}
 					<button class="tt-close" aria-label="Close" onclick={() => (pinned = null)}>×</button>
 				{/if}
 			</div>
@@ -343,7 +350,7 @@
 				{/if}
 			</div>
 			{#if c.notes}<div class="tt-notes dim">{c.notes}</div>{/if}
-			{#if !pinned}<div class="dim tt-hint">Click to pin and follow links</div>{/if}
+			{#if !pinnedHit}<div class="dim tt-hint">Click to pin and follow links</div>{/if}
 		</div>
 	{/if}
 </div>

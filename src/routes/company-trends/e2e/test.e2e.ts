@@ -76,6 +76,34 @@ test('Company trends - tooltip shows provenance and pins with a source link', as
 	await page.keyboard.press('Escape');
 });
 
+test('Company trends - a pinned tooltip follows a currency switch', async ({ page }) => {
+	await page.goto('/company-trends');
+	await page.getByRole('button', { name: 'none' }).click();
+	await page.getByRole('checkbox', { name: 'Apple' }).check();
+	await page.locator('.head-dot').first().click({ force: true });
+	const tooltip = page.getByTestId('trends-tooltip');
+	await expect(tooltip.getByRole('button', { name: 'Close' })).toBeVisible();
+
+	await page.getByRole('button', { name: 'USD', exact: true }).click();
+	await page.locator('.table-view summary').click();
+	const row = page.locator('.table-view tbody tr', { hasText: 'Apple' });
+	const usdRevenue = (await row.locator('td').nth(3).textContent())!.trim();
+	expect(usdRevenue).toMatch(/^\$/);
+	await expect(tooltip.locator('dd').nth(1)).toHaveText(usdRevenue);
+});
+
+test('Company trends - a pinned tooltip closes when its company is deselected', async ({
+	page
+}) => {
+	await page.goto('/company-trends');
+	await page.getByRole('button', { name: 'none' }).click();
+	await page.getByRole('checkbox', { name: 'Apple' }).check();
+	await page.locator('.head-dot').first().click({ force: true });
+	await expect(page.getByTestId('trends-tooltip')).toBeVisible();
+	await page.getByRole('checkbox', { name: 'Apple' }).uncheck();
+	await expect(page.getByTestId('trends-tooltip')).toHaveCount(0);
+});
+
 test('Company trends - y axis is operating margin with a 0% break-even line', async ({ page }) => {
 	await page.goto('/company-trends');
 	await expect(page.getByTestId('y-axis-title')).toHaveText(/Operating margin/);
