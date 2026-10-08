@@ -40,10 +40,18 @@ export interface RollOutcome {
 	natural: number;
 }
 
-/** Roll against a target number with an optional single reroll of a failure. */
-function rollWithReroll(rng: SeededRNG, target: number, reroll?: RerollSource): RollOutcome {
+/**
+ * Roll against a target number with an optional single reroll of a failure.
+ * `rerollOnes` rerolls only a failed natural 1 (e.g. Murderous Prowess).
+ */
+function rollWithReroll(
+	rng: SeededRNG,
+	target: number,
+	reroll?: RerollSource,
+	rerollOnes = false
+): RollOutcome {
 	let natural = rng.rollD6();
-	if (natural < target && reroll) natural = rng.rollD6();
+	if (natural < target && (reroll || (rerollOnes && natural === 1))) natural = rng.rollD6();
 	return { success: natural >= target, natural };
 }
 
@@ -62,9 +70,10 @@ export function rollToWound(
 	rng: SeededRNG,
 	strength: number,
 	toughness: number,
-	reroll?: RerollSource
+	reroll?: RerollSource,
+	rerollOnes = false
 ): RollOutcome {
-	return rollWithReroll(rng, getToWoundTarget(strength, toughness), reroll);
+	return rollWithReroll(rng, getToWoundTarget(strength, toughness), reroll, rerollOnes);
 }
 
 /**
@@ -110,9 +119,42 @@ export function resolveArmourSave(rng: SeededRNG, baseSave: number, ap: number):
  * Returns true if the ward save is successful.
  */
 export function resolveWardSave(rng: SeededRNG, wardSave: number): boolean {
-	if (wardSave < 2 || wardSave > 6) return false; // no ward save
+	if (!isValidSave(wardSave)) return false; // no ward save
 	const roll = rng.rollD6();
 	return roll >= wardSave;
+}
+
+/** True for a usable 2+ to 6+ save; 0 or 7 mean "no save". */
+function isValidSave(save: number): boolean {
+	return save >= 2 && save <= 6;
+}
+
+/** The better of two ward-style saves (lower is better), treating 0/7 as none. Returns 0 for none. */
+export function bestSave(a: number, b: number): number {
+	const valid = [a, b].filter(isValidSave);
+	return valid.length ? Math.min(...valid) : 0;
+}
+
+// ── Special rules ──
+
+/**
+ * Special rules the simulator models. Every other id (fear, stubborn,
+ * martial-prowess, ...) has no effect in a one-on-one duel as modelled here.
+ *   hatred-all            reroll failed to-hit rolls in the first round of combat
+ *   hatred-of-<faction>   the same, only against an opponent of that faction
+ *   murderous-prowess     reroll to-wound rolls of a natural 1
+ */
+export function isModelledSpecialRule(id: string): boolean {
+	return id === 'murderous-prowess' || id === 'hatred-all' || id.startsWith('hatred-of-');
+}
+
+/** Whether `char` has Hatred against `opponent` (any faction if no opponent is given). */
+function hates(char: Character, opponent?: Character): boolean {
+	return char.specialRules.some(
+		(id) =>
+			id === 'hatred-all' ||
+			(id.startsWith('hatred-of-') && (!opponent || id === `hatred-of-${opponent.faction}`))
+	);
 }
 
 // ── Character stat resolution for a given round ──
@@ -126,21 +168,29 @@ export interface EffectiveStats {
 	armourSave: number;
 	hasRerollHits: boolean;
 	hasRerollWounds: boolean;
+	/** Reroll to-wound rolls of a natural 1 (Murderous Prowess). */
+	rerollWoundOnes: boolean;
 	hasKillingBlow: boolean;
 	hasPoison: boolean;
-	hasRegeneration: boolean;
 	ignoresArmour: boolean;
+	/** Strikes Last (great weapon): strikes after models without it, even when charging. */
+	strikesLast: boolean;
 	wardSave: number;
+	/** Regeneration (X+) save, 0 = none. Does not stack with wardSave; the better is used. */
+	regenerationSave: number;
 }
 
 /**
  * Compute effective combat stats for a character in a given round.
- * Accounts for weapon, charging, and special rules.
+ * Accounts for weapon, charging, and special rules. `isCharging` is true only
+ * in the round the character charged. `opponent` scopes faction Hatred; without
+ * it, any Hatred applies (used for the display panel).
  */
 export function computeEffectiveStats(
 	char: Character,
 	isCharging: boolean,
-	roundNumber: number
+	roundNumber: number,
+	opponent?: Character
 ): EffectiveStats {
 	const weapon = getWeaponStats(char.weapon);
 	const armour = getArmourStats(char.armour);
@@ -150,21 +200,26 @@ export function computeEffectiveStats(
 	let strength = char.s + weapon.strengthBonus;
 	let toughness = char.t;
 	let attacks = char.a + weapon.attacks;
-	let initiative = char.i;
-	const ap = weapon.ap;
+	const initiative = char.i;
+	let ap = weapon.ap;
+	const firstRound = roundNumber === 1;
 
-	// Great Weapon: set initiative to 1 before other modifiers
-	if (weapon.type === 'great-weapon') {
-		initiative = 1;
-	}
-
-	// Flails and lances only get their Strength bonus while charging.
-	if (!isCharging && weapon.special.includes('charge-strength-only')) {
+	// Lance: Strength and AP bonus only in the round the wielder charges.
+	// Flail: Strength and AP bonus only in the first round of combat.
+	const bonusLost =
+		(weapon.special.includes('charge-bonus-only') && !isCharging) ||
+		(weapon.special.includes('first-round-bonus-only') && !firstRound);
+	if (bonusLost) {
 		strength = char.s;
+		ap = 0;
 	}
 
-	// The charge Initiative bonus is applied once, by CombatEngine, from the
-	// user-set chargeBonus; it is not added here.
+	// Great weapon: Strikes Last is a strike-order rule applied by CombatEngine;
+	// Initiative itself is unchanged.
+	const strikesLast = weapon.special.includes('always-strikes-last');
+
+	// Charging changes strike order only (the charger strikes first in round 1,
+	// in CombatEngine); it adds no Initiative here.
 
 	// Armour save calculation: base armour + shield + parry + special
 	let armourSave = armour.save;
@@ -182,17 +237,15 @@ export function computeEffectiveStats(
 
 	// Special rules, gifts and items. Effects follow each entry's description in
 	// data/gift-traits.json; "first round" items apply only in round 1.
-	const firstRound = roundNumber === 1;
 	const has = (id: string) => char.traits.includes(id);
 
 	const hasRerollHits =
-		char.specialRules.includes('hatred-all') ||
-		has('immortal-fury') ||
-		(has('reroll-hits') && firstRound);
+		has('immortal-fury') || (firstRound && (has('reroll-hits') || hates(char, opponent)));
 	const hasRerollWounds = has('reroll-wounds') && firstRound;
+	const rerollWoundOnes = char.specialRules.includes('murderous-prowess');
 	const hasKillingBlow = has('killing-blow');
 	const hasPoison = has('poisoned-attacks');
-	const hasRegeneration = has('regeneration');
+	const regenerationSave = has('regeneration') ? 4 : 0;
 	const ignoresArmour = has('blasted-standard');
 
 	if (has('strength+1')) strength += 1;
@@ -207,11 +260,9 @@ export function computeEffectiveStats(
 	if (has('armour-boost')) {
 		armourSave = clampSave(armourSave - 1);
 	}
-	if (has('ward-4')) {
-		wardSave = 4;
-	} else if (has('ward-5')) {
-		wardSave = 5;
-	}
+	// Talismans grant a ward but never worsen a better innate one.
+	if (has('ward-4')) wardSave = bestSave(wardSave, 4);
+	if (has('ward-5')) wardSave = bestSave(wardSave, 5);
 
 	return {
 		strength,
@@ -222,11 +273,13 @@ export function computeEffectiveStats(
 		armourSave,
 		hasRerollHits,
 		hasRerollWounds,
+		rerollWoundOnes,
 		hasKillingBlow,
 		hasPoison,
-		hasRegeneration,
 		ignoresArmour,
-		wardSave
+		strikesLast,
+		wardSave,
+		regenerationSave
 	};
 }
 
@@ -258,7 +311,13 @@ export function resolveSingleAttack(
 	} else {
 		// 3. Wound roll
 		const woundReroll = attackerStats.hasRerollWounds ? ('always' as RerollSource) : undefined;
-		const wound = rollToWound(rng, attackerStats.strength, defenderStats.toughness, woundReroll);
+		const wound = rollToWound(
+			rng,
+			attackerStats.strength,
+			defenderStats.toughness,
+			woundReroll,
+			attackerStats.rerollWoundOnes
+		);
 		if (!wound.success) return 0;
 		// 4. Killing Blow: a natural 6 to wound slays outright, no armour save.
 		// Rules note: an auto-wound from poison has no wound roll, so it cannot
@@ -272,10 +331,15 @@ export function resolveSingleAttack(
 		if (saveSuccessful) return 0;
 	}
 
-	// 6. Ward save
-	if (defenderStats.wardSave >= 2 && defenderStats.wardSave <= 6) {
-		const wardSuccessful = resolveWardSave(rng, defenderStats.wardSave);
-		if (wardSuccessful) return 0;
+	// 6. Ward or Regeneration save. They do not stack: the defender takes the
+	// better one (ward on a tie). Rules note: Killing Blow does not bypass either.
+	const ward = defenderStats.wardSave;
+	const regen = defenderStats.regenerationSave;
+	const useRegen = isValidSave(regen) && (!isValidSave(ward) || regen < ward);
+	const save = useRegen ? regen : ward;
+	if (resolveWardSave(rng, save)) {
+		if (useRegen) onActivate?.('regeneration');
+		return 0;
 	}
 
 	if (killingBlow) {

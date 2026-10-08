@@ -13,13 +13,18 @@ import {
 	resolveWardSave,
 	computeEffectiveStats,
 	getWeaponStats,
-	resolveSingleAttack
+	resolveSingleAttack,
+	bestSave,
+	isModelledSpecialRule
 } from './warhammer-simulator/rules';
 import { CombatEngine } from './warhammer-simulator/combat';
 import {
 	MonteCarloController,
 	aggregateResults,
-	addToHistogram
+	addToHistogram,
+	parseSimCount,
+	parseSeed,
+	MAX_SEED
 } from './warhammer-simulator/simulation';
 import { PRESET_CHARACTERS } from './warhammer-simulator/presets';
 import type { Character, CombatResult } from './warhammer-simulator/types';
@@ -194,8 +199,6 @@ function makeChar(overrides: Partial<Character> = {}): Character {
 		armour: 'none',
 		shield: 'none',
 		traits: [],
-		giftPoints: 0,
-		wizardLevel: 'not-wizard',
 		specialRules: [],
 		...overrides
 	};
@@ -363,13 +366,13 @@ describe('CombatEngine', () => {
 		expect(results.drawRate).toBeGreaterThan(0);
 	});
 
-	it('great weapon sets initiative to 1', () => {
-		const gwChar = makeChar({ ws: 4, i: 7, weapon: 'great-weapon' });
-		const normalChar = makeChar({ ws: 4, i: 4 });
-
-		const stats = computeEffectiveStats(gwChar, false, 1);
+	it('great weapon keeps its Initiative and Strikes Last instead', () => {
+		const stats = computeEffectiveStats(makeChar({ i: 7, weapon: 'great-weapon' }), false, 1);
 		expect(stats.strength).toBe(6); // 4 + 2
-		expect(stats.initiative).toBe(1); // GW overrides to 1
+		expect(stats.ap).toBe(-2);
+		expect(stats.initiative).toBe(7);
+		expect(stats.strikesLast).toBe(true);
+		expect(computeEffectiveStats(makeChar(), false, 1).strikesLast).toBe(false);
 	});
 
 	it('computeEffectiveStats adds no hidden charge Initiative bonus', () => {
@@ -378,10 +381,25 @@ describe('CombatEngine', () => {
 		expect(computeEffectiveStats(char, false, 1).initiative).toBe(4);
 	});
 
-	it('flail Strength bonus applies only while charging', () => {
+	it('lance Strength and AP bonus apply only while charging', () => {
+		const lance = makeChar({ s: 4, weapon: 'lance' });
+		const charging = computeEffectiveStats(lance, true, 1);
+		expect([charging.strength, charging.ap]).toEqual([6, -2]);
+		const notCharging = computeEffectiveStats(lance, false, 1);
+		expect([notCharging.strength, notCharging.ap]).toEqual([4, 0]);
+	});
+
+	it('flail Strength and AP bonus apply only in the first round', () => {
 		const flail = makeChar({ s: 4, weapon: 'flail' });
-		expect(computeEffectiveStats(flail, true, 1).strength).toBe(6);
-		expect(computeEffectiveStats(flail, false, 1).strength).toBe(4);
+		const first = computeEffectiveStats(flail, false, 1);
+		expect([first.strength, first.ap]).toEqual([6, -2]);
+		const later = computeEffectiveStats(flail, false, 2);
+		expect([later.strength, later.ap]).toEqual([4, 0]);
+	});
+
+	it('halberd bonus applies in every round', () => {
+		const halberd = computeEffectiveStats(makeChar({ s: 4, weapon: 'halberd' }), false, 3);
+		expect([halberd.strength, halberd.ap]).toEqual([5, -1]);
 	});
 });
 
@@ -452,10 +470,32 @@ describe('MonteCarloController', () => {
 	});
 
 	it('aggregateResults computes exact statistics from known results', () => {
-		const base = { remainingWoundsA: 1, remainingWoundsB: 1, abilityActivations: {} };
+		const base = {
+			remainingWoundsA: 1,
+			remainingWoundsB: 1,
+			deathRoundA: null,
+			deathRoundB: null,
+			abilityActivations: {}
+		};
 		const results: CombatResult[] = [
-			{ ...base, winner: 'A', rounds: 1, damageDealtA: 3, damageDealtB: 0, remainingWoundsB: 0 },
-			{ ...base, winner: 'B', rounds: 2, damageDealtA: 1, damageDealtB: 3, remainingWoundsA: 0 },
+			{
+				...base,
+				winner: 'A',
+				rounds: 1,
+				damageDealtA: 3,
+				damageDealtB: 0,
+				remainingWoundsB: 0,
+				deathRoundB: 1
+			},
+			{
+				...base,
+				winner: 'B',
+				rounds: 2,
+				damageDealtA: 1,
+				damageDealtB: 3,
+				remainingWoundsA: 0,
+				deathRoundA: 2
+			},
 			{
 				...base,
 				winner: 'mutual',
@@ -464,6 +504,8 @@ describe('MonteCarloController', () => {
 				damageDealtB: 3,
 				remainingWoundsA: 0,
 				remainingWoundsB: 0,
+				deathRoundA: 3,
+				deathRoundB: 3,
 				abilityActivations: { 'killing-blow': 2 }
 			},
 			{ ...base, winner: 'draw', rounds: 50, damageDealtA: 0, damageDealtB: 0 }
@@ -486,6 +528,38 @@ describe('MonteCarloController', () => {
 		// Frequency counts combats in which the ability fired, not activations.
 		expect(agg.abilityFrequencies).toEqual({ 'killing-blow': 1 });
 		expect(agg.seedUsed).toBe(9);
+		// survival[r] = fraction alive after round r, from each side's death round.
+		expect(agg.survivalA).toHaveLength(51);
+		expect(agg.survivalA.slice(0, 5)).toEqual([1, 1, 0.75, 0.5, 0.5]);
+		expect(agg.survivalB.slice(0, 5)).toEqual([1, 0.75, 0.75, 0.5, 0.5]);
+		expect(agg.survivalA[50]).toBe(0.5);
+	});
+
+	it('run(0) and empty results yield zeros, never NaN', () => {
+		const r = new MonteCarloController(makeChar(), makeChar(), 1).run(0);
+		const numbers = [
+			r.winRateA,
+			r.winRateB,
+			r.mutualKillRate,
+			r.drawRate,
+			r.avgRounds,
+			r.avgDamageA,
+			r.avgDamageB,
+			...r.survivalA,
+			...r.survivalB
+		];
+		for (const n of numbers) expect(Number.isFinite(n)).toBe(true);
+		expect(r.totalRuns).toBe(0);
+		expect(r.winRateA).toBe(0);
+		expect(r.avgRounds).toBe(0);
+	});
+
+	it('the same seed reproduces identical aggregated results', () => {
+		const a = makeChar({ traits: ['killing-blow'] });
+		const b = makeChar({ armour: 'heavy', shield: 'shield' });
+		expect(new MonteCarloController(a, b, 123, 'A').run(300)).toEqual(
+			new MonteCarloController(a, b, 123, 'A').run(300)
+		);
 	});
 
 	it('round distribution sums to total runs', () => {
@@ -495,6 +569,28 @@ describe('MonteCarloController', () => {
 
 		const totalFromDist = results.roundDistribution.reduce((a, b) => a + b, 0);
 		expect(totalFromDist).toBe(100);
+	});
+
+	it('survival after a guaranteed round-2 kill is [1, 1, 0]', () => {
+		const killer = makeChar({ a: 1 });
+		const victim = makeChar({ a: 0, wounds: 2 });
+		const engineResult = new CombatEngine(killer, victim, new AlwaysSixRNG()).run();
+		expect(engineResult.deathRoundB).toBe(2);
+		expect(engineResult.deathRoundA).toBeNull();
+		const agg = aggregateResults([engineResult], 1, 0);
+		expect(agg.survivalB).toEqual([1, 1, 0]);
+		expect(agg.survivalA).toEqual([1, 1, 1]);
+	});
+
+	it('survival after round 1 is P(alive after round 1), not the final win rate', () => {
+		const char = makeChar();
+		const r = new MonteCarloController(char, { ...char }, 42).run(2000);
+		// Equal 3-wound fighters rarely die in round 1, but often lose eventually.
+		expect(r.survivalA[1]).toBeGreaterThan(0.9);
+		expect(r.survivalA[1]).toBeGreaterThan(r.winRateA + 0.3);
+		// Alive at the end = won or drew.
+		expect(r.survivalA[r.maxRounds]).toBeCloseTo(r.winRateA + r.drawRate, 10);
+		expect(r.survivalB[r.maxRounds]).toBeCloseTo(r.winRateB + r.drawRate, 10);
 	});
 
 	it('survival curves start at 1.0 and decrease', () => {
@@ -513,44 +609,60 @@ describe('MonteCarloController', () => {
 	});
 });
 
-describe('Charge', () => {
+describe('Charge and strike order', () => {
 	// Fragile duellists: whoever strikes first usually wins.
 	const duellist = makeChar({ ws: 4, s: 4, t: 3, a: 2, i: 4, wounds: 1 });
 	const N = 4000;
-	const winA = (charger: 'A' | 'B' | 'none', bonus: number, a = duellist, b = duellist) =>
-		new MonteCarloController(a, { ...b }, 11, false, bonus, charger).run(N).winRateA;
 
 	it('no charger gives a symmetric duel', () => {
-		const r = new MonteCarloController(duellist, { ...duellist }, 11, false, 3, 'none').run(N);
+		const r = new MonteCarloController(duellist, { ...duellist }, 11, 'none').run(N);
 		expect(Math.abs(r.winRateA - r.winRateB)).toBeLessThan(0.05);
 	});
 
 	it('charging raises the charger win rate', () => {
 		const run = (charger: 'A' | 'B' | 'none') =>
-			new MonteCarloController(duellist, { ...duellist }, 11, false, 1, charger).run(N);
+			new MonteCarloController(duellist, { ...duellist }, 11, charger).run(N);
 		const none = run('none');
 		expect(run('A').winRateA).toBeGreaterThan(none.winRateA + 0.1);
 		expect(run('B').winRateB).toBeGreaterThan(none.winRateB + 0.1);
 	});
 
-	it('the charge bonus size changes the outcome when it flips strike order', () => {
-		const slow = { ...duellist, i: 3 };
-		const fast = { ...duellist, i: 5 };
-		// +1: I4 vs I5, B still strikes first. +3: I6 vs I5, A strikes first.
-		expect(winA('A', 3, slow, fast)).toBeGreaterThan(winA('A', 1, slow, fast) + 0.1);
+	it('the charger strikes first in round 1 regardless of Initiative', () => {
+		// Every roll is a 6: the first strike kills.
+		const slow = makeChar({ a: 1, wounds: 1, i: 1 });
+		const fast = makeChar({ a: 1, wounds: 1, i: 10 });
+		expect(new CombatEngine(slow, fast, new AlwaysSixRNG(), 'none').run().winner).toBe('B');
+		expect(new CombatEngine(slow, fast, new AlwaysSixRNG(), 'A').run().winner).toBe('A');
 	});
 
-	it('charge only lasts round 1 unless chargePersists', () => {
+	it('the charge only affects round 1; later rounds use Initiative', () => {
 		const a = makeChar({ a: 1, wounds: 2, i: 3 });
 		const b = makeChar({ a: 1, wounds: 2, i: 4 });
-		// Every roll is a 6: each strike lands one wound. A charges with +3 (I6 vs I4).
-		// Round 1: A strikes first -> B 1 wound left; B strikes -> A 1 wound left.
-		// Round 2 without persist: B (I4) strikes first and kills A.
-		const once = new CombatEngine(a, b, new AlwaysSixRNG(), false, 3, 'A').run();
-		expect(once.winner).toBe('B');
-		// With persist: A (I6) strikes first in round 2 and kills B.
-		const persist = new CombatEngine(a, b, new AlwaysSixRNG(), true, 3, 'A').run();
-		expect(persist.winner).toBe('A');
+		// Round 1: A charges and strikes first -> B 1 wound; B strikes -> A 1 wound.
+		// Round 2: B (I4) strikes first and kills A.
+		const result = new CombatEngine(a, b, new AlwaysSixRNG(), 'A').run();
+		expect(result.winner).toBe('B');
+		expect(result.rounds).toBe(2);
+	});
+
+	it('Strikes Last (great weapon) strikes after a slower opponent', () => {
+		const gw = makeChar({ a: 1, wounds: 1, i: 7, weapon: 'great-weapon' });
+		const slow = makeChar({ a: 1, wounds: 1, i: 2 });
+		expect(new CombatEngine(gw, slow, new AlwaysSixRNG()).run().winner).toBe('B');
+	});
+
+	it('Strikes Last overrides the charge', () => {
+		// The review case: a charging I7 great weapon used to strike before an I6 defender.
+		const gw = makeChar({ a: 1, wounds: 1, i: 7, weapon: 'great-weapon' });
+		const defender = makeChar({ a: 1, wounds: 1, i: 6 });
+		expect(new CombatEngine(gw, defender, new AlwaysSixRNG(), 'A').run().winner).toBe('B');
+	});
+
+	it('two Strikes Last fighters use Initiative order', () => {
+		const fastGw = makeChar({ a: 1, wounds: 1, i: 5, weapon: 'great-weapon' });
+		const slowGw = makeChar({ a: 1, wounds: 1, i: 3, weapon: 'great-weapon' });
+		expect(new CombatEngine(slowGw, fastGw, new AlwaysSixRNG()).run().winner).toBe('B');
+		expect(new CombatEngine(fastGw, slowGw, new AlwaysSixRNG()).run().winner).toBe('A');
 	});
 });
 
@@ -641,8 +753,19 @@ describe('Traits, gifts and items', () => {
 		expectRate(plain, makeChar({ traits: ['daemonic-mount'] }), 1 / 6, 2);
 	});
 
-	it('Regeneration recovers a wound at the end of each round', () => {
-		// Every roll is a 6: B wounds A once per round, A regenerates it back.
+	it('Regeneration (4+) saves each unsaved wound on a 4+ (1/4 * 1/2 = 1/8)', () => {
+		expectRate(plain, makeChar({ traits: ['regeneration'] }), 1 / 8);
+	});
+
+	it('Regeneration does not stack with a ward save: the better one is used', () => {
+		// Ward 3+ beats Regeneration 4+: 1/4 * 1/3 = 1/12.
+		expectRate(plain, makeChar({ wardSave: 3, traits: ['regeneration'] }), 1 / 12);
+		// Regeneration 4+ beats ward 5+: 1/4 * 1/2 = 1/8 (not 1/4 * 2/3 * 1/2).
+		expectRate(plain, makeChar({ wardSave: 5, traits: ['regeneration'] }), 1 / 8);
+	});
+
+	it('Regeneration counts an activation for each wound it saves', () => {
+		// Every roll is a 6: B wounds A once per round and Regeneration saves it.
 		const regen = makeChar({ a: 0, wounds: 2, traits: ['regeneration'] });
 		const hitter = makeChar({ a: 1 });
 		const withRegen = new CombatEngine(regen, hitter, new AlwaysSixRNG()).run();
@@ -650,13 +773,51 @@ describe('Traits, gifts and items', () => {
 		expect(withRegen.remainingWoundsA).toBe(2);
 		expect(withRegen.abilityActivations['regeneration']).toBe(50);
 
-		const without = new CombatEngine(
-			makeChar({ a: 0, wounds: 2 }),
-			hitter,
-			new AlwaysSixRNG()
-		).run();
-		expect(without.winner).toBe('B');
-		expect(without.rounds).toBe(2);
+		// A better ward is used instead, so Regeneration never fires.
+		const warded = makeChar({ a: 0, wounds: 2, wardSave: 2, traits: ['regeneration'] });
+		const wardResult = new CombatEngine(warded, hitter, new AlwaysSixRNG()).run();
+		expect(wardResult.abilityActivations['regeneration']).toBeUndefined();
+	});
+
+	it('ward talismans never worsen a better innate ward', () => {
+		const ward = (wardSave: number, traits: string[]) =>
+			computeEffectiveStats(makeChar({ wardSave, traits }), false, 1).wardSave;
+		expect(ward(3, ['ward-5'])).toBe(3);
+		expect(ward(6, ['ward-5'])).toBe(5);
+		expect(ward(0, ['ward-4'])).toBe(4);
+		expect(ward(5, ['ward-4'])).toBe(4);
+		expect(ward(0, ['ward-4', 'ward-5'])).toBe(4);
+		expect(bestSave(0, 7)).toBe(0);
+		expect(bestSave(7, 6)).toBe(6);
+	});
+
+	it('Hatred rerolls failed hits in round 1 only (3/8, then 1/4)', () => {
+		const hater = makeChar({ specialRules: ['hatred-all'] });
+		expectRate(hater, plain, 3 / 8, 1);
+		expectRate(hater, plain, 1 / 4, 2);
+	});
+
+	it('faction Hatred applies only against that faction', () => {
+		const darkElf = makeChar({ faction: 'dark-elves', specialRules: ['hatred-of-high-elves'] });
+		const highElf = makeChar({ faction: 'high-elves' });
+		const human = makeChar({ faction: 'empire' });
+		expect(computeEffectiveStats(darkElf, false, 1, highElf).hasRerollHits).toBe(true);
+		expect(computeEffectiveStats(darkElf, false, 2, highElf).hasRerollHits).toBe(false);
+		expect(computeEffectiveStats(darkElf, false, 1, human).hasRerollHits).toBe(false);
+	});
+
+	it('Murderous Prowess rerolls wound rolls of 1 (1/2 * (1/2 + 1/6 * 1/2) = 7/24)', () => {
+		expectRate(makeChar({ specialRules: ['murderous-prowess'] }), plain, 7 / 24);
+	});
+
+	it('only modelled special rules are claimed as modelled; presets list only those', () => {
+		expect(isModelledSpecialRule('murderous-prowess')).toBe(true);
+		expect(isModelledSpecialRule('hatred-of-high-elves')).toBe(true);
+		expect(isModelledSpecialRule('fear')).toBe(false);
+		expect(isModelledSpecialRule('martial-prowess')).toBe(false);
+		for (const preset of PRESET_CHARACTERS) {
+			for (const rule of preset.specialRules) expect(isModelledSpecialRule(rule), rule).toBe(true);
+		}
 	});
 
 	it('activation counters only fire when the trait actually triggers', () => {
@@ -685,6 +846,8 @@ describe('Damage histogram', () => {
 			damageDealtB: i % 2,
 			remainingWoundsA: 1,
 			remainingWoundsB: 0,
+			deathRoundA: null,
+			deathRoundB: 1,
 			abilityActivations: {}
 		}));
 		const agg = aggregateResults(results, N, 1);
@@ -699,5 +862,25 @@ describe('Damage histogram', () => {
 		expect(r.damageHistogramA.reduce((a, b) => a + b, 0)).toBe(500);
 		expect(r.damageHistogramB.reduce((a, b) => a + b, 0)).toBe(500);
 		expect(r.damageHistogramA.length).toBeLessThanOrEqual(char.wounds + 1);
+	});
+});
+
+describe('Input validation', () => {
+	it('parseSimCount accepts only whole numbers in [100, 100000]', () => {
+		for (const ok of [100, 5000, 100_000, '500'])
+			expect(parseSimCount(ok).ok, String(ok)).toBe(true);
+		for (const bad of [null, undefined, '', 0, 99, 100_001, 1e7, 150.5, NaN, 'abc']) {
+			expect(parseSimCount(bad).ok, String(bad)).toBe(false);
+		}
+		expect(parseSimCount('500')).toEqual({ ok: true, value: 500 });
+	});
+
+	it('parseSeed uses the given seed or picks a random one when empty', () => {
+		expect(parseSeed('42')).toEqual({ ok: true, value: 42 });
+		expect(parseSeed(' 0 ')).toEqual({ ok: true, value: 0 });
+		expect(parseSeed('', () => 0.5)).toEqual({ ok: true, value: Math.floor(0.5 * MAX_SEED) });
+		for (const bad of ['-1', '1.5', 'abc', '1e3', String(MAX_SEED + 1)]) {
+			expect(parseSeed(bad).ok, bad).toBe(false);
+		}
 	});
 });

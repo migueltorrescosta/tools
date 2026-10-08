@@ -23,9 +23,9 @@
 			"name": "Flail",
 			"attacks": 0,
 			"strengthBonus": 2,
-			"ap": -1,
-			"twoHanded": false,
-			"special": ["charge-strength-only"]
+			"ap": -2,
+			"twoHanded": true,
+			"special": ["first-round-bonus-only"]
 		},
 		{
 			"type": "halberd",
@@ -43,7 +43,7 @@
 			"strengthBonus": 2,
 			"ap": -2,
 			"twoHanded": false,
-			"special": ["charge-strength-only"]
+			"special": ["charge-bonus-only"]
 		},
 		{
 			"type": "additional-hand-weapon",

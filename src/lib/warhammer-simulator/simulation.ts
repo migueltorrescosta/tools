@@ -1,4 +1,4 @@
-import type { Character, Charger, CombatResult, SimulationResults, Winner } from './types';
+import type { Character, Charger, CombatResult, SimulationResults } from './types';
 import { SeededRNG } from './rng';
 import { CombatEngine } from './combat';
 
@@ -10,23 +10,12 @@ export class MonteCarloController {
 	private charA: Character;
 	private charB: Character;
 	private baseSeed: number;
-	private chargePersists: boolean;
-	private chargeBonus: number;
 	private charger: Charger;
 
-	constructor(
-		charA: Character,
-		charB: Character,
-		baseSeed: number,
-		chargePersists = false,
-		chargeBonus = 3,
-		charger: Charger = 'none'
-	) {
+	constructor(charA: Character, charB: Character, baseSeed: number, charger: Charger = 'none') {
 		this.charA = charA;
 		this.charB = charB;
 		this.baseSeed = baseSeed;
-		this.chargePersists = chargePersists;
-		this.chargeBonus = chargeBonus;
 		this.charger = charger;
 	}
 
@@ -38,14 +27,7 @@ export class MonteCarloController {
 
 		for (let i = 0; i < n; i++) {
 			const rng = new SeededRNG(this.baseSeed + i);
-			const engine = new CombatEngine(
-				this.charA,
-				this.charB,
-				rng,
-				this.chargePersists,
-				this.chargeBonus,
-				this.charger
-			);
+			const engine = new CombatEngine(this.charA, this.charB, rng, this.charger);
 			results.push(engine.run());
 		}
 
@@ -60,14 +42,7 @@ export class MonteCarloController {
 		const results: CombatResult[] = [];
 		for (let i = 0; i < batchSize; i++) {
 			const rng = new SeededRNG(this.baseSeed + startIndex + i);
-			const engine = new CombatEngine(
-				this.charA,
-				this.charB,
-				rng,
-				this.chargePersists,
-				this.chargeBonus,
-				this.charger
-			);
+			const engine = new CombatEngine(this.charA, this.charB, rng, this.charger);
 			results.push(engine.run());
 		}
 		return results;
@@ -107,11 +82,9 @@ export function aggregateResults(
 	const damageHistB: number[] = [];
 	const remWoundsA: number[] = [];
 	const remWoundsB: number[] = [];
-	const survivalCountA: number[] = new Array(maxRounds + 1).fill(0);
-	const survivalCountB: number[] = new Array(maxRounds + 1).fill(0);
-	// Everyone starts alive at round 0
-	survivalCountA[0] = totalRuns;
-	survivalCountB[0] = totalRuns;
+	// deathsA[r] = combats in which A was slain in round r (r = 1..maxRounds).
+	const deathsA: number[] = new Array(maxRounds + 1).fill(0);
+	const deathsB: number[] = new Array(maxRounds + 1).fill(0);
 	const abilityFreq: Record<string, number> = {};
 
 	for (const result of results) {
@@ -143,16 +116,8 @@ export function aggregateResults(
 		remWoundsA.push(result.remainingWoundsA);
 		remWoundsB.push(result.remainingWoundsB);
 
-		// Survival curves: track how many survived through each round
-		// (r=0 is already set to totalRuns — everyone starts alive)
-		for (let r = 1; r <= result.rounds && r <= maxRounds; r++) {
-			if (result.remainingWoundsA > 0 || result.winner === 'A') {
-				survivalCountA[r]++;
-			}
-			if (result.remainingWoundsB > 0 || result.winner === 'B') {
-				survivalCountB[r]++;
-			}
-		}
+		if (result.deathRoundA !== null) deathsA[result.deathRoundA]++;
+		if (result.deathRoundB !== null) deathsB[result.deathRoundB]++;
 
 		// Ability activation frequencies
 		for (const [ability, count] of Object.entries(result.abilityActivations)) {
@@ -160,28 +125,70 @@ export function aggregateResults(
 		}
 	}
 
-	// Convert survival counts to fractions
-	const survivalA = survivalCountA.map((c) => c / totalRuns);
-	const survivalB = survivalCountB.map((c) => c / totalRuns);
+	// Rates over zero runs are 0, never NaN.
+	const rate = (count: number) => (totalRuns > 0 ? count / totalRuns : 0);
+
+	// survival[r] = P(death round > r): alive after round r.
+	const survivalCurve = (deaths: number[]) => {
+		let alive = totalRuns;
+		return deaths.map((d) => rate((alive -= d)));
+	};
 
 	return {
 		totalRuns,
-		winRateA: winsA / totalRuns,
-		winRateB: winsB / totalRuns,
-		mutualKillRate: mutualKills / totalRuns,
-		drawRate: draws / totalRuns,
-		avgRounds: totalRounds / totalRuns,
+		winRateA: rate(winsA),
+		winRateB: rate(winsB),
+		mutualKillRate: rate(mutualKills),
+		drawRate: rate(draws),
+		avgRounds: rate(totalRounds),
 		roundDistribution: roundDist,
 		maxRounds,
-		avgDamageA: totalDamageA / totalRuns,
-		avgDamageB: totalDamageB / totalRuns,
+		avgDamageA: rate(totalDamageA),
+		avgDamageB: rate(totalDamageB),
 		damageHistogramA: damageHistA,
 		damageHistogramB: damageHistB,
 		remainingWoundsA: remWoundsA,
 		remainingWoundsB: remWoundsB,
-		survivalA,
-		survivalB,
+		survivalA: survivalCurve(deathsA),
+		survivalB: survivalCurve(deathsB),
 		abilityFrequencies: abilityFreq,
 		seedUsed: seed
 	};
+}
+
+export const MIN_SIMULATIONS = 100;
+export const MAX_SIMULATIONS = 100_000;
+
+export type ParseResult = { ok: true; value: number } | { ok: false; error: string };
+
+/**
+ * Validate the simulation count input. Accepts only an integer in
+ * [MIN_SIMULATIONS, MAX_SIMULATIONS]; an empty field (null/undefined/NaN) is rejected.
+ */
+export function parseSimCount(value: unknown): ParseResult {
+	const n = typeof value === 'string' && value.trim() !== '' ? Number(value) : value;
+	if (typeof n !== 'number' || !Number.isInteger(n) || n < MIN_SIMULATIONS || n > MAX_SIMULATIONS) {
+		return {
+			ok: false,
+			error: `Simulations must be a whole number from ${MIN_SIMULATIONS} to ${MAX_SIMULATIONS.toLocaleString('en-US')}`
+		};
+	}
+	return { ok: true, value: n };
+}
+
+/** Largest seed accepted, so baseSeed + run index stays a safe integer. */
+export const MAX_SEED = 2 ** 31 - 1;
+
+/**
+ * Validate an optional seed input. An empty value means "pick a random seed"
+ * and returns ok with `random()`'s pick; otherwise an integer in [0, MAX_SEED].
+ */
+export function parseSeed(raw: string, random: () => number = Math.random): ParseResult {
+	const trimmed = raw.trim();
+	if (trimmed === '') return { ok: true, value: Math.floor(random() * MAX_SEED) };
+	const n = Number(trimmed);
+	if (!/^\d+$/.test(trimmed) || !Number.isSafeInteger(n) || n > MAX_SEED) {
+		return { ok: false, error: `Seed must be a whole number from 0 to ${MAX_SEED}` };
+	}
+	return { ok: true, value: n };
 }

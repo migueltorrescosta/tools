@@ -14,31 +14,25 @@ export class CombatEngine {
 	private charB: Character;
 	private rng: SeededRNG;
 	private state: CombatState;
-	private chargePersists: boolean;
-	private chargeBonus: number;
+	private charger: Charger;
+	private deathRoundA: number | null = null;
+	private deathRoundB: number | null = null;
 
-	constructor(
-		charA: Character,
-		charB: Character,
-		rng: SeededRNG,
-		chargePersists = false,
-		chargeBonus = 3,
-		charger: Charger = 'none'
-	) {
+	constructor(charA: Character, charB: Character, rng: SeededRNG, charger: Charger = 'none') {
 		this.charA = charA;
 		this.charB = charB;
 		this.rng = rng;
-		this.chargePersists = chargePersists;
-		this.chargeBonus = chargeBonus;
+		this.charger = charger;
 		this.state = {
 			charAWounds: charA.wounds,
 			charBWounds: charB.wounds,
-			roundNumber: 0,
-			// Only the side that charged gets charge effects.
-			chargeA: charger === 'A',
-			chargeB: charger === 'B',
-			activeEffects: []
+			roundNumber: 0
 		};
+	}
+
+	/** True while `side` is charging: only the charger, and only in round 1 (TOW). */
+	private isCharging(side: 'A' | 'B'): boolean {
+		return this.charger === side && this.state.roundNumber === 1;
 	}
 
 	/** Run the complete combat and return results. */
@@ -57,10 +51,11 @@ export class CombatEngine {
 			// Resolve the round
 			this.resolveRound(abilityActivations);
 
-			// Charge persists only if toggled, and only after round 1
-			if (this.state.roundNumber === 1 && !this.chargePersists) {
-				this.state.chargeA = false;
-				this.state.chargeB = false;
+			if (this.deathRoundA === null && this.state.charAWounds <= 0) {
+				this.deathRoundA = this.state.roundNumber;
+			}
+			if (this.deathRoundB === null && this.state.charBWounds <= 0) {
+				this.deathRoundB = this.state.roundNumber;
 			}
 		}
 
@@ -73,8 +68,9 @@ export class CombatEngine {
 		if (!aAlive || !bAlive) return;
 
 		// Compute effective stats for this round
-		const statsA = computeEffectiveStats(this.charA, this.state.chargeA, this.state.roundNumber);
-		const statsB = computeEffectiveStats(this.charB, this.state.chargeB, this.state.roundNumber);
+		const round = this.state.roundNumber;
+		const statsA = computeEffectiveStats(this.charA, this.isCharging('A'), round, this.charB);
+		const statsB = computeEffectiveStats(this.charB, this.isCharging('B'), round, this.charA);
 
 		// Determine initiative order
 		const initOrder = this.determineInitiative(statsA, statsB);
@@ -119,40 +115,31 @@ export class CombatEngine {
 				this.state.charAWounds = Math.max(0, this.state.charAWounds - dmg);
 			}
 		}
-
-		// End of round effects
-		this.state.charAWounds = this.regenerate(
-			this.charA,
-			this.state.charAWounds,
-			statsA,
-			abilityActivations
-		);
-		this.state.charBWounds = this.regenerate(
-			this.charB,
-			this.state.charBWounds,
-			statsB,
-			abilityActivations
-		);
 	}
 
-	/** Determine who strikes first. Returns 'simultaneous' or [first, second]. */
+	/**
+	 * Determine who strikes first. Returns 'simultaneous' or [first, second].
+	 * Strike order, highest priority first:
+	 *   1. the charger, in round 1 only, regardless of Initiative;
+	 *   2. models without Strikes Last;
+	 *   3. models with Strikes Last (great weapon).
+	 * Within the same priority, higher Initiative strikes first; equal
+	 * Initiative strikes simultaneously.
+	 * Rules note: Strikes Last overrides the charge, so a charging great-weapon
+	 * wielder still strikes after its opponent.
+	 */
 	private determineInitiative(
 		statsA: EffectiveStats,
 		statsB: EffectiveStats
 	): 'simultaneous' | ['A', 'B'] | ['B', 'A'] {
-		// Charge bonus: the charger adds chargeBonus to its Initiative while its
-		// charge is active (round 1, or every round if chargePersists).
-		// Rules note: the exact TOW strike-order treatment of chargers is modelled
-		// as this user-set Initiative bonus; a large bonus (e.g. +10) reproduces a
-		// strict "chargers strike first" reading.
-		let initA = statsA.initiative;
-		let initB = statsB.initiative;
+		const priority = (side: 'A' | 'B', stats: EffectiveStats) =>
+			stats.strikesLast ? 0 : this.isCharging(side) ? 2 : 1;
+		const pA = priority('A', statsA);
+		const pB = priority('B', statsB);
+		if (pA !== pB) return pA > pB ? ['A', 'B'] : ['B', 'A'];
 
-		if (this.state.chargeA) initA += this.chargeBonus;
-		if (this.state.chargeB) initB += this.chargeBonus;
-
-		if (initA > initB) return ['A', 'B'];
-		if (initB > initA) return ['B', 'A'];
+		if (statsA.initiative > statsB.initiative) return ['A', 'B'];
+		if (statsB.initiative > statsA.initiative) return ['B', 'A'];
 		return 'simultaneous';
 	}
 
@@ -185,22 +172,6 @@ export class CombatEngine {
 		return totalDamage;
 	}
 
-	/**
-	 * Regeneration (per data/gift-traits.json): at the end of each round a
-	 * surviving character recovers 1 wound on a 4+, up to its starting Wounds.
-	 */
-	private regenerate(
-		char: Character,
-		wounds: number,
-		stats: EffectiveStats,
-		abilityActivations: Record<string, number>
-	): number {
-		if (!stats.hasRegeneration || wounds <= 0 || wounds >= char.wounds) return wounds;
-		if (this.rng.rollD6() < 4) return wounds;
-		abilityActivations['regeneration'] = (abilityActivations['regeneration'] || 0) + 1;
-		return wounds + 1;
-	}
-
 	private createResult(abilityActivations: Record<string, number>): CombatResult {
 		const aAlive = this.state.charAWounds > 0;
 		const bAlive = this.state.charBWounds > 0;
@@ -224,6 +195,8 @@ export class CombatEngine {
 			damageDealtB: this.charA.wounds - this.state.charAWounds,
 			remainingWoundsA: this.state.charAWounds,
 			remainingWoundsB: this.state.charBWounds,
+			deathRoundA: this.deathRoundA,
+			deathRoundB: this.deathRoundB,
 			abilityActivations
 		};
 	}

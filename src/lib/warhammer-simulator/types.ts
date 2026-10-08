@@ -30,8 +30,6 @@ export type ArmourType = 'none' | 'light' | 'heavy' | 'full-plate';
 
 export type ShieldType = 'none' | 'shield';
 
-export type WizardLevel = 'not-wizard' | 'level-1' | 'level-2' | 'level-3' | 'level-4';
-
 export type RerollSource = 'always' | 'single-use';
 
 // ── Core Models ──
@@ -61,7 +59,9 @@ export interface ShieldStats {
 
 export interface Character {
 	name: string;
+	/** Matters only as the target of Hatred (e.g. 'hatred-of-high-elves'). */
 	faction: Faction;
+	/** Flavour only: Marks of Chaos are not simulated. */
 	mark?: MarkOfChaos;
 	ws: number;
 	s: number;
@@ -74,8 +74,10 @@ export interface Character {
 	armour: ArmourType;
 	shield: ShieldType;
 	traits: string[];
-	giftPoints: number;
-	wizardLevel: WizardLevel;
+	/**
+	 * Special rule ids. Only the ids accepted by isModelledSpecialRule (rules.ts)
+	 * affect the duel: 'hatred-all', 'hatred-of-<faction>' and 'murderous-prowess'.
+	 */
 	specialRules: string[];
 }
 
@@ -94,8 +96,6 @@ export interface CharacterPreset {
 	weapon: WeaponType;
 	shield: ShieldType;
 	traits: string[];
-	giftPoints: number;
-	wizardLevel: WizardLevel;
 	specialRules: string[];
 	description: string;
 }
@@ -114,6 +114,9 @@ export interface CombatResult {
 	damageDealtB: number;
 	remainingWoundsA: number;
 	remainingWoundsB: number;
+	/** Round in which A was slain, or null if A survived the combat. */
+	deathRoundA: number | null;
+	deathRoundB: number | null;
 	abilityActivations: Record<string, number>;
 }
 
@@ -121,9 +124,6 @@ export interface CombatState {
 	charAWounds: number;
 	charBWounds: number;
 	roundNumber: number;
-	chargeA: boolean;
-	chargeB: boolean;
-	activeEffects: string[];
 }
 
 // ── Simulation ──
@@ -144,7 +144,8 @@ export interface SimulationResults {
 	damageHistogramB: number[];
 	remainingWoundsA: number[];
 	remainingWoundsB: number[];
-	survivalA: number[]; // survivalAtRound[i] = fraction alive after round i
+	/** survivalA[r] = fraction of combats in which A is still alive after round r (r = 0..maxRounds). */
+	survivalA: number[];
 	survivalB: number[];
 	abilityFrequencies: Record<string, number>;
 	seedUsed: number;
@@ -156,8 +157,6 @@ export interface SimulationJob {
 	totalSimulations: number;
 	seed: number;
 	charger: Charger;
-	chargePersists: boolean;
-	chargeBonus: number;
 }
 
 export interface SimulationProgress {

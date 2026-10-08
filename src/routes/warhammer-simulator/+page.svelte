@@ -7,14 +7,15 @@
 		Charger,
 		SimulationResults,
 		SimulationJob,
-		WorkerMessage,
-		WeaponType,
-		ArmourType,
-		ShieldType,
-		Faction,
-		MarkOfChaos
+		WorkerMessage
 	} from '$lib/warhammer-simulator/types';
-	import { computeEffectiveStats } from '$lib/warhammer-simulator/rules';
+	import { computeEffectiveStats, isModelledSpecialRule } from '$lib/warhammer-simulator/rules';
+	import {
+		MAX_SIMULATIONS,
+		MIN_SIMULATIONS,
+		parseSeed,
+		parseSimCount
+	} from '$lib/warhammer-simulator/simulation';
 	import armouryData from '$lib/warhammer-simulator/data/armoury.json';
 	import factionsData from '$lib/warhammer-simulator/data/factions.json';
 	import giftTraitsData from '$lib/warhammer-simulator/data/gift-traits.json';
@@ -75,8 +76,6 @@
 			armour: 'none',
 			shield: 'none',
 			traits: [],
-			giftPoints: 0,
-			wizardLevel: 'not-wizard',
 			specialRules: []
 		};
 	}
@@ -85,10 +84,11 @@
 	let charB = $state<Character>(createDefaultChar('B'));
 
 	// Derive display stats for each character from the engine's own rules
-	// (round 1, not charging), so the panel always matches the simulation.
-	function deriveDisplayStats(char: Character) {
+	// (round 1, not charging, against the other character), so the panel
+	// always matches the simulation.
+	function deriveDisplayStats(char: Character, opponent: Character) {
 		return {
-			...computeEffectiveStats(char, false, 1),
+			...computeEffectiveStats(char, false, 1, opponent),
 			giftPoints: char.traits.reduce((sum, t) => {
 				const found = traitsList.find((tr) => tr.id === t);
 				return sum + (found?.cost || 0);
@@ -96,8 +96,21 @@
 		};
 	}
 
-	let statsA = $derived(deriveDisplayStats(charA));
-	let statsB = $derived(deriveDisplayStats(charB));
+	let statsA = $derived(deriveDisplayStats(charA, charB));
+	let statsB = $derived(deriveDisplayStats(charB, charA));
+
+	/** "murderous-prowess" -> "Murderous Prowess", "hatred-of-high-elves" -> "Hatred (High Elves)". */
+	function ruleLabel(id: string): string {
+		const title = (str: string) =>
+			str.replace(/(^|-)(\w)/g, (_, sep, c) => (sep ? ' ' : '') + c.toUpperCase());
+		if (id === 'hatred-all') return 'Hatred';
+		if (id.startsWith('hatred-of-')) return `Hatred (${title(id.slice('hatred-of-'.length))})`;
+		return title(id);
+	}
+
+	function modelledRules(char: Character): string {
+		return char.specialRules.filter(isModelledSpecialRule).map(ruleLabel).join(', ') || 'None';
+	}
 
 	// ── Preset loading ──
 	function loadPreset(target: 'A' | 'B', presetName: string) {
@@ -119,8 +132,6 @@
 			armour: preset.armourType,
 			shield: preset.shield,
 			traits: [...preset.traits],
-			giftPoints: preset.giftPoints,
-			wizardLevel: preset.wizardLevel,
 			specialRules: [...preset.specialRules]
 		};
 
@@ -132,7 +143,23 @@
 	const availableGiftTraits = traitsList.filter(
 		(t) => t.category === 'gift' || t.category === 'item'
 	);
-	const traitNames = availableGiftTraits.map((t) => t.id);
+	const MAX_ITEMS = 2;
+
+	function isGift(traitId: string): boolean {
+		return traitsList.find((t) => t.id === traitId)?.category === 'gift';
+	}
+
+	/** Items (non-gifts) are limited to MAX_ITEMS; gifts only by points. */
+	function itemCount(traits: string[]): number {
+		return traits.filter((t) => !isGift(t)).length;
+	}
+
+	/** A trait button is locked when it would add a third item. */
+	function isTraitLocked(char: Character, traitId: string): boolean {
+		return (
+			!char.traits.includes(traitId) && !isGift(traitId) && itemCount(char.traits) >= MAX_ITEMS
+		);
+	}
 
 	function toggleTrait(target: 'A' | 'B', traitId: string) {
 		const char = target === 'A' ? charA : charB;
@@ -141,18 +168,7 @@
 		if (idx >= 0) {
 			currentTraits.splice(idx, 1);
 		} else {
-			// Check trait limit (max 2 for traits category)
-			const traitDef = traitsList.find((t) => t.id === traitId);
-			if (traitDef?.category === 'gift') {
-				// Gifts are limited by points, not count
-			} else if (
-				currentTraits.filter((t) => {
-					const d = traitsList.find((td) => td.id === t);
-					return d?.category !== 'gift';
-				}).length >= 2
-			) {
-				return; // max 2 non-gift traits
-			}
+			if (isTraitLocked(char, traitId)) return; // button is disabled; guard anyway
 			currentTraits.push(traitId);
 		}
 
@@ -171,16 +187,24 @@
 	}
 
 	// ── Simulation state ──
-	let simCount = $state(100000);
+	let simCount = $state<number | null>(MAX_SIMULATIONS);
+	let seedInput = $state('');
 	let charger = $state<Charger>('none');
-	let chargePersists = $state(false);
-	let chargeBonus = $state(3);
 	let isRunning = $state(false);
 	let progress = $state(0);
 	let elapsedMs = $state(0);
 	let results = $state<SimulationResults | null>(null);
 	let errorMessage = $state('');
 	let worker: Worker | null = null;
+
+	// Inputs of the run that produced `results`, so labels stay those of the run
+	// and later edits are flagged instead of silently mislabelling old results.
+	function inputsKey(): string {
+		return JSON.stringify({ charA, charB, charger });
+	}
+	let resultsKey = $state('');
+	let resultNames = $state({ a: '', b: '' });
+	let resultsStale = $derived(results !== null && inputsKey() !== resultsKey);
 
 	// Chart refs
 	let pieCanvas: HTMLCanvasElement | undefined = $state();
@@ -207,7 +231,19 @@
 			errorMessage = `Character B exceeds 50 gift points (${totalGiftPoints(charB.traits)})`;
 			return;
 		}
+		const count = parseSimCount(simCount);
+		if (!count.ok) {
+			errorMessage = count.error;
+			return;
+		}
+		const seed = parseSeed(seedInput);
+		if (!seed.ok) {
+			errorMessage = seed.error;
+			return;
+		}
 		errorMessage = '';
+		const runKey = inputsKey();
+		const runNames = { a: charA.name, b: charB.name };
 
 		isRunning = true;
 		progress = 0;
@@ -225,6 +261,8 @@
 				elapsedMs = data.elapsedMs;
 			} else if (data.type === 'complete') {
 				results = data.results;
+				resultsKey = runKey;
+				resultNames = runNames;
 				isRunning = false;
 				worker?.terminate();
 				worker = null;
@@ -243,11 +281,9 @@
 		const job: SimulationJob = {
 			charA: JSON.parse(JSON.stringify(charA)),
 			charB: JSON.parse(JSON.stringify(charB)),
-			totalSimulations: simCount,
-			seed: Date.now(),
-			charger,
-			chargePersists,
-			chargeBonus
+			totalSimulations: count.value,
+			seed: seed.value,
+			charger
 		};
 
 		worker.postMessage(job);
@@ -277,7 +313,7 @@
 			pieChart = new Chart(ctx, {
 				type: 'pie',
 				data: {
-					labels: [charA.name, charB.name, 'Mutual Kill / Draw'],
+					labels: [resultNames.a, resultNames.b, 'Mutual Kill / Draw'],
 					datasets: [
 						{
 							data: [r.winRateA, r.winRateB, r.mutualKillRate + r.drawRate],
@@ -374,14 +410,14 @@
 					labels: bins.map((d) => `${d}`),
 					datasets: [
 						{
-							label: charA.name,
+							label: resultNames.a,
 							data: countsA.map((c) => (c / r.totalRuns) * 100),
 							backgroundColor: 'rgba(0, 245, 255, 0.6)',
 							borderColor: 'rgba(0, 245, 255, 0.9)',
 							borderWidth: 1
 						},
 						{
-							label: charB.name,
+							label: resultNames.b,
 							data: countsB.map((c) => (c / r.totalRuns) * 100),
 							backgroundColor: 'rgba(255, 0, 255, 0.6)',
 							borderColor: 'rgba(255, 0, 255, 0.9)',
@@ -489,7 +525,7 @@
 						</select>
 					</div>
 					<div class="field-group">
-						<label class="input-label" for="charA-mark">Mark</label>
+						<label class="input-label" for="charA-mark">Mark (flavour only)</label>
 						<select id="charA-mark" class="algorithm-select" bind:value={charA.mark}>
 							<option value={undefined}>None</option>
 							{#each getFactionMarks(charA.faction) as mark}
@@ -589,19 +625,25 @@
 
 				<!-- Traits & Gifts -->
 				<div class="field-group">
-					<span class="input-label">Traits & Gifts (max 50 pts)</span>
+					<span class="input-label">Traits & Gifts (max 50 pts, max {MAX_ITEMS} items)</span>
 					<div class="trait-grid">
 						{#each availableGiftTraits as trait}
 							<button
 								class="format-btn"
 								class:active={charA.traits.includes(trait.id)}
 								onclick={() => toggleTrait('A', trait.id)}
-								title={trait.description}
+								disabled={isTraitLocked(charA, trait.id)}
+								title={isTraitLocked(charA, trait.id)
+									? `Item limit reached (max ${MAX_ITEMS}): remove an item first`
+									: trait.description}
 							>
 								{trait.name} ({trait.cost} pts)
 							</button>
 						{/each}
 					</div>
+					{#if itemCount(charA.traits) >= MAX_ITEMS}
+						<p class="hint">Item limit reached ({MAX_ITEMS}). Gifts are limited only by points.</p>
+					{/if}
 					{#if totalGiftPoints(charA.traits) > 50}
 						<p class="error-small">Exceeds 50 pts ({totalGiftPoints(charA.traits)} pts)</p>
 					{/if}
@@ -613,10 +655,13 @@
 					<div class="stats-grid">
 						<span>S {statsA.strength}</span>
 						<span>A {statsA.attacks}</span>
-						<span>I {statsA.initiative}</span>
+						<span>I {statsA.initiative}{statsA.strikesLast ? ' (Strikes Last)' : ''}</span>
 						<span>AP {statsA.ap}</span>
 						<span>Armour {statsA.armourSave}+</span>
 						<span>Ward {statsA.wardSave > 0 ? statsA.wardSave + '+' : 'None'}</span>
+						{#if statsA.regenerationSave > 0}
+							<span>Regen {statsA.regenerationSave}+</span>
+						{/if}
 						<span>T {statsA.toughness}</span>
 						<span
 							>Rerolls {[statsA.hasRerollHits && 'Hits', statsA.hasRerollWounds && 'Wounds']
@@ -624,6 +669,7 @@
 								.join(', ') || 'None'}</span
 						>
 						<span>Gift {statsA.giftPoints}pts</span>
+						<span>Rules {modelledRules(charA)}</span>
 					</div>
 				</div>
 			</div>
@@ -671,7 +717,7 @@
 						</select>
 					</div>
 					<div class="field-group">
-						<label class="input-label" for="charB-mark">Mark</label>
+						<label class="input-label" for="charB-mark">Mark (flavour only)</label>
 						<select id="charB-mark" class="algorithm-select" bind:value={charB.mark}>
 							<option value={undefined}>None</option>
 							{#each getFactionMarks(charB.faction) as mark}
@@ -771,19 +817,25 @@
 
 				<!-- Traits & Gifts -->
 				<div class="field-group">
-					<span class="input-label">Traits & Gifts (max 50 pts)</span>
+					<span class="input-label">Traits & Gifts (max 50 pts, max {MAX_ITEMS} items)</span>
 					<div class="trait-grid">
 						{#each availableGiftTraits as trait}
 							<button
 								class="format-btn"
 								class:active={charB.traits.includes(trait.id)}
 								onclick={() => toggleTrait('B', trait.id)}
-								title={trait.description}
+								disabled={isTraitLocked(charB, trait.id)}
+								title={isTraitLocked(charB, trait.id)
+									? `Item limit reached (max ${MAX_ITEMS}): remove an item first`
+									: trait.description}
 							>
 								{trait.name} ({trait.cost} pts)
 							</button>
 						{/each}
 					</div>
+					{#if itemCount(charB.traits) >= MAX_ITEMS}
+						<p class="hint">Item limit reached ({MAX_ITEMS}). Gifts are limited only by points.</p>
+					{/if}
 					{#if totalGiftPoints(charB.traits) > 50}
 						<p class="error-small">Exceeds 50 pts ({totalGiftPoints(charB.traits)} pts)</p>
 					{/if}
@@ -795,10 +847,13 @@
 					<div class="stats-grid">
 						<span>S {statsB.strength}</span>
 						<span>A {statsB.attacks}</span>
-						<span>I {statsB.initiative}</span>
+						<span>I {statsB.initiative}{statsB.strikesLast ? ' (Strikes Last)' : ''}</span>
 						<span>AP {statsB.ap}</span>
 						<span>Armour {statsB.armourSave}+</span>
 						<span>Ward {statsB.wardSave > 0 ? statsB.wardSave + '+' : 'None'}</span>
+						{#if statsB.regenerationSave > 0}
+							<span>Regen {statsB.regenerationSave}+</span>
+						{/if}
 						<span>T {statsB.toughness}</span>
 						<span
 							>Rerolls {[statsB.hasRerollHits && 'Hits', statsB.hasRerollWounds && 'Wounds']
@@ -806,6 +861,7 @@
 								.join(', ') || 'None'}</span
 						>
 						<span>Gift {statsB.giftPoints}pts</span>
+						<span>Rules {modelledRules(charB)}</span>
 					</div>
 				</div>
 			</div>
@@ -828,9 +884,21 @@
 						id="sim-count"
 						class="key-input sim-count-input"
 						type="number"
-						min="100"
-						max="100000"
+						min={MIN_SIMULATIONS}
+						max={MAX_SIMULATIONS}
+						step="1"
 						bind:value={simCount}
+					/>
+				</div>
+				<div class="field-group">
+					<label class="input-label" for="sim-seed">Seed (optional)</label>
+					<input
+						id="sim-seed"
+						class="key-input"
+						type="text"
+						inputmode="numeric"
+						placeholder="random"
+						bind:value={seedInput}
 					/>
 				</div>
 				<div class="field-group">
@@ -840,25 +908,6 @@
 						<option value="A">{charA.name}</option>
 						<option value="B">{charB.name}</option>
 					</select>
-				</div>
-				<div class="field-group">
-					<label class="input-label" for="charge-bonus">Charge Initiative Bonus</label>
-					<select
-						id="charge-bonus"
-						class="algorithm-select"
-						bind:value={chargeBonus}
-						disabled={charger === 'none'}
-					>
-						<option value={1}>+1</option>
-						<option value={2}>+2</option>
-						<option value={3}>+3</option>
-					</select>
-				</div>
-				<div class="field-group checkbox-group">
-					<label class="input-label">
-						<input type="checkbox" bind:checked={chargePersists} disabled={charger === 'none'} />
-						Charge persists after round 1
-					</label>
 				</div>
 				<div class="field-group sim-btn-wrap">
 					<button class="process-btn" onclick={startSimulation} disabled={isRunning}>
@@ -881,8 +930,25 @@
 				</div>
 			{/if}
 
+			<p class="hint">
+				The charger strikes first in round 1 regardless of Initiative (a great weapon still Strikes
+				Last); later rounds use Initiative order. Faction matters only for Hatred.
+			</p>
 			{#if errorMessage}
 				<p class="error">{errorMessage}</p>
+			{/if}
+			{#if results}
+				<p class="run-meta">
+					Seed <span class="seed-used">{results.seedUsed}</span> · {results.totalRuns.toLocaleString(
+						'en-US'
+					)} runs
+				</p>
+			{/if}
+			{#if resultsStale}
+				<p class="error stale-warning">
+					Inputs changed since this run: results below are for the previous setup. Run again to
+					update.
+				</p>
 			{/if}
 		</div>
 	</div>
@@ -903,12 +969,12 @@
 					<div class="winner-stats">
 						<div class="winner-stat" class:highlight={results.winRateA >= results.winRateB}>
 							<span class="winner-dot" style="background:rgba(0,245,255,0.9)"></span>
-							<span class="winner-label">{charA.name}</span>
+							<span class="winner-label">{resultNames.a}</span>
 							<span class="winner-value">{(results.winRateA * 100).toFixed(1)}%</span>
 						</div>
 						<div class="winner-stat" class:highlight={results.winRateB >= results.winRateA}>
 							<span class="winner-dot" style="background:rgba(255,0,255,0.9)"></span>
-							<span class="winner-label">{charB.name}</span>
+							<span class="winner-label">{resultNames.b}</span>
 							<span class="winner-value">{(results.winRateB * 100).toFixed(1)}%</span>
 						</div>
 						<div class="winner-stat">
@@ -1016,6 +1082,11 @@
 		padding: 0.3rem 0.6rem;
 	}
 
+	.trait-grid .format-btn:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
 	/* ── Derived Stats ── */
 	.derived-stats {
 		margin-top: 0.25rem;
@@ -1050,22 +1121,11 @@
 		width: 120px;
 	}
 
-	.checkbox-group {
-		justify-content: center;
-	}
-
-	.checkbox-group label {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		cursor: pointer;
-		font-size: 0.85rem;
-	}
-
-	.checkbox-group input[type='checkbox'] {
-		width: 18px;
-		height: 18px;
-		accent-color: var(--futuristic-cyan);
+	.run-meta {
+		margin: 0.5rem 0 0;
+		font-size: 0.8rem;
+		color: var(--futuristic-text-dim);
+		font-family: 'JetBrains Mono', monospace;
 	}
 
 	.sim-btn-wrap {
