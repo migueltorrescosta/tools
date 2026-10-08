@@ -2,35 +2,24 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import timelinesData from './data/timelines.json';
-
-	interface Timeline {
-		id: string;
-		shortTitle: string;
-		description: string;
-	}
-
-	interface Event {
-		id: number;
-		emoji: string;
-		date: string;
-		title: string;
-		description: string;
-		url?: string;
-		conceptDescription?: string;
-		valueAdd?: string;
-	}
-
-	type TimelineRow = { type: 'year'; year: number } | { type: 'events'; events: Event[] };
+	import {
+		buildTimelineRows,
+		formatShortDate,
+		hasRichContent,
+		isPast,
+		sortEventsByDate,
+		type Timeline,
+		type TimelineEvent,
+		type TimelineRow
+	} from './timelines';
 
 	const timelines = timelinesData as Timeline[];
 
 	let selectedTimelineId = $state<string>('');
-	let filteredEvents = $state<Event[]>([]);
+	let filteredEvents = $state<TimelineEvent[]>([]);
 	let timelineRows = $state<TimelineRow[]>([]);
 	let loading = $state(false);
-	const isRichContent = $derived(
-		filteredEvents.length > 0 && filteredEvents.some((e) => e.conceptDescription || e.valueAdd)
-	);
+	const isRichContent = $derived(hasRichContent(filteredEvents));
 	let tooltipState = $state<{ visible: boolean; x: number; y: number; content: string }>({
 		visible: false,
 		x: 0,
@@ -39,7 +28,7 @@
 	});
 
 	// Cache for loaded timeline events
-	const timelineCache = new Map<string, Event[]>();
+	const timelineCache = new Map<string, TimelineEvent[]>();
 
 	function showTooltip(event: MouseEvent, content: string) {
 		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
@@ -55,20 +44,6 @@
 		tooltipState = { ...tooltipState, visible: false };
 	}
 
-	const COLUMNS = 3;
-
-	function getYear(dateStr: string): number {
-		return new Date(dateStr).getFullYear();
-	}
-
-	function formatShortDate(dateStr: string): string {
-		const date = new Date(dateStr);
-		return date.toLocaleDateString('en-GB', {
-			day: '2-digit',
-			month: 'short'
-		});
-	}
-
 	async function updateFilteredEvents() {
 		if (!selectedTimelineId) {
 			filteredEvents = [];
@@ -80,73 +55,20 @@
 
 		try {
 			// Load events for the selected timeline (with caching)
-			let events: Event[];
+			let events: TimelineEvent[];
 			if (timelineCache.has(selectedTimelineId)) {
 				events = timelineCache.get(selectedTimelineId)!;
 			} else {
 				const module = await import(`./data/events/${selectedTimelineId}.json`);
-				events = module.default as Event[];
+				events = module.default as TimelineEvent[];
 				timelineCache.set(selectedTimelineId, events);
 			}
 
-			// Sort events by date
-			filteredEvents = events.sort(
-				(a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-			);
-
-			// Check if this timeline has rich content (conceptDescription or valueAdd)
-			const hasRichContent = filteredEvents.some((e) => e.conceptDescription || e.valueAdd);
-
-			// Group events by year
-			const eventsByYear = new Map<number, Event[]>();
-			for (const event of filteredEvents) {
-				const year = getYear(event.date);
-				if (!eventsByYear.has(year)) {
-					eventsByYear.set(year, []);
-				}
-				eventsByYear.get(year)!.push(event);
-			}
-
-			// Build rows: year separator + events for each year
-			const rows: TimelineRow[] = [];
-			const sortedYears = Array.from(eventsByYear.keys()).sort((a, b) => a - b);
-
-			for (const year of sortedYears) {
-				// Add year separator
-				rows.push({ type: 'year', year });
-
-				const yearEvents = eventsByYear.get(year)!;
-				if (hasRichContent) {
-					// For rich content, keep all events in a single group
-					rows.push({ type: 'events', events: yearEvents });
-				} else {
-					// Chunk events for this year into rows of 3
-					for (let i = 0; i < yearEvents.length; i += COLUMNS) {
-						rows.push({ type: 'events', events: yearEvents.slice(i, i + COLUMNS) });
-					}
-				}
-			}
-
-			timelineRows = rows;
+			filteredEvents = sortEventsByDate(events);
+			timelineRows = buildTimelineRows(filteredEvents, hasRichContent(filteredEvents));
 		} finally {
 			loading = false;
 		}
-	}
-
-	function isPast(dateStr: string): boolean {
-		const date = new Date(dateStr);
-		const today = new Date();
-		today.setHours(0, 0, 0, 0);
-		return date < today;
-	}
-
-	function formatDate(dateStr: string): string {
-		const date = new Date(dateStr);
-		return date.toLocaleDateString('en-GB', {
-			day: '2-digit',
-			month: 'short',
-			year: 'numeric'
-		});
 	}
 
 	async function selectRandomTimeline() {
