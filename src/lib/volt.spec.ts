@@ -221,12 +221,8 @@ describe('data quality', () => {
 		expect(isGroupEntry(person({ name: 'Marian State' }))).toBe(false);
 	});
 
-	// Shared links accepted so far: Köln's is the council group's own team page; the NL one
-	// is a generic 2022 election page that still needs per-person links. Adding new ones fails.
-	const KNOWN_SHARED_URLS = [
-		'https://voltkoeln.de/team',
-		'https://voltnederland.org/gemeenteraadsverkiezingen-2022'
-	];
+	// Shared links accepted so far: Köln's is the council group's own team page. Adding new ones fails.
+	const KNOWN_SHARED_URLS = ['https://voltkoeln.de/team'];
 
 	it('does not let more than 3 rows share a link beyond the known list', () => {
 		const counts = new Map<string, number>();

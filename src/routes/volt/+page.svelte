@@ -126,7 +126,7 @@
 										{#if todayPct !== null}
 											<div class="today-line" style="left: {todayPct}%" aria-hidden="true"></div>
 										{/if}
-										{#each group.politicians as p, idx (p.name)}
+										{#each group.politicians as p, idx (`${p.name}|${p.position}|${p.startDate}`)}
 											{@const { left, width } = barGeometry(p, timeline)}
 											{@const top = idx * 14}
 											{@const summary = describeMandate(p, now)}

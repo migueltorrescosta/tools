@@ -18,7 +18,7 @@ export type CountryGroups = Record<string, PositionGroup[]>;
 export const EU_FLAG = '🇪🇺';
 
 // Date the bundled data was last checked against official sources (DD/MM/YYYY)
-export const DATA_AS_OF = '08/10/2026';
+export const DATA_AS_OF = '09/10/2026';
 
 export type CountryInfo = { label: string; color: string };
 
