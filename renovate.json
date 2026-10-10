@@ -1,6 +1,62 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended"
-  ]
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": ["config:recommended", "group:allNonMajor", "schedule:weekly"],
+	"timezone": "Europe/Rome",
+	"prConcurrentLimit": 3,
+	"minimumReleaseAge": "7 days",
+	"automerge": false,
+	"osvVulnerabilityAlerts": true,
+	"vulnerabilityAlerts": { "labels": ["security"] },
+	"lockFileMaintenance": {
+		"enabled": true,
+		"schedule": ["before 4am on the first day of the month"]
+	},
+	"packageRules": [
+		{
+			"description": "Majors only on explicit request from the dashboard",
+			"matchUpdateTypes": ["major"],
+			"dependencyDashboardApproval": true
+		},
+		{
+			"description": "Peer-coupled Svelte/Vite toolchain majors move together",
+			"matchUpdateTypes": ["major"],
+			"matchPackageNames": [
+				"svelte",
+				"@sveltejs/**",
+				"vite",
+				"vitest",
+				"@vitest/**",
+				"vitest-browser-svelte",
+				"svelte-check",
+				"eslint-plugin-svelte",
+				"prettier-plugin-svelte",
+				"mdsvex"
+			],
+			"groupName": "svelte-vite toolchain (major)"
+		},
+		{
+			"description": "0.x minors are breaking; keep out of the non-major group",
+			"matchCurrentVersion": "<1.0.0",
+			"matchUpdateTypes": ["minor"],
+			"groupName": "0.x minors",
+			"dependencyDashboardApproval": true
+		},
+		{
+			"description": "Deploy tooling isolated so a bad bump is bisectable",
+			"matchPackageNames": ["wrangler", "@sveltejs/adapter-cloudflare"],
+			"matchUpdateTypes": ["minor", "patch"],
+			"groupName": "cloudflare"
+		},
+		{
+			"description": "Needs a local browser reinstall after the bump",
+			"matchPackageNames": ["playwright", "@playwright/test"],
+			"groupName": "playwright",
+			"prBodyNotes": ["Run `pnpm exec playwright install chromium` before the gates."]
+		},
+		{
+			"description": "Node version drives the Cloudflare build; bump by hand on LTS",
+			"matchManagers": ["nvm"],
+			"enabled": false
+		}
+	]
 }
