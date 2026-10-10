@@ -1,5 +1,20 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { copyToClipboard } from '$lib/clipboard';
+	import {
+		algorithmOptions,
+		describeClaims,
+		headerJsonAlg,
+		isSymmetric,
+		jsonWarnings,
+		parseEncodeInputs,
+		signJwt,
+		tokenView,
+		verifyJwt,
+		withHeaderAlg,
+		type JsonObject,
+		type VerifyResult
+	} from '$lib/jwt';
 
 	let token = $state('');
 	let secret = $state('');
@@ -10,118 +25,107 @@
 	);
 	let headerError = $state('');
 	let payloadError = $state('');
-	let signatureValid = $state<boolean | null>(null);
+	let encodeError = $state('');
+	let encodeNote = $state('');
+	let verification = $state<VerifyResult | null>(null);
+	// Bumped per verification so a slow earlier result cannot overwrite a newer one
+	let verifySeq = 0;
 	let signatureResult = $state('');
-
-	const algorithms = [
-		'HS256',
-		'HS384',
-		'HS512',
-		'RS256',
-		'RS384',
-		'RS512',
-		'ES256',
-		'ES384',
-		'ES512',
-		'PS256',
-		'PS384',
-		'PS512',
-		'none'
-	];
-
-	function base64UrlEncode(str: string): string {
-		return btoa(unescape(encodeURIComponent(str)))
-			.replace(/\+/g, '-')
-			.replace(/\//g, '_')
-			.replace(/=/g, '');
-	}
-
-	function base64UrlDecode(str: string): string {
-		str = str.replace(/-/g, '+').replace(/_/g, '/');
-		while (str.length % 4) str += '=';
-		return decodeURIComponent(escape(atob(str)));
-	}
+	let signatureError = $state('');
+	let decodeWarnings = $state<string[]>([]);
+	let decodedPayload = $state<JsonObject | undefined>(undefined);
+	let unsignedBanner = $state('');
+	let now = $state(Date.now());
+	let showSecret = $state(false);
+	let copyStatus = $state('');
+	let hydrated = $state(false);
+	// An unknown header alg (e.g. ES256K) gets its own option so the select never shows a blank
+	const algorithms = $derived(algorithmOptions(selectedAlgorithm));
+	const claims = $derived(describeClaims(decodedPayload, now));
+	// What ENCODE would change: JSON.parse rounds big integers and drops duplicate keys
+	const encodeWarnings = $derived([
+		...jsonWarnings(headerJson).map((w) => `Header: ${w}`),
+		...jsonWarnings(payloadJson).map((w) => `Payload: ${w}`)
+	]);
 
 	function decodeToken(t: string) {
-		if (!t.trim()) {
-			headerJson = '{\n  "alg": "",\n  "typ": "JWT"\n}';
-			payloadJson = '';
-			headerError = '';
-			payloadError = '';
-			signatureValid = null;
-			signatureResult = '';
-			return;
-		}
-
-		const parts = t.split('.');
-		if (parts.length !== 3) {
-			headerError = 'Invalid JWT format';
-			payloadError = '';
-			return;
-		}
-
-		try {
-			const header = JSON.parse(base64UrlDecode(parts[0]));
-			headerJson = JSON.stringify(header, null, 2);
-			headerError = '';
-			selectedAlgorithm = header.alg || 'HS256';
-		} catch {
-			headerError = 'Invalid header JSON';
-			headerJson = '';
-		}
-
-		try {
-			const payload = JSON.parse(base64UrlDecode(parts[1]));
-			payloadJson = JSON.stringify(payload, null, 2);
-			payloadError = '';
-		} catch {
-			payloadError = 'Invalid payload JSON';
-			payloadJson = '';
-		}
-
-		signatureResult = parts[2];
-		signatureValid = null;
+		const view = tokenView(t);
+		headerJson = view.headerJson;
+		payloadJson = view.payloadJson;
+		headerError = view.headerError;
+		payloadError = view.payloadError;
+		signatureResult = view.signature;
+		signatureError = view.signatureError;
+		decodeWarnings = view.warnings;
+		decodedPayload = view.payload;
+		unsignedBanner = view.unsigned;
+		copyStatus = '';
+		if (view.alg) selectedAlgorithm = view.alg;
 	}
 
-	function encodeToken() {
-		let header: Record<string, unknown>;
-		let payload: Record<string, unknown>;
-
-		try {
-			header = JSON.parse(headerJson);
-		} catch {
-			headerError = 'Invalid header JSON';
-			return;
-		}
-		headerError = '';
-
-		try {
-			payload = JSON.parse(payloadJson);
-		} catch {
-			payloadError = 'Invalid payload JSON';
-			return;
-		}
-		payloadError = '';
-
-		header.alg = selectedAlgorithm;
-		header.typ = 'JWT';
-
-		const encodedHeader = base64UrlEncode(JSON.stringify(header));
-		const encodedPayload = base64UrlEncode(JSON.stringify(payload));
-		token = `${encodedHeader}.${encodedPayload}.`;
+	// The header JSON and the select name the same alg: each edit updates the other
+	function selectAlgorithm(alg: string) {
+		selectedAlgorithm = alg;
+		headerJson = withHeaderAlg(headerJson, alg);
 	}
 
-	function copyToClipboard(text: string) {
-		navigator.clipboard.writeText(text);
+	function editHeader(text: string) {
+		headerJson = text;
+		const alg = headerJsonAlg(text);
+		if (alg) selectedAlgorithm = alg;
+	}
+
+	async function copy(label: string, text: string) {
+		try {
+			await copyToClipboard(text);
+			copyStatus = `${label} copied`;
+		} catch (e) {
+			copyStatus = `Could not copy ${label.toLowerCase()}: ${e instanceof Error ? e.message : String(e)}`;
+		}
+	}
+
+	async function encodeToken() {
+		const parsed = parseEncodeInputs(headerJson, payloadJson, selectedAlgorithm);
+		headerError = parsed.ok ? '' : parsed.headerError;
+		payloadError = parsed.ok ? '' : parsed.payloadError;
+		if (!parsed.ok) return;
+		const { header, payload, alg } = parsed;
+		selectedAlgorithm = alg;
+
+		try {
+			token = await signJwt(header, payload, secret, alg);
+			encodeError = '';
+			encodeNote = alg === 'none' ? 'Unsigned token (alg "none"): the signature is empty' : '';
+		} catch (e) {
+			encodeError = `Not encoded: ${e instanceof Error ? e.message : String(e)}`;
+			encodeNote = '';
+		}
 	}
 
 	$effect(() => {
 		decodeToken(token);
 	});
 
+	$effect(() => {
+		const t = token;
+		const key = secret;
+		const alg = selectedAlgorithm;
+		const seq = ++verifySeq;
+		if (!t.trim() || (!key && alg !== 'none')) {
+			verification = null;
+			return;
+		}
+		verifyJwt(t, key, alg).then((r) => {
+			if (seq === verifySeq) verification = r;
+		});
+	});
+
 	onMount(() => {
+		hydrated = true;
+		const clock = setInterval(() => (now = Date.now()), 1000);
 		token =
 			'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+		return () => clearInterval(clock);
 	});
 </script>
 
@@ -129,7 +133,7 @@
 	<title>JWT Parser</title>
 </svelte:head>
 
-<div class="container">
+<div class="container" data-hydrated={hydrated || undefined}>
 	<header>
 		<h1>JWT PARSER</h1>
 		<p class="subtitle">Decode, Encode & Verify JSON Web Tokens</p>
@@ -137,16 +141,29 @@
 
 	<div class="token-input-section">
 		<div class="section-header">
-			<span class="label">ENCODED</span>
+			<label class="label" for="token-input">ENCODED</label>
 			<span class="hint">Paste your JWT token</span>
 		</div>
 		<textarea
+			id="token-input"
 			class="token-input"
 			bind:value={token}
 			placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 			spellcheck="false"
 		></textarea>
 	</div>
+
+	{#if unsignedBanner}
+		<div class="signature-status invalid" role="alert">{unsignedBanner}</div>
+	{/if}
+
+	{#if decodeWarnings.length}
+		<div class="key-warning" role="status">
+			{#each decodeWarnings as warning, i (i)}<div>{warning}</div>{/each}
+		</div>
+	{/if}
+
+	{#if copyStatus}<div class="copy-status" role="status">{copyStatus}</div>{/if}
 
 	<div class="panels">
 		<div class="panel header-panel">
@@ -155,7 +172,12 @@
 				<span class="dot yellow"></span>
 				<span class="dot green"></span>
 				<span class="panel-title">HEADER</span>
-				<button class="copy-btn" onclick={() => copyToClipboard(headerJson)}>COPY</button>
+				<button
+					class="copy-btn"
+					aria-label="Copy header JSON"
+					disabled={!!headerError || !headerJson}
+					onclick={() => copy('Header', headerJson)}>COPY</button
+				>
 			</div>
 			<div class="panel-content">
 				{#if headerError}
@@ -172,7 +194,12 @@
 				<span class="dot yellow"></span>
 				<span class="dot green"></span>
 				<span class="panel-title">PAYLOAD</span>
-				<button class="copy-btn" onclick={() => copyToClipboard(payloadJson)}>COPY</button>
+				<button
+					class="copy-btn"
+					aria-label="Copy payload JSON"
+					disabled={!!payloadError || !payloadJson}
+					onclick={() => copy('Payload', payloadJson)}>COPY</button
+				>
 			</div>
 			<div class="panel-content">
 				{#if payloadError}
@@ -180,6 +207,22 @@
 				{:else}
 					<pre class="json-display">{payloadJson}</pre>
 				{/if}
+				{#if claims.expired}
+					<div class="signature-status invalid">Expired</div>
+				{:else if claims.notYetValid}
+					<div class="signature-status invalid">Not yet valid (nbf)</div>
+				{/if}
+				{#if claims.issuedInFuture}
+					<div class="key-warning">Issued in the future (iat)</div>
+				{/if}
+				{#each claims.times as claim (claim.name)}
+					<div class="claim-time">
+						{claim.name}: {claim.iso} ({claim.relative})
+					</div>
+				{/each}
+				{#each claims.errors as error, i (i)}
+					<div class="error-small">{error}</div>
+				{/each}
 			</div>
 		</div>
 
@@ -193,13 +236,38 @@
 			<div class="panel-content">
 				<div class="signature-row">
 					<div class="secret-section">
-						<label class="input-label">SECRET</label>
-						<input type="text" class="secret-input" bind:value={secret} placeholder="secret" />
+						<label class="input-label" for="secret-input"
+							>{isSymmetric(selectedAlgorithm) ? 'SECRET' : 'KEY (PEM OR JWK)'}</label
+						>
+						<div class="secret-row">
+							<input
+								id="secret-input"
+								type={showSecret ? 'text' : 'password'}
+								class="secret-input"
+								autocomplete="off"
+								spellcheck="false"
+								bind:value={secret}
+								placeholder={isSymmetric(selectedAlgorithm)
+									? 'secret'
+									: 'public key verifies, private key signs'}
+							/>
+							<button
+								type="button"
+								class="copy-btn"
+								aria-pressed={showSecret}
+								aria-controls="secret-input"
+								onclick={() => (showSecret = !showSecret)}>{showSecret ? 'HIDE' : 'SHOW'}</button
+							>
+						</div>
 					</div>
 
 					<div class="algorithm-section">
-						<label class="input-label">ALGORITHM</label>
-						<select class="algorithm-select" bind:value={selectedAlgorithm}>
+						<label class="input-label" for="algorithm-select">ALGORITHM</label>
+						<select
+							id="algorithm-select"
+							class="algorithm-select"
+							bind:value={() => selectedAlgorithm, selectAlgorithm}
+						>
 							{#each algorithms as alg (alg)}
 								<option value={alg}>{alg}</option>
 							{/each}
@@ -208,14 +276,18 @@
 				</div>
 
 				<div class="signature-display">
-					<label class="input-label">SIGNATURE</label>
+					<span class="input-label">SIGNATURE</span>
 					<div class="signature-value">{signatureResult || 'Not available'}</div>
+					{#if signatureError}<div class="error-small">{signatureError}</div>{/if}
 				</div>
 
-				{#if signatureValid === true}
+				{#if verification?.status === 'valid'}
 					<div class="signature-status valid">Signature Verified</div>
-				{:else if signatureValid === false}
+				{:else if verification?.status === 'invalid'}
 					<div class="signature-status invalid">Signature Invalid</div>
+					<div class="error-small">{verification.message}</div>
+				{:else if verification}
+					<div class="key-warning">{verification.message}</div>
 				{/if}
 			</div>
 		</div>
@@ -224,15 +296,16 @@
 	<div class="encode-section">
 		<div class="section-header">
 			<span class="label">DECODE & ENCODE</span>
-			<span class="hint">Modify header and payload, then encode</span>
+			<span class="hint">Modify header and payload, then sign with the key above</span>
 		</div>
 
 		<div class="encode-inputs">
 			<div class="encode-input-group">
-				<label class="input-label">HEADER (JSON)</label>
+				<label class="input-label" for="header-json">HEADER (JSON)</label>
 				<textarea
+					id="header-json"
 					class="encode-textarea"
-					bind:value={headerJson}
+					bind:value={() => headerJson, editHeader}
 					placeholder={'{"alg": "HS256", "typ": "JWT"}'}
 					spellcheck="false"
 				></textarea>
@@ -240,8 +313,9 @@
 			</div>
 
 			<div class="encode-input-group">
-				<label class="input-label">PAYLOAD (JSON)</label>
+				<label class="input-label" for="payload-json">PAYLOAD (JSON)</label>
 				<textarea
+					id="payload-json"
 					class="encode-textarea"
 					bind:value={payloadJson}
 					placeholder={'{"sub": "1234567890", "name": "John Doe"}'}
@@ -252,8 +326,47 @@
 		</div>
 
 		<button class="encode-btn" onclick={encodeToken}>
-			<span class="btn-text">ENCODE TOKEN</span>
+			<span class="btn-text"
+				>{selectedAlgorithm === 'none' ? 'ENCODE UNSIGNED' : 'SIGN & ENCODE'}</span
+			>
 			<span class="btn-glow"></span>
 		</button>
+		{#if encodeWarnings.length}
+			<div class="key-warning">
+				{#each encodeWarnings as warning, i (i)}<div>ENCODE changes this: {warning}</div>{/each}
+			</div>
+		{/if}
+		{#if encodeError}<div class="error-small" role="alert">{encodeError}</div>{/if}
+		{#if encodeNote}<div class="key-warning">{encodeNote}</div>{/if}
 	</div>
 </div>
+
+<style>
+	.secret-row {
+		display: flex;
+		gap: 0.5rem;
+		align-items: center;
+	}
+
+	.secret-row .secret-input {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.copy-btn:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
+
+	.copy-status {
+		margin-bottom: 1rem;
+		font-size: 0.8rem;
+		color: var(--futuristic-text-dim);
+	}
+
+	.claim-time {
+		margin-top: 0.25rem;
+		font-size: 0.8rem;
+		color: var(--futuristic-text-dim);
+	}
+</style>

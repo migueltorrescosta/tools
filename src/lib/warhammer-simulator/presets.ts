@@ -1,0 +1,153 @@
+import type { CharacterPreset } from './types';
+
+/**
+ * Preset character profiles representing major factions.
+ * Each preset defines a complete character for quick-loading. specialRules
+ * lists only rules the simulator models (see isModelledSpecialRule).
+ */
+export const PRESET_CHARACTERS: CharacterPreset[] = [
+	{
+		name: 'Chaos Lord',
+		faction: 'chaos',
+		mark: 'khorne',
+		ws: 7,
+		s: 5,
+		t: 5,
+		a: 4,
+		i: 5,
+		wounds: 3,
+		armourType: 'full-plate',
+		wardSave: 0,
+		weapon: 'great-weapon',
+		shield: 'none',
+		traits: ['immortal-fury'],
+		specialRules: [],
+		description:
+			'A Khornate Chaos Lord with a Great Weapon, clad in Full Plate — a brutal melee powerhouse.'
+	},
+	{
+		name: 'Empire General',
+		faction: 'empire',
+		ws: 5,
+		s: 4,
+		t: 4,
+		a: 3,
+		i: 4,
+		wounds: 3,
+		armourType: 'heavy',
+		wardSave: 0,
+		weapon: 'hand-weapon',
+		shield: 'shield',
+		traits: [],
+		specialRules: [],
+		description: 'A disciplined Empire General with Hand Weapon and Shield — balanced and reliable.'
+	},
+	{
+		name: 'Orc Warboss',
+		faction: 'orcs-and-goblins',
+		ws: 6,
+		s: 5,
+		t: 5,
+		a: 4,
+		i: 3,
+		wounds: 3,
+		armourType: 'heavy',
+		wardSave: 0,
+		weapon: 'additional-hand-weapon',
+		shield: 'none',
+		traits: ['strength+1'],
+		specialRules: [],
+		description:
+			'A brutal Orc Warboss with two weapons, hacking through the enemy with raw strength.'
+	},
+	{
+		name: 'Bretonnian Lord',
+		faction: 'bretonnia',
+		ws: 5,
+		s: 4,
+		t: 4,
+		a: 3,
+		i: 5,
+		wounds: 3,
+		armourType: 'heavy',
+		wardSave: 6,
+		weapon: 'lance',
+		shield: 'shield',
+		traits: ['ward-5'],
+		specialRules: [],
+		description: 'A Bretonnian Lord with Lance and Shield, devastating on the charge.'
+	},
+	{
+		name: 'Dwarf Lord',
+		faction: 'dwarfs',
+		ws: 7,
+		s: 4,
+		t: 5,
+		a: 3,
+		i: 2,
+		wounds: 3,
+		armourType: 'full-plate',
+		wardSave: 0,
+		weapon: 'great-weapon',
+		shield: 'none',
+		traits: [],
+		specialRules: [],
+		description: 'An unyielding Dwarf Lord in Full Plate with a Great Weapon — tough and deadly.'
+	},
+	{
+		name: 'Vampire Lord',
+		faction: 'vampire-counts',
+		ws: 6,
+		s: 5,
+		t: 5,
+		a: 4,
+		i: 6,
+		wounds: 3,
+		armourType: 'heavy',
+		wardSave: 5,
+		weapon: 'hand-weapon',
+		shield: 'shield',
+		traits: ['immortal-fury', 'ward-4'],
+		specialRules: [],
+		description: 'A fast, deadly Vampire Lord with Hatred and a 4+ Ward save.'
+	},
+	{
+		name: 'High Elf Prince',
+		faction: 'high-elves',
+		ws: 6,
+		s: 4,
+		t: 3,
+		a: 4,
+		i: 7,
+		wounds: 3,
+		armourType: 'heavy',
+		wardSave: 0,
+		weapon: 'hand-weapon',
+		shield: 'shield',
+		traits: [],
+		specialRules: [],
+		description: 'A swift High Elf Prince with superior Weapon Skill and Initiative.'
+	},
+	{
+		name: 'Dark Elf Dreadlord',
+		faction: 'dark-elves',
+		ws: 7,
+		s: 4,
+		t: 3,
+		a: 4,
+		i: 7,
+		wounds: 3,
+		armourType: 'heavy',
+		wardSave: 0,
+		weapon: 'additional-hand-weapon',
+		shield: 'none',
+		traits: [],
+		specialRules: ['murderous-prowess', 'hatred-of-high-elves'],
+		description: 'A cruel Dark Elf Dreadlord with twin blades and murderous skill.'
+	}
+];
+
+/** Get a character preset by name. */
+export function getPresetByName(name: string): CharacterPreset | undefined {
+	return PRESET_CHARACTERS.find((p) => p.name === name);
+}

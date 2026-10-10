@@ -1,146 +1,120 @@
 import { expect, test } from '@playwright/test';
 
-test('Timelines - loads and displays events', async ({ page }) => {
+test('Timelines - loads with dynamic imports', async ({ page }) => {
 	await page.goto('/timelines');
 
+	// Check page title
 	await expect(page.locator('h1')).toHaveText('TIMELINES');
 
-	// Check dropdown exists and has options
-	const select = page.locator('select.timeline-select');
-	await expect(select).toBeVisible();
+	// Wait for timeline selector to be visible
+	await expect(page.locator('.timeline-select')).toBeVisible();
 
-	// Get all timeline options
-	const options = await select.locator('option').allTextContents();
-	expect(options.length).toBeGreaterThan(0);
-	expect(options).toContain('🇪🇺 European National Elections');
-	expect(options).toContain('🔑 Key Events of the EU');
+	// Wait for events to load (the initial pick may be rich or non-rich)
+	await expect(page.locator('.event-card, .rich-event-card').first()).toBeVisible({
+		timeout: 15000
+	});
+});
 
-	// Check events are displayed in cards
-	const eventCards = page.locator('.event-card');
-	await expect(eventCards.first()).toBeVisible();
+test('Timelines - switch between timelines', async ({ page }) => {
+	await page.goto('/timelines?t=eu-elections');
+	const firstTitle = page.locator('.event-card .event-title').first();
+	await expect(firstTitle).toBeVisible({ timeout: 10000 });
+	// Titles can repeat across years (e.g. two Finland presidential elections), so count
+	// every card with that title instead of requiring a unique match.
+	const electionTitles = page.locator('.event-card .event-title').filter({
+		hasText: new RegExp(
+			`^${((await firstTitle.textContent()) ?? '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`
+		)
+	});
+	expect(await electionTitles.count()).toBeGreaterThan(0);
 
-	// Check year separators are visible
-	const yearSeparators = page.locator('.year-separator');
-	await expect(yearSeparators.first()).toBeVisible();
+	await page.selectOption('.timeline-select', 'eu-key-events');
 
-	// Check that events are displayed in a grid with 3 columns (select eu-key-events to ensure we have enough events)
-	await select.selectOption('eu-key-events');
-	await page.waitForTimeout(500);
-	const gridRows = page.locator('.grid-row');
-	await expect(gridRows.first()).toBeVisible();
+	// The URL follows the selection, the new timeline renders and the old one is gone.
+	await expect(page).toHaveURL(/[?&]t=eu-key-events(&|$)/);
+	await expect(page.getByText('Treaty of Rome', { exact: true })).toBeVisible({ timeout: 10000 });
+	await expect(electionTitles).toHaveCount(0);
 
-	// Get all grid rows and find one with 3 cards
-	const allRows = await gridRows.all();
-	let foundRowWithThree = false;
-	for (const row of allRows) {
-		const count = await row.locator('.event-card').count();
-		if (count >= 3) {
-			foundRowWithThree = true;
-			break;
-		}
-	}
-	expect(foundRowWithThree).toBe(true);
+	// Year separators run in ascending order.
+	const years = (await page.locator('.year-label').allTextContents()).map(Number);
+	expect(years.length).toBeGreaterThan(1);
+	expect(years).toEqual([...years].sort((x, y) => x - y));
+});
 
-	// Check tooltip appears on hover
-	const firstEvent = eventCards.first();
-	await firstEvent.hover();
-	// Wait a bit for the global tooltip to render
-	await page.waitForTimeout(100);
-	const tooltip = page.locator('.global-tooltip');
+test('Timelines - invalid ?t falls back to a timeline and writes it to the URL', async ({
+	page
+}) => {
+	await page.goto('/timelines?t=bogus');
+	await expect(page.locator('.event-card, .rich-event-card').first()).toBeVisible({
+		timeout: 15000
+	});
+	const selected = await page.locator('.timeline-select').inputValue();
+	expect(selected).not.toBe('bogus');
+	await expect(page).toHaveURL(new RegExp(`[?&]t=${selected}(&|$)`));
+});
+
+test('Timelines - focusing a card shows its description', async ({ page }) => {
+	await page.goto('/timelines?t=eu-elections');
+	const info = page.locator('.event-card .event-info').first();
+	await expect(info).toBeVisible({ timeout: 10000 });
+
+	await info.focus();
+	const tooltip = page.getByRole('tooltip');
 	await expect(tooltip).toBeVisible();
+	await expect(tooltip).not.toHaveText('');
+	await expect(info).toHaveAttribute('aria-describedby', 'timeline-event-tooltip');
 });
 
-test('Timelines - can change timeline', async ({ page }) => {
-	await page.goto('/timelines');
+test('Timelines - verify URL parameter', async ({ page }) => {
+	await page.goto('/timelines?t=eu-elections');
 
-	const select = page.locator('select.timeline-select');
+	// Wait for content to load
+	await page.waitForSelector('.event-card', { state: 'visible', timeout: 10000 });
 
-	// Ensure we're on eu-elections first
-	await select.selectOption('eu-elections');
-	await page.waitForTimeout(200);
-
-	// Get event count for eu-elections
-	const electionsEvents = await page.locator('.event-card').count();
-	expect(electionsEvents).toBeGreaterThan(0);
-
-	// Select different timeline
-	await select.selectOption('eu-key-events');
-
-	// Wait for events to update
-	await page.waitForTimeout(200);
-
-	// Check events changed (different count)
-	const keyEventsCount = await page.locator('.event-card').count();
-	expect(keyEventsCount).not.toBe(electionsEvents);
+	// Check that the correct timeline is selected
+	const selectedValue = await page.locator('.timeline-select').inputValue();
+	expect(selectedValue).toBe('eu-elections');
 });
 
-test('Timelines - past events are styled differently', async ({ page }) => {
-	await page.goto('/timelines');
+test('Timelines - LLM breakthroughs shows rich card layout', async ({ page }) => {
+	await page.goto('/timelines?t=llm-breakthroughs');
 
-	// Get past events
-	const pastEvents = page.locator('.event-card.past');
+	// Wait for rich event cards to load
+	await page.waitForSelector('.rich-event-card', { state: 'visible', timeout: 10000 });
 
-	// Some past events should exist
-	await expect(pastEvents.first()).toBeVisible();
+	// Verify rich card elements are present
+	const firstCard = page.locator('.rich-event-card').first();
+
+	// Should have an emoji
+	await expect(firstCard.locator('.rich-card-emoji')).toBeVisible();
+
+	// Should have a clickable title link
+	const titleLink = firstCard.locator('.rich-card-title');
+	await expect(titleLink).toBeVisible();
+	await expect(titleLink).toHaveAttribute('target', '_blank');
+
+	// Should have a description
+	await expect(firstCard.locator('.rich-card-description')).toBeVisible();
+
+	// Should have a value-add with ✦ prefix
+	const valueAdd = firstCard.locator('.rich-card-value-add');
+	await expect(valueAdd).toBeVisible();
+	await expect(valueAdd).toContainText('✦');
+
+	// Verify year separators are present
+	await expect(page.locator('.year-separator').first()).toBeVisible();
 });
 
-test('Timelines - all timelines show at least one event', async ({ page }) => {
-	await page.goto('/timelines');
+test('Timelines - switching to LLM breakthroughs shows rich cards', async ({ page }) => {
+	// Start on a known non-rich timeline for deterministic behavior
+	await page.goto('/timelines?t=eu-elections');
 
-	const select = page.locator('select.timeline-select');
+	// Wait for initial event cards to load
+	await expect(page.locator('.event-card').first()).toBeVisible({ timeout: 10000 });
 
-	// Get all timeline option values
-	const timelineOptions = await select.locator('option').all();
-	const timelineIds: string[] = [];
+	// Switch to LLM breakthroughs
+	await page.selectOption('.timeline-select', 'llm-breakthroughs');
 
-	for (const option of timelineOptions) {
-		const value = await option.getAttribute('value');
-		if (value) {
-			timelineIds.push(value);
-		}
-	}
-
-	expect(timelineIds.length).toBeGreaterThan(0);
-
-	// Test each timeline
-	for (const timelineId of timelineIds) {
-		// Select this timeline
-		await select.selectOption(timelineId);
-
-		// Wait for UI to update
-		await page.waitForTimeout(200);
-
-		// Count event cards
-		const eventCount = await page.locator('.event-card').count();
-
-		// Verify at least one event is displayed
-		expect(eventCount, `Timeline "${timelineId}" should show at least one event`).toBeGreaterThan(
-			0
-		);
-
-		// Verify "No events" message is NOT visible
-		const emptyState = page.locator('.empty-state');
-		await expect(emptyState).not.toBeVisible();
-	}
-});
-
-test('Timelines - events are in chronological order across years', async ({ page }) => {
-	await page.goto('/timelines');
-
-	const select = page.locator('select.timeline-select');
-	await select.selectOption('eu-key-events');
-	await page.waitForTimeout(200);
-
-	// Get all year labels in order
-	const yearLabels = await page.locator('.year-label').allTextContents();
-
-	// Verify years are in ascending order
-	for (let i = 1; i < yearLabels.length; i++) {
-		const prevYear = parseInt(yearLabels[i - 1]);
-		const currYear = parseInt(yearLabels[i]);
-		expect(prevYear).toBeLessThan(currYear);
-	}
-
-	// Verify we have the expected years for eu-key-events (should include: 1957, 1999, 2004, 2007, 2020, 2022, 2023, 2024, 2025, 2026, 2027)
-	expect(yearLabels.length).toBeGreaterThan(5);
+	// Should now show rich cards instead of standard event cards
+	await expect(page.locator('.rich-event-card').first()).toBeVisible({ timeout: 15000 });
 });

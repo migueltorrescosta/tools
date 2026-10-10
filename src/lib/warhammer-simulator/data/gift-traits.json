@@ -1,0 +1,107 @@
+[
+	{
+		"id": "killing-blow",
+		"name": "Killing Blow",
+		"description": "On a natural 6 to wound, the attack inflicts instant death regardless of armour.",
+		"cost": 15,
+		"category": "gift"
+	},
+	{
+		"id": "strength-boost",
+		"name": "Strength Potion",
+		"description": "+1 Strength for the first round of combat.",
+		"cost": 10,
+		"category": "item"
+	},
+	{
+		"id": "toughness-boost",
+		"name": "Toughness Potion",
+		"description": "+1 Toughness for the first round of combat.",
+		"cost": 10,
+		"category": "item"
+	},
+	{
+		"id": "ward-5",
+		"name": "Talisman of Protection",
+		"description": "Grants a 5+ ward save (keeps a better innate ward).",
+		"cost": 20,
+		"category": "item"
+	},
+	{
+		"id": "ward-4",
+		"name": "Talisman of Preservation",
+		"description": "Grants a 4+ ward save (keeps a better innate ward).",
+		"cost": 35,
+		"category": "item"
+	},
+	{
+		"id": "strength+1",
+		"name": "Berserker Brooch",
+		"description": "+1 Strength in all rounds of combat.",
+		"cost": 20,
+		"category": "item"
+	},
+	{
+		"id": "attacks+1",
+		"name": "Potion of Speed",
+		"description": "+1 Attack for one round of combat.",
+		"cost": 10,
+		"category": "item"
+	},
+	{
+		"id": "reroll-hits",
+		"name": "Helm of Confusion",
+		"description": "Reroll failed hit rolls in the first round of combat.",
+		"cost": 15,
+		"category": "item"
+	},
+	{
+		"id": "reroll-wounds",
+		"name": "Potion of Strength",
+		"description": "Reroll failed wound rolls in the first round of combat.",
+		"cost": 15,
+		"category": "item"
+	},
+	{
+		"id": "immortal-fury",
+		"name": "Immortal Fury",
+		"description": "Hatred: reroll all failed hit rolls in every round.",
+		"cost": 25,
+		"category": "gift"
+	},
+	{
+		"id": "daemonic-mount",
+		"name": "Daemonic Mount",
+		"description": "+1 Attack and +1 Toughness while mounted.",
+		"cost": 30,
+		"category": "gift"
+	},
+	{
+		"id": "blasted-standard",
+		"name": "Blasted Standard",
+		"description": "Hits from this character ignore armour saves entirely (AP -100).",
+		"cost": 40,
+		"category": "gift"
+	},
+	{
+		"id": "regeneration",
+		"name": "Regeneration (4+)",
+		"description": "Regeneration (4+): a 4+ save against each unsaved wound, taken after armour. Does not stack with a ward save; the better of the two is used.",
+		"cost": 25,
+		"category": "gift"
+	},
+	{
+		"id": "armour-boost",
+		"name": "Enchanted Shield",
+		"description": "Improves armour save by an additional +1 (stacks with shield).",
+		"cost": 15,
+		"category": "item"
+	},
+	{
+		"id": "poisoned-attacks",
+		"name": "Poisoned Attacks",
+		"description": "On a natural 6 to hit, the attack automatically wounds with no roll needed.",
+		"cost": 15,
+		"category": "gift"
+	}
+]

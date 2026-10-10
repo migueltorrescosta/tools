@@ -1,0 +1,253 @@
+{
+	"id": "procter-gamble",
+	"name": "Procter & Gamble",
+	"type": "consumer",
+	"country": "US",
+	"reportingCurrency": "USD",
+	"notes": "Revenue = Net sales; operatingIncome = 'Operating income' line. FY ends June 30. Each year taken from the cited filing; later filings restate prior years (e.g. FY2015 10-K shows FY2010 as 73,435/14,801 vs 78,938/16,021 originally; FY2007 summary restated 2003-2005 operating income), so the series has definitional breaks at 2006, 2008, 2011 and 2016.",
+	"anchors": [
+		{
+			"periodEnd": "2000-06-30",
+			"currency": "USD",
+			"revenue": 39951,
+			"operatingIncome": 5954,
+			"quality": "reported",
+			"source": "P&G FY2005 Annual Report (10-K Ex.13), Financial Summary",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000095015205007351/l15436aexv13.txt"
+		},
+		{
+			"periodEnd": "2001-06-30",
+			"currency": "USD",
+			"revenue": 39244,
+			"operatingIncome": 4736,
+			"quality": "reported",
+			"source": "P&G FY2005 Annual Report (10-K Ex.13), Financial Summary",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000095015205007351/l15436aexv13.txt"
+		},
+		{
+			"periodEnd": "2002-06-30",
+			"currency": "USD",
+			"revenue": 40238,
+			"operatingIncome": 6678,
+			"quality": "reported",
+			"source": "P&G FY2005 Annual Report (10-K Ex.13), Financial Summary",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000095015205007351/l15436aexv13.txt"
+		},
+		{
+			"periodEnd": "2003-06-30",
+			"currency": "USD",
+			"revenue": 43377,
+			"operatingIncome": 7853,
+			"quality": "reported",
+			"source": "P&G FY2005 Annual Report (10-K Ex.13), Financial Summary",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000095015205007351/l15436aexv13.txt"
+		},
+		{
+			"periodEnd": "2004-06-30",
+			"currency": "USD",
+			"revenue": 51407,
+			"operatingIncome": 9827,
+			"quality": "reported",
+			"source": "P&G FY2005 Annual Report (10-K Ex.13), Financial Summary",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000095015205007351/l15436aexv13.txt"
+		},
+		{
+			"periodEnd": "2005-06-30",
+			"currency": "USD",
+			"revenue": 56741,
+			"operatingIncome": 10927,
+			"quality": "reported",
+			"source": "P&G FY2005 Annual Report (10-K Ex.13), Financial Summary",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000095015205007351/l15436aexv13.txt"
+		},
+		{
+			"periodEnd": "2006-06-30",
+			"currency": "USD",
+			"revenue": 68222,
+			"operatingIncome": 13249,
+			"quality": "reported",
+			"source": "P&G FY2007 Annual Report (10-K Ex.13), Financial Summary",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000095015207007152/l27490aexv13.htm"
+		},
+		{
+			"periodEnd": "2007-06-30",
+			"currency": "USD",
+			"revenue": 76476,
+			"operatingIncome": 15450,
+			"quality": "reported",
+			"source": "P&G FY2007 Annual Report (10-K Ex.13), Financial Summary",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000095015207007152/l27490aexv13.htm"
+		},
+		{
+			"periodEnd": "2008-06-30",
+			"currency": "USD",
+			"revenue": 79257,
+			"operatingIncome": 15979,
+			"quality": "reported",
+			"source": "P&G FY2010 Annual Report (10-K Ex.13), Consolidated Statements of Earnings",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000119312510188769/dex13.htm"
+		},
+		{
+			"periodEnd": "2009-06-30",
+			"currency": "USD",
+			"revenue": 76694,
+			"operatingIncome": 15374,
+			"quality": "reported",
+			"source": "P&G FY2010 Annual Report (10-K Ex.13), Consolidated Statements of Earnings",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000119312510188769/dex13.htm"
+		},
+		{
+			"periodEnd": "2010-06-30",
+			"currency": "USD",
+			"revenue": 78938,
+			"operatingIncome": 16021,
+			"quality": "reported",
+			"source": "P&G FY2010 Annual Report (10-K Ex.13), Consolidated Statements of Earnings",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000119312510188769/dex13.htm"
+		},
+		{
+			"periodEnd": "2011-06-30",
+			"currency": "USD",
+			"revenue": 76982,
+			"operatingIncome": 14779,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2015, Financial Summary (Item 6)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042415000070/fy141510-kreport.htm"
+		},
+		{
+			"periodEnd": "2012-06-30",
+			"currency": "USD",
+			"revenue": 79545,
+			"operatingIncome": 12611,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2015, Financial Summary (Item 6)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042415000070/fy141510-kreport.htm"
+		},
+		{
+			"periodEnd": "2013-06-30",
+			"currency": "USD",
+			"revenue": 80116,
+			"operatingIncome": 13817,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2015, Financial Summary (Item 6)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042415000070/fy141510-kreport.htm"
+		},
+		{
+			"periodEnd": "2014-06-30",
+			"currency": "USD",
+			"revenue": 80510,
+			"operatingIncome": 14740,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2015, Financial Summary (Item 6)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042415000070/fy141510-kreport.htm"
+		},
+		{
+			"periodEnd": "2015-06-30",
+			"currency": "USD",
+			"revenue": 76279,
+			"operatingIncome": 11790,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2015, Financial Summary (Item 6)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042415000070/fy141510-kreport.htm"
+		},
+		{
+			"periodEnd": "2016-06-30",
+			"currency": "USD",
+			"revenue": 65299,
+			"operatingIncome": 13258,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2020, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042420000053/pg-20200630.htm"
+		},
+		{
+			"periodEnd": "2017-06-30",
+			"currency": "USD",
+			"revenue": 65058,
+			"operatingIncome": 13766,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2020, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042420000053/pg-20200630.htm"
+		},
+		{
+			"periodEnd": "2018-06-30",
+			"currency": "USD",
+			"revenue": 66832,
+			"operatingIncome": 13363,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2020, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042420000053/pg-20200630.htm"
+		},
+		{
+			"periodEnd": "2019-06-30",
+			"currency": "USD",
+			"revenue": 67684,
+			"operatingIncome": 5487,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2020, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042420000053/pg-20200630.htm"
+		},
+		{
+			"periodEnd": "2020-06-30",
+			"currency": "USD",
+			"revenue": 70950,
+			"operatingIncome": 15706,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2020, Item 6 Selected Financial Data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042420000053/pg-20200630.htm"
+		},
+		{
+			"periodEnd": "2021-06-30",
+			"currency": "USD",
+			"revenue": 76118,
+			"operatingIncome": 17986,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2023, Consolidated Statements of Earnings",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042423000073/R3.htm"
+		},
+		{
+			"periodEnd": "2022-06-30",
+			"currency": "USD",
+			"revenue": 80187,
+			"operatingIncome": 17813,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2023, Consolidated Statements of Earnings",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042423000073/R3.htm"
+		},
+		{
+			"periodEnd": "2023-06-30",
+			"currency": "USD",
+			"revenue": 82006,
+			"operatingIncome": 18134,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2023, Consolidated Statements of Earnings",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042423000073/R3.htm"
+		},
+		{
+			"periodEnd": "2024-06-30",
+			"currency": "USD",
+			"revenue": 84039,
+			"operatingIncome": 18545,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2026, Consolidated Statements of Earnings",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042426000103/R3.htm"
+		},
+		{
+			"periodEnd": "2025-06-30",
+			"currency": "USD",
+			"revenue": 84284,
+			"operatingIncome": 20451,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2026, Consolidated Statements of Earnings",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042426000103/R3.htm"
+		},
+		{
+			"periodEnd": "2026-06-30",
+			"currency": "USD",
+			"revenue": 87032,
+			"operatingIncome": 19748,
+			"quality": "reported",
+			"source": "P&G Form 10-K FY2026, Consolidated Statements of Earnings",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/80424/000008042426000103/R3.htm"
+		}
+	]
+}

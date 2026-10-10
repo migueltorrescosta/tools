@@ -1,5 +1,22 @@
 <script lang="ts">
-	let selectedAlgorithm = $state('AES-GCM');
+	import { onMount } from 'svelte';
+	import { copyToClipboard } from '$lib/clipboard';
+	import {
+		ALGORITHMS,
+		decrypt as decryptWith,
+		encrypt as encryptWith,
+		errorMessage,
+		exportPrivateKeyPem,
+		exportPublicKeyPem,
+		generateRsaKeyPair,
+		importPrivateKeyPem,
+		importPublicKeyPem,
+		keyKind,
+		randomKey,
+		type Algorithm
+	} from '$lib/cipher';
+
+	let selectedAlgorithm = $state<Algorithm>('AES-GCM');
 	let encryptionKey = $state('');
 	let decryptionKey = $state('');
 	let inputText = $state('');
@@ -7,168 +24,71 @@
 	let decryptedText = $state('');
 	let encryptionError = $state('');
 	let decryptionError = $state('');
-	let keyMismatchWarning = $state('');
-	let cachedKeyPair = $state<CryptoKeyPair | null>(null);
+	let publicKeyPem = $state('');
+	let privateKeyPem = $state('');
+	let rsaKeyError = $state('');
 
-	const algorithms = ['AES-GCM', 'AES-CBC', 'RSA-OAEP', 'Base64', 'Hex', 'ROT13'];
+	let hydrated = $state(false);
+	onMount(() => (hydrated = true));
 
-	async function generateKey(
-		algorithm: string,
-		keyString: string
-	): Promise<CryptoKey | CryptoKeyPair | string> {
-		if (algorithm === 'Base64' || algorithm === 'Hex' || algorithm === 'ROT13') {
-			return keyString;
-		}
+	type OutputPanel = 'encrypted' | 'decrypted';
+	type CopyStatus = 'idle' | 'copied' | 'failed';
+	const COPY_LABEL: Record<CopyStatus, string> = {
+		idle: 'COPY',
+		copied: 'COPIED',
+		failed: 'COPY FAILED'
+	};
+	const COPY_FEEDBACK_MS = 1500;
+	let copyStatus = $state<Record<OutputPanel, CopyStatus>>({
+		encrypted: 'idle',
+		decrypted: 'idle'
+	});
+	const copyTimers: Partial<Record<OutputPanel, ReturnType<typeof setTimeout>>> = {};
 
-		if (!keyString) {
-			throw new Error('Key is required for ' + algorithm);
-		}
+	const kind = $derived(keyKind(selectedAlgorithm));
+	const canCopyEncrypted = $derived(!encryptionError && encryptedText !== '');
+	const canCopyDecrypted = $derived(!decryptionError && decryptedText !== '');
 
-		const encoder = new TextEncoder();
-		const keyData = encoder.encode(keyString);
+	const algorithms = ALGORITHMS;
 
-		if (algorithm.startsWith('AES-')) {
-			const hashBuffer = await crypto.subtle.digest('SHA-256', keyData);
-			return crypto.subtle.importKey('raw', hashBuffer, { name: algorithm }, false, [
-				'encrypt',
-				'decrypt'
-			]);
-		}
-
-		if (algorithm === 'RSA-OAEP') {
-			const keyPair = await crypto.subtle.generateKey(
-				{
-					name: 'RSA-OAEP',
-					modulusLength: 2048,
-					publicExponent: new Uint8Array([1, 0, 1]),
-					hash: 'SHA-256'
-				},
-				true,
-				['encrypt', 'decrypt']
-			);
-			return keyPair;
-		}
-
-		throw new Error('Unsupported algorithm');
-	}
-
-	function base64Encode(str: string): string {
-		return btoa(unescape(encodeURIComponent(str)));
-	}
-
-	function base64Decode(str: string): string {
-		return decodeURIComponent(escape(atob(str)));
-	}
-
-	function toHex(str: string): string {
-		return Array.from(new TextEncoder().encode(str))
-			.map((b) => b.toString(16).padStart(2, '0'))
-			.join('');
-	}
-
-	function fromHex(hex: string): string {
-		const bytes = new Uint8Array(hex.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) || []);
-		return new TextDecoder().decode(bytes);
-	}
-
-	function rot13(str: string): string {
-		return str.replace(/[a-zA-Z]/g, (char) => {
-			const base = char <= 'Z' ? 65 : 97;
-			return String.fromCharCode(((char.charCodeAt(0) - base + 13) % 26) + base);
-		});
-	}
-
-	async function encrypt(text: string, algorithm: string, key: string): Promise<string> {
+	async function encrypt(text: string, algorithm: Algorithm, key: string): Promise<string> {
 		if (!text) {
 			throw new Error('Input text is required');
 		}
 
-		if (!key && algorithm !== 'ROT13') {
+		if (algorithm === 'RSA-OAEP') {
+			if (!publicKeyPem.trim()) {
+				throw new Error('A public key is required: generate a key pair or paste a PEM public key');
+			}
+			return encryptWith(text, algorithm, { publicKey: await importPublicKeyPem(publicKeyPem) });
+		}
+
+		if (!key && keyKind(algorithm) === 'passphrase') {
 			throw new Error('Encryption key is required');
 		}
 
-		switch (algorithm) {
-			case 'Base64':
-				return base64Encode(text);
-			case 'Hex':
-				return toHex(text);
-			case 'ROT13':
-				return rot13(text);
-			case 'AES-GCM':
-			case 'AES-CBC': {
-				const cryptoKey = await generateKey(algorithm, key);
-				const iv = crypto.getRandomValues(new Uint8Array(12));
-				const encoder = new TextEncoder();
-				const encrypted = await crypto.subtle.encrypt(
-					{ name: algorithm, iv },
-					cryptoKey as CryptoKey,
-					encoder.encode(text)
-				);
-				const combined = new Uint8Array(iv.length + encrypted.byteLength);
-				combined.set(iv);
-				combined.set(new Uint8Array(encrypted), iv.length);
-				return btoa(String.fromCharCode(...combined));
-			}
-			case 'RSA-OAEP': {
-				const keyPair = (await generateKey(algorithm, key)) as unknown as CryptoKeyPair;
-				cachedKeyPair = keyPair;
-				const encoder = new TextEncoder();
-				const encrypted = await crypto.subtle.encrypt(
-					{ name: 'RSA-OAEP' },
-					keyPair.publicKey,
-					encoder.encode(text)
-				);
-				return btoa(String.fromCharCode(...new Uint8Array(encrypted)));
-			}
-			default:
-				throw new Error('Unsupported algorithm');
-		}
+		return encryptWith(text, algorithm, { passphrase: key });
 	}
 
-	async function decrypt(text: string, algorithm: string, key: string): Promise<string> {
+	async function decrypt(text: string, algorithm: Algorithm, key: string): Promise<string> {
 		if (!text) {
 			throw new Error('Encrypted text is required');
 		}
 
-		if (!key && algorithm !== 'ROT13') {
+		if (algorithm === 'RSA-OAEP') {
+			if (!privateKeyPem.trim()) {
+				throw new Error('A private key is required: paste the PEM private key of the pair');
+			}
+			return decryptWith(text, algorithm, {
+				privateKey: await importPrivateKeyPem(privateKeyPem)
+			});
+		}
+
+		if (!key && keyKind(algorithm) === 'passphrase') {
 			throw new Error('Decryption key is required');
 		}
 
-		switch (algorithm) {
-			case 'Base64':
-				return base64Decode(text);
-			case 'Hex':
-				return fromHex(text);
-			case 'ROT13':
-				return rot13(text);
-			case 'AES-GCM':
-			case 'AES-CBC': {
-				const cryptoKey = await generateKey(algorithm, key);
-				const combined = Uint8Array.from(atob(text), (c) => c.charCodeAt(0));
-				const iv = combined.slice(0, 12);
-				const encrypted = combined.slice(12);
-				const decrypted = await crypto.subtle.decrypt(
-					{ name: algorithm, iv },
-					cryptoKey as CryptoKey,
-					encrypted
-				);
-				return new TextDecoder().decode(decrypted);
-			}
-			case 'RSA-OAEP': {
-				if (!cachedKeyPair) {
-					throw new Error('No RSA key pair found. Please encrypt a message first using RSA-OAEP.');
-				}
-				const encrypted = Uint8Array.from(atob(text), (c) => c.charCodeAt(0));
-				const decrypted = await crypto.subtle.decrypt(
-					{ name: 'RSA-OAEP' },
-					cachedKeyPair.privateKey,
-					encrypted
-				);
-				return new TextDecoder().decode(decrypted);
-			}
-			default:
-				throw new Error('Unsupported algorithm');
-		}
+		return decryptWith(text, algorithm, { passphrase: key });
 	}
 
 	async function encryptText() {
@@ -178,7 +98,7 @@
 		try {
 			encryptedText = await encrypt(inputText, selectedAlgorithm, encryptionKey);
 		} catch (e) {
-			encryptionError = e instanceof Error ? e.message : 'Encryption failed';
+			encryptionError = errorMessage(e, 'Encryption failed');
 		}
 	}
 
@@ -189,20 +109,46 @@
 		try {
 			decryptedText = await decrypt(inputText, selectedAlgorithm, decryptionKey);
 		} catch (e) {
-			decryptionError = e instanceof Error ? e.message : 'Decryption failed';
+			decryptionError = errorMessage(e, 'Decryption failed');
 		}
 	}
 
-	function copyToClipboard(text: string) {
-		navigator.clipboard.writeText(text);
+	async function generateRsaKeys() {
+		rsaKeyError = '';
+		try {
+			const pair = await generateRsaKeyPair();
+			publicKeyPem = await exportPublicKeyPem(pair.publicKey);
+			privateKeyPem = await exportPrivateKeyPem(pair.privateKey);
+		} catch (e) {
+			rsaKeyError = errorMessage(e, 'Key generation failed');
+		}
+	}
+
+	/** Outputs belong to the algorithm that produced them, so a switch clears them. */
+	function clearOutputs() {
+		encryptedText = '';
+		decryptedText = '';
+		encryptionError = '';
+		decryptionError = '';
+	}
+
+	function useEncryptedAsInput() {
+		inputText = encryptedText;
+	}
+
+	async function copyOutput(panel: OutputPanel, text: string) {
+		clearTimeout(copyTimers[panel]);
+		try {
+			await copyToClipboard(text);
+			copyStatus[panel] = 'copied';
+		} catch {
+			copyStatus[panel] = 'failed';
+		}
+		copyTimers[panel] = setTimeout(() => (copyStatus[panel] = 'idle'), COPY_FEEDBACK_MS);
 	}
 
 	function generateExampleKeys() {
-		const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-		let key = '';
-		for (let i = 0; i < 16; i++) {
-			key += chars.charAt(Math.floor(Math.random() * chars.length));
-		}
+		const key = randomKey();
 		encryptionKey = key;
 		decryptionKey = key;
 	}
@@ -212,7 +158,7 @@
 	<title>Encrypter/Decrypter</title>
 </svelte:head>
 
-<div class="container">
+<div class="container" data-hydrated={hydrated || undefined}>
 	<header>
 		<h1>ENCRYPTER/DECRYPTER</h1>
 		<p class="subtitle">Encrypt & Decrypt Messages</p>
@@ -223,7 +169,7 @@
 			<div class="section-header">
 				<span class="label">ALGORITHM</span>
 			</div>
-			<select class="algorithm-select" bind:value={selectedAlgorithm}>
+			<select class="algorithm-select" bind:value={selectedAlgorithm} onchange={clearOutputs}>
 				{#each algorithms as alg (alg)}
 					<option value={alg}>{alg}</option>
 				{/each}
@@ -231,38 +177,77 @@
 		</div>
 	</div>
 
-	<div class="generate-keys-container">
-		<button class="generate-keys-btn" onclick={generateExampleKeys}>
-			<span class="btn-text">GENERATE RANDOM KEYS</span>
-			<span class="btn-glow"></span>
-		</button>
-	</div>
-
-	<div class="key-row">
-		<div class="key-input-group">
-			<label class="input-label" for="encryption-key">ENCRYPTION KEY</label>
-			<input
-				id="encryption-key"
-				type="text"
-				class="key-input"
-				bind:value={encryptionKey}
-				placeholder="Enter encryption key"
-			/>
+	{#if kind === 'keypair'}
+		<div class="generate-keys-container">
+			<button class="generate-keys-btn" onclick={generateRsaKeys}>
+				<span class="btn-text">GENERATE KEY PAIR</span>
+				<span class="btn-glow"></span>
+			</button>
 		</div>
-		<div class="key-input-group">
-			<label class="input-label" for="decryption-key">DECRYPTION KEY</label>
-			<input
-				id="decryption-key"
-				type="text"
-				class="key-input"
-				bind:value={decryptionKey}
-				placeholder="Enter decryption key"
-			/>
-		</div>
-	</div>
 
-	{#if keyMismatchWarning}
-		<div class="key-warning">{keyMismatchWarning}</div>
+		<p class="key-note">
+			Encrypt uses the public key; decrypt needs the matching private key. Save the private key:
+			without it the ciphertext cannot be recovered. A 2048-bit key encrypts at most 190 bytes of
+			UTF-8 text.
+		</p>
+		{#if rsaKeyError}
+			<div class="error">{rsaKeyError}</div>
+		{/if}
+
+		<div class="key-row">
+			<div class="key-input-group">
+				<label class="input-label" for="public-key">PUBLIC KEY (PEM, ENCRYPTS)</label>
+				<textarea
+					id="public-key"
+					class="key-input pem-input"
+					bind:value={publicKeyPem}
+					placeholder="-----BEGIN PUBLIC KEY-----"
+					spellcheck="false"
+				></textarea>
+			</div>
+			<div class="key-input-group">
+				<label class="input-label" for="private-key">PRIVATE KEY (PEM, DECRYPTS)</label>
+				<textarea
+					id="private-key"
+					class="key-input pem-input"
+					bind:value={privateKeyPem}
+					placeholder="-----BEGIN PRIVATE KEY-----"
+					spellcheck="false"
+				></textarea>
+			</div>
+		</div>
+	{:else if kind === 'passphrase'}
+		<div class="generate-keys-container">
+			<button class="generate-keys-btn" onclick={generateExampleKeys}>
+				<span class="btn-text">GENERATE RANDOM KEYS</span>
+				<span class="btn-glow"></span>
+			</button>
+		</div>
+
+		<div class="key-row">
+			<div class="key-input-group">
+				<label class="input-label" for="encryption-key">ENCRYPTION KEY</label>
+				<input
+					id="encryption-key"
+					type="text"
+					class="key-input"
+					bind:value={encryptionKey}
+					placeholder="Enter encryption key"
+				/>
+			</div>
+			<div class="key-input-group">
+				<label class="input-label" for="decryption-key">DECRYPTION KEY</label>
+				<input
+					id="decryption-key"
+					type="text"
+					class="key-input"
+					bind:value={decryptionKey}
+					placeholder="Enter decryption key"
+				/>
+			</div>
+		</div>
+	{:else}
+		<p class="key-note">{selectedAlgorithm} is an encoding, not encryption: it needs no key.</p>
 	{/if}
 
 	<div class="process-btn-container">
@@ -285,7 +270,13 @@
 				<span class="dot yellow"></span>
 				<span class="dot green"></span>
 				<span class="panel-title">DECRYPTED</span>
-				<button class="copy-btn" onclick={() => copyToClipboard(decryptedText)}>COPY</button>
+				<button
+					class="copy-btn"
+					class:copy-failed={copyStatus.decrypted === 'failed'}
+					disabled={!canCopyDecrypted}
+					onclick={() => copyOutput('decrypted', decryptedText)}
+					>{COPY_LABEL[copyStatus.decrypted]}</button
+				>
 			</div>
 			<div class="panel-content">
 				{#if decryptionError}
@@ -307,12 +298,13 @@
 				<span class="dot yellow"></span>
 				<span class="dot green"></span>
 				<span class="panel-title">INPUT</span>
+				<span class="panel-hint">ENCRYPT and DECRYPT both read this</span>
 			</div>
 			<div class="panel-content">
 				<textarea
 					class="panel-textarea"
 					bind:value={inputText}
-					placeholder="Enter your message here"
+					placeholder="Plaintext to encrypt, or ciphertext to decrypt"
 					spellcheck="false"
 				></textarea>
 			</div>
@@ -324,7 +316,21 @@
 				<span class="dot yellow"></span>
 				<span class="dot green"></span>
 				<span class="panel-title">ENCRYPTED</span>
-				<button class="copy-btn" onclick={() => copyToClipboard(encryptedText)}>COPY</button>
+				<span class="panel-actions">
+					<button
+						class="copy-btn"
+						disabled={!canCopyEncrypted}
+						title="Copy the ciphertext into INPUT so DECRYPT can read it"
+						onclick={useEncryptedAsInput}>USE AS INPUT</button
+					>
+					<button
+						class="copy-btn"
+						class:copy-failed={copyStatus.encrypted === 'failed'}
+						disabled={!canCopyEncrypted}
+						onclick={() => copyOutput('encrypted', encryptedText)}
+						>{COPY_LABEL[copyStatus.encrypted]}</button
+					>
+				</span>
 			</div>
 			<div class="panel-content">
 				{#if encryptionError}
@@ -341,3 +347,45 @@
 		</div>
 	</div>
 </div>
+
+<style>
+	.pem-input {
+		height: 160px;
+		resize: vertical;
+		font-size: 0.75rem;
+		white-space: pre;
+	}
+
+	.panel-actions {
+		margin-left: auto;
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.panel-actions .copy-btn {
+		margin-left: 0;
+	}
+
+	.panel-hint {
+		margin-left: auto;
+		font-size: 0.7rem;
+		color: var(--futuristic-text-dim);
+	}
+
+	.copy-btn:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+		pointer-events: none;
+	}
+
+	.copy-btn.copy-failed {
+		border-color: #ff7777;
+		color: #ff7777;
+	}
+
+	.key-note {
+		margin: 0 0 1rem;
+		font-size: 0.85rem;
+		color: var(--futuristic-text-dim);
+	}
+</style>

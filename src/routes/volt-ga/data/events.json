@@ -1,0 +1,604 @@
+[
+	{
+		"id": "registration-and-speed-dating",
+		"day": "saturday",
+		"room": "Peugeot Arena",
+		"title": "Registration and Speed dating!",
+		"startTime": "2026-06-13T07:45:00+02:00",
+		"endTime": "2026-06-13T08:40:00+02:00",
+		"description": "Cross-Border Speed Dates, announcement:\nDo you want to kick-start your experience at the GA? Do you want to meet other people from across Europe, people facing similar challenges? Do you want to ensure good conversations throughout the GA?\nThen join us early in the morning, prior to the formal welcome! We will provide you with an interactive cross-border speed dates session.\n\nTo optimally prepare: think of what you want to get out of this GA. Having a short pitch would help enormously, for example: What is your region like? (urban/rural/..) What is the main activity in your region? (agriculture/industry/tourism/..) What are the challenges you are facing locally? \nWe hope to welcome you on Saturday morning!",
+		"speakers": [
+			{
+				"name": "Andries Vrijburg",
+				"type": "internal"
+			},
+			{
+				"name": "Boudewijn Hut",
+				"type": "internal"
+			}
+		],
+		"moderators": [],
+		"type": "session"
+	},
+	{
+		"id": "wake-up-shake-up-embodied-intention-energizer",
+		"day": "saturday",
+		"room": "Peugeot Arena",
+		"title": "Wake Up & Shake Up - Embodied Intention Energizer",
+		"startTime": "2026-06-13T08:40:00+02:00",
+		"endTime": "2026-06-13T08:50:00+02:00",
+		"description": "",
+		"speakers": [
+			{
+				"name": "Zuzana Burdanova",
+				"type": "external"
+			},
+			{
+				"name": "Wolf Berg",
+				"type": "external"
+			},
+			{
+				"name": "Jakub Cerulík",
+				"type": "external"
+			}
+		],
+		"moderators": [],
+		"type": "session"
+	},
+	{
+		"id": "opening-of-the-ga-bratislava",
+		"day": "saturday",
+		"room": "Peugeot Arena",
+		"title": "Opening of the GA Bratislava",
+		"startTime": "2026-06-13T08:50:00+02:00",
+		"endTime": "2026-06-13T09:00:00+02:00",
+		"description": "Welcome to the GA!\nOur GA begins! Our wonderful Chairing Committee, and masters of Ceremony formally open proceedings for this General Assembly weekend!",
+		"speakers": [
+			{
+				"name": "Rick Zedník",
+				"type": "internal"
+			},
+			{
+				"name": "Lucia Klestincova",
+				"type": "internal"
+			},
+			{
+				"name": "Suzana Carp",
+				"type": "internal"
+			},
+			{
+				"name": "Fabian Gaukel",
+				"type": "internal"
+			},
+			{
+				"name": "Robert Kittler",
+				"type": "internal"
+			},
+			{
+				"name": "Tania Girao",
+				"type": "internal"
+			},
+			{
+				"name": "Barbora Hrubá",
+				"type": "internal"
+			}
+		],
+		"moderators": [],
+		"type": "session"
+	},
+	{
+		"id": "welcome-words-from-the-host-chapter-co-presidents-",
+		"day": "saturday",
+		"room": "Peugeot Arena",
+		"title": "Welcome words from the Host Chapter Co-Presidents and Volt Europa Co-Presidents",
+		"startTime": "2026-06-13T09:00:00+02:00",
+		"endTime": "2026-06-13T09:30:00+02:00",
+		"description": "Rick and Lucia give us a warm welcome from the Volt Slovakia, and Francesca, our Co-President will formally declare the GA Open!",
+		"speakers": [
+			{
+				"name": "Lucia Klestincova",
+				"type": "internal"
+			},
+			{
+				"name": "Francesca Romana D'Antuono",
+				"type": "internal"
+			},
+			{
+				"name": "Rick Zedník",
+				"type": "internal"
+			}
+		],
+		"moderators": [],
+		"type": "session"
+	},
+	{
+		"id": "a-new-world-order",
+		"day": "saturday",
+		"room": "Peugeot Arena",
+		"title": "A New World Order",
+		"startTime": "2026-06-13T09:30:00+02:00",
+		"endTime": "2026-06-13T09:45:00+02:00",
+		"description": "Our MEPs have been working on 9 demands that Europe needs to deliver. Anna and Kai present these to the GA, and encourage us to keep these in  mind as we go to the political agenda items across the GA.",
+		"speakers": [
+			{
+				"name": "Kai Tegethoff",
+				"type": "internal"
+			},
+			{
+				"name": "Anna Strolenberg",
+				"type": "internal"
+			}
+		],
+		"moderators": [],
+		"type": "session"
+	},
+	{
+		"id": "the-fight-for-fair-european-elections",
+		"day": "saturday",
+		"room": "Peugeot Arena",
+		"title": "The Fight for Fair European Elections!",
+		"startTime": "2026-06-13T09:45:00+02:00",
+		"endTime": "2026-06-13T10:10:00+02:00",
+		"description": "The Fight for Fair European Elections\nJoin us for a talk with Suzana Carp, Volt’s former lead candidate in Belgium, whose disqualification due to a faulty registration system exposed systemic barriers in European elections. Now suing the Belgian state—with potential escalation to the European Court of Justice—her case highlights the urgent need for reform.\nThis event kicks off Suzana’s communication campaign, supported by Volt MEPs, to rally evidence of voter disenfranchisement across Europe. Ahead of the 2029 elections, it’s a chance to explore how we can make European elections truly European—and why this matters for every citizen.",
+		"speakers": [
+			{
+				"name": "Reinier van Lanschot",
+				"type": "internal"
+			},
+			{
+				"name": "Suzana Carp",
+				"type": "internal"
+			}
+		],
+		"moderators": [],
+		"type": "session"
+	},
+	{
+		"id": "democracy-needs-daylight-why-government-respect-fo",
+		"day": "saturday",
+		"room": "Peugeot Arena",
+		"title": "Democracy Needs Daylight: Why Government Respect for Free Press Matters",
+		"startTime": "2026-06-13T10:10:00+02:00",
+		"endTime": "2026-06-13T11:00:00+02:00",
+		"description": "Since 1989, Europe has benefited from multilateral institutions and the free movement of people, goods and ideas. These foundations have enabled economic growth, social exchange, and relative peace across the continent. \n\nHowever, this interconnectedness now faces rising uncertainty. Populist movements are promoting nationalism that challenges democratic norms and undermines international collaboration. War has returned to Europe and its neighbourhood, with devastating consequences. The spectre of nuclear escalation has reached levels unseen since the 1980s. \n\nGlobal systemic risks are intensifying. Climate change is accelerating environmental degradation, resource scarcity, displacement, and conflict risks. Meanwhile, we face the threat of pandemics, which can disrupt societies, economies, and governance systems at unprecedented scale. Together, these challenges highlight the fragility of current systems and the need for cooperative responses.",
+		"speakers": [
+			{
+				"name": "Sophie in 't Veld",
+				"type": "external"
+			},
+			{
+				"name": "Eva Babitzová",
+				"type": "external"
+			},
+			{
+				"name": "Peter Hanák",
+				"type": "external"
+			},
+			{
+				"name": "Rasťo Kužel",
+				"type": "external"
+			}
+		],
+		"moderators": ["Eva Babitzová"],
+		"type": "session"
+	},
+	{
+		"id": "175-days-human-stories-from-ukraine-s-frontlines-w",
+		"day": "saturday",
+		"room": "Peugeot Arena",
+		"title": "175 Days: Human Stories from Ukraine’s Frontlines - why we must act now!",
+		"startTime": "2026-06-13T11:00:00+02:00",
+		"endTime": "2026-06-13T11:15:00+02:00",
+		"description": "Join Juliet Broersen as she shares first-hand accounts from her time driving a yellow ambulance through active war zones in Ukraine, delivering medical aid and witnessing the human cost of conflict. \n\nVolt shouldn't just discuss Ukraine from a safe distance. We’re a movement that puts people, action, and meaningful impact first. With 175 days until winter, Russia’s attacks on critical infrastructure mean Ukraine cannot afford another devastating season without support. Juliet will share the faces, names, and realities behind the headlines, explain why this coming winter could be a turning point, and what we can do about it.",
+		"speakers": [
+			{
+				"name": "Juliet Broersen",
+				"type": "internal"
+			}
+		],
+		"moderators": [],
+		"type": "session"
+	},
+	{
+		"id": "why-europe-needs-its-own-army",
+		"day": "saturday",
+		"room": "Peugeot Arena",
+		"title": "Why Europe Needs its own Army",
+		"startTime": "2026-06-13T11:15:00+02:00",
+		"endTime": "2026-06-13T12:00:00+02:00",
+		"description": "For years we've been told that we live in the most peaceful era in European history. But now changes in the ways the world is connected has brought uncertainty that brings this into question. The once steel reliability of the United States as a European ally is decaying, China thunders as a superpower, and Russia looms in the east as a constant threat to security. Where does Europe come into play in today's world? More importantly, does it have a say at all with 27 different armies? The idea of a European army is not new, but calls for it are coming back in style. In this session, we will discuss topics such as what a European army would look like, what we would need to get there, and how a true European army could be a gamechanger.\n\nSpeakers:\n- Reinier van Lanschot, MEP, Member of the European Parliament's Committee on Security and Defence \n- Ivan Scalfarotto, Member of the Senate of Italy \n- Pavel Macko, 3-Star Retired General; Chairman, DS-ODS\n- David Gazsi, Assistant Professor, Centre for European Integration Research, University of Vienna\n- Jaroslav Naď, Minister of Defence of Slovakia, 2020-02023; Chairman, Demokrati",
+		"speakers": [
+			{
+				"name": "Reinier van Lanschot",
+				"type": "internal"
+			},
+			{
+				"name": "\"Univ. Ass. David Gazsi",
+				"type": "external"
+			},
+			{
+				"name": "PhD MA MSc\"",
+				"type": "external"
+			},
+			{
+				"name": "General Pavel Macko",
+				"type": "external"
+			},
+			{
+				"name": "Jana Kobzova",
+				"type": "external"
+			},
+			{
+				"name": "Ivan Scalfarotto",
+				"type": "external"
+			}
+		],
+		"moderators": ["Jong Chan Lim (Jon)"],
+		"type": "session"
+	},
+	{
+		"id": "mind-body-coherence-connecting-thru-ecstatic-dance",
+		"day": "saturday",
+		"room": "Peugeot Arena",
+		"title": "Mind-Body Coherence: Connecting thru Ecstatic Dance",
+		"startTime": "2026-06-13T12:00:00+02:00",
+		"endTime": "2026-06-13T13:00:00+02:00",
+		"description": "Modern societies have become extraordinarily advanced at coordinating information, capital, logistics, and technology - yet increasingly weak at coordinating human connection, trust, belonging, and collective meaning.\nAcross Europe, fragmentation is rising on multiple levels: socially, culturally, politically, economically, and psychologically.\nThousands of valuable projects, initiatives, startups, NGOs, communities, and movements exist across the continent, yet many remain isolated from one another, competing for attention, funding, and visibility while lacking deeper mechanisms for long-term coordination and trust.",
+		"speakers": [
+			{
+				"name": "Zuzana Burdanova",
+				"type": "external"
+			},
+			{
+				"name": "Wolf Berg",
+				"type": "external"
+			},
+			{
+				"name": "Jakub Cerulík",
+				"type": "external"
+			}
+		],
+		"moderators": [],
+		"type": "session"
+	},
+	{
+		"id": "lunch-block",
+		"day": "saturday",
+		"room": "Peugeot Arena",
+		"title": "Lunch Block",
+		"startTime": "2026-06-13T12:00:00+02:00",
+		"endTime": "2026-06-13T13:10:00+02:00",
+		"description": "",
+		"speakers": [],
+		"moderators": [],
+		"type": "break"
+	},
+	{
+		"id": "election-of-the-board-iac-candidates",
+		"day": "saturday",
+		"room": "Peugeot Arena",
+		"title": "Election of the Board - IAC candidates",
+		"startTime": "2026-06-13T13:10:00+02:00",
+		"endTime": "2026-06-13T13:20:00+02:00",
+		"description": "Vote #4 - Appointment of IAC",
+		"speakers": [
+			{
+				"name": "Nafissa Saidi Amajjarkou",
+				"type": "internal"
+			}
+		],
+		"moderators": ["Chris Luth"],
+		"type": "session"
+	},
+	{
+		"id": "election-of-our-co-presidents",
+		"day": "saturday",
+		"room": "Peugeot Arena",
+		"title": "Election of our Co-Presidents",
+		"startTime": "2026-06-13T13:20:00+02:00",
+		"endTime": "2026-06-13T14:50:00+02:00",
+		"description": "Vote #5: Co-Presidents\nThe GA will be asked to rank the candidates for Co-Presidents, with no obligation to rank all of them : \n- Electra Rome Dochtsi (Volt Greece & Denmark)\n- Grit Zwingenberger (Volt Germany)\n- Inês Bravo Figueiredo (Volt Portugal)\n- Leon Dönch (Volt Germany & Austria)\n- Mels Michiel Klabbers (Volt Netherlands)\n- Marina Rrika (Volt Albania)\n- Sabrina Hinz (Volt Germany)\n- Sven Franck (Volt France)",
+		"speakers": [],
+		"moderators": ["Chris Luth"],
+		"type": "session"
+	},
+	{
+		"id": "election-of-a-treasurer",
+		"day": "saturday",
+		"room": "Peugeot Arena",
+		"title": "Election of a treasurer",
+		"startTime": "2026-06-13T14:50:00+02:00",
+		"endTime": "2026-06-13T15:10:00+02:00",
+		"description": "Vote #6 : Treasurer\nThe GA will be asked to rank the candidates for Treasurer, with no obligation to rank all of them : \n- Adrien Copros (Volt France)\n- Alberto Spatola (Volt Italy & Volt Belgium)\n- Christophe Quirynen (Volt Switzerland & Volt Belgium) \n- Mihaela Siritanu (Volt Romania)\n\nView their profiles here and see how they answered the questions here",
+		"speakers": [],
+		"moderators": ["Chris Luth"],
+		"type": "session"
+	},
+	{
+		"id": "election-of-the-non-executive-board-members",
+		"day": "saturday",
+		"room": "Peugeot Arena",
+		"title": "Election of the non-executive board members",
+		"startTime": "2026-06-13T15:10:00+02:00",
+		"endTime": "2026-06-13T15:40:00+02:00",
+		"description": "Vote #7 : Non-Executive\nThe GA will be asked to rank the candidates for Non-Executive board members, with no obligation to rank all of them: \n- Bill Lanyon (Volt France)\n- Carlo Federico De Simon (Volt Germany)\n- Chan Uk Jun (Volt Germany)\n- Federico Moscogiuri (Volt UK)\n- Götz Leander Hübner (Volt Germany)\n- Iulian Alexandru Boicu (Volt Romania)\n- Jeffrey Ludwig (Volt Germany)\n- Jetse Frederik de Vries (Volt Netherlands)\n- Jörn Aldag (Volt Germany)\n- Laurent Ledoux (Volt Belgium)\n- Marieke Koekkoek (Volt Netherlands)\n- Marina Rrika (Volt Albania)\n- Mihaela Siritanu (Volt Romania)\n- Nathan Liefting (Volt Albania)\n- Ole Moors (Volt Netherlands)\n- Olette Bollen (Volt Netherlands)\n- Oliver Forberich (Volt France)\n- Rodoula Demetriades (Volt Cyprus)\n- Slavomir Manasek (Volt Czechia)\n- Timothy der Weduwen (Volt Netherlands) (withdrew)\n\nView their profiles here and see how they answered the questions here",
+		"speakers": [],
+		"moderators": ["Chris Luth"],
+		"type": "session"
+	},
+	{
+		"id": "board-election-buffer",
+		"day": "saturday",
+		"room": "Peugeot Arena",
+		"title": "Board election Buffer",
+		"startTime": "2026-06-13T15:40:00+02:00",
+		"endTime": "2026-06-13T15:55:00+02:00",
+		"description": "",
+		"speakers": [],
+		"moderators": [],
+		"type": "buffer"
+	},
+	{
+		"id": "executive-board-renumeration",
+		"day": "saturday",
+		"room": "Peugeot Arena",
+		"title": "Executive Board remuneration",
+		"startTime": "2026-06-13T15:55:00+02:00",
+		"endTime": "2026-06-13T16:10:00+02:00",
+		"description": "Vote #8 Vote on the Executive Salary\nVote #8 Vote on the Executive Salary\nDuring a review of the compensation scheme, the Compensation Committee identified that the executive salary figure for the new Board of Directors of Volt Europa is not in line with the compensation scheme. To rectify this misalignment, the board asks the GA to again vote on the remuneration of the executive directors pursuant to article 13.3.d of the Articles of Association.\nThe GA is asked to approve:\n- Starting salary is 110% of the Executive grade of the Compensation Scheme which is €53,130 gross per annum in Belgium (salary adjusted for purchasing power parity, dependents and yearly inflation) \n- Salary increases 5% per year (one grade step) to a maximum €63,000 hard cap which trumps the purchasing power parity adjustment\nThe GA is asked to APPROVE/REJECT  this rate of remuneration.",
+		"speakers": [
+			{
+				"name": "Lucia Nass",
+				"type": "internal"
+			}
+		],
+		"moderators": [],
+		"type": "session"
+	},
+	{
+		"id": "europe-united-public-action",
+		"day": "saturday",
+		"room": "Peugeot Arena",
+		"title": "\"Europe, United - Public Action\"",
+		"startTime": "2026-06-13T17:00:00+02:00",
+		"endTime": "2026-06-13T19:00:00+02:00",
+		"description": "\"Europe, United\" Festival and Rally in Bratislava\nBRATISLAVA, SLOVAKIA: On June 13, Bratislava’s streets and riverbank will come alive with a rally for a stronger, united Europe. The “Europe, United” rally invites all proudly European Slovaks, residents, and organisations, to join over 800 people from all corners of Europe from the European Political Movement Volt Europa, to demand a stronger, more connected continent - with Slovakia strongly at its heart. \nThe event kicks off at 16:30 with a 2km march across the Danube River. The procession will culminate on the right bank of the river, gathering beside the mighty waterway that links ten European nations. There, it will transition to an evening of speeches, music, and celebration of European Unity.",
+		"speakers": [
+			{
+				"name": "Lucia Klestincova",
+				"type": "internal"
+			},
+			{
+				"name": "Francesca Romana D'Antuono",
+				"type": "internal"
+			},
+			{
+				"name": "Reinier van Lanschot",
+				"type": "internal"
+			},
+			{
+				"name": "Nela Riehl",
+				"type": "internal"
+			},
+			{
+				"name": "Pier Virgilio Dastoli",
+				"type": "internal"
+			},
+			{
+				"name": "Ivana Molnarova",
+				"type": "internal"
+			}
+		],
+		"moderators": ["Francesca Romana D'Antuono", "Reinier van Lanschot"],
+		"type": "session"
+	},
+	{
+		"id": "volt-women-impulse-start-your-local-movement",
+		"day": "saturday",
+		"room": "Sala 1",
+		"title": "Volt Women Impulse: Start Your Local Movement!",
+		"startTime": "2026-06-13T09:30:00+02:00",
+		"endTime": "2026-06-13T10:15:00+02:00",
+		"description": "Creating the Space You Wish to See in Volt\nHave you ever joined a group and not found what you hoped for, or simply what you wished was there? That's how we felt when we joined Volt Spain and realized there were hardly any other women in our local group. So we started a women's tea circle: a monthly space to discuss global politics and deeply personal topics, always from our own perspectives, always rooted in the personal. Because politics is personal.\nIn this workshop, you'll learn how to create exactly the group you and Volt need in your area. Through a group activity, you'll walk away with ideas from us and from fellow Volters. Together, we also want to build a European network of moderators ready to launch their own local movements and circles. For a politics that's as individual as you are.",
+		"speakers": [
+			{
+				"name": "Maya Hanscho",
+				"type": "internal"
+			},
+			{
+				"name": "Aitana Garcia Domingo",
+				"type": "external"
+			}
+		],
+		"moderators": [],
+		"type": "session"
+	},
+	{
+		"id": "local-europe-team-concept",
+		"day": "saturday",
+		"room": "Sala 1",
+		"title": "Local Europe Team Concept",
+		"startTime": "2026-06-13T10:15:00+02:00",
+		"endTime": "2026-06-13T11:00:00+02:00",
+		"description": "Local Europe Team Concept\nWe are the Local Europe Team from the local chapter Volt Groningen. We would like you to have a Local Europe Team too.\nHow does your local chapter connect to other chapters? Do you want to collaborate more cross-border? How to focus on long-term strengthening our European party, if we primarily focus on the next election? \nWe will give you our motivation and plans to create a network of Local Europe Teams. \nThis network will look at parameters that connect us, and we will connect chapters on a data driven basis. \nWe look forward to meeting you!\nJoin us at our presentation in the Tennis Break 1 room at 10:15 to 11:00.",
+		"speakers": [
+			{
+				"name": "Andries Vrijburg",
+				"type": "internal"
+			},
+			{
+				"name": "Boudewijn Hut",
+				"type": "internal"
+			}
+		],
+		"moderators": [],
+		"type": "session"
+	},
+	{
+		"id": "lend-me-euro-ears-lessons-in-speechwriting-public-",
+		"day": "saturday",
+		"room": "Sala 1",
+		"title": "Lend Me Euro Ears: Lessons in Speechwriting + Public Speaking from the European Parliament",
+		"startTime": "2026-06-13T11:00:00+02:00",
+		"endTime": "2026-06-13T12:00:00+02:00",
+		"description": "Lend Me Euro Ears: Lessons in Speechwriting + Public Speaking from the European Parliament. The speech is one of the most ancient forms of mass communication, but one that is still relevant today. Two speechwriters for the Volt MEPs at the European Parliament are here to break down how to write- and deliver- a great speech. Useful for everyone interested in communication, presentation, and politics.",
+		"speakers": [
+			{
+				"name": "Ken Plas",
+				"type": "internal"
+			},
+			{
+				"name": "Linde van de Koolwijk",
+				"type": "internal"
+			}
+		],
+		"moderators": [],
+		"type": "session"
+	},
+	{
+		"id": "democracy-under-siege-countering-authoritarianism-",
+		"day": "saturday",
+		"room": "Sala 2",
+		"title": "Democracy Under Siege: Countering Authoritarianism in Real Time",
+		"startTime": "2026-06-13T09:30:00+02:00",
+		"endTime": "2026-06-13T10:15:00+02:00",
+		"description": "From Bratislava to Budapest, we're watching the authoritarian playbook unfold in real time: attacks on media, judiciary capture, NGO intimidation, disinformation campaigns eroding public trust, and diplomatic alignment with Putin's Russia. This session brings together experts on the topic to share frontline experiences and develop coordinated responses. Drawing on findings from Volt's Digicom research and comms team knowledge, we'll examine what's working (and what isn't) in defending democratic institutions, and create a mutual support network for chapters operating in increasingly hostile environments.",
+		"speakers": [
+			{
+				"name": "Diane Jeanblanc",
+				"type": "internal"
+			},
+			{
+				"name": "Erwin Herkelman",
+				"type": "internal"
+			},
+			{
+				"name": "Petra Bevek",
+				"type": "external"
+			},
+			{
+				"name": "Tamara Ehs",
+				"type": "external"
+			},
+			{
+				"name": "Dietmar Pichler",
+				"type": "external"
+			}
+		],
+		"moderators": ["Diane Jeanblanc"],
+		"type": "session"
+	},
+	{
+		"id": "presentation-of-internal-audit",
+		"day": "saturday",
+		"room": "Sala 2",
+		"title": "Presentation of Internal Audit",
+		"startTime": "2026-06-13T10:15:00+02:00",
+		"endTime": "2026-06-13T11:00:00+02:00",
+		"description": "The Internal Audit Committee will present their annual report of Volt Europa’s financials and operations to the GA. The preread for this can be found here.",
+		"speakers": [
+			{
+				"name": "Milo van Hulst",
+				"type": "internal"
+			}
+		],
+		"moderators": [],
+		"type": "session"
+	},
+	{
+		"id": "movement-politics-revolution-how-we-can-have-an-im",
+		"day": "saturday",
+		"room": "Sala 2",
+		"title": "Movement Politics Revolution: How we can have an impact as a movement!",
+		"startTime": "2026-06-13T11:00:00+02:00",
+		"endTime": "2026-06-13T12:00:00+02:00",
+		"description": "Volt is the European community, movement, and party. But what does this all mean?\n\nOur panellists explore initiatives from across Europe on how we live up to being a movement as well as a political party.",
+		"speakers": [
+			{
+				"name": "Alberto Spatola",
+				"type": "internal"
+			},
+			{
+				"name": "Francesca Romana D'Antuono",
+				"type": "internal"
+			},
+			{
+				"name": "Federico Moscogiuri",
+				"type": "internal"
+			}
+		],
+		"moderators": [],
+		"type": "session"
+	},
+	{
+		"id": "central-europe-where-europe-s-future-is-decided",
+		"day": "saturday",
+		"room": "Sala 3",
+		"title": "Central Europe: Where Europe’s Future Is Decided",
+		"startTime": "2026-06-13T09:30:00+02:00",
+		"endTime": "2026-06-13T10:15:00+02:00",
+		"description": "Central Europe is not Europe’s “periphery”—it’s one of its strategic and moral hinges. When the region bends toward openness, the European project gains strength; when it fractures under coercion, Europe’s security, unity, and democratic resilience are tested. \n- WWI: Central Europe as the pressure point where empires collapsed and nations emerged. \n- WWII: The region’s occupation and resistance shaped the postwar order of newly divided Europe. \n- 1956 Hungary / 1968 Czechoslovakia: “Europe” tested by tanks vs. sovereignty; lessons about deterrence, solidarity and truth. \n- 1989 Velvet Revolution + regional cascade: Civic courage can change an entire continent. \nToday, the same dynamics—security, rule of law, information integrity—again run through Central Europe. This session will refer to history but focus on the present–especially the massive change ongoing in Hungary. What comes next?",
+		"speakers": [
+			{
+				"name": "Mikuláš Peksa",
+				"type": "internal"
+			},
+			{
+				"name": "Anna Julia Donáth",
+				"type": "external"
+			},
+			{
+				"name": "Sebastian Schäffer",
+				"type": "external"
+			},
+			{
+				"name": "Magdaléna Vášáryová",
+				"type": "external"
+			}
+		],
+		"moderators": ["Sebastian Schäffer"],
+		"type": "session"
+	},
+	{
+		"id": "the-green-cost-of-ai-balancing-innovation-and-sust",
+		"day": "saturday",
+		"room": "Sala 3",
+		"title": "The Green Cost of AI: Balancing Innovation and Sustainability",
+		"startTime": "2026-06-13T10:15:00+02:00",
+		"endTime": "2026-06-13T11:00:00+02:00",
+		"description": "AI models consume vast amounts of energy and water and can cause other environmental and social harms to local communities. As a pragmatic and green party, how do we reconcile necessary technological progress with our ecological commitments? This session will include a keynote by Volt's policy shaper for AI, and a Q&A with Volt's MEP Reinier van Lanschot.",
+		"speakers": [
+			{
+				"name": "Mario Giulio Bertorelli",
+				"type": "internal"
+			},
+			{
+				"name": "Reinier van Lanschot",
+				"type": "internal"
+			}
+		],
+		"moderators": [],
+		"type": "session"
+	},
+	{
+		"id": "building-one-winning-team-for-volt",
+		"day": "saturday",
+		"room": "Sala 3",
+		"title": "Building One Winning Team for Volt",
+		"startTime": "2026-06-13T11:00:00+02:00",
+		"endTime": "2026-06-13T12:00:00+02:00",
+		"description": "",
+		"speakers": [
+			{
+				"name": "George Penn",
+				"type": "internal"
+			},
+			{
+				"name": "Luca Loreen Kraft",
+				"type": "internal"
+			}
+		],
+		"moderators": [],
+		"type": "session"
+	}
+]

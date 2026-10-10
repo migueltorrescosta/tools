@@ -1,0 +1,128 @@
+[
+	{
+		"id": 2,
+		"emoji": "📅",
+		"date": "2022-07-19",
+		"title": "Albania Accession Talks",
+		"description": "Albania formally opens EU accession negotiations at its first intergovernmental conference with the EU."
+	},
+	{
+		"id": 33,
+		"emoji": "📅",
+		"date": "2004-05-01",
+		"title": "Biggest EU Expansion",
+		"description": "Ten new countries join the EU in the largest expansion, including Central and Eastern European nations."
+	},
+	{
+		"id": 34,
+		"emoji": "📅",
+		"date": "2020-01-31",
+		"title": "Brexit",
+		"description": "United Kingdom officially leaves the European Union after 47 years of membership."
+	},
+	{
+		"id": 35,
+		"emoji": "📅",
+		"date": "2022-06-23",
+		"title": "Candidate Status for Ukraine",
+		"description": "Ukraine is granted EU candidate status, a historic decision amid the Russia-Ukraine war."
+	},
+	{
+		"id": 83,
+		"emoji": "📅",
+		"date": "2004-05-01",
+		"title": "Hungary Joins EU",
+		"description": "Hungary becomes member of the European Union with the 2004 expansion."
+	},
+	{
+		"id": 98,
+		"emoji": "📅",
+		"date": "1999-01-01",
+		"title": "Euro Currency Launch",
+		"description": "Euro is introduced as an accounting currency. Euro banknotes and coins enter circulation in 2002."
+	},
+	{
+		"id": 99,
+		"emoji": "📅",
+		"date": "1999-01-01",
+		"title": "Netherlands Adopts Euro",
+		"description": "Netherlands adopts the euro as one of the eleven founding Eurozone members."
+	},
+	{
+		"id": 103,
+		"emoji": "📅",
+		"date": "2023-01-01",
+		"title": "Croatia Joins Euro",
+		"description": "Croatia becomes the 20th member of the Eurozone, adopting the euro currency."
+	},
+	{
+		"id": 138,
+		"emoji": "📅",
+		"date": "2022-06-23",
+		"title": "Georgia EU Perspective",
+		"description": "European Council recognises Georgia's European perspective, deferring candidate status pending reforms."
+	},
+	{
+		"id": 175,
+		"emoji": "📅",
+		"date": "1958-01-01",
+		"title": "West Germany Joins EEC",
+		"description": "West Germany becomes a founding member of the European Economic Community as the Treaty of Rome enters into force."
+	},
+	{
+		"id": 176,
+		"emoji": "📅",
+		"date": "2004-05-01",
+		"title": "Poland Joins EU",
+		"description": "Poland, the largest of the 2004 expansion countries, joins the European Union."
+	},
+	{
+		"id": 177,
+		"emoji": "📅",
+		"date": "1999-01-01",
+		"title": "Ireland Joins Euro",
+		"description": "Ireland adopts the euro as part of the initial Eurozone launch."
+	},
+	{
+		"id": 186,
+		"emoji": "📅",
+		"date": "2024-01-01",
+		"title": "Kosovo Visa-Free Travel",
+		"description": "Kosovo citizens gain visa-free travel to the Schengen area, concluding the visa liberalisation dialogue launched in 2012."
+	},
+	{
+		"id": 217,
+		"emoji": "📅",
+		"date": "2022-06-23",
+		"title": "Moldova EU Candidacy",
+		"description": "Moldova also receives EU candidate status alongside Ukraine."
+	},
+	{
+		"id": 226,
+		"emoji": "📅",
+		"date": "2024-12-01",
+		"title": "New Commission Takes Office",
+		"description": "Second European Commission under President Ursula von der Leyen begins its term with a focus on competitiveness and the green transition."
+	},
+	{
+		"id": 290,
+		"emoji": "📅",
+		"date": "1957-07-09",
+		"title": "France Ratifies Treaty of Rome",
+		"description": "French National Assembly approves ratification of the Treaty of Rome, paving the way for EEC implementation."
+	},
+	{
+		"id": 369,
+		"emoji": "📅",
+		"date": "2007-12-13",
+		"title": "Treaty of Lisbon",
+		"description": "Treaty of Lisbon is signed, reforming EU institutions and establishing the European Union as a legal entity."
+	},
+	{
+		"id": 370,
+		"emoji": "📅",
+		"date": "1957-03-25",
+		"title": "Treaty of Rome",
+		"description": "Six founding members sign the Treaty of Rome, establishing the European Economic Community (EEC)."
+	}
+]

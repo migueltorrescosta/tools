@@ -1,4 +1,47 @@
 {
-  "$schema": "https://opencode.ai/config.json",
-  "default_agent": "tool-maker"
+	"$schema": "https://opencode.ai/config.json",
+	"model": "opencode/big-pickle",
+	"small_model": "opencode/big-pickle",
+	"default_agent": "tool-maker",
+	"logLevel": "INFO",
+	"snapshot": false,
+	"experimental": {
+		"continue_loop_on_deny": false
+	},
+	"agent": {
+		"plan": {
+			"model": "opencode/big-pickle",
+			"steps": 20
+		},
+		"build": {
+			"model": "opencode/big-pickle",
+			"steps": 20
+		},
+		"general": {
+			"model": "opencode/big-pickle",
+			"steps": 20
+		},
+		"explore": {
+			"model": "opencode/big-pickle",
+			"steps": 20
+		},
+		"title": {
+			"model": "opencode/big-pickle",
+			"steps": 10
+		},
+		"summary": {
+			"model": "opencode/big-pickle",
+			"steps": 10
+		},
+		"compaction": {
+			"model": "opencode/big-pickle",
+			"steps": 10
+		}
+	},
+	"lsp": {
+		"tailwindcss": {
+			"command": ["tailwindcss-language-server", "--stdio"],
+			"extensions": [".svelte", ".css", ".html"]
+		}
+	}
 }

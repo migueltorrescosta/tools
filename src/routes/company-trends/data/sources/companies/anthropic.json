@@ -1,0 +1,28 @@
+{
+	"id": "anthropic",
+	"name": "Anthropic",
+	"type": "ai",
+	"country": "US",
+	"reportingCurrency": "USD",
+	"notes": "Private. Figures from Anthropic's confidential IPO prospectus as reviewed by Reuters (Sept 2026), relayed by Capital Brief/Fortune/TNW. operatingIncome = reported operating loss (GAAP). Calendar-year FY. GAAP net loss far larger (2025: $41.97B incl. ~$34B non-cash fair-value charge on convertible financing; 2024: $8.31B) and is NOT used. Pre-2024 years omitted: only run-rates reported, no actual annual revenue + loss.",
+	"anchors": [
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "USD",
+			"revenue": 386,
+			"operatingIncome": -2980,
+			"quality": "estimated",
+			"source": "Reuters review of Anthropic IPO prospectus, via Capital Brief (2024 comparatives: revenue $386M, operating loss $2.98B)",
+			"sourceUrl": "https://www.capitalbrief.com/briefing/anthropics-ipo-prospectus-reveals-usd46b-revenue-surge-and-usd81b-operating-loss-502742cd-1025-43ee-ab7b-cf4c551fbce5/"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "USD",
+			"revenue": 4590,
+			"operatingIncome": -8060,
+			"quality": "estimated",
+			"source": "Reuters review of Anthropic IPO prospectus, via Capital Brief (FY2025: revenue $4.59B, operating loss $8.06B)",
+			"sourceUrl": "https://www.capitalbrief.com/briefing/anthropics-ipo-prospectus-reveals-usd46b-revenue-surge-and-usd81b-operating-loss-502742cd-1025-43ee-ab7b-cf4c551fbce5/"
+		}
+	]
+}

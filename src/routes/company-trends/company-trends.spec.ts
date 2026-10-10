@@ -1,0 +1,595 @@
+import { describe, it, expect } from 'vitest';
+import {
+	loadDataset,
+	validateDataset,
+	type Company,
+	type Dataset
+} from '$lib/company-trends/schema';
+import {
+	convert,
+	convertFromEur,
+	convertToEur,
+	fiscalYearRate,
+	type Currency,
+	type FxTable
+} from '$lib/company-trends/fx';
+import { buildTrail, type TrailPoint } from '$lib/company-trends/chart';
+import {
+	deriveExpenses,
+	interpolateSeries,
+	logInterp,
+	quarterIndex,
+	quarterLabel,
+	quarterRange,
+	type CompanyPoint
+} from '$lib/company-trends/series';
+import { companyTypes, filterCompanies, type FilterState } from '$lib/company-trends/filter';
+import bundled from './data/companies.json';
+
+// ---------------------------------------------------------------------------
+// Fixtures
+// ---------------------------------------------------------------------------
+
+// A fiscal-year rate needs all four quarters ending at 2000Q1; equal rates keep the
+// conversion arithmetic below exact (fiscalYearRate specs cover varying rates)
+const fx: FxTable = {
+	base: 'EUR',
+	rates: Object.fromEntries(
+		['1999Q2', '1999Q3', '1999Q4', '2000Q1'].map((q) => [q, { USD: 1.07, GBP: 0.62 }])
+	)
+};
+
+const reported = (
+	quarter: string,
+	revenue: number,
+	operatingIncome: number,
+	source = 'annual report'
+): CompanyPoint => ({
+	quarter,
+	revenue,
+	operatingIncome,
+	quality: 'reported',
+	source,
+	sourceUrl: 'https://example.com/annual-report.pdf'
+});
+
+const validDataset: Dataset = {
+	meta: {
+		generated: '2026-10-06',
+		units: 'EUR millions',
+		fxMethodology: 'ECB quarterly average reference rates',
+		fxSource: 'https://data.ecb.europa.eu/data/datasets/EXR'
+	},
+	// Converting the fiscal years ending 2000Q1..2000Q2 reads every quarter from 1999Q2.
+	fx: {
+		base: 'EUR',
+		rates: {
+			'1999Q2': { USD: 1.05, GBP: 0.6 },
+			'1999Q3': { USD: 1.06, GBP: 0.61 },
+			'1999Q4': { USD: 1.06, GBP: 0.61 },
+			'2000Q1': { USD: 1.07, GBP: 0.62 },
+			'2000Q2': { USD: 1.08, GBP: 0.63 }
+		}
+	},
+	companies: [
+		{
+			id: 'acme',
+			name: 'Acme SE',
+			type: 'software',
+			reportingCurrency: 'EUR',
+			country: 'DE',
+			points: [reported('2000Q1', 100, 10), reported('2000Q2', 110, 12)]
+		}
+	]
+};
+
+const clone = (): Dataset => JSON.parse(JSON.stringify(validDataset)) as Dataset;
+
+// ---------------------------------------------------------------------------
+// Quarter helpers
+// ---------------------------------------------------------------------------
+
+describe('quarter helpers', () => {
+	it('maps quarter labels to absolute indices', () => {
+		expect(quarterIndex('2000Q1')).toBe(0);
+		expect(quarterIndex('2000Q4')).toBe(3);
+		expect(quarterIndex('2001Q1')).toBe(4);
+		expect(quarterIndex('2026Q2')).toBe(105);
+	});
+
+	it('maps absolute indices back to quarter labels', () => {
+		expect(quarterLabel(0)).toBe('2000Q1');
+		expect(quarterLabel(3)).toBe('2000Q4');
+		expect(quarterLabel(105)).toBe('2026Q2');
+	});
+
+	it('rejects malformed quarter labels and negative indices', () => {
+		expect(() => quarterIndex('2000Q5')).toThrow();
+		expect(() => quarterIndex('2000')).toThrow();
+		expect(() => quarterIndex('Q1')).toThrow();
+		expect(() => quarterLabel(-1)).toThrow();
+	});
+
+	it('builds inclusive quarter ranges for the slider grid', () => {
+		expect(quarterRange('2000Q4', '2001Q2')).toEqual(['2000Q4', '2001Q1', '2001Q2']);
+		expect(quarterRange('2000Q1', '2000Q1')).toEqual(['2000Q1']);
+		expect(quarterRange('2001Q1', '2000Q1')).toEqual([]);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Log-space interpolation and derivation
+// ---------------------------------------------------------------------------
+
+describe('log-space interpolation', () => {
+	it('interpolates geometrically between positive endpoints', () => {
+		expect(logInterp(100, 400, 0.5)).toBeCloseTo(200, 10);
+		expect(logInterp(2, 8, 0.5)).toBeCloseTo(4, 10);
+		expect(logInterp(100, 400, 0)).toBe(100);
+		expect(logInterp(100, 400, 1)).toBe(400);
+	});
+
+	it('falls back to linear interpolation when an endpoint is not positive', () => {
+		expect(logInterp(0, 100, 0.5)).toBe(50);
+		expect(logInterp(-10, 30, 0.5)).toBe(10);
+	});
+});
+
+describe('deriveExpenses', () => {
+	it('is revenue minus operating income', () => {
+		expect(deriveExpenses(100, 25)).toBe(75);
+		expect(deriveExpenses(50, -10)).toBe(60);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Sparse -> quarterly series
+// ---------------------------------------------------------------------------
+
+describe('interpolateSeries', () => {
+	const grid = ['2000Q1', '2000Q2', '2000Q3', '2000Q4'];
+	const anchors: CompanyPoint[] = [
+		reported('2000Q1', 100, 25, 'q1 filing'),
+		reported('2000Q3', 400, 100, 'q3 filing')
+	];
+
+	it('fills gaps with log-interpolated points labeled interpolated', () => {
+		const out = interpolateSeries(anchors, grid);
+		expect(out.map((p) => p.quarter)).toEqual(['2000Q1', '2000Q2', '2000Q3']);
+
+		const mid = out[1];
+		expect(mid.revenue).toBeCloseTo(200, 10);
+		// expenses: 75 -> 300, geometric mean 150, so operating income is 200 - 150 = 50
+		expect(mid.operatingIncome).toBeCloseTo(50, 10);
+		expect(mid.quality).toBe('interpolated');
+		expect(mid.source).toBeUndefined();
+	});
+
+	it('keeps anchor values, quality and source untouched', () => {
+		const out = interpolateSeries(anchors, grid);
+		expect(out[0]).toEqual(anchors[0]);
+		expect(out[2]).toEqual(anchors[1]);
+	});
+
+	it('does not extrapolate beyond the first or last anchor', () => {
+		const lateAnchors: CompanyPoint[] = [
+			reported('2000Q2', 100, 25, 'q2 filing'),
+			reported('2000Q3', 400, 100, 'q3 filing')
+		];
+		const out = interpolateSeries(lateAnchors, ['2000Q1', ...grid, '2001Q1']);
+		expect(out.map((p) => p.quarter)).toEqual(['2000Q2', '2000Q3']);
+	});
+
+	it('emits a lone anchor unchanged', () => {
+		const out = interpolateSeries([anchors[0]], grid);
+		expect(out).toEqual([anchors[0]]);
+	});
+
+	it('sorts anchors by quarter regardless of input order', () => {
+		const out = interpolateSeries([anchors[1], anchors[0]], grid);
+		expect(out.map((p) => p.quarter)).toEqual(['2000Q1', '2000Q2', '2000Q3']);
+		expect(out[1].revenue).toBeCloseTo(200, 10);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// FX conversion
+// ---------------------------------------------------------------------------
+
+describe('fx conversion', () => {
+	it('converts EUR to a display currency at the quarter rate', () => {
+		expect(convertFromEur(100, '2000Q1', 'USD', fx)).toBeCloseTo(107, 10);
+		expect(convert(100, '2000Q1', 'EUR', 'USD', fx)).toBeCloseTo(107, 10);
+	});
+
+	it('converts a reporting currency back to EUR', () => {
+		expect(convertToEur(107, '2000Q1', 'USD', fx)).toBeCloseTo(100, 10);
+		expect(convert(107, '2000Q1', 'USD', 'EUR', fx)).toBeCloseTo(100, 10);
+	});
+
+	it('converts between two non-EUR currencies through the EUR pivot', () => {
+		expect(convert(62, '2000Q1', 'GBP', 'USD', fx)).toBeCloseTo(107, 10);
+	});
+
+	it('treats EUR conversions as identity without needing a rate', () => {
+		expect(convertToEur(50, '1999Q1', 'EUR', fx)).toBe(50);
+		expect(convert(50, '1999Q1', 'EUR', 'EUR', fx)).toBe(50);
+	});
+
+	it('throws when the quarter has no rate for the currency', () => {
+		expect(() => convertToEur(1, '1999Q1', 'USD', fx)).toThrow(/1999Q1/);
+		expect(() => convertFromEur(1, '1999Q1', 'GBP', fx)).toThrow(/1999Q1/);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Filtering
+// ---------------------------------------------------------------------------
+
+describe('fiscalYearRate', () => {
+	const table: FxTable = {
+		base: 'EUR',
+		rates: {
+			'2000Q1': { USD: 1.0 },
+			'2000Q2': { USD: 1.1 },
+			'2000Q3': { USD: 1.2 },
+			'2000Q4': { USD: 1.3 },
+			'2001Q1': { USD: 1.8 }
+		}
+	};
+
+	it('averages the four quarters ending at the quarter', () => {
+		expect(fiscalYearRate('2001Q1', 'USD', table)).toBeCloseTo((1.1 + 1.2 + 1.3 + 1.8) / 4, 12);
+		expect(convertFromEur(100, '2001Q1', 'USD', table)).toBeCloseTo(135, 10);
+		expect(convertToEur(135, '2001Q1', 'USD', table)).toBeCloseTo(100, 10);
+	});
+
+	it('throws instead of averaging fewer quarters at the start of the table', () => {
+		expect(() => fiscalYearRate('2000Q2', 'USD', table)).toThrow(/1999Q3/);
+	});
+
+	it('averages 1999Q2-2000Q1 for a fiscal year ending in 2000Q1', () => {
+		const withPrior: FxTable = {
+			base: 'EUR',
+			rates: {
+				'1999Q1': { USD: 9 },
+				'1999Q2': { USD: 1.06 },
+				'1999Q3': { USD: 1.05 },
+				'1999Q4': { USD: 1.04 },
+				...table.rates
+			}
+		};
+		expect(fiscalYearRate('2000Q1', 'USD', withPrior)).toBeCloseTo(
+			(1.06 + 1.05 + 1.04 + 1.0) / 4,
+			12
+		);
+	});
+
+	it('uses 1999 rates from the bundled table for early-2000 fiscal years', () => {
+		// NVIDIA FY2000 ended 2000-01-30: three of its four quarters are 1999
+		const rate = fiscalYearRate('2000Q1', 'USD', bundled.fx as FxTable);
+		expect(rate).toBeGreaterThan(1.03);
+		expect(rate).toBeLessThan(1.05);
+	});
+
+	it('throws when a quarter inside the fiscal year has no rate', () => {
+		expect(() => fiscalYearRate('2001Q2', 'USD', table)).toThrow(/2001Q2/);
+	});
+});
+
+describe('filterCompanies', () => {
+	const companies: Company[] = [
+		{
+			id: 'sap',
+			name: 'SAP',
+			type: 'software',
+			reportingCurrency: 'EUR',
+			country: 'DE',
+			points: []
+		},
+		{
+			id: 'shell',
+			name: 'Shell',
+			type: 'energy',
+			reportingCurrency: 'EUR',
+			country: 'NL',
+			points: []
+		},
+		{
+			id: 'msft',
+			name: 'Microsoft',
+			type: 'software',
+			reportingCurrency: 'USD',
+			country: 'US',
+			points: []
+		}
+	];
+
+	it('selects by company id', () => {
+		const state: FilterState = { selectedIds: ['shell'], types: ['software', 'energy'] };
+		expect(filterCompanies(companies, state).map((c) => c.id)).toEqual(['shell']);
+	});
+
+	it('selects by type', () => {
+		const state: FilterState = { selectedIds: ['sap', 'shell', 'msft'], types: ['software'] };
+		expect(filterCompanies(companies, state).map((c) => c.id)).toEqual(['sap', 'msft']);
+	});
+
+	it('intersects id selection with the type filter', () => {
+		const state: FilterState = { selectedIds: ['sap', 'shell'], types: ['software'] };
+		expect(filterCompanies(companies, state).map((c) => c.id)).toEqual(['sap']);
+	});
+
+	it('treats an empty allow-list as matching nothing', () => {
+		expect(filterCompanies(companies, { selectedIds: [], types: ['software'] })).toEqual([]);
+		expect(filterCompanies(companies, { selectedIds: ['sap'], types: [] })).toEqual([]);
+	});
+
+	it('lists distinct types in sorted order', () => {
+		expect(companyTypes(companies)).toEqual(['energy', 'software']);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Dataset schema validation
+// ---------------------------------------------------------------------------
+
+describe('validateDataset', () => {
+	it('accepts a valid dataset', () => {
+		expect(validateDataset(validDataset)).toEqual([]);
+	});
+
+	it('rejects non-object datasets', () => {
+		expect(validateDataset(null)).not.toEqual([]);
+		expect(validateDataset('nope')).not.toEqual([]);
+		expect(validateDataset([])).not.toEqual([]);
+	});
+
+	it('requires meta fields and an http fx source', () => {
+		const broken = clone();
+		broken.meta.units = '';
+		broken.meta.fxSource = 'data.ecb.europa.eu';
+		const errors = validateDataset(broken);
+		expect(errors.some((e) => e.includes('meta.units'))).toBe(true);
+		expect(errors.some((e) => e.includes('meta.fxSource'))).toBe(true);
+	});
+
+	it('requires fx base EUR and positive USD/GBP rates for every rate entry', () => {
+		const broken = clone();
+		broken.fx.base = 'USD' as Dataset['fx']['base'];
+		broken.fx.rates['2000Q1'].USD = 0;
+		delete broken.fx.rates['2000Q2'].GBP;
+		const errors = validateDataset(broken);
+		expect(errors.some((e) => e.includes('fx.base'))).toBe(true);
+		expect(errors.some((e) => e.includes("fx.rates.'2000Q1'.USD"))).toBe(true);
+		expect(errors.some((e) => e.includes("fx.rates.'2000Q2'.GBP"))).toBe(true);
+	});
+
+	it('rejects malformed quarter labels in the fx table', () => {
+		const broken = clone();
+		broken.fx.rates['2000Q9'] = { USD: 1, GBP: 1 };
+		expect(validateDataset(broken).some((e) => e.includes("'2000Q9'"))).toBe(true);
+	});
+
+	it('rejects duplicate company ids', () => {
+		const broken = clone();
+		broken.companies.push({ ...broken.companies[0] });
+		expect(validateDataset(broken).some((e) => e.includes('duplicate id'))).toBe(true);
+	});
+
+	it('rejects a company with missing fields, bad currency or no points', () => {
+		const broken = clone();
+		broken.companies[0].name = '';
+		broken.companies[0].reportingCurrency =
+			'JPY' as Dataset['companies'][number]['reportingCurrency'];
+		broken.companies[0].points = [];
+		const errors = validateDataset(broken);
+		expect(errors.some((e) => e.includes('companies[0].name'))).toBe(true);
+		expect(errors.some((e) => e.includes('companies[0].reportingCurrency'))).toBe(true);
+		expect(errors.some((e) => e.includes('companies[0].points'))).toBe(true);
+	});
+
+	it('rejects invalid point values and unknown quality labels', () => {
+		const broken = clone();
+		broken.companies[0].points[0].revenue = -5;
+		broken.companies[0].points[0].operatingIncome = Number.NaN;
+		broken.companies[0].points[1].quality = 'estimate' as CompanyPoint['quality'];
+		const errors = validateDataset(broken);
+		expect(errors.some((e) => e.includes('companies[0].points[0].revenue'))).toBe(true);
+		expect(errors.some((e) => e.includes('companies[0].points[0].operatingIncome'))).toBe(true);
+		expect(errors.some((e) => e.includes('companies[0].points[1].quality'))).toBe(true);
+	});
+
+	it('requires a source on reported and estimated points only', () => {
+		const broken = clone();
+		delete broken.companies[0].points[0].source;
+		expect(validateDataset(broken).some((e) => e.includes('companies[0].points[0].source'))).toBe(
+			true
+		);
+
+		const estimated = clone();
+		estimated.companies[0].points[1].quality = 'estimated';
+		estimated.companies[0].points[1].source = 'press estimate';
+		expect(validateDataset(estimated)).toEqual([]);
+
+		const interpolated = clone();
+		interpolated.companies[0].points[1].quality = 'interpolated';
+		delete interpolated.companies[0].points[1].source;
+		expect(validateDataset(interpolated)).toEqual([]);
+	});
+
+	it('requires an http(s) source URL on reported and estimated points', () => {
+		const missing = clone();
+		delete missing.companies[0].points[0].sourceUrl;
+		expect(
+			validateDataset(missing).some((e) => e.includes('companies[0].points[0].sourceUrl'))
+		).toBe(true);
+
+		const bad = clone();
+		bad.companies[0].points[1].sourceUrl = 'ftp://example.com/x';
+		expect(validateDataset(bad).some((e) => e.includes('companies[0].points[1].sourceUrl'))).toBe(
+			true
+		);
+
+		const interpolated = clone();
+		interpolated.companies[0].points[1].quality = 'interpolated';
+		delete interpolated.companies[0].points[1].sourceUrl;
+		expect(validateDataset(interpolated)).toEqual([]);
+	});
+
+	it('rejects duplicate or unsorted point quarters', () => {
+		const dup = clone();
+		dup.companies[0].points[1].quarter = '2000Q1';
+		expect(validateDataset(dup).some((e) => e.includes('duplicate quarter'))).toBe(true);
+
+		const unsorted = clone();
+		unsorted.companies[0].points.reverse();
+		expect(validateDataset(unsorted).some((e) => e.includes('out of order'))).toBe(true);
+	});
+
+	it('requires fx rates covering every point quarter', () => {
+		const broken = clone();
+		broken.companies[0].points.push({
+			...broken.companies[0].points[1],
+			quarter: '2010Q1'
+		});
+		expect(validateDataset(broken).some((e) => e.includes('2010Q1'))).toBe(true);
+	});
+
+	it('requires fx rates for every quarter between anchors, not just at them', () => {
+		// The chart converts interpolated quarters too: a missing middle rate would throw
+		// in buildTrail the first time USD or GBP is chosen.
+		const broken = clone();
+		for (const q of ['2000Q3', '2000Q4', '2001Q1']) broken.fx.rates[q] = { USD: 1.1, GBP: 0.64 };
+		broken.companies[0].points[1].quarter = '2001Q1';
+		expect(validateDataset(broken)).toEqual([]);
+
+		delete broken.fx.rates['2000Q3'];
+		const errors = validateDataset(broken);
+		expect(errors).toHaveLength(1);
+		expect(errors[0]).toContain('companies[0]');
+		expect(errors[0]).toContain('2000Q3');
+	});
+
+	it('requires the three quarters before the first anchor for its fiscal-year rate', () => {
+		const broken = clone();
+		delete broken.fx.rates['1999Q2'];
+		expect(validateDataset(broken).some((e) => e.includes('1999Q2'))).toBe(true);
+	});
+});
+
+describe('loadDataset', () => {
+	it('returns the typed dataset and no errors for valid input', () => {
+		const { dataset, errors } = loadDataset(validDataset);
+		expect(errors).toEqual([]);
+		expect(dataset.companies[0].id).toBe('acme');
+	});
+
+	it('returns validation errors for invalid input', () => {
+		const { errors } = loadDataset({ nonsense: true });
+		expect(errors.length).toBeGreaterThan(0);
+	});
+});
+
+describe('bundled companies.json', () => {
+	it('passes schema validation', () => {
+		expect(validateDataset(bundled)).toEqual([]);
+	});
+
+	// Margin and native-currency figures must survive the EUR round trip: the display
+	// converts back with the same fiscal-year rate the build converted with.
+	const dataset = bundled as Dataset;
+	const lastQuarter = dataset.companies
+		.flatMap((c) => c.points.map((p) => p.quarter))
+		.reduce((a, b) => (quarterIndex(a) > quarterIndex(b) ? a : b));
+	const quarters = quarterRange('2000Q1', lastQuarter);
+	const filed = (source: string | undefined) => {
+		const m = /revenue (\w+) (-?[\d,.]+)m, operating income \w+ (-?[\d,.]+)m/.exec(source ?? '');
+		if (!m) throw new Error(`no filed figures in source: ${source}`);
+		const num = (s: string) => Number(s.replace(/,/g, ''));
+		return { currency: m[1], revenue: num(m[2]), operatingIncome: num(m[3]) };
+	};
+	/** Each anchor shown in the currency it was filed in (usually the reporting currency). */
+	const anchorsAsFiled = (company: Company) => {
+		const trails = new Map<Currency, TrailPoint[]>();
+		return company.points.map((anchor) => {
+			const f = filed(anchor.source);
+			const currency = f.currency as Currency;
+			if (!trails.has(currency)) {
+				trails.set(currency, buildTrail(company, quarters, currency, dataset.fx).points);
+			}
+			const point = trails.get(currency)!.find((p) => p.quarter === anchor.quarter)!;
+			return { point, filed: f };
+		});
+	};
+
+	it('shows each anchor in its filing currency as filed', () => {
+		const drift: string[] = [];
+		for (const company of dataset.companies) {
+			for (const { point: p, filed: f } of anchorsAsFiled(company)) {
+				// Stored EUR values keep six significant digits, so the round trip is exact to 1e-4.
+				for (const [shown, want] of [
+					[p.revenue, f.revenue],
+					[p.operatingIncome, f.operatingIncome]
+				]) {
+					if (Math.abs(shown - want) > 1e-4 * Math.abs(want)) {
+						drift.push(`${company.id} ${p.quarter}: shown ${shown} filed ${want}`);
+					}
+				}
+			}
+		}
+		expect(drift).toEqual([]);
+	});
+
+	interface SourceAnchor {
+		periodEnd: string;
+		revenue: number;
+		operatingIncome: number;
+	}
+	const sources = import.meta.glob<{ id: string; anchors: SourceAnchor[] }>(
+		'./data/sources/companies/*.json',
+		{ eager: true, import: 'default' }
+	);
+	const sourceAnchors = new Map(Object.values(sources).map((s) => [s.id, s.anchors]));
+
+	it('keeps every stored margin equal to the filed margin', () => {
+		// Margin does not depend on currency, so any drift is a build rounding bug.
+		const drift: string[] = [];
+		for (const company of dataset.companies) {
+			for (const p of company.points) {
+				const anchor = sourceAnchors
+					.get(company.id)
+					?.find((a) => p.source?.includes(`(FY ending ${a.periodEnd}:`));
+				if (!anchor) {
+					drift.push(`${company.id} ${p.quarter}: no source anchor`);
+					continue;
+				}
+				expect(filed(p.source)).toMatchObject({
+					revenue: anchor.revenue,
+					operatingIncome: anchor.operatingIncome
+				});
+				const want = anchor.operatingIncome / anchor.revenue;
+				const stored = p.operatingIncome / p.revenue;
+				if (Math.abs(stored - want) > 1e-3 * Math.abs(want)) {
+					drift.push(`${company.id} ${p.quarter}: stored ${stored} filed ${want}`);
+				}
+			}
+		}
+		expect(drift).toEqual([]);
+	});
+
+	it('keeps Tesla FY2007 at its filed USD 0.073m revenue', () => {
+		const tesla = dataset.companies.find((c) => c.id === 'tesla')!;
+		const { point, filed: f } = anchorsAsFiled(tesla).find((a) => a.point.quarter === '2007Q4')!;
+		expect(f).toMatchObject({ revenue: 0.073, operatingIncome: -79.933 });
+		expect(point.revenue).toBeCloseTo(0.073, 6);
+		expect(point.margin).toBeCloseTo(-79.933 / 0.073, 0);
+	});
+
+	it('shows ExxonMobil 2008 revenue as the filed USD 477,359m', () => {
+		const exxon = dataset.companies.find((c) => c.id === 'exxonmobil')!;
+		const { point, filed: f } = anchorsAsFiled(exxon).find((a) => a.point.quarter === '2008Q4')!;
+		expect(f).toMatchObject({ currency: 'USD', revenue: 477359 });
+		expect(point.revenue).toBeCloseTo(477359, -1);
+	});
+});

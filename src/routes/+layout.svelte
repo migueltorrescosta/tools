@@ -8,7 +8,6 @@
 	let { children } = $props();
 
 	function navigate(path: string) {
-		// eslint-disable-next-line svelte/no-navigation-without-resolve
 		goto(path);
 	}
 </script>
@@ -23,3 +22,12 @@
 	>
 </nav>
 {@render children()}
+
+<footer class="footer">
+	<p>
+		Collection of Developer Utilities. Everything runs exclusively on your browser. No guarantees of
+		correctness are provided. Use at your own risk. Contact <a href="mailto:tools-feedback@mptc.uk"
+			>tools-feedback@mptc.uk</a
+		> for improvement suggestions
+	</p>
+</footer>

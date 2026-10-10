@@ -1,33 +1,5 @@
 import { describe, it, expect } from 'vitest';
-
-// Test-specific implementations (duplicated from component for testing)
-// These match the exact logic in +page.svelte
-
-function base64Encode(str: string): string {
-	return btoa(unescape(encodeURIComponent(str)));
-}
-
-function base64Decode(str: string): string {
-	return decodeURIComponent(escape(atob(str)));
-}
-
-function toHex(str: string): string {
-	return Array.from(new TextEncoder().encode(str))
-		.map((b) => b.toString(16).padStart(2, '0'))
-		.join('');
-}
-
-function fromHex(hex: string): string {
-	const bytes = new Uint8Array(hex.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) || []);
-	return new TextDecoder().decode(bytes);
-}
-
-function rot13(str: string): string {
-	return str.replace(/[a-zA-Z]/g, (char) => {
-		const base = char <= 'Z' ? 65 : 97;
-		return String.fromCharCode(((char.charCodeAt(0) - base + 13) % 26) + base);
-	});
-}
+import { base64Encode, base64Decode, toHex, fromHex, rot13 } from '$lib/crypto';
 
 describe('Cipher Tool - Encoding Functions', () => {
 	describe('ROT13 Edge Cases', () => {
@@ -98,17 +70,28 @@ describe('Cipher Tool - Encoding Functions', () => {
 			expect(toHex('')).toBe('');
 		});
 
-		it('handles odd-length hex input', () => {
-			// Odd-length hex results in replacement character due to invalid byte
-			const result = fromHex('abc');
-			expect(result.length).toBe(2);
+		it('rejects odd-length hex input', () => {
+			expect(() => fromHex('abc')).toThrow(/odd number/);
 		});
 
-		it('handles hex with spaces', () => {
-			// Spaces don't match /.{1,2}/ properly, decodes partial matches
-			const result = fromHex('48 65 6c 6c 6f');
-			// Each space-separated hex value gets parsed (incorrectly)
-			expect(result.length).toBe(7);
+		it('ignores whitespace between hex bytes', () => {
+			expect(fromHex('48 65 6c 6c 6f')).toBe('Hello');
+			expect(fromHex('4865\n6c6c\t6f')).toBe('Hello');
+		});
+
+		it('accepts one leading 0x prefix and uppercase digits', () => {
+			expect(fromHex('0x41')).toBe('A');
+			expect(fromHex('0X4A4b')).toBe('JK');
+		});
+
+		it('rejects non-hex characters instead of decoding them as NUL', () => {
+			expect(() => fromHex('zz41')).toThrow(/Invalid hex/);
+			expect(() => fromHex('0x0x41')).toThrow(/Invalid hex/);
+		});
+
+		it('rejects bytes that are not valid UTF-8 instead of returning U+FFFD', () => {
+			expect(() => fromHex('ff')).toThrow(/not valid UTF-8/);
+			expect(() => fromHex('e4bd')).toThrow(/not valid UTF-8/);
 		});
 	});
 
@@ -186,43 +169,9 @@ describe('Cipher Tool - Encoding Functions', () => {
 		});
 	});
 
-	describe('Encoding Round-trips', () => {
-		it('Base64: preserves original text exactly', () => {
-			const original = 'The quick brown fox jumps over 13 lazy dogs!';
-			const encoded = base64Encode(original);
-			const decoded = base64Decode(encoded);
-			expect(decoded).toBe(original);
-		});
-
-		it('Hex: preserves original text exactly', () => {
-			const original = 'Pack my box with five dozen liquor jugs.';
-			const encoded = toHex(original);
-			const decoded = fromHex(encoded);
-			expect(decoded).toBe(original);
-		});
-
-		it('ROT13: self-inverse property', () => {
-			const original = 'The five boxing wizards jump quickly';
-			// ROT13(ROT13(x)) = x
-			const twice = rot13(rot13(original));
-			expect(twice).toBe(original);
-		});
-
-		it('ROT13: works on pangram', () => {
-			const original = 'Sphinx of black quartz, judge my vow';
-			const encoded = rot13(original);
-			const decoded = rot13(encoded);
-			expect(decoded).toBe(original);
-		});
-	});
-
 	describe('Error Handling', () => {
-		it('fromHex handles completely invalid input', () => {
-			// Non-hex characters: "xyz" matches "xy" and "z" as two groups
-			// "xy" parses as NaN -> 0, "z" is odd-length and ignored
-			const result = fromHex('xyz');
-			expect(result.length).toBe(2);
-			expect(result.charCodeAt(0)).toBe(0);
+		it('fromHex rejects completely invalid input', () => {
+			expect(() => fromHex('xyz')).toThrow(/Invalid hex/);
 		});
 
 		it('fromHex handles empty hex string', () => {

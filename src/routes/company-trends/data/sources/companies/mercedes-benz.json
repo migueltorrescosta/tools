@@ -1,0 +1,244 @@
+{
+	"id": "mercedes-benz",
+	"name": "Mercedes-Benz Group",
+	"type": "automotive",
+	"country": "DE",
+	"reportingCurrency": "EUR",
+	"notes": "DaimlerChrysler AG (to 2007) -> Daimler AG (2007-2022) -> Mercedes-Benz Group AG. revenue = 'Revenue(s)'; operatingIncome = Group 'Operating profit' (US GAAP segment measure, 2000-2004) / 'EBIT' (IFRS, 2005+), as presented in the company's own Ten Year Summaries (reported, not adjusted EBIT). PERIMETER BREAKS: 2000-2004 US GAAP incl. Chrysler; 2005 onward IFRS excl. Chrysler (Chrysler shown as discontinued after 2007 deconsolidation; Daimler's ten-year summary restates 2005-2006 accordingly), hence the ~EUR 47bn revenue drop between 2004 and 2005. 2000-2001 from FY2002 20-F (pre later discontinued-ops restatements; 2002 there was 149,583/6,854 vs 147,408/6,827 restated). 2000 incl. restructuring; 2001 operating loss incl. Chrysler restructuring. 2002-2004 from the Ten Year Summary (US GAAP). Through 2020 includes Daimler Trucks & Buses; 2021 onward continuing operations only (Daimler Truck spun off Dec 2021; 2021 incl. DT would be 167,971/29,069 incl. deconsolidation effects). 2008/2007 revenue restated per IAS 16 amendment (+2,596/+2,170). Source hosting: 2011 and 2020 annual reports are company PDFs mirrored at ddd.uab.cat, 2021 at Bucharest Stock Exchange (bvb.ro), 2023 at EQS (company IR host); group.mercedes-benz.com returned 403. 2024-2025 from the FY2025 results press release on media.mercedes-benz.com (FY2025 annual report PDF too large to fetch).",
+	"anchors": [
+		{
+			"periodEnd": "2000-12-31",
+			"currency": "EUR",
+			"revenue": 162384,
+			"operatingIncome": 9752,
+			"quality": "reported",
+			"source": "DaimlerChrysler Form 20-F FY2002, Business segment revenues and operating profit table, Total row (US GAAP)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1067318/000104746903006136/a2102841z20-f.txt"
+		},
+		{
+			"periodEnd": "2001-12-31",
+			"currency": "EUR",
+			"revenue": 152873,
+			"operatingIncome": -1318,
+			"quality": "reported",
+			"source": "DaimlerChrysler Form 20-F FY2002, Business segment revenues and operating profit table, Total row (US GAAP)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/1067318/000104746903006136/a2102841z20-f.txt"
+		},
+		{
+			"periodEnd": "2002-12-31",
+			"currency": "EUR",
+			"revenue": 147408,
+			"operatingIncome": 6827,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2011, Ten Year Summary ('Revenue', 'Operating profit (loss)/EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2011ieng.pdf"
+		},
+		{
+			"periodEnd": "2003-12-31",
+			"currency": "EUR",
+			"revenue": 136437,
+			"operatingIncome": 5686,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2011, Ten Year Summary ('Revenue', 'Operating profit (loss)/EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2011ieng.pdf"
+		},
+		{
+			"periodEnd": "2004-12-31",
+			"currency": "EUR",
+			"revenue": 142059,
+			"operatingIncome": 5754,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2011, Ten Year Summary ('Revenue', 'Operating profit (loss)/EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2011ieng.pdf"
+		},
+		{
+			"periodEnd": "2005-12-31",
+			"currency": "EUR",
+			"revenue": 95209,
+			"operatingIncome": 2873,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2011, Ten Year Summary ('Revenue', 'Operating profit (loss)/EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2011ieng.pdf"
+		},
+		{
+			"periodEnd": "2006-12-31",
+			"currency": "EUR",
+			"revenue": 99222,
+			"operatingIncome": 4992,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2011, Ten Year Summary ('Revenue', 'Operating profit (loss)/EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2011ieng.pdf"
+		},
+		{
+			"periodEnd": "2007-12-31",
+			"currency": "EUR",
+			"revenue": 101569,
+			"operatingIncome": 8710,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2011, Ten Year Summary ('Revenue', 'Operating profit (loss)/EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2011ieng.pdf"
+		},
+		{
+			"periodEnd": "2008-12-31",
+			"currency": "EUR",
+			"revenue": 98469,
+			"operatingIncome": 2730,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2011, Ten Year Summary ('Revenue', 'Operating profit (loss)/EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2011ieng.pdf"
+		},
+		{
+			"periodEnd": "2009-12-31",
+			"currency": "EUR",
+			"revenue": 78924,
+			"operatingIncome": -1513,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2011, Ten Year Summary ('Revenue', 'Operating profit (loss)/EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2011ieng.pdf"
+		},
+		{
+			"periodEnd": "2010-12-31",
+			"currency": "EUR",
+			"revenue": 97761,
+			"operatingIncome": 7274,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2011, Ten Year Summary ('Revenue', 'Operating profit (loss)/EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2011ieng.pdf"
+		},
+		{
+			"periodEnd": "2011-12-31",
+			"currency": "EUR",
+			"revenue": 106540,
+			"operatingIncome": 8755,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+		},
+		{
+			"periodEnd": "2012-12-31",
+			"currency": "EUR",
+			"revenue": 114297,
+			"operatingIncome": 8820,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "EUR",
+			"revenue": 117982,
+			"operatingIncome": 10815,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "EUR",
+			"revenue": 129872,
+			"operatingIncome": 10752,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "EUR",
+			"revenue": 149467,
+			"operatingIncome": 13186,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "EUR",
+			"revenue": 153261,
+			"operatingIncome": 12902,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "EUR",
+			"revenue": 164154,
+			"operatingIncome": 14348,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "EUR",
+			"revenue": 167362,
+			"operatingIncome": 11132,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "EUR",
+			"revenue": 172745,
+			"operatingIncome": 4313,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "EUR",
+			"revenue": 154309,
+			"operatingIncome": 6603,
+			"quality": "reported",
+			"source": "Daimler Annual Report 2020, Ten-Year Summary (table E.01, 'Revenue', 'EBIT')",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/146252/iaDAIMLERa2020ieng.pdf"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "EUR",
+			"revenue": 133893,
+			"operatingIncome": 16028,
+			"quality": "reported",
+			"source": "Mercedes-Benz Group Annual Report 2021, table B.08 condensed statement of income (continuing operations, excl. Daimler Truck)",
+			"sourceUrl": "https://bvb.ro/info/Raportari/DAI/DAI-Annual Report 2021.pdf"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "EUR",
+			"revenue": 150017,
+			"operatingIncome": 20458,
+			"quality": "reported",
+			"source": "Mercedes-Benz Group Annual Report 2023, consolidated statement of income (prior-year column)",
+			"sourceUrl": "https://ir-api.eqs.com/media/document/f5b20e00-4f9e-4cf6-b20a-d16ff5db0c4c/assets/DE0007100000-JA-2023-EQ-E-00.pdf?disposition=inline"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "EUR",
+			"revenue": 153218,
+			"operatingIncome": 19660,
+			"quality": "reported",
+			"source": "Mercedes-Benz Group Annual Report 2023, consolidated statement of income",
+			"sourceUrl": "https://ir-api.eqs.com/media/document/f5b20e00-4f9e-4cf6-b20a-d16ff5db0c4c/assets/DE0007100000-JA-2023-EQ-E-00.pdf?disposition=inline"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "EUR",
+			"revenue": 145594,
+			"operatingIncome": 13599,
+			"quality": "reported",
+			"source": "Mercedes-Benz Group FY2025 results press release (12 Feb 2026), key figures table (prior-year column)",
+			"sourceUrl": "https://media.mercedes-benz.com/en/article/7fd70d14-de24-4e96-bac5-282ef9abc16c"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "EUR",
+			"revenue": 132214,
+			"operatingIncome": 5820,
+			"quality": "reported",
+			"source": "Mercedes-Benz Group FY2025 results press release (12 Feb 2026), key figures table",
+			"sourceUrl": "https://media.mercedes-benz.com/en/article/7fd70d14-de24-4e96-bac5-282ef9abc16c"
+		}
+	]
+}

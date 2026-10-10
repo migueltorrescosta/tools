@@ -1,312 +1,37 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { copyToClipboard } from '$lib/clipboard';
+	import { FORMATS as formats, validateFormat, type ValidationResult } from '$lib/format/validate';
 
 	let content = $state('');
 	let selectedFormat = $state('json');
-	let validationResult = $state<{ valid: boolean; message: string } | null>(null);
+	let copyState = $state<'idle' | 'copied' | 'failed'>('idle');
+	let copyTimer: ReturnType<typeof setTimeout> | undefined;
+	let hydrated = $state(false);
 
-	const formats = [
-		{ value: 'json', label: 'JSON' },
-		{ value: 'yaml', label: 'YAML' },
-		{ value: 'xml', label: 'XML' },
-		{ value: 'markdown', label: 'Markdown' },
-		{ value: 'plaintext', label: 'Plain Text' }
-	];
+	// Blank content (empty or whitespace-only) is null, shown as the neutral placeholder
+	const validationResult: ValidationResult | null = $derived(
+		validateFormat(selectedFormat, content)
+	);
 
-	function validateJson(text: string): { valid: boolean; message: string } {
-		if (!text.trim()) {
-			return { valid: false, message: 'JSON cannot be empty' };
-		}
+	const COPY_LABELS = { idle: 'COPY INPUT', copied: 'COPIED', failed: 'COPY FAILED' } as const;
+
+	async function copyInput() {
 		try {
-			JSON.parse(text);
-			return { valid: true, message: 'Valid JSON' };
-		} catch (e) {
-			const error = e as SyntaxError;
-			const match = error.message.match(/position (\d+)/);
-			if (match) {
-				const pos = parseInt(match[1]);
-				const lines = text.substring(0, pos).split('\n');
-				const line = lines.length;
-				const col = lines[lines.length - 1].length + 1;
-				return {
-					valid: false,
-					message: `Invalid JSON: ${error.message} at line ${line}, column ${col}`
-				};
-			}
-			return { valid: false, message: `Invalid JSON: ${error.message}` };
+			await copyToClipboard(content);
+			copyState = 'copied';
+		} catch {
+			// No clipboard permission or an insecure context
+			copyState = 'failed';
 		}
+		clearTimeout(copyTimer);
+		copyTimer = setTimeout(() => (copyState = 'idle'), 2000);
 	}
-
-	function validateYaml(text: string): { valid: boolean; message: string } {
-		if (!text.trim()) {
-			return { valid: false, message: 'YAML cannot be empty' };
-		}
-		try {
-			validateYamlSimple(text);
-			return { valid: true, message: 'Valid YAML' };
-		} catch (e) {
-			const error = e as Error;
-			return { valid: false, message: `Invalid YAML: ${error.message}` };
-		}
-	}
-
-	function validateYamlSimple(text: string): void {
-		const lines = text.split('\n');
-		let indentStack: number[] = [0];
-		let inBlockScalar = false;
-		let blockScalarIndent = 0;
-
-		for (let i = 0; i < lines.length; i++) {
-			const line = lines[i];
-
-			if (line.trim() === '' || line.trim().startsWith('#')) {
-				continue;
-			}
-
-			if (inBlockScalar) {
-				const indent = line.match(/^(\s*)/)?.[1].length ?? 0;
-				if (indent < blockScalarIndent && line.trim() !== '') {
-					inBlockScalar = false;
-					indentStack.pop();
-				} else {
-					continue;
-				}
-			}
-
-			if (line.match(/^[|>]-?\s*$/)) {
-				inBlockScalar = true;
-				const currentIndent = line.match(/^(\s*)/)?.[1].length ?? 0;
-				blockScalarIndent = currentIndent;
-				continue;
-			}
-
-			const indent = line.match(/^(\s*)/)?.[1].length ?? 0;
-			const trimmed = line.trim();
-
-			if (trimmed === '') continue;
-
-			const lastIndent = indentStack[indentStack.length - 1];
-
-			if (indent > lastIndent && !trimmed.startsWith('-') && !trimmed.startsWith('?')) {
-				throw new Error(`Unexpected indentation at line ${i + 1}`);
-			}
-
-			if (trimmed.match(/^-\s+/)) {
-				const keyMatch = trimmed.match(/^-\s+([^:]+):?\s*(.*)$/);
-				if (keyMatch) {
-					const key = keyMatch[1].trim();
-					const value = keyMatch[2].trim();
-					if (key.includes(':') && !value.startsWith('{') && !value.startsWith('[')) {
-						throw new Error(`Invalid mapping at line ${i + 1}: unexpected ":" in key "${key}"`);
-					}
-				}
-			}
-
-			if (trimmed.match(/^[^:]+:\s*[|:>-]/)) {
-				const nextLineIndex = i + 1;
-				if (nextLineIndex >= lines.length || lines[nextLineIndex].trim() === '') {
-					throw new Error(`Block scalar expected at line ${i + 1}`);
-				}
-			}
-
-			if (trimmed.match(/^[^:]+:\s*$/)) {
-				indentStack.push(indent);
-			} else if (trimmed.match(/^-\s+/)) {
-				indentStack.push(indent);
-			}
-
-			while (indentStack.length > 1 && indentStack[indentStack.length - 1] > indent) {
-				indentStack.pop();
-			}
-
-			if (trimmed.includes(':')) {
-				const parts = trimmed.split(':');
-				const key = parts[0].trim();
-				if (key.match(/^\d+$/)) {
-					throw new Error(`Invalid key at line ${i + 1}: numeric key "${key}" must be quoted`);
-				}
-				if (key.includes(':') && !key.startsWith('"') && !key.startsWith("'")) {
-					throw new Error(`Invalid key at line ${i + 1}: multi-part key must be quoted`);
-				}
-			}
-
-			const invalidChars = trimmed.match(/[\x00-\x08\x0B\x0C\x0E-\x1F]/); // eslint-disable-line no-control-regex
-			if (invalidChars) {
-				throw new Error(`Invalid control character at line ${i + 1}`);
-			}
-		}
-	}
-
-	function validateXml(text: string): { valid: boolean; message: string } {
-		if (!text.trim()) {
-			return { valid: false, message: 'XML cannot be empty' };
-		}
-
-		const parser = new DOMParser();
-		const doc = parser.parseFromString(text, 'application/xml');
-		const parseError = doc.querySelector('parsererror');
-
-		if (parseError) {
-			const errorText = parseError.textContent || 'Invalid XML';
-			const lineMatch = errorText.match(/line (\d+)/i);
-			const colMatch = errorText.match(/column (\d+)/i);
-			let location = '';
-			if (lineMatch) location += ` at line ${lineMatch[1]}`;
-			if (colMatch) location += `, column ${colMatch[1]}`;
-			return { valid: false, message: `Invalid XML${location}: ${errorText.split('\n')[0]}` };
-		}
-
-		return { valid: true, message: 'Valid XML' };
-	}
-
-	function validateMarkdown(text: string): { valid: boolean; message: string } {
-		if (!text.trim()) {
-			return { valid: false, message: 'Markdown cannot be empty' };
-		}
-
-		try {
-			const lines = text.split('\n');
-			let inCodeBlock = false;
-			let codeFenceIndent = 0;
-
-			for (let i = 0; i < lines.length; i++) {
-				const line = lines[i];
-				const trimmed = line.trim();
-
-				if (trimmed.startsWith('```') || trimmed.startsWith('~~~')) {
-					if (!inCodeBlock) {
-						inCodeBlock = true;
-						const indent = line.match(/^(\s*)/)?.[1].length ?? 0;
-						codeFenceIndent = indent;
-					} else {
-						const indent = line.match(/^(\s*)/)?.[1].length ?? 0;
-						if (indent !== codeFenceIndent) {
-							throw new Error(`Code fence at line ${i + 1} has incorrect indentation`);
-						}
-						inCodeBlock = false;
-					}
-					continue;
-				}
-
-				if (inCodeBlock) continue;
-
-				if (line.match(/^#{1,6}\s/)) {
-					const headingText = line.replace(/^#{1,6}\s*/, '');
-					if (headingText.trim() === '') {
-						throw new Error(`Empty heading at line ${i + 1}`);
-					}
-				}
-
-				const linkPattern = /\[([^\]]*)\]\(([^)]*)\)/g;
-				let linkMatch;
-				while ((linkMatch = linkPattern.exec(trimmed)) !== null) {
-					const url = linkMatch[2];
-					if (url.includes(' ') && !url.startsWith('<') && !url.endsWith('>')) {
-						throw new Error(`Invalid link at line ${i + 1}: URL must not contain unescaped spaces`);
-					}
-				}
-
-				const asterisks = (trimmed.match(/\*/g) || []).length;
-				if (asterisks % 2 !== 0 && asterisks > 0) {
-					// Check for unmatched asterisks
-				}
-
-				const htmlTagPattern = /<([a-zA-Z][a-zA-Z0-9]*)[^>]*>/g;
-				let htmlMatch;
-				while ((htmlMatch = htmlTagPattern.exec(trimmed)) !== null) {
-					const tagName = htmlMatch[1].toLowerCase();
-					const selfClosing = trimmed.match(/<[a-zA-Z][^>]*\/>/);
-					if (
-						![
-							'br',
-							'hr',
-							'img',
-							'input',
-							'meta',
-							'link',
-							'area',
-							'base',
-							'col',
-							'embed',
-							'param',
-							'source',
-							'track',
-							'wbr'
-						].includes(tagName) &&
-						selfClosing
-					) {
-						throw new Error(
-							`Invalid self-closing tag at line ${i + 1}: <${tagName}> is not a void element`
-						);
-					}
-				}
-			}
-
-			if (inCodeBlock) {
-				throw new Error('Unclosed code block: missing closing fence');
-			}
-
-			return { valid: true, message: 'Valid Markdown (CommonMark)' };
-		} catch (e) {
-			const error = e as Error;
-			return { valid: false, message: `Invalid Markdown: ${error.message}` };
-		}
-	}
-
-	function validatePlainText(text: string): { valid: boolean; message: string } {
-		if (!text.trim()) {
-			return { valid: false, message: 'Text cannot be empty' };
-		}
-
-		const invalidBytes = text.match(/[\x00-\x08\x0B\x0C\x0E-\x1F\uFFFE\uFFFF]/); // eslint-disable-line no-control-regex
-		if (invalidBytes) {
-			return { valid: false, message: 'Text contains invalid control characters' };
-		}
-
-		return { valid: true, message: 'Valid Plain Text' };
-	}
-
-	function validate() {
-		if (!content.trim()) {
-			validationResult = { valid: false, message: 'Content cannot be empty' };
-			return;
-		}
-
-		switch (selectedFormat) {
-			case 'json':
-				validationResult = validateJson(content);
-				break;
-			case 'yaml':
-				validationResult = validateYaml(content);
-				break;
-			case 'xml':
-				validationResult = validateXml(content);
-				break;
-			case 'markdown':
-				validationResult = validateMarkdown(content);
-				break;
-			case 'plaintext':
-				validationResult = validatePlainText(content);
-				break;
-			default:
-				validationResult = { valid: false, message: 'Unknown format' };
-		}
-	}
-
-	function copyToClipboard(text: string) {
-		navigator.clipboard.writeText(text);
-	}
-
-	$effect(() => {
-		if (content) {
-			validate();
-		} else {
-			validationResult = null;
-		}
-	});
 
 	onMount(() => {
 		content = '{\n  "name": "example",\n  "value": 123\n}';
+		hydrated = true;
+		return () => clearTimeout(copyTimer);
 	});
 </script>
 
@@ -314,7 +39,7 @@
 	<title>Format Checker</title>
 </svelte:head>
 
-<div class="container">
+<div class="container" data-hydrated={hydrated || undefined}>
 	<header>
 		<h1>FORMAT CHECKER</h1>
 		<p class="subtitle">Validate JSON, YAML, XML, Markdown & More</p>
@@ -325,11 +50,12 @@
 			<span class="label">FORMAT</span>
 			<span class="hint">Select the format to validate</span>
 		</div>
-		<div class="format-buttons">
+		<div class="format-buttons" role="group" aria-label="Format">
 			{#each formats as format (format.value)}
 				<button
 					class="format-btn"
 					class:active={selectedFormat === format.value}
+					aria-pressed={selectedFormat === format.value}
 					onclick={() => (selectedFormat = format.value)}
 				>
 					{format.label}
@@ -340,10 +66,18 @@
 
 	<div class="content-input-section">
 		<div class="section-header">
-			<span class="label">CONTENT</span>
+			<label class="label" for="format-content">CONTENT</label>
 			<span class="hint">Paste your {selectedFormat.toUpperCase()} content</span>
+			<button
+				class="copy-btn"
+				class:copied={copyState === 'copied'}
+				class:failed={copyState === 'failed'}
+				onclick={copyInput}
+				disabled={!content}>{COPY_LABELS[copyState]}</button
+			>
 		</div>
 		<textarea
+			id="format-content"
 			class="content-input"
 			bind:value={content}
 			placeholder={`Paste your ${selectedFormat.toUpperCase()} here...`}
@@ -356,17 +90,21 @@
 			<span class="dot red"></span>
 			<span class="dot yellow"></span>
 			<span class="dot green"></span>
-			<span class="panel-title">VALIDATION RESULT</span>
-			<button class="copy-btn" onclick={() => copyToClipboard(content)}>COPY</button>
+			<span class="panel-title" id="format-result-title">VALIDATION RESULT</span>
 		</div>
-		<div class="panel-content">
+		<div
+			class="panel-content"
+			role="status"
+			aria-live="polite"
+			aria-labelledby="format-result-title"
+		>
 			{#if validationResult}
 				<div
 					class="result"
 					class:valid={validationResult.valid}
 					class:invalid={!validationResult.valid}
 				>
-					<span class="result-icon">{validationResult.valid ? '✓' : '✗'}</span>
+					<span class="result-icon" aria-hidden="true">{validationResult.valid ? '✓' : '✗'}</span>
 					<span class="result-message">{validationResult.message}</span>
 				</div>
 			{:else}
@@ -391,11 +129,10 @@
 					</ul>
 				{:else if selectedFormat === 'yaml'}
 					<ul>
-						<li>Must follow YAML 1.2 specification</li>
+						<li>Parsed as YAML 1.2; every document in a --- stream is checked</li>
 						<li>Indentation uses spaces (not tabs)</li>
-						<li>Keys should not be numeric without quoting</li>
-						<li>Multi-part keys must be quoted</li>
-						<li>Block scalars (| , >) must have content</li>
+						<li>Flow collections and quoted strings must be closed</li>
+						<li>No non-printable characters (YAML c-printable set)</li>
 					</ul>
 				{:else if selectedFormat === 'xml'}
 					<ul>
@@ -407,20 +144,39 @@
 					</ul>
 				{:else if selectedFormat === 'markdown'}
 					<ul>
-						<li>Follows CommonMark specification</li>
-						<li>Headings (# - ######) require text</li>
-						<li>Links must have valid URL syntax</li>
-						<li>Code blocks must be closed</li>
+						<li>CommonMark accepts any text; these are lint checks</li>
+						<li>Link destinations with spaces must be wrapped in &lt;&gt; or encoded</li>
 						<li>Self-closing tags only for void elements</li>
+						<li>Fenced code blocks are not checked</li>
 					</ul>
 				{:else}
 					<ul>
-						<li>Must contain visible text</li>
-						<li>No invalid control characters</li>
-						<li>UTF-8 encoded</li>
+						<li>
+							No control characters other than tab, line feed, carriage return and form feed (DEL
+							and U+0080-U+009F are rejected)
+						</li>
+						<li>No noncharacters U+FFFE or U+FFFF</li>
+						<li>No lone surrogates (must be encodable as UTF-8)</li>
 					</ul>
 				{/if}
 			</div>
 		</div>
 	</div>
 </div>
+
+<style>
+	.copy-btn.copied {
+		border-color: #4dff6a;
+		color: #4dff6a;
+	}
+
+	.copy-btn.failed {
+		border-color: #ff6666;
+		color: #ff6666;
+	}
+
+	.copy-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+</style>

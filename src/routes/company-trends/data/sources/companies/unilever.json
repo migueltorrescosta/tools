@@ -1,0 +1,244 @@
+{
+	"id": "unilever",
+	"name": "Unilever",
+	"type": "consumer",
+	"country": "GB",
+	"reportingCurrency": "EUR",
+	"notes": "Revenue = Turnover; operatingIncome = Operating profit (reported, after exceptional items/non-underlying items; not underlying/BEIA). FY = calendar year, EUR. Basis breaks: 2000-2003 UK GAAP 'Group turnover'/'Group operating profit' (excl. JVs; 2001-2003 restated for pensions/share-based payments, 2000 as originally reported); 2004 onward IFRS, 2004-2007 continuing operations after European frozen foods disposal; 2025 continuing operations only after the Ice Cream (Magnum) demerger (2024 restated would be 52,479/8,829), so 2024->2025 drop is a scope change.",
+	"anchors": [
+		{
+			"periodEnd": "2000-12-31",
+			"currency": "EUR",
+			"revenue": 47582,
+			"operatingIncome": 3302,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2001, Financial Review 2000 vs 1999 (UK GAAP, Group turnover / Group operating profit after amortisation and exceptional items)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000102123102000070/unilever_plc20f.htm"
+		},
+		{
+			"periodEnd": "2001-12-31",
+			"currency": "EUR",
+			"revenue": 51514,
+			"operatingIncome": 4946,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2003, key performance measures (UK GAAP, restated for pensions/share-based payments)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000102123104000199/b742313-20f.htm"
+		},
+		{
+			"periodEnd": "2002-12-31",
+			"currency": "EUR",
+			"revenue": 48270,
+			"operatingIncome": 5007,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2003, key performance measures (UK GAAP, restated for pensions/share-based payments)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000102123104000199/b742313-20f.htm"
+		},
+		{
+			"periodEnd": "2003-12-31",
+			"currency": "EUR",
+			"revenue": 42693,
+			"operatingIncome": 5483,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2003, key performance measures (UK GAAP, restated for pensions/share-based payments)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000102123104000199/b742313-20f.htm"
+		},
+		{
+			"periodEnd": "2004-12-31",
+			"currency": "EUR",
+			"revenue": 37168,
+			"operatingIncome": 3981,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2006, consolidated income statement (IFRS, continuing operations)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000115697307000510/u51399-20f.htm"
+		},
+		{
+			"periodEnd": "2005-12-31",
+			"currency": "EUR",
+			"revenue": 38401,
+			"operatingIncome": 5074,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2007, Selected financial data (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000115697308000355/u55078_20f.htm"
+		},
+		{
+			"periodEnd": "2006-12-31",
+			"currency": "EUR",
+			"revenue": 39642,
+			"operatingIncome": 5408,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2007, Selected financial data (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000115697308000355/u55078_20f.htm"
+		},
+		{
+			"periodEnd": "2007-12-31",
+			"currency": "EUR",
+			"revenue": 40187,
+			"operatingIncome": 5245,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2007, Selected financial data (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000115697308000355/u55078_20f.htm"
+		},
+		{
+			"periodEnd": "2008-12-31",
+			"currency": "EUR",
+			"revenue": 40523,
+			"operatingIncome": 7167,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2010, consolidated income statement (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000095012311021977/u10218e20vf.htm"
+		},
+		{
+			"periodEnd": "2009-12-31",
+			"currency": "EUR",
+			"revenue": 39823,
+			"operatingIncome": 5020,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2010, consolidated income statement (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000095012311021977/u10218e20vf.htm"
+		},
+		{
+			"periodEnd": "2010-12-31",
+			"currency": "EUR",
+			"revenue": 44262,
+			"operatingIncome": 6339,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2010, consolidated income statement (IFRS)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000095012311021977/u10218e20vf.htm"
+		},
+		{
+			"periodEnd": "2011-12-31",
+			"currency": "EUR",
+			"revenue": 46467,
+			"operatingIncome": 6420,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2015, Item 3 Selected financial data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312516472832/d61872d20f.htm"
+		},
+		{
+			"periodEnd": "2012-12-31",
+			"currency": "EUR",
+			"revenue": 51324,
+			"operatingIncome": 6977,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2015, Item 3 Selected financial data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312516472832/d61872d20f.htm"
+		},
+		{
+			"periodEnd": "2013-12-31",
+			"currency": "EUR",
+			"revenue": 49797,
+			"operatingIncome": 7517,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2015, Item 3 Selected financial data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312516472832/d61872d20f.htm"
+		},
+		{
+			"periodEnd": "2014-12-31",
+			"currency": "EUR",
+			"revenue": 48436,
+			"operatingIncome": 7980,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2015, Item 3 Selected financial data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312516472832/d61872d20f.htm"
+		},
+		{
+			"periodEnd": "2015-12-31",
+			"currency": "EUR",
+			"revenue": 53272,
+			"operatingIncome": 7515,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2015, Item 3 Selected financial data",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312516472832/d61872d20f.htm"
+		},
+		{
+			"periodEnd": "2016-12-31",
+			"currency": "EUR",
+			"revenue": 52713,
+			"operatingIncome": 7801,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2018, Consolidated income statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312519070426/R2.htm"
+		},
+		{
+			"periodEnd": "2017-12-31",
+			"currency": "EUR",
+			"revenue": 53715,
+			"operatingIncome": 8857,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2018, Consolidated income statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312519070426/R2.htm"
+		},
+		{
+			"periodEnd": "2018-12-31",
+			"currency": "EUR",
+			"revenue": 50982,
+			"operatingIncome": 12535,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2018, Consolidated income statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000119312519070426/R2.htm"
+		},
+		{
+			"periodEnd": "2019-12-31",
+			"currency": "EUR",
+			"revenue": 51980,
+			"operatingIncome": 8708,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2021, Consolidated income statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741022000009/R3.htm"
+		},
+		{
+			"periodEnd": "2020-12-31",
+			"currency": "EUR",
+			"revenue": 50724,
+			"operatingIncome": 8303,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2021, Consolidated income statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741022000009/R3.htm"
+		},
+		{
+			"periodEnd": "2021-12-31",
+			"currency": "EUR",
+			"revenue": 52444,
+			"operatingIncome": 8702,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2021, Consolidated income statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741022000009/R3.htm"
+		},
+		{
+			"periodEnd": "2022-12-31",
+			"currency": "EUR",
+			"revenue": 60073,
+			"operatingIncome": 10755,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2024, Consolidated income statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741025000015/R3.htm"
+		},
+		{
+			"periodEnd": "2023-12-31",
+			"currency": "EUR",
+			"revenue": 59604,
+			"operatingIncome": 9758,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2024, Consolidated income statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741025000015/R3.htm"
+		},
+		{
+			"periodEnd": "2024-12-31",
+			"currency": "EUR",
+			"revenue": 60761,
+			"operatingIncome": 9400,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2024, Consolidated income statement",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741025000015/R3.htm"
+		},
+		{
+			"periodEnd": "2025-12-31",
+			"currency": "EUR",
+			"revenue": 50503,
+			"operatingIncome": 9037,
+			"quality": "reported",
+			"source": "Unilever Form 20-F 2025, Consolidated income statement (continuing operations, ex-Ice Cream)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/217410/000021741026000007/R3.htm"
+		}
+	]
+}

@@ -1,0 +1,253 @@
+{
+	"id": "inditex",
+	"name": "Inditex",
+	"type": "retail",
+	"country": "ES",
+	"reportingCurrency": "EUR",
+	"notes": "Revenue = Net sales (Ventas). Operating income = EBIT (Resultado/Beneficio de explotación; 'Net operating profit (EBIT)'). FY runs Feb 1 - Jan 31; Inditex labels FY by start year (FY2025 ends 2026-01-31). FY1999-FY2003 Spanish GAAP; FY2004+ IFRS (FY2004 IFRS-restated 5,569/922 vs Spanish GAAP 5,670/925). FY2019+ IFRS 16 (FY2018 not restated). FY1999-FY2011 figures from Inditex annual reports retrieved from the UAB library archive of company reports (ddd.uab.cat), not from inditex.com. FY2012-2015 converted from thousands, rounded. FY2009 revenue taken from the audited consolidated income statement (11,084); the multi-year indicator tables in AR2009/AR2011 print a transposed 11,048.",
+	"anchors": [
+		{
+			"periodEnd": "2000-01-31",
+			"currency": "EUR",
+			"revenue": 2035.1,
+			"operatingIncome": 296.2,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2003, 'Principales indicadores' multi-year table (Spanish GAAP), FY1999",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2003ispa.pdf"
+		},
+		{
+			"periodEnd": "2001-01-31",
+			"currency": "EUR",
+			"revenue": 2614.7,
+			"operatingIncome": 379.9,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2003, 'Principales indicadores' multi-year table (Spanish GAAP), FY2000",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2003ispa.pdf"
+		},
+		{
+			"periodEnd": "2002-01-31",
+			"currency": "EUR",
+			"revenue": 3249.8,
+			"operatingIncome": 517.5,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2003, 'Principales indicadores' multi-year table (Spanish GAAP), FY2001",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2003ispa.pdf"
+		},
+		{
+			"periodEnd": "2003-01-31",
+			"currency": "EUR",
+			"revenue": 3974.0,
+			"operatingIncome": 659.5,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2003, 'Principales indicadores' multi-year table (Spanish GAAP), FY2002",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2003ispa.pdf"
+		},
+		{
+			"periodEnd": "2004-01-31",
+			"currency": "EUR",
+			"revenue": 4598.9,
+			"operatingIncome": 627.0,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2003, 'Principales indicadores' multi-year table (Spanish GAAP), FY2003",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2003ispa.pdf"
+		},
+		{
+			"periodEnd": "2005-01-31",
+			"currency": "EUR",
+			"revenue": 5569,
+			"operatingIncome": 922,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2009, 'Evolución de los principales indicadores' (IFRS), FY2004",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2009ispa.pdf"
+		},
+		{
+			"periodEnd": "2006-01-31",
+			"currency": "EUR",
+			"revenue": 6741,
+			"operatingIncome": 1094,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2009, 'Evolución de los principales indicadores' (IFRS), FY2005",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2009ispa.pdf"
+		},
+		{
+			"periodEnd": "2007-01-31",
+			"currency": "EUR",
+			"revenue": 8196,
+			"operatingIncome": 1356,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2009, 'Evolución de los principales indicadores' (IFRS), FY2006",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2009ispa.pdf"
+		},
+		{
+			"periodEnd": "2008-01-31",
+			"currency": "EUR",
+			"revenue": 9435,
+			"operatingIncome": 1652,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2009, 'Evolución de los principales indicadores' (IFRS), FY2007",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2009ispa.pdf"
+		},
+		{
+			"periodEnd": "2009-01-31",
+			"currency": "EUR",
+			"revenue": 10407,
+			"operatingIncome": 1609,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2009, 'Evolución de los principales indicadores' (IFRS), FY2008",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2009ispa.pdf"
+		},
+		{
+			"periodEnd": "2010-01-31",
+			"currency": "EUR",
+			"revenue": 11084,
+			"operatingIncome": 1729,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2009, Pérdidas y Ganancias consolidada (Ventas 11,083,514 / EBIT 1,728,388 thousand EUR), FY2009",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2009ispa.pdf"
+		},
+		{
+			"periodEnd": "2011-01-31",
+			"currency": "EUR",
+			"revenue": 12527,
+			"operatingIncome": 2290,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2011, 'Evolución de los principales indicadores', FY2010",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2011ispa.pdf"
+		},
+		{
+			"periodEnd": "2012-01-31",
+			"currency": "EUR",
+			"revenue": 13793,
+			"operatingIncome": 2522,
+			"quality": "reported",
+			"source": "Inditex Informe Anual 2011, 'Evolución de los principales indicadores', FY2011",
+			"sourceUrl": "https://ddd.uab.cat/pub/infanu/7476/iaINDITEXa2011ispa.pdf"
+		},
+		{
+			"periodEnd": "2013-01-31",
+			"currency": "EUR",
+			"revenue": 15946,
+			"operatingIncome": 3117,
+			"quality": "reported",
+			"source": "Inditex Annual Report 2013, consolidated income statement (comparative)",
+			"sourceUrl": "https://static.inditex.com/annual_report_2013/en/annual-accounts/economic-and-financial-report/consolidated-income-statement.php"
+		},
+		{
+			"periodEnd": "2014-01-31",
+			"currency": "EUR",
+			"revenue": 16724,
+			"operatingIncome": 3071,
+			"quality": "reported",
+			"source": "Inditex Annual Report 2013, consolidated income statement",
+			"sourceUrl": "https://static.inditex.com/annual_report_2013/en/annual-accounts/economic-and-financial-report/consolidated-income-statement.php"
+		},
+		{
+			"periodEnd": "2015-01-31",
+			"currency": "EUR",
+			"revenue": 18117,
+			"operatingIncome": 3198,
+			"quality": "reported",
+			"source": "Inditex Annual Report 2015, consolidated income statement (comparative)",
+			"sourceUrl": "https://static.inditex.com/annual_report_2015/en/annual-accounts/economic-and-financial-report/consolidated-income-statement.php"
+		},
+		{
+			"periodEnd": "2016-01-31",
+			"currency": "EUR",
+			"revenue": 20900,
+			"operatingIncome": 3677,
+			"quality": "reported",
+			"source": "Inditex Annual Report 2015, consolidated income statement",
+			"sourceUrl": "https://static.inditex.com/annual_report_2015/en/annual-accounts/economic-and-financial-report/consolidated-income-statement.php"
+		},
+		{
+			"periodEnd": "2017-01-31",
+			"currency": "EUR",
+			"revenue": 23311,
+			"operatingIncome": 4021,
+			"quality": "reported",
+			"source": "Inditex Consolidated Annual Accounts 2017, income statement (comparative)",
+			"sourceUrl": "https://static.inditex.com/annual_report_2021/en/documents/inditex-consolidated-annual-acounts-2017.pdf"
+		},
+		{
+			"periodEnd": "2018-01-31",
+			"currency": "EUR",
+			"revenue": 25336,
+			"operatingIncome": 4314,
+			"quality": "reported",
+			"source": "Inditex Consolidated Annual Accounts 2017, income statement",
+			"sourceUrl": "https://static.inditex.com/annual_report_2021/en/documents/inditex-consolidated-annual-acounts-2017.pdf"
+		},
+		{
+			"periodEnd": "2019-01-31",
+			"currency": "EUR",
+			"revenue": 26145,
+			"operatingIncome": 4357,
+			"quality": "reported",
+			"source": "Inditex Consolidated Annual Accounts 2019, income statement (comparative, pre-IFRS 16)",
+			"sourceUrl": "https://static.inditex.com/annual_report_2021/en/documents/inditex-consolidated-annual-acounts-2019.pdf"
+		},
+		{
+			"periodEnd": "2020-01-31",
+			"currency": "EUR",
+			"revenue": 28286,
+			"operatingIncome": 4772,
+			"quality": "reported",
+			"source": "Inditex Consolidated Annual Accounts 2019, income statement (IFRS 16)",
+			"sourceUrl": "https://static.inditex.com/annual_report_2021/en/documents/inditex-consolidated-annual-acounts-2019.pdf"
+		},
+		{
+			"periodEnd": "2021-01-31",
+			"currency": "EUR",
+			"revenue": 20402,
+			"operatingIncome": 1507,
+			"quality": "reported",
+			"source": "Inditex Consolidated Annual Accounts 2021, income statement (comparative)",
+			"sourceUrl": "https://static.inditex.com/annual_report_2021/en/documents/consolidated-annual-accounts-2021.pdf"
+		},
+		{
+			"periodEnd": "2022-01-31",
+			"currency": "EUR",
+			"revenue": 27716,
+			"operatingIncome": 4282,
+			"quality": "reported",
+			"source": "Inditex Consolidated Annual Accounts 2021, income statement",
+			"sourceUrl": "https://static.inditex.com/annual_report_2021/en/documents/consolidated-annual-accounts-2021.pdf"
+		},
+		{
+			"periodEnd": "2023-01-31",
+			"currency": "EUR",
+			"revenue": 32569,
+			"operatingIncome": 5520,
+			"quality": "reported",
+			"source": "Inditex FY2023 Results, consolidated income statement (comparative)",
+			"sourceUrl": "https://www.inditex.com/itxcomweb/api/media/3b2509e1-82e1-4da7-af7c-f1312cee923c/FY23%20Results.pdf?t=1710333346388"
+		},
+		{
+			"periodEnd": "2024-01-31",
+			"currency": "EUR",
+			"revenue": 35947,
+			"operatingIncome": 6809,
+			"quality": "reported",
+			"source": "Inditex FY2023 Results, consolidated income statement",
+			"sourceUrl": "https://www.inditex.com/itxcomweb/api/media/3b2509e1-82e1-4da7-af7c-f1312cee923c/FY23%20Results.pdf?t=1710333346388"
+		},
+		{
+			"periodEnd": "2025-01-31",
+			"currency": "EUR",
+			"revenue": 38632,
+			"operatingIncome": 7554,
+			"quality": "reported",
+			"source": "Inditex FY2025 Results, consolidated income statement (comparative)",
+			"sourceUrl": "https://www.inditex.com/itxcomweb/api/media/1da2c9d1-dbca-49fb-9563-982a8a27fae6/INDITEXFullYear2025.pdf?t=1773216267196"
+		},
+		{
+			"periodEnd": "2026-01-31",
+			"currency": "EUR",
+			"revenue": 39864,
+			"operatingIncome": 7997,
+			"quality": "reported",
+			"source": "Inditex FY2025 Results, consolidated income statement",
+			"sourceUrl": "https://www.inditex.com/itxcomweb/api/media/1da2c9d1-dbca-49fb-9563-982a8a27fae6/INDITEXFullYear2025.pdf?t=1773216267196"
+		}
+	]
+}
