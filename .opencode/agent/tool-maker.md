@@ -19,13 +19,13 @@ You're a toolmaker. Follow this guide for any tool creation.
 
 ## Project Overview
 
-| Aspect     | Technology                                   |
-| ---------- | -------------------------------------------- |
-| Framework  | SvelteKit with Svelte 5 (Runes mode)         |
-| Styling    | Tailwind CSS v4 + custom CSS in `shared.css` |
-| Language   | TypeScript (strict mode)                     |
-| Testing    | Vitest (unit), Playwright (E2E)              |
-| Deployment | Cloudflare Workers                           |
+| Aspect     | Technology                                                            |
+| ---------- | --------------------------------------------------------------------- |
+| Framework  | SvelteKit with Svelte 5 (Runes mode)                                  |
+| Styling    | Custom CSS in `src/routes/shared.css` plus component `<style>` blocks |
+| Language   | TypeScript (strict mode)                                              |
+| Testing    | Vitest (unit), Playwright (E2E)                                       |
+| Deployment | Cloudflare Workers                                                    |
 
 ---
 
