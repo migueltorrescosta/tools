@@ -16,8 +16,7 @@ export interface TimelineEvent {
 }
 
 export type TimelineRow =
-	| { type: 'year'; year: number }
-	| { type: 'events'; events: TimelineEvent[] };
+	{ type: 'year'; year: number } | { type: 'events'; events: TimelineEvent[] };
 
 export const COLUMNS = 3;
 
