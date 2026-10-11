@@ -45,6 +45,8 @@ pnpm test:e2e          # Playwright, one suite per route under src/routes/<route
 
 `pnpm test:unit:watch` reruns the unit specs on change. `pnpm test` runs the unit and e2e suites together. Set `CI=1` for e2e runs so Playwright starts its own dev server instead of reusing whatever already listens on port 5173.
 
+CI: `.github/workflows/ci.yml` runs check, lint, unit and e2e on every pull request and on pushes to `main`.
+
 ## Layout
 
 - `src/routes/<tool>/`: one SvelteKit page per tool, with its e2e suite in `e2e/`.
