@@ -10,7 +10,7 @@ You're a toolmaker. Follow this guide for any tool creation.
 ## Quick Start
 
 1. Create the route: `src/routes/[tool-name]/+page.svelte`
-2. Add to homepage routes array in `src/routes/+page.svelte`
+2. Register it in the `routes` array in `src/lib/routes.ts` (enforced by `src/lib/routes.spec.ts`)
 3. Implement using the patterns below
 
 **Package manager**: use **pnpm** for all commands (`pnpm install`, `pnpm run dev`, `pnpm test`, etc.). Do not use npm. The repo tracks `pnpm-lock.yaml` (not `package-lock.json`); node version is pinned in `.nvmrc`.
@@ -19,13 +19,13 @@ You're a toolmaker. Follow this guide for any tool creation.
 
 ## Project Overview
 
-| Aspect     | Technology                                   |
-| ---------- | -------------------------------------------- |
-| Framework  | SvelteKit with Svelte 5 (Runes mode)         |
-| Styling    | Tailwind CSS v4 + custom CSS in `shared.css` |
-| Language   | TypeScript (strict mode)                     |
-| Testing    | Vitest (unit), Playwright (E2E)              |
-| Deployment | Cloudflare Workers                           |
+| Aspect     | Technology                                                            |
+| ---------- | --------------------------------------------------------------------- |
+| Framework  | SvelteKit with Svelte 5 (Runes mode)                                  |
+| Styling    | Custom CSS in `src/routes/shared.css` plus component `<style>` blocks |
+| Language   | TypeScript (strict mode)                                              |
+| Testing    | Vitest (unit), Playwright (E2E)                                       |
+| Deployment | Cloudflare Workers                                                    |
 
 ---
 
@@ -43,10 +43,10 @@ src/routes/my-tool/+page.svelte
 
 ### 2. Add to Homepage
 
-Update `src/routes/+page.svelte` routes array:
+Register the tool in the `routes` array in `src/lib/routes.ts`. The index page is generated from it and `src/lib/routes.spec.ts` fails when a route directory is not registered:
 
 ```typescript
-const routes = [
+export const routes: ToolRoute[] = [
 	// ... existing routes
 	{
 		path: '/my-tool',
@@ -153,7 +153,7 @@ After the tool is implemented and working:
 ## Final Checklist
 
 - [ ] Created route file at `src/routes/[tool-name]/+page.svelte`
-- [ ] Added tool to homepage routes array
+- [ ] Registered the tool in the `routes` array in `src/lib/routes.ts` (`src/lib/routes.spec.ts` passes)
 - [ ] Uses Svelte 5 runes (`$state`, `$derived`, `$effect`)
 - [ ] Imports `shared.css` via layout (automatic)
 - [ ] Uses existing CSS classes from shared.css

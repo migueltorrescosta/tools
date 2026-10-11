@@ -31,13 +31,14 @@ test('Volt - every filter shows exactly as many people as its button says', asyn
 	await open(page);
 	const labels = await page.locator('.bar-chart .bar-label').allTextContents();
 	// All + one per country present in the data + MEPs
-	expect(labels.length).toBe(summaryBars(computeStats(electedOfficials)).length);
+	const dataBars = summaryBars(computeStats(electedOfficials));
+	expect(labels.length).toBe(dataBars.length);
 
 	for (const raw of labels) {
 		const label = raw.trim().split(/\s+/).slice(1).join(' ');
 		const button = filterButton(page, label);
 		const expected = await buttonCount(page, label);
-		expect(expected, `${label} should have at least one person`).toBeGreaterThan(0);
+		expect(expected, `${label} button count`).toBe(dataBars.find((b) => b.label === label)?.count);
 
 		await button.click();
 		await expect(button).toHaveClass(/active/);
@@ -77,7 +78,8 @@ test('Volt - every gantt bar links externally over http(s)', async ({ page }) =>
 			rel: a.getAttribute('rel') ?? ''
 		}))
 	);
-	expect(attrs.length).toBeGreaterThan(0);
+	// One link per bundled row, group placeholders included
+	expect(attrs.length).toBe(electedOfficials.length);
 	for (const a of attrs) {
 		expect(a.href).toMatch(/^https?:\/\//);
 		expect(a.target).toBe('_blank');

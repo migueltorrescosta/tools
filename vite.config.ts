@@ -1,10 +1,9 @@
 import { defineConfig } from 'vitest/config';
-import tailwindcss from '@tailwindcss/vite';
 import { playwright } from '@vitest/browser-playwright';
 import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit()],
+	plugins: [sveltekit()],
 	server: {
 		allowedHosts: ['aurora.seagull-dominant.ts.net']
 	},

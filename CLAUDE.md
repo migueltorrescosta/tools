@@ -20,7 +20,7 @@ pnpm test:e2e
 ## Structure
 
 - `src/routes/` — SvelteKit pages (format, verb-conjugator, warhammer-simulator, split, wordle, decision-tree, timelines, rank-vote, jwt, volt, volt-ga, cipher, company-trends)
-- `src/lib/` — shared libraries and utilities
+- `src/lib/` — tool logic lives in `src/lib/<tool>/` or `src/lib/<tool>.ts`; a route may keep route-only helpers in `src/routes/<tool>/lib/`; specs sit next to the module they test. Bundled data is in `src/lib/data/`.
 - `static/` — static assets
 
 ## Conventions

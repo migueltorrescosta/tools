@@ -75,7 +75,7 @@ export const routes: ToolRoute[] = [
 		path: '/company-trends',
 		name: 'Company Trends',
 		description:
-			'Animated log-log trajectories of revenue vs operating expenses for 30+ companies since 2000, normalized to EUR with per-point sources.'
+			'Animated log-log trajectories of revenue vs operating margin for 43 companies since 2000, normalized to EUR with per-point sources.'
 	},
 	{
 		path: '/warhammer-simulator',

@@ -19,13 +19,6 @@ export function getToHitTarget(attackerWS: number, defenderWS: number): number {
 	return 4;
 }
 
-// Returns a human-readable label for the WS comparison.
-export function getWSComparisonLabel(attackerWS: number, defenderWS: number): string {
-	if (attackerWS > defenderWS) return 'WS higher (3+)';
-	if (defenderWS > attackerWS * 2) return 'Target WS more than double (5+)';
-	return 'WS equal or lower (4+)';
-}
-
 // ── Strength vs Toughness Wound Table ──
 // Returns the minimum D6 roll needed to wound, per The Old World chart, which
 // depends only on the difference S - T:
