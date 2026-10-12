@@ -146,8 +146,3 @@ export const PRESET_CHARACTERS: CharacterPreset[] = [
 		description: 'A cruel Dark Elf Dreadlord with twin blades and murderous skill.'
 	}
 ];
-
-/** Get a character preset by name. */
-export function getPresetByName(name: string): CharacterPreset | undefined {
-	return PRESET_CHARACTERS.find((p) => p.name === name);
-}

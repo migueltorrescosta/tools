@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import euElections from '../data/events/eu-elections.json' with { type: 'json' };
 
 test('Timelines - loads with dynamic imports', async ({ page }) => {
 	await page.goto('/timelines');
@@ -21,12 +22,14 @@ test('Timelines - switch between timelines', async ({ page }) => {
 	await expect(firstTitle).toBeVisible({ timeout: 10000 });
 	// Titles can repeat across years (e.g. two Finland presidential elections), so count
 	// every card with that title instead of requiring a unique match.
+	const title = (await firstTitle.textContent()) ?? '';
 	const electionTitles = page.locator('.event-card .event-title').filter({
-		hasText: new RegExp(
-			`^${((await firstTitle.textContent()) ?? '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`
-		)
+		hasText: new RegExp(`^${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`)
 	});
-	expect(await electionTitles.count()).toBeGreaterThan(0);
+	// One card per bundled event with that title, no more and no fewer.
+	const expectedCards = euElections.filter((e) => e.title === title).length;
+	expect(expectedCards).toBeGreaterThanOrEqual(1);
+	await expect(electionTitles).toHaveCount(expectedCards);
 
 	await page.selectOption('.timeline-select', 'eu-key-events');
 

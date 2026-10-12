@@ -25,20 +25,6 @@
 	"typescript.preferences.importModuleSpecifierEnding": "js",
 	"typescript.suggest.autoImports": true,
 
-	// ── Tailwind CSS LSP ─────────────────────────────────────
-	"tailwindCSS.experimental.classRegex": [
-		["class:([^=]+)=\"{[^}]*}\"", "$1"],
-		["class:([^=]+)=\"[^\"]*\"", "$1"]
-	],
-	"tailwindCSS.includeLanguages": {
-		"svelte": "html"
-	},
-
-	// ── Files ────────────────────────────────────────────────
-	"files.associations": {
-		"*.svx": "markdown"
-	},
-
 	// ── Search ───────────────────────────────────────────────
 	"search.exclude": {
 		".svelte-kit": true,

@@ -37,11 +37,5 @@
 			"model": "opencode/big-pickle",
 			"steps": 10
 		}
-	},
-	"lsp": {
-		"tailwindcss": {
-			"command": ["tailwindcss-language-server", "--stdio"],
-			"extensions": [".svelte", ".css", ".html"]
-		}
 	}
 }
