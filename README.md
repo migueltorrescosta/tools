@@ -61,4 +61,4 @@ pnpm run preview   # builds, then serves the Worker locally with wrangler
 pnpm run deploy    # builds and runs wrangler deploy
 ```
 
-`wrangler.jsonc` holds the Worker configuration. `pnpm run gen` regenerates the Cloudflare binding types.
+`wrangler.jsonc` holds the Worker configuration. No route reads `platform`, so `App.Platform` in `src/app.d.ts` is left empty; the comment there says how to type bindings when one is needed. `pnpm run gen` writes the git-ignored `worker-configuration.d.ts` for reference only: the type check does not read it.
