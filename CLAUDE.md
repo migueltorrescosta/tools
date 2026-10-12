@@ -15,6 +15,7 @@ pnpm test:e2e
 
 - `check` runs svelte-check (TypeScript type checking, strict mode).
 - `lint` runs Prettier and ESLint.
+- CI (`.github/workflows/ci.yml`) runs these four on every pull request, plus `pnpm run build` for the Worker bundle. Its final `ci` job is the single check the ruleset requires. CI does not deploy.
 - `test:e2e` runs Playwright against `pnpm dev` on port 5173. Every route has a suite in `src/routes/<route>/e2e/`; the index has one in `src/routes/e2e/`. Set `CI=1` so Playwright starts its own server instead of reusing whatever already listens on 5173.
 
 ## Structure
