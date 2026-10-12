@@ -1,13 +1,21 @@
 name: CI
 
+# Checks only. Cloudflare Workers Builds deploys main on its own.
 on:
-  push:
-    branches: [main]
   pull_request:
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   gates:
+    name: Gates
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -22,8 +30,25 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Chromium
+      - name: Read the Playwright version
+        id: playwright
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the Chromium download
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      - name: Install Chromium and its system packages
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps chromium
+
+      # The browser comes from the cache; the system packages do not.
+      - name: Install Chromium system packages
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
 
       - name: Type check
         run: pnpm run check
@@ -33,6 +58,9 @@ jobs:
 
       - name: Unit tests
         run: pnpm test:unit
+
+      - name: Build the Worker bundle
+        run: pnpm run build
 
       - name: E2E tests
         run: CI=1 pnpm test:e2e
@@ -46,3 +74,15 @@ jobs:
             playwright-report/
             test-results/
           if-no-files-found: ignore
+
+  ci:
+    name: ci
+    if: always()
+    needs: [gates]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every job to have succeeded
+        run: |
+          echo '${{ toJSON(needs) }}'
+          [ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}" = "false" ]
