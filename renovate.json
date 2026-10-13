@@ -1,7 +1,6 @@
 {
 	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
 	"extends": ["config:recommended", "group:all", "schedule:monthly"],
-	"vulnerabilityAlerts": { "enabled": false },
 	"osvVulnerabilityAlerts": false,
 	"prConcurrentLimit": 1,
 	"dependencyDashboard": false
