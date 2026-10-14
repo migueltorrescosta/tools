@@ -26,7 +26,7 @@ pnpm test:e2e
 
 ## Conventions
 
-- Issue tracking: `bd` (beads). Run from `~/Git`.
+- Work tracking: GitHub issues on the Epics project (https://github.com/users/migueltorrescosta/projects/3). An issue never results in more than one PR; each PR closes its issue with a closing keyword (`Closes migueltorrescosta/tools#N`).
 - Package manager: **pnpm** only. Never use npm. The repo tracks `pnpm-lock.yaml`.
 - Node version pinned in `.nvmrc`.
 - No D3 for new visualizations: hand-rolled SVG with Svelte 5 declarative rendering.
