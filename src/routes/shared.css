@@ -97,6 +97,15 @@ h1 {
 	letter-spacing: 0.1em;
 }
 
+.subtitle a {
+	color: var(--futuristic-cyan);
+	text-decoration: none;
+}
+
+.subtitle a:hover {
+	text-decoration: underline;
+}
+
 .section-header {
 	display: flex;
 	align-items: center;
