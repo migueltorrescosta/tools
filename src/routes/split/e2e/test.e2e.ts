@@ -36,6 +36,14 @@ function signedAmount(text: string): number {
 	return 0;
 }
 
+test('Asset Splitting - links to the blog post it started as', async ({ page }) => {
+	await open(page);
+	await expect(page.getByRole('link', { name: 'First written up on the blog' })).toHaveAttribute(
+		'href',
+		'https://blog.mptc.uk/posts/Asset-Division'
+	);
+});
+
 test('Asset Splitting - full algorithm flow', async ({ page }) => {
 	const errors = trackErrors(page);
 	await open(page);

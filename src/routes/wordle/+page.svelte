@@ -115,6 +115,11 @@
 	<header>
 		<h1>WORDLE SOLVER</h1>
 		<p class="subtitle">Click tiles to set result colors (Black/Yellow/Green)</p>
+		<p class="subtitle">
+			<a href="https://blog.mptc.uk/posts/Wordle" target="_blank" rel="noreferrer"
+				>First written up on the blog</a
+			>
+		</p>
 	</header>
 
 	<div class="wordle-panel" data-hydrated={hydrated || undefined}>

@@ -167,6 +167,11 @@
 	<header>
 		<h1>ASSET SPLITTING</h1>
 		<p class="subtitle">Fair Division Tool</p>
+		<p class="subtitle">
+			<a href="https://blog.mptc.uk/posts/Asset-Division" target="_blank" rel="noreferrer"
+				>First written up on the blog</a
+			>
+		</p>
 	</header>
 
 	{#if !initialized}
