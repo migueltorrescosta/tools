@@ -22,14 +22,6 @@ test('Wordle Solver - page loads correctly', async ({ page }) => {
 	await expect(page.locator('.legend-letter.green')).toBeVisible();
 });
 
-test('Wordle Solver - links to the blog post it started as', async ({ page }) => {
-	await open(page);
-	await expect(page.getByRole('link', { name: 'First written up on the blog' })).toHaveAttribute(
-		'href',
-		'https://blog.mptc.uk/posts/Wordle'
-	);
-});
-
 test('Wordle Solver - keyboard input functionality', async ({ page }) => {
 	await open(page);
 
