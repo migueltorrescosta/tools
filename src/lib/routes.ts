@@ -82,5 +82,11 @@ export const routes: ToolRoute[] = [
 		name: 'Warhammer Simulator',
 		description:
 			'Monte Carlo duel probability calculator for Warhammer: The Old World. Simulate character duels with dice-level resolution.'
+	},
+	{
+		path: '/symbolic-regression',
+		name: 'Symbolic Regression',
+		description:
+			'Fit compact, interpretable equations to a CSV in the browser. Genetic programming on Web Workers, with a Pareto front of accuracy against simplicity.'
 	}
 ];

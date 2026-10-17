@@ -19,6 +19,7 @@ A collection of small browser tools built with SvelteKit 2, Svelte 5 and TypeScr
 | `/decision-tree`       | Decision Tree           | Walk a question tree one answer at a time, with shareable paths.                  |
 | `/company-trends`      | Company Trends          | Animated log-log revenue vs operating margin for 43 companies since 2000, in EUR. |
 | `/warhammer-simulator` | Warhammer Simulator     | Monte Carlo duel odds for Warhammer: The Old World.                               |
+| `/symbolic-regression` | Symbolic Regression     | Fit interpretable equations to a CSV, with a Pareto front of accuracy vs size.    |
 
 The index page is generated from `src/lib/routes.ts`. Add new tools there.
 
