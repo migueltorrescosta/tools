@@ -1,0 +1,101 @@
+/*
+ * Design tokens. Every colour is a semantic token defined once with
+ * light-dark(); the theme only sets color-scheme on <html> (see src/app.html
+ * and src/lib/theme.svelte.ts). Text pairs are at least 4.5:1 and UI
+ * boundaries, focus rings and data colours at least 3:1 in both themes.
+ */
+:root {
+	color-scheme: light dark;
+
+	/* Surfaces */
+	--bg: light-dark(#f6f7f9, #111318);
+	--surface: light-dark(#ffffff, #1a1d23);
+	--surface-2: light-dark(#eef1f4, #22262d);
+	--sunken: light-dark(#ffffff, #0d0f13);
+
+	/* Text */
+	--text: light-dark(#1b1f24, #e6e8eb);
+	--text-muted: light-dark(#57606a, #9aa4b1);
+
+	/* Borders: --border is decorative, --border-strong outlines controls (3:1) */
+	--border: light-dark(#d0d7de, #353a43);
+	--border-strong: light-dark(#818b98, #6e7681);
+
+	/* Accent */
+	--accent: light-dark(#0e7490, #22d3ee);
+	--accent-hover: light-dark(#155e75, #67e8f9);
+	--on-accent: light-dark(#ffffff, #0b1215);
+	--accent-bg: light-dark(#e6f6f9, #0f262b);
+	--focus-ring: var(--accent);
+
+	/* Status: -text on -bg is at least 4.5:1 */
+	--success: light-dark(#1a7f37, #3fb950);
+	--success-text: light-dark(#116329, #3fb950);
+	--success-bg: light-dark(#dafbe1, #12261a);
+	--warning: light-dark(#9a6700, #d29922);
+	--warning-text: light-dark(#7d4e00, #d29922);
+	--warning-bg: light-dark(#fff8c5, #2a2110);
+	--danger: light-dark(#cf222e, #f85149);
+	--danger-text: light-dark(#a40e26, #f85149);
+	--danger-bg: light-dark(#ffebe9, #2d1517);
+	--info: var(--accent);
+	--info-text: var(--accent);
+	--info-bg: var(--accent-bg);
+
+	/* Categorical data palette: Okabe-Ito extended to 12, each at least 3:1
+	   against bg, surface and surface-2 in its theme. Use in order. */
+	--data-1: light-dark(#0072b2, #0f7ab7);
+	--data-2: light-dark(#af7900, #e69f00);
+	--data-3: light-dark(#00986e, #009e73);
+	--data-4: light-dark(#d55e00, #d55e00);
+	--data-5: light-dark(#438cb6, #56b4e9);
+	--data-6: light-dark(#b86d96, #cc79a7);
+	--data-7: light-dark(#8b8426, #f0e442);
+	--data-8: light-dark(#848484, #999999);
+	--data-9: light-dark(#882255, #a75b81);
+	--data-10: light-dark(#3a9284, #44aa99);
+	--data-11: light-dark(#117733, #298547);
+	--data-12: light-dark(#aa4499, #af4f9f);
+
+	/* Typography */
+	--font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif;
+	--font-mono:
+		ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+	--text-xs: 0.75rem;
+	--text-sm: 0.8125rem;
+	--text-md: 0.875rem;
+	--text-lg: 1rem;
+	--text-xl: 1.25rem;
+	--leading: 1.45;
+
+	/* Spacing: 4px grid */
+	--sp-0: 2px;
+	--sp-1: 4px;
+	--sp-2: 8px;
+	--sp-3: 12px;
+	--sp-4: 16px;
+	--sp-5: 24px;
+	--sp-6: 32px;
+
+	/* Controls */
+	--control-h: 32px;
+	--control-h-sm: 28px;
+	--radius: 6px;
+	--radius-sm: 4px;
+	--topbar-h: 44px;
+	--content-max: 1400px;
+}
+
+@media (pointer: coarse) {
+	:root {
+		--control-h: 40px;
+		--control-h-sm: 36px;
+	}
+}
+
+@media (prefers-contrast: more) {
+	:root {
+		--border: var(--border-strong);
+		--text-muted: var(--text);
+	}
+}

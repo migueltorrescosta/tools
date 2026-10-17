@@ -461,7 +461,7 @@
 		align-items: center;
 		gap: 0.5rem;
 		margin-top: 0.5rem;
-		font-family: 'Orbitron', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.85rem;
 		color: var(--futuristic-text-dim);
 		letter-spacing: 0.05em;
@@ -548,7 +548,7 @@
 	.line-translation {
 		text-align: right;
 		white-space: nowrap;
-		font-family: 'JetBrains Mono', 'Fira Code', monospace;
+		font-family: var(--font-mono);
 		font-size: 0.85rem;
 		color: var(--futuristic-text-dim);
 		padding: 0.15rem 0 0.15rem 0.75rem;
@@ -584,7 +584,7 @@
 
 	.line-person,
 	.line-conjugation {
-		font-family: 'JetBrains Mono', 'Fira Code', monospace;
+		font-family: var(--font-mono);
 		font-size: 0.85rem;
 		color: var(--futuristic-text);
 		font-weight: 500;
@@ -592,7 +592,7 @@
 	}
 
 	.line-blank {
-		font-family: 'JetBrains Mono', 'Fira Code', monospace;
+		font-family: var(--font-mono);
 		color: var(--futuristic-text-dim);
 		opacity: 0.5;
 		letter-spacing: 0.1em;
@@ -629,7 +629,7 @@
 		background: var(--futuristic-surface);
 		border: 1px solid var(--futuristic-border);
 		border-radius: 8px;
-		font-family: 'JetBrains Mono', 'Fira Code', monospace;
+		font-family: var(--font-mono);
 		font-size: 1rem;
 		color: var(--futuristic-text);
 		outline: none;
@@ -662,7 +662,7 @@
 		border: 1px solid var(--futuristic-cyan);
 		border-radius: 8px;
 		color: var(--futuristic-cyan);
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 1.2rem;
 		font-weight: 700;
 		cursor: pointer;
@@ -690,7 +690,7 @@
 	}
 
 	.completion-text {
-		font-family: 'Orbitron', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 1.3rem;
 		color: var(--futuristic-cyan);
 		margin: 0 0 1.5rem;
@@ -738,13 +738,13 @@
 
 	.history-table .hist-meaning {
 		text-align: right;
-		font-family: 'JetBrains Mono', 'Fira Code', monospace;
+		font-family: var(--font-mono);
 		font-size: 0.8rem;
 		color: var(--futuristic-text-dim);
 	}
 
 	.hist-answer {
-		font-family: 'JetBrains Mono', 'Fira Code', monospace;
+		font-family: var(--font-mono);
 		font-size: 0.85rem;
 	}
 

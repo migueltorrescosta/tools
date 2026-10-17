@@ -134,7 +134,7 @@
 		border: 1px solid var(--futuristic-border);
 		border-radius: 8px;
 		padding: 0.75rem;
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 1rem;
 		color: var(--futuristic-text);
 		outline: none;
@@ -161,7 +161,7 @@
 
 	.timeline-description {
 		margin-top: 0.75rem;
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.9rem;
 		color: var(--futuristic-text-dim);
 	}
@@ -178,7 +178,7 @@
 		align-items: center;
 		justify-content: center;
 		height: 200px;
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 1rem;
 		color: var(--futuristic-text-dim);
 	}
@@ -189,7 +189,7 @@
 		justify-content: center;
 		gap: 0.75rem;
 		height: 200px;
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 1rem;
 		color: var(--futuristic-text-dim);
 	}
@@ -200,7 +200,7 @@
 		justify-content: center;
 		gap: 0.75rem;
 		height: 200px;
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 1rem;
 		color: var(--futuristic-magenta);
 	}

@@ -1,0 +1,73 @@
+/* Layout and visibility helpers shared by every route. */
+.container {
+	width: 100%;
+	max-width: var(--content-max);
+	margin: 0 auto;
+	padding: var(--sp-3) var(--sp-4);
+	flex: 1;
+}
+
+/* Visible to screen readers only. */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* Vertical rhythm: children separated by --gap. */
+.stack {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap, var(--sp-3));
+}
+
+/* Horizontal group that wraps: toolbars, chips, button rows. */
+.cluster {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--gap, var(--sp-2));
+}
+
+/* Inputs beside outputs on wide screens, stacked on narrow ones. */
+.split-view {
+	display: grid;
+	gap: var(--sp-3);
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+}
+
+/* Text inputs, selects and textareas. Field and Select apply it; routes may too. */
+.control {
+	width: 100%;
+	min-height: var(--control-h);
+	padding: var(--sp-1) var(--sp-2);
+	background: var(--sunken);
+	color: var(--text);
+	border: 1px solid var(--border-strong);
+	border-radius: var(--radius);
+}
+
+.control::placeholder {
+	color: var(--text-muted);
+}
+
+.control[aria-invalid='true'] {
+	border-color: var(--danger);
+}
+
+textarea.control {
+	font-family: var(--font-mono);
+	font-size: var(--text-sm);
+	resize: vertical;
+}
+
+.control:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}

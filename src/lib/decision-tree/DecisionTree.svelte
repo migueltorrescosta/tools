@@ -147,7 +147,7 @@
 		border: 1px solid var(--futuristic-border);
 		border-radius: 6px;
 		color: var(--futuristic-text-dim);
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.85rem;
 		font-weight: 500;
 		cursor: pointer;
@@ -278,7 +278,7 @@
 		border: 1px solid var(--futuristic-border);
 		border-radius: 6px;
 		color: var(--futuristic-text-dim);
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.8rem;
 		cursor: pointer;
 	}

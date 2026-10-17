@@ -187,7 +187,7 @@
 	.label {
 		fill: var(--futuristic-text-dim);
 		font-size: 11px;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: var(--font-mono);
 	}
 	.ref {
 		stroke: var(--futuristic-magenta);
