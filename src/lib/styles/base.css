@@ -110,3 +110,29 @@ table {
 		scroll-behavior: auto !important;
 	}
 }
+
+/* Collapsible help: <details class="how"><summary>How it works</summary>…</details> */
+details.how {
+	margin-top: var(--sp-4);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: var(--surface);
+}
+
+details.how > summary {
+	min-height: var(--control-h);
+	padding: var(--sp-1) var(--sp-3);
+	display: flex;
+	align-items: center;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+details.how[open] > summary {
+	border-bottom: 1px solid var(--border);
+}
+
+details.how > :not(summary) {
+	margin: var(--sp-3);
+	color: var(--text-muted);
+}
