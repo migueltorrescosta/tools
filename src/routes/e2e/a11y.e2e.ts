@@ -10,7 +10,11 @@ const MIGRATED = [
 	'/wordle',
 	'/split',
 	'/decision-tree',
-	'/symbolic-regression'
+	'/symbolic-regression',
+	'/rank-vote',
+	'/verb-conjugator',
+	'/warhammer-simulator',
+	'/timelines'
 ];
 const WCAG_22_AA = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
