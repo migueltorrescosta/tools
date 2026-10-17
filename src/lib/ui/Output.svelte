@@ -34,7 +34,7 @@
 		{/if}
 	{/snippet}
 	<output aria-live="polite" aria-label={label}>
-		{#if value}<pre>{value}</pre>{:else}<span class="placeholder">{placeholder}</span>{/if}
+		{#if value}<pre>{value}</pre>{:else}<span class="ui-placeholder">{placeholder}</span>{/if}
 	</output>
 </Panel>
 
@@ -49,7 +49,7 @@
 		word-break: break-all;
 	}
 
-	.placeholder {
+	.ui-placeholder {
 		color: var(--text-muted);
 	}
 </style>

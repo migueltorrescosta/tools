@@ -24,7 +24,7 @@
 	} = $props();
 </script>
 
-<div class="table-wrap">
+<div class="ui-table-wrap">
 	<table>
 		<caption class:sr-only={hideCaption}>{caption}</caption>
 		<thead>
@@ -49,7 +49,7 @@
 </div>
 
 <style>
-	.table-wrap {
+	.ui-table-wrap {
 		overflow-x: auto;
 		border: 1px solid var(--border);
 		border-radius: var(--radius);

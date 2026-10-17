@@ -2,7 +2,16 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
 // Routes on the shared UI (epic migueltorrescosta/tools#20). Each migration batch adds its routes.
-const MIGRATED = ['/'];
+const MIGRATED = [
+	'/',
+	'/jwt',
+	'/format',
+	'/cipher',
+	'/wordle',
+	'/split',
+	'/decision-tree',
+	'/symbolic-regression'
+];
 const WCAG_22_AA = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
 for (const colorScheme of ['light', 'dark'] as const) {

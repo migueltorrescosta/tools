@@ -24,20 +24,20 @@
 </script>
 
 {#if rest.href !== undefined}
-	<a class="btn {variant} {size} {className}" {...rest as HTMLAnchorAttributes}
+	<a class="ui-btn {variant} {size} {className}" {...rest as HTMLAnchorAttributes}
 		>{@render children()}</a
 	>
 {:else}
 	<button
 		type="button"
-		class="btn {variant} {size} {className}"
+		class="ui-btn {variant} {size} {className}"
 		aria-pressed={pressed}
 		{...rest as HTMLButtonAttributes}>{@render children()}</button
 	>
 {/if}
 
 <style>
-	.btn {
+	.ui-btn {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -54,13 +54,13 @@
 		cursor: pointer;
 	}
 
-	.btn.sm {
+	.ui-btn.sm {
 		min-height: var(--control-h-sm);
 		padding: 0 var(--sp-2);
 		font-size: var(--text-sm);
 	}
 
-	.btn:hover:not(:disabled) {
+	.ui-btn:hover:not(:disabled) {
 		background: var(--surface-2);
 		color: var(--text);
 	}
@@ -92,14 +92,14 @@
 		color: var(--danger-text);
 	}
 
-	.btn[aria-pressed='true'] {
+	.ui-btn[aria-pressed='true'] {
 		background: var(--accent-bg);
 		border-color: var(--accent);
 		color: var(--accent);
 		box-shadow: inset 0 -2px 0 var(--accent);
 	}
 
-	.btn:disabled {
+	.ui-btn:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
 	}

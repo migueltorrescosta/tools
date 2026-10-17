@@ -14,13 +14,13 @@
 	const icons = { info: 'ℹ', success: '✓', warning: '!', danger: '✕' } as const;
 </script>
 
-<div class="alert {tone}" role={tone === 'danger' ? 'alert' : 'status'}>
-	<span class="icon" aria-hidden="true">{icons[tone]}</span>
+<div class="ui-alert {tone}" role={tone === 'danger' ? 'alert' : 'status'}>
+	<span class="ui-icon" aria-hidden="true">{icons[tone]}</span>
 	<div>{@render children()}</div>
 </div>
 
 <style>
-	.alert {
+	.ui-alert {
 		display: flex;
 		align-items: flex-start;
 		gap: var(--sp-2);
@@ -29,7 +29,7 @@
 		border-radius: var(--radius);
 	}
 
-	.icon {
+	.ui-icon {
 		font-weight: 700;
 		min-width: 1ch;
 	}

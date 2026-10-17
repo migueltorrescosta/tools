@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { copyToClipboard } from '$lib/clipboard';
+	import { Alert, Button, Field, PageHeader, Panel, Select } from '$lib/ui';
 	import {
 		ALGORITHMS,
 		decrypt as decryptWith,
@@ -34,9 +35,9 @@
 	type OutputPanel = 'encrypted' | 'decrypted';
 	type CopyStatus = 'idle' | 'copied' | 'failed';
 	const COPY_LABEL: Record<CopyStatus, string> = {
-		idle: 'COPY',
-		copied: 'COPIED',
-		failed: 'COPY FAILED'
+		idle: 'Copy',
+		copied: 'Copied',
+		failed: 'Copy failed'
 	};
 	const COPY_FEEDBACK_MS = 1500;
 	let copyStatus = $state<Record<OutputPanel, CopyStatus>>({
@@ -49,7 +50,7 @@
 	const canCopyEncrypted = $derived(!encryptionError && encryptedText !== '');
 	const canCopyDecrypted = $derived(!decryptionError && decryptedText !== '');
 
-	const algorithms = ALGORITHMS;
+	const algorithms = ALGORITHMS.map((alg) => ({ value: alg, label: alg }));
 
 	async function encrypt(text: string, algorithm: Algorithm, key: string): Promise<string> {
 		if (!text) {
@@ -154,238 +155,196 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Encrypter/Decrypter</title>
-</svelte:head>
-
 <div class="container" data-hydrated={hydrated || undefined}>
-	<header>
-		<h1>ENCRYPTER/DECRYPTER</h1>
-		<p class="subtitle">Encrypt & Decrypt Messages</p>
-	</header>
+	<PageHeader path="/cipher" />
 
-	<div class="algorithm-row">
-		<div class="algorithm-section">
-			<div class="section-header">
-				<span class="label">ALGORITHM</span>
-			</div>
-			<select class="algorithm-select" bind:value={selectedAlgorithm} onchange={clearOutputs}>
-				{#each algorithms as alg (alg)}
-					<option value={alg}>{alg}</option>
-				{/each}
-			</select>
-		</div>
-	</div>
+	<div class="split-view">
+		<Panel title="Input">
+			<div class="stack">
+				<div class="algorithm">
+					<Select
+						label="Algorithm"
+						options={algorithms}
+						bind:value={selectedAlgorithm}
+						onchange={clearOutputs}
+					/>
+				</div>
 
-	{#if kind === 'keypair'}
-		<div class="generate-keys-container">
-			<button class="generate-keys-btn" onclick={generateRsaKeys}>
-				<span class="btn-text">GENERATE KEY PAIR</span>
-				<span class="btn-glow"></span>
-			</button>
-		</div>
-
-		<p class="key-note">
-			Encrypt uses the public key; decrypt needs the matching private key. Save the private key:
-			without it the ciphertext cannot be recovered. A 2048-bit key encrypts at most 190 bytes of
-			UTF-8 text.
-		</p>
-		{#if rsaKeyError}
-			<div class="error">{rsaKeyError}</div>
-		{/if}
-
-		<div class="key-row">
-			<div class="key-input-group">
-				<label class="input-label" for="public-key">PUBLIC KEY (PEM, ENCRYPTS)</label>
-				<textarea
-					id="public-key"
-					class="key-input pem-input"
-					bind:value={publicKeyPem}
-					placeholder="-----BEGIN PUBLIC KEY-----"
-					spellcheck="false"
-				></textarea>
-			</div>
-			<div class="key-input-group">
-				<label class="input-label" for="private-key">PRIVATE KEY (PEM, DECRYPTS)</label>
-				<textarea
-					id="private-key"
-					class="key-input pem-input"
-					bind:value={privateKeyPem}
-					placeholder="-----BEGIN PRIVATE KEY-----"
-					spellcheck="false"
-				></textarea>
-			</div>
-		</div>
-	{:else if kind === 'passphrase'}
-		<div class="generate-keys-container">
-			<button class="generate-keys-btn" onclick={generateExampleKeys}>
-				<span class="btn-text">GENERATE RANDOM KEYS</span>
-				<span class="btn-glow"></span>
-			</button>
-		</div>
-
-		<div class="key-row">
-			<div class="key-input-group">
-				<label class="input-label" for="encryption-key">ENCRYPTION KEY</label>
-				<input
-					id="encryption-key"
-					type="text"
-					class="key-input"
-					bind:value={encryptionKey}
-					placeholder="Enter encryption key"
-				/>
-			</div>
-			<div class="key-input-group">
-				<label class="input-label" for="decryption-key">DECRYPTION KEY</label>
-				<input
-					id="decryption-key"
-					type="text"
-					class="key-input"
-					bind:value={decryptionKey}
-					placeholder="Enter decryption key"
-				/>
-			</div>
-		</div>
-	{:else}
-		<p class="key-note">{selectedAlgorithm} is an encoding, not encryption: it needs no key.</p>
-	{/if}
-
-	<div class="process-btn-container">
-		<div class="btn-row">
-			<button class="process-btn" onclick={encryptText}>
-				<span class="btn-text">ENCRYPT</span>
-				<span class="btn-glow"></span>
-			</button>
-			<button class="process-btn" onclick={decryptText}>
-				<span class="btn-text">DECRYPT</span>
-				<span class="btn-glow"></span>
-			</button>
-		</div>
-	</div>
-
-	<div class="panels">
-		<div class="panel">
-			<div class="panel-header">
-				<span class="dot red"></span>
-				<span class="dot yellow"></span>
-				<span class="dot green"></span>
-				<span class="panel-title">DECRYPTED</span>
-				<button
-					class="copy-btn"
-					class:copy-failed={copyStatus.decrypted === 'failed'}
-					disabled={!canCopyDecrypted}
-					onclick={() => copyOutput('decrypted', decryptedText)}
-					>{COPY_LABEL[copyStatus.decrypted]}</button
-				>
-			</div>
-			<div class="panel-content">
-				{#if decryptionError}
-					<div class="error">{decryptionError}</div>
+				{#if kind === 'keypair'}
+					<div class="keys">
+						<Field label="Public key (PEM, encrypts)">
+							{#snippet children(props)}
+								<textarea
+									class="control pem"
+									{...props}
+									bind:value={publicKeyPem}
+									placeholder="-----BEGIN PUBLIC KEY-----"
+									spellcheck="false"
+								></textarea>
+							{/snippet}
+						</Field>
+						<Field label="Private key (PEM, decrypts)">
+							{#snippet children(props)}
+								<textarea
+									class="control pem"
+									{...props}
+									bind:value={privateKeyPem}
+									placeholder="-----BEGIN PRIVATE KEY-----"
+									spellcheck="false"
+								></textarea>
+							{/snippet}
+						</Field>
+					</div>
+					<p class="note">
+						Encrypt uses the public key; decrypt needs the matching private key. Save the private
+						key: without it the ciphertext cannot be recovered. A 2048-bit key encrypts at most 190
+						bytes of UTF-8 text.
+					</p>
+					{#if rsaKeyError}
+						<Alert tone="danger">{rsaKeyError}</Alert>
+					{/if}
+					<div class="cluster">
+						<Button size="sm" onclick={generateRsaKeys}>Generate key pair</Button>
+					</div>
+				{:else if kind === 'passphrase'}
+					<div class="keys">
+						<Field label="Encryption key">
+							{#snippet children(props)}
+								<input
+									class="control"
+									type="text"
+									{...props}
+									bind:value={encryptionKey}
+									placeholder="Enter encryption key"
+								/>
+							{/snippet}
+						</Field>
+						<Field label="Decryption key">
+							{#snippet children(props)}
+								<input
+									class="control"
+									type="text"
+									{...props}
+									bind:value={decryptionKey}
+									placeholder="Enter decryption key"
+								/>
+							{/snippet}
+						</Field>
+					</div>
+					<div class="cluster">
+						<Button size="sm" onclick={generateExampleKeys}>Generate random keys</Button>
+					</div>
 				{:else}
-					<textarea
-						class="panel-textarea"
-						bind:value={decryptedText}
-						placeholder="Decrypted message will appear here"
-						spellcheck="false"
-					></textarea>
+					<p class="note">{selectedAlgorithm} is an encoding, not encryption: it needs no key.</p>
 				{/if}
-			</div>
-		</div>
 
-		<div class="panel input-panel">
-			<div class="panel-header">
-				<span class="dot red"></span>
-				<span class="dot yellow"></span>
-				<span class="dot green"></span>
-				<span class="panel-title">INPUT</span>
-				<span class="panel-hint">ENCRYPT and DECRYPT both read this</span>
-			</div>
-			<div class="panel-content">
-				<textarea
-					class="panel-textarea"
-					bind:value={inputText}
-					placeholder="Plaintext to encrypt, or ciphertext to decrypt"
-					spellcheck="false"
-				></textarea>
-			</div>
-		</div>
+				<Field label="Text" hint="Encrypt and Decrypt both read this.">
+					{#snippet children(props)}
+						<textarea
+							class="control text"
+							{...props}
+							bind:value={inputText}
+							placeholder="Plaintext to encrypt, or ciphertext to decrypt"
+							spellcheck="false"
+						></textarea>
+					{/snippet}
+				</Field>
 
-		<div class="panel">
-			<div class="panel-header">
-				<span class="dot red"></span>
-				<span class="dot yellow"></span>
-				<span class="dot green"></span>
-				<span class="panel-title">ENCRYPTED</span>
-				<span class="panel-actions">
-					<button
-						class="copy-btn"
-						disabled={!canCopyEncrypted}
-						title="Copy the ciphertext into INPUT so DECRYPT can read it"
-						onclick={useEncryptedAsInput}>USE AS INPUT</button
-					>
-					<button
-						class="copy-btn"
-						class:copy-failed={copyStatus.encrypted === 'failed'}
-						disabled={!canCopyEncrypted}
-						onclick={() => copyOutput('encrypted', encryptedText)}
-						>{COPY_LABEL[copyStatus.encrypted]}</button
-					>
-				</span>
+				<div class="cluster">
+					<Button variant="primary" onclick={encryptText}>Encrypt</Button>
+					<Button onclick={decryptText}>Decrypt</Button>
+				</div>
 			</div>
-			<div class="panel-content">
-				{#if encryptionError}
-					<div class="error">{encryptionError}</div>
-				{:else}
-					<textarea
-						class="panel-textarea"
-						bind:value={encryptedText}
-						placeholder="Encrypted message will appear here"
-						spellcheck="false"
-					></textarea>
-				{/if}
+		</Panel>
+
+		<div class="stack">
+			<div data-testid="encrypted-panel">
+				<Panel title="Encrypted">
+					{#snippet actions()}
+						<Button
+							size="sm"
+							variant="ghost"
+							disabled={!canCopyEncrypted}
+							title="Copy the ciphertext into Text so Decrypt can read it"
+							onclick={useEncryptedAsInput}>Use as input</Button
+						>
+						<Button
+							size="sm"
+							variant={copyStatus.encrypted === 'failed' ? 'danger' : 'ghost'}
+							disabled={!canCopyEncrypted}
+							onclick={() => copyOutput('encrypted', encryptedText)}
+							>{COPY_LABEL[copyStatus.encrypted]}</Button
+						>
+					{/snippet}
+					{#if encryptionError}
+						<Alert tone="danger"><span data-testid="encrypted-error">{encryptionError}</span></Alert
+						>
+					{/if}
+					<output class="out" aria-live="polite" aria-label="Encrypted">{encryptedText}</output>
+					{#if !encryptedText && !encryptionError}
+						<p class="placeholder">Encrypted message will appear here</p>
+					{/if}
+				</Panel>
+			</div>
+
+			<div data-testid="decrypted-panel">
+				<Panel title="Decrypted">
+					{#snippet actions()}
+						<Button
+							size="sm"
+							variant={copyStatus.decrypted === 'failed' ? 'danger' : 'ghost'}
+							disabled={!canCopyDecrypted}
+							onclick={() => copyOutput('decrypted', decryptedText)}
+							>{COPY_LABEL[copyStatus.decrypted]}</Button
+						>
+					{/snippet}
+					{#if decryptionError}
+						<Alert tone="danger"><span data-testid="decrypted-error">{decryptionError}</span></Alert
+						>
+					{/if}
+					<output class="out" aria-live="polite" aria-label="Decrypted">{decryptedText}</output>
+					{#if !decryptedText && !decryptionError}
+						<p class="placeholder">Decrypted message will appear here</p>
+					{/if}
+				</Panel>
 			</div>
 		</div>
 	</div>
 </div>
 
 <style>
-	.pem-input {
-		height: 160px;
-		resize: vertical;
-		font-size: 0.75rem;
+	.algorithm {
+		max-width: 16rem;
+	}
+
+	.keys {
+		display: grid;
+		gap: var(--sp-3);
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+	}
+
+	.pem {
+		height: 9rem;
+		font-size: var(--text-xs);
 		white-space: pre;
 	}
 
-	.panel-actions {
-		margin-left: auto;
-		display: flex;
-		gap: 0.5rem;
+	.text {
+		min-height: 6rem;
 	}
 
-	.panel-actions .copy-btn {
-		margin-left: 0;
+	.note,
+	.placeholder {
+		margin: 0;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
 	}
 
-	.panel-hint {
-		margin-left: auto;
-		font-size: 0.7rem;
-		color: var(--futuristic-text-dim);
-	}
-
-	.copy-btn:disabled {
-		opacity: 0.4;
-		cursor: not-allowed;
-		pointer-events: none;
-	}
-
-	.copy-btn.copy-failed {
-		border-color: #ff7777;
-		color: #ff7777;
-	}
-
-	.key-note {
-		margin: 0 0 1rem;
-		font-size: 0.85rem;
-		color: var(--futuristic-text-dim);
+	.out {
+		display: block;
+		font-family: var(--font-mono);
+		font-size: var(--text-sm);
+		white-space: pre-wrap;
+		word-break: break-all;
 	}
 </style>

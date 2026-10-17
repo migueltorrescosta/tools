@@ -16,9 +16,9 @@
 	} = $props();
 </script>
 
-<fieldset class="segmented">
+<fieldset class="ui-segmented">
 	<legend class:sr-only={hideLegend}>{legend}</legend>
-	<div class="options">
+	<div class="ui-options">
 		{#each options as option (option.value)}
 			<label class:checked={value === option.value}>
 				<input type="radio" {name} value={option.value} bind:group={value} />
@@ -29,7 +29,7 @@
 </fieldset>
 
 <style>
-	.segmented {
+	.ui-segmented {
 		border: 0;
 		margin: 0;
 		padding: 0;
@@ -43,7 +43,7 @@
 		font-weight: 500;
 	}
 
-	.options {
+	.ui-options {
 		display: inline-flex;
 		flex-wrap: wrap;
 		border: 1px solid var(--border-strong);

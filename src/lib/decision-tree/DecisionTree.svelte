@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { tick } from 'svelte';
+	import { Button } from '$lib/ui';
 	import { computeRows, selectAnswer } from './graph';
 	import type { DecisionGraph, TraversalPath } from './types';
 
@@ -48,33 +49,36 @@
 <div class="decision-tree-rows" bind:this={container}>
 	{#each rows as row (row.index)}
 		{#if row.type === 'question'}
-			<div class="question-row">
-				<div class="question-prompt">{row.node.prompt}</div>
-			</div>
+			<h2 class="question-prompt" id={`question-${row.index}`}>{row.node.prompt}</h2>
 		{:else if row.type === 'answer'}
-			<div class="answer-row">
+			<div
+				class="answer-row"
+				role="group"
+				aria-labelledby={`question-${row.index - 1}`}
+				data-testid="answers"
+			>
 				{#each row.edges as edge, i (edge.id)}
 					{@const tipId = `explanation-${row.depth}-${i}`}
 					<div class="answer-item">
-						<button
+						<Button
 							class="answer-btn"
-							class:selected={edge.id === row.selectedEdgeId}
-							aria-pressed={edge.id === row.selectedEdgeId}
+							pressed={edge.id === row.selectedEdgeId}
 							aria-describedby={edge.explanation ? tipId : undefined}
 							onclick={() => choose(row.depth, edge.id)}
 						>
 							{edge.label}
-						</button>
+						</Button>
 						{#if edge.explanation}
-							<button
+							<Button
 								class="explain-btn"
+								variant="ghost"
 								aria-label={`Explain "${edge.label}"`}
 								aria-expanded={revealed.has(edge.id)}
 								aria-controls={tipId}
 								onclick={() => toggleExplanation(edge.id)}
 							>
 								?
-							</button>
+							</Button>
 							<span
 								id={tipId}
 								role="tooltip"
@@ -88,11 +92,9 @@
 				{/each}
 			</div>
 		{:else if row.type === 'result'}
-			<div class="result-row">
-				<div class="result-card">
-					<div class="result-icon">◆</div>
-					<div class="result-text">{row.node.result}</div>
-				</div>
+			<div class="result-card">
+				<span class="result-label">Result</span>
+				<span class="result-text" data-testid="result">{row.node.result}</span>
 			</div>
 		{/if}
 	{/each}
@@ -102,122 +104,68 @@
 
 {#if path.length > 0}
 	<div class="restart-row">
-		<button class="restart-btn" onclick={restart}>Start over</button>
+		<Button size="sm" onclick={restart}>Start over</Button>
 	</div>
 {/if}
 
 <style>
-	/* ── Rows ── */
 	.decision-tree-rows {
-		margin-bottom: 1.5rem;
-	}
-
-	.question-row {
-		padding: 0.5rem 0 0.25rem 0;
-		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--sp-2);
+		margin-bottom: var(--sp-4);
 	}
 
 	.question-prompt {
-		font-size: 1rem;
-		font-weight: 600;
-		color: var(--futuristic-text);
-		line-height: 1.4;
+		margin-top: var(--sp-2);
+		font-size: var(--text-lg);
+		text-align: center;
 	}
 
-	/* ── Answer row ── */
 	.answer-row {
 		display: flex;
 		flex-wrap: wrap;
 		justify-content: center;
-		gap: 0.4rem;
-		padding: 0.25rem 0 0.75rem 0;
+		gap: var(--sp-2);
 	}
 
-	/* ── Answer buttons ── */
 	.answer-item {
 		position: relative;
 		display: inline-flex;
 		align-items: stretch;
-		gap: 0.2rem;
+		gap: var(--sp-0);
 	}
 
-	.answer-btn {
-		padding: 0.45rem 1rem;
-		background: var(--futuristic-surface);
-		border: 1px solid var(--futuristic-border);
-		border-radius: 6px;
-		color: var(--futuristic-text-dim);
-		font-family: var(--font-sans);
-		font-size: 0.85rem;
-		font-weight: 500;
-		cursor: pointer;
-		transition: all 0.2s ease;
-		letter-spacing: 0.02em;
-		line-height: 1.3;
-		text-align: center;
-		user-select: none;
-		-webkit-tap-highlight-color: transparent;
+	.answer-item :global(.explain-btn) {
+		min-width: var(--control-h);
+		padding: 0 var(--sp-2);
+		color: var(--text-muted);
 	}
 
-	.answer-btn:hover {
-		border-color: var(--futuristic-cyan);
-		color: var(--futuristic-cyan);
-		background: rgba(0, 245, 255, 0.05);
+	.answer-item :global(.explain-btn[aria-expanded='true']) {
+		border-color: var(--accent);
+		color: var(--accent);
 	}
 
-	.answer-btn.selected {
-		background: rgba(0, 245, 255, 0.18);
-		border-color: var(--futuristic-cyan);
-		color: var(--futuristic-cyan);
-		box-shadow: 0 0 12px rgba(0, 245, 255, 0.2);
-	}
-
-	.answer-btn:active {
-		transform: scale(0.97);
-	}
-
-	.explain-btn {
-		padding: 0 0.5rem;
-		background: var(--futuristic-surface);
-		border: 1px solid var(--futuristic-border);
-		border-radius: 6px;
-		color: var(--futuristic-text-dim);
-		font-size: 0.75rem;
-		font-weight: 600;
-		cursor: pointer;
-	}
-
-	.explain-btn:hover,
-	.explain-btn[aria-expanded='true'] {
-		border-color: var(--futuristic-cyan);
-		color: var(--futuristic-cyan);
-	}
-
-	.answer-btn:focus-visible,
-	.explain-btn:focus-visible {
-		outline: 2px solid var(--futuristic-cyan);
-		outline-offset: 2px;
-	}
-
-	/* ── Explanation tooltip ── */
+	/* Explanation tooltip */
 	.explanation-tip {
 		display: none;
 		position: absolute;
-		top: calc(100% + 6px);
+		top: 100%;
+		margin-top: var(--sp-1);
 		left: 50%;
 		transform: translateX(-50%);
-		padding: 0.5rem 0.75rem;
-		background: #1e1e30;
-		border: 1px solid var(--futuristic-border);
-		border-radius: 6px;
-		font-size: 0.75rem;
-		font-weight: 400;
-		color: var(--futuristic-text-dim);
 		z-index: 20;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-		line-height: 1.4;
 		width: max-content;
 		max-width: 280px;
+		padding: var(--sp-2) var(--sp-3);
+		background: var(--surface);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius);
+		color: var(--text);
+		font-size: var(--text-sm);
+		font-weight: 400;
 		white-space: normal;
 	}
 
@@ -229,103 +177,37 @@
 		}
 	}
 
-	.answer-item:has(.answer-btn:focus-visible) .explanation-tip,
+	.answer-item:has(:global(.answer-btn:focus-visible)) .explanation-tip,
 	.explanation-tip.visible {
 		display: block;
 	}
 
-	/* ── Result row ── */
-	.result-row {
-		padding: 0.75rem 0 0.25rem 0;
-	}
-
 	.result-card {
 		display: flex;
-		align-items: center;
+		flex-wrap: wrap;
+		align-items: baseline;
 		justify-content: center;
-		gap: 0.75rem;
-		padding: 1rem 1.25rem;
-		background: rgba(0, 245, 255, 0.06);
-		border: 1px solid var(--futuristic-cyan);
-		border-radius: 10px;
-		box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);
+		gap: var(--sp-1) var(--sp-3);
+		margin-top: var(--sp-2);
+		padding: var(--sp-3) var(--sp-4);
+		background: var(--accent-bg);
+		border: 1px solid var(--accent);
+		border-radius: var(--radius);
 	}
 
-	.result-icon {
-		font-size: 1.25rem;
-		color: var(--futuristic-cyan);
-		flex-shrink: 0;
+	.result-label {
+		font-size: var(--text-sm);
+		color: var(--text-muted);
 	}
 
 	.result-text {
-		font-size: 1rem;
+		font-size: var(--text-lg);
 		font-weight: 600;
-		color: var(--futuristic-cyan);
-		line-height: 1.4;
-		letter-spacing: 0.02em;
+		color: var(--text);
 	}
 
-	/* ── Restart ── */
 	.restart-row {
 		display: flex;
 		justify-content: center;
-		margin-bottom: 1.5rem;
-	}
-
-	.restart-btn {
-		padding: 0.4rem 1rem;
-		background: transparent;
-		border: 1px solid var(--futuristic-border);
-		border-radius: 6px;
-		color: var(--futuristic-text-dim);
-		font-family: var(--font-sans);
-		font-size: 0.8rem;
-		cursor: pointer;
-	}
-
-	.restart-btn:hover {
-		border-color: var(--futuristic-cyan);
-		color: var(--futuristic-cyan);
-	}
-
-	.restart-btn:focus-visible {
-		outline: 2px solid var(--futuristic-cyan);
-		outline-offset: 2px;
-	}
-
-	.sr-only {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		padding: 0;
-		margin: -1px;
-		overflow: hidden;
-		clip: rect(0, 0, 0, 0);
-		white-space: nowrap;
-		border: 0;
-	}
-
-	/* ── Mobile ── */
-	@media (max-width: 600px) {
-		.question-prompt {
-			font-size: 0.9rem;
-		}
-
-		.answer-btn {
-			font-size: 0.8rem;
-			padding: 0.4rem 0.85rem;
-			flex: 1 1 auto;
-		}
-
-		.result-card {
-			padding: 0.85rem 0.85rem;
-			flex-direction: column;
-			text-align: center;
-			gap: 0.4rem;
-		}
-
-		.result-text {
-			font-size: 0.9rem;
-		}
 	}
 </style>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { Button, PageHeader } from '$lib/ui';
 	import solutionTree from '$lib/wordle-solution';
 	import {
 		answerMessage,
@@ -34,6 +35,9 @@
 		messageKind = kind;
 	}
 
+	const STATE_NAMES = { B: 'absent', Y: 'present', G: 'correct' } as const;
+	const MESSAGE_ICONS = { error: '✕', success: '✓', info: 'ℹ' } as const;
+
 	function cycleTile(index: number) {
 		nextAttempt = { ...nextAttempt, result: cycleResultTile(nextAttempt.result, index) };
 	}
@@ -57,7 +61,7 @@
 	}
 
 	function focusTile(index: number) {
-		const inputs = document.querySelectorAll('.tile-input');
+		const inputs = document.querySelectorAll('.cell-input');
 		(inputs[index] as HTMLButtonElement)?.focus();
 	}
 
@@ -107,146 +111,263 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Wordle Solver</title>
-</svelte:head>
-
 <div class="container">
-	<header>
-		<h1>WORDLE SOLVER</h1>
-		<p class="subtitle">Click tiles to set result colors (Black/Yellow/Green)</p>
-		<p class="subtitle">
-			<a href="https://blog.mptc.uk/posts/Wordle" target="_blank" rel="noreferrer"
-				>First written up on the blog</a
-			>
-		</p>
-	</header>
+	<PageHeader path="/wordle">
+		<a href="https://blog.mptc.uk/posts/Wordle" target="_blank" rel="noreferrer"
+			>First written up on the blog</a
+		>
+	</PageHeader>
 
 	<div class="wordle-panel" data-hydrated={hydrated || undefined}>
-		<div class="wordle-header">
-			<span class="dot red"></span>
-			<span class="dot yellow"></span>
-			<span class="dot green"></span>
-			<span class="panel-title">GAME</span>
-		</div>
-
-		<div class="wordle-content">
-			<table class="wordle-table">
-				<tbody>
-					{#each history as attempt (attempt.word)}
-						<tr>
-							<td class="word-cell">
-								<div class="result-tiles">
-									{#each Array(5) as _, i}
-										<span
-											class="tile"
-											class:black={attempt.result[i] === 'B'}
-											class:yellow={attempt.result[i] === 'Y'}
-											class:green={attempt.result[i] === 'G'}
-											role="img"
-											aria-label={tileLabel(attempt.word[i], i, getTileColor(attempt.result, i))}
-											>{attempt.word[i]}</span
-										>
-									{/each}
-								</div>
-							</td>
-						</tr>
+		<div class="board">
+			{#each history as attempt (attempt.word)}
+				<div class="guess" data-testid="result-row">
+					{#each Array(5) as _, i}
+						{@const color = getTileColor(attempt.result, i)}
+						<span
+							class="cell"
+							data-state={STATE_NAMES[color]}
+							role="img"
+							aria-label={tileLabel(attempt.word[i], i, color)}>{attempt.word[i]}</span
+						>
 					{/each}
-					<tr>
-						<td class="word-cell current">
-							{#if !gameOver}
-								<div class="input-tiles">
-									{#each Array(5) as _, i}
-										<button
-											class="tile-input"
-											class:black={getTileColor(nextAttempt.result, i) === 'B'}
-											class:yellow={getTileColor(nextAttempt.result, i) === 'Y'}
-											class:green={getTileColor(nextAttempt.result, i) === 'G'}
-											onclick={() => cycleTile(i)}
-											onkeydown={(e) => handleTileKeydown(e, i)}
-											aria-label={tileLabel(
-												nextAttempt.word[i],
-												i,
-												getTileColor(nextAttempt.result, i)
-											)}
-											title="Click to cycle: Black (not in word) → Yellow → Green. Keys: 1/B=Black, 2/Y=Yellow, 3/G=Green, Arrow keys to navigate"
-											>{nextAttempt.word[i]}</button
-										>
-									{/each}
-								</div>
-							{/if}
-						</td>
-						<td class="result-cell">
-							{#if gameOver}
-								<button class="restart-btn" onclick={restartGame}> Start New Game </button>
-							{:else}
-								<button class="submit-btn" onclick={handleResultSubmission}> Submit </button>
-							{/if}
-							{#if history.length > 0}
-								<button class="submit-btn undo-btn" onclick={undoLastRow}> Undo </button>
-							{/if}
-						</td>
-					</tr>
-				</tbody>
-			</table>
+				</div>
+			{/each}
 
-			<div role="status">
-				{#if message}
-					<div
-						class="error-message"
-						class:success={messageKind === 'success'}
-						class:info={messageKind === 'info'}
-					>
-						{message}
+			<div class="current">
+				{#if !gameOver}
+					<div class="guess" role="group" aria-label="Next guess">
+						{#each Array(5) as _, i}
+							{@const color = getTileColor(nextAttempt.result, i)}
+							<button
+								type="button"
+								class="cell cell-input"
+								data-state={STATE_NAMES[color]}
+								onclick={() => cycleTile(i)}
+								onkeydown={(e) => handleTileKeydown(e, i)}
+								aria-label={tileLabel(nextAttempt.word[i], i, color)}
+								title="Click to cycle: Black (not in word) → Yellow → Green. Keys: 1/B=Black, 2/Y=Yellow, 3/G=Green, Arrow keys to navigate"
+								>{nextAttempt.word[i]}</button
+							>
+						{/each}
 					</div>
 				{/if}
+				<div class="cluster">
+					{#if gameOver}
+						<Button onclick={restartGame}>Start New Game</Button>
+					{:else}
+						<Button variant="primary" onclick={handleResultSubmission}>Submit</Button>
+					{/if}
+					{#if history.length > 0}
+						<Button onclick={undoLastRow}>Undo</Button>
+					{/if}
+				</div>
 			</div>
+			{#if !gameOver}
+				<p class="tile-hint">Click tiles to match Wordle's colours, then Submit.</p>
+			{/if}
+		</div>
+
+		<div role="status">
+			{#if message}
+				<p class="message {messageKind}">
+					<span aria-hidden="true">{MESSAGE_ICONS[messageKind]}</span>
+					<span data-testid="message">{message}</span>
+				</p>
+			{/if}
 		</div>
 	</div>
 
-	<div class="legend">
-		<div class="legend-item">
-			<span class="legend-letter black">B</span>
-			<span class="legend-desc">Black - Letter not in word</span>
-		</div>
-		<div class="legend-item">
-			<span class="legend-letter yellow">Y</span>
-			<span class="legend-desc">Yellow - Letter in wrong position</span>
-		</div>
-		<div class="legend-item">
-			<span class="legend-letter green">G</span>
-			<span class="legend-desc">Green - Letter in correct position</span>
-		</div>
-	</div>
+	<ul class="key" aria-label="Legend">
+		<li>
+			<span class="cell" data-state="absent" aria-hidden="true">B</span> Black: not in the word
+		</li>
+		<li>
+			<span class="cell" data-state="present" aria-hidden="true">Y</span> Yellow: wrong position
+		</li>
+		<li>
+			<span class="cell" data-state="correct" aria-hidden="true">G</span> Green: right position
+		</li>
+	</ul>
 
-	<div class="wordle-explanation">
-		After entering your guess in the actual Wordle game, look at the colored tiles to see which
-		letters are in the correct position (green), which letters are in the word but the wrong
-		position (yellow), and which letters are not in the word at all (black). Click on the colored
-		tiles in this tool to match what you saw, then click Submit, and the tool shows the next word to
-		play.
-		<p>
-			The suggestions follow a fixed, precomputed decision tree: open with RAISE and play every
-			suggested word exactly as shown. If you opened with a different word or played anything else,
-			the remaining suggestions no longer apply. Some suggestions are probe words that can never be
-			the answer: they are chosen because their colours split the remaining candidates best. When
-			only one candidate is left the tool says so; play it and mark every tile green to finish.
-		</p>
-		<p>
-			Normal mode only: some suggestions ignore letters you already found, so Wordle's Hard Mode
-			will reject them.
-		</p>
-	</div>
+	<details class="how">
+		<summary>How it works</summary>
+		<div>
+			<p>
+				After entering your guess in the actual Wordle game, look at the colored tiles to see which
+				letters are in the correct position (green), which letters are in the word but the wrong
+				position (yellow), and which letters are not in the word at all (black). Click on the
+				colored tiles in this tool to match what you saw, then click Submit, and the tool shows the
+				next word to play.
+			</p>
+			<p>
+				The suggestions follow a fixed, precomputed decision tree: open with RAISE and play every
+				suggested word exactly as shown. If you opened with a different word or played anything
+				else, the remaining suggestions no longer apply. Some suggestions are probe words that can
+				never be the answer: they are chosen because their colours split the remaining candidates
+				best. When only one candidate is left the tool says so; play it and mark every tile green to
+				finish.
+			</p>
+			<p>
+				Normal mode only: some suggestions ignore letters you already found, so Wordle's Hard Mode
+				will reject them. Keyboard: 1/B, 2/Y and 3/G set the focused tile; the arrow keys move
+				between tiles.
+			</p>
+		</div>
+	</details>
 </div>
 
 <style>
-	.error-message.info {
-		background: rgba(0, 245, 255, 0.08);
-		border-color: rgba(0, 245, 255, 0.4);
-		color: #8ff8ff;
+	.wordle-panel {
+		width: fit-content;
+		overflow: visible;
+		margin: 0;
+		max-width: 100%;
+		padding: var(--sp-3);
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
 	}
 
-	.wordle-explanation p {
-		margin: 0.75rem 0 0;
+	.board {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-1);
+	}
+
+	.guess {
+		display: flex;
+		gap: var(--sp-1);
+	}
+
+	.current {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--sp-2) var(--sp-4);
+	}
+
+	.cell {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 40px;
+		height: 40px;
+		padding: 0;
+		border: 1px solid transparent;
+		border-radius: var(--radius-sm);
+		font-size: var(--text-lg);
+		font-weight: 700;
+		line-height: 1;
+	}
+
+	.cell[data-state='absent'] {
+		background: var(--tile-absent);
+		color: var(--tile-absent-text);
+	}
+
+	.cell[data-state='present'] {
+		background: var(--tile-present);
+		color: var(--tile-present-text);
+	}
+
+	.cell[data-state='correct'] {
+		background: var(--tile-correct);
+		color: var(--tile-correct-text);
+	}
+
+	/* A corner mark, so the state is not conveyed by colour alone. */
+	.cell[data-state='present']::after,
+	.cell[data-state='correct']::after {
+		position: absolute;
+		top: 1px;
+		right: 3px;
+		font-size: 0.65em;
+		line-height: 1;
+		font-weight: 700;
+	}
+
+	.cell[data-state='present']::after {
+		content: '~';
+		font-size: 0.8em;
+	}
+
+	.cell[data-state='correct']::after {
+		content: '✓';
+	}
+
+	.cell-input {
+		border-color: var(--border-strong);
+		cursor: pointer;
+	}
+
+	.cell-input:hover {
+		border-color: var(--text);
+	}
+
+	.tile-hint {
+		margin: var(--sp-1) 0 0;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+	}
+
+	.message {
+		display: flex;
+		gap: var(--sp-2);
+		margin: var(--sp-3) 0 0;
+		padding: var(--sp-2) var(--sp-3);
+		border: 1px solid;
+		border-radius: var(--radius);
+		font-weight: 600;
+	}
+
+	.message.error {
+		background: var(--danger-bg);
+		border-color: var(--danger);
+		color: var(--danger-text);
+	}
+
+	.message.success {
+		background: var(--success-bg);
+		border-color: var(--success);
+		color: var(--success-text);
+	}
+
+	.message.info {
+		background: var(--info-bg);
+		border-color: var(--info);
+		color: var(--info-text);
+	}
+
+	.key {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--sp-2) var(--sp-4);
+		margin: var(--sp-3) 0 0;
+		padding: 0;
+		list-style: none;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+	}
+
+	.key li {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-2);
+	}
+
+	.key .cell {
+		width: 28px;
+		height: 28px;
+		font-size: var(--text-sm);
+	}
+
+	.how p {
+		margin: 0 0 var(--sp-2);
+	}
+
+	.how p:last-child {
+		margin-bottom: 0;
 	}
 </style>

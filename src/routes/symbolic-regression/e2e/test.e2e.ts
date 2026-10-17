@@ -2,24 +2,36 @@ import { expect, test, type Page } from '@playwright/test';
 
 const PREFIX = 'symbolic-regression:';
 
+/** The page container (not the top bar) sets data-hydrated once the router is ready. */
+function hydrated(page: Page) {
+	return page.getByRole('main').locator('[data-hydrated]');
+}
+
 async function open(page: Page, query = '') {
 	await page.goto(`/symbolic-regression${query}`);
-	await expect(page.locator('.container[data-hydrated]')).toBeVisible();
+	await expect(hydrated(page)).toBeVisible();
+}
+
+/** The Pareto front's body rows. */
+function frontRows(page: Page) {
+	return page.getByTestId('front').locator('tbody').getByRole('row');
 }
 
 /** Validation R² of the recommended (highlighted) front row. */
 async function bestR2(page: Page): Promise<number> {
-	const cell = page.locator('tr.recommended [data-testid="r2"]');
+	const cell = frontRows(page)
+		.filter({ has: page.getByTestId('best') })
+		.getByTestId('r2');
 	if ((await cell.count()) === 0) return -Infinity;
 	return Number(await cell.textContent());
 }
 
 /** True when some front row is c·a^1.5 (or a·sqrt(a)) with validation R² > 0.999. */
 async function frontHasKeplerLaw(page: Page): Promise<boolean> {
-	const rows = page.locator('[data-testid="front"] tbody tr');
+	const rows = frontRows(page);
 	for (const row of await rows.all()) {
-		const text = (await row.locator('td.mono').textContent()) ?? '';
-		const r2 = Number(await row.locator('[data-testid="r2"]').textContent());
+		const text = (await row.getByTestId('row-equation').textContent()) ?? '';
+		const r2 = Number(await row.getByTestId('r2').textContent());
 		const exponent = text.match(/^(?:[\d.]+ \* )?a_AU\^([\d.]+)$/)?.[1];
 		const powLaw = exponent !== undefined && Math.abs(Number(exponent) - 1.5) < 0.01;
 		const sqrtLaw = /^(?:[\d.]+ \* )?(?:a_AU \* sqrt\(a_AU\)|sqrt\(a_AU\) \* a_AU)$/.test(text);
@@ -36,9 +48,7 @@ function inputBox(page: Page, name: string) {
 /** Start a search and wait until the front has `rows` rows. */
 async function runUntilFront(page: Page, rows = 2) {
 	await page.getByRole('button', { name: 'Start' }).click();
-	await expect
-		.poll(() => page.locator('[data-testid="front"] tbody tr').count(), { timeout: 15000 })
-		.toBeGreaterThanOrEqual(rows);
+	await expect.poll(() => frontRows(page).count(), { timeout: 15000 }).toBeGreaterThanOrEqual(rows);
 }
 
 async function stopSearch(page: Page) {
@@ -86,7 +96,7 @@ test('upload by file picker: columns, disabled non-numeric columns and dropped r
 	page
 }) => {
 	await open(page);
-	await page.locator('input[type="file"]').setInputFiles({
+	await page.getByLabel('Choose a CSV file').setInputFiles({
 		name: 'messy.csv',
 		mimeType: 'text/csv',
 		buffer: Buffer.from(MESSY_CSV)
@@ -148,17 +158,19 @@ test('clicking a Pareto point selects that equation; copy buttons copy each form
 	await runUntilFront(page, 3);
 	await stopSearch(page);
 
-	const first = page.locator('[data-testid="pareto-plot"] circle.clickable').first();
+	const first = page.getByTestId('pareto-plot').getByRole('button').first();
 	const id = Number(await first.getAttribute('data-id'));
 	await first.click();
-	const row = page.locator('[data-testid="front"] tbody tr').nth(id);
-	await expect(row).toHaveClass(/selected/);
-	const text = (await row.locator('td.mono').textContent()) ?? '';
+	await expect(first).toHaveAttribute('aria-pressed', 'true');
+	const row = frontRows(page).nth(id);
+	await expect(row.getByRole('button')).toHaveAttribute('aria-pressed', 'true');
+	await expect(page.getByTestId('front').getByRole('button', { pressed: true })).toHaveCount(1);
+	const text = (await row.getByTestId('row-equation').textContent()) ?? '';
 	await expect(page.getByTestId('equation-text')).toHaveText(text);
 	await expect(page.getByTestId('equation').locator('math')).toBeVisible();
 
 	// Select a row that uses a_AU so every format names it
-	await page.locator('[data-testid="front"] tbody tr', { hasText: 'a_AU' }).last().click();
+	await frontRows(page).filter({ hasText: 'a_AU' }).last().click();
 	const clip = () => page.evaluate(() => navigator.clipboard.readText());
 	await page.getByRole('button', { name: 'Text', exact: true }).click();
 	await expect.poll(clip).toBe(await page.getByTestId('equation-text').textContent());
@@ -193,7 +205,7 @@ test('share URL restores settings and the example, and never carries data', asyn
 
 	const other = await context.newPage();
 	await other.goto(url);
-	await expect(other.locator('.container[data-hydrated]')).toBeVisible();
+	await expect(hydrated(other)).toBeVisible();
 	await expect(other.getByTestId('data-status')).toContainText('rows');
 	await expect(other.getByLabel('Seed')).toHaveValue('42');
 	await expect(other.getByLabel('Time budget (s)')).toHaveValue('15');
@@ -204,7 +216,7 @@ test('share URL restores settings and the example, and never carries data', asyn
 test('share URL column settings apply to a user CSV only where names match', async ({ page }) => {
 	await open(page, '?target=y&in=x2&in=missing&seed=3');
 	await expect(page.getByLabel('Seed')).toHaveValue('3');
-	await page.locator('input[type="file"]').setInputFiles({
+	await page.getByLabel('Choose a CSV file').setInputFiles({
 		name: 'mine.csv',
 		mimeType: 'text/csv',
 		buffer: Buffer.from('x1,x2,y,z\n1,2,3,4\n2,3,4,5\n3,4,5,6\n')
@@ -219,7 +231,7 @@ test('saved data survives a reload; Clear saved data removes it and resets the p
 	page
 }) => {
 	await open(page);
-	await page.locator('input[type="file"]').setInputFiles({
+	await page.getByLabel('Choose a CSV file').setInputFiles({
 		name: 'saved.csv',
 		mimeType: 'text/csv',
 		buffer: Buffer.from('u,v\n1,2\n2,4\n3,6\n')
@@ -233,7 +245,7 @@ test('saved data survives a reload; Clear saved data removes it and resets the p
 
 	await page.getByRole('button', { name: 'Clear saved data' }).click();
 	await expect(page).toHaveURL(/\/symbolic-regression$/);
-	await expect(page.locator('.container[data-hydrated]')).toBeVisible();
+	await expect(hydrated(page)).toBeVisible();
 	await expect(page.getByTestId('data-status')).toHaveCount(0);
 	await expect(page.getByLabel('Seed')).toHaveValue('1');
 	expect(await savedKeys(page)).toEqual([]);
@@ -250,7 +262,7 @@ test('50,000 rows × 20 columns load, stay responsive and search', async ({ page
 		lines.push(row.join(','));
 	}
 	await open(page);
-	await page.locator('input[type="file"]').setInputFiles({
+	await page.getByLabel('Choose a CSV file').setInputFiles({
 		name: 'big.csv',
 		mimeType: 'text/csv',
 		buffer: Buffer.from(lines.join('\n'))

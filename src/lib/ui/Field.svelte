@@ -28,19 +28,19 @@
 	);
 </script>
 
-<div class="field">
+<div class="ui-field">
 	<label for={id} class:sr-only={hideLabel}>{label}</label>
 	{@render children({
 		id,
 		'aria-describedby': describedBy,
 		'aria-invalid': error ? 'true' : undefined
 	})}
-	{#if hint}<p id="{id}-hint" class="hint">{hint}</p>{/if}
-	{#if error}<p id="{id}-error" class="error">{error}</p>{/if}
+	{#if hint}<p id="{id}-hint" class="ui-hint">{hint}</p>{/if}
+	{#if error}<p id="{id}-error" class="ui-error">{error}</p>{/if}
 </div>
 
 <style>
-	.field {
+	.ui-field {
 		display: flex;
 		flex-direction: column;
 		gap: var(--sp-1);
@@ -53,14 +53,14 @@
 		color: var(--text);
 	}
 
-	.hint,
-	.error {
+	.ui-hint,
+	.ui-error {
 		margin: 0;
 		font-size: var(--text-xs);
 		color: var(--text-muted);
 	}
 
-	.error {
+	.ui-error {
 		color: var(--danger-text);
 	}
 </style>

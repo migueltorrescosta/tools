@@ -16,26 +16,26 @@
 	} = $props();
 </script>
 
-<section class="panel">
+<section class="ui-panel">
 	{#if title || actions}
-		<div class="panel-head">
-			{#if title}<svelte:element this={`h${level}`} class="panel-heading">{title}</svelte:element
+		<div class="ui-panel-head">
+			{#if title}<svelte:element this={`h${level}`} class="ui-panel-heading">{title}</svelte:element
 				>{/if}
-			{#if actions}<div class="panel-actions">{@render actions()}</div>{/if}
+			{#if actions}<div class="ui-panel-actions">{@render actions()}</div>{/if}
 		</div>
 	{/if}
-	<div class="panel-body">{@render children()}</div>
+	<div class="ui-panel-body">{@render children()}</div>
 </section>
 
 <style>
-	.panel {
+	.ui-panel {
 		background: var(--surface);
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
 		min-width: 0;
 	}
 
-	.panel-head {
+	.ui-panel-head {
 		display: flex;
 		align-items: center;
 		gap: var(--sp-2);
@@ -44,18 +44,18 @@
 		border-bottom: 1px solid var(--border);
 	}
 
-	.panel-heading {
+	.ui-panel-heading {
 		font-size: var(--text-sm);
 		font-weight: 600;
 	}
 
-	.panel-actions {
+	.ui-panel-actions {
 		display: flex;
 		gap: var(--sp-1);
 		margin-left: auto;
 	}
 
-	.panel-body {
+	.ui-panel-body {
 		padding: var(--sp-3);
 	}
 </style>

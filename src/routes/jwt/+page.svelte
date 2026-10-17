@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { copyToClipboard } from '$lib/clipboard';
+	import { Alert, Button, Field, PageHeader, Panel, Select } from '$lib/ui';
 	import {
 		algorithmOptions,
 		describeClaims,
@@ -40,7 +41,9 @@
 	let copyStatus = $state('');
 	let hydrated = $state(false);
 	// An unknown header alg (e.g. ES256K) gets its own option so the select never shows a blank
-	const algorithms = $derived(algorithmOptions(selectedAlgorithm));
+	const algorithms = $derived(
+		algorithmOptions(selectedAlgorithm).map((alg) => ({ value: alg, label: alg }))
+	);
 	const claims = $derived(describeClaims(decodedPayload, now));
 	// What ENCODE would change: JSON.parse rounds big integers and drops duplicate keys
 	const encodeWarnings = $derived([
@@ -129,244 +132,260 @@
 	});
 </script>
 
-<svelte:head>
-	<title>JWT Parser</title>
-</svelte:head>
-
 <div class="container" data-hydrated={hydrated || undefined}>
-	<header>
-		<h1>JWT PARSER</h1>
-		<p class="subtitle">Decode, Encode & Verify JSON Web Tokens</p>
-	</header>
+	<PageHeader path="/jwt" />
 
-	<div class="token-input-section">
-		<div class="section-header">
-			<label class="label" for="token-input">ENCODED</label>
-			<span class="hint">Paste your JWT token</span>
-		</div>
-		<textarea
-			id="token-input"
-			class="token-input"
-			bind:value={token}
-			placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-			spellcheck="false"
-		></textarea>
-	</div>
-
-	{#if unsignedBanner}
-		<div class="signature-status invalid" role="alert">{unsignedBanner}</div>
-	{/if}
-
-	{#if decodeWarnings.length}
-		<div class="key-warning" role="status">
-			{#each decodeWarnings as warning, i (i)}<div>{warning}</div>{/each}
-		</div>
-	{/if}
-
-	{#if copyStatus}<div class="copy-status" role="status">{copyStatus}</div>{/if}
-
-	<div class="panels">
-		<div class="panel header-panel">
-			<div class="panel-header">
-				<span class="dot red"></span>
-				<span class="dot yellow"></span>
-				<span class="dot green"></span>
-				<span class="panel-title">HEADER</span>
-				<button
-					class="copy-btn"
-					aria-label="Copy header JSON"
-					disabled={!!headerError || !headerJson}
-					onclick={() => copy('Header', headerJson)}>COPY</button
-				>
-			</div>
-			<div class="panel-content">
-				{#if headerError}
-					<div class="error">{headerError}</div>
-				{:else}
-					<pre class="json-display">{headerJson}</pre>
-				{/if}
-			</div>
-		</div>
-
-		<div class="panel payload-panel">
-			<div class="panel-header">
-				<span class="dot red"></span>
-				<span class="dot yellow"></span>
-				<span class="dot green"></span>
-				<span class="panel-title">PAYLOAD</span>
-				<button
-					class="copy-btn"
-					aria-label="Copy payload JSON"
-					disabled={!!payloadError || !payloadJson}
-					onclick={() => copy('Payload', payloadJson)}>COPY</button
-				>
-			</div>
-			<div class="panel-content">
-				{#if payloadError}
-					<div class="error">{payloadError}</div>
-				{:else}
-					<pre class="json-display">{payloadJson}</pre>
-				{/if}
-				{#if claims.expired}
-					<div class="signature-status invalid">Expired</div>
-				{:else if claims.notYetValid}
-					<div class="signature-status invalid">Not yet valid (nbf)</div>
-				{/if}
-				{#if claims.issuedInFuture}
-					<div class="key-warning">Issued in the future (iat)</div>
-				{/if}
-				{#each claims.times as claim (claim.name)}
-					<div class="claim-time">
-						{claim.name}: {claim.iso} ({claim.relative})
-					</div>
-				{/each}
-				{#each claims.errors as error, i (i)}
-					<div class="error-small">{error}</div>
-				{/each}
-			</div>
-		</div>
-
-		<div class="panel signature-panel">
-			<div class="panel-header">
-				<span class="dot red"></span>
-				<span class="dot yellow"></span>
-				<span class="dot green"></span>
-				<span class="panel-title">VERIFY</span>
-			</div>
-			<div class="panel-content">
-				<div class="signature-row">
-					<div class="secret-section">
-						<label class="input-label" for="secret-input"
-							>{isSymmetric(selectedAlgorithm) ? 'SECRET' : 'KEY (PEM OR JWK)'}</label
-						>
-						<div class="secret-row">
-							<input
-								id="secret-input"
-								type={showSecret ? 'text' : 'password'}
-								class="secret-input"
-								autocomplete="off"
+	<div class="split-view top">
+		<div class="stack">
+			<Panel title="Encoded token">
+				<div class="stack">
+					<Field label="Encoded token" hideLabel>
+						{#snippet children(props)}
+							<textarea
+								{...props}
+								class="control token"
+								rows="4"
+								bind:value={token}
+								placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 								spellcheck="false"
-								bind:value={secret}
-								placeholder={isSymmetric(selectedAlgorithm)
-									? 'secret'
-									: 'public key verifies, private key signs'}
-							/>
-							<button
-								type="button"
-								class="copy-btn"
-								aria-pressed={showSecret}
-								aria-controls="secret-input"
-								onclick={() => (showSecret = !showSecret)}>{showSecret ? 'HIDE' : 'SHOW'}</button
-							>
-						</div>
-					</div>
+							></textarea>
+						{/snippet}
+					</Field>
+					{#if unsignedBanner}<Alert tone="danger">{unsignedBanner}</Alert>{/if}
+					{#if decodeWarnings.length}
+						<Alert tone="warning">
+							{#each decodeWarnings as warning, i (i)}<div>{warning}</div>{/each}
+						</Alert>
+					{/if}
+					{#if copyStatus}<p class="muted" role="status">{copyStatus}</p>{/if}
+				</div>
+			</Panel>
 
-					<div class="algorithm-section">
-						<label class="input-label" for="algorithm-select">ALGORITHM</label>
-						<select
-							id="algorithm-select"
-							class="algorithm-select"
+			<Panel title="Verify signature">
+				<div class="stack">
+					<div class="verify-row">
+						<Field label={isSymmetric(selectedAlgorithm) ? 'Secret' : 'Key (PEM or JWK)'}>
+							{#snippet children(props)}
+								<div class="cluster secret-row">
+									<input
+										{...props}
+										type={showSecret ? 'text' : 'password'}
+										class="control"
+										autocomplete="off"
+										spellcheck="false"
+										bind:value={secret}
+										placeholder={isSymmetric(selectedAlgorithm)
+											? 'secret'
+											: 'public key verifies, private key signs'}
+									/>
+									<Button
+										pressed={showSecret}
+										aria-controls={props.id}
+										onclick={() => (showSecret = !showSecret)}>Show</Button
+									>
+								</div>
+							{/snippet}
+						</Field>
+						<Select
+							label="Algorithm"
+							options={algorithms}
 							bind:value={() => selectedAlgorithm, selectAlgorithm}
-						>
-							{#each algorithms as alg (alg)}
-								<option value={alg}>{alg}</option>
-							{/each}
-						</select>
+						/>
 					</div>
-				</div>
 
-				<div class="signature-display">
-					<span class="input-label">SIGNATURE</span>
-					<div class="signature-value">{signatureResult || 'Not available'}</div>
-					{#if signatureError}<div class="error-small">{signatureError}</div>{/if}
-				</div>
+					<div>
+						<p class="sig-label">Signature</p>
+						<code class="signature" data-testid="signature-value"
+							>{signatureResult || 'Not available'}</code
+						>
+						{#if signatureError}<p class="error-text">{signatureError}</p>{/if}
+					</div>
 
-				{#if verification?.status === 'valid'}
-					<div class="signature-status valid">Signature Verified</div>
-				{:else if verification?.status === 'invalid'}
-					<div class="signature-status invalid">Signature Invalid</div>
-					<div class="error-small">{verification.message}</div>
-				{:else if verification}
-					<div class="key-warning">{verification.message}</div>
-				{/if}
-			</div>
+					{#if verification?.status === 'valid'}
+						<Alert tone="success"
+							><span data-testid="signature-status">Signature Verified</span></Alert
+						>
+					{:else if verification?.status === 'invalid'}
+						<Alert tone="danger">
+							<div data-testid="signature-status">Signature Invalid</div>
+							<div>{verification.message}</div>
+						</Alert>
+					{:else if verification}
+						<Alert tone="warning">{verification.message}</Alert>
+					{/if}
+				</div>
+			</Panel>
+		</div>
+
+		<div class="stack">
+			<Panel title="Header">
+				{#snippet actions()}
+					<Button
+						size="sm"
+						variant="ghost"
+						aria-label="Copy header JSON"
+						disabled={!!headerError || !headerJson}
+						onclick={() => copy('Header', headerJson)}>Copy</Button
+					>
+				{/snippet}
+				<div data-testid="decoded-header">
+					{#if headerError}
+						<p class="error-text">{headerError}</p>
+					{:else}
+						<pre>{headerJson}</pre>
+					{/if}
+				</div>
+			</Panel>
+
+			<Panel title="Payload">
+				{#snippet actions()}
+					<Button
+						size="sm"
+						variant="ghost"
+						aria-label="Copy payload JSON"
+						disabled={!!payloadError || !payloadJson}
+						onclick={() => copy('Payload', payloadJson)}>Copy</Button
+					>
+				{/snippet}
+				<div class="stack" data-testid="decoded-payload">
+					{#if payloadError}
+						<p class="error-text">{payloadError}</p>
+					{:else}
+						<pre>{payloadJson}</pre>
+					{/if}
+					{#if claims.expired}
+						<Alert tone="danger">Expired</Alert>
+					{:else if claims.notYetValid}
+						<Alert tone="danger">Not yet valid (nbf)</Alert>
+					{/if}
+					{#if claims.issuedInFuture}
+						<Alert tone="warning">Issued in the future (iat)</Alert>
+					{/if}
+					{#if claims.times.length || claims.errors.length}
+						<ul class="claims">
+							{#each claims.times as claim (claim.name)}
+								<li>{claim.name}: {claim.iso} ({claim.relative})</li>
+							{/each}
+							{#each claims.errors as error, i (i)}
+								<li class="error-text">{error}</li>
+							{/each}
+						</ul>
+					{/if}
+				</div>
+			</Panel>
 		</div>
 	</div>
 
-	<div class="encode-section">
-		<div class="section-header">
-			<span class="label">DECODE & ENCODE</span>
-			<span class="hint">Modify header and payload, then sign with the key above</span>
-		</div>
-
-		<div class="encode-inputs">
-			<div class="encode-input-group">
-				<label class="input-label" for="header-json">HEADER (JSON)</label>
-				<textarea
-					id="header-json"
-					class="encode-textarea"
-					bind:value={() => headerJson, editHeader}
-					placeholder={'{"alg": "HS256", "typ": "JWT"}'}
-					spellcheck="false"
-				></textarea>
-				{#if headerError}<div class="error-small">{headerError}</div>{/if}
+	<div class="encode">
+		<Panel title="Encode">
+			<div class="stack">
+				<p class="muted">Edit the header and payload, then sign with the key above.</p>
+				<div class="split-view">
+					<Field label="Header (JSON)" error={headerError || undefined}>
+						{#snippet children(props)}
+							<textarea
+								{...props}
+								class="control"
+								rows="6"
+								bind:value={() => headerJson, editHeader}
+								placeholder={'{"alg": "HS256", "typ": "JWT"}'}
+								spellcheck="false"
+							></textarea>
+						{/snippet}
+					</Field>
+					<Field label="Payload (JSON)" error={payloadError || undefined}>
+						{#snippet children(props)}
+							<textarea
+								{...props}
+								class="control"
+								rows="6"
+								bind:value={payloadJson}
+								placeholder={'{"sub": "1234567890", "name": "John Doe"}'}
+								spellcheck="false"
+							></textarea>
+						{/snippet}
+					</Field>
+				</div>
+				{#if encodeWarnings.length}
+					<Alert tone="warning">
+						{#each encodeWarnings as warning, i (i)}<div>Encode changes this: {warning}</div>{/each}
+					</Alert>
+				{/if}
+				{#if encodeError}<Alert tone="danger">{encodeError}</Alert>{/if}
+				{#if encodeNote}<Alert tone="info">{encodeNote}</Alert>{/if}
+				<div>
+					<Button variant="primary" onclick={encodeToken}
+						>{selectedAlgorithm === 'none' ? 'Encode unsigned' : 'Sign & encode'}</Button
+					>
+				</div>
 			</div>
-
-			<div class="encode-input-group">
-				<label class="input-label" for="payload-json">PAYLOAD (JSON)</label>
-				<textarea
-					id="payload-json"
-					class="encode-textarea"
-					bind:value={payloadJson}
-					placeholder={'{"sub": "1234567890", "name": "John Doe"}'}
-					spellcheck="false"
-				></textarea>
-				{#if payloadError}<div class="error-small">{payloadError}</div>{/if}
-			</div>
-		</div>
-
-		<button class="encode-btn" onclick={encodeToken}>
-			<span class="btn-text"
-				>{selectedAlgorithm === 'none' ? 'ENCODE UNSIGNED' : 'SIGN & ENCODE'}</span
-			>
-			<span class="btn-glow"></span>
-		</button>
-		{#if encodeWarnings.length}
-			<div class="key-warning">
-				{#each encodeWarnings as warning, i (i)}<div>ENCODE changes this: {warning}</div>{/each}
-			</div>
-		{/if}
-		{#if encodeError}<div class="error-small" role="alert">{encodeError}</div>{/if}
-		{#if encodeNote}<div class="key-warning">{encodeNote}</div>{/if}
+		</Panel>
 	</div>
 </div>
 
 <style>
-	.secret-row {
-		display: flex;
-		gap: 0.5rem;
-		align-items: center;
+	.top {
+		align-items: start;
 	}
 
-	.secret-row .secret-input {
+	.verify-row {
+		display: grid;
+		grid-template-columns: 1fr minmax(8rem, 10rem);
+		gap: var(--sp-3);
+		align-items: start;
+	}
+
+	.secret-row {
+		flex-wrap: nowrap;
+	}
+
+	.secret-row .control {
 		flex: 1;
 		min-width: 0;
 	}
 
-	.copy-btn:disabled {
-		opacity: 0.4;
-		cursor: not-allowed;
+	.token,
+	.signature,
+	pre {
+		font-family: var(--font-mono);
+		font-size: var(--text-sm);
+		word-break: break-all;
 	}
 
-	.copy-status {
-		margin-bottom: 1rem;
-		font-size: 0.8rem;
-		color: var(--futuristic-text-dim);
+	pre {
+		margin: 0;
+		white-space: pre-wrap;
 	}
 
-	.claim-time {
-		margin-top: 0.25rem;
-		font-size: 0.8rem;
-		color: var(--futuristic-text-dim);
+	.signature {
+		display: block;
+		color: var(--text);
+	}
+
+	.sig-label {
+		margin: 0 0 var(--sp-1);
+		font-size: var(--text-sm);
+		font-weight: 500;
+	}
+
+	.muted,
+	.claims {
+		margin: 0;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+	}
+
+	.claims {
+		padding-left: var(--sp-4);
+	}
+
+	.error-text {
+		margin: 0;
+		font-size: var(--text-sm);
+		color: var(--danger-text);
+	}
+
+	.encode {
+		margin-top: var(--sp-3);
 	}
 </style>
