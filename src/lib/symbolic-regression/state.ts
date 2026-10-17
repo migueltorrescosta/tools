@@ -1,6 +1,6 @@
 /** Saved state and share URLs for the symbolic regression page. No DOM imports. */
 
-import { ALL_OPERATORS, type FrontEntry, type OperatorName } from './types';
+import { ALL_OPERATORS, type OperatorName } from './types';
 
 /** Every localStorage key the tool writes starts with this. */
 export const STORAGE_PREFIX = 'symbolic-regression:';
@@ -105,5 +105,3 @@ export function readJson<T>(storage: Pick<Storage, 'getItem'> | null, key: strin
 		return null;
 	}
 }
-
-export type SavedFront = FrontEntry[];

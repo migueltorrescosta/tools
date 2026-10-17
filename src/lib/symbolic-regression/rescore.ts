@@ -76,11 +76,15 @@ export function rescore(expr: Expr, data: PreparedData, maxIter = 30): Candidate
 	};
 }
 
+/** Relative train-MSE gain below which a more complex entry counts as a duplicate. */
+const DUPLICATE_TOLERANCE = 1e-6;
+
 /**
  * Merges candidates into a front: the lowest train MSE per complexity, entries
- * that are not strictly better on train MSE than every simpler one dropped,
- * sorted by complexity, with scores.
+ * that do not beat every simpler one on train MSE (by more than
+ * DUPLICATE_TOLERANCE, relative) dropped, sorted by complexity, with scores.
  */
+
 export function mergeFront(candidates: Candidate[]): FrontEntry[] {
 	const best = new Map<number, Candidate>();
 	for (const c of candidates) {
@@ -91,7 +95,8 @@ export function mergeFront(candidates: Candidate[]): FrontEntry[] {
 	const kept: Candidate[] = [];
 	let floor = Infinity;
 	for (const c of sorted) {
-		if (c.trainMse < floor) {
+		// A more complex entry must beat every simpler one by more than rounding noise
+		if (c.trainMse < floor * (1 - DUPLICATE_TOLERANCE)) {
 			kept.push(c);
 			floor = c.trainMse;
 		}
