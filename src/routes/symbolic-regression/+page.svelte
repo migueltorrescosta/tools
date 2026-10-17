@@ -369,22 +369,29 @@
 	});
 
 	let shareUrl = $state('');
+	/** The settings a fresh page starts with; set in onMount. */
+	let defaultSettingsJson = '';
+	/** False until the settings leave their defaults, so a fresh or cleared page writes nothing. */
+	let settingsTouched = false;
 
 	$effect(() => {
 		const json = JSON.stringify(shareState);
 		const params = encodeShareParams(shareState).toString();
 		if (!persist.isOpen) return;
-		persist.write(SETTINGS_KEY, json);
 		const url = untrack(() => new URL(page.url));
 		url.search = params;
 		shareUrl = url.toString();
+		if (json !== defaultSettingsJson) settingsTouched = true;
+		if (!settingsTouched) return;
+		persist.write(SETTINGS_KEY, json);
 		if (routerReady) replaceState(url, {});
 	});
 
 	$effect(() => {
 		const json = JSON.stringify({ names: frontNames, target: frontTarget, front });
 		if (!persist.isOpen || running) return;
-		persist.write(FRONT_KEY, json);
+		if (front.length === 0) storage?.removeItem(FRONT_KEY);
+		else persist.write(FRONT_KEY, json);
 	});
 
 	$effect(() => {
@@ -423,8 +430,10 @@
 
 	onMount(() => {
 		workers = defaultWorkerCount();
+		defaultSettingsJson = JSON.stringify(shareState);
 		const params = page.url.searchParams;
 		const fromUrl = hasShareParams(params);
+		settingsTouched = fromUrl || readJson(storage, SETTINGS_KEY) !== null;
 		const share = fromUrl
 			? decodeShareParams(params)
 			: (readJson<ShareState>(storage, SETTINGS_KEY) ?? {});
@@ -457,8 +466,11 @@
 			selected = recommendedIndex(front);
 		}
 		persist.open();
-		hydrated = true;
-		const timer = setTimeout(() => (routerReady = true));
+		// A macrotask runs after SvelteKit starts the router; e2e tests wait for hydrated
+		const timer = setTimeout(() => {
+			routerReady = true;
+			hydrated = true;
+		});
 		return () => clearTimeout(timer);
 	});
 
