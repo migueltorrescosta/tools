@@ -735,7 +735,7 @@
 	}
 
 	.vote-title {
-		font-family: 'Orbitron', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 1.5rem;
 		color: var(--futuristic-text);
 		margin-bottom: 0.5rem;

@@ -141,7 +141,7 @@
 	}
 
 	.year-label {
-		font-family: 'Orbitron', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.7rem;
 		font-weight: 600;
 		color: var(--futuristic-magenta);
@@ -213,7 +213,7 @@
 	}
 
 	.event-card .event-date {
-		font-family: 'Orbitron', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.55rem;
 		font-weight: 500;
 		color: var(--futuristic-cyan);
@@ -223,7 +223,7 @@
 	}
 
 	.event-card .event-title {
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.7rem;
 		font-weight: 400;
 		color: var(--futuristic-text);
@@ -276,7 +276,7 @@
 	}
 
 	.tooltip-text {
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.75rem;
 		color: var(--futuristic-text);
 		line-height: 1.4;
@@ -327,7 +327,7 @@
 	}
 
 	.rich-card-title {
-		font-family: 'Orbitron', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.75rem;
 		font-weight: 600;
 		color: var(--futuristic-text);
@@ -346,7 +346,7 @@
 	}
 
 	.rich-card-description {
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.8rem;
 		color: var(--futuristic-text);
 		line-height: 1.5;
@@ -354,7 +354,7 @@
 	}
 
 	.rich-card-value-add {
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.8rem;
 		color: var(--futuristic-magenta);
 		line-height: 1.5;

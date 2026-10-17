@@ -734,7 +734,7 @@
 		width: 100%;
 	}
 	header h1 {
-		font-family: 'Orbitron', sans-serif;
+		font-family: var(--font-sans);
 		color: var(--futuristic-cyan);
 		margin-bottom: 0.25rem;
 	}
@@ -866,7 +866,7 @@
 	}
 	.eq-text,
 	.mono {
-		font-family: 'JetBrains Mono', monospace;
+		font-family: var(--font-mono);
 		font-size: 0.85rem;
 	}
 	.copied {

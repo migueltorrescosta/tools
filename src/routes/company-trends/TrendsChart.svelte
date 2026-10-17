@@ -340,11 +340,11 @@
 		border: 1px solid var(--futuristic-border);
 		border-radius: 8px;
 		cursor: crosshair;
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 	}
 
 	.watermark {
-		font-family: 'Orbitron', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 64px;
 		font-weight: 700;
 		fill: var(--text-muted);
@@ -363,7 +363,7 @@
 	.tick {
 		fill: var(--text-muted);
 		font-size: 12px;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: var(--font-mono);
 	}
 
 	.axis-title {
@@ -512,7 +512,7 @@
 
 	.tt-head span {
 		color: var(--text-secondary);
-		font-family: 'JetBrains Mono', monospace;
+		font-family: var(--font-mono);
 	}
 
 	.tt-close {
@@ -570,7 +570,7 @@
 
 	dd {
 		margin: 0;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: var(--font-mono);
 		text-align: right;
 	}
 

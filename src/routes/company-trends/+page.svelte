@@ -376,7 +376,7 @@
 	}
 
 	.quarter {
-		font-family: 'JetBrains Mono', monospace;
+		font-family: var(--font-mono);
 		font-size: 1.1rem;
 		color: var(--futuristic-cyan);
 		min-width: 4.5rem;
@@ -543,7 +543,7 @@
 	td:nth-child(n + 4),
 	th:nth-child(n + 4) {
 		text-align: right;
-		font-family: 'JetBrains Mono', monospace;
+		font-family: var(--font-mono);
 	}
 
 	td.source-cell,

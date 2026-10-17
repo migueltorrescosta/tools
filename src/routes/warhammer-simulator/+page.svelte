@@ -1102,7 +1102,7 @@
 		gap: 0.25rem;
 		font-size: 0.8rem;
 		color: var(--futuristic-text-dim);
-		font-family: 'JetBrains Mono', monospace;
+		font-family: var(--font-mono);
 	}
 
 	/* ── Simulation Controls ── */
@@ -1125,7 +1125,7 @@
 		margin: 0.5rem 0 0;
 		font-size: 0.8rem;
 		color: var(--futuristic-text-dim);
-		font-family: 'JetBrains Mono', monospace;
+		font-family: var(--font-mono);
 	}
 
 	.sim-btn-wrap {
@@ -1162,7 +1162,7 @@
 	}
 
 	.progress-text {
-		font-family: 'JetBrains Mono', monospace;
+		font-family: var(--font-mono);
 		font-size: 0.8rem;
 		color: var(--futuristic-text-dim);
 		white-space: nowrap;
@@ -1224,7 +1224,7 @@
 	}
 
 	.winner-value {
-		font-family: 'JetBrains Mono', monospace;
+		font-family: var(--font-mono);
 		font-size: 0.85rem;
 		color: var(--futuristic-text);
 		font-weight: 700;

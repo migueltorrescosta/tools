@@ -611,7 +611,7 @@
 		border: 1px solid var(--futuristic-border);
 		border-radius: 6px;
 		color: var(--futuristic-text-dim);
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.85rem;
 		font-weight: 500;
 		cursor: pointer;
@@ -648,7 +648,7 @@
 	}
 
 	.status-time {
-		font-family: 'JetBrains Mono', monospace;
+		font-family: var(--font-mono);
 		font-size: 0.85rem;
 		color: var(--futuristic-text-dim);
 	}
@@ -686,7 +686,7 @@
 	/* ── Room Headers ── */
 	.time-header-cell {
 		padding: 0.75rem 0.5rem;
-		font-family: 'Orbitron', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.7rem;
 		font-weight: 600;
 		color: var(--futuristic-text-dim);
@@ -702,7 +702,7 @@
 
 	.room-header {
 		padding: 0.75rem 0.5rem;
-		font-family: 'Orbitron', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.75rem;
 		font-weight: 700;
 		color: #fff;
@@ -718,7 +718,7 @@
 
 	/* ── Time Labels ── */
 	.time-label {
-		font-family: 'JetBrains Mono', monospace;
+		font-family: var(--font-mono);
 		font-size: 0.7rem;
 		color: var(--futuristic-text-dim);
 		padding: 0.15rem 0.5rem;
@@ -807,7 +807,7 @@
 		top: 2px;
 		right: 2px;
 		padding: 1px 5px;
-		font-family: 'Orbitron', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.5rem;
 		font-weight: 700;
 		color: #000;
@@ -850,7 +850,7 @@
 	}
 
 	.card-title {
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.7rem;
 		font-weight: 600;
 		color: var(--futuristic-text);
@@ -898,13 +898,13 @@
 	}
 
 	.card-time {
-		font-family: 'JetBrains Mono', monospace;
+		font-family: var(--font-mono);
 		font-size: 0.6rem;
 		color: var(--futuristic-text-dim);
 	}
 
 	.card-speakers {
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.6rem;
 		color: var(--futuristic-text-dim);
 		overflow: hidden;
@@ -928,7 +928,7 @@
 		position: absolute;
 		left: 8px;
 		top: -10px;
-		font-family: 'Orbitron', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.65rem;
 		font-weight: 700;
 		color: var(--futuristic-magenta);
@@ -970,7 +970,7 @@
 	}
 
 	.legend-text {
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.75rem;
 		color: var(--futuristic-text-dim);
 	}
@@ -1014,7 +1014,7 @@
 	}
 
 	.modal-title {
-		font-family: 'Orbitron', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.75rem;
 		font-weight: 600;
 		color: var(--futuristic-cyan);
@@ -1049,7 +1049,7 @@
 		background: var(--futuristic-bg);
 		border: 1px solid var(--futuristic-border);
 		border-radius: 8px;
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.95rem;
 		color: var(--futuristic-text);
 		outline: none;
@@ -1070,7 +1070,7 @@
 		text-align: center;
 		padding: 2rem;
 		color: var(--futuristic-text-dim);
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.9rem;
 	}
 
@@ -1103,14 +1103,14 @@
 	}
 
 	.search-result-title {
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.85rem;
 		font-weight: 600;
 		color: var(--futuristic-text);
 	}
 
 	.search-result-meta {
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.75rem;
 		color: var(--futuristic-text-dim);
 	}
@@ -1123,7 +1123,7 @@
 	.detail-room {
 		display: inline-block;
 		padding: 0.2rem 0.6rem;
-		font-family: 'Orbitron', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.65rem;
 		font-weight: 600;
 		color: #fff;
@@ -1135,7 +1135,7 @@
 	}
 
 	.detail-title {
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 1.15rem;
 		font-weight: 700;
 		color: var(--futuristic-text);
@@ -1144,7 +1144,7 @@
 	}
 
 	.detail-time {
-		font-family: 'JetBrains Mono', monospace;
+		font-family: var(--font-mono);
 		font-size: 0.85rem;
 		color: var(--futuristic-cyan);
 		margin-bottom: 1rem;
@@ -1156,7 +1156,7 @@
 	}
 
 	.detail-description {
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.85rem;
 		color: var(--futuristic-text-dim);
 		line-height: 1.6;
@@ -1169,7 +1169,7 @@
 	}
 
 	.detail-section-title {
-		font-family: 'Orbitron', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.65rem;
 		font-weight: 600;
 		color: var(--futuristic-text-dim);
@@ -1185,14 +1185,14 @@
 
 	.detail-speakers li {
 		padding: 0.25rem 0;
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.85rem;
 		color: var(--futuristic-text);
 		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 	}
 
 	.detail-moderator {
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.85rem;
 		color: var(--futuristic-text);
 		margin: 0;
@@ -1210,7 +1210,7 @@
 		border: 1px solid rgba(255, 215, 0, 0.3);
 		border-radius: 8px;
 		color: #ffd700;
-		font-family: 'Orbitron', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.8rem;
 		font-weight: 600;
 		letter-spacing: 0.1em;
@@ -1241,7 +1241,7 @@
 	}
 
 	.share-hint {
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.85rem;
 		color: var(--futuristic-text-dim);
 		text-align: center;
@@ -1261,7 +1261,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-family: 'Inter', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.8rem;
 		color: var(--futuristic-text-dim);
 		border: 2px dashed var(--futuristic-border);
@@ -1274,7 +1274,7 @@
 		border: 1px solid var(--futuristic-cyan);
 		border-radius: 8px;
 		color: var(--futuristic-cyan);
-		font-family: 'Orbitron', sans-serif;
+		font-family: var(--font-sans);
 		font-size: 0.8rem;
 		font-weight: 600;
 		letter-spacing: 0.1em;
