@@ -11,25 +11,27 @@ async function open(page: Page, url = '/decision-tree') {
 
 /** Click the answer labelled `label` in the answer row at `depth` (0 = root question). */
 async function answer(page: Page, depth: number, label: string) {
-	await page
-		.locator('.answer-row')
-		.nth(depth)
-		.getByRole('button', { name: label, exact: true })
-		.click();
+	await answerRows(page).nth(depth).getByRole('button', { name: label, exact: true }).click();
+}
+
+/** The answer groups, one per question shown (0 = root question). */
+function answerRows(page: Page) {
+	return page.getByTestId('answers');
 }
 
 function questions(page: Page) {
-	return page.locator('.question-prompt');
+	return page.getByRole('main').getByRole('heading', { level: 2 });
 }
 
 function result(page: Page) {
-	return page.locator('.result-text');
+	return page.getByTestId('result');
 }
 
 test.describe('Decision Tree E2E', () => {
 	test.beforeEach(async ({ page }) => {
 		await open(page);
-		await expect(page.locator('h1')).toHaveText('DECISION TREE');
+		await expect(page.getByRole('heading', { level: 1 })).toHaveText('Decision Tree');
+		await expect(page).toHaveTitle('Decision Tree');
 		await expect(questions(page).first()).toHaveText('What do you want to do today?');
 	});
 
@@ -44,7 +46,7 @@ test.describe('Decision Tree E2E', () => {
 
 		await answer(page, 2, 'Yes');
 		await expect(result(page)).toHaveText('Battery EV');
-		await expect(page.locator('.answer-row')).toHaveCount(3);
+		await expect(answerRows(page)).toHaveCount(3);
 	});
 
 	test('changing a previous answer removes downstream rows', async ({ page }) => {
@@ -99,26 +101,26 @@ test.describe('Decision Tree E2E', () => {
 		const context = await browser.newContext();
 		const shared = await context.newPage();
 		await open(shared, page.url());
-		await expect(shared.locator('.result-text')).toHaveText('Hybrid');
+		await expect(result(shared)).toHaveText('Hybrid');
 		await context.close();
 	});
 
 	test('only one answer selected per question', async ({ page }) => {
-		const rootRow = page.locator('.answer-row').first();
+		const selected = answerRows(page).first().getByRole('button', { pressed: true });
 		await answer(page, 0, 'Choose a car');
-		await expect(rootRow.locator('.answer-btn.selected')).toHaveCount(1);
-		await expect(rootRow.locator('.answer-btn.selected')).toHaveText('Choose a car');
+		await expect(selected).toHaveCount(1);
+		await expect(selected).toHaveText('Choose a car');
 
 		await answer(page, 0, 'Religion');
-		await expect(rootRow.locator('.answer-btn.selected')).toHaveCount(1);
-		await expect(rootRow.locator('.answer-btn.selected')).toHaveText('Religion');
+		await expect(selected).toHaveCount(1);
+		await expect(selected).toHaveText('Religion');
 	});
 
 	test('interface works on mobile viewport with answer wrapping', async ({ page }) => {
 		await page.setViewportSize({ width: 375, height: 812 });
 		await answer(page, 0, 'Choose a car');
 
-		const carAnswers = page.locator('.answer-row').nth(1).locator('.answer-btn');
+		const carAnswers = answerRows(page).nth(1).getByRole('button');
 		await expect(carAnswers).toHaveCount(6);
 		for (const button of await carAnswers.all()) {
 			await expect(button).toBeInViewport();
@@ -165,7 +167,7 @@ test.describe('Decision Tree E2E', () => {
 
 		await expect(questions(page)).toHaveText(['What do you want to do today?']);
 		await expect(result(page)).toHaveCount(0);
-		await expect(page.locator('.answer-btn[aria-pressed="true"]')).toHaveCount(0);
+		await expect(answerRows(page).getByRole('button', { pressed: true })).toHaveCount(0);
 		await expect(page.getByRole('button', { name: 'Choose a car', exact: true })).toBeFocused();
 		await expect(page).not.toHaveURL(/\?p=/);
 		await expect(page.getByRole('button', { name: 'Start over' })).toHaveCount(0);

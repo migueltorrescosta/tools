@@ -4,15 +4,15 @@ const SAMPLE_SECRET = 'your-256-bit-secret';
 
 function ui(page: Page) {
 	return {
-		token: page.getByLabel('ENCODED', { exact: true }),
-		header: page.locator('.header-panel .panel-content'),
-		payload: page.locator('.payload-panel .panel-content'),
-		secret: page.getByLabel(/SECRET|KEY \(PEM OR JWK\)/),
-		algorithm: page.getByLabel('ALGORITHM'),
-		headerJson: page.getByLabel('HEADER (JSON)'),
-		payloadJson: page.getByLabel('PAYLOAD (JSON)'),
-		encode: page.getByRole('button', { name: /ENCODE/ }),
-		status: page.locator('.signature-panel .signature-status')
+		token: page.getByLabel('Encoded token', { exact: true }),
+		header: page.getByTestId('decoded-header'),
+		payload: page.getByTestId('decoded-payload'),
+		secret: page.getByLabel(/^(Secret|Key \(PEM or JWK\))$/),
+		algorithm: page.getByLabel('Algorithm'),
+		headerJson: page.getByLabel('Header (JSON)'),
+		payloadJson: page.getByLabel('Payload (JSON)'),
+		encode: page.getByRole('button', { name: /encode/i }),
+		status: page.getByTestId('signature-status')
 	};
 }
 
@@ -24,6 +24,7 @@ function decodeSegment(token: string, index: number): unknown {
 test.beforeEach(async ({ page }) => {
 	await page.goto('/jwt');
 	await expect(page.locator('.container[data-hydrated]')).toBeVisible();
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('JWT Parser');
 });
 
 test('decodes the default sample token into the panels', async ({ page }) => {
@@ -39,7 +40,7 @@ test('a malformed paste clears the previous token from every panel', async ({ pa
 	await u.token.fill('part1.part2');
 	await expect(u.header).toHaveText('Invalid JWT format');
 	await expect(u.payload).not.toContainText('John Doe');
-	await expect(page.locator('.signature-value')).toHaveText('Not available');
+	await expect(page.getByTestId('signature-value')).toHaveText('Not available');
 });
 
 test('verifies the sample with its secret and rejects a wrong one', async ({ page }) => {
@@ -68,7 +69,8 @@ test('ENCODE rejects a non-object payload with a visible error', async ({ page }
 	const before = await u.token.inputValue();
 	await u.payloadJson.fill('[1]');
 	await u.encode.click();
-	await expect(page.locator('.encode-section')).toContainText('Payload must be a JSON object');
+	await expect(u.payloadJson).toHaveAccessibleDescription(/Payload must be a JSON object/);
+	await expect(u.payloadJson).toHaveAttribute('aria-invalid', 'true');
 	await expect(u.token).toHaveValue(before);
 });
 
@@ -108,8 +110,9 @@ test('an unknown header alg gets its own option and a warning', async ({ page })
 test('the secret is masked until revealed and copy buttons are named', async ({ page }) => {
 	const u = ui(page);
 	await expect(u.secret).toHaveAttribute('type', 'password');
-	await page.getByRole('button', { name: 'SHOW' }).click();
+	await page.getByRole('button', { name: 'Show', pressed: false }).click();
 	await expect(u.secret).toHaveAttribute('type', 'text');
+	await expect(page.getByRole('button', { name: 'Show', pressed: true })).toBeVisible();
 	await expect(page.getByRole('button', { name: 'Copy header JSON' })).toBeEnabled();
 	await u.token.fill('part1.part2');
 	await expect(page.getByRole('button', { name: 'Copy header JSON' })).toBeDisabled();

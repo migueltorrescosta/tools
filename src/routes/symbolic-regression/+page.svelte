@@ -46,6 +46,7 @@
 		type OperatorName,
 		type PreparedData
 	} from '$lib/symbolic-regression/types';
+	import { Alert, Button, Field, PageHeader, Panel } from '$lib/ui';
 	import ScatterPlot from './lib/ScatterPlot.svelte';
 	import { thin, type Point } from './lib/plot';
 
@@ -474,460 +475,553 @@
 		return () => clearTimeout(timer);
 	});
 
+	/** Announced politely when a search starts or stops, not on every progress tick. */
+	const announcement = $derived(
+		running
+			? 'Searching…'
+			: canContinue && selectedEntry
+				? `Search stopped with ${front.length} equations. Selected: ${frontTarget} = ${toText(selectedEntry.expr, frontNames)}`
+				: ''
+	);
+
 	function fmt(v: number): string {
 		return Number.isFinite(v) ? formatNumber(v) : '—';
 	}
 </script>
 
-<svelte:head>
-	<title>Symbolic Regression</title>
-</svelte:head>
-
 <div class="container" data-hydrated={hydrated || undefined}>
-	<header>
-		<h1>SYMBOLIC REGRESSION</h1>
-		<p class="subtitle">
-			Fit compact, interpretable equations to a CSV. Everything runs in your browser.
-		</p>
-	</header>
+	<PageHeader path="/symbolic-regression"
+		>Fit compact, interpretable equations to a CSV. Everything runs in your browser.</PageHeader
+	>
 
-	<section class="panel" aria-labelledby="data-heading">
-		<h2 id="data-heading">Data</h2>
-		<div
-			class="dropzone"
-			class:dragging
-			role="region"
-			aria-label="Drop a CSV file here"
-			data-testid="dropzone"
-			ondragover={(e) => {
-				e.preventDefault();
-				dragging = true;
-			}}
-			ondragleave={() => (dragging = false)}
-			ondrop={onDrop}
-		>
-			<label class="file-label">
-				Choose a CSV file
-				<input type="file" accept=".csv,.tsv,.txt,text/csv" onchange={onFileInput} />
-			</label>
-			<span>or drop one here. Comma, semicolon and tab delimiters are detected.</span>
-		</div>
-		<div class="examples">
-			<span>Examples:</span>
-			{#each EXAMPLES as ex (ex.id)}
-				<button class="btn" onclick={() => loadExample(ex.id)} title={ex.description}
-					>{ex.name}</button
-				>
-			{/each}
-		</div>
-		{#if loadError}<p class="error" role="alert">{loadError}</p>{/if}
-		{#if parsed}
-			<p class="status" data-testid="data-status">
-				<strong>{sourceName}</strong>: {parsed.rows.length} rows, {parsed.header.length} columns.
-				{#if built}
-					<span data-testid="dropped">
-						{built.droppedRows} row{built.droppedRows === 1 ? '' : 's'} dropped for missing or non-numeric
-						values; {built.data.y.length} used.
-					</span>
-				{/if}
-				{#if datasetNotSaved}
-					<span class="warn" data-testid="not-saved"
-						>This dataset is larger than about 2 MB, so it was not saved in the browser.</span
+	<div class="layout">
+		<div class="stack inputs">
+			<Panel title="Data">
+				<div class="stack">
+					<div
+						class="dropzone"
+						class:dragging
+						role="region"
+						aria-label="Drop a CSV file here"
+						data-testid="dropzone"
+						ondragover={(e) => {
+							e.preventDefault();
+							dragging = true;
+						}}
+						ondragleave={() => (dragging = false)}
+						ondrop={onDrop}
 					>
-				{/if}
-			</p>
-			<div class="columns">
-				<label>
-					Target
-					<select
-						value={targetIndex}
-						onchange={(e) => setTarget(Number(e.currentTarget.value))}
-						data-testid="target"
-					>
-						{#each columns as c (c.index)}
-							<option value={c.index} disabled={!c.numeric}>{c.name}</option>
+						<label class="file-label">
+							Choose a CSV file, or drop one here
+							<input type="file" accept=".csv,.tsv,.txt,text/csv" onchange={onFileInput} />
+						</label>
+					</div>
+					<div class="cluster">
+						<span class="muted">Examples</span>
+						{#each EXAMPLES as ex (ex.id)}
+							<Button size="sm" onclick={() => loadExample(ex.id)} title={ex.description}
+								>{ex.name}</Button
+							>
 						{/each}
-					</select>
-				</label>
-				<fieldset data-testid="inputs">
-					<legend>Inputs</legend>
-					{#each columns as c (c.index)}
-						{#if c.index !== targetIndex}
-							<label class="check" class:disabled={!c.numeric}>
+					</div>
+					{#if loadError}<Alert tone="danger">{loadError}</Alert>{/if}
+					{#if parsed}
+						<p class="status" data-testid="data-status">
+							<strong>{sourceName}</strong>: {parsed.rows.length} rows, {parsed.header.length} columns.
+							{#if built}
+								<span data-testid="dropped">
+									{built.droppedRows} row{built.droppedRows === 1 ? '' : 's'} dropped for missing or non-numeric
+									values; {built.data.y.length} used.
+								</span>
+							{/if}
+						</p>
+						{#if datasetNotSaved}
+							<div data-testid="not-saved">
+								<Alert tone="warning"
+									>This dataset is larger than about 2 MB, so it was not saved in the browser.</Alert
+								>
+							</div>
+						{/if}
+						<Field label="Target">
+							{#snippet children(props)}
+								<select
+									class="control"
+									{...props}
+									value={targetIndex}
+									onchange={(e) => setTarget(Number(e.currentTarget.value))}
+									data-testid="target"
+								>
+									{#each columns as c (c.index)}
+										<option value={c.index} disabled={!c.numeric}>{c.name}</option>
+									{/each}
+								</select>
+							{/snippet}
+						</Field>
+						<fieldset class="checks" data-testid="inputs">
+							<legend>Inputs</legend>
+							{#each columns as c (c.index)}
+								{#if c.index !== targetIndex}
+									<label class="check" class:disabled={!c.numeric}>
+										<input
+											type="checkbox"
+											disabled={!c.numeric}
+											checked={inputIndices.includes(c.index)}
+											onchange={(e) => toggleInput(c.index, e.currentTarget.checked)}
+										/>
+										{c.name}
+									</label>
+								{/if}
+							{/each}
+						</fieldset>
+					{/if}
+				</div>
+			</Panel>
+
+			<Panel title="Settings">
+				<div class="stack">
+					<fieldset class="checks">
+						<legend>Operators</legend>
+						{#each ALL_OPERATORS as op (op)}
+							<label class="check" class:unary={UNARY_OPS.includes(op as never)}>
 								<input
 									type="checkbox"
-									disabled={!c.numeric}
-									checked={inputIndices.includes(c.index)}
-									onchange={(e) => toggleInput(c.index, e.currentTarget.checked)}
+									checked={operators.includes(op)}
+									onchange={(e) => toggleOperator(op, e.currentTarget.checked)}
+									aria-label="Operator {op}"
 								/>
-								{c.name}
+								{OPERATOR_LABELS[op]}
 							</label>
-						{/if}
-					{/each}
-				</fieldset>
-			</div>
-		{/if}
-	</section>
-
-	<section class="panel" aria-labelledby="settings-heading">
-		<h2 id="settings-heading">Settings</h2>
-		<fieldset>
-			<legend>Operators</legend>
-			{#each ALL_OPERATORS as op (op)}
-				<label class="check" class:unary={UNARY_OPS.includes(op as never)}>
-					<input
-						type="checkbox"
-						checked={operators.includes(op)}
-						onchange={(e) => toggleOperator(op, e.currentTarget.checked)}
-						aria-label="Operator {op}"
-					/>
-					{OPERATOR_LABELS[op]}
-				</label>
-			{/each}
-		</fieldset>
-		<div class="settings-grid">
-			<label>Time budget (s) <input type="number" min="1" bind:value={timeBudgetSec} /></label>
-			<label
-				>Validation (%) <input
-					type="number"
-					min="5"
-					max="50"
-					bind:value={validationPercent}
-				/></label
-			>
-			<label>Seed <input type="number" step="1" bind:value={seed} /></label>
-			<label>Workers <input type="number" min="1" max="16" bind:value={workers} /></label>
-		</div>
-		<div class="controls">
-			<button
-				class="btn primary"
-				onclick={start}
-				disabled={!built || running || operators.length === 0}>Start</button
-			>
-			<button class="btn" onclick={stop} disabled={!running}>Stop</button>
-			<button class="btn" onclick={resume} disabled={!canContinue || running}>Continue</button>
-			<span class="progress" data-testid="progress">
-				{#if running}Searching…
-				{/if}{#if iterations > 0}{iterations} iterations, {(elapsedMs / 1000).toFixed(1)} s{/if}
-			</span>
-		</div>
-		{#if runError}<p class="error" role="alert">{runError}</p>{/if}
-	</section>
-
-	{#if front.length > 0}
-		<section class="panel" aria-labelledby="results-heading">
-			<h2 id="results-heading">Results</h2>
-			{#if selectedEntry}
-				<div class="equation" data-testid="equation">
-					<span class="eq-target">{frontTarget} =</span>
-					<!-- eslint-disable-next-line svelte/no-at-html-tags -- MathML generated from the tree, names XML-escaped -->
-					{@html toMathML(selectedEntry.expr, frontNames)}
-				</div>
-				<p class="eq-text" data-testid="equation-text">{toText(selectedEntry.expr, frontNames)}</p>
-				<div class="copy-row">
-					<span>Copy as:</span>
-					<button class="btn" onclick={() => copy('text')}>Text</button>
-					<button class="btn" onclick={() => copy('latex')}>LaTeX</button>
-					<button class="btn" onclick={() => copy('python')}>Python</button>
-					<button class="btn" onclick={() => copy('js')}>JavaScript</button>
-					{#if copied}<span class="copied" data-testid="copied">Copied {copied}</span>{/if}
-				</div>
-			{/if}
-
-			<div class="table-wrap">
-				<table data-testid="front">
-					<thead>
-						<tr>
-							<th>Complexity</th>
-							<th>Equation</th>
-							<th>Train MSE</th>
-							<th>Val. MSE</th>
-							<th>Val. R²</th>
-							<th>Val. RMSE</th>
-							<th>Score</th>
-						</tr>
-					</thead>
-					<tbody>
-						{#each front as f, i (f.complexity)}
-							<tr
-								class:selected={i === selected}
-								class:recommended={i === recommended}
-								onclick={() => (selected = i)}
-								data-complexity={f.complexity}
-							>
-								<td
-									>{f.complexity}{#if i === recommended}<span class="badge">best</span>{/if}</td
-								>
-								<td class="mono">{toText(f.expr, frontNames)}</td>
-								<td>{fmt(f.trainMse)}</td>
-								<td>{fmt(f.valMse)}</td>
-								<td data-testid="r2">{fmt(f.valR2)}</td>
-								<td>{fmt(f.valRmse)}</td>
-								<td>{fmt(f.score)}</td>
-							</tr>
 						{/each}
-					</tbody>
-				</table>
-			</div>
+					</fieldset>
+					<div class="settings-grid">
+						<Field label="Time budget (s)">
+							{#snippet children(props)}
+								<input
+									class="control"
+									type="number"
+									min="1"
+									bind:value={timeBudgetSec}
+									{...props}
+								/>
+							{/snippet}
+						</Field>
+						<Field label="Validation (%)">
+							{#snippet children(props)}
+								<input
+									class="control"
+									type="number"
+									min="5"
+									max="50"
+									bind:value={validationPercent}
+									{...props}
+								/>
+							{/snippet}
+						</Field>
+						<Field label="Seed">
+							{#snippet children(props)}
+								<input class="control" type="number" step="1" bind:value={seed} {...props} />
+							{/snippet}
+						</Field>
+						<Field label="Workers">
+							{#snippet children(props)}
+								<input
+									class="control"
+									type="number"
+									min="1"
+									max="16"
+									bind:value={workers}
+									{...props}
+								/>
+							{/snippet}
+						</Field>
+					</div>
+					<div class="cluster">
+						<Button
+							variant="primary"
+							onclick={start}
+							disabled={!built || running || operators.length === 0}>Start</Button
+						>
+						<Button variant="danger" onclick={stop} disabled={!running}>Stop</Button>
+						<Button onclick={resume} disabled={!canContinue || running}>Continue</Button>
+						<span class="muted" data-testid="progress">
+							{#if running}Searching…
+							{/if}{#if iterations > 0}{iterations} iterations, {(elapsedMs / 1000).toFixed(1)} s{/if}
+						</span>
+					</div>
+					{#if runError}<Alert tone="danger">{runError}</Alert>{/if}
+				</div>
+			</Panel>
+		</div>
 
-			<div class="plots">
-				<ScatterPlot
-					title="Pareto front (click to select)"
-					testId="pareto-plot"
-					points={paretoPoints}
-					xLabel="Complexity"
-					yLabel="Validation MSE"
-					logY
-					connect
-					selectedId={selected}
-					recommendedId={recommended}
-					onSelect={(id) => (selected = id)}
-				/>
-				<ScatterPlot
-					title="Predicted vs actual (validation)"
-					points={predictedPoints}
-					xLabel="Actual {frontTarget}"
-					yLabel="Predicted"
-					identityLine
-				/>
-				<ScatterPlot
-					title="Residuals (validation)"
-					points={residualPoints}
-					xLabel="Predicted"
-					yLabel="Actual − predicted"
-					zeroLine
-				/>
-				<div>
-					<ScatterPlot
-						title="{frontTarget} against {frontNames[plotInput] ?? ''}"
-						points={inputPoints.actual}
-						overlay={inputPoints.predicted}
-						xLabel={frontNames[plotInput] ?? ''}
-						yLabel={frontTarget}
-					/>
-					<label class="plot-input"
-						>Input
-						<select bind:value={plotInput}>
-							{#each frontNames as name, i (i)}<option value={i}>{name}</option>{/each}
-						</select>
-					</label>
+		<div class="results">
+			<p class="sr-only" role="status">{announcement}</p>
+			<Panel title="Results">
+				{#if front.length === 0}
+					<p class="muted placeholder">
+						Load data, pick a target and press Start. The equations found appear here, from the
+						simplest to the most accurate.
+					</p>
+				{:else}
+					<div class="stack">
+						{#if selectedEntry}
+							<div class="equation" data-testid="equation">
+								<span class="eq-target">{frontTarget} =</span>
+								<!-- eslint-disable-next-line svelte/no-at-html-tags -- MathML generated from the tree, names XML-escaped -->
+								{@html toMathML(selectedEntry.expr, frontNames)}
+							</div>
+							<p class="mono eq-text" data-testid="equation-text">
+								{toText(selectedEntry.expr, frontNames)}
+							</p>
+							<div class="cluster copy-row">
+								<span class="muted">Copy as</span>
+								<Button size="sm" onclick={() => copy('text')}>Text</Button>
+								<Button size="sm" onclick={() => copy('latex')}>LaTeX</Button>
+								<Button size="sm" onclick={() => copy('python')}>Python</Button>
+								<Button size="sm" onclick={() => copy('js')}>JavaScript</Button>
+								<span class="copied" role="status"
+									>{#if copied}<span data-testid="copied">Copied {copied}</span>{/if}</span
+								>
+							</div>
+						{/if}
+
+						<div class="table-wrap">
+							<table data-testid="front">
+								<caption class="sr-only"
+									>Pareto front: one equation per complexity. Select a row to show it.</caption
+								>
+								<thead>
+									<tr>
+										<th scope="col">Complexity</th>
+										<th scope="col">Equation</th>
+										<th scope="col" class="num">Train MSE</th>
+										<th scope="col" class="num">Val. MSE</th>
+										<th scope="col" class="num">Val. R²</th>
+										<th scope="col" class="num">Val. RMSE</th>
+										<th scope="col" class="num">Score</th>
+									</tr>
+								</thead>
+								<tbody>
+									{#each front as f, i (f.complexity)}
+										<tr
+											class:selected={i === selected}
+											onclick={() => (selected = i)}
+											data-complexity={f.complexity}
+										>
+											<td>
+												<Button
+													size="sm"
+													variant="ghost"
+													pressed={i === selected}
+													aria-label="Select the equation of complexity {f.complexity}"
+													>{f.complexity}</Button
+												>{#if i === recommended}<span class="badge" data-testid="best">best</span
+													>{/if}
+											</td>
+											<td class="mono" data-testid="row-equation">{toText(f.expr, frontNames)}</td>
+											<td class="num">{fmt(f.trainMse)}</td>
+											<td class="num">{fmt(f.valMse)}</td>
+											<td class="num" data-testid="r2">{fmt(f.valR2)}</td>
+											<td class="num">{fmt(f.valRmse)}</td>
+											<td class="num">{fmt(f.score)}</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+
+						<div class="plots">
+							<ScatterPlot
+								title="Pareto front (click to select)"
+								testId="pareto-plot"
+								points={paretoPoints}
+								xLabel="Complexity"
+								yLabel="Validation MSE"
+								logY
+								connect
+								selectedId={selected}
+								recommendedId={recommended}
+								onSelect={(id) => (selected = id)}
+							/>
+							<ScatterPlot
+								title="Predicted vs actual (validation)"
+								points={predictedPoints}
+								xLabel="Actual {frontTarget}"
+								yLabel="Predicted"
+								identityLine
+							/>
+							<ScatterPlot
+								title="Residuals (validation)"
+								points={residualPoints}
+								xLabel="Predicted"
+								yLabel="Actual − predicted"
+								zeroLine
+							/>
+							<div class="stack input-plot">
+								<ScatterPlot
+									title="{frontTarget} against {frontNames[plotInput] ?? ''}"
+									points={inputPoints.actual}
+									overlay={inputPoints.predicted}
+									pointsLabel="Actual"
+									overlayLabel="Predicted"
+									xLabel={frontNames[plotInput] ?? ''}
+									yLabel={frontTarget}
+								/>
+								<Field label="Plot against input">
+									{#snippet children(props)}
+										<select class="control" {...props} bind:value={plotInput}>
+											{#each frontNames as name, i (i)}<option value={i}>{name}</option>{/each}
+										</select>
+									{/snippet}
+								</Field>
+							</div>
+						</div>
+					</div>
+				{/if}
+			</Panel>
+		</div>
+	</div>
+
+	<div class="share">
+		<Panel title="Share and saved data">
+			<div class="share-row">
+				<Field label="Share link (settings only, never your data)">
+					{#snippet children(props)}
+						<input
+							class="control"
+							type="text"
+							readonly
+							value={shareUrl}
+							data-testid="share-url"
+							{...props}
+						/>
+					{/snippet}
+				</Field>
+				<div class="cluster">
+					<Button onclick={() => copyToClipboard(shareUrl)}>Copy link</Button>
+					<Button variant="danger" onclick={clearAll}>Clear saved data</Button>
 				</div>
 			</div>
-		</section>
-	{/if}
+		</Panel>
+	</div>
 
-	<section class="panel footer-actions">
-		<label class="share">
-			Share link (settings only, never your data)
-			<input type="text" readonly value={shareUrl} data-testid="share-url" />
-		</label>
-		<button class="btn" onclick={() => copyToClipboard(shareUrl)}>Copy link</button>
-		<button class="btn danger" onclick={clearAll}>Clear saved data</button>
-	</section>
+	<details class="how">
+		<summary>How it works</summary>
+		<p>
+			Load a CSV (comma, semicolon and tab delimiters are detected), pick the column to predict and
+			the inputs to use. Rows with missing or non-numeric values are dropped. A random share of the
+			rows, set by Validation (%), is held back to score each equation.
+		</p>
+		<p>
+			A genetic search runs on Web Workers for the time budget, combining the chosen operators. It
+			keeps a Pareto front: the most accurate equation at each complexity. The row marked
+			<strong>best</strong> balances accuracy against simplicity; select any row or point on the Pareto
+			plot to inspect it. Stop pauses the search and Continue resumes it.
+		</p>
+		<p>
+			Your data never leaves the browser. Datasets under about 2 MB and the last results are saved
+			in local storage; the share link carries only the settings and, for an example, its name.
+		</p>
+	</details>
 </div>
 
 <style>
-	.container {
-		max-width: 1100px;
-		margin: 0 auto;
-		padding: 1rem;
-		width: 100%;
-	}
-	header h1 {
-		font-family: var(--font-sans);
-		color: var(--futuristic-cyan);
-		margin-bottom: 0.25rem;
-	}
-	.subtitle {
-		color: var(--futuristic-text-dim);
-		margin-top: 0;
-	}
-	.panel {
-		background: var(--futuristic-surface);
-		border: 1px solid var(--futuristic-border);
-		border-radius: 8px;
-		padding: 1rem;
-		margin-bottom: 1rem;
-	}
-	h2 {
-		font-size: 1.1rem;
-		margin: 0 0 0.75rem;
-		color: var(--futuristic-cyan);
-	}
-	.dropzone {
-		border: 2px dashed var(--futuristic-border);
-		border-radius: 8px;
-		padding: 1rem;
-		display: flex;
-		gap: 1rem;
-		align-items: center;
-		flex-wrap: wrap;
-	}
-	.dropzone.dragging {
-		border-color: var(--futuristic-cyan);
-		background: rgba(0, 245, 255, 0.05);
-	}
-	.file-label input {
-		display: block;
-		margin-top: 0.25rem;
-	}
-	.examples,
-	.controls,
-	.copy-row {
-		display: flex;
-		gap: 0.5rem;
-		align-items: center;
-		flex-wrap: wrap;
-		margin-top: 0.75rem;
-	}
-	.btn {
-		background: transparent;
-		color: var(--futuristic-text);
-		border: 1px solid var(--futuristic-border);
-		border-radius: 4px;
-		padding: 0.35rem 0.8rem;
-		cursor: pointer;
-		font: inherit;
-		font-size: 0.9rem;
-	}
-	.btn:disabled {
-		opacity: 0.4;
-		cursor: not-allowed;
-	}
-	.btn.primary {
-		border-color: var(--futuristic-cyan);
-		color: var(--futuristic-cyan);
-	}
-	.btn.danger {
-		border-color: #ff5c7a;
-		color: #ff5c7a;
-	}
-	.error {
-		color: #ff5c7a;
-	}
-	.warn {
-		color: #ffd84d;
-		display: block;
-	}
-	.status {
-		font-size: 0.9rem;
-	}
-	.columns {
+	.layout {
 		display: grid;
-		grid-template-columns: minmax(12rem, auto) 1fr;
-		gap: 1rem;
+		gap: var(--sp-3);
 		align-items: start;
 	}
-	fieldset {
-		border: 1px solid var(--futuristic-border);
-		border-radius: 6px;
+	@media (min-width: 960px) {
+		.layout {
+			grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+		}
+	}
+	.inputs,
+	.results {
+		min-width: 0;
+	}
+	.share {
+		margin-top: var(--sp-3);
+	}
+	.muted {
+		color: var(--text-muted);
+		font-size: var(--text-sm);
+	}
+	p {
+		margin: 0;
+	}
+	.dropzone {
+		border: 1px dashed var(--border-strong);
+		border-radius: var(--radius);
+		padding: var(--sp-2) var(--sp-3);
+		background: var(--sunken);
+	}
+	.dropzone.dragging {
+		border-color: var(--accent);
+		border-style: solid;
+		background: var(--accent-bg);
+	}
+	.file-label {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-1);
+		font-size: var(--text-sm);
+		font-weight: 500;
+	}
+	.file-label input {
+		max-width: 100%;
+		min-height: 24px;
+	}
+	.status {
+		font-size: var(--text-sm);
+	}
+	.checks {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.25rem 1rem;
+		gap: var(--sp-1);
+		margin: 0;
+		padding: 0;
+		border: 0;
+		min-width: 0;
+	}
+	.checks legend {
+		padding: 0;
+		margin-bottom: var(--sp-1);
+		font-size: var(--text-sm);
+		font-weight: 500;
 	}
 	.check {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--sp-1);
+		min-height: 28px;
+		padding: 0 var(--sp-2);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-sm);
+		background: var(--surface);
+		font-size: var(--text-sm);
 		white-space: nowrap;
+		cursor: pointer;
+	}
+	.check:has(input:checked) {
+		border-color: var(--accent);
+		background: var(--accent-bg);
+	}
+	.check input {
+		margin: 0;
+		accent-color: var(--accent);
 	}
 	.check.disabled {
-		opacity: 0.45;
-	}
-	select,
-	input[type='number'],
-	input[type='text'] {
-		background: var(--futuristic-bg);
-		color: var(--futuristic-text);
-		border: 1px solid var(--futuristic-border);
-		border-radius: 4px;
-		padding: 0.25rem 0.4rem;
-		font: inherit;
-		font-size: 0.9rem;
+		opacity: 0.6;
+		cursor: not-allowed;
 	}
 	.settings-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-		gap: 0.75rem;
-		margin-top: 0.75rem;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: var(--sp-2) var(--sp-3);
 	}
-	.settings-grid label {
-		display: flex;
-		flex-direction: column;
-		font-size: 0.85rem;
-	}
-	.progress {
-		color: var(--futuristic-text-dim);
-		font-size: 0.9rem;
+	.placeholder {
+		padding: var(--sp-4) 0;
 	}
 	.equation {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
-		font-size: 1.4rem;
+		gap: var(--sp-2);
+		font-size: var(--text-xl);
 		overflow-x: auto;
 	}
-	.eq-text,
+	.eq-target {
+		color: var(--text-muted);
+		white-space: nowrap;
+	}
+	.eq-text {
+		color: var(--text-muted);
+		overflow-wrap: anywhere;
+	}
+	.copy-row {
+		--gap: var(--sp-1);
+	}
 	.mono {
 		font-family: var(--font-mono);
-		font-size: 0.85rem;
+		font-size: var(--text-sm);
 	}
 	.copied {
-		color: var(--futuristic-cyan);
-		font-size: 0.85rem;
+		margin-left: var(--sp-1);
+		font-size: var(--text-sm);
+		color: var(--success-text);
 	}
 	.table-wrap {
-		overflow-x: auto;
-		margin-top: 1rem;
+		max-height: 18rem;
+		overflow: auto;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
 	}
 	table {
 		border-collapse: collapse;
 		width: 100%;
-		font-size: 0.85rem;
+		font-size: var(--text-sm);
 	}
 	th,
 	td {
-		padding: 0.3rem 0.5rem;
+		height: 32px;
+		padding: var(--sp-0) var(--sp-2);
 		text-align: left;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+		white-space: nowrap;
+		border-bottom: 1px solid var(--border);
+	}
+	th {
+		position: sticky;
+		top: 0;
+		z-index: 1;
+		background: var(--surface-2);
+		color: var(--text-muted);
+		font-weight: 600;
+	}
+	.num {
+		text-align: right;
+	}
+	td.mono {
+		min-width: 14rem;
+		white-space: normal;
+		overflow-wrap: anywhere;
 	}
 	tbody tr {
 		cursor: pointer;
 	}
-	tr.recommended td:first-child {
-		color: #ffd84d;
+	tbody tr:hover {
+		background: var(--surface-2);
 	}
 	tr.selected {
-		background: rgba(0, 245, 255, 0.1);
+		background: var(--accent-bg);
+		box-shadow: inset 3px 0 0 var(--accent);
+	}
+	tr.selected:hover {
+		background: var(--accent-bg);
 	}
 	.badge {
-		margin-left: 0.4rem;
-		font-size: 0.7rem;
-		border: 1px solid #ffd84d;
-		border-radius: 3px;
-		padding: 0 0.25rem;
+		margin-left: var(--sp-1);
+		padding: 0 var(--sp-1);
+		border: 1px solid var(--warning);
+		border-radius: var(--radius-sm);
+		color: var(--warning-text);
+		background: var(--warning-bg);
+		font-size: var(--text-xs);
+		font-weight: 600;
 	}
 	.plots {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-		gap: 1rem;
-		margin-top: 1rem;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+		gap: var(--sp-3);
 	}
-	.plot-input {
-		font-size: 0.85rem;
+	.input-plot {
+		--gap: var(--sp-2);
 	}
-	.footer-actions {
+	.share-row {
 		display: flex;
-		gap: 0.75rem;
-		align-items: end;
 		flex-wrap: wrap;
+		gap: var(--sp-2) var(--sp-3);
+		align-items: end;
 	}
-	.share {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		font-size: 0.85rem;
-	}
-	@media (max-width: 640px) {
-		.columns {
-			grid-template-columns: 1fr;
-		}
+	.share-row > :global(:first-child) {
+		flex: 1 1 20rem;
 	}
 </style>

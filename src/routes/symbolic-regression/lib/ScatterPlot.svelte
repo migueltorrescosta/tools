@@ -20,6 +20,9 @@
 		/** Makes points clickable. */
 		onSelect?: (id: number) => void;
 		testId?: string;
+		/** Legend names for the two series; shown when there is an overlay. */
+		pointsLabel?: string;
+		overlayLabel?: string;
 	}
 
 	let {
@@ -35,7 +38,9 @@
 		selectedId = null,
 		recommendedId = null,
 		onSelect,
-		testId
+		testId,
+		pointsLabel = 'Data',
+		overlayLabel = 'Overlay'
 	}: Props = $props();
 
 	const W = 420;
@@ -93,11 +98,46 @@
 					.join('')
 			: ''
 	);
+
+	/** A diamond centred on (x, y), so the recommended point differs by shape, not only colour. */
+	const diamond = (x: number, y: number, r: number) =>
+		`M${x},${y - r}L${x + r},${y}L${x},${y + r}L${x - r},${y}Z`;
 </script>
 
 <figure class="plot" data-testid={testId}>
-	<figcaption>{title}</figcaption>
-	<svg viewBox="0 0 {W} {H}" role="img" aria-label={title}>
+	<figcaption>
+		<span>{title}</span>
+		{#if onSelect}
+			<span class="plot-legend" aria-hidden="true">
+				<span
+					><svg viewBox="0 0 12 12"><path class="recommended" d={diamond(6, 6, 5)} /></svg
+					>best</span
+				>
+				<span
+					><svg viewBox="0 0 12 12"><circle class="ring" cx="6" cy="6" r="4.5" /></svg
+					>selected</span
+				>
+			</span>
+		{:else if overlay.length > 0}
+			<span class="plot-legend" aria-hidden="true">
+				<span
+					><svg viewBox="0 0 12 12"><circle class="point" cx="6" cy="6" r="3" /></svg
+					>{pointsLabel}</span
+				>
+				<span
+					><svg viewBox="0 0 12 12"><rect class="overlay" x="3" y="3" width="6" height="6" /></svg
+					>{overlayLabel}</span
+				>
+			</span>
+		{/if}
+	</figcaption>
+	<svg
+		viewBox="0 0 {W} {H}"
+		role={onSelect ? 'group' : 'img'}
+		aria-label={overlay.length > 0
+			? `${title}: ${pointsLabel} as dots, ${overlayLabel} as squares`
+			: title}
+	>
 		<g class="grid">
 			{#each xTicks as t (t)}
 				<line x1={sx(t)} x2={sx(t)} y1={M.top} y2={M.top + innerH} />
@@ -128,28 +168,39 @@
 		{#each visible as p, i (p.id ?? i)}
 			{@const selected = p.id !== undefined && p.id === selectedId}
 			{@const recommended = p.id !== undefined && p.id === recommendedId}
+			{@const cx = sx(p.x)}
+			{@const cy = sy(p.y)}
 			{#if onSelect && p.id !== undefined}
 				{@const id = p.id}
-				<circle
-					class="point clickable"
-					class:selected
-					class:recommended
-					cx={sx(p.x)}
-					cy={sy(p.y)}
-					r={selected ? 7 : 5}
+				<g
+					class="target"
 					role="button"
 					tabindex="0"
-					aria-label="Select complexity {p.x}"
+					aria-label="Select complexity {p.x}{recommended ? ' (best)' : ''}"
+					aria-pressed={selected}
 					data-id={id}
 					onclick={() => onSelect(id)}
-					onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && onSelect(id)}
-				/>
+					onkeydown={(e) => {
+						if (e.key === 'Enter' || e.key === ' ') {
+							e.preventDefault();
+							onSelect(id);
+						}
+					}}
+				>
+					<circle class="hit" {cx} {cy} r={12} />
+					{#if selected}<circle class="ring" {cx} {cy} r={9} />{/if}
+					{#if recommended}
+						<path class="recommended" d={diamond(cx, cy, 6.5)} />
+					{:else}
+						<circle class="point clickable" {cx} {cy} r={4.5} />
+					{/if}
+				</g>
 			{:else}
-				<circle class="point" cx={sx(p.x)} cy={sy(p.y)} r={2.5} />
+				<circle class="point" {cx} {cy} r={2.5} />
 			{/if}
 		{/each}
 		{#each visibleOverlay as p, i (i)}
-			<circle class="overlay" cx={sx(p.x)} cy={sy(p.y)} r={2} />
+			<rect class="overlay" x={sx(p.x) - 2} y={sy(p.y) - 2} width={4} height={4} />
 		{/each}
 		<text class="label" x={M.left + innerW / 2} y={H - 6} text-anchor="middle">{xLabel}</text>
 		<text
@@ -165,57 +216,94 @@
 <style>
 	.plot {
 		margin: 0;
-		background: var(--futuristic-surface);
-		border: 1px solid var(--futuristic-border);
-		border-radius: 6px;
-		padding: 0.5rem;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		padding: var(--sp-2);
+		min-width: 0;
 	}
 	figcaption {
-		font-size: 0.85rem;
-		color: var(--futuristic-text-dim);
-		margin-bottom: 0.25rem;
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		gap: var(--sp-1) var(--sp-3);
+		font-size: var(--text-sm);
+		font-weight: 500;
+		margin-bottom: var(--sp-1);
+	}
+	.plot-legend {
+		display: inline-flex;
+		gap: var(--sp-3);
+		color: var(--text-muted);
+		font-size: var(--text-xs);
+		font-weight: 400;
+	}
+	.plot-legend > span {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--sp-1);
+	}
+	.plot-legend svg {
+		width: 12px;
+		height: 12px;
 	}
 	svg {
 		width: 100%;
 		height: auto;
 		display: block;
+		overflow: visible;
 	}
 	.grid line {
-		stroke: rgba(255, 255, 255, 0.08);
+		stroke: var(--border);
 	}
 	.grid text,
 	.label {
-		fill: var(--futuristic-text-dim);
+		fill: var(--text-muted);
 		font-size: 11px;
 		font-family: var(--font-mono);
 	}
 	.ref {
-		stroke: var(--futuristic-magenta);
+		stroke: var(--text-muted);
 		stroke-dasharray: 4 4;
-		opacity: 0.7;
 	}
 	.front {
 		fill: none;
-		stroke: var(--futuristic-blue);
+		stroke: var(--data-1);
 		stroke-width: 1.5;
 	}
 	.point {
-		fill: var(--futuristic-cyan);
-		opacity: 0.75;
+		fill: var(--data-1);
+		fill-opacity: 0.7;
+	}
+	.point.clickable {
+		fill-opacity: 1;
 	}
 	.overlay {
-		fill: var(--futuristic-magenta);
-		opacity: 0.8;
-	}
-	.clickable {
-		cursor: pointer;
-		opacity: 1;
+		fill: var(--data-4);
+		fill-opacity: 0.85;
 	}
 	.recommended {
-		fill: #ffd84d;
+		fill: var(--data-2);
+		stroke: var(--surface);
+		stroke-width: 1;
 	}
-	.selected {
-		stroke: #fff;
+	.ring {
+		fill: none;
+		stroke: var(--text);
+		stroke-width: 2;
+	}
+	.target {
+		cursor: pointer;
+		outline: none;
+	}
+	.hit {
+		fill: transparent;
+	}
+	.target:hover .hit {
+		fill: var(--surface-2);
+	}
+	.target:focus-visible .hit {
+		fill: none;
+		stroke: var(--focus-ring);
 		stroke-width: 2;
 	}
 </style>

@@ -5,9 +5,9 @@ import FormatPage from './+page.svelte';
 
 function ui() {
 	return {
-		content: page.getByRole('textbox', { name: 'CONTENT' }),
-		status: page.getByRole('status', { name: 'VALIDATION RESULT' }),
-		copy: page.getByRole('button', { name: /^(COPY INPUT|COPIED|COPY FAILED)$/ }),
+		content: page.getByRole('textbox', { name: 'Content' }),
+		status: page.getByRole('status', { name: 'Validation result' }),
+		copy: page.getByRole('button', { name: /^(Copy input|Copied|Copy failed)$/ }),
 		format: (name: string) => page.getByRole('button', { name, exact: true })
 	};
 }
@@ -50,10 +50,10 @@ describe('/format page', () => {
 		render(FormatPage);
 		const u = ui();
 		await u.content.fill('key: value');
-		await expect.element(u.copy).toHaveTextContent('COPY INPUT');
+		await expect.element(u.copy).toHaveTextContent('Copy input');
 		await u.copy.click();
 		expect(writeText).toHaveBeenCalledWith('key: value');
-		await expect.element(u.copy).toHaveTextContent('COPIED');
+		await expect.element(u.copy).toHaveTextContent('Copied');
 	});
 
 	it('reports a failed copy instead of an unhandled rejection', async () => {
@@ -62,7 +62,7 @@ describe('/format page', () => {
 		const u = ui();
 		await expect.element(u.status).toHaveTextContent('Valid JSON');
 		await u.copy.click();
-		await expect.element(u.copy).toHaveTextContent('COPY FAILED');
+		await expect.element(u.copy).toHaveTextContent('Copy failed');
 	});
 
 	it('disables copy when there is nothing to copy', async () => {

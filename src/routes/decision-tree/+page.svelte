@@ -6,6 +6,7 @@
 	import { createPersistGate } from '$lib/persist-gate';
 	import { buildGraph, encodePath, restorePath } from '$lib/decision-tree/graph';
 	import DecisionTree from '$lib/decision-tree/DecisionTree.svelte';
+	import { PageHeader } from '$lib/ui';
 	import { validateGraph } from '$lib/decision-tree/validation';
 	import rawTreeData from '$lib/decision-tree/data/tree.json';
 	import type { DecisionGraph, TraversalPath, RawTree } from '$lib/decision-tree/types';
@@ -88,15 +89,8 @@
 	});
 </script>
 
-<svelte:head>
-	<title>Decision Tree</title>
-</svelte:head>
-
 <div class="container" data-hydrated={hydrated || undefined}>
-	<header>
-		<h1>DECISION TREE</h1>
-		<p class="subtitle">Navigate a decision tree one answer at a time</p>
-	</header>
+	<PageHeader path="/decision-tree">Navigate a decision tree one answer at a time</PageHeader>
 
 	<DecisionTree {graph} bind:path={traversalPath} />
 </div>

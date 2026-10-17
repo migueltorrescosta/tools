@@ -4,7 +4,7 @@ import { expect, test, type Page } from '@playwright/test';
 async function open(page: Page) {
 	await page.goto('/split');
 	await expect(page.locator('.container[data-hydrated]')).toBeVisible();
-	await expect(page.getByRole('heading', { level: 1 })).toHaveText('ASSET SPLITTING');
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Asset Splitting');
 }
 
 /** Collect console errors and uncaught exceptions so the test can fail on them. */
@@ -24,8 +24,8 @@ async function addPerson(page: Page, name: string) {
 
 async function addItem(page: Page, description: string, price: string) {
 	await page.getByLabel('Item description').fill(description);
-	await page.getByLabel('Item price in euros').fill(price);
-	await page.getByRole('button', { name: 'Add Item' }).click();
+	await page.getByLabel('Item price (€)').fill(price);
+	await page.getByRole('button', { name: 'Add item' }).click();
 }
 
 /** "Pay 20 000 €" -> 20000, "Receive 20 000 €" -> -20000, "No payment" -> 0. */
@@ -48,13 +48,13 @@ test('Asset Splitting - full algorithm flow', async ({ page }) => {
 	await addItem(page, 'Car', '10000');
 	// Enter in the price field submits the add-item form.
 	await page.getByLabel('Item description').fill('House');
-	await page.getByLabel('Item price in euros').fill('50000');
-	await page.getByLabel('Item price in euros').press('Enter');
+	await page.getByLabel('Item price (€)').fill('50000');
+	await page.getByLabel('Item price (€)').press('Enter');
 	await expect(page.getByRole('cell', { name: 'Car', exact: true })).toBeVisible();
 	await expect(page.getByRole('cell', { name: 'House', exact: true })).toBeVisible();
 
-	await page.getByRole('button', { name: 'START' }).click();
-	await expect(page.locator('.panel-title')).toHaveText('ROUND 0');
+	await page.getByRole('button', { name: 'Start', exact: true }).click();
+	await expect(page.getByRole('heading', { name: 'Round 0', exact: true })).toBeVisible();
 
 	// LPT puts the House in group 1 and the Car in group 2.
 	const groups = page.getByTestId('split-group');
@@ -70,7 +70,7 @@ test('Asset Splitting - full algorithm flow', async ({ page }) => {
 
 	const alice = page.getByLabel("Alice's group choice");
 	const bob = page.getByLabel("Bob's group choice");
-	const complete = page.getByRole('button', { name: 'COMPLETE ROUND' });
+	const complete = page.getByRole('button', { name: 'Complete round' });
 
 	await expect(complete).toBeDisabled();
 	await alice.selectOption('0');
@@ -79,28 +79,33 @@ test('Asset Splitting - full algorithm flow', async ({ page }) => {
 	await expect(complete).toBeEnabled();
 	await complete.click();
 
-	await expect(page.locator('.panel-title')).toHaveText('ROUND 1');
+	await expect(page.getByRole('heading', { name: 'Round 1', exact: true })).toBeVisible();
 	await expect(alice).toHaveValue('');
 	await expect(bob).toHaveValue('');
 	await expect(complete).toBeDisabled();
 
 	// Suggested split: one row per person, provisional, payments net to zero.
 	await expect(page.getByTestId('split-stability')).toContainText('Provisional');
-	const rows = page.getByRole('table', { name: 'Suggested Split' }).locator('tbody tr');
+	const rows = page
+		.getByRole('table', { name: 'Suggested split' })
+		.getByRole('row')
+		.filter({ has: page.getByRole('cell') });
 	await expect(rows).toHaveCount(2);
-	const payments = await rows.locator('td:nth-child(3)').allTextContents();
+	const payments = await Promise.all(
+		(await rows.all()).map((row) => row.getByRole('cell').nth(2).innerText())
+	);
 	expect(payments).toHaveLength(2);
 	expect(payments.reduce((s, t) => s + signedAmount(t), 0)).toBe(0);
 
 	expect(errors).toEqual([]);
 });
 
-test('Asset Splitting - START is blocked with a reason until 2 people and 1 item', async ({
+test('Asset Splitting - Start is blocked with a reason until 2 people and 1 item', async ({
 	page
 }) => {
 	const errors = trackErrors(page);
 	await open(page);
-	const start = page.getByRole('button', { name: 'START' });
+	const start = page.getByRole('button', { name: 'Start', exact: true });
 
 	await addPerson(page, 'Alice');
 	await expect(start).toBeDisabled();
@@ -118,14 +123,13 @@ test('Asset Splitting - invalid input shows a message', async ({ page }) => {
 	await open(page);
 
 	await page.getByRole('button', { name: 'Add person' }).click();
-	await expect(page.getByRole('alert')).toHaveText('Enter a name.');
+	await expect(page.getByRole('alert')).toHaveText(/^\W*Enter a name\.$/);
 
 	await page.getByLabel('Item description').fill('Car');
-	await page.getByLabel('Item price in euros').fill('0');
-	await page.getByRole('button', { name: 'Add Item' }).click();
+	await page.getByLabel('Item price (€)').fill('0');
+	await page.getByRole('button', { name: 'Add item' }).click();
 	await expect(page.getByText('Enter a price greater than 0.')).toBeVisible();
-	// Rejected input stays in the entry row for correction. That row's cell takes the
-	// textbox value as its accessible name, so check for the added row's Delete button
+	// Rejected input stays in the form for correction, and no item row is added.
 	await expect(page.getByLabel('Item description')).toHaveValue('Car');
 	await expect(page.getByRole('button', { name: 'Delete Car' })).toHaveCount(0);
 });
@@ -141,17 +145,17 @@ test('Asset Splitting - items can be deleted and the round view can go back', as
 	await expect(page.getByRole('cell', { name: 'Boat', exact: true })).toHaveCount(0);
 	await addItem(page, 'House', '50000');
 
-	await page.getByRole('button', { name: 'START' }).click();
+	await page.getByRole('button', { name: 'Start', exact: true }).click();
 	await page.getByLabel("Alice's group choice").selectOption('0');
 	await page.getByLabel("Bob's group choice").selectOption('0');
-	await page.getByRole('button', { name: 'COMPLETE ROUND' }).click();
-	await expect(page.locator('.panel-title')).toHaveText('ROUND 1');
+	await page.getByRole('button', { name: 'Complete round' }).click();
+	await expect(page.getByRole('heading', { name: 'Round 1', exact: true })).toBeVisible();
 
 	await page.getByRole('button', { name: 'Back to setup' }).click();
 	await expect(page.getByLabel('Person name')).toBeVisible();
 	// Entered prices are restored, not the drifted consensus prices.
 	const carRow = page.getByRole('row').filter({ hasText: 'Car' });
 	await expect(carRow).toContainText(/10\s000\s€/);
-	await page.getByRole('button', { name: 'START' }).click();
-	await expect(page.locator('.panel-title')).toHaveText('ROUND 0');
+	await page.getByRole('button', { name: 'Start', exact: true }).click();
+	await expect(page.getByRole('heading', { name: 'Round 0', exact: true })).toBeVisible();
 });

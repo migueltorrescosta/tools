@@ -4,9 +4,9 @@ function ui(page: Page) {
 	return {
 		content: page.getByRole('textbox', { name: /content/i }),
 		format: (label: string) => page.getByRole('button', { name: label, exact: true }),
-		status: page.getByRole('status', { name: 'VALIDATION RESULT' }),
-		result: page.locator('.result-message'),
-		placeholder: page.locator('.result-placeholder')
+		status: page.getByRole('status', { name: 'Validation result' }),
+		result: page.getByTestId('result-message'),
+		placeholder: page.getByTestId('result-placeholder')
 	};
 }
 
@@ -14,7 +14,7 @@ function ui(page: Page) {
 async function open(page: Page) {
 	await page.goto('/format');
 	await expect(page.locator('.container[data-hydrated]')).toBeVisible();
-	await expect(page.locator('h1')).toHaveText('FORMAT CHECKER');
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Format Checker');
 }
 
 test.beforeEach(async ({ page }) => {

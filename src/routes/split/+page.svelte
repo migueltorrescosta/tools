@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { Alert, Button, DataTable, Field, PageHeader, Panel, type Column } from '$lib/ui';
 	import {
 		STABLE_ROUNDS,
 		balances,
@@ -152,266 +153,371 @@
 			)
 		);
 		return people.map((p, idx) => ({
+			idx,
 			name: p.name,
-			items: itemsOf(itemFavs, idx)
-				.map((i) => items[i].description)
-				.join(', '),
+			items:
+				itemsOf(itemFavs, idx)
+					.map((i) => items[i].description)
+					.join(', ') || '(none)',
 			payment: paymentLabel(owed[idx], fmt)
 		}));
 	});
+
+	type Alloc = (typeof suggestedAlloc)[number];
+	const allocColumns: Column<Alloc>[] = [
+		{ key: 'name', label: 'Person' },
+		{ key: 'items', label: 'Items' },
+		{ key: 'payment', label: 'Settlement', align: 'right' }
+	];
+
+	const priceRows = $derived(
+		items.map((item) => ({
+			id: item.id,
+			description: item.description,
+			price: fmt(Math.round(item.price))
+		}))
+	);
+	const priceColumns: Column<(typeof priceRows)[number]>[] = [
+		{ key: 'description', label: 'Description' },
+		{ key: 'price', label: 'Estimated price', align: 'right' }
+	];
 </script>
 
-<svelte:head><title>Asset Splitting</title></svelte:head>
-
 <div class="container" data-hydrated={hydrated || undefined}>
-	<header>
-		<h1>ASSET SPLITTING</h1>
-		<p class="subtitle">Fair Division Tool</p>
-		<p class="subtitle">
-			<a href="https://blog.mptc.uk/posts/Asset-Division" target="_blank" rel="noreferrer"
-				>First written up on the blog</a
-			>
-		</p>
-	</header>
+	<PageHeader path="/split">
+		<a href="https://blog.mptc.uk/posts/Asset-Division" target="_blank" rel="noreferrer"
+			>First written up on the blog</a
+		>
+	</PageHeader>
 
 	{#if !initialized}
-		<div class="section">
-			<div class="section-header"><span class="label" id="people-label">People</span></div>
-			<ul class="split-flex split-list" aria-labelledby="people-label">
-				{#each people as p (p.id)}<li class="split-person-item">
-						<button
-							class="split-delete-btn"
-							aria-label="Delete {p.name}"
-							onclick={() => deletePerson(p.id)}>Del</button
-						>{p.name}
-					</li>{/each}
-			</ul>
-			<form class="split-add-person-form" onsubmit={addPerson} novalidate>
-				<input type="submit" value="Add" aria-label="Add person" /><input
-					type="text"
-					bind:value={newPerson.name}
-					placeholder="Name"
-					aria-label="Person name"
-					aria-invalid={personMsg ? 'true' : undefined}
-					aria-describedby={personMsg ? 'person-error' : undefined}
-				/>
-			</form>
-			{#if personMsg}<p id="person-error" class="split-error" role="alert">{personMsg}</p>{/if}
-		</div>
-
-		<div class="section">
-			<div class="section-header"><span class="label">Items</span></div>
-			<div class="result-panel">
-				<form id="add-item-form" onsubmit={addItem} novalidate></form>
-				<table class="split-table">
-					<thead
-						><tr
-							><th>Description</th><th>Estimated Price</th><th
-								><span class="split-sr-only">Actions</span></th
-							></tr
-						></thead
-					>
-					<tbody>
-						{#each items as item (item.id)}
-							<tr
-								><td>{item.description}</td><td>{fmt(Math.round(item.price))}</td><td
-									><button
-										class="split-delete-btn"
-										aria-label="Delete {item.description}"
-										onclick={() => deleteItem(item.id)}>Del</button
-									></td
-								></tr
-							>
-						{/each}
-						<tr class="add-item-row"
-							><td
-								><input
+		<div class="split-view">
+			<Panel title="People">
+				<div class="stack">
+					{#if people.length > 0}
+						<ul class="chips" aria-label="People">
+							{#each people as p (p.id)}
+								<li class="chip">
+									{p.name}
+									<Button
+										size="sm"
+										variant="ghost"
+										aria-label="Delete {p.name}"
+										onclick={() => deletePerson(p.id)}>Delete</Button
+									>
+								</li>
+							{/each}
+						</ul>
+					{:else}
+						<p class="note">No people yet.</p>
+					{/if}
+					<form class="add-form" onsubmit={addPerson} novalidate>
+						<Field label="Person name">
+							{#snippet children(props)}
+								<input
+									class="control"
 									type="text"
-									form="add-item-form"
-									class="split-input"
+									{...props}
+									bind:value={newPerson.name}
+									placeholder="Name"
+									aria-invalid={personMsg ? 'true' : undefined}
+									aria-describedby={personMsg ? 'person-error' : undefined}
+								/>
+							{/snippet}
+						</Field>
+						<Button type="submit">Add person</Button>
+					</form>
+					{#if personMsg}
+						<div id="person-error"><Alert tone="danger">{personMsg}</Alert></div>
+					{/if}
+				</div>
+			</Panel>
+
+			<Panel title="Items">
+				<div class="stack">
+					{#if items.length > 0}
+						<div class="table-wrap">
+							<table>
+								<caption class="sr-only">Items</caption>
+								<thead>
+									<tr>
+										<th scope="col">Description</th>
+										<th scope="col" class="num">Estimated price</th>
+										<th scope="col"><span class="sr-only">Actions</span></th>
+									</tr>
+								</thead>
+								<tbody>
+									{#each items as item (item.id)}
+										<tr>
+											<td>{item.description}</td>
+											<td class="num">{fmt(Math.round(item.price))}</td>
+											<td class="actions">
+												<Button
+													size="sm"
+													variant="ghost"
+													aria-label="Delete {item.description}"
+													onclick={() => deleteItem(item.id)}>Delete</Button
+												>
+											</td>
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</div>
+					{:else}
+						<p class="note">No items yet.</p>
+					{/if}
+					<form class="add-form" onsubmit={addItem} novalidate>
+						<Field label="Item description">
+							{#snippet children(props)}
+								<input
+									class="control"
+									type="text"
+									{...props}
 									bind:value={newItem.description}
 									placeholder="Description"
-									aria-label="Item description"
 									aria-invalid={itemMsg ? 'true' : undefined}
 									aria-describedby={itemMsg ? 'item-error' : undefined}
-								/></td
-							><td
-								><input
-									type="number"
-									form="add-item-form"
-									class="split-input"
-									min="0"
-									step="any"
-									bind:value={newItem.price}
-									placeholder="Price"
-									aria-label="Item price in euros"
-									aria-invalid={itemMsg ? 'true' : undefined}
-									aria-describedby={itemMsg ? 'item-error' : undefined}
-								/></td
-							><td
-								><button type="submit" form="add-item-form" class="split-add-btn">Add Item</button
-								></td
-							></tr
-						>
-					</tbody>
-				</table>
-				{#if itemMsg}<p id="item-error" class="split-error" role="alert">{itemMsg}</p>{/if}
-			</div>
+								/>
+							{/snippet}
+						</Field>
+						<div class="price">
+							<Field label="Item price (€)">
+								{#snippet children(props)}
+									<input
+										class="control"
+										type="number"
+										min="0"
+										step="any"
+										{...props}
+										bind:value={newItem.price}
+										placeholder="Price"
+										aria-invalid={itemMsg ? 'true' : undefined}
+										aria-describedby={itemMsg ? 'item-error' : undefined}
+									/>
+								{/snippet}
+							</Field>
+						</div>
+						<Button type="submit">Add item</Button>
+					</form>
+					{#if itemMsg}
+						<div id="item-error"><Alert tone="danger">{itemMsg}</Alert></div>
+					{/if}
+				</div>
+			</Panel>
 		</div>
 
-		<div class="process-btn-container">
-			<button
-				type="button"
-				id="start-algorithm"
-				class="process-btn"
+		<div class="cluster start">
+			<Button
+				variant="primary"
 				disabled={startMsg !== null}
 				aria-describedby={startMsg ? 'start-error' : undefined}
-				onclick={startAlgorithm}
-				><span class="btn-text">START</span><span class="btn-glow"></span></button
+				onclick={startAlgorithm}>Start</Button
 			>
-			{#if startMsg}<p id="start-error" class="hint">{startMsg}</p>{/if}
+			{#if startMsg}<p id="start-error" class="note">{startMsg}</p>{/if}
 		</div>
-	{/if}
-
-	{#if initialized}
-		<div class="split-row-sections">
-			<div class="section">
-				<div class="section-header"><span class="label">People</span></div>
-				<div class="split-flex">
-					{#each people as p (p.id)}<div class="split-person-item">{p.name}</div>{/each}
-				</div>
-			</div>
-
-			<div class="section">
-				<div class="section-header"><span class="label">Items</span></div>
-				<div class="result-panel">
-					<table class="split-table">
-						<thead><tr><th>Description</th><th>Estimated Price</th></tr></thead>
-						<tbody>
-							{#each items as item (item.id)}
-								<tr><td>{item.description}</td><td>{fmt(Math.round(item.price))}</td></tr>
-							{/each}
-						</tbody>
-					</table>
-				</div>
-			</div>
-
-			<div class="section">
-				<div class="section-header">
-					<span class="label" id="suggested-label">Suggested Split</span>
-				</div>
-				{#if iterations === 0}
-					<p class="hint">Complete a round to see a suggested split.</p>
-				{:else}
-					<p class="hint" data-testid="split-stability">
-						{#if settled}
-							Allocation stable for {stableFor} rounds.
-						{:else}
-							Provisional: allocation stable for {stableFor} of {STABLE_ROUNDS} rounds.
-						{/if}
-					</p>
-					<div class="result-panel" class:split-provisional={!settled}>
-						<table class="split-table" aria-labelledby="suggested-label">
-							<thead><tr><th class="w-30">Person</th><th>Items</th><th>Settlement</th></tr></thead
-							><tbody
-								>{#each suggestedAlloc as a, i (i)}<tr
-										><td>{a.name}</td><td>{a.items || '(none)'}</td><td>{a.payment}</td></tr
-									>{/each}</tbody
-							>
-						</table>
+	{:else}
+		<div class="split-view">
+			<Panel title="Round {iterations}">
+				<div class="stack">
+					<div class="groups">
+						{#each groups as g, gi (gi)}
+							<section class="group" data-testid="split-group">
+								<h3>Group {gi + 1}</h3>
+								<ul>
+									{#each g as itemId (itemId)}
+										{@const item = items.find((i) => i.id === itemId)}
+										{#if item}<li>{item.description}</li>{/if}
+									{/each}
+									{#if g.length === 0}<li class="note">(empty)</li>{/if}
+								</ul>
+								<p class="worth">Worth {fmt(Math.round(groupValue(g, items)))}</p>
+								<p class="note">
+									Taker: {paymentLabel(groupDelta(g, items, people.length), fmt)}
+								</p>
+							</section>
+						{/each}
 					</div>
-				{/if}
-			</div>
-		</div>
+					<p class="note">Select your preferred group. Each person chooses independently.</p>
+					<div class="choices">
+						{#each people as p, pi (p.id)}
+							<Field label={p.name}>
+								{#snippet children(props)}
+									<select
+										class="control"
+										{...props}
+										aria-label="{p.name}'s group choice"
+										value={personSelections[pi] ?? ''}
+										onchange={(e) =>
+											handleSelectionChange(pi, parseInt((e.target as HTMLSelectElement).value))}
+									>
+										<option value="" disabled>Select group…</option>
+										{#each groups as _g, gi (gi)}<option value={gi}>Group {gi + 1}</option>{/each}
+									</select>
+								{/snippet}
+							</Field>
+						{/each}
+					</div>
+					<div class="cluster">
+						<Button variant="primary" disabled={!allSelected} onclick={completeRound}
+							>Complete round</Button
+						>
+						<Button onclick={backToSetup}>Back to setup</Button>
+					</div>
+					<p class="note">Going back discards all rounds and restores the entered prices.</p>
+				</div>
+			</Panel>
 
-		<div class="result-panel">
-			<div class="panel-header">
-				<span class="dot red"></span><span class="dot yellow"></span><span class="dot green"
-				></span><span class="panel-title">ROUND {iterations}</span>
-			</div>
-			<div class="panel-content split-experiment-content">
-				<div class="groups-row">
-					{#each groups as g, gi (gi)}
-						<div class="group-col" data-testid="split-group">
-							<div class="group-title">Group {gi + 1}</div>
-							<div class="group-items">
-								{#each g as itemId (itemId)}
-									{@const item = items.find((i) => i.id === itemId)}
-									{#if item}<div class="group-item">{item.description}</div>{/if}
-								{/each}
-								{#if g.length === 0}<div class="group-item empty">(empty)</div>{/if}
+			<div class="stack">
+				<Panel title="Suggested split">
+					{#if iterations === 0}
+						<p class="note">Complete a round to see a suggested split.</p>
+					{:else}
+						<div class="stack">
+							<div data-testid="split-stability">
+								{#if settled}
+									<Alert tone="success">Allocation stable for {stableFor} rounds.</Alert>
+								{:else}
+									<Alert tone="info"
+										>Provisional: allocation stable for {stableFor} of {STABLE_ROUNDS} rounds.</Alert
+									>
+								{/if}
 							</div>
-							<div class="group-value">Worth {fmt(Math.round(groupValue(g, items)))}</div>
-							<div class="hint">
-								Taker: {paymentLabel(groupDelta(g, items, people.length), fmt)}
-							</div>
+							<DataTable
+								caption="Suggested split"
+								hideCaption
+								columns={allocColumns}
+								rows={suggestedAlloc}
+								rowKey={(a) => a.idx}
+							/>
 						</div>
-					{/each}
-				</div>
-				<p class="hint" style="margin-bottom:1rem">
-					Select your preferred group. Each person chooses independently.
-				</p>
-				<div class="selection-row-horizontal">
-					{#each people as p, pi (p.id)}<div class="selection-col">
-							<label class="selection-name" for="split-choice-{p.id}">{p.name}</label><select
-								id="split-choice-{p.id}"
-								class="algorithm-select"
-								aria-label="{p.name}'s group choice"
-								value={personSelections[pi] ?? ''}
-								onchange={(e) =>
-									handleSelectionChange(pi, parseInt((e.target as HTMLSelectElement).value))}
-								><option value="" disabled>Select group...</option
-								>{#each groups as _g, gi (gi)}<option value={gi}>Group {gi + 1}</option
-									>{/each}</select
-							>
-						</div>{/each}
-				</div>
-				<button
-					class="process-btn"
-					disabled={!allSelected}
-					onclick={completeRound}
-					style="opacity:{allSelected ? 1 : 0.5};cursor:{allSelected ? 'pointer' : 'not-allowed'}"
-					><span class="btn-text">COMPLETE ROUND</span><span class="btn-glow"></span></button
-				>
-				<button type="button" class="split-add-btn split-back-btn" onclick={backToSetup}
-					>Back to setup</button
-				>
-				<p class="hint">Going back discards all rounds and restores the entered prices.</p>
+					{/if}
+				</Panel>
+
+				<Panel title="Items">
+					<DataTable
+						caption="Items"
+						hideCaption
+						columns={priceColumns}
+						rows={priceRows}
+						rowKey={(r) => r.id}
+					/>
+				</Panel>
 			</div>
 		</div>
 	{/if}
 </div>
 
 <style>
-	.split-list {
+	.note {
+		margin: 0;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+	}
+
+	.chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--sp-1);
+		margin: 0;
+		padding: 0;
 		list-style: none;
-		margin: 0 0 0.5rem;
-		padding: 0;
 	}
-	.split-error {
-		color: #ff6b6b;
-		font-size: 0.85rem;
-		margin: 0.5rem 0 0;
+
+	.chip {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--sp-1);
+		padding-left: var(--sp-2);
+		background: var(--surface-2);
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
 	}
-	.split-provisional {
-		opacity: 0.6;
+
+	.add-form {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-end;
+		gap: var(--sp-2);
 	}
-	.split-back-btn {
-		margin-top: 1rem;
+
+	.add-form > :global(.ui-field) {
+		flex: 1 1 10rem;
 	}
-	.split-sr-only {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		padding: 0;
-		margin: -1px;
-		overflow: hidden;
-		clip: rect(0, 0, 0, 0);
-		white-space: nowrap;
-		border: 0;
+
+	.price {
+		flex: 0 1 8rem;
 	}
-	#start-algorithm:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
+
+	.table-wrap {
+		overflow-x: auto;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+	}
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: var(--text-sm);
+	}
+
+	th,
+	td {
+		height: 32px;
+		padding: var(--sp-1) var(--sp-3);
+		text-align: left;
+		border-bottom: 1px solid var(--border);
+	}
+
+	th {
+		background: var(--surface-2);
+		font-weight: 600;
+		color: var(--text-muted);
+	}
+
+	tbody tr:last-child td {
+		border-bottom: 0;
+	}
+
+	.num {
+		text-align: right;
+	}
+
+	td.actions {
+		width: 1%;
+		padding: 0 var(--sp-1);
+	}
+
+	.start {
+		margin-top: var(--sp-3);
+	}
+
+	.groups {
+		display: grid;
+		gap: var(--sp-2);
+		grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+	}
+
+	.group {
+		padding: var(--sp-2) var(--sp-3);
+		background: var(--surface-2);
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+	}
+
+	.group ul {
+		margin: var(--sp-1) 0;
+		padding-left: var(--sp-4);
+	}
+
+	.worth {
+		margin: 0;
+		font-weight: 600;
+	}
+
+	.choices {
+		display: grid;
+		gap: var(--sp-2);
+		grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
 	}
 </style>
