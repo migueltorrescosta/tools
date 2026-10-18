@@ -286,7 +286,7 @@ export function assignColors(
 	const colors = new Map<string, string>();
 	if (colorMode(trails.length) === 'industry') {
 		for (const t of trails) {
-			colors.set(t.company.id, `var(--series-${typeSlot(t.company.type) + 1})`);
+			colors.set(t.company.id, `var(--data-${typeSlot(t.company.type) + 1})`);
 		}
 		return { colors, slots: new Map(previous) };
 	}
@@ -310,7 +310,7 @@ export function assignColors(
 		slots.set(t.company.id, next);
 		taken.add(next);
 	}
-	for (const t of sorted) colors.set(t.company.id, `var(--cseries-${slots.get(t.company.id)})`);
+	for (const t of sorted) colors.set(t.company.id, `var(--data-${slots.get(t.company.id)})`);
 	return { colors, slots };
 }
 

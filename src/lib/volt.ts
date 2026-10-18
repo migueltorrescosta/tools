@@ -22,22 +22,22 @@ export const DATA_AS_OF = '09/10/2026';
 
 export type CountryInfo = { label: string; color: string };
 
-// Single source of truth for country labels and bar colours. Every colour must
-// reach WCAG AA (4.5:1) against BAR_TEXT_COLOR; volt.spec.ts enforces it.
-export const BAR_TEXT_COLOR = '#000000';
+// Single source of truth for country labels and bar colours. Colours are the
+// shared categorical palette (tokens.css), one distinct entry per country; bar
+// text uses --text on a tint of the colour, so contrast holds in both themes.
 export const COUNTRIES: Record<string, CountryInfo> = {
-	'🇩🇪': { label: 'Germany', color: '#FFEA00' },
-	'🇳🇱': { label: 'Netherlands', color: '#FF9933' },
-	'🇬🇷': { label: 'Greece', color: '#3399FF' },
-	'🇨🇾': { label: 'Cyprus', color: '#FF7733' },
-	'🇷🇴': { label: 'Romania', color: '#5C8AE6' },
-	'🇵🇹': { label: 'Portugal', color: '#00AC00' },
-	'🇮🇹': { label: 'Italy', color: '#009999' },
-	'🇫🇷': { label: 'France', color: '#FF4D5A' },
-	[EU_FLAG]: { label: 'European Parliament', color: '#4477DD' }
+	'🇩🇪': { label: 'Germany', color: 'var(--data-7)' },
+	'🇳🇱': { label: 'Netherlands', color: 'var(--data-4)' },
+	'🇬🇷': { label: 'Greece', color: 'var(--data-5)' },
+	'🇨🇾': { label: 'Cyprus', color: 'var(--data-2)' },
+	'🇷🇴': { label: 'Romania', color: 'var(--data-6)' },
+	'🇵🇹': { label: 'Portugal', color: 'var(--data-11)' },
+	'🇮🇹': { label: 'Italy', color: 'var(--data-10)' },
+	'🇫🇷': { label: 'France', color: 'var(--data-9)' },
+	[EU_FLAG]: { label: 'European Parliament', color: 'var(--data-1)' }
 };
 
-export const FALLBACK_COLOR = '#AAAAAA';
+export const FALLBACK_COLOR = 'var(--data-8)';
 
 export const COUNTRY_COLORS: Record<string, string> = Object.fromEntries(
 	Object.entries(COUNTRIES).map(([flag, c]) => [flag, c.color])
@@ -49,23 +49,6 @@ export function countryLabel(flag: string): string {
 
 export function countryColor(flag: string): string {
 	return COUNTRIES[flag]?.color ?? FALLBACK_COLOR;
-}
-
-function channel(c: number): number {
-	const s = c / 255;
-	return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
-}
-
-export function relativeLuminance(hex: string): number {
-	const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
-	if (!m) throw new Error(`Invalid colour "${hex}": expected #RRGGBB`);
-	const [r, g, b] = [m[1], m[2], m[3]].map((h) => channel(parseInt(h, 16)));
-	return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
-
-export function contrastRatio(a: string, b: string): number {
-	const [hi, lo] = [relativeLuminance(a), relativeLuminance(b)].sort((x, y) => y - x);
-	return (hi + 0.05) / (lo + 0.05);
 }
 
 // Rows standing for a list or group of councillors rather than a named person

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { Button, PageHeader } from '$lib/ui';
 	import electedOfficials from '$lib/data/elected_officials.json';
 	import {
 		barGeometry,
@@ -41,120 +42,100 @@
 	// Buttons always show unfiltered counts, so other countries never read as empty
 	const stats = computeStats(officials);
 	const bars = summaryBars(stats);
-	const maxCount = Math.max(1, ...bars.map((b) => b.count));
+
+	// One bar per mandate, stacked in its location row: at least 24px tall (WCAG 2.5.8)
+	const BAR_H = 24;
+	const BAR_STRIDE = BAR_H + 2;
 </script>
 
-<svelte:head>
-	<title>Volt Representatives</title>
-</svelte:head>
-
 <div class="container" data-hydrated={hydrated || undefined}>
-	<header>
-		<h1>VOLT REPRESENTATIVES</h1>
-		<p class="subtitle">
-			Current and former elected politicians of the pan-European party Volt Europa
-		</p>
-		<p class="as-of">Data as of {DATA_AS_OF}</p>
-	</header>
+	<PageHeader path="/volt">
+		Current and former elected politicians of the pan-European party Volt Europa · Data as of {DATA_AS_OF}
+	</PageHeader>
 
-	<div class="summary-panel">
-		<div class="panel-header">
-			<span class="dot red"></span>
-			<span class="dot yellow"></span>
-			<span class="dot green"></span>
-			<span class="panel-title">SUMMARY</span>
-		</div>
-		<div class="panel-content">
-			<div class="bar-chart">
-				{#each bars as bar (bar.filter)}
-					{@const active = filterCountry === bar.filter}
-					<button
-						class="bar-row"
-						class:active
-						aria-pressed={active}
-						onclick={() => (filterCountry = bar.filter)}
-					>
-						<span class="bar-label">{bar.flag} {bar.label}</span>
-						<div class="bar-container">
-							<div class="bar-fill" style="width: {(bar.count / maxCount) * 100}%"></div>
-						</div>
-						<span class="bar-value">{bar.count}</span>
-					</button>
-				{/each}
-			</div>
-			{#if stats.groupEntries > 0}
-				<p class="panel-note">
-					Counts are named individuals; {stats.groupEntries} rows stand for a council group of unknown
-					size and are not counted.
-				</p>
-			{/if}
-		</div>
+	<div class="volt-filters cluster" role="group" aria-label="Filter by country">
+		{#each bars as bar (bar.filter)}
+			<Button
+				size="sm"
+				pressed={filterCountry === bar.filter}
+				aria-label="{bar.label}, {bar.count} representatives"
+				onclick={() => (filterCountry = bar.filter)}
+			>
+				<span aria-hidden="true">{bar.flag}</span>
+				{bar.label}
+				<span class="volt-chip-count">{bar.count}</span>
+			</Button>
+		{/each}
 	</div>
+	{#if stats.groupEntries > 0}
+		<p class="volt-note">
+			Counts are named individuals; {stats.groupEntries} hatched rows stand for a council group of unknown
+			size and are not counted.
+		</p>
+	{/if}
 
-	<!-- Timeline Header -->
-	<div class="gantt-scroll-wrapper">
-		<div class="gantt-inner">
-			<div class="timeline-header">
-				<div class="timeline-label">TIMELINE ({minYear} - {maxYear})</div>
-				<div class="timeline-scale">
-					{#each Array(yearRange) as _, i (i)}
-						<span class="year-marker" data-year={minYear + i}>{minYear + i}</span>
-					{/each}
+	<div class="volt-scroll">
+		<div class="volt-inner">
+			<div class="volt-axis">
+				<div class="volt-axis-track">
+					{#if todayPct !== null}
+						<span class="volt-today-label" style="left: {todayPct}%">Today</span>
+					{/if}
+					<div class="volt-years">
+						{#each Array(yearRange) as _, i (i)}
+							<span class="volt-year">{minYear + i}</span>
+						{/each}
+					</div>
 				</div>
 			</div>
 
-			<!-- Gantt Chart -->
-			<div class="gantt-container">
+			<div class="volt-countries" data-testid="volt-timeline">
 				{#each Object.entries(filteredCountries) as [country, positions] (country)}
 					{@const color = countryColor(country)}
 					{@const totalCount = positions.reduce(
 						(sum, g) => sum + g.politicians.filter((p) => !isGroupEntry(p)).length,
 						0
 					)}
-					<div class="gantt-country">
-						<div class="country-header">
-							<span class="country-flag" aria-hidden="true">{country}</span>
-							<span class="country-name">{countryLabel(country)}</span>
-							<span class="country-count">{totalCount}</span>
-						</div>
-						<div class="country-rows">
-							{#each positions as group (group.location)}
-								{@const barHeight = group.politicians.length * 14}
-								<div class="gantt-row">
-									<div class="row-label">{group.location}</div>
-									<div class="row-bar-container" style="height: {barHeight}px;">
-										{#if todayPct !== null}
-											<div class="today-line" style="left: {todayPct}%" aria-hidden="true"></div>
-										{/if}
-										{#each group.politicians as p, idx (`${p.name}|${p.position}|${p.startDate}`)}
-											{@const { left, width } = barGeometry(p, timeline)}
-											{@const top = idx * 14}
-											{@const summary = describeMandate(p, now)}
-											<div
-												class="row-bar"
-												class:former={isFormer(p, now)}
-												class:group-entry={isGroupEntry(p)}
-												style="left: {left}%; width: {width}%; background: {color}; top: {top}px; height: 14px;"
-												title={summary}
-											>
-												<a
-													href={p.url}
-													target="_blank"
-													rel="noopener noreferrer"
-													class="bar-link"
-													aria-label={summary}
-												>
-													<span class="bar-text">{p.name} ({p.position})</span>
-												</a>
-											</div>
-										{/each}
-									</div>
+					<section class="volt-country" data-testid="volt-country" style="--bar: {color}">
+						<h2 class="volt-country-head">
+							<span aria-hidden="true">{country}</span>
+							{countryLabel(country)}
+							<span class="volt-country-count">{totalCount}</span>
+						</h2>
+						{#each positions as group (group.location)}
+							<div class="volt-row">
+								<div class="volt-location">{group.location}</div>
+								<div
+									class="volt-track"
+									style="height: {group.politicians.length * BAR_STRIDE - (BAR_STRIDE - BAR_H)}px;"
+								>
+									{#if todayPct !== null}
+										<div class="volt-today" style="left: {todayPct}%" aria-hidden="true"></div>
+									{/if}
+									{#each group.politicians as p, idx (`${p.name}|${p.position}|${p.startDate}`)}
+										{@const { left, width } = barGeometry(p, timeline)}
+										{@const summary = describeMandate(p, now)}
+										<a
+											href={p.url}
+											target="_blank"
+											rel="noopener noreferrer"
+											class="volt-bar"
+											class:former={isFormer(p, now)}
+											class:group-entry={isGroupEntry(p)}
+											data-testid="volt-bar"
+											style="left: {left}%; width: {width}%; top: {idx * BAR_STRIDE}px;"
+											title={summary}
+											aria-label={summary}
+										>
+											{p.name} ({p.position})
+										</a>
+									{/each}
 								</div>
-							{:else}
-								<p class="empty-state">No representatives recorded for this filter.</p>
-							{/each}
-						</div>
-					</div>
+							</div>
+						{:else}
+							<p class="volt-empty">No representatives recorded for this filter.</p>
+						{/each}
+					</section>
 				{/each}
 			</div>
 		</div>
@@ -162,331 +143,189 @@
 </div>
 
 <style>
-	.summary-panel {
-		background: var(--futuristic-surface);
-		border-radius: 8px;
-		overflow: hidden;
-		margin-bottom: 1.5rem;
+	.volt-filters {
+		--gap: var(--sp-1);
 	}
 
-	.timeline-header {
-		position: sticky;
-		top: 0;
-		background: var(--futuristic-bg);
-		padding: 0.75rem 0;
-		border-bottom: 1px solid var(--futuristic-border);
-		margin-bottom: 1rem;
-		z-index: 10;
-		display: flex;
-		flex-direction: column;
+	.volt-chip-count {
+		color: var(--text-muted);
+		font-variant-numeric: tabular-nums;
 	}
 
-	.timeline-label {
-		font-size: 0.75rem;
-		font-weight: 600;
-		color: var(--futuristic-cyan);
-		margin-bottom: 0.5rem;
-		padding: 0 1rem;
+	.volt-note {
+		margin: var(--sp-1) 0 var(--sp-3);
+		font-size: var(--text-xs);
+		color: var(--text-muted);
 	}
 
-	/* Header and rows share one min-width, so year cells stay over the bar track */
-	.gantt-inner {
+	.volt-scroll {
+		overflow-x: auto;
+	}
+
+	/* Axis and rows share one min-width and one location gutter, so years sit over the tracks */
+	.volt-inner {
+		--gutter: 180px;
 		min-width: 800px;
 	}
 
-	.timeline-scale {
-		display: flex;
-		justify-content: space-between;
-		padding-left: 200px;
+	.volt-axis {
+		padding-left: var(--gutter);
+		margin-bottom: var(--sp-1);
 	}
 
-	.year-marker {
-		font-size: 0.7rem;
-		color: var(--futuristic-text-dim);
-		flex: 1;
+	.volt-axis-track {
+		position: relative;
+		padding-top: 1.25rem;
+	}
+
+	.volt-years {
+		display: flex;
+		border-bottom: 1px solid var(--border);
+	}
+
+	.volt-year {
+		/* Equal columns whatever the font: a wide fallback font must not stretch them off the tracks */
+		flex: 1 1 0;
+		min-width: 0;
+		font-size: var(--text-xs);
+		color: var(--text-muted);
+		font-variant-numeric: tabular-nums;
 		text-align: center;
 	}
 
-	/* Scrollable wrapper for horizontal scrolling */
-	.gantt-scroll-wrapper {
-		overflow-x: auto;
-		margin: 0 -1.5rem;
-		padding: 0 1.5rem;
+	.volt-today-label {
+		position: absolute;
+		top: 0;
+		transform: translateX(-50%);
+		font-size: var(--text-xs);
+		font-weight: 600;
+		color: var(--accent);
 	}
 
-	.gantt-scroll-wrapper::-webkit-scrollbar {
-		height: 10px;
-	}
-
-	.gantt-scroll-wrapper::-webkit-scrollbar-track {
-		background: var(--futuristic-bg);
-	}
-
-	.gantt-scroll-wrapper::-webkit-scrollbar-thumb {
-		background: linear-gradient(90deg, var(--futuristic-cyan), var(--futuristic-blue));
-		border-radius: 5px;
-	}
-
-	.gantt-container {
+	.volt-countries {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
+		gap: var(--sp-2);
 	}
 
-	.gantt-country {
-		background: var(--futuristic-surface);
-		border-radius: 8px;
+	.volt-country {
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
 		overflow: hidden;
 	}
 
-	.country-header {
+	.volt-country-head {
 		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.75rem 1rem;
-		background: rgba(0, 245, 255, 0.1);
-		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+		align-items: baseline;
+		gap: var(--sp-1);
+		padding: var(--sp-1) var(--sp-3);
+		font-size: var(--text-md);
 	}
 
-	.country-flag {
-		font-size: 1.25rem;
+	.volt-country-count {
+		font-weight: 400;
+		color: var(--text-muted);
 	}
 
-	.country-name {
-		font-size: 0.875rem;
-		font-weight: 600;
-		color: var(--futuristic-text);
-	}
-
-	.country-count {
-		font-size: 0.75rem;
-		color: var(--futuristic-cyan);
-		font-weight: 600;
-	}
-
-	.country-rows {
-		padding: 0.5rem 0;
-	}
-
-	.gantt-row {
+	.volt-row {
 		display: grid;
-		grid-template-columns: 200px 1fr;
+		grid-template-columns: var(--gutter) 1fr;
 		align-items: center;
-		padding: 0.25rem 0;
-		min-height: 36px;
+		padding: var(--sp-0) 0;
+		border-top: 1px solid var(--border);
 	}
 
-	.gantt-row:nth-child(odd) {
-		background: rgba(255, 255, 255, 0.02);
-	}
-
-	.gantt-row:nth-child(even) {
-		background: rgba(255, 255, 255, 0.06);
-	}
-
-	.row-label {
-		padding: 0 1rem;
-		font-size: 0.875rem;
-		color: var(--futuristic-text);
+	.volt-location {
+		padding: 0 var(--sp-3);
+		font-size: var(--text-sm);
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
 
-	.row-bar-container {
+	.volt-track {
 		position: relative;
-		height: 28px;
-		background: rgba(255, 255, 255, 0.02);
 	}
 
-	.row-bar {
+	/* Text on a tint of the country colour, edged in the solid colour: readable in both themes */
+	.volt-bar {
 		position: absolute;
-		top: 4px;
-		height: 20px;
-		border-radius: 4px;
+		height: 24px;
 		display: flex;
 		align-items: center;
+		padding: 0 var(--sp-1);
+		background: color-mix(in srgb, var(--bar) 22%, var(--surface));
+		border: 1px solid var(--bar);
+		border-left-width: 4px;
+		border-radius: var(--radius-sm);
+		color: var(--text);
+		font-size: var(--text-xs);
+		white-space: nowrap;
 		overflow: hidden;
-		transition:
-			transform 0.2s,
-			box-shadow 0.2s;
+		text-overflow: ellipsis;
+		text-decoration: none;
 	}
 
-	.row-bar:hover {
-		transform: scaleY(1.1);
-		box-shadow: 0 0 12px currentColor;
+	.volt-bar:hover {
+		background: color-mix(in srgb, var(--bar) 35%, var(--surface));
+		color: var(--text);
 		z-index: 5;
 	}
 
-	/* Grayscale keeps luminance, so black text keeps its contrast on former bars */
-	.row-bar.former {
+	/* Former mandates: grey and dashed, so the state does not rest on colour alone */
+	.volt-bar.former {
 		filter: grayscale(1);
+		border-style: dashed;
 	}
 
-	.row-bar.group-entry {
-		background-image: repeating-linear-gradient(
+	.volt-bar.group-entry {
+		background: repeating-linear-gradient(
 			135deg,
-			transparent 0 6px,
-			rgba(255, 255, 255, 0.35) 6px 9px
-		) !important;
+			color-mix(in srgb, var(--bar) 15%, var(--surface)) 0 6px,
+			color-mix(in srgb, var(--bar) 30%, var(--surface)) 6px 9px
+		);
 	}
 
-	.today-line {
+	.volt-today {
 		position: absolute;
-		top: 0;
-		bottom: 0;
+		top: calc(-1 * var(--sp-0));
+		bottom: calc(-1 * var(--sp-0));
 		width: 2px;
 		margin-left: -1px;
-		background: var(--futuristic-magenta);
+		background: var(--accent);
 		z-index: 6;
 		pointer-events: none;
 	}
 
-	.empty-state {
-		padding: 0.5rem 1rem;
-		font-size: 0.8rem;
-		color: var(--futuristic-text-dim);
-	}
-
-	.as-of,
-	.panel-note {
-		font-size: 0.75rem;
-		color: var(--futuristic-text-dim);
-	}
-
-	.panel-note {
+	.volt-empty {
 		margin: 0;
-		padding: 0 0.75rem 0.75rem;
+		padding: var(--sp-1) var(--sp-3);
+		font-size: var(--text-sm);
+		color: var(--text-muted);
 	}
 
-	.bar-link {
-		display: flex;
-		align-items: center;
-		height: 100%;
-		padding: 0 0.5rem;
-		text-decoration: none;
-	}
-
-	.bar-text {
-		font-size: 0.7rem;
-		color: #000;
-		font-weight: 500;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.bar-chart {
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-		padding: 0.75rem;
-	}
-
-	.bar-row {
-		display: grid;
-		grid-template-columns: 140px 1fr 40px;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.25rem 0.5rem;
-		background: rgba(0, 0, 0, 0.2);
-		border: 1px solid transparent;
-		border-radius: 4px;
-		cursor: pointer;
-		transition: all 0.2s;
-	}
-
-	.bar-row:hover {
-		background: rgba(0, 245, 255, 0.1);
-	}
-
-	.bar-row.active {
-		border-color: var(--futuristic-cyan);
-		background: rgba(0, 245, 255, 0.15);
-	}
-
-	.bar-label {
-		font-size: 0.8rem;
-		color: var(--futuristic-text);
-		text-align: left;
-	}
-
-	.bar-container {
-		height: 6px;
-		background: rgba(255, 255, 255, 0.1);
-		border-radius: 3px;
-		overflow: hidden;
-	}
-
-	.bar-fill {
-		height: 100%;
-		background: linear-gradient(90deg, var(--futuristic-cyan), var(--futuristic-magenta));
-		border-radius: 3px;
-		transition: width 0.3s ease;
-	}
-
-	.bar-value {
-		font-size: 0.75rem;
-		font-weight: 600;
-		color: var(--futuristic-cyan);
-		text-align: right;
-	}
-
-	/* Mobile styles */
 	@media (max-width: 768px) {
-		.gantt-inner {
+		.volt-inner {
+			--gutter: 120px;
 			min-width: 600px;
 		}
 
-		.timeline-scale {
-			padding-left: 120px;
-		}
-
-		.gantt-row {
-			grid-template-columns: 120px 1fr;
-		}
-
-		.row-label {
-			font-size: 0.75rem;
-			padding: 0 0.5rem;
-		}
-
-		.bar-chart {
-			overflow-x: auto;
-			margin: 0 -1rem;
-			padding: 0.75rem 1rem;
-		}
-
-		.bar-row {
-			grid-template-columns: 100px 1fr 35px;
-			min-width: 400px;
-		}
-
-		.bar-label {
-			font-size: 0.7rem;
-		}
-
-		.gantt-scroll-wrapper {
-			margin: 0 -1rem;
-			padding: 0 1rem;
+		.volt-location {
+			font-size: var(--text-xs);
+			padding: 0 var(--sp-2);
 		}
 	}
 
 	@media (max-width: 480px) {
-		.gantt-inner {
+		.volt-inner {
+			--gutter: 100px;
 			min-width: 500px;
 		}
 
-		.timeline-scale {
-			padding-left: 100px;
-		}
-
-		.gantt-row {
-			grid-template-columns: 100px 1fr;
-		}
-
-		.row-label {
-			font-size: 0.7rem;
+		/* Label every other year so the numbers don't run together; columns stay in place */
+		.volt-year:nth-child(even) {
+			visibility: hidden;
 		}
 	}
 </style>

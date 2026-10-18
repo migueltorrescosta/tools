@@ -20,7 +20,7 @@ pnpm test:e2e
 
 ## Structure
 
-- `src/routes/` — SvelteKit pages (format, verb-conjugator, warhammer-simulator, split, wordle, decision-tree, timelines, rank-vote, jwt, volt, volt-ga, cipher, company-trends, symbolic-regression)
+- `src/routes/` — SvelteKit pages (format, verb-conjugator, warhammer-simulator, split, wordle, decision-tree, timelines, rank-vote, jwt, volt, cipher, company-trends, symbolic-regression)
 - `src/lib/` — tool logic lives in `src/lib/<tool>/` or `src/lib/<tool>.ts`; a route may keep route-only helpers in `src/routes/<tool>/lib/`; specs sit next to the module they test. Bundled data is in `src/lib/data/`.
 - `static/` — static assets
 
@@ -30,4 +30,5 @@ pnpm test:e2e
 - Package manager: **pnpm** only. Never use npm. The repo tracks `pnpm-lock.yaml`.
 - Node version pinned in `.nvmrc`.
 - No D3 for new visualizations: hand-rolled SVG with Svelte 5 declarative rendering.
+- UI: build pages from `src/lib/ui` (`PageHeader`, `Panel`, `Button`, `Field`, …) and the tokens in `src/lib/styles/tokens.css`; no hard-coded colours (charts use `--data-1..12`). Every route is listed in `ROUTES` in `src/routes/e2e/a11y.e2e.ts` (axe in light and dark, 390px reflow).
 - No commits on main. Branch or worktree only.

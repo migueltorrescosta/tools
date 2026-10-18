@@ -16,10 +16,6 @@ describe('index page routes', () => {
 		expect([...listed].sort()).toEqual(toolDirs);
 	});
 
-	it('lists volt-ga', () => {
-		expect(routes.some((r) => r.path === '/volt-ga')).toBe(true);
-	});
-
 	it('gives every route a name and description', () => {
 		for (const r of routes) {
 			expect(r.name.trim()).not.toBe('');

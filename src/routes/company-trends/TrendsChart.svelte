@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick as nextTick } from 'svelte';
 	import {
 		clampMargin,
 		drawTrail,
@@ -105,8 +106,32 @@
 		pinned = same ? null : hit;
 	}
 
+	let tooltipEl: HTMLDivElement | undefined = $state();
+	/** The head that pinned the tooltip from the keyboard; focus returns there on close. */
+	let pinnedFrom: Element | null = null;
+
+	function unpin() {
+		pinned = null;
+		if (pinnedFrom instanceof SVGElement) pinnedFrom.focus();
+		pinnedFrom = null;
+	}
+
 	function onKey(event: KeyboardEvent) {
-		if (event.key === 'Escape') pinned = null;
+		if (event.key === 'Escape' && pinned) unpin();
+	}
+
+	function headSelection(d: Drawn): HitSelection | null {
+		return d.head && { companyId: d.trail.company.id, quarter: d.head.quarter };
+	}
+
+	/** Enter or Space on a focused head pins its tooltip and moves focus into it. */
+	async function onHeadKey(event: KeyboardEvent, d: Drawn) {
+		if (event.key !== 'Enter' && event.key !== ' ') return;
+		event.preventDefault();
+		pinned = headSelection(d);
+		pinnedFrom = event.currentTarget as Element;
+		await nextTick();
+		tooltipEl?.querySelector<HTMLElement>('button')?.focus();
 	}
 
 	function anchorAt(trail: Trail, q: string | undefined): TrailPoint | undefined {
@@ -132,110 +157,127 @@
 <svelte:window onkeydown={onKey} />
 
 <div class="chart-box">
+	<!-- Pointer pinning is a mouse shortcut: keyboard users focus a company's head (Tab) and
+	press Enter, which pins the same tooltip (onHeadKey). -->
 	<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
 	<svg
 		bind:this={svgEl}
 		viewBox="0 0 {W} {H}"
-		role="img"
-		aria-label="Revenue (log scale) versus operating margin at {quarter}"
+		role="group"
+		aria-label="Revenue (log scale) versus operating margin at {quarter}, {trails.length} {trails.length ===
+		1
+			? 'company'
+			: 'companies'}. Tab to a company and press Enter for its figures and sources."
 		data-testid="trends-chart"
 		onpointermove={onMove}
 		onpointerleave={() => (hovered = null)}
 		onclick={onClick}
 	>
-		<text class="watermark" x={W - M.right - 10} y={H - M.bottom - 16} text-anchor="end"
-			>{quarter}</text
-		>
-
-		{#each xTicks as tick (tick.value)}
-			<line
-				class="grid"
-				class:major={tick.major}
-				x1={x(tick.value)}
-				x2={x(tick.value)}
-				y1={M.top}
-				y2={H - M.bottom}
-			/>
-			<text class="tick" x={x(tick.value)} y={H - M.bottom + 18} text-anchor="middle"
-				>{formatMoney(tick.value, currency)}</text
+		<g aria-hidden="true">
+			<text class="watermark" x={W - M.right - 10} y={H - M.bottom - 16} text-anchor="end"
+				>{quarter}</text
 			>
-		{/each}
-		{#each yTicks as tick (tick.value)}
+
+			{#each xTicks as tick (tick.value)}
+				<line
+					class="grid"
+					class:major={tick.major}
+					x1={x(tick.value)}
+					x2={x(tick.value)}
+					y1={M.top}
+					y2={H - M.bottom}
+				/>
+				<text class="tick" x={x(tick.value)} y={H - M.bottom + 18} text-anchor="middle"
+					>{formatMoney(tick.value, currency)}</text
+				>
+			{/each}
+			{#each yTicks as tick (tick.value)}
+				<line
+					class="grid"
+					class:major={tick.major}
+					x1={M.left}
+					x2={W - M.right}
+					y1={y(tick.value)}
+					y2={y(tick.value)}
+				/>
+				<text class="tick" x={M.left - 8} y={y(tick.value) + 4} text-anchor="end"
+					>{formatPercent(tick.value)}</text
+				>
+			{/each}
+
 			<line
-				class="grid"
-				class:major={tick.major}
+				class="breakeven"
 				x1={M.left}
+				y1={y(0)}
 				x2={W - M.right}
-				y1={y(tick.value)}
-				y2={y(tick.value)}
+				y2={y(0)}
+				data-testid="breakeven"
 			/>
-			<text class="tick" x={M.left - 8} y={y(tick.value) + 4} text-anchor="end"
-				>{formatPercent(tick.value)}</text
+			<text class="breakeven-label" x={M.left + 8} y={y(0) + 16}
+				>break-even · below = operating loss</text
 			>
-		{/each}
 
-		<line
-			class="breakeven"
-			x1={M.left}
-			y1={y(0)}
-			x2={W - M.right}
-			y2={y(0)}
-			data-testid="breakeven"
-		/>
-		<text class="breakeven-label" x={M.left + 8} y={y(0) + 16}
-			>break-even · below = operating loss</text
-		>
-
-		<text class="axis-title" x={(M.left + W - M.right) / 2} y={H - 12} text-anchor="middle"
-			>Revenue (trailing 12 months, {currency}, log scale)</text
-		>
-		<text
-			class="axis-title"
-			transform="translate(18,{(M.top + H - M.bottom) / 2}) rotate(-90)"
-			text-anchor="middle"
-			data-testid="y-axis-title">Operating margin (operating income / revenue)</text
-		>
-
-		{#each drawn as d (d.trail.company.id)}
-			<g
-				class="company"
-				style="--c: {d.color}"
-				data-company={d.trail.company.id}
-				data-type={d.trail.company.type}
+			<text class="axis-title" x={(M.left + W - M.right) / 2} y={H - 12} text-anchor="middle"
+				>Revenue (trailing 12 months, {currency}, log scale)</text
 			>
-				{#each trailSegments(d.path, x, y) as seg, i (i)}
-					<path class="trail {seg.kind}" d={seg.d} />
-				{/each}
-				{#each d.points as p (p.qi)}
-					{@const clip = clipOf(p)}
-					{#if p !== d.head}
-						{#if clip}
-							<path
-								class="pt offscale"
-								class:interp={p.quality === 'interpolated'}
-								d={caret(x(p.revenue), clip, p.quality === 'interpolated' ? 2 : 3)}
-							/>
-						{:else if p.quality === 'interpolated'}
-							<circle class="pt interp" cx={x(p.revenue)} cy={py(p)} r="1.6" />
-						{:else}
-							<circle
-								class="pt {p.quality}"
-								cx={x(p.revenue)}
-								cy={py(p)}
-								r={p.quality === 'estimated' ? 3.2 : 2.8}
-							/>
+			<text
+				class="axis-title"
+				transform="translate(18,{(M.top + H - M.bottom) / 2}) rotate(-90)"
+				text-anchor="middle"
+				data-testid="y-axis-title">Operating margin (operating income / revenue)</text
+			>
+
+			{#each drawn as d (d.trail.company.id)}
+				<g
+					class="company"
+					style="--c: {d.color}"
+					data-company={d.trail.company.id}
+					data-type={d.trail.company.type}
+				>
+					{#each trailSegments(d.path, x, y) as seg, i (i)}
+						<path class="trail {seg.kind}" d={seg.d} />
+					{/each}
+					{#each d.points as p (p.qi)}
+						{@const clip = clipOf(p)}
+						{#if p !== d.head}
+							{#if clip}
+								<path
+									class="pt offscale"
+									class:interp={p.quality === 'interpolated'}
+									d={caret(x(p.revenue), clip, p.quality === 'interpolated' ? 2 : 3)}
+								/>
+							{:else if p.quality === 'interpolated'}
+								<circle class="pt interp" cx={x(p.revenue)} cy={py(p)} r="1.6" />
+							{:else}
+								<circle
+									class="pt {p.quality}"
+									cx={x(p.revenue)}
+									cy={py(p)}
+									r={p.quality === 'estimated' ? 3.2 : 2.8}
+								/>
+							{/if}
 						{/if}
-					{/if}
-				{/each}
-			</g>
-		{/each}
+					{/each}
+				</g>
+			{/each}
+		</g>
 
 		{#each drawn as d (d.trail.company.id)}
 			{#if d.head}
 				{@const flip = x(d.head.revenue) > W * 0.82}
 				{@const clip = clipOf(d.head)}
 				{@const hy = clip === 'low' ? H - M.bottom - 14 : clip === 'high' ? M.top + 14 : py(d.head)}
-				<g class="head" style="--c: {d.color}">
+				<g
+					class="head"
+					style="--c: {d.color}"
+					role="button"
+					tabindex="0"
+					aria-label="{d.trail.company.name}, {d.head.quarter}"
+					aria-expanded={pinned?.companyId === d.trail.company.id}
+					onkeydown={(event) => onHeadKey(event, d)}
+					onfocus={() => (hovered = headSelection(d))}
+					onblur={() => (hovered = null)}
+				>
 					{#if clip}
 						<path
 							class="head-caret"
@@ -246,6 +288,7 @@
 					{:else}
 						<circle
 							class="head-dot {d.head.quality}"
+							data-testid="head-dot"
 							class:ended={d.ended}
 							cx={x(d.head.revenue)}
 							cy={py(d.head)}
@@ -263,7 +306,13 @@
 		{/each}
 
 		{#if active}
-			<circle class="focus-ring" cx={x(active.point.revenue)} cy={py(active.point)} r="9" />
+			<circle
+				aria-hidden="true"
+				class="focus-ring"
+				cx={x(active.point.revenue)}
+				cy={py(active.point)}
+				r="9"
+			/>
 		{/if}
 	</svg>
 
@@ -276,6 +325,7 @@
 			class:flip-x={tip.flipX}
 			class:flip-y={tip.flipY}
 			style="left: {tip.left}%; top: {tip.top}%"
+			bind:this={tooltipEl}
 			role="dialog"
 			aria-label="{c.name} {p.quarter}"
 			data-testid="trends-tooltip"
@@ -284,7 +334,7 @@
 				<strong>{c.name}</strong>
 				<span>{p.quarter}</span>
 				{#if pinnedHit}
-					<button class="tt-close" aria-label="Close" onclick={() => (pinned = null)}>×</button>
+					<button class="tt-close" aria-label="Close" onclick={unpin}>×</button>
 				{/if}
 			</div>
 			<div class="tt-badges">
@@ -321,7 +371,9 @@
 				{/if}
 			</div>
 			{#if c.notes}<div class="tt-notes dim">{c.notes}</div>{/if}
-			{#if !pinnedHit}<div class="dim tt-hint">Click to pin and follow links</div>{/if}
+			{#if !pinnedHit}<div class="dim tt-hint">
+					Click, or press Enter on a company, to pin and follow links
+				</div>{/if}
 		</div>
 	{/if}
 </div>
@@ -336,9 +388,9 @@
 		display: block;
 		width: 100%;
 		height: auto;
-		background: var(--chart-surface);
-		border: 1px solid var(--futuristic-border);
-		border-radius: 8px;
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
 		cursor: crosshair;
 		font-family: var(--font-sans);
 	}
@@ -348,16 +400,17 @@
 		font-size: 64px;
 		font-weight: 700;
 		fill: var(--text-muted);
-		opacity: 0.18;
+		opacity: 0.15;
 	}
 
 	.grid {
-		stroke: var(--grid);
+		stroke: var(--border);
 		stroke-width: 1;
+		opacity: 0.5;
 	}
 
 	.grid.major {
-		stroke: var(--grid-major);
+		opacity: 1;
 	}
 
 	.tick {
@@ -367,7 +420,7 @@
 	}
 
 	.axis-title {
-		fill: var(--text-secondary);
+		fill: var(--text-muted);
 		font-size: 13px;
 	}
 
@@ -411,7 +464,7 @@
 
 	.head-caret {
 		fill: var(--c);
-		stroke: var(--chart-surface);
+		stroke: var(--surface);
 		stroke-width: 1.5;
 	}
 
@@ -424,7 +477,7 @@
 	}
 
 	.pt.estimated {
-		fill: var(--chart-surface);
+		fill: var(--surface);
 		stroke: var(--c);
 		stroke-width: 1.5;
 	}
@@ -436,7 +489,7 @@
 
 	.head-dot {
 		fill: var(--c);
-		stroke: var(--chart-surface);
+		stroke: var(--surface);
 		stroke-width: 2;
 	}
 
@@ -445,7 +498,7 @@
 	}
 
 	.head-dot.estimated {
-		fill: var(--chart-surface);
+		fill: var(--surface);
 		stroke: var(--c);
 		stroke-width: 2.5;
 	}
@@ -455,18 +508,30 @@
 	}
 
 	.head-label {
-		fill: var(--text-primary);
+		fill: var(--text);
 		font-size: 12px;
 		font-weight: 500;
 		paint-order: stroke;
-		stroke: var(--chart-surface);
+		stroke: var(--surface);
 		stroke-width: 3px;
 		pointer-events: none;
 	}
 
+	.head {
+		cursor: pointer;
+		outline: none;
+	}
+
+	/* SVG groups get no outline ring: draw one round the head instead. */
+	.head:focus-visible .head-dot,
+	.head:focus-visible .head-caret {
+		stroke: var(--focus-ring);
+		stroke-width: 3;
+	}
+
 	.focus-ring {
 		fill: none;
-		stroke: var(--text-primary);
+		stroke: var(--text);
 		stroke-width: 1.5;
 		pointer-events: none;
 	}
@@ -477,13 +542,13 @@
 		max-width: 340px;
 		min-width: 220px;
 		padding: 0.6rem 0.75rem;
-		background: var(--futuristic-surface);
-		border: 1px solid var(--futuristic-border);
-		border-radius: 8px;
-		box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
-		font-size: 0.8rem;
+		background: var(--surface);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius);
+		box-shadow: 0 6px 24px color-mix(in srgb, var(--text) 25%, transparent);
+		font-size: var(--text-sm);
 		line-height: 1.4;
-		color: var(--text-primary);
+		color: var(--text);
 		pointer-events: none;
 		z-index: 2;
 	}
@@ -511,15 +576,17 @@
 	}
 
 	.tt-head span {
-		color: var(--text-secondary);
+		color: var(--text-muted);
 		font-family: var(--font-mono);
 	}
 
 	.tt-close {
 		margin-left: auto;
+		min-width: 24px;
+		min-height: 24px;
 		background: none;
 		border: none;
-		color: var(--text-secondary);
+		color: var(--text-muted);
 		font-size: 1.1rem;
 		cursor: pointer;
 		line-height: 1;
@@ -536,12 +603,12 @@
 		padding: 0 0.4rem;
 		border-radius: 4px;
 		border: 1px solid var(--text-muted);
-		color: var(--text-secondary);
+		color: var(--text-muted);
 	}
 
 	.badge.reported {
-		border-color: var(--text-primary);
-		color: var(--text-primary);
+		border-color: var(--text);
+		color: var(--text);
 	}
 
 	.badge.estimated {
@@ -565,7 +632,7 @@
 	}
 
 	dt {
-		color: var(--text-secondary);
+		color: var(--text-muted);
 	}
 
 	dd {
@@ -575,7 +642,7 @@
 	}
 
 	.tt-source a {
-		color: var(--futuristic-cyan);
+		color: var(--accent);
 	}
 
 	.dim {

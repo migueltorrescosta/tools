@@ -8,9 +8,9 @@
 </svelte:head>
 
 <div class="container">
-	<header>
+	<header class="intro">
 		<h1>Tools</h1>
-		<p class="subtitle">Small utilities that run entirely in your browser.</p>
+		<p class="intro-subtitle">Small utilities that run entirely in your browser.</p>
 	</header>
 
 	<ul class="grid">
@@ -26,6 +26,16 @@
 </div>
 
 <style>
+	.intro {
+		margin-bottom: var(--sp-3);
+	}
+
+	.intro-subtitle {
+		margin: var(--sp-1) 0 0;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+	}
+
 	.grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));

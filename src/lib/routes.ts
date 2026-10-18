@@ -48,12 +48,6 @@ export const routes: ToolRoute[] = [
 			'Timeline of current and former elected representatives of the pan-European political party Volt Europa.'
 	},
 	{
-		path: '/volt-ga',
-		name: 'Volt GA Bratislava 2026',
-		description:
-			'Schedule of the Volt Europa General Assembly in Bratislava. Browse sessions by room, search, and share your favorites.'
-	},
-	{
 		path: '/rank-vote',
 		name: 'Rank Vote',
 		description:

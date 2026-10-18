@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import datasetJson from './data/companies.json';
 	import TrendsChart from './TrendsChart.svelte';
+	import { Alert, Button, PageHeader, SegmentedControl } from '$lib/ui';
 	import { loadDataset } from '$lib/company-trends/schema';
 	import { companyTypes, DEFAULT_COMPANY_IDS, filterCompanies } from '$lib/company-trends/filter';
 	import {
@@ -95,6 +96,12 @@
 		companies: companies.filter((c) => c.type === type)
 	}));
 
+	const CURRENCIES = [
+		{ value: 'EUR', label: 'EUR' },
+		{ value: 'USD', label: 'USD' },
+		{ value: 'GBP', label: 'GBP' }
+	] as const satisfies readonly { value: Currency; label: string }[];
+
 	const tableRows = $derived(
 		visibleTrails
 			.flatMap((t) => {
@@ -105,79 +112,73 @@
 	);
 </script>
 
-<svelte:head>
-	<title>Company Trends</title>
-</svelte:head>
-
-<div class="viz-root container" data-hydrated={hydrated || undefined}>
-	<header>
-		<h1>COMPANY TRENDS</h1>
-		<p class="subtitle">
-			Revenue (log scale) vs operating margin trajectories, 2000 → last reported quarter, normalized
-			to EUR
-		</p>
-	</header>
+<div class="container" data-hydrated={hydrated || undefined}>
+	<PageHeader path="/company-trends"
+		>Revenue (log scale) vs operating margin, 2000 to the last reported quarter, in {currency}</PageHeader
+	>
 
 	{#if errors.length > 0}
-		<div class="panel" role="alert">
-			<span class="label">DATASET VALIDATION ERRORS</span>
-			<ul>
+		<Alert tone="danger">
+			<strong>Dataset validation errors</strong>
+			<ul class="ct-errors">
 				{#each errors as error (error)}
-					<li class="hint">{error}</li>
+					<li>{error}</li>
 				{/each}
 			</ul>
-		</div>
+		</Alert>
 	{:else if companies.length === 0}
-		<div class="panel">
-			<span class="label">EMPTY DATASET</span>
-			<p class="hint">Company curation is in progress. Nothing to chart yet.</p>
-		</div>
+		<Alert>
+			<strong>Empty dataset.</strong> Company curation is in progress. Nothing to chart yet.
+		</Alert>
 	{:else}
-		<div class="controls">
-			<div class="time-row">
-				<button
-					class="format-btn play"
-					onclick={togglePlay}
-					aria-label={playing ? 'Pause' : 'Play'}
-					data-testid="play">{playing ? '❚❚ Pause' : '▶ Play'}</button
+		<div class="ct-controls">
+			<div class="cluster ct-time">
+				<Button onclick={togglePlay} data-testid="play"
+					><span aria-hidden="true">{playing ? '❚❚' : '▶'}</span>{playing
+						? 'Pause'
+						: 'Play'}</Button
 				>
-				<input
-					type="range"
-					min="0"
-					max={lastQi}
-					step="1"
-					bind:value={qi}
-					oninput={() => (playing = false)}
-					aria-label="Quarter"
-					aria-valuetext={quarter}
-					data-testid="quarter-slider"
+				<label class="ct-slider">
+					<span>Quarter</span>
+					<input
+						type="range"
+						min="0"
+						max={lastQi}
+						step="1"
+						bind:value={qi}
+						oninput={() => (playing = false)}
+						aria-valuetext={quarter}
+						data-testid="quarter-slider"
+					/>
+				</label>
+				<output class="ct-quarter" data-testid="quarter-label">{quarter}</output>
+				<SegmentedControl
+					legend="Display currency"
+					hideLegend
+					options={CURRENCIES}
+					bind:value={currency}
 				/>
-				<span class="quarter" data-testid="quarter-label">{quarter}</span>
-				<div class="format-buttons" role="group" aria-label="Display currency">
-					{#each ['EUR', 'USD', 'GBP'] as const as cur (cur)}
-						<button
-							class="format-btn"
-							class:active={currency === cur}
-							aria-pressed={currency === cur}
-							onclick={() => (currency = cur)}>{cur}</button
-						>
-					{/each}
-				</div>
 			</div>
 
-			<fieldset class="types">
-				<legend class="label">TYPES</legend>
+			<fieldset class="ct-types">
+				<legend class="ct-group-legend">Industries</legend>
 				{#each types as type (type)}
-					<label class="type-chip" style="--c: var(--series-{typeSlot(type) + 1})">
+					<label class="ct-check">
 						<input
 							type="checkbox"
+							value={type}
 							checked={selectedTypes.includes(type)}
 							onchange={() => (selectedTypes = toggle(selectedTypes, type))}
 						/>
-						<span class="swatch" class:neutral={mode === 'company'}></span>{type}
+						<span
+							class="ct-swatch"
+							class:ct-swatch-neutral={mode === 'company'}
+							style="--c: var(--data-{typeSlot(type) + 1})"
+							aria-hidden="true"
+						></span>{type}
 					</label>
 				{/each}
-				<span class="hint color-mode" data-testid="color-mode"
+				<span class="ct-note ct-color-mode" data-testid="color-mode"
 					>{mode === 'company'
 						? 'Coloured by company'
 						: `Coloured by industry (select ≤ ${PALETTE_SIZE} companies to colour individually)`}</span
@@ -185,48 +186,63 @@
 			</fieldset>
 		</div>
 
-		<div class="layout">
-			<div class="chart-scroll">
-				<TrendsChart trails={visibleTrails} {qi} {quarter} {currency} {colors} {domain} />
-				<div class="legend hint">
-					<span
-						><svg width="14" height="14"><circle cx="7" cy="7" r="4" class="lg reported" /></svg
-						>reported</span
-					>
-					<span
-						><svg width="14" height="14"><circle cx="7" cy="7" r="4" class="lg estimated" /></svg
-						>estimated (private company, press reports)</span
-					>
-					<span
-						><svg width="14" height="14"><circle cx="7" cy="7" r="2" class="lg interp" /></svg
-						>interpolated quarter (log-linear between annual figures)</span
-					>
-					<span
-						><svg width="24" height="14"><line x1="1" y1="7" x2="23" y2="7" class="lg gap" /></svg
-						>data gap (missing years)</span
-					>
-					<span
-						><svg width="14" height="14"><path d="M3,4L11,4L7,12Z" class="lg offscale" /></svg
-						>off-scale margin (below −200%), pinned to the edge</span
-					>
+		<div class="ct-layout">
+			<div class="ct-chart-col">
+				<div class="ct-chart-scroll">
+					<TrendsChart trails={visibleTrails} {qi} {quarter} {currency} {colors} {domain} />
 				</div>
+				<ul class="ct-marks" aria-label="Chart marks">
+					<li>
+						<svg width="14" height="14" aria-hidden="true"
+							><circle cx="7" cy="7" r="4" class="ct-mark-reported" /></svg
+						>reported
+					</li>
+					<li>
+						<svg width="14" height="14" aria-hidden="true"
+							><circle cx="7" cy="7" r="4" class="ct-mark-estimated" /></svg
+						>estimated (private company, press reports)
+					</li>
+					<li>
+						<svg width="14" height="14" aria-hidden="true"
+							><circle cx="7" cy="7" r="2" class="ct-mark-interp" /></svg
+						>interpolated quarter (log-linear between annual figures)
+					</li>
+					<li>
+						<svg width="24" height="14" aria-hidden="true"
+							><line x1="1" y1="7" x2="23" y2="7" class="ct-mark-gap" /></svg
+						>data gap (missing years)
+					</li>
+					<li>
+						<svg width="14" height="14" aria-hidden="true"
+							><path d="M3,4L11,4L7,12Z" class="ct-mark-offscale" /></svg
+						>off-scale margin (below −200%), pinned to the edge
+					</li>
+				</ul>
 			</div>
 
-			<aside class="company-list">
-				<div class="list-head">
-					<span class="label">COMPANIES</span>
-					<button class="link-btn" onclick={() => (selectedIds = companies.map((c) => c.id))}
-						>all</button
-					>
-					<button class="link-btn" onclick={() => (selectedIds = [])}>none</button>
+			<div class="ct-companies" role="group" aria-labelledby="ct-companies-title">
+				<div class="ct-companies-head">
+					<span class="ct-group-legend" id="ct-companies-title">Companies</span>
+					<Button size="sm" onclick={() => (selectedIds = companies.map((c) => c.id))}>All</Button>
+					<Button size="sm" onclick={() => (selectedIds = [])}>None</Button>
 				</div>
 				{#each companiesByType as group (group.type)}
-					<div class="group" class:muted={!selectedTypes.includes(group.type)}>
-						<div class="group-title" style="--c: var(--series-{typeSlot(group.type) + 1})">
-							<span class="swatch" class:neutral={mode === 'company'}></span>{group.type}
+					<div
+						class="ct-company-group"
+						class:ct-muted={!selectedTypes.includes(group.type)}
+						role="group"
+						aria-labelledby="ct-group-{group.type}"
+					>
+						<div class="ct-company-group-title" id="ct-group-{group.type}">
+							<span
+								class="ct-swatch"
+								class:ct-swatch-neutral={mode === 'company'}
+								style="--c: var(--data-{typeSlot(group.type) + 1})"
+								aria-hidden="true"
+							></span>{group.type}
 						</div>
 						{#each group.companies as company (company.id)}
-							<label class="company-row">
+							<label class="ct-check ct-company">
 								<input
 									type="checkbox"
 									value={company.id}
@@ -235,8 +251,9 @@
 								/>
 								{#if mode === 'company' && colors.has(company.id)}
 									<span
-										class="swatch"
+										class="ct-swatch"
 										style="--c: {colors.get(company.id)}"
+										aria-hidden="true"
 										data-testid="company-swatch"
 									></span>
 								{/if}
@@ -245,54 +262,58 @@
 						{/each}
 					</div>
 				{/each}
-			</aside>
+			</div>
 		</div>
 
-		<details class="panel table-view">
-			<summary class="label">TABLE VIEW · {quarter} · {currency}</summary>
-			<table>
-				<thead>
-					<tr>
-						<th>Company</th>
-						<th>Quarter</th>
-						<th>Quality</th>
-						<th>Revenue</th>
-						<th>Op. expenses</th>
-						<th>Op. income</th>
-						<th>Op. margin</th>
-						<th>Source</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each tableRows as row (row.trail.company.id)}
+		<details class="how" data-testid="table-view">
+			<summary>Data table · {quarter} · {currency}</summary>
+			<div class="ct-table-wrap">
+				<table>
+					<thead>
 						<tr>
-							<td>{row.trail.company.name}</td>
-							<td>{row.point.quarter}</td>
-							<td>{row.point.quality}</td>
-							<td>{formatMoney(row.point.revenue, currency)}</td>
-							<td>{formatMoney(row.point.expenses, currency)}</td>
-							<td>{formatMoney(row.point.operatingIncome, currency)}</td>
-							<td>{row.point.margin === null ? '—' : formatPercent(row.point.margin, 1)}</td>
-							<td class="source-cell">
-								{#if row.point.quality === 'interpolated'}interpolated between{/if}
-								{#each pointSources(row.trail, row.point) as s, i (s.quarter)}
-									{#if i > 0}and{/if}
-									{#if s.sourceUrl}
-										<a href={s.sourceUrl} target="_blank" rel="noreferrer" title={s.source}
-											>{row.point.quality === 'interpolated' ? s.quarter : s.source}</a
-										>
-									{:else}
-										<span title={s.source}>{s.quarter}</span>
-									{/if}
-								{/each}
-							</td>
+							<th scope="col">Company</th>
+							<th scope="col">Quarter</th>
+							<th scope="col">Quality</th>
+							<th scope="col" class="ct-num">Revenue</th>
+							<th scope="col" class="ct-num">Op. expenses</th>
+							<th scope="col" class="ct-num">Op. income</th>
+							<th scope="col" class="ct-num">Op. margin</th>
+							<th scope="col">Source</th>
 						</tr>
-					{/each}
-				</tbody>
-			</table>
+					</thead>
+					<tbody>
+						{#each tableRows as row (row.trail.company.id)}
+							<tr>
+								<td>{row.trail.company.name}</td>
+								<td>{row.point.quarter}</td>
+								<td>{row.point.quality}</td>
+								<td class="ct-num">{formatMoney(row.point.revenue, currency)}</td>
+								<td class="ct-num">{formatMoney(row.point.expenses, currency)}</td>
+								<td class="ct-num">{formatMoney(row.point.operatingIncome, currency)}</td>
+								<td class="ct-num"
+									>{row.point.margin === null ? '—' : formatPercent(row.point.margin, 1)}</td
+								>
+								<td class="ct-source">
+									{#if row.point.quality === 'interpolated'}interpolated between{/if}
+									{#each pointSources(row.trail, row.point) as s, i (s.quarter)}
+										{#if i > 0}and{/if}
+										{#if s.sourceUrl}
+											<a href={s.sourceUrl} target="_blank" rel="noreferrer" title={s.source}
+												>{row.point.quality === 'interpolated' ? s.quarter : s.source}</a
+											>
+										{:else}
+											<span title={s.source}>{s.quarter}</span>
+										{/if}
+									{/each}
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
 		</details>
 
-		<p class="hint">
+		<p class="ct-note">
 			Units: {dataset.meta.units}. Operating margin = operating income / revenue, on a fixed −200%
 			to +100% axis; expenses = revenue − operating income. Values are fiscal-year figures placed at
 			each fiscal year's closing quarter; quarters in between are log-interpolated.
@@ -300,7 +321,7 @@
 	{/if}
 
 	{#if errors.length === 0}
-		<p class="hint">
+		<p class="ct-note">
 			{dataset.meta.fxMethodology}
 			(<a href={dataset.meta.fxSource} target="_blank" rel="noreferrer">FX source</a>)
 		</p>
@@ -308,257 +329,241 @@
 </div>
 
 <style>
-	/* Industry slots (validated for the dark surface): one per company type, in TYPE_ORDER. */
-	.viz-root {
-		color-scheme: dark;
-		--chart-surface: #13131f;
-		--text-primary: #f0f4f8;
-		--text-secondary: #c8d4de;
-		--text-muted: #8a96a3;
-		--grid: rgba(200, 212, 222, 0.07);
-		--grid-major: rgba(200, 212, 222, 0.16);
-		--series-1: #3987e5;
-		--series-2: #d95926;
-		--series-3: #199e70;
-		--series-4: #c98500;
-		--series-5: #d55181;
-		--series-6: #008300;
-		--series-7: #9085e9;
-		--series-8: #e66767;
-		/*
-		 * Per-company slots, used when <= 12 companies are visible. Ordered so every prefix
-		 * stays maximally separated. validate_palette.js --mode dark --surface #13131f
-		 * --pairs all: CVD PASS (worst 8.4), normal-vision PASS (worst 16.8), contrast PASS
-		 * (all >= 3:1), chroma PASS. Lightness band FAIL by design: six slots sit at OKLCH
-		 * L 0.69-0.79, above the 0.67 dark band, which 12 all-pairs-distinct hues require.
-		 * Direct head labels and sidebar swatches back colour up as secondary encoding.
-		 */
-		--cseries-1: #cfbd00;
-		--cseries-2: #5a3ffc;
-		--cseries-3: #cf0909;
-		--cseries-4: #24c6fc;
-		--cseries-5: #905187;
-		--cseries-6: #3fb475;
-		--cseries-7: #b475fc;
-		--cseries-8: #f399c6;
-		--cseries-9: #007536;
-		--cseries-10: #f37536;
-		--cseries-11: #fc00c6;
-		--cseries-12: #0087c6;
+	.ct-errors {
+		margin: var(--sp-1) 0 0;
+		padding-left: var(--sp-4);
 	}
 
-	.controls {
+	.ct-controls {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
-		margin-bottom: 0.75rem;
+		gap: var(--sp-2);
+		margin-bottom: var(--sp-3);
 	}
 
-	.time-row {
+	.ct-time {
+		--gap: var(--sp-2) var(--sp-3);
+	}
+
+	.ct-slider {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		flex-wrap: wrap;
-	}
-
-	.time-row .format-buttons {
-		flex-wrap: nowrap;
-	}
-
-	.time-row input[type='range'] {
+		gap: var(--sp-2);
 		flex: 1;
 		min-width: 200px;
-		accent-color: var(--futuristic-cyan);
+		font-size: var(--text-sm);
+		color: var(--text-muted);
 	}
 
-	.play {
-		min-width: 6.5rem;
+	.ct-slider input {
+		flex: 1;
+		min-width: 0;
+		min-height: 24px;
+		accent-color: var(--accent);
 	}
 
-	.quarter {
+	.ct-quarter {
 		font-family: var(--font-mono);
-		font-size: 1.1rem;
-		color: var(--futuristic-cyan);
+		font-size: var(--text-lg);
+		font-weight: 600;
 		min-width: 4.5rem;
 	}
 
-	.types {
+	.ct-types {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.4rem 0.9rem;
 		align-items: center;
-		border: none;
+		gap: 0 var(--sp-3);
+		border: 0;
 		padding: 0;
 		margin: 0;
+		min-width: 0;
 	}
 
-	.types legend {
+	.ct-types > legend {
 		float: left;
-		margin-right: 0.5rem;
+		margin-right: var(--sp-1);
 	}
 
-	.type-chip,
-	.company-row {
+	.ct-group-legend {
+		padding: 0;
+		font-size: var(--text-sm);
+		font-weight: 600;
+	}
+
+	.ct-check {
 		display: flex;
 		align-items: center;
-		gap: 0.35rem;
-		font-size: 0.85rem;
-		color: var(--text-secondary);
+		gap: var(--sp-1);
+		min-height: 24px;
+		font-size: var(--text-sm);
 		cursor: pointer;
 	}
 
-	.swatch {
+	.ct-check input {
+		width: 16px;
+		height: 16px;
+		margin: 0 var(--sp-1) 0 0;
+		accent-color: var(--accent);
+	}
+
+	.ct-swatch {
 		display: inline-block;
+		flex: none;
 		width: 10px;
 		height: 10px;
 		border-radius: 50%;
 		background: var(--c);
 	}
 
-	.swatch.neutral {
+	.ct-swatch-neutral {
 		background: transparent;
 		box-shadow: inset 0 0 0 1px var(--text-muted);
 	}
 
-	.color-mode {
-		margin-left: auto;
-	}
-
-	.layout {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) 220px;
-		gap: 0.75rem;
-		align-items: start;
-	}
-
-	.chart-scroll {
-		overflow-x: auto;
-	}
-
-	.legend {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.25rem 1.1rem;
-		margin-top: 0.4rem;
-	}
-
-	.legend span {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.3rem;
-	}
-
-	.lg.reported {
-		fill: var(--text-secondary);
-	}
-
-	.lg.estimated {
-		fill: none;
-		stroke: var(--text-secondary);
-		stroke-width: 1.5;
-	}
-
-	.lg.interp {
-		fill: var(--text-secondary);
-		opacity: 0.45;
-	}
-
-	.lg.offscale {
-		fill: var(--text-secondary);
-	}
-
-	.lg.gap {
-		stroke: var(--text-secondary);
-		stroke-width: 2;
-		stroke-dasharray: 3 4;
-		opacity: 0.6;
-	}
-
-	.company-list {
-		max-height: 680px;
-		overflow-y: auto;
-		padding: 0.5rem;
-		background: var(--futuristic-surface);
-		border: 1px solid var(--futuristic-border);
-		border-radius: 8px;
-	}
-
-	.list-head {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		margin-bottom: 0.4rem;
-	}
-
-	.link-btn {
-		background: none;
-		border: none;
-		color: var(--futuristic-cyan);
-		cursor: pointer;
-		font-size: 0.8rem;
-		padding: 0;
-		text-decoration: underline;
-	}
-
-	.group {
-		margin-bottom: 0.5rem;
-	}
-
-	.group.muted {
-		opacity: 0.4;
-	}
-
-	.group-title {
-		display: flex;
-		align-items: center;
-		gap: 0.35rem;
-		font-size: 0.75rem;
-		text-transform: uppercase;
-		letter-spacing: 0.1em;
+	.ct-note {
+		font-size: var(--text-sm);
 		color: var(--text-muted);
 	}
 
-	.table-view {
-		margin-top: 0.75rem;
+	.ct-color-mode {
+		margin-left: auto;
 	}
 
-	.table-view summary {
-		cursor: pointer;
+	.ct-layout {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 220px;
+		gap: var(--sp-3);
+		align-items: start;
+	}
+
+	.ct-chart-col {
+		min-width: 0;
+	}
+
+	.ct-chart-scroll {
+		overflow-x: auto;
+	}
+
+	.ct-marks {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--sp-1) var(--sp-4);
+		margin: var(--sp-2) 0 0;
+		padding: 0;
+		list-style: none;
+		font-size: var(--text-xs);
+		color: var(--text-muted);
+	}
+
+	.ct-marks li {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--sp-1);
+	}
+
+	.ct-mark-reported,
+	.ct-mark-offscale {
+		fill: var(--text-muted);
+	}
+
+	.ct-mark-estimated {
+		fill: none;
+		stroke: var(--text-muted);
+		stroke-width: 1.5;
+	}
+
+	.ct-mark-interp {
+		fill: var(--text-muted);
+		opacity: 0.6;
+	}
+
+	.ct-mark-gap {
+		stroke: var(--text-muted);
+		stroke-width: 2;
+		stroke-dasharray: 3 4;
+	}
+
+	.ct-companies {
+		max-height: 680px;
+		overflow-y: auto;
+		margin: 0;
+		padding: var(--sp-2);
+		min-width: 0;
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+	}
+
+	.ct-companies-head {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-2);
+		margin-bottom: var(--sp-1);
+	}
+
+	.ct-companies-head .ct-group-legend {
+		margin-right: auto;
+	}
+
+	.ct-company-group {
+		margin-bottom: var(--sp-2);
+	}
+
+	.ct-muted {
+		opacity: 0.6;
+	}
+
+	.ct-company-group-title {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-1);
+		margin-top: var(--sp-1);
+		font-size: var(--text-xs);
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--text-muted);
+	}
+
+	.ct-table-wrap {
+		overflow-x: auto;
 	}
 
 	table {
 		width: 100%;
 		border-collapse: collapse;
-		font-size: 0.85rem;
-		margin-top: 0.5rem;
+		font-size: var(--text-sm);
+		color: var(--text);
 	}
 
 	th,
 	td {
 		text-align: left;
-		padding: 0.25rem 0.5rem;
-		border-bottom: 1px solid rgba(200, 212, 222, 0.1);
+		padding: var(--sp-1) var(--sp-2);
+		border-bottom: 1px solid var(--border);
 	}
 
-	td:nth-child(n + 4),
-	th:nth-child(n + 4) {
+	th {
+		color: var(--text-muted);
+		font-weight: 600;
+	}
+
+	.ct-num {
 		text-align: right;
 		font-family: var(--font-mono);
 	}
 
-	td.source-cell,
-	th:last-child {
-		text-align: left;
-		font-family: inherit;
+	.ct-source {
 		max-width: 22rem;
 	}
 
 	@media (max-width: 900px) {
-		.layout {
+		.ct-layout {
 			grid-template-columns: 1fr;
 		}
 
-		.company-list {
+		.ct-companies {
 			max-height: 260px;
 		}
 	}

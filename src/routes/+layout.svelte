@@ -2,7 +2,6 @@
 	import '$lib/styles/tokens.css';
 	import '$lib/styles/base.css';
 	import '$lib/styles/utilities.css';
-	import './shared.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { page } from '$app/state';
 	import { base } from '$app/paths';

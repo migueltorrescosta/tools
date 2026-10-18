@@ -483,8 +483,8 @@ describe('colour assignment', () => {
 		);
 		const { colors } = assignColors(tech);
 		expect(new Set(colors.values()).size).toBe(11);
-		expect(colors.get('c10')).toBe('var(--cseries-1)');
-		expect(colors.get('c0')).toBe('var(--cseries-11)');
+		expect(colors.get('c10')).toBe('var(--data-1)');
+		expect(colors.get('c0')).toBe('var(--data-11)');
 	});
 
 	it('is deterministic regardless of input order', () => {
@@ -497,8 +497,8 @@ describe('colour assignment', () => {
 			trailOf(`c${i}`, `Co ${i}`, i % 2 ? 'energy' : 'tech')
 		);
 		const { colors } = assignColors(many);
-		expect(colors.get('c0')).toBe(`var(--series-${typeSlot('tech') + 1})`);
-		expect(colors.get('c1')).toBe(`var(--series-${typeSlot('energy') + 1})`);
+		expect(colors.get('c0')).toBe(`var(--data-${typeSlot('tech') + 1})`);
+		expect(colors.get('c1')).toBe(`var(--data-${typeSlot('energy') + 1})`);
 	});
 
 	it('keeps existing colours when a company is added or removed', () => {
@@ -512,7 +512,7 @@ describe('colour assignment', () => {
 		const added = assignColors([trailOf('a', 'Alpha', 'tech'), ...base], first.slots);
 		for (const t of base)
 			expect(added.colors.get(t.company.id)).toBe(first.colors.get(t.company.id));
-		expect(added.colors.get('a')).toBe('var(--cseries-4)');
+		expect(added.colors.get('a')).toBe('var(--data-4)');
 
 		// Removing Delta frees its slot for the next newcomer; the others stay put.
 		const removed = assignColors(
@@ -530,7 +530,7 @@ describe('colour assignment', () => {
 			removed.slots
 		);
 		expect(readded.colors.get('c')).toBe(first.colors.get('d'));
-		expect(readded.colors.get('d')).toBe('var(--cseries-5)');
+		expect(readded.colors.get('d')).toBe('var(--data-5)');
 	});
 
 	it('remembers company slots across an industry-coloured interlude', () => {
@@ -538,7 +538,7 @@ describe('colour assignment', () => {
 		const first = assignColors(few);
 		const many = Array.from({ length: 13 }, (_, i) => trailOf(`c${i}`, `Aa ${i}`, 'tech'));
 		const industry = assignColors([...few, ...many], first.slots);
-		expect(industry.colors.get('b')).toBe(`var(--series-${typeSlot('tech') + 1})`);
+		expect(industry.colors.get('b')).toBe(`var(--data-${typeSlot('tech') + 1})`);
 		const back = assignColors([trailOf('a', 'Alpha', 'tech'), ...few], industry.slots);
 		expect(back.colors.get('b')).toBe(first.colors.get('b'));
 		expect(back.colors.get('z')).toBe(first.colors.get('z'));

@@ -4,22 +4,21 @@ A collection of small browser tools built with SvelteKit 2, Svelte 5 and TypeScr
 
 ## Tools
 
-| Route                  | Tool                    | What it does                                                                      |
-| ---------------------- | ----------------------- | --------------------------------------------------------------------------------- |
-| `/jwt`                 | JWT Parser              | Decode, encode and verify JSON Web Tokens.                                        |
-| `/format`              | Format Checker          | Validate JSON, YAML, XML, Markdown and plain text with located errors.            |
-| `/cipher`              | Encrypter/Decrypter     | AES-GCM, AES-CBC, RSA-OAEP, Base64, Hex and ROT13.                                |
-| `/wordle`              | Wordle Solver           | Suggest the next guess from the colour feedback.                                  |
-| `/split`               | Asset Splitting         | Fair division of assets among several people.                                     |
-| `/timelines`           | Timelines               | European elections and EU milestones on a timeline.                               |
-| `/volt`                | Volt                    | Current and former elected representatives of Volt Europa.                        |
-| `/volt-ga`             | Volt GA Bratislava 2026 | General Assembly schedule by room, with search and shareable favourites.          |
-| `/rank-vote`           | Rank Vote               | Ranked-choice ballots for small groups, shared by link.                           |
-| `/verb-conjugator`     | Verb Conjugator         | Italian, Spanish and Portuguese conjugation drills with spaced recall.            |
-| `/decision-tree`       | Decision Tree           | Walk a question tree one answer at a time, with shareable paths.                  |
-| `/company-trends`      | Company Trends          | Animated log-log revenue vs operating margin for 43 companies since 2000, in EUR. |
-| `/warhammer-simulator` | Warhammer Simulator     | Monte Carlo duel odds for Warhammer: The Old World.                               |
-| `/symbolic-regression` | Symbolic Regression     | Fit interpretable equations to a CSV, with a Pareto front of accuracy vs size.    |
+| Route                  | Tool                | What it does                                                                      |
+| ---------------------- | ------------------- | --------------------------------------------------------------------------------- |
+| `/jwt`                 | JWT Parser          | Decode, encode and verify JSON Web Tokens.                                        |
+| `/format`              | Format Checker      | Validate JSON, YAML, XML, Markdown and plain text with located errors.            |
+| `/cipher`              | Encrypter/Decrypter | AES-GCM, AES-CBC, RSA-OAEP, Base64, Hex and ROT13.                                |
+| `/wordle`              | Wordle Solver       | Suggest the next guess from the colour feedback.                                  |
+| `/split`               | Asset Splitting     | Fair division of assets among several people.                                     |
+| `/timelines`           | Timelines           | European elections and EU milestones on a timeline.                               |
+| `/volt`                | Volt                | Current and former elected representatives of Volt Europa.                        |
+| `/rank-vote`           | Rank Vote           | Ranked-choice ballots for small groups, shared by link.                           |
+| `/verb-conjugator`     | Verb Conjugator     | Italian, Spanish and Portuguese conjugation drills with spaced recall.            |
+| `/decision-tree`       | Decision Tree       | Walk a question tree one answer at a time, with shareable paths.                  |
+| `/company-trends`      | Company Trends      | Animated log-log revenue vs operating margin for 43 companies since 2000, in EUR. |
+| `/warhammer-simulator` | Warhammer Simulator | Monte Carlo duel odds for Warhammer: The Old World.                               |
+| `/symbolic-regression` | Symbolic Regression | Fit interpretable equations to a CSV, with a Pareto front of accuracy vs size.    |
 
 The index page is generated from `src/lib/routes.ts`. Add new tools there.
 
@@ -52,6 +51,7 @@ CI: `.github/workflows/ci.yml` runs check, lint, unit and e2e on every pull requ
 
 - `src/routes/<tool>/`: one SvelteKit page per tool, with its e2e suite in `e2e/`.
 - `src/lib/`: tool logic lives in `src/lib/<tool>/` or `src/lib/<tool>.ts`; a route may keep route-only helpers in `src/routes/<tool>/lib/`; specs sit next to the module they test. Bundled data is in `src/lib/data/`.
+- `src/lib/ui/` and `src/lib/styles/`: shared components and design tokens (light/dark via `light-dark()`); pages use these instead of their own colours.
 - `static/`: static assets.
 
 ## Build and deploy
