@@ -2,7 +2,7 @@ import { page, userEvent } from 'vitest/browser';
 import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import TimelineView from './TimelineView.svelte';
-import { buildTimelineRows, type TimelineEvent } from './timelines';
+import { groupByYear, type TimelineEvent } from './timelines';
 
 const now = new Date(2026, 5, 15, 12, 0);
 
@@ -25,7 +25,7 @@ const plain: TimelineEvent[] = [
 ];
 
 function renderPlain() {
-	return render(TimelineView, { rows: buildTimelineRows(plain, false), rich: false, now });
+	return render(TimelineView, { groups: groupByYear(plain), rich: false, now });
 }
 
 describe('TimelineView grid descriptions', () => {
@@ -75,17 +75,35 @@ describe('TimelineView grid descriptions', () => {
 		await expect.element(page.getByRole('tooltip')).not.toBeInTheDocument();
 	});
 
-	it('does not give cards the tooltip role', async () => {
+	it('does not give rows the tooltip role', async () => {
 		renderPlain();
 		expect(page.getByRole('tooltip').elements()).toHaveLength(0);
-		expect(page.getByRole('group').elements()).toHaveLength(2);
+		expect(page.getByTestId('timeline-event').elements()).toHaveLength(2);
 	});
 
-	it('marks past events, linked titles included', async () => {
-		const { container } = renderPlain();
-		const cards = container.querySelectorAll('.event-card');
-		expect(cards[0].classList.contains('past')).toBe(true);
-		expect(cards[1].classList.contains('past')).toBe(false);
+	it('lists events under year headings, with the description inline', async () => {
+		renderPlain();
+		const years = page.getByRole('heading', { level: 2 }).elements();
+		expect(years.map((h) => h.textContent)).toEqual(['2024', '2027']);
+		await expect
+			.element(page.getByTestId('timeline-event').nth(1))
+			.toHaveTextContent('Scheduled legislative election');
+	});
+
+	it('marks past events, linked titles included, and puts Today before the first upcoming', async () => {
+		renderPlain();
+		const rows = page.getByTestId('timeline-event').elements();
+		expect(rows[0].classList.contains('past')).toBe(true);
+		expect(rows[1].classList.contains('past')).toBe(false);
+		const today = page.getByTestId('timeline-today').element();
+		expect(today.textContent).toBe('Today');
+		expect(today.nextElementSibling).toBe(rows[1]);
+	});
+
+	it('has no Today row or muted rows when every event is past', async () => {
+		render(TimelineView, { groups: groupByYear(plain.slice(0, 1)), rich: false, now });
+		expect(page.getByTestId('timeline-today').elements()).toHaveLength(0);
+		expect(page.getByTestId('timeline-event').element().classList.contains('past')).toBe(false);
 	});
 });
 
@@ -111,31 +129,50 @@ describe('TimelineView rich cards', () => {
 	];
 
 	it('omits missing value-adds and renders unlinked titles as text', async () => {
-		const { container } = render(TimelineView, {
-			rows: buildTimelineRows(rich, true),
-			rich: true,
-			now
-		});
-		const cards = container.querySelectorAll('.rich-event-card');
-		expect(cards).toHaveLength(2);
-		expect(cards[0].querySelector('.rich-card-value-add')?.textContent).toBe('✦ Parallel training');
-		expect(cards[1].querySelector('.rich-card-value-add')).toBeNull();
-		expect(cards[1].querySelector('a')).toBeNull();
-		expect(cards[1].querySelector('.rich-card-title')?.textContent).toBe('Unlinked');
+		render(TimelineView, { groups: groupByYear(rich), rich: true, now });
+		const cards = page.getByTestId('timeline-event');
+		expect(cards.elements()).toHaveLength(2);
+		await expect.element(cards.nth(0).getByText(/^✦/)).toHaveTextContent('✦ Parallel training');
+		expect(cards.nth(1).getByText(/^✦/).elements()).toHaveLength(0);
+		expect(cards.nth(1).getByRole('link').elements()).toHaveLength(0);
+		await expect.element(cards.nth(1).getByText('Unlinked', { exact: true })).toBeVisible();
 		await expect.element(page.getByRole('link', { name: 'Transformer' })).toBeVisible();
-		expect(cards[1].querySelector('.rich-card-description')?.textContent).toBe(
-			'Only a description'
-		);
+		await expect.element(cards.nth(0)).toHaveTextContent('Self-attention replaces recurrence');
+		await expect.element(cards.nth(1)).toHaveTextContent('Only a description');
+		expect(page.getByRole('button').elements()).toHaveLength(0);
 	});
 
 	it('marks past rich events', async () => {
-		const { container } = render(TimelineView, {
-			rows: buildTimelineRows(rich, true),
-			rich: true,
-			now
-		});
-		const cards = container.querySelectorAll('.rich-event-card');
+		render(TimelineView, { groups: groupByYear(rich), rich: true, now });
+		const cards = page.getByTestId('timeline-event').elements();
 		expect(cards[0].classList.contains('past')).toBe(true);
 		expect(cards[1].classList.contains('past')).toBe(false);
+		expect(page.getByTestId('timeline-today').element().nextElementSibling).toBe(cards[1]);
+	});
+});
+
+describe('TimelineView long timelines', () => {
+	// 2025 is all past; 2026 holds today's split; 2027 is all upcoming.
+	const long: TimelineEvent[] = [2025, 2026, 2027].flatMap((year) =>
+		Array.from({ length: 80 }, (_, i) => ({
+			id: year * 1000 + i,
+			emoji: '🎉',
+			date: `${year}-${String((i % 12) + 1).padStart(2, '0')}-01`,
+			title: `Holiday ${year}-${i}`,
+			description: ''
+		}))
+	);
+
+	it('opens only the year of the next event and shows the others on request', async () => {
+		render(TimelineView, { groups: groupByYear(long), rich: false, now });
+		const years = page.getByRole('heading', { level: 2 }).elements();
+		expect(years.map((h) => h.textContent)).toEqual(['2025', '2026', '2027']);
+		expect(page.getByTestId('timeline-event').elements()).toHaveLength(80);
+		await expect.element(page.getByText('Holiday 2026-0', { exact: true })).toBeVisible();
+
+		await userEvent.click(page.getByRole('button', { name: 'Show 80 events' }).first());
+		expect(page.getByTestId('timeline-event').elements()).toHaveLength(160);
+		await expect.element(page.getByText('Holiday 2025-0', { exact: true })).toBeVisible();
+		expect(page.getByRole('button', { name: 'Show 80 events' }).elements()).toHaveLength(1);
 	});
 });

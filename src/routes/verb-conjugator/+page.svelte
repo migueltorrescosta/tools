@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
+	import { Button, PageHeader, Panel, SegmentedControl } from '$lib/ui';
 	import { LANGUAGE_REGISTRY, getLanguage, type LanguageModule } from '$lib/data/language-registry';
 	import { createPersistGate } from '$lib/persist-gate';
 	import {
@@ -22,6 +23,12 @@
 		type SessionState,
 		type HistoryEntry
 	} from '$lib/verbs';
+
+	const LANGUAGE_OPTIONS = LANGUAGE_REGISTRY.map((l) => ({
+		value: l.id,
+		label: l.displayName,
+		icon: l.flag
+	}));
 
 	// ─── Language Selection ────────────────────────────────────────────────────
 
@@ -58,6 +65,7 @@
 		currentCard = null;
 		userInput = '';
 		isSubmitting = false;
+		feedback = null;
 		pickCard();
 
 		setTimeout(focusInput, 50);
@@ -71,6 +79,10 @@
 	let currentCard = $state<Card | null>(null);
 	let userInput = $state('');
 	let isSubmitting = $state(false);
+	/** The last answer, announced in the feedback live region. */
+	let feedback = $state<HistoryEntry | null>(null);
+	/** Set once the page is interactive, so e2e tests can wait for hydration. */
+	let hydrated = $state(false);
 
 	// ─── Derived ─────────────────────────────────────────────────────────────────
 
@@ -142,6 +154,7 @@
 			lang
 		);
 
+		feedback = session.history[0];
 		userInput = '';
 		isSubmitting = false;
 		pickCard();
@@ -190,6 +203,7 @@
 
 	function restart() {
 		session = createFreshSession();
+		feedback = null;
 		userInput = '';
 		isSubmitting = false;
 		if (browser) {
@@ -250,570 +264,339 @@
 		session = state.session;
 		persist.open();
 		pickCard();
+		hydrated = true;
 		focusInput();
 	});
 </script>
 
-<svelte:head>
-	<title>Practice Verb Conjugation</title>
-</svelte:head>
+{#snippet diff(entry: HistoryEntry)}
+	<span class="vc-person">{entry.person}</span>
+	{#each entry.diff as seg, i (i)}
+		{#if seg.type === 'delete'}
+			<del class="vc-wrong">{seg.text}</del>
+		{:else if seg.type === 'insert'}
+			<ins class="vc-right">{seg.text}</ins>
+		{:else}
+			<span>{seg.text}</span>
+		{/if}
+	{/each}
+{/snippet}
 
-<div class="container">
-	<header>
-		<h1>PRACTICE VERB CONJUGATION</h1>
+<div class="container" data-hydrated={hydrated || undefined}>
+	<PageHeader path="/verb-conjugator" />
 
-		<!-- Language Selector -->
-		<div class="language-selector">
-			<div class="format-buttons">
-				{#each LANGUAGE_REGISTRY as language (language.id)}
-					<button
-						class="format-btn"
-						class:active={selectedLanguageId === language.id}
-						onclick={() => switchLanguage(language.id)}
+	<div class="vc-toolbar">
+		<SegmentedControl
+			legend="Language"
+			hideLegend
+			options={LANGUAGE_OPTIONS}
+			bind:value={() => selectedLanguageId, switchLanguage}
+		/>
+		<p class="vc-stats" data-testid="stats">
+			{lang.ui.coverage}: {coverage.numerator} / {coverage.denominator}
+			<span aria-hidden="true">·</span>
+			{lang.ui.accuracy}: {accuracy}%
+		</p>
+	</div>
+
+	<div class="vc-grid">
+		<Panel title={lang.ui.conjugation}>
+			{#if hasNoForms}
+				<p class="vc-empty">
+					These tenses have no forms for the selected verbs. Select another verb or tense.
+				</p>
+			{:else if isComplete}
+				<div class="vc-complete">
+					<p>Congratulations. Restart?</p>
+					<Button variant="primary" onclick={restart}>Restart</Button>
+				</div>
+			{:else if currentCard}
+				<table class="vc-card">
+					<tbody>
+						{#each cardLines as line, i (line.person)}
+							{@const current = i === currentCard.personIndex}
+							<tr data-testid="card-row" data-state={current ? 'current' : undefined}>
+								<td class="vc-marker" aria-hidden="true">{current ? '▸' : ''}</td>
+								<td class="vc-translation">{line.translation}</td>
+								{#if current}
+									<td class="vc-answer" colspan="2"
+										><span class="vc-blank">______</span><span class="sr-only">to answer</span></td
+									>
+								{:else}
+									<td class="vc-person">{line.person}</td>
+									<td class="vc-answer">{line.conjugation || '—'}</td>
+								{/if}
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+
+				<div class="vc-input-row">
+					<input
+						class="control verb-input"
+						type="text"
+						bind:value={userInput}
+						placeholder={blankTranslation}
+						aria-label="Answer: {lang.PERSON_LABELS[currentCard.personIndex]} form"
+						onkeydown={handleKeydown}
+						spellcheck="false"
+						autocomplete="off"
+					/>
+					<Button
+						variant="primary"
+						aria-label="Submit"
+						onclick={handleSubmit}
+						disabled={!userInput.trim()}><span aria-hidden="true">↵</span></Button
 					>
-						{language.flag}
-						{language.displayName}
-					</button>
-				{/each}
-			</div>
-		</div>
+				</div>
+			{:else}
+				<p class="vc-empty">Select at least one verb and one tense to begin.</p>
+			{/if}
 
-		<div class="stats-row">
-			<span class="stat">{lang.ui.coverage}: {coverage.numerator} / {coverage.denominator}</span>
-			<span class="stat-sep">·</span>
-			<span class="stat">{lang.ui.accuracy}: {accuracy}%</span>
-		</div>
-	</header>
-
-	<!-- Main 2x2 grid: Conjugation | History / Verbs | Tenses -->
-	<div class="main-grid">
-		<!-- Top-left: Conjugations -->
-		<div class="conjugation-col">
-			<section class="section">
-				{#if hasNoForms}
-					<p class="empty-pool-text">
-						These tenses have no forms for the selected verbs. Select another verb or tense.
-					</p>
-				{:else if isComplete}
-					<div class="completion">
-						<p class="completion-text">Congratulations. Restart?</p>
-						<button class="process-btn restart-btn-x" onclick={restart}>
-							<span class="btn-text">Restart</span>
-							<span class="btn-glow"></span>
-						</button>
-					</div>
-				{:else}
-					<div class="verb-card">
-						<div class="verb-card-header">
-							<span class="dot red"></span>
-							<span class="dot yellow"></span>
-							<span class="dot green"></span>
-							<span class="panel-title">{lang.ui.conjugation.toUpperCase()}</span>
-						</div>
-						<div class="verb-card-body">
-							{#if currentCard}
-								<div class="card-lines">
-									{#each cardLines as line, i}
-										<span class="line-translation" class:is-blank={i === currentCard.personIndex}
-											>{line.translation}</span
-										>
-										<span class="line-content" class:is-blank={i === currentCard.personIndex}>
-											<span class="line-content-inner">
-												{#if i === currentCard.personIndex}
-													<span class="line-blank">______</span>
-												{:else}
-													<span class="line-person">{line.person}</span>
-													<span class="line-conjugation">{line.conjugation || '—'}</span>
-												{/if}
-											</span>
-										</span>
-									{/each}
-								</div>
-							{:else}
-								<p class="empty-pool-text">Select at least one verb and one tense to begin.</p>
-							{/if}
-						</div>
-					</div>
-
-					{#if currentCard}
-						<!-- Input area -->
-						<div class="input-area">
-							<div class="input-row">
-								<input
-									class="verb-input"
-									type="text"
-									bind:value={userInput}
-									placeholder={blankTranslation}
-									aria-label="Answer: {lang.PERSON_LABELS[currentCard.personIndex]} form"
-									onkeydown={handleKeydown}
-									spellcheck="false"
-									autocomplete="off"
-								/>
-								<button
-									class="submit-verb-btn"
-									aria-label="Submit"
-									onclick={handleSubmit}
-									disabled={!userInput.trim()}>↵</button
-								>
-							</div>
-						</div>
+			<p class="vc-feedback" role="status" data-state={feedback?.isCorrect ? 'correct' : 'wrong'}>
+				{#if feedback}
+					{#if feedback.isCorrect}
+						<span aria-hidden="true">✓</span> Correct: {feedback.person}
+						{feedback.correctAnswer}
+					{:else}
+						<span aria-hidden="true">✗</span> Not quite: {feedback.person}
+						{feedback.correctAnswer}
+						<span class="vc-muted">(your answer: {feedback.userAnswer})</span>
 					{/if}
 				{/if}
-			</section>
-		</div>
+			</p>
+		</Panel>
 
-		<!-- Top-right: History -->
-		<div class="history-col">
-			<section class="section">
-				<div class="verb-card">
-					<div class="verb-card-header">
-						<span class="dot red"></span>
-						<span class="dot yellow"></span>
-						<span class="dot green"></span>
-						<span class="panel-title">{lang.ui.history.toUpperCase()}</span>
-					</div>
-					{#if session.history.length === 0}
-						<div class="verb-card-body">
-							<p class="hint" style="margin: 0;">No attempts yet.</p>
-						</div>
-					{:else}
-						<div class="history-scroll">
-							<table class="history-table">
-								<tbody>
-									{#each session.history as entry}
-										<tr>
-											<td class="hist-meaning">{entry.translation}</td>
-											<td class="hist-answer">
-												<span class="answer-person">({entry.person}) </span>
-												{#each entry.diff as seg}
-													{#if seg.type === 'delete'}
-														<span class="diff-delete">{seg.text}</span>
-													{:else if seg.type === 'insert'}
-														<span class="diff-insert">{seg.text}</span>
-													{:else}
-														<span class="diff-same">{seg.text}</span>
-													{/if}
-												{/each}
-											</td>
-										</tr>
-									{/each}
-								</tbody>
-							</table>
-						</div>
-					{/if}
+		<Panel title={lang.ui.history}>
+			{#if session.history.length === 0}
+				<p class="vc-empty">No attempts yet.</p>
+			{:else}
+				<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+				<div class="vc-history" tabindex="0" role="region" aria-label={lang.ui.history}>
+					<table data-testid="history">
+						<tbody>
+							{#each session.history as entry, i (i)}
+								<tr data-state={entry.isCorrect ? 'correct' : 'wrong'}>
+									<td class="vc-mark"
+										><span aria-hidden="true">{entry.isCorrect ? '✓' : '✗'}</span><span
+											class="sr-only">{entry.isCorrect ? 'Correct' : 'Wrong'}</span
+										></td
+									>
+									<td class="vc-translation">{entry.translation}</td>
+									<td class="vc-answer">{@render diff(entry)}</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
 				</div>
-			</section>
-		</div>
+			{/if}
+		</Panel>
 
-		<!-- Bottom-left: Verbs -->
-		<div class="verbs-col">
-			<section class="section">
-				<div class="section-header">
-					<span class="label">{lang.ui.verb}</span>
-				</div>
-				<div class="format-buttons pills-small">
-					{#each ALL_VERBS as verb}
-						<button
-							class="format-btn"
-							class:active={selectedVerbs.includes(verb)}
+		<Panel>
+			<div class="vc-group" role="group" aria-labelledby="vc-verbs">
+				<h2 id="vc-verbs">{lang.ui.verb}</h2>
+				<div class="cluster vc-chips">
+					{#each ALL_VERBS as verb (verb)}
+						{@const on = selectedVerbs.includes(verb)}
+						<Button
+							size="sm"
+							pressed={on}
 							onclick={() => toggleVerb(verb)}
-							disabled={selectedVerbs.length === 1 && selectedVerbs.includes(verb)}>{verb}</button
+							disabled={on && selectedVerbs.length === 1}>{verb}</Button
 						>
 					{/each}
 				</div>
-			</section>
-		</div>
+			</div>
+		</Panel>
 
-		<!-- Bottom-right: Verb Tenses -->
-		<div class="tenses-col">
-			<section class="section">
-				<div class="section-header">
-					<span class="label">{lang.ui.tense}</span>
-				</div>
-				<div class="format-buttons pills-small">
-					{#each ALL_TENSES as tense}
-						<button
-							class="format-btn"
-							class:active={selectedTenses.includes(tense)}
+		<Panel>
+			<div class="vc-group" role="group" aria-labelledby="vc-tenses">
+				<h2 id="vc-tenses">{lang.ui.tense}</h2>
+				<div class="cluster vc-chips">
+					{#each ALL_TENSES as tense (tense)}
+						{@const on = selectedTenses.includes(tense)}
+						<Button
+							size="sm"
+							pressed={on}
 							onclick={() => toggleTense(tense)}
-							disabled={selectedTenses.length === 1 && selectedTenses.includes(tense)}
-							>{tense}</button
+							disabled={on && selectedTenses.length === 1}>{tense}</Button
 						>
 					{/each}
 				</div>
-			</section>
-		</div>
+			</div>
+		</Panel>
 	</div>
 </div>
 
 <style>
-	/* ─── Language selector ────────────────────────────────────────── */
-	.language-selector {
+	.vc-toolbar {
 		display: flex;
-		justify-content: center;
-		margin: 1rem 0 0.5rem;
-	}
-
-	/* ─── Stats row ────────────────────────────────────────────── */
-	.stats-row {
-		display: flex;
-		justify-content: center;
+		flex-wrap: wrap;
 		align-items: center;
-		gap: 0.5rem;
-		margin-top: 0.5rem;
-		font-family: var(--font-sans);
-		font-size: 0.85rem;
-		color: var(--futuristic-text-dim);
-		letter-spacing: 0.05em;
+		justify-content: space-between;
+		gap: var(--sp-2) var(--sp-4);
+		margin-bottom: var(--sp-3);
 	}
 
-	.stat {
-		color: var(--futuristic-cyan);
+	.vc-stats {
+		margin: 0;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
 	}
 
-	.stat-sep {
-		color: var(--futuristic-text-dim);
-		opacity: 0.5;
-	}
-
-	/* ─── Main 2x2 grid layout ────────────────────────────────────── */
-	.main-grid {
+	.vc-grid {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 1.5rem;
-		width: 100%;
+		gap: var(--sp-3);
+		grid-template-columns: 1fr;
+		align-items: start;
 	}
 
-	.conjugation-col,
-	.history-col,
-	.verbs-col,
-	.tenses-col {
-		min-width: 0;
-		width: 100%;
-	}
-
-	:global(.pills-small .format-btn) {
-		font-size: 0.75rem;
-		padding: 0.3rem 0.5rem;
-		font-weight: 400;
-	}
-
-	/* Constrain scrollable panels so pills don't push layout too tall */
-	.verbs-col .format-buttons,
-	.tenses-col .format-buttons {
-		max-height: 280px;
-		overflow-y: auto;
-	}
-
-	.history-col .history-scroll {
-		max-height: 360px;
-	}
-
-	@media (max-width: 800px) {
-		.main-grid {
-			grid-template-columns: 1fr;
+	@media (min-width: 800px) {
+		.vc-grid {
+			grid-template-columns: 1fr 1fr;
 		}
 	}
 
-	/* ─── Verb Card ─────────────────────────────────────────────── */
-	.verb-card {
-		width: 100%; /* ensure cards expand to fill column */
-		background: var(--futuristic-surface);
-		border: 1px solid var(--futuristic-border);
-		border-radius: 12px;
-		overflow: hidden;
-		margin-bottom: 1rem;
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: var(--text-md);
 	}
 
-	.verb-card-header {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.75rem 1rem;
-		background: rgba(0, 0, 0, 0.25);
-		border-bottom: 1px solid var(--futuristic-border);
+	td {
+		padding: var(--sp-0) var(--sp-2);
+		border-bottom: 1px solid var(--border);
+		white-space: nowrap;
 	}
 
-	.verb-card-body {
-		padding: 1rem 1.25rem;
+	tr:last-child td {
+		border-bottom: 0;
 	}
 
-	.card-lines {
-		display: grid;
-		grid-template-columns: auto 1fr;
-		gap: 0.25rem;
-		align-items: center;
-	}
-
-	.line-translation {
+	.vc-translation {
+		width: 1%;
 		text-align: right;
-		white-space: nowrap;
+		color: var(--text-muted);
+	}
+
+	.vc-person {
+		width: 1%;
+		color: var(--text-muted);
 		font-family: var(--font-mono);
-		font-size: 0.85rem;
-		color: var(--futuristic-text-dim);
-		padding: 0.15rem 0 0.15rem 0.75rem;
 	}
 
-	.line-content {
-		white-space: nowrap;
-		font-size: 0.85rem;
-		padding: 0.15rem 0.75rem 0.15rem 0;
-	}
-
-	.line-content-inner {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	/* Row separator borders */
-	.line-translation:not(:nth-last-child(2)) {
-		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-	}
-	.line-content:not(:last-child) {
-		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-	}
-
-	/* Blank row */
-	.line-translation.is-blank,
-	.line-content.is-blank {
-		background: rgba(0, 245, 255, 0.04);
-		outline: 1px dashed rgba(0, 245, 255, 0.25);
-		outline-offset: -1px;
-	}
-
-	.line-person,
-	.line-conjugation {
+	.vc-answer {
 		font-family: var(--font-mono);
-		font-size: 0.85rem;
-		color: var(--futuristic-text);
 		font-weight: 500;
-		letter-spacing: 0.03em;
 	}
 
-	.line-blank {
-		font-family: var(--font-mono);
-		color: var(--futuristic-text-dim);
-		opacity: 0.5;
+	.vc-marker,
+	.vc-mark {
+		width: 1%;
+		padding-right: 0;
+		font-weight: 700;
+	}
+
+	.vc-card tr[data-state='current'] td {
+		background: var(--accent-bg);
+		color: var(--text);
+	}
+
+	.vc-card tr[data-state='current'] .vc-marker {
+		color: var(--accent);
+		box-shadow: inset 3px 0 0 var(--accent);
+	}
+
+	.vc-blank {
+		color: var(--text-muted);
 		letter-spacing: 0.1em;
 	}
 
-	/* ─── Diff colours ─────────────────────────────────────────── */
-	.diff-delete {
-		color: #ff6666;
-		text-decoration: line-through;
-	}
-
-	.diff-insert {
-		color: #4da6ff;
-	}
-
-	.diff-same {
-		color: #4dff6a;
-	}
-
-	/* ─── Input area ────────────────────────────────────────────── */
-	.input-area {
-		margin-top: 0.5rem;
-	}
-
-	.input-row {
+	.vc-input-row {
 		display: flex;
-		gap: 0.5rem;
-		align-items: center;
+		gap: var(--sp-2);
+		margin-top: var(--sp-3);
 	}
 
 	.verb-input {
 		flex: 1;
-		padding: 0.75rem 1rem;
-		background: var(--futuristic-surface);
-		border: 1px solid var(--futuristic-border);
-		border-radius: 8px;
 		font-family: var(--font-mono);
-		font-size: 1rem;
-		color: var(--futuristic-text);
-		outline: none;
-		transition:
-			border-color 0.3s,
-			box-shadow 0.3s;
 	}
 
-	.verb-input:focus {
-		border-color: var(--futuristic-cyan);
-		box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
+	.vc-feedback {
+		min-height: 1.5em;
+		margin: var(--sp-2) 0 0;
+		font-size: var(--text-sm);
 	}
 
-	.verb-input:disabled {
-		opacity: 0.5;
+	.vc-feedback[data-state='correct'] {
+		color: var(--success-text);
 	}
 
-	.verb-input::placeholder {
-		color: var(--futuristic-text-dim);
-		opacity: 0.7;
+	.vc-feedback[data-state='wrong'] {
+		color: var(--danger-text);
 	}
 
-	.submit-verb-btn {
-		width: 48px;
-		height: 48px;
+	.vc-muted {
+		color: var(--text-muted);
+	}
+
+	.vc-empty {
+		margin: 0;
+		color: var(--text-muted);
+	}
+
+	.vc-complete {
 		display: flex;
 		align-items: center;
-		justify-content: center;
-		background: linear-gradient(135deg, rgba(0, 245, 255, 0.1), rgba(255, 0, 255, 0.1));
-		border: 1px solid var(--futuristic-cyan);
-		border-radius: 8px;
-		color: var(--futuristic-cyan);
-		font-family: var(--font-sans);
-		font-size: 1.2rem;
-		font-weight: 700;
-		cursor: pointer;
-		transition: all 0.3s;
-		flex-shrink: 0;
+		gap: var(--sp-3);
 	}
 
-	.submit-verb-btn:hover:not(:disabled) {
-		background: linear-gradient(135deg, rgba(0, 245, 255, 0.2), rgba(255, 0, 255, 0.2));
-		box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
-	}
-
-	.submit-verb-btn:disabled {
-		opacity: 0.4;
-		cursor: not-allowed;
-	}
-
-	/* ─── Completion ────────────────────────────────────────────── */
-	.completion {
-		text-align: center;
-		padding: 2rem;
-		background: var(--futuristic-surface);
-		border: 1px solid var(--futuristic-border);
-		border-radius: 12px;
-	}
-
-	.completion-text {
-		font-family: var(--font-sans);
-		font-size: 1.3rem;
-		color: var(--futuristic-cyan);
-		margin: 0 0 1.5rem;
-		letter-spacing: 0.1em;
-	}
-
-	.restart-btn-x {
-		display: inline-block;
-		width: auto;
-		padding: 0.75rem 2rem;
-	}
-
-	.empty-pool-text {
-		color: var(--futuristic-text-dim);
-		font-size: 0.95rem;
+	.vc-complete p {
 		margin: 0;
 	}
 
-	/* ─── History table ─────────────────────────────────────────── */
-	.history-scroll {
-		max-height: 400px;
+	.vc-history {
+		max-height: 320px;
 		overflow-y: auto;
 	}
 
-	.history-table {
-		width: 100%;
-		border-collapse: collapse;
-		font-size: 0.85rem;
+	.vc-history tr[data-state='correct'] .vc-mark {
+		color: var(--success-text);
 	}
 
-	.history-table td {
-		padding: 0.15rem 0.6rem;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-		vertical-align: middle;
-		font-size: 0.85rem;
+	.vc-history tr[data-state='wrong'] .vc-mark {
+		color: var(--danger-text);
 	}
 
-	.history-table tbody tr:hover {
-		background: rgba(255, 255, 255, 0.02);
+	.vc-history .vc-person::after {
+		content: ' ';
 	}
 
-	.history-table tbody tr:first-child td {
-		border-top: none;
+	.vc-wrong {
+		color: var(--danger-text);
+		text-decoration: line-through;
 	}
 
-	.history-table .hist-meaning {
-		text-align: right;
-		font-family: var(--font-mono);
-		font-size: 0.8rem;
-		color: var(--futuristic-text-dim);
+	.vc-right {
+		color: var(--success-text);
+		text-decoration: underline;
+		text-underline-offset: 2px;
 	}
 
-	.hist-answer {
-		font-family: var(--font-mono);
-		font-size: 0.85rem;
+	.vc-group h2 {
+		margin: 0 0 var(--sp-2);
+		font-size: var(--text-sm);
+		font-weight: 600;
 	}
 
-	.answer-person {
-		color: var(--futuristic-text-dim);
-		opacity: 0.6;
-		margin-right: 0.25rem;
+	.vc-chips {
+		--gap: var(--sp-1);
 	}
 
-	/* ─── Section spacing ───────────────────────────────────────── */
-	.section {
-		margin-bottom: 1.5rem;
-	}
-
-	/* ─── Mobile ────────────────────────────────────────────────── */
-	@media (max-width: 600px) {
-		.line-person,
-		.line-conjugation {
-			font-size: 0.8rem;
-		}
-
-		.card-lines {
-			gap: 0.15rem;
-		}
-
-		.line-translation {
-			font-size: 0.8rem;
-			padding: 0.1rem 0 0.1rem 0.5rem;
-		}
-
-		.line-content {
-			font-size: 0.8rem;
-			padding: 0.1rem 0.5rem 0.1rem 0;
-		}
-
-		.verb-input {
-			font-size: 0.9rem;
-			padding: 0.6rem 0.75rem;
-		}
-
-		.submit-verb-btn {
-			width: 42px;
-			height: 42px;
-			font-size: 1rem;
-		}
-
-		.history-table {
-			font-size: 0.7rem;
-		}
-
-		.history-table td {
-			padding: 0.1rem 0.4rem;
-		}
-
-		.stats-row {
-			font-size: 0.75rem;
-			flex-wrap: wrap;
-		}
-	}
-
-	/* Override shared.css full-width pills on mobile */
-	@media (max-width: 768px) {
-		.pills-small.format-buttons {
-			flex-direction: row;
-			flex-wrap: wrap;
-		}
-		.pills-small .format-btn {
-			width: auto;
-			text-align: initial;
-		}
+	/* The last selected chip cannot be turned off, but should still read as selected. */
+	.vc-chips :global(.ui-btn[aria-pressed='true']:disabled) {
+		opacity: 1;
+		cursor: default;
 	}
 </style>

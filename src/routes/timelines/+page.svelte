@@ -3,26 +3,29 @@
 	import { page } from '$app/state';
 	import { replaceState } from '$app/navigation';
 	import timelinesData from './data/timelines.json';
+	import { Alert, Button, PageHeader, Panel, Select } from '$lib/ui';
 	import TimelineView from './TimelineView.svelte';
 	import {
-		buildTimelineRows,
 		createTimelineLoader,
+		groupByYear,
 		hasRichContent,
 		pickTimelineId,
 		sortEventsByDate,
 		type Timeline,
 		type TimelineEvent,
-		type TimelineRow
+		type YearGroup
 	} from './timelines';
 
 	const timelines = timelinesData as Timeline[];
+	const options = timelines.map((t) => ({ value: t.id, label: t.shortTitle }));
 
 	let selectedTimelineId = $state<string>('');
 	let filteredEvents = $state<TimelineEvent[]>([]);
-	let timelineRows = $state<TimelineRow[]>([]);
+	let yearGroups = $state<YearGroup[]>([]);
 	let loading = $state(false);
 	let loadError = $state(false);
 	const isRichContent = $derived(hasRichContent(filteredEvents));
+	const description = $derived(timelines.find((t) => t.id === selectedTimelineId)?.description);
 
 	const timelineLoader = createTimelineLoader(
 		async (id) => (await import(`./data/events/${id}.json`)).default as TimelineEvent[]
@@ -45,7 +48,7 @@
 			// timeline's events under the new title.
 			console.error(`Failed to load timeline "${id}"`, error);
 			filteredEvents = [];
-			timelineRows = [];
+			yearGroups = [];
 			loadError = true;
 			loading = false;
 			return;
@@ -54,7 +57,7 @@
 		if (events === null) return;
 
 		filteredEvents = sortEventsByDate(events);
-		timelineRows = buildTimelineRows(filteredEvents, hasRichContent(filteredEvents));
+		yearGroups = groupByYear(filteredEvents);
 		loading = false;
 
 		// Written after the await: SvelteKit's replaceState throws before the router has
@@ -76,161 +79,78 @@
 	});
 </script>
 
-<svelte:head>
-	<title>Timelines</title>
-</svelte:head>
-
 <div class="container">
-	<header>
-		<h1>TIMELINES</h1>
-		<p class="subtitle">Explore events across different timelines</p>
-	</header>
+	<PageHeader path="/timelines" />
 
-	<div class="timeline-selector-section">
-		<div class="section-header">
-			<span class="label">SELECT TIMELINE</span>
-		</div>
-		<select class="timeline-select" bind:value={selectedTimelineId} onchange={handleTimelineChange}>
-			{#each timelines as timeline (timeline.id)}
-				<option value={timeline.id}>{timeline.shortTitle}</option>
-			{/each}
-		</select>
-		{#if selectedTimelineId}
-			{@const currentTimeline = timelines.find((t) => t.id === selectedTimelineId)}
-			{#if currentTimeline}
-				<p class="timeline-description">{currentTimeline.description}</p>
-			{/if}
-		{/if}
+	<div class="tl-picker">
+		<Select
+			label="Timeline"
+			{options}
+			bind:value={selectedTimelineId}
+			onchange={handleTimelineChange}
+			hint={description}
+		/>
 	</div>
 
-	<div class="events-container">
+	<Panel>
 		{#if loading}
-			<div class="loading-state">
-				<div class="loading-spinner"></div>
-				<span>Loading events...</span>
-			</div>
+			<p class="tl-status" role="status">
+				<span class="tl-spinner" aria-hidden="true"></span>
+				Loading events…
+			</p>
 		{:else if loadError}
-			<div class="error-state" role="alert">
-				<span>Could not load this timeline.</span>
-				<button type="button" class="retry-button" onclick={handleTimelineChange}>Retry</button>
-			</div>
+			<Alert tone="danger">
+				<div class="tl-error">
+					Could not load this timeline.
+					<Button size="sm" onclick={handleTimelineChange}>Retry</Button>
+				</div>
+			</Alert>
 		{:else if filteredEvents.length > 0}
-			<TimelineView rows={timelineRows} rich={isRichContent} />
+			<TimelineView groups={yearGroups} rich={isRichContent} />
 		{:else}
-			<div class="empty-state">No events in this timeline</div>
+			<p class="tl-status">No events in this timeline</p>
 		{/if}
-	</div>
+	</Panel>
 </div>
 
 <style>
-	.timeline-selector-section {
-		margin-bottom: 1.5rem;
+	/* A compact select, with room for the description on one line beside it. */
+	.tl-picker {
+		margin-bottom: var(--sp-3);
 	}
 
-	.timeline-select {
-		width: 100%;
-		max-width: 500px;
-		background: var(--futuristic-bg);
-		border: 1px solid var(--futuristic-border);
-		border-radius: 8px;
-		padding: 0.75rem;
-		font-family: var(--font-sans);
-		font-size: 1rem;
-		color: var(--futuristic-text);
-		outline: none;
-		cursor: pointer;
-		appearance: none;
-		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23c8d4de' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-		background-repeat: no-repeat;
-		background-position: right 0.75rem center;
-		padding-right: 2rem;
-		transition:
-			border-color 0.3s,
-			box-shadow 0.3s;
+	.tl-picker :global(select) {
+		max-width: 24rem;
 	}
 
-	.timeline-select:focus {
-		border-color: var(--futuristic-cyan);
-		box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
-	}
-
-	.timeline-select option {
-		background: var(--futuristic-surface);
-		color: var(--futuristic-text);
-	}
-
-	.timeline-description {
-		margin-top: 0.75rem;
-		font-family: var(--font-sans);
-		font-size: 0.9rem;
-		color: var(--futuristic-text-dim);
-	}
-
-	.events-container {
-		background: var(--futuristic-surface);
-		border: 1px solid var(--futuristic-border);
-		border-radius: 12px;
-		padding: 0.5rem;
-	}
-
-	.empty-state {
+	.tl-status {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		height: 200px;
-		font-family: var(--font-sans);
-		font-size: 1rem;
-		color: var(--futuristic-text-dim);
+		gap: var(--sp-2);
+		min-height: 8rem;
+		margin: 0;
+		color: var(--text-muted);
 	}
 
-	.loading-state {
+	.tl-error {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: center;
-		justify-content: center;
-		gap: 0.75rem;
-		height: 200px;
-		font-family: var(--font-sans);
-		font-size: 1rem;
-		color: var(--futuristic-text-dim);
+		gap: var(--sp-2);
 	}
 
-	.error-state {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 0.75rem;
-		height: 200px;
-		font-family: var(--font-sans);
-		font-size: 1rem;
-		color: var(--futuristic-magenta);
-	}
-
-	.retry-button {
-		background: var(--futuristic-bg);
-		border: 1px solid var(--futuristic-border);
-		border-radius: 6px;
-		padding: 0.35rem 0.75rem;
-		font: inherit;
-		font-size: 0.9rem;
-		color: var(--futuristic-text);
-		cursor: pointer;
-	}
-
-	.retry-button:hover,
-	.retry-button:focus-visible {
-		border-color: var(--futuristic-cyan);
-	}
-
-	.loading-spinner {
-		width: 20px;
-		height: 20px;
-		border: 2px solid var(--futuristic-border);
-		border-top-color: var(--futuristic-cyan);
+	/* Static under reduced motion: base.css cuts animations to one instant iteration. */
+	.tl-spinner {
+		width: 1rem;
+		height: 1rem;
+		border: 2px solid var(--border);
+		border-top-color: var(--accent);
 		border-radius: 50%;
-		animation: spin 0.8s linear infinite;
+		animation: tl-spin 0.8s linear infinite;
 	}
 
-	@keyframes spin {
+	@keyframes tl-spin {
 		to {
 			transform: rotate(360deg);
 		}

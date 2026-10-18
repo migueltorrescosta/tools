@@ -1,23 +1,21 @@
 import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 import {
-	buildTimelineRows,
 	createTimelineLoader,
 	formatShortDate,
 	getYear,
+	groupByYear,
 	hasRichContent,
 	isPast,
 	localDateString,
 	pickTimelineId,
 	sortEventsByDate,
-	type TimelineEvent,
-	type TimelineRow
+	type TimelineEvent
 } from './timelines';
 
 type Event = TimelineEvent;
 
-function rowsFor(events: Event[]): TimelineRow[] {
-	const sorted = sortEventsByDate(events);
-	return buildTimelineRows(sorted, hasRichContent(sorted));
+function groupsFor(events: Event[]) {
+	return groupByYear(sortEventsByDate(events));
 }
 
 const mockEvents: Event[] = [
@@ -161,20 +159,19 @@ describe('Timeline Utilities', () => {
 	});
 });
 
-describe('buildTimelineRows', () => {
-	it('returns no rows for no events', () => {
-		expect(rowsFor([])).toEqual([]);
+describe('groupByYear', () => {
+	it('returns no groups for no events', () => {
+		expect(groupsFor([])).toEqual([]);
 	});
 
-	it('starts with a year separator and chunks a single year into rows of 3', () => {
-		const rows = rowsFor(mockEvents);
-		expect(rows[0]).toEqual({ type: 'year', year: 2024 });
-		const eventRows = rows.filter((r) => r.type === 'events');
-		expect(eventRows.map((r) => r.events.length)).toEqual([3, 3, 2]);
-		expect(rows.filter((r) => r.type === 'year')).toHaveLength(1);
+	it('keeps every event of a single year in one group, in date order', () => {
+		const groups = groupsFor(mockEvents);
+		expect(groups).toHaveLength(1);
+		expect(groups[0].year).toBe(2024);
+		expect(groups[0].events).toEqual(sortEventsByDate(mockEvents));
 	});
 
-	it('emits one separator per year in ascending order', () => {
+	it('emits one group per year in ascending order', () => {
 		const events: Event[] = [];
 		for (let year = 2024; year >= 2020; year--) {
 			events.push({
@@ -185,33 +182,9 @@ describe('buildTimelineRows', () => {
 				description: ''
 			});
 		}
-		const years = rowsFor(events).flatMap((r) => (r.type === 'year' ? [r.year] : []));
-		expect(years).toEqual([2020, 2021, 2022, 2023, 2024]);
-	});
-
-	it('produces 1 year row + 1 events row for exactly 3 events', () => {
-		const events: Event[] = [1, 2, 3].map((i) => ({
-			id: i,
-			emoji: '📅',
-			date: `2024-0${i}-01`,
-			title: `Event ${i}`,
-			description: ''
-		}));
-		const rows = rowsFor(events);
-		expect(rows).toHaveLength(2);
-		expect(rows[1]).toEqual({ type: 'events', events });
-	});
-
-	it('produces 3 + 1 rows for 4 events', () => {
-		const events: Event[] = [1, 2, 3, 4].map((i) => ({
-			id: i,
-			emoji: '📅',
-			date: `2024-0${i}-01`,
-			title: `Event ${i}`,
-			description: ''
-		}));
-		const eventRows = rowsFor(events).filter((r) => r.type === 'events');
-		expect(eventRows.map((r) => r.events.length)).toEqual([3, 1]);
+		const groups = groupsFor(events);
+		expect(groups.map((g) => g.year)).toEqual([2020, 2021, 2022, 2023, 2024]);
+		expect(groups.every((g) => g.events.length === 1)).toBe(true);
 	});
 });
 
@@ -235,19 +208,6 @@ describe('Rich Content Handling', () => {
 	it('returns false when events lack rich fields or there are none', () => {
 		expect(hasRichContent([mockEvents[0]])).toBe(false);
 		expect(hasRichContent([])).toBe(false);
-	});
-
-	it('keeps all rich events of a year in one group', () => {
-		const events = [1, 2, 3, 4, 5, 6, 7].map(rich);
-		const rows = buildTimelineRows(events, true);
-		expect(rows).toHaveLength(2);
-		expect(rows[1]).toEqual({ type: 'events', events });
-	});
-
-	it('still chunks plain events into groups of 3', () => {
-		const events = [1, 2, 3, 4, 5, 6, 7].map((i) => ({ ...mockEvents[0], id: i }));
-		const eventRows = buildTimelineRows(events, false).filter((r) => r.type === 'events');
-		expect(eventRows.map((r) => r.events.length)).toEqual([3, 3, 1]);
 	});
 });
 

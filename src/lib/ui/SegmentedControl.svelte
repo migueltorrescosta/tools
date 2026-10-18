@@ -9,7 +9,8 @@
 		name = `seg-${uid}`
 	}: {
 		legend: string;
-		options: readonly { value: T; label: string }[];
+		/** `icon` is decorative (e.g. an emoji) and hidden from screen readers. */
+		options: readonly { value: T; label: string; icon?: string }[];
 		value: T;
 		hideLegend?: boolean;
 		name?: string;
@@ -22,6 +23,7 @@
 		{#each options as option (option.value)}
 			<label class:checked={value === option.value}>
 				<input type="radio" {name} value={option.value} bind:group={value} />
+				{#if option.icon}<span class="ui-seg-icon" aria-hidden="true">{option.icon}</span>{/if}
 				{option.label}
 			</label>
 		{/each}
@@ -74,6 +76,10 @@
 		background: var(--accent);
 		color: var(--on-accent);
 		font-weight: 600;
+	}
+
+	.ui-seg-icon {
+		margin-right: var(--sp-1);
 	}
 
 	input {

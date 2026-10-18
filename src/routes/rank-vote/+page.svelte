@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
 	import QRCode from 'qrcode';
 	import { copyToClipboard as copyToClipboardLib } from '$lib/clipboard';
+	import { Alert, Button, DataTable, Field, PageHeader, Panel, type Column } from '$lib/ui';
 	import {
 		MIN_CHOICES,
 		MAX_CHOICES,
@@ -38,17 +38,18 @@
 	let votes = $state<Vote[]>([]);
 	let toastMessage = $state('');
 	let toastVisible = $state(false);
-	let qrModalOpen = $state(false);
-	let qrModalText = $state('');
+	let qrDialog = $state<HTMLDialogElement>();
 	let qrDataUrl = $state('');
 	// Set once onMount has run, so e2e tests do not click before hydration
 	let hydrated = $state(false);
 
 	// --- Toast ---
+	let toastTimer: ReturnType<typeof setTimeout> | undefined;
 	function showToast(message: string) {
+		clearTimeout(toastTimer);
 		toastMessage = message;
 		toastVisible = true;
-		setTimeout(() => {
+		toastTimer = setTimeout(() => {
 			toastVisible = false;
 		}, 2000);
 	}
@@ -83,32 +84,16 @@
 		return window.location.origin + window.location.pathname + '#vote=' + encodedBallot;
 	}
 
-	// --- QR Modal ---
-	async function openQRModal(text: string) {
-		qrModalText = text;
+	// --- QR dialog ---
+	// QRCode's default colours (black modules on white) in both themes, so it stays scannable.
+	async function openQRDialog(text: string) {
 		try {
-			qrDataUrl = await QRCode.toDataURL(text, {
-				width: 200,
-				margin: 2,
-				color: {
-					dark: '#ffffff',
-					light: '#000000'
-				}
-			});
+			qrDataUrl = await QRCode.toDataURL(text, { width: 200, margin: 2 });
 		} catch {
 			qrDataUrl = '';
 		}
-		qrModalOpen = true;
-	}
-
-	function closeQRModal() {
-		qrModalOpen = false;
-	}
-
-	function handleQRKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape') {
-			closeQRModal();
-		}
+		// showModal moves focus into the dialog and restores it to the trigger on close
+		qrDialog?.showModal();
 	}
 
 	// --- Actions ---
@@ -257,6 +242,59 @@
 			: { results: [], valid: 0, condorcetWinner: null, cycle: false }
 	);
 
+	// --- Results tables ---
+	type ResultRow = { index: number; rank: string; text: string; score: string };
+	const resultColumns: Column<ResultRow>[] = [
+		{ key: 'rank', label: 'Rank', align: 'right' },
+		{ key: 'text', label: 'Choice' },
+		{ key: 'score', label: 'Score', align: 'right' }
+	];
+	const toRows = (results: TallyResult['results']): ResultRow[] =>
+		results.map((r) => ({
+			index: r.index,
+			rank: String(r.rank),
+			text: r.text,
+			score: String(r.score)
+		}));
+
+	let fptpRows = $derived(toRows(resultsFPTP.results));
+	let bordaRows = $derived(toRows(resultsBorda.results));
+	let copelandRows = $derived(toRows(resultsCondorcet.results));
+	// IRV: a candidate knocked out shows the round instead of a final-round count
+	let irvRows = $derived(
+		resultsIRV.results.map((r) => ({
+			index: r.index,
+			rank: String(r.rank),
+			text: r.text,
+			score: r.eliminatedRound ? `out R${r.eliminatedRound} (${r.score})` : String(r.score)
+		}))
+	);
+
+	type RoundRow = Record<string, string | number>;
+	let roundColumns = $derived<Column<RoundRow>[]>([
+		{ key: 'choice', label: 'Choice' },
+		...resultsIRV.rounds.map((_, r) => ({
+			key: `r${r}`,
+			label: `R${r + 1}`,
+			align: 'right' as const
+		}))
+	]);
+	let roundRows = $derived<RoundRow[]>(
+		(election?.choices ?? []).map((choice, c) => {
+			const row: RoundRow = { index: c, choice };
+			resultsIRV.rounds.forEach((round, r) => {
+				const out = resultsIRV.rounds.slice(0, r).some((prev) => prev.eliminated.includes(c));
+				row[`r${r}`] = out
+					? ''
+					: `${round.counts[c]}${round.eliminated.includes(c) ? ' (out)' : ''}`;
+			});
+			return row;
+		})
+	);
+
+	/** Choices ranked first by Borda count, for the results announcement. */
+	let bordaLeaders = $derived(resultsBorda.results.filter((r) => r.rank === 1).map((r) => r.text));
+
 	// --- Init ---
 	onMount(() => {
 		function handleHashChange() {
@@ -310,6 +348,7 @@
 	});
 </script>
 
+<!-- Before PageHeader, so the ballot title wins over its plain "Rank Vote" title -->
 <svelte:head>
 	<title
 		>{election && (mode === 'vote' || mode === 'tally')
@@ -318,285 +357,301 @@
 	>
 </svelte:head>
 
-<!-- Toast notification -->
-{#if toastVisible}
-	<div class="rank-toast">{toastMessage}</div>
-{/if}
+<div class="rv-toast" class:shown={toastVisible} role="status">
+	{toastVisible ? toastMessage : ''}
+</div>
 
-<!-- QR Modal -->
-{#if qrModalOpen}
-	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-	<div
-		class="qr-backdrop"
-		onclick={closeQRModal}
-		onkeydown={handleQRKeydown}
-		role="dialog"
-		aria-modal="true"
-		tabindex="-1"
-	>
-		<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="qr-modal" onclick={(e) => e.stopPropagation()}>
-			<button class="qr-close" onclick={closeQRModal} aria-label="Close">×</button>
-			<h3>Scan to vote</h3>
-			{#if qrDataUrl}
-				<div class="qr-image-container">
-					<img src={qrDataUrl} alt="QR Code" class="qr-image" />
-				</div>
-			{:else}
-				<div class="qr-placeholder">
-					<p class="qr-hint">QR Code</p>
-					<p class="qr-subhint">(QR generation failed)</p>
-				</div>
-			{/if}
-		</div>
-	</div>
-{/if}
+<dialog bind:this={qrDialog} class="rv-qr" aria-labelledby="rv-qr-title" closedby="any">
+	<h2 id="rv-qr-title">Scan to vote</h2>
+	{#if qrDataUrl}
+		<img src={qrDataUrl} alt="QR code of the vote link" width="200" height="200" />
+	{:else}
+		<p class="rv-muted">QR generation failed. Copy the link instead.</p>
+	{/if}
+	<form method="dialog">
+		<Button type="submit">Close</Button>
+	</form>
+</dialog>
 
 <div class="container" data-hydrated={hydrated || undefined}>
-	<header>
-		<h1>RANK VOTE</h1>
-		<p class="subtitle">Ranked Choice Voting</p>
-	</header>
+	<PageHeader path="/rank-vote">Ranked-choice voting</PageHeader>
 
 	{#if mode === 'create'}
-		<!-- Instructions row -->
-		<div class="instructions-row">
-			<div class="instruction">
-				<span class="instruction-num">1</span>
-				<span class="instruction-text">Create a ballot with choices</span>
-			</div>
-			<div class="instruction">
-				<span class="instruction-num">2</span>
-				<span class="instruction-text">Share the link to collect votes</span>
-			</div>
-			<div class="instruction">
-				<span class="instruction-num">3</span>
-				<span class="instruction-text">Enter vote codes to tally</span>
-			</div>
-		</div>
-
-		<div class="card">
-			<div class="field-group">
-				<label class="field-label" for="ballot-title">Title</label>
-				<input
-					id="ballot-title"
-					type="text"
-					class="rank-input"
-					bind:value={title}
-					placeholder="What are we voting on?"
-				/>
-			</div>
-			<div class="field-group">
-				<span class="field-label">Choices</span>
-				{#each choices as choice, i}
-					<div class="choice-input-row">
-						<input
-							type="text"
-							class="rank-input"
-							bind:value={choices[i]}
-							placeholder="Choice {i + 1}"
-						/>
-						{#if choices.length > MIN_CHOICES}
-							<button class="remove-btn" onclick={() => removeChoice(i)} aria-label="Remove choice"
-								>×</button
-							>
+		<div class="rv-create">
+			<Panel title="New ballot">
+				<div class="stack">
+					<Field label="Title">
+						{#snippet children(props)}
+							<input
+								class="control"
+								type="text"
+								{...props}
+								bind:value={title}
+								placeholder="What are we voting on?"
+							/>
+						{/snippet}
+					</Field>
+					<fieldset class="rv-choices">
+						<legend>Choices</legend>
+						{#each choices as _, i (i)}
+							<div class="rv-choice-input">
+								<Field label="Choice {i + 1}" hideLabel>
+									{#snippet children(props)}
+										<input
+											class="control"
+											type="text"
+											{...props}
+											bind:value={choices[i]}
+											placeholder="Choice {i + 1}"
+										/>
+									{/snippet}
+								</Field>
+								{#if choices.length > MIN_CHOICES}
+									<Button
+										variant="ghost"
+										aria-label="Remove choice {i + 1}"
+										onclick={() => removeChoice(i)}>×</Button
+									>
+								{/if}
+							</div>
+						{/each}
+						{#if duplicateChoices}
+							<Alert tone="danger">Choices must all be different.</Alert>
 						{/if}
+						{#if choices.length < MAX_CHOICES}
+							<div>
+								<Button size="sm" onclick={addChoice}>+ Add choice</Button>
+							</div>
+						{/if}
+					</fieldset>
+					<div>
+						<Button variant="primary" disabled={!isBallotValid()} onclick={createBallot}>
+							Create ballot
+						</Button>
 					</div>
-				{/each}
-				{#if duplicateChoices}
-					<p class="form-error" role="alert">Choices must all be different.</p>
-				{/if}
-				{#if choices.length < MAX_CHOICES}
-					<button class="btn-secondary" onclick={addChoice}>+ Add choice</button>
-				{/if}
-			</div>
-			<button class="btn-primary-full" disabled={!isBallotValid()} onclick={createBallot}>
-				Create ballot
-			</button>
+				</div>
+			</Panel>
 		</div>
 	{/if}
 
 	{#if mode === 'vote' && election}
-		<div class="vote-header-row">
-			<a href={'#tally=' + encodedBallot} class="back-link">← Tally</a>
-			<h2 class="vote-title">{election.title}</h2>
-		</div>
-		<p class="hint">Rank the choices in your preferred order.</p>
-
-		<div class="rank-choices">
-			{#each ranking as choiceIdx, r}
-				<div class="choice-slot">
-					<span class="choice-rank-num">{r + 1}.</span>
-					<div class="choice-row" style={colorStyle(choiceIdx)}>
-						<span class="choice-text">{election.choices[choiceIdx]}</span>
-						<div class="arrows">
-							<button
-								class="arrow-btn"
-								disabled={r === 0}
-								onclick={() => moveUp(r)}
-								aria-label="Move up"
-							>
-								↑
-							</button>
-							<button
-								class="arrow-btn"
-								disabled={r === election.choices.length - 1}
-								onclick={() => moveDown(r)}
-								aria-label="Move down"
-							>
-								↓
-							</button>
-						</div>
-					</div>
-				</div>
-			{/each}
-		</div>
-
-		<div class="card vote-code-card">
-			<div class="vote-code-line">
-				Code: <span class="vote-code-display">{currentVoteCode}</span>
+		<div class="rv-vote stack">
+			<div class="rv-title-row">
+				<Button href={'#tally=' + encodedBallot} variant="ghost" size="sm">← Tally</Button>
+				<h2>{election.title}</h2>
 			</div>
-			<button class="btn-primary-full" onclick={copyCode}>Copy vote code</button>
+			<p class="rv-muted">Rank the choices in your preferred order.</p>
+
+			<ol class="rv-ranking" aria-label="Your ranking">
+				{#each ranking as choiceIdx, r (choiceIdx)}
+					<li class="rv-rank-row">
+						<span class="rv-rank-num" aria-hidden="true">{r + 1}.</span>
+						<div class="rv-swatch-row" style={colorStyle(choiceIdx)}>
+							<span class="rv-choice-text" data-testid="ranked-choice"
+								>{election.choices[choiceIdx]}</span
+							>
+							<Button
+								size="sm"
+								variant="ghost"
+								class="rv-arrow"
+								disabled={r === 0}
+								aria-label="Move up: {election.choices[choiceIdx]}"
+								onclick={() => moveUp(r)}>↑</Button
+							>
+							<Button
+								size="sm"
+								variant="ghost"
+								class="rv-arrow"
+								disabled={r === election.choices.length - 1}
+								aria-label="Move down: {election.choices[choiceIdx]}"
+								onclick={() => moveDown(r)}>↓</Button
+							>
+						</div>
+					</li>
+				{/each}
+			</ol>
+
+			<div class="rv-code-row">
+				<span>Your vote code:</span>
+				<output class="rv-code" data-testid="vote-code" aria-label="Your vote code"
+					>{currentVoteCode}</output
+				>
+				<Button variant="primary" onclick={copyCode}>Copy vote code</Button>
+			</div>
 		</div>
 	{/if}
 
 	{#if mode === 'tally' && election}
-		<h2 class="vote-title">{election.title}</h2>
+		<div class="stack">
+			<h2 class="rv-ballot-title">{election.title}</h2>
 
-		<!-- Instructions row -->
-		<div class="instructions-row">
-			<div class="instruction">
-				<span class="instruction-num">1</span>
-				<span class="instruction-text">Share the link with voters</span>
-			</div>
-			<div class="instruction">
-				<span class="instruction-num">2</span>
-				<span class="instruction-text">Collect vote codes</span>
-			</div>
-			<div class="instruction">
-				<span class="instruction-num">3</span>
-				<span class="instruction-text">Enter codes to see results</span>
-			</div>
-		</div>
-
-		<!-- Two column layout -->
-		<div class="tally-columns">
-			<!-- Column 1: Share + Results -->
-			<div class="tally-col">
-				<!-- Share section -->
-				<div class="card section">
-					<div class="section-title">Share</div>
-					<div class="share-row">
-						<input type="text" class="rank-input share-input" value={getVoteURL()} readonly />
+			<div class="split-view rv-tally-top">
+				<Panel title="Share" level={3}>
+					<div class="stack">
+						<Field label="Vote link" hint="Send this to voters; each sends back a vote code.">
+							{#snippet children(props)}
+								<input
+									class="control rv-mono"
+									type="text"
+									readonly
+									value={getVoteURL()}
+									{...props}
+								/>
+							{/snippet}
+						</Field>
+						<div class="cluster">
+							<Button onclick={() => copyToClipboard(getVoteURL(), 'Link copied')}>Copy</Button>
+							<Button onclick={() => openQRDialog(getVoteURL())}>QR code</Button>
+							<Button href={getVoteURL()} target="_blank" rel="noopener">Vote yourself</Button>
+						</div>
 					</div>
-					<div class="share-buttons">
-						<button
-							class="btn-secondary"
-							onclick={() => copyToClipboard(getVoteURL(), 'Link copied')}>Copy</button
-						>
-						<button class="btn-secondary" onclick={() => openQRModal(getVoteURL())}>QR</button>
-					</div>
-					<a href={getVoteURL()} target="_blank" rel="noopener" class="btn-secondary-full vote-link"
-						>Vote yourself</a
-					>
-				</div>
+				</Panel>
 
-				<!-- Results - 4 columns -->
-				<div class="card section results-card">
-					<div class="section-title">Results</div>
-					<p class="hint">{resultsBorda.valid} vote{resultsBorda.valid === 1 ? '' : 's'}</p>
-					{#if resultsBorda.valid > 0}
-						<div class="methods-grid">
-							<div class="method-col">
-								<div class="method-header">First Past The Post</div>
-								{#each resultsFPTP.results as result}
-									<div class="method-row" style={colorStyle(result.index)}>
-										<span class="method-rank">#{result.rank}</span>
-										<span class="method-text">{result.text}</span>
-										<span class="method-score">{result.score}</span>
-									</div>
-								{/each}
-							</div>
-							<div class="method-col">
-								<div class="method-header">Instant Runoff</div>
-								{#each resultsIRV.results as result}
-									<div class="method-row" style={colorStyle(result.index)}>
-										<span class="method-rank">#{result.rank}</span>
-										<span class="method-text">{result.text}</span>
-										{#if result.eliminatedRound}
-											<span
-												class="method-score method-out"
-												title="{result.score} vote{result.score === 1
-													? ''
-													: 's'} when eliminated in round {result.eliminatedRound}"
-												>out R{result.eliminatedRound}</span
+				<Panel title="Enter votes" level={3}>
+					<div class="stack">
+						<form class="rv-vote-form" onsubmit={handleVoteSubmit}>
+							<Field label="Name">
+								{#snippet children(props)}
+									<input
+										class="control"
+										type="text"
+										{...props}
+										bind:value={voteNameInput}
+										required
+									/>
+								{/snippet}
+							</Field>
+							<Field label="Vote code">
+								{#snippet children(props)}
+									<input
+										class="control rv-mono rv-code-input"
+										type="text"
+										{...props}
+										aria-invalid={voteFormInvalid}
+										bind:value={voteCodeInput}
+										oninput={() => (voteFormInvalid = false)}
+										required
+										minlength={voteCodeWidth}
+										maxlength={voteCodeWidth}
+										autocapitalize="characters"
+										autocorrect="off"
+										spellcheck="false"
+									/>
+								{/snippet}
+							</Field>
+							<Button type="submit" variant="primary">Add</Button>
+						</form>
+						{#if voteFormInvalid}
+							<Alert tone="danger">
+								Invalid code for this ballot. Check for typos: codes are {voteCodeWidth} characters.
+							</Alert>
+						{/if}
+						{#if votes.length === 0}
+							<p class="rv-muted">No votes yet</p>
+						{:else}
+							<ul class="rv-votes" aria-label="Entered votes">
+								{#each votes as vote (vote.name)}
+									{@const expanded = expandedVotes.has(vote.name)}
+									<li class="rv-vote-entry">
+										<div class="rv-vote-head">
+											<button
+												type="button"
+												class="rv-vote-toggle"
+												onclick={() => toggleVote(vote.name)}
+												aria-expanded={expanded}
 											>
-										{:else}
-											<span class="method-score" title="Votes in the final round"
-												>{result.score}</span
+												<span class="rv-vote-name" data-testid="vote-name">{vote.name}</span>
+												<span class="rv-mono rv-chip">{vote.code}</span>
+												<span class="rv-caret" class:open={expanded} aria-hidden="true">▾</span>
+											</button>
+											<Button
+												size="sm"
+												variant="ghost"
+												aria-label="Remove vote from {vote.name}"
+												onclick={() => removeVote(vote.name)}>×</Button
 											>
-										{/if}
-									</div>
-								{/each}
-								{#if resultsIRV.rounds.length > 1}
-									<details class="irv-rounds">
-										<summary>Rounds</summary>
-										<table>
-											<thead>
-												<tr>
-													<th scope="col"></th>
-													{#each resultsIRV.rounds as _, r}
-														<th scope="col">R{r + 1}</th>
-													{/each}
-												</tr>
-											</thead>
-											<tbody>
-												{#each election.choices as choice, c}
-													<tr>
-														<th scope="row">{choice}</th>
-														{#each resultsIRV.rounds as round, r}
-															{@const out = resultsIRV.rounds
-																.slice(0, r)
-																.some((prev) => prev.eliminated.includes(c))}
-															<td class:eliminated={round.eliminated.includes(c)}
-																>{out ? '' : round.counts[c]}</td
-															>
-														{/each}
-													</tr>
+										</div>
+										{#if expanded}
+											{@const perm = decodeVote(vote.code, election.choices.length, election.cs)}
+											<ol class="rv-vote-detail">
+												{#each perm ?? [] as choiceIdx, r (choiceIdx)}
+													<li class="rv-swatch-row" style={colorStyle(choiceIdx)}>
+														<span class="rv-detail-rank">{r + 1}.</span>
+														<span class="rv-choice-text">{election.choices[choiceIdx]}</span>
+													</li>
 												{/each}
-											</tbody>
-										</table>
+											</ol>
+										{/if}
+									</li>
+								{/each}
+							</ul>
+						{/if}
+					</div>
+				</Panel>
+			</div>
+
+			<Panel title="Results" level={3}>
+				<div class="stack">
+					<p class="rv-muted" role="status">
+						<span data-testid="vote-count"
+							>{resultsBorda.valid} vote{resultsBorda.valid === 1 ? '' : 's'}</span
+						>{#if resultsBorda.valid > 0}<span class="sr-only"
+								>. Borda count leader: {bordaLeaders.join(', ')}</span
+							>{/if}
+					</p>
+					{#if resultsBorda.valid > 0}
+						<div class="rv-methods">
+							<div class="stack">
+								<DataTable
+									caption="First Past The Post"
+									columns={resultColumns}
+									rows={fptpRows}
+									rowKey={(r) => r.index}
+								/>
+							</div>
+							<div class="stack">
+								<DataTable
+									caption="Instant Runoff"
+									columns={resultColumns}
+									rows={irvRows}
+									rowKey={(r) => r.index}
+								/>
+								{#if resultsIRV.rounds.length > 1}
+									<details class="rv-rounds">
+										<summary>Rounds</summary>
+										<DataTable
+											caption="Instant Runoff votes per round"
+											hideCaption
+											columns={roundColumns}
+											rows={roundRows}
+											rowKey={(r) => r.index}
+										/>
 									</details>
 								{/if}
 								{#if resultsIRV.tie}
-									<p class="method-note">
+									<p class="rv-note">
 										Tie: {resultsIRV.tie.map((i) => election?.choices[i]).join(', ')}. An
 										elimination tie could not be broken and the winner depends on how it is
 										resolved.
 									</p>
 								{/if}
 							</div>
-							<div class="method-col">
-								<div class="method-header">Borda Count</div>
-								{#each resultsBorda.results as result}
-									<div class="method-row" style={colorStyle(result.index)}>
-										<span class="method-rank">#{result.rank}</span>
-										<span class="method-text">{result.text}</span>
-										<span class="method-score">{result.score}</span>
-									</div>
-								{/each}
+							<div class="stack">
+								<DataTable
+									caption="Borda Count"
+									columns={resultColumns}
+									rows={bordaRows}
+									rowKey={(r) => r.index}
+								/>
 							</div>
-							<div class="method-col">
-								<div class="method-header">Copeland (pairwise)</div>
-								{#each resultsCondorcet.results as result}
-									<div class="method-row" style={colorStyle(result.index)}>
-										<span class="method-rank">#{result.rank}</span>
-										<span class="method-text">{result.text}</span>
-										<span class="method-score">{result.score}</span>
-									</div>
-								{/each}
-								<p class="method-note">
+							<div class="stack">
+								<DataTable
+									caption="Copeland (pairwise)"
+									columns={resultColumns}
+									rows={copelandRows}
+									rowKey={(r) => r.index}
+								/>
+								<p class="rv-note">
 									{#if resultsCondorcet.condorcetWinner !== null}
 										Condorcet winner: {election?.choices[resultsCondorcet.condorcetWinner]}
 									{:else if resultsCondorcet.cycle}
@@ -608,720 +663,374 @@
 							</div>
 						</div>
 					{:else}
-						<p class="empty-state">Add votes</p>
+						<p class="rv-muted">Add votes to see results.</p>
 					{/if}
 				</div>
-			</div>
-
-			<!-- Column 2: Enter votes -->
-			<div class="tally-col">
-				<div class="card section">
-					<div class="section-title">Enter votes</div>
-					<form class="vote-form" onsubmit={handleVoteSubmit}>
-						<input
-							type="text"
-							class="rank-input"
-							placeholder="Name"
-							bind:value={voteNameInput}
-							required
-						/>
-						<input
-							type="text"
-							class="rank-input code-input"
-							placeholder="Code"
-							aria-label="Vote code"
-							aria-invalid={voteFormInvalid}
-							bind:value={voteCodeInput}
-							oninput={() => (voteFormInvalid = false)}
-							required
-							minlength={voteCodeWidth}
-							maxlength={voteCodeWidth}
-							autocapitalize="characters"
-							autocorrect="off"
-							spellcheck="false"
-						/>
-						<button type="submit" class="btn-primary">Add</button>
-						{#if voteFormInvalid}
-							<p class="form-error" role="alert">
-								Invalid code for this ballot. Check for typos: codes are {voteCodeWidth} characters.
-							</p>
-						{/if}
-					</form>
-					{#if votes.length === 0}
-						<p class="empty-state">No votes yet</p>
-					{:else}
-						<div class="votes-list">
-							{#each votes as vote (vote.name)}
-								{@const expanded = expandedVotes.has(vote.name)}
-								<div class="vote-entry">
-									<div class="vote-entry-header">
-										<button
-											type="button"
-											class="vote-entry-toggle"
-											onclick={() => toggleVote(vote.name)}
-											aria-expanded={expanded}
-										>
-											<span class="vote-name">{vote.name}</span>
-											<span class="vote-code-chip">{vote.code}</span>
-											<span class="vote-toggle" class:open={expanded} aria-hidden="true">▼</span>
-										</button>
-										<button
-											type="button"
-											class="remove-vote"
-											onclick={() => removeVote(vote.name)}
-											aria-label="Remove vote from {vote.name}">×</button
-										>
-									</div>
-									{#if expanded}
-										{@const perm = decodeVote(vote.code, election.choices.length, election.cs)}
-										<div class="vote-detail">
-											{#each perm ?? [] as choiceIdx, r}
-												<div class="vote-detail-row" style={colorStyle(choiceIdx)}>
-													<span class="vote-detail-rank">{r + 1}.</span>
-													<span class="vote-detail-text">{election.choices[choiceIdx]}</span>
-												</div>
-											{/each}
-										</div>
-									{/if}
-								</div>
-							{/each}
-						</div>
-					{/if}
-				</div>
-			</div>
+			</Panel>
 		</div>
 	{/if}
 
 	{#if mode === 'error'}
-		<div class="error-msg">
-			<strong>Invalid ballot link</strong>
-			<p>This link appears to be corrupted or invalid.</p>
+		<div class="stack rv-error">
+			<Alert tone="danger">
+				<strong>Invalid ballot link</strong>
+				<p>This link appears to be corrupted or invalid.</p>
+			</Alert>
+			<div>
+				<Button href="#create" variant="primary">Create a new ballot</Button>
+			</div>
 		</div>
-		<button class="btn-primary-full" onclick={() => goto('#create')}>Create a new ballot</button>
 	{/if}
 
-	<footer class="tool-footer">
+	<details class="how">
+		<summary>How it works</summary>
+		<ol>
+			<li>Create a ballot with a title and its choices.</li>
+			<li>
+				Share the vote link. Each voter ranks the choices and sends you the short vote code it gives
+				them.
+			</li>
+			<li>
+				Enter each name and code on the tally page to see the results under four counting methods:
+				First Past The Post, Instant Runoff, Borda count and Copeland.
+			</li>
+		</ol>
 		<p>
-			Tool forked from <a
-				href="https://tools.jonathandemirgian.com/rank-vote.html"
-				target="_blank"
-				rel="noopener">https://tools.jonathandemirgian.com/rank-vote.html</a
-			>
+			The ballot lives in the link itself; entered votes are saved in this browser only. Score is
+			first-choice votes for First Past The Post, votes in the final round for Instant Runoff, Borda
+			points, and pairwise wins for Copeland.
 		</p>
-	</footer>
+	</details>
+
+	<p class="rv-credit">
+		Tool forked from <a
+			href="https://tools.jonathandemirgian.com/rank-vote.html"
+			target="_blank"
+			rel="noopener">tools.jonathandemirgian.com/rank-vote.html</a
+		>
+	</p>
 </div>
 
 <style>
-	/* Additional styles for rank-vote specific elements */
-	.vote-header-row {
+	h2 {
+		font-size: var(--text-lg);
+		margin: 0;
+	}
+
+	.rv-muted,
+	.rv-note {
+		margin: 0;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+	}
+
+	.rv-note {
+		font-size: var(--text-xs);
+	}
+
+	.rv-mono {
+		font-family: var(--font-mono);
+	}
+
+	/* Create */
+	.rv-create {
+		max-width: 36rem;
+	}
+
+	.rv-choices {
 		display: flex;
-		align-items: center;
-		gap: 1rem;
-		margin-bottom: 0.5rem;
-	}
-
-	.back-link {
-		color: var(--futuristic-cyan);
-		text-decoration: none;
-		font-size: 0.85rem;
-		padding: 0.25rem 0.5rem;
-		border-radius: 4px;
-		transition: background 0.15s;
-		white-space: nowrap;
-	}
-
-	.back-link:hover {
-		background: rgba(0, 245, 255, 0.1);
-	}
-
-	.vote-title {
-		font-family: var(--font-sans);
-		font-size: 1.5rem;
-		color: var(--futuristic-text);
-		margin-bottom: 0.5rem;
-	}
-
-	.rank-choices {
-		margin-bottom: 1.5rem;
-	}
-
-	.choice-slot {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-		margin-bottom: 0.625rem;
-	}
-
-	.choice-rank-num {
-		font-size: 1.1rem;
-		font-weight: 700;
-		color: var(--futuristic-text-dim);
-		min-width: 28px;
-		text-align: right;
-		flex-shrink: 0;
-	}
-
-	.choice-row {
-		display: flex;
-		align-items: center;
-		border-radius: 10px;
-		padding: 0.75rem 1rem;
-		border-left: 5px solid;
-		gap: 0.75rem;
-		flex: 1;
+		flex-direction: column;
+		gap: var(--sp-2);
+		margin: 0;
+		padding: 0;
+		border: none;
 		min-width: 0;
 	}
 
-	.choice-text {
-		flex: 1;
+	.rv-choices legend {
+		padding: 0;
+		margin-bottom: var(--sp-1);
+		font-size: var(--text-sm);
 		font-weight: 500;
+	}
+
+	.rv-choice-input {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-1);
+	}
+
+	.rv-choice-input > :global(.ui-field) {
+		flex: 1;
+	}
+
+	/* Vote */
+	.rv-vote {
+		max-width: 36rem;
+	}
+
+	.rv-title-row {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-2);
+	}
+
+	.rv-ranking,
+	.rv-vote-detail,
+	.rv-votes {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.rv-ranking {
+		gap: var(--sp-1);
+	}
+
+	.rv-rank-row {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-2);
+	}
+
+	.rv-rank-num {
+		min-width: 2ch;
+		text-align: right;
+		font-weight: 600;
+		color: var(--text-muted);
+	}
+
+	/* A choice with its colour as a left line (the colour never carries meaning alone) */
+	.rv-swatch-row {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-2);
+		flex: 1;
+		min-width: 0;
+		min-height: var(--control-h);
+		padding: 0 var(--sp-1) 0 var(--sp-3);
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-left: 4px var(--choice-line, solid) var(--choice-color);
+		border-radius: var(--radius);
+	}
+
+	.rv-choice-text {
+		flex: 1;
+		min-width: 0;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
 
-	.arrows {
-		display: flex;
-		gap: 4px;
+	.rv-swatch-row :global(.rv-arrow) {
+		min-width: var(--control-h-sm);
+		font-size: var(--text-lg);
 	}
 
-	.arrow-btn {
-		width: 44px;
-		height: 44px;
+	.rv-tally-top {
+		align-items: start;
+	}
+
+	.rv-code-row {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: center;
-		justify-content: center;
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: 8px;
-		background: rgba(255, 255, 255, 0.1);
-		cursor: pointer;
-		font-size: 1.2rem;
-		color: var(--futuristic-text-dim);
-		transition: all 0.15s;
+		gap: var(--sp-2);
 	}
 
-	.arrow-btn:hover:not(:disabled) {
-		background: rgba(255, 255, 255, 0.2);
-		border-color: var(--futuristic-cyan);
-		color: var(--futuristic-cyan);
-	}
-
-	.arrow-btn:disabled {
-		opacity: 0.25;
-		cursor: not-allowed;
-	}
-
-	.vote-code-card {
-		text-align: center;
-	}
-
-	.vote-code-line {
-		font-size: 1.5rem;
-		font-weight: 500;
-		margin-bottom: 1rem;
-	}
-
-	.vote-code-display {
-		font-family: 'SF Mono', Menlo, Monaco, 'Courier New', monospace;
-		font-size: 1.5rem;
+	.rv-code {
+		font-family: var(--font-mono);
+		font-size: var(--text-lg);
 		font-weight: 700;
 		letter-spacing: 0.1em;
-		background: var(--futuristic-bg);
-		padding: 4px 14px;
-		border-radius: 8px;
+		padding: var(--sp-1) var(--sp-2);
+		background: var(--sunken);
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
 	}
 
-	/* Instructions row */
-	.instructions-row {
-		display: flex;
-		justify-content: center;
-		gap: 2rem;
-		margin-bottom: 1rem;
-		padding: 0.75rem;
-		background: var(--futuristic-surface);
-		border: 1px solid var(--futuristic-border);
-		border-radius: 12px;
+	/* Tally */
+	.rv-ballot-title {
+		font-size: var(--text-xl);
 	}
 
-	.instruction {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.instruction-num {
-		width: 24px;
-		height: 24px;
-		border-radius: 50%;
-		background: var(--futuristic-cyan);
-		color: var(--futuristic-bg);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		font-weight: 700;
-		font-size: 0.8rem;
-	}
-
-	.instruction-text {
-		color: var(--futuristic-text-dim);
-		font-size: 0.9rem;
-	}
-
-	/* Tally columns - 2 columns */
-	.tally-columns {
+	.rv-vote-form {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 1rem;
+		grid-template-columns: 1fr 8rem auto;
+		align-items: end;
+		gap: var(--sp-2);
 	}
 
-	.tally-col {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-	}
-
-	.share-row {
-		margin-bottom: 0.5rem;
-	}
-
-	.share-input {
-		font-family: monospace;
-		font-size: 0.75rem;
-	}
-
-	.share-buttons {
-		display: flex;
-		gap: 0.5rem;
-		margin-bottom: 0.5rem;
-	}
-
-	.share-buttons .btn-secondary {
-		flex: 1;
-	}
-
-	.vote-link {
-		margin-top: auto;
-		font-size: 0.75rem;
-		padding: 0.5rem;
-	}
-
-	.vote-form {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-		margin-bottom: 0.75rem;
-	}
-
-	.code-input {
+	.rv-code-input {
 		text-transform: uppercase;
-		font-family: monospace;
 		letter-spacing: 0.1em;
 	}
 
-	.votes-list {
-		display: flex;
-		flex-direction: column;
-		gap: 0.375rem;
-		overflow-y: auto;
+	.rv-votes {
+		gap: var(--sp-1);
 		max-height: 250px;
+		overflow-y: auto;
 	}
 
-	.vote-entry {
-		background: var(--futuristic-bg);
-		border-radius: 8px;
+	.rv-vote-entry {
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		background: var(--surface-2);
 	}
 
-	.vote-entry-header {
+	.rv-vote-head {
 		display: flex;
 		align-items: center;
-		padding-right: 0.5rem;
-		gap: 0.25rem;
+		padding-right: var(--sp-1);
 	}
 
-	.vote-entry-toggle {
+	.rv-vote-toggle {
 		flex: 1;
 		min-width: 0;
 		display: flex;
 		align-items: center;
-		padding: 0.5rem 0.75rem;
-		gap: 0.5rem;
+		gap: var(--sp-2);
+		min-height: var(--control-h);
+		padding: 0 var(--sp-3);
 		border: none;
 		background: none;
 		color: inherit;
 		font: inherit;
 		text-align: left;
 		cursor: pointer;
-		border-radius: 8px;
-		transition: background 0.15s;
+		border-radius: var(--radius);
 	}
 
-	.vote-entry-toggle:hover {
-		background: rgba(255, 255, 255, 0.02);
-	}
-
-	.vote-entry-toggle:focus-visible,
-	.remove-vote:focus-visible {
-		outline: 1px solid var(--futuristic-cyan);
-		outline-offset: -1px;
-	}
-
-	.vote-name {
+	.rv-vote-name {
 		flex: 1;
 		font-weight: 500;
-		font-size: 0.9rem;
-	}
-
-	.vote-code-chip {
-		font-family: 'SF Mono', Menlo, monospace;
-		font-size: 0.75rem;
-		background: var(--futuristic-surface);
-		padding: 2px 6px;
-		border-radius: 4px;
-		letter-spacing: 0.05em;
+		overflow: hidden;
+		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
 
-	.vote-toggle {
-		border: none;
-		background: none;
-		color: var(--futuristic-text-dim);
-		cursor: pointer;
-		font-size: 0.75rem;
-		transition: transform 0.15s;
-		padding: 4px;
+	.rv-chip {
+		font-size: var(--text-xs);
+		padding: var(--sp-0) var(--sp-1);
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-sm);
+		letter-spacing: 0.05em;
 	}
 
-	.vote-toggle.open {
+	.rv-caret {
+		color: var(--text-muted);
+	}
+
+	.rv-caret.open {
 		transform: rotate(180deg);
 	}
 
-	.remove-vote {
-		border: none;
-		background: none;
-		color: #ff6666;
-		cursor: pointer;
-		font-size: 1rem;
-		padding: 2px 6px;
-		border-radius: 4px;
-		transition: background 0.15s;
+	.rv-vote-detail {
+		gap: var(--sp-0);
+		padding: 0 var(--sp-2) var(--sp-2);
+		font-size: var(--text-sm);
 	}
 
-	.remove-vote:hover {
-		background: rgba(255, 68, 68, 0.2);
+	.rv-vote-detail .rv-swatch-row {
+		min-height: 0;
+		padding: var(--sp-0) var(--sp-2);
 	}
 
-	.vote-detail {
-		padding: 0.25rem 0.5rem 0.5rem;
-	}
-
-	.vote-detail-row {
-		display: flex;
-		align-items: center;
-		padding: 0.25rem 0.5rem;
-		border-radius: 4px;
-		margin-bottom: 0.125rem;
-		border-left: 3px solid;
-		gap: 0.375rem;
-		font-size: 0.8rem;
-		min-width: 0;
-	}
-
-	.vote-detail-rank {
-		color: var(--futuristic-text-dim);
-		min-width: 18px;
-		flex-shrink: 0;
+	.rv-detail-rank {
+		min-width: 2ch;
 		font-weight: 600;
+		color: var(--text-muted);
 	}
 
-	.vote-detail-text {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		min-width: 0;
-	}
-
-	/* Results grid - 4 columns */
-	.results-card {
-		padding: 1rem;
-	}
-
-	.methods-grid {
+	.rv-methods {
 		display: grid;
-		grid-template-columns: repeat(4, 1fr);
-		gap: 0.75rem;
+		gap: var(--sp-3);
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+		align-items: start;
 	}
 
-	.method-col {
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
+	.rv-rounds {
+		font-size: var(--text-sm);
 	}
 
-	.method-header {
-		font-size: 0.65rem;
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.03em;
-		color: var(--futuristic-text-dim);
-		text-align: center;
-		padding-bottom: 0.375rem;
-		border-bottom: 1px solid var(--futuristic-border);
-		margin-bottom: 0.25rem;
-	}
-
-	.method-row {
-		display: flex;
-		align-items: center;
-		padding: 0.35rem 0.5rem;
-		border-radius: 6px;
-		border-left: 3px solid;
-		gap: 0.375rem;
-		font-size: 0.75rem;
-	}
-
-	.method-rank {
-		font-weight: 700;
-		min-width: 20px;
-		color: var(--futuristic-text-dim);
-	}
-
-	.method-text {
-		flex: 1;
-		font-weight: 500;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.method-score {
-		color: var(--futuristic-cyan);
-		font-weight: 600;
-		white-space: nowrap;
-	}
-
-	.method-out {
-		color: var(--futuristic-text-dim);
-		font-weight: 500;
-	}
-
-	.irv-rounds {
-		font-size: 0.7rem;
-		color: var(--futuristic-text-dim);
-		margin-top: 0.25rem;
-		overflow-x: auto;
-	}
-
-	.irv-rounds summary {
+	.rv-rounds summary {
 		cursor: pointer;
+		color: var(--text-muted);
+		margin-bottom: var(--sp-1);
 	}
 
-	.irv-rounds table {
-		border-collapse: collapse;
-		margin-top: 0.25rem;
+	/* Error */
+	.rv-error {
+		max-width: 36rem;
 	}
 
-	.irv-rounds th,
-	.irv-rounds td {
-		padding: 0.125rem 0.375rem;
-		text-align: right;
-		white-space: nowrap;
-	}
-
-	.irv-rounds th[scope='row'] {
-		text-align: left;
-		font-weight: 500;
-		max-width: 8rem;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.irv-rounds td.eliminated {
-		text-decoration: line-through;
-	}
-
-	.form-error {
-		color: #ff6666;
-		font-size: 0.8rem;
+	.rv-error p {
 		margin: 0;
 	}
 
-	.method-note {
-		font-size: 0.7rem;
-		color: var(--futuristic-text-dim);
-		margin: 0.25rem 0 0;
-	}
-
-	.empty-state {
-		color: var(--futuristic-text-dim);
-		text-align: center;
-		padding: 0.75rem;
-		font-size: 0.85rem;
-	}
-
-	/* Toast */
-	.rank-toast {
+	/* Toast: always in the DOM so screen readers announce it */
+	.rv-toast {
 		position: fixed;
-		bottom: 24px;
+		bottom: var(--sp-5);
 		left: 50%;
 		transform: translateX(-50%);
-		background: var(--futuristic-surface);
-		border: 1px solid var(--futuristic-border);
-		color: var(--futuristic-text);
-		padding: 10px 24px;
-		border-radius: 8px;
 		z-index: 2000;
-		font-size: 0.9rem;
+		padding: var(--sp-2) var(--sp-4);
+		background: var(--surface);
+		color: var(--text);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius);
+		font-size: var(--text-sm);
 		white-space: nowrap;
+		visibility: hidden;
 	}
 
-	/* QR Modal */
-	.qr-backdrop {
-		position: fixed;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: rgba(0, 0, 0, 0.7);
-		z-index: 1999;
-		display: flex;
-		align-items: center;
-		justify-content: center;
+	.rv-toast.shown {
+		visibility: visible;
 	}
 
-	.qr-modal {
-		border: none;
-		border-radius: 16px;
-		padding: 24px;
+	/* QR dialog */
+	.rv-qr {
+		padding: var(--sp-4);
+		background: var(--surface);
+		color: var(--text);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius);
 		text-align: center;
-		max-width: 320px;
-		width: 90%;
-		z-index: 2000;
-		background: var(--futuristic-surface);
-		border: 1px solid var(--futuristic-border);
 	}
 
-	.qr-modal h3 {
-		margin: 0 0 16px;
-		font-size: 1rem;
-		color: var(--futuristic-text-dim);
+	.rv-qr::backdrop {
+		background: color-mix(in srgb, var(--bg) 80%, transparent);
 	}
 
-	.qr-close {
-		position: absolute;
-		top: 8px;
-		right: 12px;
-		border: none;
-		background: none;
-		font-size: 1.5rem;
-		cursor: pointer;
-		color: var(--futuristic-text-dim);
-		padding: 4px;
+	.rv-qr h2 {
+		margin-bottom: var(--sp-3);
 	}
 
-	.qr-close:hover {
-		color: var(--futuristic-text);
-	}
-
-	.qr-image-container {
-		padding: 1rem;
-		background: var(--futuristic-bg);
-		border-radius: 8px;
-		display: inline-block;
-	}
-
-	.qr-image {
+	.rv-qr img {
 		display: block;
-		max-width: 200px;
-		height: auto;
+		margin: 0 auto var(--sp-3);
+		border: 1px solid var(--border);
 	}
 
-	.qr-placeholder {
-		padding: 2rem;
-		background: var(--futuristic-bg);
-		border-radius: 8px;
-	}
-
-	.qr-hint {
-		color: var(--futuristic-text-dim);
-		margin: 0;
-	}
-
-	.qr-subhint {
-		color: var(--futuristic-text-dim);
-		font-size: 0.8rem;
-		margin: 0.5rem 0 0;
-		opacity: 0.7;
-	}
-
-	/* Responsive */
-	@media (max-width: 700px) {
-		.tally-columns {
-			grid-template-columns: 1fr;
-		}
-
-		.instructions-row {
-			flex-direction: column;
-			gap: 0.5rem;
-			text-align: center;
-		}
-
-		.instruction {
-			justify-content: center;
-		}
-
-		.methods-grid {
-			grid-template-columns: repeat(2, 1fr);
-		}
-
-		.method-header {
-			font-size: 0.6rem;
-		}
+	.rv-credit {
+		margin: var(--sp-4) 0 0;
+		font-size: var(--text-xs);
+		color: var(--text-muted);
 	}
 
 	@media (max-width: 480px) {
-		.methods-grid {
-			grid-template-columns: 1fr;
+		.rv-vote-form {
+			grid-template-columns: 1fr 1fr;
 		}
 
-		.method-col {
-			padding-bottom: 0.5rem;
-			border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+		.rv-vote-form > :global(.ui-btn) {
+			grid-column: 1 / -1;
+			justify-self: start;
 		}
-
-		.method-col:last-child {
-			border-bottom: none;
-		}
-	}
-
-	@media (max-width: 600px) {
-		.vote-code-line {
-			font-size: 1.3rem;
-		}
-
-		.vote-code-display {
-			font-size: 1.3rem;
-		}
-	}
-
-	.tool-footer {
-		margin-top: 2rem;
-		padding-top: 1rem;
-		border-top: 1px solid var(--futuristic-border);
-		text-align: center;
-	}
-
-	.tool-footer p {
-		color: var(--futuristic-text-dim);
-		font-size: 0.75rem;
-		margin: 0;
-	}
-
-	.tool-footer a {
-		color: var(--futuristic-cyan);
-		text-decoration: none;
-	}
-
-	.tool-footer a:hover {
-		text-decoration: underline;
 	}
 </style>

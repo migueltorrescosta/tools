@@ -1,45 +1,42 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import euElections from '../data/events/eu-elections.json' with { type: 'json' };
+import llmBreakthroughs from '../data/events/llm-breakthroughs.json' with { type: 'json' };
+
+const picker = (page: Page) => page.getByLabel('Timeline', { exact: true });
+const events = (page: Page) => page.getByTestId('timeline-event');
 
 test('Timelines - loads with dynamic imports', async ({ page }) => {
 	await page.goto('/timelines');
 
-	// Check page title
-	await expect(page.locator('h1')).toHaveText('TIMELINES');
-
-	// Wait for timeline selector to be visible
-	await expect(page.locator('.timeline-select')).toBeVisible();
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Timelines');
+	await expect(picker(page)).toBeVisible();
 
 	// Wait for events to load (the initial pick may be rich or non-rich)
-	await expect(page.locator('.event-card, .rich-event-card').first()).toBeVisible({
-		timeout: 15000
-	});
+	await expect(events(page).first()).toBeVisible({ timeout: 15000 });
 });
 
 test('Timelines - switch between timelines', async ({ page }) => {
 	await page.goto('/timelines?t=eu-elections');
-	const firstTitle = page.locator('.event-card .event-title').first();
+	const firstTitle = events(page).first().getByRole('link');
 	await expect(firstTitle).toBeVisible({ timeout: 10000 });
 	// Titles can repeat across years (e.g. two Finland presidential elections), so count
-	// every card with that title instead of requiring a unique match.
+	// every row with that title instead of requiring a unique match.
 	const title = (await firstTitle.textContent()) ?? '';
-	const electionTitles = page.locator('.event-card .event-title').filter({
-		hasText: new RegExp(`^${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`)
-	});
-	// One card per bundled event with that title, no more and no fewer.
+	const electionTitles = events(page).getByRole('link', { name: title, exact: true });
+	// One row per bundled event with that title, no more and no fewer.
 	const expectedCards = euElections.filter((e) => e.title === title).length;
 	expect(expectedCards).toBeGreaterThanOrEqual(1);
 	await expect(electionTitles).toHaveCount(expectedCards);
 
-	await page.selectOption('.timeline-select', 'eu-key-events');
+	await picker(page).selectOption('eu-key-events');
 
 	// The URL follows the selection, the new timeline renders and the old one is gone.
 	await expect(page).toHaveURL(/[?&]t=eu-key-events(&|$)/);
 	await expect(page.getByText('Treaty of Rome', { exact: true })).toBeVisible({ timeout: 10000 });
 	await expect(electionTitles).toHaveCount(0);
 
-	// Year separators run in ascending order.
-	const years = (await page.locator('.year-label').allTextContents()).map(Number);
+	// Year headings run in ascending order.
+	const years = (await page.getByRole('heading', { level: 2 }).allTextContents()).map(Number);
 	expect(years.length).toBeGreaterThan(1);
 	expect(years).toEqual([...years].sort((x, y) => x - y));
 });
@@ -48,17 +45,15 @@ test('Timelines - invalid ?t falls back to a timeline and writes it to the URL',
 	page
 }) => {
 	await page.goto('/timelines?t=bogus');
-	await expect(page.locator('.event-card, .rich-event-card').first()).toBeVisible({
-		timeout: 15000
-	});
-	const selected = await page.locator('.timeline-select').inputValue();
+	await expect(events(page).first()).toBeVisible({ timeout: 15000 });
+	const selected = await picker(page).inputValue();
 	expect(selected).not.toBe('bogus');
 	await expect(page).toHaveURL(new RegExp(`[?&]t=${selected}(&|$)`));
 });
 
-test('Timelines - focusing a card shows its description', async ({ page }) => {
+test('Timelines - focusing a row shows its description', async ({ page }) => {
 	await page.goto('/timelines?t=eu-elections');
-	const info = page.locator('.event-card .event-info').first();
+	const info = events(page).first().getByRole('button');
 	await expect(info).toBeVisible({ timeout: 10000 });
 
 	await info.focus();
@@ -71,53 +66,47 @@ test('Timelines - focusing a card shows its description', async ({ page }) => {
 test('Timelines - verify URL parameter', async ({ page }) => {
 	await page.goto('/timelines?t=eu-elections');
 
-	// Wait for content to load
-	await page.waitForSelector('.event-card', { state: 'visible', timeout: 10000 });
+	await expect(events(page).first()).toBeVisible({ timeout: 10000 });
 
 	// Check that the correct timeline is selected
-	const selectedValue = await page.locator('.timeline-select').inputValue();
-	expect(selectedValue).toBe('eu-elections');
+	await expect(picker(page)).toHaveValue('eu-elections');
 });
 
-test('Timelines - LLM breakthroughs shows rich card layout', async ({ page }) => {
+test('Timelines - LLM breakthroughs shows rich rows', async ({ page }) => {
 	await page.goto('/timelines?t=llm-breakthroughs');
 
-	// Wait for rich event cards to load
-	await page.waitForSelector('.rich-event-card', { state: 'visible', timeout: 10000 });
-
-	// Verify rich card elements are present
-	const firstCard = page.locator('.rich-event-card').first();
+	const first = llmBreakthroughs[0];
+	const firstRow = events(page).first();
+	await expect(firstRow).toBeVisible({ timeout: 10000 });
 
 	// Should have an emoji
-	await expect(firstCard.locator('.rich-card-emoji')).toBeVisible();
+	await expect(firstRow.getByText(first.emoji, { exact: true })).toBeVisible();
 
-	// Should have a clickable title link
-	const titleLink = firstCard.locator('.rich-card-title');
+	// Should have a clickable title link opening in a new tab
+	const titleLink = firstRow.getByRole('link', { name: first.title });
 	await expect(titleLink).toBeVisible();
 	await expect(titleLink).toHaveAttribute('target', '_blank');
 
-	// Should have a description
-	await expect(firstCard.locator('.rich-card-description')).toBeVisible();
+	// Should have a description, and the impact line with its ✦ prefix
+	await expect(firstRow.getByText(first.conceptDescription!)).toBeVisible();
+	await expect(firstRow.getByText(`✦ ${first.valueAdd}`, { exact: true })).toBeVisible();
 
-	// Should have a value-add with ✦ prefix
-	const valueAdd = firstCard.locator('.rich-card-value-add');
-	await expect(valueAdd).toBeVisible();
-	await expect(valueAdd).toContainText('✦');
+	// Rich rows show everything inline, so they have no description button
+	await expect(firstRow.getByRole('button')).toHaveCount(0);
 
-	// Verify year separators are present
-	await expect(page.locator('.year-separator').first()).toBeVisible();
+	// Year headings are present
+	await expect(page.getByRole('heading', { level: 2 }).first()).toBeVisible();
 });
 
-test('Timelines - switching to LLM breakthroughs shows rich cards', async ({ page }) => {
+test('Timelines - switching to LLM breakthroughs shows rich rows', async ({ page }) => {
 	// Start on a known non-rich timeline for deterministic behavior
 	await page.goto('/timelines?t=eu-elections');
 
-	// Wait for initial event cards to load
-	await expect(page.locator('.event-card').first()).toBeVisible({ timeout: 10000 });
+	await expect(events(page).first().getByRole('button')).toBeVisible({ timeout: 10000 });
 
-	// Switch to LLM breakthroughs
-	await page.selectOption('.timeline-select', 'llm-breakthroughs');
+	await picker(page).selectOption('llm-breakthroughs');
 
-	// Should now show rich cards instead of standard event cards
-	await expect(page.locator('.rich-event-card').first()).toBeVisible({ timeout: 15000 });
+	// Should now show rich rows (with impact lines) instead of plain rows
+	await expect(events(page).first().getByText(/^✦ /)).toBeVisible({ timeout: 15000 });
+	await expect(events(page).getByRole('button')).toHaveCount(0);
 });
