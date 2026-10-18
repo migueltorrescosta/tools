@@ -1,10 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import electedOfficials from '$lib/data/elected_officials.json';
 import {
-	BAR_TEXT_COLOR,
 	barGeometry,
 	computeStats,
-	contrastRatio,
 	COUNTRIES,
 	countryColor,
 	countryLabel,
@@ -164,16 +162,10 @@ describe('countries', () => {
 		expect(countryColor('🇧🇪')).toBe(FALLBACK_COLOR);
 	});
 
-	it.each([
-		...Object.entries(COUNTRIES).map(([f, c]) => [c.label, c.color]),
-		['fallback', FALLBACK_COLOR]
-	])('%s bar colour meets WCAG AA (4.5:1) against the bar text', (_, color) => {
-		expect(contrastRatio(color, BAR_TEXT_COLOR)).toBeGreaterThanOrEqual(4.5);
-	});
-
-	it('computes known contrast ratios', () => {
-		expect(contrastRatio('#000000', '#FFFFFF')).toBeCloseTo(21, 5);
-		expect(contrastRatio('#3366CC', '#000000')).toBeCloseTo(3.91, 2);
+	it('gives every country a distinct shared palette colour, and the fallback another', () => {
+		const colors = [...Object.values(COUNTRIES).map((c) => c.color), FALLBACK_COLOR];
+		for (const color of colors) expect(color).toMatch(/^var\(--data-([1-9]|1[0-2])\)$/);
+		expect(new Set(colors).size).toBe(colors.length);
 	});
 });
 

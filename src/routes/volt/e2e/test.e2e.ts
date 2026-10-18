@@ -8,43 +8,49 @@ async function open(page: Page) {
 	await expect(page.locator('.container[data-hydrated]')).toBeVisible();
 }
 
+function filters(page: Page) {
+	return page.getByRole('group', { name: 'Filter by country' }).getByRole('button');
+}
+
 function filterButton(page: Page, label: string) {
-	return page.locator('.bar-chart .bar-row').filter({
-		has: page.locator('.bar-label', { hasText: new RegExp(`\\s${label}$`) })
-	});
+	return page.getByRole('button', { name: new RegExp(`^${label}, \\d+ representatives$`) });
 }
 
 async function buttonCount(page: Page, label: string): Promise<number> {
-	return Number(await filterButton(page, label).locator('.bar-value').textContent());
+	const name = await filterButton(page, label).getAttribute('aria-label');
+	return Number(/, (\d+) representatives$/.exec(name ?? '')?.[1]);
 }
 
-// Named people only; group placeholder rows are drawn but not counted
-const personBars = '.gantt-container .row-bar:not(.group-entry)';
+const bars = (page: Page) => page.getByTestId('volt-bar');
+const countries = (page: Page) => page.getByTestId('volt-country');
+// Named people only; group placeholder rows ("Volt X candidates") are drawn but not counted
+const personBars = (page: Page) => bars(page).filter({ hasNotText: /candidates|^\s*Volt / });
 
 test('Volt Representatives - page loads correctly', async ({ page }) => {
 	await open(page);
-	await expect(page.locator('h1')).toHaveText('VOLT REPRESENTATIVES');
-	await expect(page.locator('.gantt-container')).toBeVisible();
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Volt');
+	await expect(page.getByTestId('volt-timeline')).toBeVisible();
 });
 
 test('Volt - every filter shows exactly as many people as its button says', async ({ page }) => {
 	await open(page);
-	const labels = await page.locator('.bar-chart .bar-label').allTextContents();
+	const names = await filters(page).evaluateAll((els) =>
+		els.map((el) => el.getAttribute('aria-label') ?? '')
+	);
+	const labels = names.map((n) => n.replace(/, \d+ representatives$/, ''));
 	// All + one per country present in the data + MEPs
 	const dataBars = summaryBars(computeStats(electedOfficials));
 	expect(labels.length).toBe(dataBars.length);
 
-	for (const raw of labels) {
-		const label = raw.trim().split(/\s+/).slice(1).join(' ');
+	for (const label of labels) {
 		const button = filterButton(page, label);
 		const expected = await buttonCount(page, label);
 		expect(expected, `${label} button count`).toBe(dataBars.find((b) => b.label === label)?.count);
 
 		await button.click();
-		await expect(button).toHaveClass(/active/);
 		await expect(button).toHaveAttribute('aria-pressed', 'true');
-		if (label !== 'All') await expect(page.locator('.gantt-country')).toHaveCount(1);
-		await expect(page.locator(personBars), `${label} bar count`).toHaveCount(expected);
+		if (label !== 'All') await expect(countries(page)).toHaveCount(1);
+		await expect(personBars(page), `${label} bar count`).toHaveCount(expected);
 	}
 });
 
@@ -52,24 +58,24 @@ test('Volt - filtering keeps the other buttons at their unfiltered counts', asyn
 	await open(page);
 	const netherlands = await buttonCount(page, 'Netherlands');
 	const germany = await buttonCount(page, 'Germany');
-	const countriesBefore = await page.locator('.gantt-country').count();
+	const countriesBefore = await countries(page).count();
 	expect(countriesBefore).toBeGreaterThan(1);
 
 	const germanyButton = filterButton(page, 'Germany');
 	await germanyButton.click();
-	await expect(germanyButton).toHaveClass(/active/);
-	await expect(page.locator('.gantt-country')).toHaveCount(1);
-	await expect(page.locator(personBars)).toHaveCount(germany);
+	await expect(germanyButton).toHaveAttribute('aria-pressed', 'true');
+	await expect(countries(page)).toHaveCount(1);
+	await expect(personBars(page)).toHaveCount(germany);
 	expect(await buttonCount(page, 'Netherlands')).toBe(netherlands);
 	await expect(filterButton(page, 'All')).toHaveAttribute('aria-pressed', 'false');
 
 	await filterButton(page, 'All').click();
-	await expect(page.locator('.gantt-country')).toHaveCount(countriesBefore);
+	await expect(countries(page)).toHaveCount(countriesBefore);
 });
 
 test('Volt - every gantt bar links externally over http(s)', async ({ page }) => {
 	await open(page);
-	const links = page.locator('.gantt-container .bar-link');
+	const links = bars(page);
 	await expect(links.first()).toBeVisible();
 	const attrs = await links.evaluateAll((els) =>
 		els.map((a) => ({
@@ -89,12 +95,21 @@ test('Volt - every gantt bar links externally over http(s)', async ({ page }) =>
 
 test('Volt - bars expose their dates and a today line is drawn', async ({ page }) => {
 	await open(page);
-	const firstBar = page.locator('.gantt-container .row-bar').first();
-	const label = await firstBar.locator('.bar-link').getAttribute('aria-label');
+	const firstBar = bars(page).first();
+	const label = await firstBar.getAttribute('aria-label');
 	expect(label).toMatch(/: \d{2}\/\d{2}\/\d{4}|: \d{2}\/\d{4}|: \d{4}/);
 	await expect(firstBar).toHaveAttribute('title', label ?? '');
-	await expect(page.locator('.today-line').first()).toBeAttached();
-	await expect(page.locator('.row-bar.former').first()).toBeAttached();
+	// The today line is labelled in the axis, not by colour alone
+	await expect(page.getByText('Today', { exact: true })).toBeVisible();
+	await expect(page.getByRole('link', { name: /\(former\)$/ }).first()).toBeAttached();
+});
+
+test('Volt - bar links are at least 24px tall', async ({ page }) => {
+	await open(page);
+	const heights = await bars(page).evaluateAll((els) =>
+		els.map((el) => el.getBoundingClientRect().height)
+	);
+	expect(Math.min(...heights)).toBeGreaterThanOrEqual(24);
 });
 
 for (const width of [375, 1280]) {
@@ -103,8 +118,8 @@ for (const width of [375, 1280]) {
 		await open(page);
 		await filterButton(page, 'Germany').click();
 		// Köln mandates start on 1 January 2025
-		const bar = page.locator('.row-bar').filter({ hasText: 'Jennifer Glashagen' });
-		const marker = page.locator('.year-marker[data-year="2025"]');
+		const bar = bars(page).filter({ hasText: 'Jennifer Glashagen' });
+		const marker = page.getByText('2025', { exact: true });
 		const barBox = await bar.boundingBox();
 		const markerBox = await marker.boundingBox();
 		expect(barBox).not.toBeNull();
