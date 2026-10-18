@@ -1,23 +1,45 @@
 <script lang="ts">
-	import { formatShortDate, isPast, type TimelineEvent, type TimelineRow } from './timelines';
+	import { SvelteSet } from 'svelte/reactivity';
+	import { Button } from '$lib/ui';
+	import { formatShortDate, isPast, type TimelineEvent, type YearGroup } from './timelines';
 
 	interface Props {
-		rows: TimelineRow[];
+		groups: YearGroup[];
 		rich: boolean;
 		/** Clock for past-event styling; injectable so tests do not depend on today. */
 		now?: Date;
 	}
 
-	let { rows, rich, now = new Date() }: Props = $props();
+	let { groups, rich, now = new Date() }: Props = $props();
 
 	const TOOLTIP_ID = 'timeline-event-tooltip';
 
-	// The description popup for the grid layout. It is anchored to the card that was hovered,
-	// focused or tapped, so touch and keyboard users reach it too.
+	// The first upcoming event, when past events precede it: a "Today" row goes before it and the
+	// events above it are muted. A timeline wholly in the past or future has no such split.
+	const events = $derived(groups.flatMap((group) => group.events));
+	const upcomingIndex = $derived(events.findIndex((event) => !isPast(event.date, now)));
+	const firstUpcomingId = $derived(upcomingIndex > 0 ? events[upcomingIndex].id : undefined);
+
+	// Long timelines (public holidays: over 1,300 rows) open only the year of the next event, or
+	// the last year when all are past; the other years open on request.
+	const LONG_TIMELINE = 200;
+	const shownYears = $derived.by(() => {
+		if (events.length <= LONG_TIMELINE) return null;
+		const current = upcomingIndex >= 0 ? events[upcomingIndex] : events[events.length - 1];
+		return new SvelteSet([groups.find((g) => g.events.includes(current))!.year]);
+	});
+
+	function past(event: TimelineEvent): boolean {
+		return firstUpcomingId !== undefined && isPast(event.date, now);
+	}
+
+	// The full description popup for plain rows, whose inline description is cut to one line.
+	// It is anchored to the row that was hovered, focused or tapped, so touch and keyboard users
+	// reach it too.
 	let tooltip = $state<{ eventId: number; x: number; y: number; content: string } | null>(null);
 
-	function showTooltip(card: HTMLElement, event: TimelineEvent) {
-		const rect = card.getBoundingClientRect();
+	function showTooltip(row: HTMLElement, event: TimelineEvent) {
+		const rect = row.getBoundingClientRect();
 		tooltip = {
 			eventId: event.id,
 			x: rect.left + rect.width / 2,
@@ -39,333 +61,296 @@
 	}
 </script>
 
-<!-- The popup is position: fixed where its card was when it opened; scrolling or resizing
-     would detach it from the card, so it closes instead. -->
+<!-- The popup is position: fixed where its row was when it opened; scrolling or resizing
+     would detach it from the row, so it closes instead. -->
 <svelte:window onscroll={hideTooltip} onresize={hideTooltip} onkeydown={onWindowKeydown} />
 
-{#each rows as row, rowIndex (rowIndex)}
-	{#if row.type === 'year'}
-		<div class="year-separator">
-			<span class="year-label">{row.year}</span>
-		</div>
-	{:else if rich}
-		<div class="rich-card-list">
-			{#each row.events as event (event.id)}
-				<div class="rich-event-card" class:past={isPast(event.date, now)}>
-					<div class="rich-card-header">
-						<span class="rich-card-emoji">{event.emoji}</span>
-						{#if event.url}
-							<a
-								href={event.url}
-								target="_blank"
-								rel="noopener noreferrer"
-								class="rich-card-title rich-card-title-link">{event.title}</a
-							>
+<ol class="tl-years" aria-label="Events by year">
+	{#each groups as group (group.year)}
+		<li class="tl-year">
+			<h2 class="tl-year-label"><time datetime={String(group.year)}>{group.year}</time></h2>
+			{#if shownYears && !shownYears.has(group.year)}
+				<div class="tl-list tl-folded">
+					<Button size="sm" onclick={() => shownYears.add(group.year)}>
+						Show {group.events.length} events
+					</Button>
+				</div>
+			{:else}
+				<ol class="tl-list" class:rich>
+					{#each group.events as event (event.id)}
+						{#if event.id === firstUpcomingId}
+							<li class="tl-today" data-testid="timeline-today">Today</li>
+						{/if}
+						{#if rich}
+							<li class="tl-event" class:past={past(event)} data-testid="timeline-event">
+								<p class="tl-line">
+									<span class="tl-emoji" aria-hidden="true">{event.emoji}</span>
+									{#if event.url}
+										<a href={event.url} target="_blank" rel="noopener noreferrer" class="tl-title"
+											>{event.title}</a
+										>
+									{:else}
+										<span class="tl-title">{event.title}</span>
+									{/if}
+									<span class="tl-desc">— {event.conceptDescription || event.description}</span>
+								</p>
+								{#if event.valueAdd}
+									<p class="tl-impact">✦ {event.valueAdd}</p>
+								{/if}
+							</li>
 						{:else}
-							<span class="rich-card-title">{event.title}</span>
+							<!-- The row only tracks hover and focus for the popup; the button and link inside
+						     are the interactive parts. -->
+							<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+							<li
+								class="tl-event"
+								class:past={past(event)}
+								data-testid="timeline-event"
+								onmouseenter={(e) => showTooltip(e.currentTarget, event)}
+								onmouseleave={hideTooltip}
+								onfocusin={(e) => showTooltip(e.currentTarget, event)}
+								onfocusout={hideTooltip}
+							>
+								<button
+									type="button"
+									class="tl-info"
+									aria-describedby={describedBy(event)}
+									onclick={(e) =>
+										showTooltip(e.currentTarget.parentElement ?? e.currentTarget, event)}
+								>
+									<span class="tl-emoji" aria-hidden="true">{event.emoji}</span>
+									<time class="tl-date" datetime={event.date}>{formatShortDate(event.date)}</time>
+									{#if !event.url}
+										<span class="tl-title">{event.title}</span>
+									{/if}
+								</button>
+								{#if event.url}
+									<a
+										href={event.url}
+										target="_blank"
+										rel="noopener noreferrer"
+										class="tl-title"
+										aria-describedby={describedBy(event)}>{event.title}</a
+									>
+								{/if}
+								<span class="tl-desc">{event.description}</span>
+							</li>
 						{/if}
-					</div>
-					<p class="rich-card-description">{event.conceptDescription || event.description}</p>
-					{#if event.valueAdd}
-						<p class="rich-card-value-add">✦ {event.valueAdd}</p>
-					{/if}
-				</div>
-			{/each}
-		</div>
-	{:else}
-		<div class="grid-row">
-			{#each row.events as event (event.id)}
-				<div
-					class="event-card"
-					class:past={isPast(event.date, now)}
-					role="group"
-					onmouseenter={(e) => showTooltip(e.currentTarget, event)}
-					onmouseleave={hideTooltip}
-					onfocusin={(e) => showTooltip(e.currentTarget, event)}
-					onfocusout={hideTooltip}
-				>
-					<button
-						type="button"
-						class="event-info"
-						aria-describedby={describedBy(event)}
-						onclick={(e) => showTooltip(e.currentTarget.parentElement ?? e.currentTarget, event)}
-					>
-						<span class="event-emoji">{event.emoji}</span>
-						<span class="event-date">{formatShortDate(event.date)}</span>
-						{#if !event.url}
-							<span class="event-title">{event.title}</span>
-						{/if}
-					</button>
-					{#if event.url}
-						<a
-							href={event.url}
-							target="_blank"
-							rel="noopener noreferrer"
-							class="event-title event-title-link"
-							aria-describedby={describedBy(event)}>{event.title}</a
-						>
-					{/if}
-				</div>
-			{/each}
-		</div>
-	{/if}
-{/each}
+					{/each}
+				</ol>
+			{/if}
+		</li>
+	{/each}
+</ol>
 
 <!-- Rendered once at view level, position: fixed, to escape the container's overflow clipping -->
 {#if tooltip}
 	<div
 		id={TOOLTIP_ID}
 		role="tooltip"
-		class="global-tooltip"
+		class="tl-tooltip"
 		style:left="{tooltip.x}px"
 		style:top="{tooltip.y}px"
 	>
-		<span class="tooltip-text">{tooltip.content}</span>
+		{tooltip.content}
 	</div>
 {/if}
 
 <style>
-	.year-separator {
-		display: flex;
-		align-items: center;
-		padding: 0.5rem 0;
-		margin: 0.25rem 0;
+	.tl-years,
+	.tl-list {
+		list-style: none;
+		margin: 0;
+		padding: 0;
 	}
 
-	.year-separator::before,
-	.year-separator::after {
-		content: '';
-		flex: 1;
-		height: 1px;
-		background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.3), transparent);
-	}
-
-	.year-label {
-		font-family: var(--font-sans);
-		font-size: 0.7rem;
-		font-weight: 600;
-		color: var(--futuristic-magenta);
-		letter-spacing: 0.15em;
-		padding: 0 1rem;
-		text-shadow: 0 0 8px rgba(255, 0, 255, 0.4);
-	}
-
-	.grid-row {
+	/* The year sits in a narrow gutter beside its events, once per year. */
+	.tl-year {
 		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 0.5rem;
-		padding: 0.15rem 0;
+		grid-template-columns: 3.25rem minmax(0, 1fr);
+		gap: var(--sp-2);
+		padding: var(--sp-1) 0;
 	}
 
-	.grid-row:not(:last-child) {
-		border-bottom: 1px solid rgba(0, 245, 255, 0.1);
+	.tl-year + .tl-year {
+		border-top: 1px solid var(--border);
 	}
 
-	.event-card {
+	.tl-year-label {
+		position: sticky;
+		top: calc(var(--topbar-h) + var(--sp-1));
+		align-self: start;
+		line-height: 24px;
+		font-size: var(--text-sm);
+		font-variant-numeric: tabular-nums;
+		color: var(--text);
+	}
+
+	.tl-list {
+		border-left: 1px solid var(--border-strong);
+		padding-left: var(--sp-2);
+		min-width: 0;
+	}
+
+	/* Plain rows flow into as many columns as fit; rich rows take the full width. */
+	.tl-list:not(.rich) {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr));
+		column-gap: var(--sp-4);
+	}
+
+	.tl-list.tl-folded {
+		display: block;
+	}
+
+	.tl-event {
+		min-width: 0;
+		font-size: var(--text-sm);
+	}
+
+	.tl-list:not(.rich) .tl-event {
 		display: flex;
 		align-items: center;
-		gap: 0.4rem;
-		padding: 0.15rem 0.25rem;
-		position: relative;
-		min-width: 0;
-		cursor: default;
-		transition: background-color 0.2s;
+		gap: var(--sp-2);
+		min-height: 24px;
+		padding: 0 var(--sp-1);
+		border-radius: var(--radius-sm);
+		white-space: nowrap;
 	}
 
-	.event-card:hover,
-	.event-card:focus-within {
-		background: rgba(0, 245, 255, 0.05);
+	.tl-list:not(.rich) .tl-event:hover,
+	.tl-list:not(.rich) .tl-event:focus-within {
+		background: var(--surface-2);
 	}
 
-	.event-card.past {
-		opacity: 0.5;
+	.tl-list.rich .tl-event {
+		padding: var(--sp-1) 0;
 	}
 
-	.event-card.past .event-title {
-		text-decoration: line-through;
-		text-decoration-color: rgba(200, 212, 222, 0.3);
+	.tl-list.rich .tl-event + .tl-event {
+		border-top: 1px solid var(--border);
 	}
 
-	/* Reset button chrome: the button only makes the card focusable and tappable. */
-	.event-info {
-		display: flex;
+	/* Reset button chrome: the button only makes the row focusable and tappable. */
+	.tl-info {
+		display: inline-flex;
 		align-items: center;
-		gap: 0.4rem;
+		gap: var(--sp-2);
+		flex: 0 1 auto;
 		min-width: 0;
+		min-height: 24px;
 		padding: 0;
 		background: none;
 		border: none;
-		color: inherit;
-		font: inherit;
 		text-align: left;
 		cursor: pointer;
 	}
 
-	.event-info:focus-visible,
-	.event-title-link:focus-visible {
-		outline: 1px solid var(--futuristic-cyan);
-		outline-offset: 2px;
-	}
-
-	.event-card .event-emoji {
-		font-size: 0.85rem;
+	/* A link title sits beside the button, which then holds only the icon and date. */
+	.tl-info:has(+ a) {
 		flex-shrink: 0;
 	}
 
-	.event-card .event-date {
-		font-family: var(--font-sans);
-		font-size: 0.55rem;
-		font-weight: 500;
-		color: var(--futuristic-cyan);
-		letter-spacing: 0.03em;
-		white-space: nowrap;
-		min-width: 60px;
+	.tl-date {
+		flex-shrink: 0;
+		min-width: 3.5rem;
+		color: var(--text-muted);
+		font-variant-numeric: tabular-nums;
 	}
 
-	.event-card .event-title {
-		font-family: var(--font-sans);
-		font-size: 0.7rem;
-		font-weight: 400;
-		color: var(--futuristic-text);
-		white-space: nowrap;
+	.tl-title {
+		font-weight: 500;
+		color: var(--text);
+	}
+
+	a.tl-title {
+		color: var(--accent);
+	}
+
+	.tl-list:not(.rich) .tl-title {
+		flex: 0 1 auto;
+		min-width: 0;
+		line-height: 24px;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
 
-	.event-card .event-title-link {
-		color: var(--futuristic-cyan);
-		text-decoration: none;
-		transition: color 0.2s;
+	.tl-desc,
+	.tl-impact {
+		color: var(--text-muted);
 	}
 
-	.event-card .event-title-link:hover {
-		color: var(--futuristic-magenta);
-		text-decoration: underline;
+	.tl-list:not(.rich) .tl-desc {
+		flex: 1 1 0;
+		min-width: 5em;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
-	.event-card.past .event-title-link,
-	.event-card.past .event-title-link:hover {
-		text-decoration: line-through;
-		text-decoration-color: rgba(200, 212, 222, 0.3);
+	.tl-line,
+	.tl-impact {
+		margin: 0;
 	}
 
-	.global-tooltip {
-		position: fixed;
-		transform: translate(-50%, -100%);
-		padding: 0.5rem 0.75rem;
-		background: var(--futuristic-bg);
-		border: 1px solid var(--futuristic-cyan);
-		border-radius: 6px;
-		box-shadow:
-			0 0 20px rgba(0, 245, 255, 0.3),
-			0 4px 12px rgba(0, 0, 0, 0.5);
-		z-index: 9999;
-		max-width: 350px;
-		pointer-events: none;
-		opacity: 1;
-	}
-
-	.global-tooltip::after {
-		content: '';
-		position: absolute;
-		top: 100%;
-		left: 50%;
-		transform: translateX(-50%);
-		border: 6px solid transparent;
-		border-top-color: var(--futuristic-cyan);
-	}
-
-	.tooltip-text {
-		font-family: var(--font-sans);
-		font-size: 0.75rem;
-		color: var(--futuristic-text);
-		line-height: 1.4;
-	}
-
-	.rich-card-list {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		padding: 0.5rem 0;
-	}
-
-	.rich-card-list:not(:last-child) {
-		border-bottom: 1px solid rgba(0, 245, 255, 0.1);
-	}
-
-	.rich-event-card {
-		display: flex;
-		flex-direction: column;
-		gap: 0.35rem;
-		padding: 0.6rem 0.75rem;
-		background: rgba(0, 245, 255, 0.03);
-		border: 1px solid rgba(0, 245, 255, 0.1);
-		border-radius: 8px;
-		transition:
-			background 0.2s,
-			border-color 0.2s;
-	}
-
-	.rich-event-card:hover {
-		background: rgba(0, 245, 255, 0.06);
-		border-color: rgba(0, 245, 255, 0.2);
-	}
-
-	.rich-event-card.past {
-		opacity: 0.75;
-	}
-
-	.rich-card-header {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.rich-card-emoji {
-		font-size: 1.1rem;
+	.tl-emoji {
 		flex-shrink: 0;
 	}
 
-	.rich-card-title {
-		font-family: var(--font-sans);
-		font-size: 0.75rem;
+	.tl-impact {
+		padding-left: 1.6em;
+	}
+
+	/* Past events are muted; the Today row above the first upcoming one marks the split
+	   without relying on colour. */
+	.tl-event.past .tl-title,
+	.tl-event.past .tl-date {
+		color: var(--text-muted);
+	}
+
+	.tl-today {
+		grid-column: 1 / -1;
+		display: flex;
+		align-items: center;
+		gap: var(--sp-2);
+		min-height: 24px;
+		font-size: var(--text-xs);
 		font-weight: 600;
-		color: var(--futuristic-text);
-		letter-spacing: 0.04em;
+		color: var(--accent);
 	}
 
-	.rich-card-title-link {
-		color: var(--futuristic-cyan);
-		text-decoration: none;
-		transition: color 0.2s;
+	.tl-today::after {
+		content: '';
+		flex: 1;
+		border-top: 2px solid var(--accent);
 	}
 
-	.rich-card-title-link:hover {
-		color: var(--futuristic-magenta);
-		text-decoration: underline;
+	.tl-tooltip {
+		position: fixed;
+		transform: translate(-50%, -100%);
+		z-index: 60;
+		max-width: min(22rem, 90vw);
+		padding: var(--sp-1) var(--sp-2);
+		background: var(--surface);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius);
+		font-size: var(--text-sm);
+		color: var(--text);
+		pointer-events: none;
 	}
 
-	.rich-card-description {
-		font-family: var(--font-sans);
-		font-size: 0.8rem;
-		color: var(--futuristic-text);
-		line-height: 1.5;
-		margin: 0;
-	}
+	/* Narrow rows have no room for the description; the popup shows it instead. */
+	@media (max-width: 30rem) {
+		.tl-list:not(.rich) .tl-desc {
+			display: none;
+		}
 
-	.rich-card-value-add {
-		font-family: var(--font-sans);
-		font-size: 0.8rem;
-		color: var(--futuristic-magenta);
-		line-height: 1.5;
-		margin: 0;
-		padding-left: 1.5rem;
-		opacity: 0.9;
-	}
+		.tl-year {
+			grid-template-columns: 2.5rem minmax(0, 1fr);
+			gap: var(--sp-1);
+		}
 
-	@media (max-width: 600px) {
-		.grid-row {
-			grid-template-columns: 1fr;
+		.tl-impact {
+			padding-left: 0;
 		}
 	}
 </style>

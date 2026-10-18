@@ -213,32 +213,19 @@ export function isValidCode(code: string, numChoices: number, cs: string): boole
 }
 
 // --- Color palette ---
-// 14 futuristic/neon colors for visual distinction
-// Using cyan/magenta/blue/purple palette to match the futuristic theme
-export const COLOR_PALETTE = [
-	{ bg: 'rgba(0, 245, 255, 0.15)', border: 'var(--futuristic-cyan)' }, // Cyan
-	{ bg: 'rgba(255, 0, 255, 0.15)', border: 'var(--futuristic-magenta)' }, // Magenta
-	{ bg: 'rgba(0, 128, 255, 0.15)', border: 'var(--futuristic-blue)' }, // Blue
-	{ bg: 'rgba(138, 43, 226, 0.15)', border: '#8a2be2' }, // Purple
-	{ bg: 'rgba(0, 255, 127, 0.15)', border: '#00ff7f' }, // Spring green
-	{ bg: 'rgba(255, 165, 0, 0.15)', border: '#ffa500' }, // Orange
-	{ bg: 'rgba(255, 20, 147, 0.15)', border: '#ff1493' }, // Deep pink
-	{ bg: 'rgba(64, 224, 208, 0.15)', border: '#40e0d0' }, // Turquoise
-	{ bg: 'rgba(255, 215, 0, 0.15)', border: '#ffd700' }, // Gold
-	{ bg: 'rgba(50, 205, 50, 0.15)', border: '#32cd32' }, // Lime green
-	{ bg: 'rgba(255, 69, 0, 0.15)', border: '#ff4500' }, // Orange red
-	{ bg: 'rgba(147, 112, 219, 0.15)', border: '#9370db' }, // Medium purple
-	{ bg: 'rgba(0, 191, 255, 0.15)', border: '#00bfff' }, // Deep sky blue
-	{ bg: 'rgba(255, 127, 80, 0.15)', border: '#ff7f50' } // Coral
-];
+// The shared categorical palette (--data-1..12 in src/lib/styles/tokens.css),
+// at least 3:1 in both themes. Ballots allow up to 14 choices, so past 12 the
+// colours repeat with a dashed line instead of a solid one to stay distinct.
+export const PALETTE_SIZE = 12;
 
-export function choiceColor(index: number) {
-	return COLOR_PALETTE[index % COLOR_PALETTE.length];
+export function choiceColor(index: number): string {
+	return `var(--data-${(index % PALETTE_SIZE) + 1})`;
 }
 
+/** Inline custom properties a route's CSS reads to draw the choice's colour line. */
 export function colorStyle(index: number): string {
-	const color = choiceColor(index);
-	return `background:${color.bg};border-left-color:${color.border}`;
+	const line = index < PALETTE_SIZE ? 'solid' : 'dashed';
+	return `--choice-color:${choiceColor(index)};--choice-line:${line}`;
 }
 
 // --- Votes ---

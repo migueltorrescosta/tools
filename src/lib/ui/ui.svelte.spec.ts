@@ -51,6 +51,12 @@ describe('SegmentedControl', () => {
 		await page.getByRole('radio', { name: 'Y' }).click();
 		await expect.element(page.getByRole('radio', { name: 'Y' })).toBeChecked();
 	});
+
+	it('keeps a decorative icon out of the accessible name', async () => {
+		const options = [{ value: 'it', label: 'Italiano', icon: '🇮🇹' }] as const;
+		render(SegmentedControl<'it'>, { legend: 'Language', options, value: 'it' });
+		await expect.element(page.getByRole('radio', { name: 'Italiano', exact: true })).toBeChecked();
+	});
 });
 
 describe('Panel', () => {

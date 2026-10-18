@@ -15,10 +15,10 @@ export interface TimelineEvent {
 	valueAdd?: string;
 }
 
-export type TimelineRow =
-	{ type: 'year'; year: number } | { type: 'events'; events: TimelineEvent[] };
-
-export const COLUMNS = 3;
+export interface YearGroup {
+	year: number;
+	events: TimelineEvent[];
+}
 
 // Event dates are calendar dates ("YYYY-MM-DD"), not instants. They are never passed to
 // new Date(str), which parses them as UTC midnight and shifts them a day in local time west of UTC.
@@ -60,11 +60,8 @@ export function sortEventsByDate(events: TimelineEvent[]): TimelineEvent[] {
 	return [...events].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 }
 
-/**
- * Groups date-sorted events into a year separator followed by event rows.
- * Plain timelines are chunked into rows of COLUMNS; rich timelines keep one group per year.
- */
-export function buildTimelineRows(events: TimelineEvent[], rich: boolean): TimelineRow[] {
+/** Groups date-sorted events by calendar year, in ascending year order. */
+export function groupByYear(events: TimelineEvent[]): YearGroup[] {
 	const eventsByYear = new Map<number, TimelineEvent[]>();
 	for (const event of events) {
 		const year = getYear(event.date);
@@ -75,21 +72,9 @@ export function buildTimelineRows(events: TimelineEvent[], rich: boolean): Timel
 			eventsByYear.set(year, [event]);
 		}
 	}
-
-	const rows: TimelineRow[] = [];
-	const sortedYears = Array.from(eventsByYear.keys()).sort((a, b) => a - b);
-	for (const year of sortedYears) {
-		rows.push({ type: 'year', year });
-		const yearEvents = eventsByYear.get(year)!;
-		if (rich) {
-			rows.push({ type: 'events', events: yearEvents });
-		} else {
-			for (let i = 0; i < yearEvents.length; i += COLUMNS) {
-				rows.push({ type: 'events', events: yearEvents.slice(i, i + COLUMNS) });
-			}
-		}
-	}
-	return rows;
+	return Array.from(eventsByYear, ([year, events]) => ({ year, events })).sort(
+		(a, b) => a.year - b.year
+	);
 }
 
 export type TimelineImporter = (id: string) => Promise<TimelineEvent[]>;

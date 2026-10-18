@@ -1,149 +1,124 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+async function open(page: Page) {
+	await page.goto('/warhammer-simulator');
+	// The first visit to a cold dev server compiles the route, so allow longer than the default.
+	await expect(page.locator('.container[data-hydrated]')).toBeVisible({ timeout: 20_000 });
+}
+
+const runButton = (page: Page) => page.getByRole('button', { name: 'Run simulation' });
+const winnerHeading = (page: Page) => page.getByRole('heading', { name: 'Winner' });
 
 test('Warhammer Simulator - page loads correctly', async ({ page }) => {
-	await page.goto('/warhammer-simulator');
-	await expect(page.locator('h1')).toHaveText('WARHAMMER SIMULATOR');
-	await expect(page.locator('.subtitle')).toContainText('100 000 simulations');
+	await open(page);
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Warhammer Simulator');
+	await expect(page.getByText('100 000 simulations by default')).toBeVisible();
 });
 
 test('Warhammer Simulator - preset selection populates form', async ({ page }) => {
-	await page.goto('/warhammer-simulator');
-	await page.waitForLoadState('networkidle');
+	await open(page);
 
-	// Get the preset select for Character A (first select inside first panel)
-	const presetSelect = page
-		.locator('.sim-builder-grid .panel')
-		.first()
-		.locator('select.algorithm-select')
-		.first();
-	await presetSelect.waitFor({ state: 'visible' });
+	const builderA = page.getByTestId('builder-A');
+	await builderA.getByLabel('Preset').selectOption('Chaos Lord');
 
-	// Select a preset for Character A
-	await presetSelect.selectOption('Chaos Lord');
-
-	// Check that name field was populated
-	const nameInput = page.locator('input[type="text"]').first();
-	await expect(nameInput).toHaveValue('Chaos Lord');
+	await expect(builderA.getByLabel('Name')).toHaveValue('Chaos Lord');
 });
 
 test('Warhammer Simulator - run simulation with default characters', async ({ page }) => {
-	await page.goto('/warhammer-simulator');
-	await page.waitForLoadState('networkidle');
+	await open(page);
 
 	// Reduce simulation count for faster test execution
-	const simCountInput = page.locator('.sim-count-input');
-	await simCountInput.fill('1000');
+	await page.getByLabel('Simulations').fill('1000');
+	await runButton(page).click();
 
-	// Click the Run Simulation button
-	const runBtn = page.locator('button:has-text("RUN SIMULATION")');
-	await runBtn.waitFor({ state: 'visible' });
-	await runBtn.click();
+	await expect(page.getByRole('progressbar', { name: 'Simulation progress' })).toBeVisible({
+		timeout: 5000
+	});
+	await expect(winnerHeading(page)).toBeVisible({ timeout: 30000 });
 
-	// Wait for progress bar to appear
-	const progressBar = page.locator('.progress-bar-bg');
-	await expect(progressBar).toBeVisible({ timeout: 5000 });
-
-	// Wait for results to appear
-	const resultsHeader = page.locator('text=WINNER');
-	await expect(resultsHeader).toBeVisible({ timeout: 30000 });
-
-	// Verify pie chart canvas rendered
-	const pieCanvas = page.locator('canvas').first();
-	await expect(pieCanvas).toBeVisible();
-
-	// Verify histogram canvas rendered
-	const histCanvas = page.locator('canvas').nth(1);
-	await expect(histCanvas).toBeVisible();
+	// Every chart rendered as an SVG image with a summary
+	const results = page.getByTestId('results');
+	await expect(results.getByRole('img', { name: 'Winner share' })).toBeVisible();
+	await expect(
+		results.getByRole('img', { name: 'Share of duels ending in each round' })
+	).toBeVisible();
+	await expect(results.getByText(/^Most duels end in round \d+ \(\d+\.\d%\)/)).toBeVisible();
+	// The finished run is announced politely
+	await expect(page.locator('[aria-live="polite"]')).toContainText('Simulation finished.');
 });
 
 test('Warhammer Simulator - presets loaded for both characters produce different stats', async ({
 	page
 }) => {
-	await page.goto('/warhammer-simulator');
-	await page.waitForLoadState('networkidle');
+	await open(page);
+	await page.getByLabel('Simulations').fill('1000');
 
-	// Reduce simulation count for faster test execution
-	const simCountInput = page.locator('.sim-count-input');
-	await simCountInput.fill('1000');
+	await page.getByTestId('builder-A').getByLabel('Preset').selectOption('Chaos Lord');
+	await page.getByTestId('builder-B').getByLabel('Preset').selectOption('Empire General');
 
-	// Get the preset selects for each character panel
-	const selectA = page
-		.locator('.sim-builder-grid .panel')
-		.first()
-		.locator('select.algorithm-select')
-		.first();
-	const selectB = page
-		.locator('.sim-builder-grid .panel')
-		.nth(1)
-		.locator('select.algorithm-select')
-		.first();
-
-	// Load different presets
-	await selectA.selectOption('Chaos Lord');
-	await selectB.selectOption('Empire General');
-
-	// Run simulation
-	await page.locator('button:has-text("RUN SIMULATION")').click();
-
-	// Wait for results
-	await expect(page.locator('text=WINNER')).toBeVisible({ timeout: 30000 });
+	await runButton(page).click();
+	await expect(winnerHeading(page)).toBeVisible({ timeout: 30000 });
+	await expect(page.getByTestId('winner-label')).toHaveText([
+		'Chaos Lord',
+		'Mutual kill / draw',
+		'Empire General'
+	]);
 });
 
 test('Warhammer Simulator - simulation count input accepts values', async ({ page }) => {
-	await page.goto('/warhammer-simulator');
-	await page.waitForLoadState('networkidle');
+	await open(page);
 
-	const simCountInput = page.locator('#sim-count');
+	const simCountInput = page.getByLabel('Simulations');
 	await simCountInput.fill('500');
 	await expect(simCountInput).toHaveValue('500');
 	// Character A's WS is untouched (the old test wrote 500 into it).
-	await expect(page.locator('#charA-ws')).toHaveValue('4');
+	await expect(page.getByTestId('builder-A').getByLabel('WS')).toHaveValue('4');
 });
 
 test('Warhammer Simulator - out-of-range simulation count shows an error', async ({ page }) => {
-	await page.goto('/warhammer-simulator');
-	await page.waitForLoadState('networkidle');
+	await open(page);
 
-	await page.locator('#sim-count').fill('0');
-	await page.locator('button:has-text("RUN SIMULATION")').click();
-	await expect(page.locator('p.error')).toContainText('Simulations must be a whole number');
-	await expect(page.locator('text=WINNER')).toHaveCount(0);
+	await page.getByLabel('Simulations').fill('0');
+	await runButton(page).click();
+	await expect(page.getByRole('alert')).toContainText('Simulations must be a whole number');
+	await expect(winnerHeading(page)).toHaveCount(0);
 });
 
 test('Warhammer Simulator - validation prevents >50 gift points', async ({ page }) => {
-	await page.goto('/warhammer-simulator');
-	await page.waitForLoadState('networkidle');
+	await open(page);
 
-	const panelA = page.locator('.sim-builder-grid .panel').first();
-	await panelA.getByRole('button', { name: /Blasted Standard/ }).click();
+	const panelA = page.getByTestId('builder-A');
+	const standard = panelA.getByRole('button', { name: /Blasted Standard/ });
+	await standard.click();
+	await expect(standard).toHaveAttribute('aria-pressed', 'true');
 	await panelA.getByRole('button', { name: /Immortal Fury/ }).click();
-	await expect(panelA.locator('.error-small')).toContainText('65 pts');
+	await expect(panelA.getByText(/^Exceeds 50 pts/)).toContainText('65 pts');
 
-	await page.locator('button:has-text("RUN SIMULATION")').click();
-	await expect(page.locator('p.error')).toHaveText('Character A exceeds 50 gift points (65)');
-	await expect(page.locator('text=WINNER')).toHaveCount(0);
+	await runButton(page).click();
+	await expect(page.getByRole('alert')).toHaveText(
+		/^\W*Character A exceeds 50 gift points \(65\)$/
+	);
+	await expect(winnerHeading(page)).toHaveCount(0);
 });
 
 test('Warhammer Simulator - item limit disables a third item', async ({ page }) => {
-	await page.goto('/warhammer-simulator');
-	await page.waitForLoadState('networkidle');
+	await open(page);
 
-	const panelA = page.locator('.sim-builder-grid .panel').first();
+	const panelA = page.getByTestId('builder-A');
 	await panelA.getByRole('button', { name: /Strength Potion/ }).click();
 	await panelA.getByRole('button', { name: /Toughness Potion/ }).click();
 	await expect(panelA.getByRole('button', { name: /Potion of Speed/ })).toBeDisabled();
-	await expect(panelA.locator('text=Item limit reached')).toBeVisible();
+	await expect(panelA.getByText('Item limit reached')).toBeVisible();
 	// Gifts stay available.
 	await expect(panelA.getByRole('button', { name: /Killing Blow/ })).toBeEnabled();
 });
 
 test('Warhammer Simulator - charge control has no Initiative bonus', async ({ page }) => {
-	await page.goto('/warhammer-simulator');
-	await page.waitForLoadState('networkidle');
+	await open(page);
 
-	await expect(page.locator('#charger')).toBeVisible();
-	await expect(page.locator('#charge-bonus')).toHaveCount(0);
-	await expect(page.locator('text=Charge persists')).toHaveCount(0);
+	await expect(page.getByLabel('Charger')).toBeVisible();
+	await expect(page.getByLabel(/charge bonus/i)).toHaveCount(0);
+	await expect(page.getByText('Charge persists')).toHaveCount(0);
 });
 
 test('Warhammer Simulator - default 100k run renders every chart without page errors', async ({
@@ -152,29 +127,35 @@ test('Warhammer Simulator - default 100k run renders every chart without page er
 	const pageErrors: Error[] = [];
 	page.on('pageerror', (err) => pageErrors.push(err));
 
-	await page.goto('/warhammer-simulator');
-	await page.waitForLoadState('networkidle');
-	await expect(page.locator('#sim-count')).toHaveValue('100000');
+	await open(page);
+	await expect(page.getByLabel('Simulations')).toHaveValue('100000');
 
-	await page.locator('#sim-seed').fill('12345');
-	await page.locator('#charger').selectOption('A');
-	await page.locator('button:has-text("RUN SIMULATION")').click();
+	await page.getByLabel('Seed (optional)').fill('12345');
+	await page.getByLabel('Charger').selectOption('A');
+	await runButton(page).click();
 
-	await expect(page.locator('text=WINNER')).toBeVisible({ timeout: 120_000 });
-	const canvases = page.locator('.sim-results-grid canvas');
-	await expect(canvases).toHaveCount(3);
-	for (let i = 0; i < 3; i++) await expect(canvases.nth(i)).toBeVisible();
+	await expect(winnerHeading(page)).toBeVisible({ timeout: 120_000 });
+	const charts = page.getByTestId('results').getByRole('img');
+	await expect(charts).toHaveCount(3);
+	for (let i = 0; i < 3; i++) await expect(charts.nth(i)).toBeVisible();
+	// Each chart keeps its numbers in a closed "Show data" table
+	const showData = page.getByTestId('results').getByText('Show data');
+	await expect(showData).toHaveCount(3);
+	await showData.nth(1).click();
+	await expect(
+		page.getByRole('table', { name: 'Share of duels ending in each round' })
+	).toBeVisible();
 
-	const winRates = page.locator('.winner-value');
+	const winRates = page.getByTestId('winner-value');
 	await expect(winRates).toHaveCount(3);
 	for (let i = 0; i < 3; i++) await expect(winRates.nth(i)).toHaveText(/^\d{1,3}\.\d%$/);
-	await expect(page.locator('.seed-used')).toHaveText('12345');
-	await expect(page.locator('.stale-warning')).toHaveCount(0);
+	await expect(page.getByTestId('seed-used')).toHaveText('12345');
+	await expect(page.getByTestId('stale-warning')).toHaveCount(0);
 
 	// Editing a character flags the old results as stale and keeps the run's labels.
-	await page.locator('#charA-name').fill('Renamed');
-	await expect(page.locator('.stale-warning')).toBeVisible();
-	await expect(page.locator('.winner-label').first()).toHaveText('Character A');
+	await page.getByTestId('builder-A').getByLabel('Name').fill('Renamed');
+	await expect(page.getByTestId('stale-warning')).toBeVisible();
+	await expect(page.getByTestId('winner-label').first()).toHaveText('Character A');
 
 	expect(pageErrors).toEqual([]);
 });

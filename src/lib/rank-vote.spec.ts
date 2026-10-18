@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
 	MAX_CHOICES,
+	PALETTE_SIZE,
+	choiceColor,
+	colorStyle,
 	b64uEncode,
 	b64uDecode,
 	cb32Encode,
@@ -735,5 +738,15 @@ describe('Rank Vote - Tally Methods', () => {
 				);
 			}
 		});
+	});
+});
+
+describe('choice colours', () => {
+	it('cycles the shared data palette and dashes the repeats', () => {
+		expect(choiceColor(0)).toBe('var(--data-1)');
+		expect(choiceColor(PALETTE_SIZE - 1)).toBe('var(--data-12)');
+		expect(choiceColor(PALETTE_SIZE)).toBe('var(--data-1)');
+		expect(colorStyle(0)).toBe('--choice-color:var(--data-1);--choice-line:solid');
+		expect(colorStyle(MAX_CHOICES - 1)).toBe('--choice-color:var(--data-2);--choice-line:dashed');
 	});
 });

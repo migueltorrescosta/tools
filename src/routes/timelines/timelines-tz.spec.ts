@@ -1,6 +1,6 @@
 import { afterAll, describe, it, expect } from 'vitest';
 import {
-	buildTimelineRows,
+	groupByYear,
 	formatShortDate,
 	getYear,
 	isPast,
@@ -38,9 +38,7 @@ describe.each(zones)('calendar dates in TZ=%s', (zone) => {
 				{ id: 1, emoji: '🎆', date: '2025-12-31', title: 'Eve', description: '' },
 				{ id: 2, emoji: '🎉', date: '2026-01-01', title: 'New Year', description: '' }
 			];
-			const years = buildTimelineRows(events, false).flatMap((r) =>
-				r.type === 'year' ? [r.year] : []
-			);
+			const years = groupByYear(events).map((g) => g.year);
 			expect(years).toEqual([2025, 2026]);
 		});
 	});
