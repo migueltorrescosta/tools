@@ -184,7 +184,9 @@
 	}
 
 	.volt-year {
-		flex: 1;
+		/* Equal columns whatever the font: a wide fallback font must not stretch them off the tracks */
+		flex: 1 1 0;
+		min-width: 0;
 		font-size: var(--text-xs);
 		color: var(--text-muted);
 		font-variant-numeric: tabular-nums;
@@ -319,6 +321,11 @@
 		.volt-inner {
 			--gutter: 100px;
 			min-width: 500px;
+		}
+
+		/* Label every other year so the numbers don't run together; columns stay in place */
+		.volt-year:nth-child(even) {
+			visibility: hidden;
 		}
 	}
 </style>
