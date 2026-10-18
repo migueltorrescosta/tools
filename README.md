@@ -51,6 +51,7 @@ CI: `.github/workflows/ci.yml` runs check, lint, unit and e2e on every pull requ
 
 - `src/routes/<tool>/`: one SvelteKit page per tool, with its e2e suite in `e2e/`.
 - `src/lib/`: tool logic lives in `src/lib/<tool>/` or `src/lib/<tool>.ts`; a route may keep route-only helpers in `src/routes/<tool>/lib/`; specs sit next to the module they test. Bundled data is in `src/lib/data/`.
+- `src/lib/ui/` and `src/lib/styles/`: shared components and design tokens (light/dark via `light-dark()`); pages use these instead of their own colours.
 - `static/`: static assets.
 
 ## Build and deploy

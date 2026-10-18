@@ -490,6 +490,15 @@
 		font-weight: 500;
 	}
 
+	/* Compound tenses ("you all have been able") would overflow a phone screen. */
+	@media (max-width: 480px) {
+		.vc-translation,
+		.vc-answer {
+			white-space: normal;
+			overflow-wrap: anywhere;
+		}
+	}
+
 	.vc-marker,
 	.vc-mark {
 		width: 1%;
