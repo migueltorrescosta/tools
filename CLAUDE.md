@@ -30,5 +30,5 @@ pnpm test:e2e
 - Package manager: **pnpm** only. Never use npm. The repo tracks `pnpm-lock.yaml`.
 - Node version pinned in `.nvmrc`.
 - No D3 for new visualizations: hand-rolled SVG with Svelte 5 declarative rendering.
-- UI: build pages from `src/lib/ui` (`PageHeader`, `Panel`, `Button`, `Field`, …) and the tokens in `src/lib/styles/tokens.css`; no hard-coded colours (charts use `--data-1..12`). Every route is listed in `MIGRATED` in `src/routes/e2e/a11y.e2e.ts` (axe in light and dark, 390px reflow).
+- UI: build pages from `src/lib/ui` (`PageHeader`, `Panel`, `Button`, `Field`, …) and the tokens in `src/lib/styles/tokens.css`; no hard-coded colours (charts use `--data-1..12`). Every route is listed in `ROUTES` in `src/routes/e2e/a11y.e2e.ts` (axe in light and dark, 390px reflow).
 - No commits on main. Branch or worktree only.
