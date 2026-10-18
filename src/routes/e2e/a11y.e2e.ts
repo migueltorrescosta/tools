@@ -15,7 +15,9 @@ const MIGRATED = [
 	'/verb-conjugator',
 	'/warhammer-simulator',
 	// A fixed timeline: without ?t the page picks one at random.
-	'/timelines?t=llm-breakthroughs'
+	'/timelines?t=llm-breakthroughs',
+	'/volt',
+	'/company-trends'
 ];
 const WCAG_22_AA = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
