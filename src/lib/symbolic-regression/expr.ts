@@ -7,6 +7,12 @@ import type { BinaryOp, Dataset, Expr, UnaryOp } from './types';
 
 export const constant = (value: number): Expr => ({ kind: 'const', value });
 export const variable = (index: number): Expr => ({ kind: 'var', index });
+/** 1_A(x_index); `mask` is an unsigned 32-bit set of level codes. */
+export const indicator = (index: number, mask: number): Expr => ({
+	kind: 'indicator',
+	index,
+	mask: mask >>> 0
+});
 export const unary = (op: UnaryOp, child: Expr): Expr => ({ kind: 'unary', op, child });
 export const binary = (op: BinaryOp, left: Expr, right: Expr): Expr => ({
 	kind: 'binary',
@@ -20,6 +26,7 @@ export function complexity(e: Expr): number {
 	switch (e.kind) {
 		case 'const':
 		case 'var':
+		case 'indicator':
 			return 1;
 		case 'unary':
 			return 1 + complexity(e.child);
@@ -35,6 +42,8 @@ export function clone(e: Expr): Expr {
 			return constant(e.value);
 		case 'var':
 			return variable(e.index);
+		case 'indicator':
+			return indicator(e.index, e.mask);
 		case 'unary':
 			return unary(e.op, clone(e.child));
 		case 'binary':
@@ -49,6 +58,8 @@ export function exprKey(e: Expr): string {
 			return String(e.value);
 		case 'var':
 			return `x${e.index}`;
+		case 'indicator':
+			return `1[x${e.index}:${e.mask}]`;
 		case 'unary':
 			return `${e.op}(${exprKey(e.child)})`;
 		case 'binary':
@@ -63,6 +74,8 @@ export function shapeKey(e: Expr): string {
 			return 'c';
 		case 'var':
 			return `x${e.index}`;
+		case 'indicator':
+			return `1[x${e.index}:${e.mask}]`;
 		case 'unary':
 			return `${e.op}(${shapeKey(e.child)})`;
 		case 'binary':
@@ -77,6 +90,10 @@ export function exprEquals(a: Expr, b: Expr): boolean {
 			return Object.is(a.value, (b as typeof a).value);
 		case 'var':
 			return a.index === (b as typeof a).index;
+		case 'indicator': {
+			const u = b as typeof a;
+			return a.index === u.index && a.mask === u.mask;
+		}
 		case 'unary': {
 			const u = b as typeof a;
 			return a.op === u.op && exprEquals(a.child, u.child);
@@ -111,6 +128,7 @@ export function setConstants(e: Expr, values: ArrayLike<number>): Expr {
 			case 'const':
 				return constant(values[i++]);
 			case 'var':
+			case 'indicator':
 				return n;
 			case 'unary':
 				return unary(n.op, walk(n.child));
@@ -128,6 +146,7 @@ export function setConstants(e: Expr, values: ArrayLike<number>): Expr {
 
 const OP_CONST = 0;
 const OP_VAR = 1;
+const OP_INDICATOR = 7;
 const BINARY_CODE: Record<BinaryOp, number> = { add: 2, sub: 3, mul: 4, div: 5, pow: 6 };
 const UNARY_CODE: Record<UnaryOp, number> = {
 	square: 10,
@@ -140,10 +159,14 @@ const UNARY_CODE: Record<UnaryOp, number> = {
 	abs: 17
 };
 
-/** A tree compiled to postfix. `arg` holds the constant value or the variable index. */
+/**
+ * A tree compiled to postfix. `arg` holds the constant value or the variable
+ * index; `mask` holds an indicator's level set.
+ */
 export interface Program {
 	code: Int32Array;
 	arg: Float64Array;
+	mask: Uint32Array;
 	/** Positions in `code` of the constants, leaves left to right. */
 	constSlots: Int32Array;
 	/**
@@ -159,6 +182,7 @@ export function compile(e: Expr): Program {
 	const size = complexity(e);
 	const code = new Int32Array(size);
 	const arg = new Float64Array(size);
+	const mask = new Uint32Array(size);
 	const check = new Uint8Array(size);
 	const slots: number[] = [];
 	let k = 0;
@@ -171,6 +195,11 @@ export function compile(e: Expr): Program {
 				return;
 			case 'var':
 				code[k] = OP_VAR;
+				arg[k++] = n.index;
+				return;
+			case 'indicator':
+				code[k] = OP_INDICATOR;
+				mask[k] = n.mask;
 				arg[k++] = n.index;
 				return;
 			case 'unary':
@@ -191,7 +220,7 @@ export function compile(e: Expr): Program {
 	};
 	walk(e);
 	check[size - 1] = 1;
-	return { code, arg, constSlots: Int32Array.from(slots), check };
+	return { code, arg, mask, constSlots: Int32Array.from(slots), check };
 }
 
 /** Scratch buffers, one set per row count, reused across evaluations. */
@@ -404,7 +433,7 @@ export function runProgram(
 	n: number,
 	rows?: ArrayLike<number>
 ): Float64Array | null {
-	const { code, arg, check } = prog;
+	const { code, arg, mask, check } = prog;
 	let sp = 0;
 	for (let k = 0; k < code.length; k++) {
 		const op = code[k];
@@ -418,6 +447,13 @@ export function runProgram(
 				for (let i = 0; i < n; i++) o[i] = col[rows[i]];
 				stackArr[sp++] = o;
 			} else stackArr[sp++] = col;
+		} else if (op === OP_INDICATOR) {
+			const col = x[arg[k]];
+			const m = mask[k];
+			const o = buffer(n, sp);
+			if (rows) for (let i = 0; i < n; i++) o[i] = (m >>> col[rows[i]]) & 1;
+			else for (let i = 0; i < n; i++) o[i] = (m >>> col[i]) & 1;
+			stackArr[sp++] = o;
 		} else if (op >= 10) {
 			const a = stackArr[sp - 1];
 			if (a === null) {

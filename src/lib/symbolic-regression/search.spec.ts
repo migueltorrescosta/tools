@@ -21,6 +21,18 @@ const product = syntheticData({
 	f: ([a, b]) => a * b + 1
 });
 
+// cost = 4 + 0.8·w + 6·1[zone ∈ {2, 3}] over five zones
+const zones = ['a', 'b', 'c', 'd', 'e'];
+const categorical = syntheticData({
+	rows: 300,
+	ranges: [
+		[0.5, 20],
+		[0, 0]
+	],
+	levels: [null, zones],
+	f: ([w, z]) => 4 + 0.8 * w + (z === 2 || z === 3 ? 6 : 0)
+});
+
 /** The front entry with one of the given shapes, if any. */
 function find(front: FrontEntry[], shapes: string[]): FrontEntry | undefined {
 	return front.find((e) => shapes.includes(shapeKey(e.expr)));
@@ -44,6 +56,13 @@ describe('runSearch', () => {
 		expect(hit, JSON.stringify(front.map((e) => shapeKey(e.expr)))).toBeDefined();
 		expect(Math.abs(getConstants(hit!.expr)[0] - 2.5)).toBeLessThan(1e-3);
 		expect(hit!.trainMse).toBeLessThan(1e-12);
+	});
+
+	it('recovers a set indicator on a categorical input', () => {
+		const front = runSearch(categorical, settings({ seed: 1 }), { iterations: ITERATIONS });
+		const exact = front.find((e) => e.trainMse < 1e-12);
+		expect(exact, JSON.stringify(front.map((e) => shapeKey(e.expr)))).toBeDefined();
+		expect(shapeKey(exact!.expr)).toMatch(/1\[x1:(12|19)\]/);
 	});
 
 	it('recovers y = x1·x2 + 1', () => {

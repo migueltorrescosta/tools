@@ -15,7 +15,10 @@ export const MAX_SAVED_CSV_LENGTH = 2_000_000;
 export interface ShareState {
 	operators: OperatorName[];
 	target: string | null;
+	/** Numeric inputs. */
 	inputs: string[];
+	/** Categorical inputs. */
+	categorical: string[];
 	timeBudgetSec: number;
 	validationFraction: number;
 	seed: number;
@@ -36,6 +39,7 @@ export function encodeShareParams(state: ShareState): URLSearchParams {
 	if (state.target !== null) params.set('target', state.target);
 	// Repeated so column names may contain commas
 	for (const name of state.inputs) params.append('in', name);
+	for (const name of state.categorical) params.append('cat', name);
 	params.set('budget', String(state.timeBudgetSec));
 	params.set('split', String(state.validationFraction));
 	params.set('seed', String(state.seed));
@@ -63,6 +67,7 @@ export function decodeShareParams(params: URLSearchParams): Partial<ShareState> 
 	const target = params.get('target');
 	if (target !== null) out.target = target;
 	if (params.has('in')) out.inputs = params.getAll('in');
+	if (params.has('cat')) out.categorical = params.getAll('cat');
 	const budget = finiteParam(params, 'budget');
 	if (budget !== undefined && budget > 0) out.timeBudgetSec = budget;
 	const split = finiteParam(params, 'split');
@@ -76,8 +81,8 @@ export function decodeShareParams(params: URLSearchParams): Partial<ShareState> 
 
 /** True when the URL carries any share setting, so it takes priority over saved settings. */
 export function hasShareParams(params: URLSearchParams): boolean {
-	return ['example', 'ops', 'target', 'in', 'budget', 'split', 'seed', 'workers'].some((key) =>
-		params.has(key)
+	return ['example', 'ops', 'target', 'in', 'cat', 'budget', 'split', 'seed', 'workers'].some(
+		(key) => params.has(key)
 	);
 }
 

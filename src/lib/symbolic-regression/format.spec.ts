@@ -174,6 +174,8 @@ describe('toJavaScript', () => {
 				return e.value;
 			case 'var':
 				return x[e.index];
+			case 'indicator':
+				return (e.mask >>> x[e.index]) & 1;
 			case 'unary': {
 				const a = reference(e.child, x);
 				const fns: Record<UnaryOp, (t: number) => number> = {
@@ -239,5 +241,38 @@ describe('toJavaScript', () => {
 				else expect(actual, code).toBe(expected);
 			}
 		}
+	});
+});
+
+describe('indicators', () => {
+	const ind = (index: number, mask: number): Expr => ({ kind: 'indicator', index, mask });
+	const names = ['w', 'zone'];
+	const levels = [null, ['city', 'island', 'remote_far']];
+	// 6·1[zone ∈ {island, remote_far}] + w
+	const e = b('add', b('mul', c(6), ind(1, 0b110)), v(0));
+
+	it('renders as text', () => {
+		expect(toText(e, names, levels)).toBe('6 * 1[zone ∈ {island, remote_far}] + w');
+	});
+
+	it('renders as LaTeX with escaped level names', () => {
+		expect(toLatex(e, names, levels)).toBe(
+			'6 \\cdot \\mathbf{1}_{\\{\\text{island}, \\text{remote\\_far}\\}}\\left(\\mathrm{zone}\\right) + w'
+		);
+	});
+
+	it('renders as Python and JavaScript over string levels', () => {
+		expect(toPython(e, names, levels)).toBe(
+			'6 * np.isin(zone, ["island", "remote_far"]).astype(float) + w'
+		);
+		expect(toJavaScript(e, names, levels)).toBe(
+			'6 * (["island", "remote_far"].includes(zone) ? 1 : 0) + w'
+		);
+	});
+
+	it('uses number literals when every level is numeric', () => {
+		expect(toJavaScript(ind(0, 0b101), ['g'], [['1', '2', '3.5']])).toBe(
+			'([1, 3.5].includes(g) ? 1 : 0)'
+		);
 	});
 });

@@ -10,7 +10,9 @@
 	import {
 		analyzeColumns,
 		buildDataset,
-		defaultInputs,
+		canBeCategorical,
+		defaultModes,
+		inputChoices,
 		splitDataset
 	} from '$lib/symbolic-regression/dataset';
 	import { evaluate } from '$lib/symbolic-regression/expr';
@@ -19,9 +21,10 @@
 		toLatex,
 		toPython,
 		toText,
-		formatNumber
+		formatNumber,
+		type Levels
 	} from '$lib/symbolic-regression/format';
-	import { toMathML } from '$lib/symbolic-regression/mathml';
+	import { renderTex } from '$lib/tex';
 	import { recommendedIndex } from '$lib/symbolic-regression/front';
 	import { WorkerSearchEngine } from '$lib/symbolic-regression/worker-engine';
 	import { defaultWorkerCount } from '$lib/worker-pool';
@@ -39,15 +42,30 @@
 	} from '$lib/symbolic-regression/state';
 	import {
 		ALL_OPERATORS,
+		CATEGORY_MAX,
+		CATEGORY_WARN,
 		DEFAULT_OPERATORS,
 		DEFAULT_SETTINGS,
 		UNARY_OPS,
 		type FrontEntry,
+		type InputMode,
 		type OperatorName,
 		type PreparedData
 	} from '$lib/symbolic-regression/types';
-	import { Alert, Button, Field, PageHeader, Panel } from '$lib/ui';
+	import {
+		Alert,
+		Button,
+		Field,
+		InfoTip,
+		PageHeader,
+		Panel,
+		SegmentedControl,
+		ShareActions
+	} from '$lib/ui';
+	import Tex from '$lib/ui/Tex.svelte';
 	import ScatterPlot from './lib/ScatterPlot.svelte';
+	import FrontPlot from './lib/FrontPlot.svelte';
+	import { GLOSSARY } from './lib/glossary';
 	import { thin, type Point } from '$lib/plot';
 
 	const OPERATOR_LABELS: Record<OperatorName, string> = {
@@ -78,13 +96,35 @@
 
 	const columns = $derived(parsed ? analyzeColumns(parsed) : []);
 	let targetIndex = $state(-1);
-	let inputIndices = $state<number[]>([]);
+	/** How each column (by index) enters the search. */
+	let modes = $state<InputMode[]>([]);
+	const choices = $derived(inputChoices(modes));
 
 	const built = $derived(
-		parsed && targetIndex >= 0 && inputIndices.length > 0
-			? buildDataset(parsed, targetIndex, inputIndices)
+		parsed && targetIndex >= 0 && choices.length > 0
+			? buildDataset(parsed, targetIndex, choices)
 			: null
 	);
+
+	const MODE_LABELS: Record<InputMode, string> = {
+		exclude: 'Exclude',
+		include: 'Include',
+		categorical: 'Categorical'
+	};
+	function modeOptions(c: (typeof columns)[number]) {
+		return (['exclude', 'include', 'categorical'] as const).map((value) => {
+			const disabled =
+				(value === 'include' && !c.numeric) || (value === 'categorical' && !canBeCategorical(c));
+			const title = !disabled
+				? undefined
+				: value === 'include'
+					? 'Not numeric'
+					: c.levels > CATEGORY_MAX
+						? `More than ${CATEGORY_MAX} distinct values`
+						: 'Only one distinct value';
+			return { value, label: MODE_LABELS[value], disabled, title };
+		});
+	}
 
 	// --- Settings ---
 	let operators = $state<OperatorName[]>([...DEFAULT_OPERATORS]);
@@ -103,6 +143,8 @@
 	let front = $state.raw<FrontEntry[]>([]);
 	/** Input names the front's `var` indices refer to. */
 	let frontNames = $state.raw<string[]>([]);
+	/** Level names of the front's categorical inputs. */
+	let frontLevels = $state.raw<Levels>([]);
 	let frontTarget = $state('');
 	let selected = $state(-1);
 	/** The split the current front was scored on; rebuilt from settings after a reload. */
@@ -114,6 +156,7 @@
 	// Pending column choices from the URL or saved settings, applied when matching data loads
 	let pendingTarget: string | null = null;
 	let pendingInputs: string[] | null = null;
+	let pendingCategorical: string[] | null = null;
 
 	let hydrated = $state(false);
 	let routerReady = $state(false);
@@ -153,11 +196,23 @@
 		let target = pendingTarget !== null ? byName(pendingTarget) : -1;
 		if (target < 0) target = [...cols].reverse().find((c) => c.numeric)?.index ?? -1;
 		targetIndex = target;
-		const fromPending = (pendingInputs ?? []).map(byName).filter((i) => i >= 0 && i !== target);
-		inputIndices =
-			pendingInputs && fromPending.length > 0 ? fromPending : defaultInputs(cols, target);
+		const fromPending = cols.map((): InputMode => 'exclude');
+		for (const name of pendingInputs ?? []) {
+			const i = byName(name);
+			if (i >= 0 && i !== target) fromPending[i] = 'include';
+		}
+		for (const name of pendingCategorical ?? []) {
+			const c = cols.find((c) => c.name === name);
+			if (c && c.index !== target && canBeCategorical(c)) fromPending[c.index] = 'categorical';
+		}
+		const anyPending = pendingInputs !== null || pendingCategorical !== null;
+		modes =
+			anyPending && fromPending.some((m) => m !== 'exclude')
+				? fromPending
+				: defaultModes(cols, target);
 		pendingTarget = null;
 		pendingInputs = null;
+		pendingCategorical = null;
 	}
 
 	/** `columns` (from a share URL or saved settings) override the example's own choice. */
@@ -166,6 +221,7 @@
 		if (!ex) return;
 		pendingTarget = columns?.target ?? ex.target;
 		pendingInputs = columns?.inputs ?? ex.inputs;
+		pendingCategorical = columns?.categorical ?? ex.categorical ?? [];
 		if (ex.operators) operators = [...ex.operators];
 		loadCsv(ex.csv, ex.name, ex.id);
 	}
@@ -191,13 +247,7 @@
 
 	function setTarget(index: number) {
 		targetIndex = index;
-		inputIndices = defaultInputs(columns, index);
-	}
-
-	function toggleInput(index: number, on: boolean) {
-		inputIndices = on
-			? [...inputIndices, index].sort((a, b) => a - b)
-			: inputIndices.filter((i) => i !== index);
+		modes = defaultModes(columns, index);
 	}
 
 	function toggleOperator(op: OperatorName, on: boolean) {
@@ -214,6 +264,7 @@
 		canContinue = false;
 		front = [];
 		frontNames = [];
+		frontLevels = [];
 		selected = -1;
 		runData = null;
 		iterations = 0;
@@ -239,6 +290,7 @@
 		const data = splitDataset(built, settings.validationFraction, settings.seed);
 		runData = data;
 		frontNames = data.inputNames;
+		frontLevels = data.levels;
 		frontTarget = data.targetName;
 		engine = new WorkerSearchEngine(
 			() =>
@@ -301,10 +353,37 @@
 	});
 
 	let plotInput = $state(0);
+	/** The equation hovered in the list, highlighted on the plot. */
+	let hoveredRow = $state<number | null>(null);
 
-	const paretoPoints = $derived<Point[]>(
-		front.map((f, i) => ({ x: f.complexity, y: f.valMse, id: i }))
+	/** Sequential colour by complexity, shared by the list and the plot. */
+	const colors = $derived.by(() => {
+		const cs = front.map((f) => f.complexity);
+		const lo = Math.min(...cs);
+		const span = Math.max(...cs) - lo || 1;
+		return cs.map(
+			(c) =>
+				`color-mix(in oklab, var(--data-3), var(--data-9) ${Math.round(((c - lo) / span) * 100)}%)`
+		);
+	});
+	const equationsTex = $derived(
+		front.map((f) => renderTex(toLatex(f.expr, frontNames, frontLevels)))
 	);
+	const selectedTex = $derived(
+		selectedEntry
+			? renderTex(
+					`${toLatex({ kind: 'var', index: 0 }, [frontTarget])} = ${toLatex(selectedEntry.expr, frontNames, frontLevels)}`,
+					true
+				)
+			: ''
+	);
+	const METRICS = [
+		['trainMse', 'Train MSE'],
+		['valMse', 'Validation MSE'],
+		['valR2', 'Validation R²'],
+		['valRmse', 'Validation RMSE'],
+		['score', 'Score']
+	] as const;
 	const predictedPoints = $derived.by<Point[]>(() => {
 		if (!plotData) return [];
 		const { val, pred } = plotData;
@@ -324,7 +403,8 @@
 	/** Every row, for the target-against-input plot, while the columns match the front. */
 	const allRows = $derived.by(() => {
 		if (!selectedEntry || !built) return null;
-		if (built.inputNames.join('\u0000') !== frontNames.join('\u0000')) return null;
+		if (columnsKey(built.inputNames, built.levels) !== columnsKey(frontNames, frontLevels))
+			return null;
 		const pred = evaluate(selectedEntry.expr, built.data.x);
 		return pred ? { data: built.data, pred } : null;
 	});
@@ -344,13 +424,18 @@
 		};
 	});
 
+	/** Equal for the same inputs coded the same way. */
+	function columnsKey(names: string[], levels: Levels): string {
+		return JSON.stringify([names, levels]);
+	}
+
 	// --- Copy ---
 	let copied = $state('');
 	async function copy(kind: 'text' | 'latex' | 'python' | 'js') {
 		if (!selectedEntry) return;
 		const f = { text: toText, latex: toLatex, python: toPython, js: toJavaScript }[kind];
 		try {
-			await copyToClipboard(f(selectedEntry.expr, frontNames));
+			await copyToClipboard(f(selectedEntry.expr, frontNames, frontLevels));
 			copied = kind;
 		} catch {
 			copied = '';
@@ -361,7 +446,14 @@
 	const shareState = $derived<ShareState>({
 		operators: [...operators],
 		target: columns[targetIndex]?.name ?? null,
-		inputs: inputIndices.map((i) => columns[i]?.name).filter((n): n is string => !!n),
+		inputs: choices
+			.filter((c) => !c.categorical)
+			.map((c) => columns[c.index]?.name)
+			.filter((n): n is string => !!n),
+		categorical: choices
+			.filter((c) => c.categorical)
+			.map((c) => columns[c.index]?.name)
+			.filter((n): n is string => !!n),
 		timeBudgetSec,
 		validationFraction: validationPercent / 100,
 		seed,
@@ -389,7 +481,12 @@
 	});
 
 	$effect(() => {
-		const json = JSON.stringify({ names: frontNames, target: frontTarget, front });
+		const json = JSON.stringify({
+			names: frontNames,
+			levels: frontLevels,
+			target: frontTarget,
+			front
+		});
 		if (!persist.isOpen || running) return;
 		if (front.length === 0) storage?.removeItem(FRONT_KEY);
 		else persist.write(FRONT_KEY, json);
@@ -446,23 +543,28 @@
 			// Column settings apply to a user CSV only where its names match
 			pendingTarget = share.target ?? null;
 			pendingInputs = share.inputs ?? null;
+			pendingCategorical = share.categorical ?? null;
 			if (!fromUrl && savedData) loadCsv(savedData.csv, savedData.name, null);
 		}
 		// After the example, so the URL's operators win over the example's
 		applyShare(share);
-		const savedFront = readJson<{ names: string[]; target: string; front: FrontEntry[] }>(
-			storage,
-			FRONT_KEY
-		);
+		const savedFront = readJson<{
+			names: string[];
+			levels?: Levels;
+			target: string;
+			front: FrontEntry[];
+		}>(storage, FRONT_KEY);
 		if (
 			savedFront &&
 			savedFront.front.length > 0 &&
 			built &&
 			savedFront.target === built.targetName &&
-			JSON.stringify(savedFront.names) === JSON.stringify(built.inputNames)
+			columnsKey(savedFront.names, savedFront.levels ?? []) ===
+				columnsKey(built.inputNames, built.levels)
 		) {
 			front = savedFront.front;
 			frontNames = savedFront.names;
+			frontLevels = savedFront.levels ?? [];
 			frontTarget = savedFront.target;
 			selected = recommendedIndex(front);
 		}
@@ -480,7 +582,7 @@
 		running
 			? 'Searching…'
 			: canContinue && selectedEntry
-				? `Search stopped with ${front.length} equations. Selected: ${frontTarget} = ${toText(selectedEntry.expr, frontNames)}`
+				? `Search stopped with ${front.length} equations. Selected: ${frontTarget} = ${toText(selectedEntry.expr, frontNames, frontLevels)}`
 				: ''
 	);
 
@@ -490,8 +592,13 @@
 </script>
 
 <div class="container" data-hydrated={hydrated || undefined}>
-	<PageHeader path="/symbolic-regression"
-		>Fit compact, interpretable equations to a CSV. Everything runs in your browser.</PageHeader
+	<PageHeader path="/symbolic-regression">
+		{#snippet actions()}<ShareActions
+				url={shareUrl}
+				onClear={clearAll}
+				description="settings only, never your data"
+			/>{/snippet}
+		Fit compact, interpretable equations to a CSV. Everything runs in your browser.</PageHeader
 	>
 
 	<div class="layout">
@@ -557,19 +664,27 @@
 								</select>
 							{/snippet}
 						</Field>
-						<fieldset class="checks" data-testid="inputs">
-							<legend>Inputs</legend>
+						<fieldset class="columns" data-testid="inputs">
+							<legend>
+								<span class="legend-row"
+									>Inputs <InfoTip label="input modes">{GLOSSARY.inputs}</InfoTip></span
+								>
+							</legend>
 							{#each columns as c (c.index)}
-								{#if c.index !== targetIndex}
-									<label class="check" class:disabled={!c.numeric}>
-										<input
-											type="checkbox"
-											disabled={!c.numeric}
-											checked={inputIndices.includes(c.index)}
-											onchange={(e) => toggleInput(c.index, e.currentTarget.checked)}
+								{#if c.index !== targetIndex && modes[c.index] !== undefined}
+									<div class="column" data-column={c.name}>
+										<SegmentedControl
+											legend="{c.name} ({c.levels > 1000 ? '1000+' : c.levels} values)"
+											options={modeOptions(c)}
+											bind:value={modes[c.index]}
 										/>
-										{c.name}
-									</label>
+										{#if modes[c.index] === 'categorical' && c.levels > CATEGORY_WARN}
+											<p class="warn" data-testid="levels-warning">
+												{c.levels} categories: the search over subsets slows down and may overfit. Merge
+												rare values if you can.
+											</p>
+										{/if}
+									</div>
 								{/if}
 							{/each}
 						</fieldset>
@@ -606,6 +721,7 @@
 							{/snippet}
 						</Field>
 						<Field label="Validation (%)">
+							{#snippet info()}<InfoTip label="validation">{GLOSSARY.validation}</InfoTip>{/snippet}
 							{#snippet children(props)}
 								<input
 									class="control"
@@ -664,14 +780,24 @@
 				{:else}
 					<div class="stack">
 						{#if selectedEntry}
-							<div class="equation" data-testid="equation">
-								<span class="eq-target">{frontTarget} =</span>
-								<!-- eslint-disable-next-line svelte/no-at-html-tags -- MathML generated from the tree, names XML-escaped -->
-								{@html toMathML(selectedEntry.expr, frontNames)}
-							</div>
+							<div class="equation" data-testid="equation"><Tex html={selectedTex} /></div>
 							<p class="mono eq-text" data-testid="equation-text">
-								{toText(selectedEntry.expr, frontNames)}
+								{toText(selectedEntry.expr, frontNames, frontLevels)}
 							</p>
+							<dl class="metrics" data-testid="metrics">
+								<div>
+									<dt>Complexity <InfoTip label="complexity">{GLOSSARY.complexity}</InfoTip></dt>
+									<dd>{selectedEntry.complexity}</dd>
+								</div>
+								{#each METRICS as [key, label] (key)}
+									<div>
+										<dt>{label} <InfoTip {label}>{GLOSSARY[key]}</InfoTip></dt>
+										<dd data-testid={key === 'valR2' ? 'r2' : undefined}>
+											{fmt(selectedEntry[key])}
+										</dd>
+									</div>
+								{/each}
+							</dl>
 							<div class="cluster copy-row">
 								<span class="muted">Copy as</span>
 								<Button size="sm" onclick={() => copy('text')}>Text</Button>
@@ -684,64 +810,66 @@
 							</div>
 						{/if}
 
-						<div class="table-wrap">
-							<table data-testid="front">
-								<caption class="sr-only"
-									>Pareto front: one equation per complexity. Select a row to show it.</caption
-								>
-								<thead>
-									<tr>
-										<th scope="col">Complexity</th>
-										<th scope="col">Equation</th>
-										<th scope="col" class="num">Train MSE</th>
-										<th scope="col" class="num">Val. MSE</th>
-										<th scope="col" class="num">Val. R²</th>
-										<th scope="col" class="num">Val. RMSE</th>
-										<th scope="col" class="num">Score</th>
-									</tr>
-								</thead>
-								<tbody>
-									{#each front as f, i (f.complexity)}
-										<tr
-											class:selected={i === selected}
-											onclick={() => (selected = i)}
-											data-complexity={f.complexity}
-										>
-											<td>
-												<Button
-													size="sm"
-													variant="ghost"
-													pressed={i === selected}
-													aria-label="Select the equation of complexity {f.complexity}"
-													>{f.complexity}</Button
-												>{#if i === recommended}<span class="badge" data-testid="best">best</span
-													>{/if}
-											</td>
-											<td class="mono" data-testid="row-equation">{toText(f.expr, frontNames)}</td>
-											<td class="num">{fmt(f.trainMse)}</td>
-											<td class="num">{fmt(f.valMse)}</td>
-											<td class="num" data-testid="r2">{fmt(f.valR2)}</td>
-											<td class="num">{fmt(f.valRmse)}</td>
-											<td class="num">{fmt(f.score)}</td>
-										</tr>
-									{/each}
-								</tbody>
-							</table>
+						<div class="front-head">
+							<h3>
+								Equations by complexity <InfoTip label="complexity">{GLOSSARY.complexity}</InfoTip>
+							</h3>
+							<span class="muted"
+								><span class="badge">best</span>
+								<InfoTip label="best">{GLOSSARY.best}</InfoTip></span
+							>
 						</div>
+						<ol class="front-list" data-testid="front">
+							{#each front as f, i (f.complexity)}
+								<li>
+									<button
+										type="button"
+										class="front-row"
+										class:selected={i === selected}
+										aria-pressed={i === selected}
+										aria-label="Select the equation of complexity {f.complexity}{i === recommended
+											? ' (best)'
+											: ''}"
+										data-complexity={f.complexity}
+										data-equation={toText(f.expr, frontNames, frontLevels)}
+										onclick={() => (selected = i)}
+										onmouseenter={() => (hoveredRow = i)}
+										onmouseleave={() => (hoveredRow = null)}
+										onfocus={() => (hoveredRow = i)}
+										onblur={() => (hoveredRow = null)}
+									>
+										<span class="swatch" style:background={colors[i]} aria-hidden="true"></span>
+										<span class="complexity">{f.complexity}</span>
+										<span class="row-eq" data-testid="row-equation"
+											><Tex html={equationsTex[i]} /></span
+										>
+										{#if i === recommended}<span class="badge" data-testid="best">best</span>{/if}
+									</button>
+								</li>
+							{/each}
+						</ol>
 
 						<div class="plots">
-							<ScatterPlot
-								title="Pareto front (click to select)"
-								testId="pareto-plot"
-								points={paretoPoints}
-								xLabel="Complexity"
-								yLabel="Validation MSE"
-								logY
-								connect
-								selectedId={selected}
-								recommendedId={recommended}
-								onSelect={(id) => (selected = id)}
-							/>
+							<FrontPlot
+								{front}
+								{colors}
+								{selected}
+								{recommended}
+								highlighted={hoveredRow}
+								onSelect={(i) => (selected = i)}
+							>
+								{#snippet tooltip(i)}
+									{@const f = front[i]}
+									<div class="tip-eq"><Tex html={equationsTex[i]} /></div>
+									<dl class="tip-metrics">
+										<dt>Complexity</dt>
+										<dd>{f.complexity}</dd>
+										{#each METRICS as [key, label] (key)}<dt>{label}</dt>
+											<dd>{fmt(f[key])}</dd>{/each}
+									</dl>
+									{#if i === recommended}<p class="muted">Best: {GLOSSARY.best}</p>{/if}
+								{/snippet}
+							</FrontPlot>
 							<ScatterPlot
 								title="Predicted vs actual (validation)"
 								points={predictedPoints}
@@ -781,29 +909,6 @@
 		</div>
 	</div>
 
-	<div class="share">
-		<Panel title="Share and saved data">
-			<div class="share-row">
-				<Field label="Share link (settings only, never your data)">
-					{#snippet children(props)}
-						<input
-							class="control"
-							type="text"
-							readonly
-							value={shareUrl}
-							data-testid="share-url"
-							{...props}
-						/>
-					{/snippet}
-				</Field>
-				<div class="cluster">
-					<Button onclick={() => copyToClipboard(shareUrl)}>Copy link</Button>
-					<Button variant="danger" onclick={clearAll}>Clear saved data</Button>
-				</div>
-			</div>
-		</Panel>
-	</div>
-
 	<details class="how">
 		<summary>How it works</summary>
 		<p>
@@ -838,9 +943,6 @@
 	.inputs,
 	.results {
 		min-width: 0;
-	}
-	.share {
-		margin-top: var(--sp-3);
 	}
 	.muted {
 		color: var(--text-muted);
@@ -929,10 +1031,6 @@
 		font-size: var(--text-xl);
 		overflow-x: auto;
 	}
-	.eq-target {
-		color: var(--text-muted);
-		white-space: nowrap;
-	}
 	.eq-text {
 		color: var(--text-muted);
 		overflow-wrap: anywhere;
@@ -949,53 +1047,149 @@
 		font-size: var(--text-sm);
 		color: var(--success-text);
 	}
-	.table-wrap {
-		max-height: 18rem;
+	.columns {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-2);
+		margin: 0;
+		padding: 0;
+		border: 0;
+		min-width: 0;
+	}
+	.columns > legend {
+		padding: 0;
+		margin-bottom: var(--sp-1);
+		font-size: var(--text-sm);
+		font-weight: 500;
+	}
+	.legend-row {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--sp-0);
+	}
+	.column :global(legend) {
+		font-weight: 400;
+		font-size: var(--text-sm);
+		overflow-wrap: anywhere;
+	}
+	.column :global(.ui-options label) {
+		min-height: var(--control-h-sm);
+		padding: 0 var(--sp-2);
+		font-size: var(--text-sm);
+	}
+	.warn {
+		margin-top: var(--sp-1);
+		font-size: var(--text-xs);
+		color: var(--warning-text);
+	}
+	.metrics {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--sp-1) var(--sp-4);
+		margin: 0;
+		font-size: var(--text-sm);
+	}
+	.metrics dt {
+		display: flex;
+		align-items: center;
+		color: var(--text-muted);
+		font-size: var(--text-xs);
+	}
+	.metrics dd {
+		margin: 0;
+		font-family: var(--font-mono);
+	}
+	.front-head {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		align-items: center;
+		gap: var(--sp-1);
+	}
+	.front-head h3 {
+		display: inline-flex;
+		align-items: center;
+		margin: 0;
+		font-size: var(--text-sm);
+		font-weight: 600;
+	}
+	.front-list {
+		max-height: 22rem;
 		overflow: auto;
+		margin: 0;
+		padding: 0;
+		list-style: none;
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
 	}
-	table {
-		border-collapse: collapse;
+	.front-list li + li {
+		border-top: 1px solid var(--border);
+	}
+	.front-row {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-2);
 		width: 100%;
-		font-size: var(--text-sm);
-	}
-	th,
-	td {
-		height: 32px;
-		padding: var(--sp-0) var(--sp-2);
+		min-height: 36px;
+		padding: var(--sp-1) var(--sp-2);
+		border: 0;
+		background: transparent;
+		color: var(--text);
 		text-align: left;
-		white-space: nowrap;
-		border-bottom: 1px solid var(--border);
-	}
-	th {
-		position: sticky;
-		top: 0;
-		z-index: 1;
-		background: var(--surface-2);
-		color: var(--text-muted);
-		font-weight: 600;
-	}
-	.num {
-		text-align: right;
-	}
-	td.mono {
-		min-width: 14rem;
-		white-space: normal;
-		overflow-wrap: anywhere;
-	}
-	tbody tr {
 		cursor: pointer;
 	}
-	tbody tr:hover {
+	.front-row:hover {
 		background: var(--surface-2);
 	}
-	tr.selected {
+	.front-row.selected {
 		background: var(--accent-bg);
 		box-shadow: inset 3px 0 0 var(--accent);
 	}
-	tr.selected:hover {
-		background: var(--accent-bg);
+	.front-row:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: -2px;
+	}
+	.swatch {
+		flex: none;
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+	}
+	.complexity {
+		flex: none;
+		min-width: 2ch;
+		font-family: var(--font-mono);
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+		text-align: right;
+	}
+	.row-eq {
+		flex: 1 1 auto;
+		min-width: 0;
+		padding: var(--sp-0) 0;
+		overflow: auto hidden;
+	}
+	.tip-eq {
+		margin-bottom: var(--sp-1);
+		font-size: var(--text-sm);
+	}
+	.tip-metrics {
+		display: grid;
+		grid-template-columns: auto auto;
+		gap: 0 var(--sp-2);
+		margin: 0;
+	}
+	.tip-metrics dt {
+		color: var(--text-muted);
+	}
+	.tip-metrics dd {
+		margin: 0;
+		font-family: var(--font-mono);
+		text-align: right;
+	}
+	.tip-metrics + :global(p) {
+		margin-top: var(--sp-1);
+		max-width: 18rem;
 	}
 	.badge {
 		margin-left: var(--sp-1);
@@ -1014,14 +1208,5 @@
 	}
 	.input-plot {
 		--gap: var(--sp-2);
-	}
-	.share-row {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--sp-2) var(--sp-3);
-		align-items: end;
-	}
-	.share-row > :global(:first-child) {
-		flex: 1 1 20rem;
 	}
 </style>

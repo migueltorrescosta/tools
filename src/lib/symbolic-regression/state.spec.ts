@@ -12,6 +12,7 @@ const state: ShareState = {
 	operators: ['add', 'mul', 'sqrt'],
 	target: 'T, years',
 	inputs: ['a', 'b,c'],
+	categorical: ['zone', 'd,e'],
 	timeBudgetSec: 30,
 	validationFraction: 0.25,
 	seed: 7,

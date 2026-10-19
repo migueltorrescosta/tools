@@ -12,6 +12,7 @@ import {
 	complexity,
 	constant,
 	getConstants,
+	indicator,
 	programMse,
 	setConstants,
 	unary,
@@ -42,6 +43,8 @@ export interface IslandOptions {
 
 export interface MutationWeights {
 	mutateConstant: number;
+	/** Toggle one level of an indicator's set, or redraw the set. */
+	mutateIndicator: number;
 	mutateOperator: number;
 	swapOperands: number;
 	rotateTree: number;
@@ -64,6 +67,7 @@ export const DEFAULT_ISLAND_OPTIONS: IslandOptions = {
 	initialMaxSize: 5,
 	weights: {
 		mutateConstant: 0.5,
+		mutateIndicator: 0.5,
 		mutateOperator: 1,
 		swapOperands: 0.3,
 		rotateTree: 0.5,
@@ -151,7 +155,10 @@ export class Island {
 	private prng: Prng;
 	private binOps: BinaryOp[];
 	private unOps: UnaryOp[];
-	private nvars: number;
+	/** Inputs usable as leaves: numeric ones as `var`, categorical ones as `indicator`. */
+	private leaves: number[];
+	/** Level count per input; 0 for a numeric input. */
+	private levelCounts: number[];
 	private maxSize: number;
 	private pop: Member[] = [];
 	/** Ring pointer at the oldest member. */
@@ -178,7 +185,9 @@ export class Island {
 		const ops = new Set(settings.operators);
 		this.binOps = BINARY_OPS.filter((o) => ops.has(o));
 		this.unOps = UNARY_OPS.filter((o) => ops.has(o));
-		this.nvars = data.train.x.length;
+		this.levelCounts = data.train.x.map((_, j) => data.levels[j]?.length ?? 0);
+		// A categorical input with one level has no set other than empty or full
+		this.leaves = this.levelCounts.flatMap((k, j) => (k === 1 ? [] : [j]));
 		this.maxSize = Math.max(1, settings.maxComplexity);
 		this.freq = new Float64Array(this.maxSize + 2).fill(1);
 		this.freqTotal = this.freq.length;
@@ -232,8 +241,23 @@ export class Island {
 	// --- random trees -----------------------------------------------------------
 
 	private randomLeaf(): Expr {
-		if (this.nvars > 0 && this.prng.next() < 0.5) return variable(this.prng.int(this.nvars));
+		if (this.leaves.length > 0 && this.prng.next() < 0.5) {
+			const j = this.leaves[this.prng.int(this.leaves.length)];
+			const k = this.levelCounts[j];
+			return k === 0 ? variable(j) : indicator(j, this.randomMask(k));
+		}
 		return constant(this.prng.normal());
+	}
+
+	/**
+	 * A set of levels that is neither empty nor full, as a mask over `k ≥ 2` levels:
+	 * half the time one level (a binary factor variable), else a uniform subset.
+	 */
+	private randomMask(k: number): number {
+		const full = 2 ** k - 1;
+		if (this.prng.next() < 0.5) return (1 << this.prng.int(k)) >>> 0;
+		// Uniform over 1 … full − 1
+		return 1 + Math.floor(this.prng.next() * (full - 1));
 	}
 
 	private randomTree(size: number): Expr {
@@ -273,8 +297,10 @@ export class Island {
 		const w = this.options.weights;
 		const nConst = getConstants(e).length;
 		const full = size >= this.maxSize;
+		const hasIndicator = indicesWhere(e, (n) => n.kind === 'indicator').length > 0;
 		const weights = [
 			nConst > 0 ? w.mutateConstant : 0,
+			hasIndicator ? w.mutateIndicator : 0,
 			size > 1 ? w.mutateOperator : 0,
 			size > 1 ? w.swapOperands : 0,
 			size > 2 ? w.rotateTree : 0,
@@ -294,20 +320,22 @@ export class Island {
 			case 0:
 				return this.mutateConstant(e);
 			case 1:
-				return this.mutateOperator(e);
+				return this.mutateIndicator(e);
 			case 2:
-				return this.swapOperands(e);
+				return this.mutateOperator(e);
 			case 3:
-				return this.rotate(e);
+				return this.swapOperands(e);
 			case 4:
-				return this.addNode(e);
+				return this.rotate(e);
 			case 5:
-				return this.insertNode(e);
+				return this.addNode(e);
 			case 6:
-				return this.deleteNode(e);
+				return this.insertNode(e);
 			case 7:
-				return simplify(e);
+				return this.deleteNode(e);
 			case 8:
+				return simplify(e);
+			case 9:
 				return this.randomTree(
 					1 + this.prng.int(Math.min(this.maxSize, 2 * this.options.initialMaxSize))
 				);
@@ -328,6 +356,23 @@ export class Island {
 			cs[j] = this.prng.next() < 0.5 ? cs[j] * factor : cs[j] / factor;
 		}
 		return setConstants(e, cs);
+	}
+
+	/** Flip one level in or out of an indicator's set (redraw it 10% of the time); null if that empties or fills it. */
+	private mutateIndicator(e: Expr): Expr | null {
+		const idx = indicesWhere(e, (n) => n.kind === 'indicator');
+		if (idx.length === 0) return null;
+		let ok = true;
+		const out = replaceAt(e, idx[this.prng.int(idx.length)], (n) => {
+			if (n.kind !== 'indicator') return n;
+			const k = this.levelCounts[n.index];
+			if (this.prng.next() < 0.1) return indicator(n.index, this.randomMask(k));
+			const mask = (n.mask ^ (1 << this.prng.int(k))) >>> 0;
+			const full = 2 ** k - 1;
+			if (mask === 0 || mask === full) ok = false;
+			return indicator(n.index, mask);
+		});
+		return ok ? out : null;
 	}
 
 	private mutateOperator(e: Expr): Expr | null {
@@ -375,7 +420,10 @@ export class Island {
 
 	/** Replace a leaf by an operator over it (or a fresh leaf) and a new leaf. */
 	private addNode(e: Expr): Expr | null {
-		const idx = indicesWhere(e, (n) => n.kind === 'const' || n.kind === 'var');
+		const idx = indicesWhere(
+			e,
+			(n) => n.kind === 'const' || n.kind === 'var' || n.kind === 'indicator'
+		);
 		return replaceAt(e, idx[this.prng.int(idx.length)], (leaf) =>
 			this.randomOp(this.prng.next() < 0.5 ? leaf : this.randomLeaf(), () => this.randomLeaf())
 		);

@@ -83,9 +83,32 @@ export function foldNegativeRight(op: BinaryOp, right: Expr): { op: BinaryOp; ri
 	return null;
 }
 
+/** Level names per input (null for numeric ones), as in `PreparedData.levels`. */
+export type Levels = readonly (readonly string[] | null)[];
+
+/** The level names in an indicator's set, in code order. */
+function maskLevels(index: number, mask: number, levels: Levels = []): string[] {
+	const names = levels[index];
+	const out: string[] = [];
+	for (let k = 0; k < 32; k++) if ((mask >>> k) & 1) out.push(names?.[k] ?? String(k));
+	return out;
+}
+
+/** Literals of a set's levels for code: numbers when every level of the input is one, else strings. */
+function codeLevels(index: number, mask: number, levels: Levels): string {
+	const all = levels[index] ?? [];
+	const numeric =
+		all.length > 0 && all.every((l) => /^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i.test(l));
+	return maskLevels(index, mask, levels)
+		.map((l) => (numeric ? String(Number(l)) : JSON.stringify(l)))
+		.join(', ');
+}
+
 interface InfixStyle {
 	num(v: number): string;
 	name(index: number): string;
+	/** An indicator, rendered as an atom. */
+	indicator(index: number, mask: number): string;
 	fn: Record<Exclude<UnaryOp, 'square' | 'cube'>, string>;
 	ops: Record<BinaryOp, string>;
 	/** Code keeps the tree's evaluation order: no regrouping of a + (b + c) or a * (b * c). */
@@ -100,6 +123,8 @@ function renderInfix(e: Expr, st: InfixStyle): Frag {
 		}
 		case 'var':
 			return { s: st.name(e.index), p: PREC.atom };
+		case 'indicator':
+			return { s: st.indicator(e.index, e.mask), p: PREC.atom };
 		case 'unary': {
 			const child = renderInfix(e.child, st);
 			if (e.op === 'square' || e.op === 'cube') {
@@ -143,11 +168,13 @@ const CODE_OPS: Record<BinaryOp, string> = {
 	pow: ' ** '
 };
 
-/** Plain human text: `2.5 * x^2`, `sqrt(a) * a`. */
-export function toText(expr: Expr, names: string[]): string {
+/** Plain human text: `2.5 * x^2`, `sqrt(a) * a`, `1[g ∈ {a, b}]`. */
+export function toText(expr: Expr, names: string[], levels: Levels = []): string {
+	const name = (i: number) => names[i] ?? `x${i}`;
 	return renderInfix(expr, {
 		num: formatNumber,
-		name: (i) => names[i] ?? `x${i}`,
+		name,
+		indicator: (i, m) => `1[${name(i)} ∈ {${maskLevels(i, m, levels).join(', ')}}]`,
 		fn: { sqrt: 'sqrt', exp: 'exp', log: 'log', sin: 'sin', cos: 'cos', abs: 'abs' },
 		ops: { ...CODE_OPS, pow: '^' },
 		exact: false
@@ -161,12 +188,17 @@ function codeNumber(v: number, nan: string, inf: string): string {
 	return String(v);
 }
 
-/** A numpy expression over sanitised names (see `sanitizeNames`), e.g. `2.5 * x ** 2`. */
-export function toPython(expr: Expr, names: string[]): string {
+/**
+ * A numpy expression over sanitised names (see `sanitizeNames`), e.g.
+ * `2.5 * x ** 2`; an indicator is `np.isin(g, ["a", "b"]).astype(float)`.
+ */
+export function toPython(expr: Expr, names: string[], levels: Levels = []): string {
 	const ids = sanitizeNames(names);
+	const name = (i: number) => ids[i] ?? `x${i}`;
 	return renderInfix(expr, {
 		num: (v) => codeNumber(v, 'np.nan', 'np.inf'),
-		name: (i) => ids[i] ?? `x${i}`,
+		name,
+		indicator: (i, m) => `np.isin(${name(i)}, [${codeLevels(i, m, levels)}]).astype(float)`,
 		fn: {
 			sqrt: 'np.sqrt',
 			exp: 'np.exp',
@@ -180,12 +212,17 @@ export function toPython(expr: Expr, names: string[]): string {
 	}).s;
 }
 
-/** A JavaScript expression over sanitised names (see `sanitizeNames`), e.g. `2.5 * x ** 2`. */
-export function toJavaScript(expr: Expr, names: string[]): string {
+/**
+ * A JavaScript expression over sanitised names (see `sanitizeNames`), e.g.
+ * `2.5 * x ** 2`; an indicator is `(["a", "b"].includes(g) ? 1 : 0)`.
+ */
+export function toJavaScript(expr: Expr, names: string[], levels: Levels = []): string {
 	const ids = sanitizeNames(names);
+	const name = (i: number) => ids[i] ?? `x${i}`;
 	return renderInfix(expr, {
 		num: (v) => codeNumber(v, 'NaN', 'Infinity'),
-		name: (i) => ids[i] ?? `x${i}`,
+		name,
+		indicator: (i, m) => `([${codeLevels(i, m, levels)}].includes(${name(i)}) ? 1 : 0)`,
 		fn: {
 			sqrt: 'Math.sqrt',
 			exp: 'Math.exp',
@@ -232,20 +269,43 @@ function latexNumber(v: number): Frag {
 	return { s: sign + mantissa, p: negative ? PREC.neg : PREC.atom };
 }
 
+/** A level name as upright text: `\text{...}` with specials escaped. */
+function latexText(s: string): string {
+	return `\\text{${s.replace(/[\\{}_#$%&^~]/g, (c) => LATEX_TEXT_ESCAPES[c])}}`;
+}
+
+const LATEX_TEXT_ESCAPES: Record<string, string> = {
+	'\\': '\\textbackslash{}',
+	'{': '\\{',
+	'}': '\\}',
+	_: '\\_',
+	'#': '\\#',
+	$: '\\$',
+	'%': '\\%',
+	'&': '\\&',
+	'^': '\\textasciicircum{}',
+	'~': '\\textasciitilde{}'
+};
+
 const LATEX_FN: Record<'log' | 'sin' | 'cos', string> = { log: '\\ln', sin: '\\sin', cos: '\\cos' };
 
 function paren(s: string): string {
 	return `\\left(${s}\\right)`;
 }
 
-function renderLatex(e: Expr, names: string[]): Frag {
+function renderLatex(e: Expr, names: string[], levels: Levels): Frag {
 	switch (e.kind) {
 		case 'const':
 			return latexNumber(e.value);
 		case 'var':
 			return { s: latexName(names[e.index] ?? `x${e.index}`), p: PREC.atom };
+		case 'indicator': {
+			const set = maskLevels(e.index, e.mask, levels).map(latexText).join(', ');
+			const name = latexName(names[e.index] ?? `x${e.index}`);
+			return { s: `\\mathbf{1}_{\\{${set}\\}}\\left(${name}\\right)`, p: PREC.atom };
+		}
 		case 'unary': {
-			const c = renderLatex(e.child, names);
+			const c = renderLatex(e.child, names, levels);
 			switch (e.op) {
 				case 'square':
 				case 'cube': {
@@ -265,8 +325,8 @@ function renderLatex(e: Expr, names: string[]): Frag {
 		case 'binary': {
 			const folded = foldNegativeRight(e.op, e.right);
 			const op = folded?.op ?? e.op;
-			const l = renderLatex(e.left, names);
-			const r = renderLatex(folded?.right ?? e.right, names);
+			const l = renderLatex(e.left, names, levels);
+			const r = renderLatex(folded?.right ?? e.right, names, levels);
 			if (op === 'div') return { s: `\\frac{${l.s}}{${r.s}}`, p: PREC.pow };
 			if (op === 'pow') {
 				return { s: `${l.p > PREC.pow ? l.s : paren(l.s)}^{${r.s}}`, p: PREC.pow };
@@ -283,7 +343,7 @@ function renderLatex(e: Expr, names: string[]): Frag {
 	}
 }
 
-/** LaTeX math (no delimiters): `2.5 \cdot x^{2}`, `\frac{a}{b}`. */
-export function toLatex(expr: Expr, names: string[]): string {
-	return renderLatex(expr, names).s;
+/** LaTeX math (no delimiters): `2.5 \cdot x^{2}`, `\frac{a}{b}`, `\mathbf{1}_{\{\text{a}\}}\left(g\right)`. */
+export function toLatex(expr: Expr, names: string[], levels: Levels = []): string {
+	return renderLatex(expr, names, levels).s;
 }

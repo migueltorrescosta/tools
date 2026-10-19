@@ -3,7 +3,11 @@ import { parseCsv } from './csv';
 import {
 	analyzeColumns,
 	buildDataset,
-	defaultInputs,
+	canBeCategorical,
+	columnLevels,
+	defaultModes,
+	EMPTY_LEVEL,
+	inputChoices,
 	parseNumber,
 	splitDataset,
 	type BuiltDataset
@@ -39,22 +43,55 @@ const csv = parseCsv(
 describe('analyzeColumns', () => {
 	it('flags columns where most non-empty values are numbers', () => {
 		expect(analyzeColumns(csv)).toEqual([
-			{ name: 'name', index: 0, numeric: false },
-			{ name: 'x', index: 1, numeric: true },
-			{ name: 'y', index: 2, numeric: true },
-			{ name: 'mixed', index: 3, numeric: true },
-			{ name: 'empty', index: 4, numeric: false }
+			{ name: 'name', index: 0, numeric: false, levels: 5 },
+			{ name: 'x', index: 1, numeric: true, levels: 5 },
+			{ name: 'y', index: 2, numeric: true, levels: 5 },
+			{ name: 'mixed', index: 3, numeric: true, levels: 5 },
+			{ name: 'empty', index: 4, numeric: false, levels: 1 }
 		]);
 	});
 
-	it('defaultInputs picks every other numeric column', () => {
-		expect(defaultInputs(analyzeColumns(csv), 2)).toEqual([1, 3]);
+	it('defaultModes includes numeric columns, makes text ones categorical when it can', () => {
+		expect(defaultModes(analyzeColumns(csv), 2)).toEqual([
+			'categorical',
+			'include',
+			'exclude',
+			'include',
+			'exclude'
+		]);
+	});
+
+	it('canBeCategorical needs 2 to 32 levels', () => {
+		const col = (levels: number) => ({ name: 'c', index: 0, numeric: false, levels });
+		expect([1, 2, 32, 33].map((n) => canBeCategorical(col(n)))).toEqual([false, true, true, false]);
+	});
+
+	it('inputChoices lists the selected columns in order', () => {
+		expect(inputChoices(['categorical', 'exclude', 'include'])).toEqual([
+			{ index: 0, categorical: true },
+			{ index: 2, categorical: false }
+		]);
+	});
+});
+
+describe('columnLevels', () => {
+	it('sorts numeric-looking levels by value, empty last', () => {
+		const p = parseCsv(['v,w', '10,1', '9,1', ',1', '9,1'].join('\n'));
+		expect(columnLevels(p, 0)).toEqual(['9', '10', EMPTY_LEVEL]);
+	});
+
+	it('sorts text levels naturally', () => {
+		const p = parseCsv(['v', 'b', 'a2', 'a10'].join('\n'));
+		expect(columnLevels(p, 0)).toEqual(['a2', 'a10', 'b']);
 	});
 });
 
 describe('buildDataset', () => {
 	it('drops rows with a missing or non-numeric selected value', () => {
-		const built = buildDataset(csv, 2, [1, 3]);
+		const built = buildDataset(csv, 2, [
+			{ index: 1, categorical: false },
+			{ index: 3, categorical: false }
+		]);
 		expect(built.inputNames).toEqual(['x', 'mixed']);
 		expect(built.targetName).toBe('y');
 		expect(built.totalRows).toBe(5);
@@ -63,6 +100,19 @@ describe('buildDataset', () => {
 		expect(built.data.x.map((c) => Array.from(c))).toEqual([
 			[1, 5],
 			[3, 8]
+		]);
+	});
+
+	it('codes a categorical input by level and keeps rows with empty cells', () => {
+		const built = buildDataset(csv, 2, [
+			{ index: 0, categorical: true },
+			{ index: 4, categorical: true }
+		]);
+		expect(built.levels).toEqual([['a', 'b', 'c', 'd', 'e'], [EMPTY_LEVEL]]);
+		expect(built.droppedRows).toBe(1);
+		expect(built.data.x.map((c) => Array.from(c))).toEqual([
+			[0, 1, 2, 4],
+			[0, 0, 0, 0]
 		]);
 	});
 
@@ -78,6 +128,7 @@ function sequence(n: number): BuiltDataset {
 	const y = Float64Array.from({ length: n }, (_, i) => i);
 	return {
 		inputNames: ['x'],
+		levels: [null],
 		targetName: 'y',
 		data: { x: [Float64Array.from(y, (v) => v * 10)], y },
 		droppedRows: 0,
