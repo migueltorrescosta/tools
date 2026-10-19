@@ -20,9 +20,10 @@ pnpm test:e2e
 
 ## Structure
 
-- `src/routes/` — SvelteKit pages (format, verb-conjugator, warhammer-simulator, split, wordle, decision-tree, timelines, rank-vote, jwt, volt, cipher, company-trends, symbolic-regression)
+- `src/routes/` — SvelteKit pages (format, verb-conjugator, warhammer-simulator, split, wordle, decision-tree, timelines, rank-vote, jwt, volt, cipher, company-trends, symbolic-regression, ancilla-mzi)
 - `src/lib/` — tool logic lives in `src/lib/<tool>/` or `src/lib/<tool>.ts`; a route may keep route-only helpers in `src/routes/<tool>/lib/`; specs sit next to the module they test. Bundled data is in `src/lib/data/`.
 - `static/` — static assets
+- Ancilla vs MZI equations: TeX in `src/routes/ancilla-mzi/lib/equations.ts`, typeset to SVG at dev time by `pnpm typeset:ancilla-mzi` (MathJax is a devDependency; the client loads no MathJax). `equations.spec.ts` fails while the generated file is stale.
 
 ## Conventions
 

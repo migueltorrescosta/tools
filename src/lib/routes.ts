@@ -82,5 +82,11 @@ export const routes: ToolRoute[] = [
 		name: 'Symbolic Regression',
 		description:
 			'Fit compact, interpretable equations to a CSV in the browser. Genetic programming on Web Workers, with a Pareto front of accuracy against simplicity.'
+	},
+	{
+		path: '/ancilla-mzi',
+		name: 'Ancilla vs MZI',
+		description:
+			'Compare a noisy ancilla-assisted interferometer against a fairly counted Mach-Zehnder interferometer. Optimised live on Web Workers, with a panel of fair-accounting rules.'
 	}
 ];
