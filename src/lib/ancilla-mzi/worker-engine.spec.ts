@@ -96,7 +96,7 @@ describe('createAncillaEngine', () => {
 		});
 		engine.start(smallSetup(), budget);
 		const last = snap(await done) as RunSnapshot;
-		engine.stop();
+		engine.dispose();
 		expect(fakes.length).toBe(1);
 		const tasks = fakes[0].received.filter((m) => m.type !== 'init');
 		expect(tasks[0].type).toBe('mzi');
@@ -126,15 +126,23 @@ describe('createAncillaEngine', () => {
 		await first;
 		const events: RunEvent[] = [];
 		engine.subscribe((e) => events.push(e));
+		const seedWorkers = fakes.slice();
 		const t0 = performance.now();
 		engine.stop();
 		expect(performance.now() - t0).toBeLessThan(1000);
-		const stopped = events.find((e) => e.type === 'stopped');
-		expect(stopped).toBeDefined();
-		const before = snap(stopped as RunEvent) as RunSnapshot;
+		expect(events[0]?.type).toBe('stopped');
+		expect(seedWorkers.every((f) => f.dead)).toBe(true);
+		// A finisher worker completes the best's finalisation, then reports again
+		const finalised = (e: RunEvent) => e.type === 'stopped' && snap(e)?.best.setup?.qfiFine != null;
+		while (!events.some(finalised)) await new Promise((r) => setTimeout(r, 10));
+		const before = snap(events.find(finalised) as RunEvent) as RunSnapshot;
+		expect(before.best.setup?.readouts).not.toBeNull();
 		expect(fakes.every((f) => f.dead)).toBe(true);
+		const finisherTasks = fakes.slice(seedWorkers.length).flatMap((f) => f.received);
+		expect(finisherTasks.some((m) => m.type === 'seed')).toBe(false);
+		const count = events.length;
 		await new Promise((r) => setTimeout(r, 100));
-		expect(events.length).toBe(1);
+		expect(events.length).toBe(count);
 
 		const more = waitFor(
 			engine,

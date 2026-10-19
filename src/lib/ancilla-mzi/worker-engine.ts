@@ -70,6 +70,8 @@ class WorkerAncillaEngine implements AncillaEngine {
 	private traces = new Map<string, SeedTrace>();
 	private metrics: Metrics | null = null;
 	private progressMs: number;
+	/** Stopped, but a finisher worker is completing the MZI or finalisations. */
+	private finishing = false;
 
 	constructor(
 		private createWorker: () => WorkerLike,
@@ -106,10 +108,31 @@ class WorkerAncillaEngine implements AncillaEngine {
 		if (!this.running) return;
 		this.halt();
 		this.emit({ type: 'stopped', reason: 'user', snapshot: this.snapshot() });
+		if (this.pendingFinish()) this.finish();
+	}
+
+	/** The MZI or a best result still lacks its baseline or finalisation. */
+	private pendingFinish(): boolean {
+		return (
+			!this.mzi || (['setup', 'companion'] as const).some((r) => this.best[r] && !this.finalised[r])
+		);
+	}
+
+	/** After stop: one worker completes the MZI and finalisations only, then reports a new stopped snapshot. */
+	private finish(): void {
+		const worker = this.createWorker();
+		const slot: Slot = { worker, task: null };
+		worker.onmessage = (e) => this.onMessage(slot, e.data);
+		worker.onerror = (e) => this.fail(e.message || 'Worker error');
+		worker.postMessage({ type: 'init', setup: this.setup, budget: this.budget });
+		this.slots.push(slot);
+		this.finishing = true;
+		this.assign(slot);
 	}
 
 	continue(): void {
 		if (this.running || !this.setup) return;
+		if (this.finishing) this.halt();
 		this.launch();
 	}
 
@@ -149,6 +172,7 @@ class WorkerAncillaEngine implements AncillaEngine {
 		this.timer = null;
 		if (this.running) this.elapsed += now() - this.startedAt;
 		this.running = false;
+		this.finishing = false;
 		const interrupted: { role: Role; seed: number }[] = [];
 		for (const { worker, task } of this.slots) {
 			worker.onmessage = null;
@@ -192,7 +216,12 @@ class WorkerAncillaEngine implements AncillaEngine {
 	}
 
 	private assign(slot: Slot): void {
-		if (!this.running) return;
+		if (!this.running && !this.finishing) return;
+		if (this.finishing && !this.pendingFinish()) {
+			this.halt();
+			this.emit({ type: 'stopped', reason: 'user', snapshot: this.snapshot() });
+			return;
+		}
 		const task = this.nextTask();
 		slot.task = task;
 		if (task.type === 'mzi') slot.worker.postMessage({ type: 'mzi' });
