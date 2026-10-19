@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '$lib/symbolic-regression/prng';
+import { Prng } from '$lib/prng';
 import {
 	adjoint,
 	axpy,

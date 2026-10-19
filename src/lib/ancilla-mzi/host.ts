@@ -4,7 +4,7 @@
  * holds the built problems of one setup and runs one task per message: the
  * MZI baseline, one seed, or the finalisation of a best seed.
  */
-import { Prng } from '$lib/symbolic-regression/prng';
+import { Prng } from '$lib/prng';
 import type { BestResult, Budget, MziResult, Role, SeedResult, Setup, TracePoint } from './types';
 import { type AncillaProblem, buildAncilla } from './build';
 import { computeMzi } from './mzi';

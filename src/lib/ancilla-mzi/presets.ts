@@ -1,9 +1,9 @@
 /** Default setup and budget, and the seven class presets. No DOM imports. */
 import type { Budget, MarkovNoise, Pulse, PulseTarget, RegisterNoise, Setup } from './types';
 
-export const DEFAULT_CONTROL_BOUND = 10;
-export const DEFAULT_PULSE_BOUND = 2 * Math.PI;
-export const DEFAULT_PULSES = 2;
+const DEFAULT_CONTROL_BOUND = 10;
+const DEFAULT_PULSE_BOUND = 2 * Math.PI;
+const DEFAULT_PULSES = 2;
 
 export const DEFAULT_BUDGET: Readonly<Budget> = {
 	steps: 24,
@@ -14,7 +14,7 @@ export const DEFAULT_BUDGET: Readonly<Budget> = {
 	seed: 1
 };
 
-export function zeroMarkov(): MarkovNoise {
+function zeroMarkov(): MarkovNoise {
 	return { dephasing: 0, amplitudeDamping: 0, nbar: 0, depolarizing: 0, transverse: 0 };
 }
 
@@ -145,7 +145,7 @@ export const PRESETS: readonly Preset[] = [
 	}
 ];
 
-export function getPreset(id: PresetId): Preset {
+function getPreset(id: PresetId): Preset {
 	const preset = PRESETS.find((p) => p.id === id);
 	if (!preset) throw new Error(`unknown preset ${id}`);
 	return preset;
@@ -171,7 +171,8 @@ export function applyPreset(setup: Setup, id: PresetId): Setup {
 	};
 }
 
-const TIME_TOLERANCE = 1e-9;
+/** Share links keep pulse times to 4 decimals (state.ts), so match to half of that. */
+const TIME_TOLERANCE = 5e-5;
 
 /** The preset whose controls the setup has, or null for a custom setup. */
 export function detectPreset(setup: Setup): PresetId | null {
@@ -195,10 +196,10 @@ export function detectPreset(setup: Setup): PresetId | null {
 	return (matches.find((p) => p.cleanAncilla === cleanAncilla) ?? matches[0])?.id ?? null;
 }
 
-/** A (1, 1) active, controlled setup under sigma_z dephasing at gamma t = 1 on every particle. */
+/** A (1, 1) active, controlled setup under amplitude damping at gamma t = 1 on every particle. */
 export function defaultSetup(): Setup {
 	const noise: RegisterNoise = noiseless();
-	noise.markov.dephasing = 1;
+	noise.markov.amplitudeDamping = 1;
 	const base: Setup = {
 		nS: 1,
 		nA: 1,

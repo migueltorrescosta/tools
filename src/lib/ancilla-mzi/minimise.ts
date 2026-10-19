@@ -1,6 +1,6 @@
 /** Small derivative-free minimisers: Nelder–Mead and golden-section search. */
 
-export interface NelderMeadOptions {
+interface NelderMeadOptions {
 	maxIter?: number;
 	xatol?: number;
 	fatol?: number;

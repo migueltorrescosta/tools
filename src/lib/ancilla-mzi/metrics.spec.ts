@@ -35,7 +35,13 @@ function best(qfi: number, qfiFine: number | null, ro: number | null = null): Be
 	};
 }
 
-const setup: Setup = applyPreset(defaultSetup(), 'active');
+/** The active preset at (1, 1) under sigma_z dephasing at gamma t = 1 on every particle. */
+const setup: Setup = (() => {
+	const s = applyPreset(defaultSetup(), 'active');
+	const noise = noiseless();
+	noise.markov.dephasing = 1;
+	return { ...s, noise: { system: noise, ancilla: structuredClone(noise) } };
+})();
 
 describe('computeMetrics', () => {
 	it('computes the ratios, the error and the significance', () => {

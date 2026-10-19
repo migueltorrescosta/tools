@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createPersistGate } from '$lib/persist-gate';
+import { clearSaved, createPersistGate, readJson } from '$lib/persist-gate';
 import { createFreshSession, type SessionState } from '$lib/verbs';
 import { languageStorageKeys, loadLanguageState } from '$lib/verbs-storage';
 
@@ -52,5 +52,36 @@ describe('createPersistGate', () => {
 		// The effect re-runs with the restored session.
 		gate.write(keys.session, JSON.stringify(state.session));
 		expect(JSON.parse(storage.data.get(keys.session)!)).toEqual(saved);
+	});
+});
+
+describe('clearSaved and readJson', () => {
+	function fullStorage(entries: Record<string, string>): Storage {
+		const map = new Map(Object.entries(entries));
+		return {
+			get length() {
+				return map.size;
+			},
+			key: (i) => [...map.keys()][i] ?? null,
+			getItem: (k) => map.get(k) ?? null,
+			setItem: (k, v) => void map.set(k, v),
+			removeItem: (k) => void map.delete(k),
+			clear: () => map.clear()
+		};
+	}
+
+	it('clears only keys under the prefix', () => {
+		const storage = fullStorage({ 'tool:settings': '{}', 'tool:front': '[]', 'other-tool': '[]' });
+		clearSaved(storage, 'tool:');
+		expect(storage.length).toBe(1);
+		expect(storage.getItem('other-tool')).toBe('[]');
+	});
+
+	it('reads JSON, returning null when absent or corrupt', () => {
+		const storage = fullStorage({ a: '{"x":1}', b: '{' });
+		expect(readJson(storage, 'a')).toEqual({ x: 1 });
+		expect(readJson(storage, 'b')).toBeNull();
+		expect(readJson(storage, 'c')).toBeNull();
+		expect(readJson(null, 'a')).toBeNull();
 	});
 });

@@ -1,7 +1,7 @@
 /** Which setups the engine runs, and why it refuses the rest. No DOM imports. */
-import type { LorentzianKind, RegisterNoise, Setup } from './types';
+import { freeControls, type LorentzianKind, type RegisterNoise, type Setup } from './types';
 
-export const MAX_PARTICLES = 4;
+const MAX_PARTICLES = 4;
 export const MAX_PULSES = 4;
 export const MIN_HOLD = 1;
 export const MAX_HOLD = 4;
@@ -10,13 +10,13 @@ export const MAX_RATE = 10;
 /** Cap on the Lorentzian bath width lambda, in units of 1/t. */
 export const MAX_LAMBDA = 100;
 export const MAX_WEIGHT = 4;
-export const MAX_CONTROL_BOUND = 100;
-export const MAX_PULSE_BOUND = 4 * Math.PI;
+const MAX_CONTROL_BOUND = 100;
+const MAX_PULSE_BOUND = 4 * Math.PI;
 export const PM_LEVELS = [2, 3] as const;
 
 export type Register = 'system' | 'ancilla';
 
-export interface SetupError {
+interface SetupError {
 	/** Dotted path of the offending field, e.g. 'nS', 'pulses.1.time', 'noise.ancilla.markov.dephasing'. */
 	field: string;
 	message: string;
@@ -38,16 +38,6 @@ function lorentzianKinds(setup: Setup): Set<LorentzianKind> {
 	return kinds;
 }
 
-/** Any static control or pulse is on. */
-export function hasControls(setup: Setup): boolean {
-	return (
-		setup.coupling.some(Boolean) ||
-		setup.fieldA.some(Boolean) ||
-		setup.fieldS.some(Boolean) ||
-		setup.pulses.length > 0
-	);
-}
-
 /**
  * True when the Lorentzian bath needs explicit pseudomodes: always for
  * Lorentzian damping; for Lorentzian dephasing once controls or transverse
@@ -58,7 +48,7 @@ export function needsPseudomodes(setup: Setup): boolean {
 	if (kinds.has('amplitudeDamping')) return true;
 	if (!kinds.has('dephasing')) return false;
 	const transverse = activeRegisters(setup).some((r) => setup.noise[r].markov.transverse > 0);
-	return hasControls(setup) || transverse;
+	return freeControls(setup).length > 0 || transverse;
 }
 
 function rateErrors(noise: RegisterNoise, register: Register): SetupError[] {
@@ -127,12 +117,6 @@ export function validateSetup(setup: Setup): SetupError[] {
 			message: 'The pulse bound must be above 0 and at most 4π.'
 		});
 
-	if (nA === 0 && (setup.coupling.some(Boolean) || setup.fieldA.some(Boolean)))
-		errors.push({
-			field: 'coupling',
-			message: 'With no ancilla, turn off the coupling and the ancilla field b.'
-		});
-
 	// Pulses
 	const hold = setup.ancillaHold;
 	if (setup.pulses.length > MAX_PULSES)
@@ -148,11 +132,6 @@ export function validateSetup(setup: Setup): SetupError[] {
 			errors.push({
 				field: `pulses.${i}.time`,
 				message: `Pulse ${i + 1} must come after pulse ${i}.`
-			});
-		if (nA === 0 && p.target !== 'S')
-			errors.push({
-				field: `pulses.${i}.target`,
-				message: `With no ancilla, pulse ${i + 1} can only act on S.`
 			});
 	});
 

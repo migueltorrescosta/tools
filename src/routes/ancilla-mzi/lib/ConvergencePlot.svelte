@@ -10,7 +10,8 @@
 
 <script lang="ts">
 	import type { SeedTrace } from '$lib/ancilla-mzi/types';
-	import { niceTicks, formatTick } from '../../symbolic-regression/lib/plot';
+	import { niceTicks, formatTick } from '$lib/plot';
+	import { SegmentedControl } from '$lib/ui';
 
 	let {
 		traces,
@@ -34,27 +35,58 @@
 	const shown = $derived(traces.filter((t) => t.points.length > 0));
 	const hasCompanion = $derived(shown.some((t) => t.role === 'companion'));
 
+	let scale = $state<'linear' | 'log'>('linear');
+	const log = $derived(scale === 'log');
+
 	const domain = $derived.by(() => {
 		let x1 = 1;
 		let y1 = 0;
+		let yMin = Infinity;
 		for (const t of shown)
 			for (const p of t.points) {
 				if (p.evaluations > x1) x1 = p.evaluations;
 				if (p.qfi > y1) y1 = p.qfi;
+				if (p.qfi > 0 && p.qfi < yMin) yMin = p.qfi;
 			}
-		// The MZI line always fits; bounds far above the traces are noted, not drawn
+		// The MZI line always fits. On a linear axis bounds far above the traces
+		// are noted, not drawn; on a log axis every bound fits.
 		const mzi = refs.find((r) => r.kind === 'mzi')?.value ?? 0;
 		y1 = Math.max(y1, mzi);
+		if (mzi > 0) yMin = Math.min(yMin, mzi);
 		for (const r of refs)
-			if (Number.isFinite(r.value) && r.value <= y1 * 1.5) y1 = Math.max(y1, r.value);
-		return { x1, y1: y1 > 0 ? y1 * 1.08 : 1 };
+			if (Number.isFinite(r.value) && (log || r.value <= y1 * 1.5)) y1 = Math.max(y1, r.value);
+		if (!log) return { x1, y0: 0, y1: y1 > 0 ? y1 * 1.08 : 1 };
+		if (!(y1 > 0)) return { x1, y0: 0.1, y1: 1 };
+		const lo = Math.max(Number.isFinite(yMin) ? yMin : y1, y1 * 1e-6);
+		return {
+			x1,
+			y0: 10 ** Math.floor(Math.log10(lo)),
+			y1: 10 ** Math.ceil(Math.log10(y1 * 1.08))
+		};
 	});
-	const offScale = $derived(refs.filter((r) => Number.isFinite(r.value) && r.value > domain.y1));
+	const offScale = $derived(
+		log ? [] : refs.filter((r) => Number.isFinite(r.value) && r.value > domain.y1)
+	);
 
 	const sx = (x: number) => M.left + (x / domain.x1) * innerW;
-	const sy = (y: number) => M.top + innerH - (y / domain.y1) * innerH;
+	/** Linear or log position; values at or below the log floor sit on the axis. */
+	const sy = (y: number) => {
+		const f = log
+			? (Math.log10(Math.max(y, domain.y0)) - Math.log10(domain.y0)) /
+				(Math.log10(domain.y1) - Math.log10(domain.y0))
+			: (y - domain.y0) / (domain.y1 - domain.y0);
+		return M.top + innerH - f * innerH;
+	};
 	const xTicks = $derived(niceTicks(0, domain.x1, 5));
-	const yTicks = $derived(niceTicks(0, domain.y1, 5));
+	const yTicks = $derived.by(() => {
+		if (!log) return niceTicks(0, domain.y1, 5);
+		const lo = Math.round(Math.log10(domain.y0));
+		const hi = Math.round(Math.log10(domain.y1));
+		const every = Math.max(1, Math.ceil((hi - lo) / 6));
+		const ticks: number[] = [];
+		for (let e = lo; e <= hi; e += every) ticks.push(10 ** e);
+		return ticks;
+	});
 
 	const path = (t: SeedTrace) =>
 		t.points
@@ -100,7 +132,18 @@
 
 <figure class="plot" data-testid={testId}>
 	<figcaption>
-		<span>QFI/t² against optimiser evaluations</span>
+		<span class="title"
+			><span>QFI/t² against optimiser evaluations</span>
+			<SegmentedControl
+				legend="Y axis"
+				hideLegend
+				options={[
+					{ value: 'linear', label: 'Linear' },
+					{ value: 'log', label: 'Log' }
+				]}
+				bind:value={scale}
+			/></span
+		>
 		<span class="legend">
 			<span
 				><svg viewBox="0 0 18 8" aria-hidden="true"
@@ -169,7 +212,7 @@
 			x={14}
 			y={M.top + innerH / 2}
 			text-anchor="middle"
-			transform="rotate(-90 14 {M.top + innerH / 2})">QFI/t²</text
+			transform="rotate(-90 14 {M.top + innerH / 2})">QFI/t²{log ? ' (log)' : ''}</text
 		>
 	</svg>
 	<p class="readout" aria-live="off">
@@ -203,6 +246,13 @@
 		font-size: var(--text-sm);
 		font-weight: 500;
 		margin-bottom: var(--sp-1);
+	}
+	.title {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--sp-1) var(--sp-3);
 	}
 	.legend {
 		display: flex;

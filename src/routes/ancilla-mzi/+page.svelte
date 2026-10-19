@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import { replaceState } from '$app/navigation';
 	import { browser } from '$app/environment';
-	import { createPersistGate } from '$lib/persist-gate';
+	import { clearSaved, createPersistGate } from '$lib/persist-gate';
 	import { copyToClipboard } from '$lib/clipboard';
 	import {
 		MAX_HOLD,
@@ -31,7 +31,7 @@
 	import {
 		RESULT_KEY,
 		SETUP_KEY,
-		clearSaved,
+		STORAGE_PREFIX,
 		decodeShareParams,
 		encodeShareParams,
 		hasShareParams,
@@ -48,7 +48,7 @@
 		type Setup
 	} from '$lib/ancilla-mzi/types';
 	import { Alert, Button, Field, PageHeader, Panel, SegmentedControl } from '$lib/ui';
-	import { createEngine } from './lib/engine';
+	import { createAncillaEngine } from '$lib/ancilla-mzi/worker-engine';
 	import { activeControls } from './lib/controls';
 	import ConvergencePlot, { type RefLine } from './lib/ConvergencePlot.svelte';
 	import ControlsPlot from './lib/ControlsPlot.svelte';
@@ -75,6 +75,8 @@
 		}
 	});
 	const N = $derived(setup.nS + setup.nA);
+	/** Without an ancilla the engine ignores the A-only controls; the page greys them out. */
+	const noAncilla = $derived(setup.nA === 0);
 	const errors = $derived(validateSetup(effective));
 	const rules = $derived(checkRules(effective));
 	const preset = $derived(detectPreset(effective));
@@ -167,7 +169,7 @@
 		runSetup = s;
 		runBudget = b;
 		snapshot = null;
-		engine = createEngine();
+		engine = createAncillaEngine();
 		engine.subscribe((event) => {
 			if (event.type === 'progress') snapshot = event.snapshot;
 			else if (event.type === 'stopped') {
@@ -258,7 +260,8 @@
 
 	$effect(() => {
 		const q = query;
-		if (!persist.isOpen) return;
+		// hydrated is reactive and set after persist.open(), so this reruns once on load
+		if (!hydrated) return;
 		const url = untrack(() => new URL(page.url));
 		url.search = q;
 		shareUrl = url.toString();
@@ -287,7 +290,7 @@
 	function clearAll() {
 		engine?.dispose();
 		engine = null;
-		if (storage) clearSaved(storage);
+		if (storage) clearSaved(storage, STORAGE_PREFIX);
 		window.location.replace(page.url.pathname);
 	}
 
@@ -547,7 +550,13 @@
 						{/snippet}
 					</Field>
 
-					<fieldset class="group" data-testid="coupling">
+					{#if noAncilla}
+						<p class="muted" data-testid="no-ancilla-note">
+							No ancilla: the coupling, the fields b and pulses on A are ignored, and pulses on both
+							act on S only.
+						</p>
+					{/if}
+					<fieldset class="group" data-testid="coupling" disabled={noAncilla}>
 						<legend>Coupling α<sub>ij</sub>, S axis i by A axis j</legend>
 						<table class="coupling">
 							<thead>
@@ -576,7 +585,6 @@
 								{/each}
 							</tbody>
 						</table>
-						{#if errorFor('coupling')}<p class="error">{errorFor('coupling')}</p>{/if}
 					</fieldset>
 
 					<fieldset class="group">
@@ -587,6 +595,7 @@
 									<input
 										type="checkbox"
 										bind:checked={setup.fieldA[i]}
+										disabled={noAncilla}
 										data-testid="field-b{axis}"
 									/>
 									b<sub>{axis}</sub>
@@ -679,6 +688,7 @@
 										<select
 											class="control"
 											bind:value={pulse.target}
+											disabled={noAncilla}
 											data-testid="pulse-{m}-target"
 											{...props}
 										>
@@ -1114,6 +1124,10 @@
 	.toggle input {
 		margin: 0;
 		accent-color: var(--accent);
+	}
+	.toggle:has(input:disabled) {
+		opacity: 0.55;
+		cursor: not-allowed;
 	}
 	.toggle.wide {
 		align-self: flex-start;

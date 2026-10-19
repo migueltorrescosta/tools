@@ -21,7 +21,7 @@ import {
 } from './linalg';
 import { type NoiseStep, applyNoise, applyNoiseAdjoint } from './noise';
 
-export interface HoldOptions {
+interface HoldOptions {
 	/** Site dimensions, qubits first. */
 	dims: readonly number[];
 	/** Number of qubit sites, the subsystem kept by `forward`. */
@@ -235,17 +235,4 @@ function addHermitianPart2(a: CMat, z: CMat, n: number): void {
 			a.im[j * n + i] -= im;
 		}
 	}
-}
-
-/** A hold with no controls or pulses (the MZI). */
-export function freeHold(
-	dims: readonly number[],
-	nQubits: number,
-	generator: CMat,
-	noise: NoiseStep,
-	steps = 1,
-	t = 1
-): HoldMap {
-	const dim = dims.reduce((p, d) => p * d, 1);
-	return new HoldMap({ dims, nQubits, generator, hCtrl: zeros(dim), noise, steps, t });
 }

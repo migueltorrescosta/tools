@@ -5,7 +5,7 @@
  * maximised over its rotations by Nelder–Mead from a few seeded starts. With
  * nA = 0 (the MZI) S is the whole register.
  */
-import type { Prng } from '$lib/symbolic-regression/prng';
+import type { Prng } from '$lib/prng';
 import type { Readouts } from './types';
 import { type CMat, adjoint, add, matmul, scale, zeros } from './linalg';
 import { kronAll, su2 } from './build';
@@ -45,7 +45,7 @@ function rotated(x: CMat, u: ArrayLike<number>): CMat {
 	return matmul(adjoint(r), matmul(x, r));
 }
 
-export interface ReadoutObjectives {
+interface ReadoutObjectives {
 	/** J_z^S after R_S(u). */
 	epS(u: ArrayLike<number>): number;
 	/** Parity of S after R_S(u). */
@@ -96,12 +96,7 @@ export function readoutObjectives(
 }
 
 /** max f over x ∈ R^dim by Nelder–Mead from `starts` uniform points in [−π, π]^dim. */
-export function maximise(
-	f: (x: number[]) => number,
-	dim: number,
-	prng: Prng,
-	starts: number
-): number {
+function maximise(f: (x: number[]) => number, dim: number, prng: Prng, starts: number): number {
 	let best = 0;
 	for (let s = 0; s < starts; s++) {
 		const x0 = Array.from({ length: dim }, () => (2 * prng.next() - 1) * Math.PI);

@@ -320,7 +320,7 @@ export function normFrob(a: CMat): number {
 }
 
 /** Maximum absolute column sum. */
-export function norm1(a: CMat): number {
+function norm1(a: CMat): number {
 	const n = a.n;
 	let best = 0;
 	for (let j = 0; j < n; j++) {

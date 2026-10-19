@@ -8,6 +8,7 @@
  * are re-run first on Continue, so the seed set stays the same as in an
  * uninterrupted run.
  */
+import { defaultWorkerCount, type WorkerLike as PoolWorker } from '$lib/worker-pool';
 import type { FromWorker, ToWorker } from './host';
 import { hasCompanion } from './build';
 import { validateSetup } from './limits';
@@ -26,25 +27,9 @@ import type {
 	Setup
 } from './types';
 
-/** The part of `Worker` the engine uses, so specs can pass an in-process fake. */
-export interface WorkerLike {
-	postMessage(msg: ToWorker): void;
-	onmessage: ((e: MessageEvent<FromWorker>) => void) | null;
-	onerror: ((e: ErrorEvent) => void) | null;
-	terminate(): void;
-}
+type WorkerLike = PoolWorker<ToWorker, FromWorker>;
 
-/** `min(hardwareConcurrency − 1, 4)`, at least 1. */
-export function defaultWorkerCount(
-	hc: number | undefined = typeof navigator === 'undefined'
-		? undefined
-		: navigator.hardwareConcurrency
-): number {
-	if (!hc || !Number.isFinite(hc)) return 1;
-	return Math.max(1, Math.min(Math.floor(hc) - 1, 4));
-}
-
-export interface AncillaEngineOptions {
+interface AncillaEngineOptions {
 	/** Interval between progress events. */
 	progressMs?: number;
 }
@@ -62,7 +47,7 @@ interface Slot {
 const now = () => performance.now();
 const traceKey = (role: Role, seed: number) => `${role}:${seed}`;
 
-export class WorkerAncillaEngine implements AncillaEngine {
+class WorkerAncillaEngine implements AncillaEngine {
 	private slots: Slot[] = [];
 	private listeners = new Set<(event: RunEvent) => void>();
 	private setup: Setup | null = null;

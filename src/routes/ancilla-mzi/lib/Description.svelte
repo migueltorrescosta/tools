@@ -69,7 +69,8 @@
 			<li>
 				Readouts: <T id="errorProp" /> on S, a weighted joint <T id="Jz" /> on both registers, and parity
 				<T id="parity" />, each after its best final rotation. The tiles show the best readout ratio
-				and the attained fraction <T id="attained" />.
+				and the attained fraction <T id="attained" />. These are simple collective readouts (one
+				rotation per register), so they can fall far below the QFI for entangled optima.
 			</li>
 			<li>
 				Bounds, drawn on the convergence plot: the noiseless <T id="seminormBound" />, and for <T

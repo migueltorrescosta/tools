@@ -1,13 +1,13 @@
 <script lang="ts">
-	import typeset from './equations.generated.json';
+	import { page } from '$app/state';
 	import type { EquationId } from './equations';
 
-	/** An equation typeset at build time (see scripts/typeset-ancilla-mzi.ts). Needs one <TexDefs /> on the page. */
+	/** An equation typeset at prerender (+page.server.ts). Needs one <TexDefs /> on the page. */
 	let { id }: { id: EquationId } = $props();
 </script>
 
 <!-- eslint-disable-next-line svelte/no-at-html-tags -- SVG generated from our own TeX sources -->
-<span class="tex">{@html typeset.equations[id]}</span>
+<span class="tex">{@html page.data.tex.equations[id]}</span>
 
 <style>
 	.tex {

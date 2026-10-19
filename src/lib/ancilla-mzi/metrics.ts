@@ -2,11 +2,11 @@
 import type { BestResult, Metrics, MziResult, Setup } from './types';
 
 /** Minimum margin and number of δR in the significance criterion R ≥ 1 + max(0.01, 3 δR). */
-export const MIN_MARGIN = 0.01;
-export const SIGMA = 3;
+const MIN_MARGIN = 0.01;
+const SIGMA = 3;
 
 /** The QFI a best result reports: the 2M re-evaluation once known. */
-export function bestQfi(b: BestResult): number {
+function bestQfi(b: BestResult): number {
 	return b.qfiFine ?? b.qfi;
 }
 
@@ -62,7 +62,7 @@ export function pureDephasingRate(setup: Setup): number | null {
 	return g;
 }
 
-export interface MetricsInput {
+interface MetricsInput {
 	setup: Setup;
 	mzi: MziResult;
 	best: BestResult;

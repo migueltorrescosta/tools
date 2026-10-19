@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '$lib/symbolic-regression/prng';
+import { Prng } from '$lib/prng';
 import { outer, rectApply, zeros } from './linalg';
 import { buildMzi } from './build';
 import { applyPreset, defaultSetup, noiseless } from './presets';

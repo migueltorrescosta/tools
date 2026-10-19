@@ -30,11 +30,12 @@ describe('validateSetup', () => {
 		expect(fields({ ...defaultSetup(), nA: -1 })).toContain('nA');
 	});
 
-	it('asks for no ancilla controls when there is no ancilla', () => {
-		const s = { ...defaultSetup(), nA: 0, mziParticles: 1 };
-		expect(fields(s)).toEqual(expect.arrayContaining(['coupling', 'pulses.0.target']));
-		const bare = applyPreset(s, 'passive-ent');
-		expect(validateSetup({ ...bare, nA: 0, mziParticles: 1 })).toEqual([]);
+	it('ignores the ancilla controls when there is no ancilla', () => {
+		// The default 'active' preset keeps its coupling, field b and pulses on A
+		expect(validateSetup({ ...defaultSetup(), nA: 0, mziParticles: 1 })).toEqual([]);
+		expect(
+			validateSetup(applyPreset({ ...defaultSetup(), nA: 0, mziParticles: 1 }, 'active+S'))
+		).toEqual([]);
 	});
 
 	it('checks pulses: at most 4, inside the hold, increasing', () => {

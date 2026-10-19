@@ -1,4 +1,4 @@
-import { AXES, type Setup } from '$lib/ancilla-mzi/types';
+import { AXES, freeControls, type Setup } from '$lib/ancilla-mzi/types';
 
 export interface ControlEntry {
 	/** Index into the control vector. */
@@ -10,40 +10,30 @@ export interface ControlEntry {
 	group: 'coupling' | 'field' | 'pulse';
 }
 
-/** The control entries the setup switches on, in the engine's vector layout. */
+/** The control entries the engine frees for the setup, in its vector layout. */
 export function activeControls(setup: Setup): ControlEntry[] {
-	const out: ControlEntry[] = [];
+	const K = setup.pulses.length;
 	const cb = setup.controlBound;
-	setup.coupling.forEach((on, k) => {
-		if (on)
-			out.push({
-				index: k,
+	return freeControls(setup).map((index): ControlEntry => {
+		const axis = AXES[index % 3];
+		if (index < 9)
+			return {
+				index,
 				symbol: 'α',
-				sub: AXES[Math.floor(k / 3)] + AXES[k % 3],
+				sub: AXES[Math.floor(index / 3)] + axis,
 				bound: cb,
 				group: 'coupling'
-			});
+			};
+		if (index < 15)
+			return { index, symbol: index < 12 ? 'b' : 'c', sub: axis, bound: cb, group: 'field' };
+		const j = index - 15;
+		const onS = j >= 3 * K;
+		return {
+			index,
+			symbol: `v${Math.floor((onS ? j - 3 * K : j) / 3) + 1}`,
+			sub: `${onS ? 'S' : 'A'}${axis}`,
+			bound: setup.pulseBound,
+			group: 'pulse'
+		};
 	});
-	setup.fieldA.forEach((on, i) => {
-		if (on) out.push({ index: 9 + i, symbol: 'b', sub: AXES[i], bound: cb, group: 'field' });
-	});
-	setup.fieldS.forEach((on, i) => {
-		if (on) out.push({ index: 12 + i, symbol: 'c', sub: AXES[i], bound: cb, group: 'field' });
-	});
-	const K = setup.pulses.length;
-	for (const register of ['A', 'S'] as const)
-		setup.pulses.forEach((p, m) => {
-			if (p.target !== 'both' && p.target !== register) return;
-			const offset = 15 + (register === 'A' ? 0 : 3 * K) + 3 * m;
-			AXES.forEach((axis, i) =>
-				out.push({
-					index: offset + i,
-					symbol: `v${m + 1}`,
-					sub: `${register}${axis}`,
-					bound: setup.pulseBound,
-					group: 'pulse'
-				})
-			);
-		});
-	return out;
 }

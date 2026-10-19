@@ -24,7 +24,7 @@ export interface Register {
 	qubitDim: number;
 }
 
-export type SpinSet = 'S' | 'A' | 'T';
+type SpinSet = 'S' | 'A' | 'T';
 export type IsometryKind = 'sym' | 'full' | 'symT';
 
 export function makeRegister(
@@ -104,7 +104,7 @@ export function embedSiteOperator(op: CMat, site: number, dims: readonly number[
 }
 
 /** Qubit sites of S, A or the whole register T. */
-export function spinSites(reg: Register, which: SpinSet): number[] {
+function spinSites(reg: Register, which: SpinSet): number[] {
 	const all = Array.from({ length: reg.nQubits }, (_, k) => k);
 	if (which === 'S') return all.slice(0, reg.nS);
 	if (which === 'A') return all.slice(reg.nS);
@@ -158,7 +158,7 @@ export function symmetricBasis(n: number): CRect {
 }
 
 /** a ⊗ b of rectangular matrices. */
-export function rectKron(a: CRect, b: CRect): CRect {
+function rectKron(a: CRect, b: CRect): CRect {
 	const rows = a.rows * b.rows;
 	const cols = a.cols * b.cols;
 	const out: CRect = {

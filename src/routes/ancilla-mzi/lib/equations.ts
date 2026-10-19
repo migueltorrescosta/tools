@@ -1,6 +1,5 @@
-// TeX sources of every equation on the Ancilla vs MZI page. After editing,
-// run `pnpm typeset:ancilla-mzi` to regenerate equations.generated.json;
-// equations.spec.ts fails while the two disagree.
+// TeX sources of every equation on the Ancilla vs MZI page, typeset to SVG
+// while the page prerenders (typeset.ts).
 
 export const EQUATIONS = {
 	N: 'N=N_S+N_A',

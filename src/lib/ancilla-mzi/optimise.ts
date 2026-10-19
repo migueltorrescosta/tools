@@ -4,7 +4,7 @@
  * the per-seed block-coordinate ascent of the Python engine (`optimise_seed`,
  * `finalise_controls`).
  */
-import type { Prng } from '$lib/symbolic-regression/prng';
+import type { Prng } from '$lib/prng';
 import type { BestResult, Budget, Role, SeedResult } from './types';
 import { type CVec, outer, rectApply, vzeros } from './linalg';
 import type { AncillaProblem } from './build';
@@ -15,7 +15,7 @@ import { readouts } from './readouts';
 // Bounded quasi-Newton
 // ---------------------------------------------------------------------------
 
-export interface LbfgsbOptions {
+interface LbfgsbOptions {
 	maxIter?: number;
 	/** Correction pairs kept. */
 	memory?: number;
@@ -32,7 +32,7 @@ export interface LbfgsbOptions {
 	fg?: (x: Float64Array, g: Float64Array) => number;
 }
 
-export interface LbfgsbResult {
+interface LbfgsbResult {
 	x: Float64Array;
 	f: number;
 	iterations: number;
@@ -206,9 +206,9 @@ export function lbfgsb(
 // One seed
 // ---------------------------------------------------------------------------
 
-export type SeedBudget = Pick<Budget, 'rounds' | 'maxIter' | 'seesawIter'>;
+type SeedBudget = Pick<Budget, 'rounds' | 'maxIter' | 'seesawIter'>;
 
-export interface SeedOutcome {
+interface SeedOutcome {
 	qfi: number;
 	params: Float64Array;
 	psi: CVec;
@@ -301,7 +301,7 @@ export function optimiseSeed(
 	return { qfi, params, psi, evaluations };
 }
 
-export interface FinaliseOptions {
+interface FinaliseOptions {
 	/** Wall-clock cap on the see-saw polish. */
 	polishMs?: number;
 	/** Iteration cap on the see-saw polish. */

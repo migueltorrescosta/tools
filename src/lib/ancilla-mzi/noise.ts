@@ -59,7 +59,7 @@ function pauli(axis: 'x' | 'y' | 'z'): CMat {
 }
 
 /** True when every rate of m is zero (nbar alone does nothing). */
-export function isMarkovZero(m: MarkovNoise): boolean {
+function isMarkovZero(m: MarkovNoise): boolean {
 	return (
 		m.dephasing === 0 && m.amplitudeDamping === 0 && m.depolarizing === 0 && m.transverse === 0
 	);
@@ -165,7 +165,7 @@ export function pseudomodeHamiltonian(reg: Register, lorentzian: readonly Lorent
 }
 
 /** A single-site superoperator ((d² × d²), row-major vec) on one site. */
-export interface SiteMap {
+interface SiteMap {
 	site: number;
 	map: CMat;
 }

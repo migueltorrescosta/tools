@@ -2,9 +2,9 @@
 import { isNoiseless, sameNoise } from './presets';
 import type { Setup } from './types';
 
-export type RuleId = 1 | 2 | 3 | 4;
+type RuleId = 1 | 2 | 3 | 4;
 
-export interface RuleCheck {
+interface RuleCheck {
 	id: RuleId;
 	title: string;
 	kept: boolean;

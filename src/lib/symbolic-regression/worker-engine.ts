@@ -3,27 +3,12 @@
  * through this (main) thread; each worker refits and scores its own hall of
  * fame, so the main thread only merges fronts.
  */
+import type { WorkerLike as PoolWorker } from '$lib/worker-pool';
 import type { FromWorker, ToWorker } from './host';
 import { mergeFront, type Candidate } from './rescore';
 import type { FrontEntry, PreparedData, SearchEngine, SearchEvent, SearchSettings } from './types';
 
-/** The part of `Worker` the engine uses, so specs can pass an in-process fake. */
-export interface WorkerLike {
-	postMessage(msg: ToWorker): void;
-	onmessage: ((e: MessageEvent<FromWorker>) => void) | null;
-	onerror: ((e: ErrorEvent) => void) | null;
-	terminate(): void;
-}
-
-/** `min(hardwareConcurrency − 1, 4)`, at least 1. */
-export function defaultWorkerCount(
-	hc: number | undefined = typeof navigator === 'undefined'
-		? undefined
-		: navigator.hardwareConcurrency
-): number {
-	if (!hc || !Number.isFinite(hc)) return 1;
-	return Math.max(1, Math.min(Math.floor(hc) - 1, 4));
-}
+type WorkerLike = PoolWorker<ToWorker, FromWorker>;
 
 /** Seed of island `i`; island 0 uses the search seed itself. */
 export function islandSeed(seed: number, i: number): number {

@@ -31,7 +31,7 @@ import {
 import { type NoiseStep, applyNoise, applyNoiseAdjoint } from './noise';
 import { qfiAndSld } from './qfi';
 
-export interface GradientHoldOptions {
+interface GradientHoldOptions {
 	dims: readonly number[];
 	nQubits: number;
 	generator: CMat;
@@ -45,7 +45,7 @@ export interface GradientHoldOptions {
 }
 
 /** Pulse unitaries at step boundaries, rebuilt from the control vector. */
-export type PulseBuilder = (params: ArrayLike<number>) => Map<number, CMat>;
+type PulseBuilder = (params: ArrayLike<number>) => Map<number, CMat>;
 
 type Op = { kind: 'h' } | { kind: 'f' } | { kind: 'n' } | { kind: 'p'; boundary: number };
 

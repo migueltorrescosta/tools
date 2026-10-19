@@ -14,7 +14,7 @@
  * previous optimum); the final window, and t' = 1, get the full multistart
  * (NOON, product, the Sym optimum and random inputs) with more iterations.
  */
-import type { Prng } from '$lib/symbolic-regression/prng';
+import type { Prng } from '$lib/prng';
 import type { Budget, MziResult, Readouts, Setup } from './types';
 import { type CVec, outer, rectApply, vzeros } from './linalg';
 import { buildMzi, kronAll, su2, type MziProblem } from './build';
@@ -24,7 +24,7 @@ import { symmetricBasis } from './register';
 import { goldenSection, nelderMead } from './minimise';
 import { maxReadouts, readouts } from './readouts';
 
-export interface MziOptions {
+interface MziOptions {
 	/** Window grid points. */
 	nGrid?: number;
 	/** See-saw iterations per search point. */
@@ -80,7 +80,7 @@ export function oatState(n: number, mu: number, theta: number): CVec {
 }
 
 /** OAT with (μ, θ) optimised for the hold: grid over [0, π]² then Nelder–Mead. */
-export function bestOat(
+function bestOat(
 	hold: HoldMap,
 	p: MziProblem,
 	grid = 6

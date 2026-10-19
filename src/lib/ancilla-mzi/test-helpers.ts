@@ -1,5 +1,5 @@
 /** Random matrices and a dense Liouvillian reference, for the specs of this folder only. */
-import type { Prng } from '$lib/symbolic-regression/prng';
+import type { Prng } from '$lib/prng';
 import {
 	type CMat,
 	type CVec,
@@ -45,7 +45,7 @@ export function dist(a: CMat, b: CMat): number {
 }
 
 /** Apply a row-major superoperator to ρ. */
-export function applySuperop(map: CMat, rho: CMat): CMat {
+function applySuperop(map: CMat, rho: CMat): CMat {
 	const out = zeros(rho.n);
 	const n2 = rho.re.length;
 	for (let r = 0; r < n2; r++) {

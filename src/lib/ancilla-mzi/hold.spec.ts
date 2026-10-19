@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '$lib/symbolic-regression/prng';
+import { Prng } from '$lib/prng';
 import type { LorentzianNoise, MarkovNoise, RegisterNoise } from './types';
 import { type CMat, add, expm, frobInner, matmul, outer, rectApply, scale, zeros } from './linalg';
 import { HoldMap } from './hold';

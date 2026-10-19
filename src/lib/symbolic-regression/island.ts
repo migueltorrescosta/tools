@@ -17,7 +17,7 @@ import {
 	unary,
 	variable
 } from './expr';
-import { Prng } from './prng';
+import { Prng } from '$lib/prng';
 import { simplify } from './simplify';
 import type { BinaryOp, Dataset, Expr, PreparedData, SearchSettings, UnaryOp } from './types';
 import { BINARY_OPS, UNARY_OPS } from './types';

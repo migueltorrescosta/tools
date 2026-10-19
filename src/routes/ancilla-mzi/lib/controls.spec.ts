@@ -21,4 +21,19 @@ describe('activeControls', () => {
 		const idx = activeControls(s).map((e) => e.index);
 		expect(idx).toEqual([9, 10, 11, 14, 15, 16, 17, 18, 19, 20]);
 	});
+
+	it('leaves out the A-only entries without an ancilla', () => {
+		const s = applyPreset({ ...defaultSetup(), nA: 0 }, 'active+S');
+		expect(activeControls(s).map((e) => `${e.symbol}${e.sub}`)).toEqual([
+			'cx',
+			'cy',
+			'cz',
+			'v1Sx',
+			'v1Sy',
+			'v1Sz',
+			'v2Sx',
+			'v2Sy',
+			'v2Sz'
+		]);
+	});
 });

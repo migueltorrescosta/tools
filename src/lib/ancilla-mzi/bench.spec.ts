@@ -3,7 +3,7 @@
  * ANCILLA_BENCH=1 taskset -c 0,1 pnpm exec vitest run --project server src/lib/ancilla-mzi/bench.spec.ts
  */
 import { describe, expect, it } from 'vitest';
-import { Prng } from '$lib/symbolic-regression/prng';
+import { Prng } from '$lib/prng';
 import { applyPreset, DEFAULT_BUDGET, defaultSetup, noiseless, type PresetId } from './presets';
 import type { RegisterNoise, Setup } from './types';
 import { buildAncilla } from './build';

@@ -47,7 +47,7 @@ export interface Pulse {
 	target: PulseTarget;
 }
 
-export type InputSpace = 'sym' | 'full';
+type InputSpace = 'sym' | 'full';
 
 export interface Setup {
 	nS: number;
@@ -98,6 +98,29 @@ export interface Budget {
  */
 export function controlCount(nPulses: number): number {
 	return 15 + 6 * nPulses;
+}
+
+/**
+ * Free control entries: coupling mask, field axes and pulse targets. Without
+ * an ancilla the A-only entries (coupling, b, pulses on A) stay fixed at 0,
+ * so the setup runs as an MZI with local fields.
+ */
+export function freeControls(setup: Setup): number[] {
+	const K = setup.pulses.length;
+	const free: number[] = [];
+	setup.coupling.forEach((on, k) => on && setup.nA > 0 && free.push(k));
+	setup.fieldA.forEach((on, k) => on && setup.nA > 0 && free.push(9 + k));
+	setup.fieldS.forEach((on, k) => on && free.push(12 + k));
+	setup.pulses.forEach((p, q) => {
+		if (p.target !== 'S' && setup.nA > 0) free.push(15 + 3 * q, 16 + 3 * q, 17 + 3 * q);
+	});
+	setup.pulses.forEach((p, q) => {
+		if (p.target !== 'A') {
+			const o = 15 + 3 * K + 3 * q;
+			free.push(o, o + 1, o + 2);
+		}
+	});
+	return free.sort((a, b) => a - b);
 }
 
 export interface Readouts {

@@ -1,4 +1,5 @@
 /** Share URLs and saved state for the Ancilla vs MZI page. No DOM imports. */
+import { readJson } from '$lib/persist-gate';
 import { DEFAULT_BUDGET, cloneNoise, defaultSetup, noiseless, sameNoise } from './presets';
 import type {
 	Budget,
@@ -81,7 +82,11 @@ export function encodeShareParams({ setup: s, budget: b }: ShareState): URLSearc
 	params.set('cb', num(s.controlBound));
 	// In units of pi, so the default 2 pi is exact
 	params.set('pb', num(s.pulseBound / Math.PI));
-	params.set('p', s.pulses.map((p) => `${num(p.time)}${TARGET_CODE[p.target]}`).join(SEP));
+	// Pulse times to 4 decimals, so the default t/3 doesn't fill the link with digits
+	params.set(
+		'p',
+		s.pulses.map((p) => `${num(Number(p.time.toFixed(4)))}${TARGET_CODE[p.target]}`).join(SEP)
+	);
 	params.set('ns', encodeMarkov(s.noise.system));
 	if (s.noise.system.lorentzian.kind !== 'none') params.set('ls', encodeLorentzian(s.noise.system));
 	// No ancilla noise in the URL means "same as the system"
@@ -217,27 +222,6 @@ export function decodeShareParams(params: URLSearchParams): ShareState {
 /** True when the URL carries any share setting, so it takes priority over saved settings. */
 export function hasShareParams(params: URLSearchParams): boolean {
 	return KEYS.some((key) => params.has(key));
-}
-
-/** Remove every key under the tool's prefix. */
-export function clearSaved(storage: Pick<Storage, 'length' | 'key' | 'removeItem'>): void {
-	const keys: string[] = [];
-	for (let i = 0; i < storage.length; i++) {
-		const key = storage.key(i);
-		if (key?.startsWith(STORAGE_PREFIX)) keys.push(key);
-	}
-	for (const key of keys) storage.removeItem(key);
-}
-
-/** Parse JSON saved under one of the tool's keys; null when absent or corrupt. */
-export function readJson<T>(storage: Pick<Storage, 'getItem'> | null, key: string): T | null {
-	if (!storage) return null;
-	try {
-		const raw = storage.getItem(key);
-		return raw === null ? null : (JSON.parse(raw) as T);
-	} catch {
-		return null;
-	}
 }
 
 /** The saved run, when it has the shape the page needs. */

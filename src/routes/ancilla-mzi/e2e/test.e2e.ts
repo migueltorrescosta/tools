@@ -23,13 +23,6 @@ function rule(page: Page, id: number) {
 	return page.getByTestId(`rule-${id}`);
 }
 
-/** (1, 1) active, controlled under amplitude damping at γt = 1: fast to optimise. */
-async function smallAdSetup(page: Page) {
-	await page.getByTestId('system-dephasing').fill('0');
-	await page.getByTestId('system-amplitudeDamping').fill('1');
-	await expect(page.getByTestId('preset')).toHaveValue('active');
-}
-
 const seeds = async (page: Page) =>
 	parseInt((await page.getByTestId('seeds-done').textContent()) ?? '0', 10);
 
@@ -52,7 +45,7 @@ test('a preset fills in the custom controls', async ({ page }) => {
 
 	await page.getByTestId('preset').selectOption('clean');
 	await expect(page.getByTestId('ancilla-same')).not.toBeChecked();
-	await expect(page.getByTestId('ancilla-dephasing')).toHaveValue('0');
+	await expect(page.getByTestId('ancilla-amplitudeDamping')).toHaveValue('0');
 	await expect(rule(page, 4)).toHaveAttribute('data-kept', 'false');
 });
 
@@ -100,6 +93,20 @@ test('noise combination limits disable Start and say why', async ({ page }) => {
 	await expect(page.getByTestId('start')).toBeDisabled();
 });
 
+test('without an ancilla the A-only controls are greyed out and ignored', async ({ page }) => {
+	await open(page);
+	await expect(page.getByTestId('no-ancilla-note')).toHaveCount(0);
+	await page.getByTestId('nA').fill('0');
+	await expect(page.getByTestId('no-ancilla-note')).toBeVisible();
+	await expect(page.getByTestId('alpha-zz')).toBeDisabled();
+	await expect(page.getByTestId('field-bx')).toBeDisabled();
+	await expect(page.getByTestId('field-cx')).toBeEnabled();
+	await expect(page.getByTestId('pulse-0-target')).toBeDisabled();
+	await expect(page.getByTestId('validation-errors')).toHaveCount(0);
+	await expect(page.getByTestId('start')).toBeEnabled();
+	await expect(rule(page, 4)).toHaveAttribute('data-kept', 'true');
+});
+
 test('the rules panel reacts to each rule break', async ({ page }) => {
 	await open(page);
 	for (const id of [1, 2, 3, 4]) await expect(rule(page, id)).toHaveAttribute('data-kept', 'true');
@@ -129,8 +136,8 @@ test('the rules panel reacts to each rule break', async ({ page }) => {
 });
 
 test('Start, Stop and Continue with live updates', async ({ page }) => {
+	// The default: (1, 1) active, controlled under amplitude damping at γt = 1, fast to optimise
 	await open(page);
-	await smallAdSetup(page);
 	await page.getByTestId('start').click();
 	await expect(page.getByTestId('stop')).toBeEnabled();
 	await expect
@@ -139,6 +146,13 @@ test('Start, Stop and Continue with live updates', async ({ page }) => {
 		})
 		.toBeGreaterThan(1);
 	await expect(page.getByTestId('convergence')).toBeVisible();
+	// A log axis draws every bound instead of noting it
+	await page.getByTestId('convergence').getByText('Log', { exact: true }).click();
+	// (A horizontal line has no height, so Playwright never calls it visible)
+	await expect(
+		page.getByTestId('convergence').locator('svg[role="img"] line.ref.seminorm')
+	).toHaveCount(1);
+	await expect(page.getByTestId('off-scale-seminorm')).toHaveCount(0);
 
 	await page.getByTestId('stop').click();
 	await expect(page.getByTestId('continue')).toBeEnabled({ timeout: 2000 });
@@ -155,6 +169,8 @@ test('Start, Stop and Continue with live updates', async ({ page }) => {
 
 test('the share URL restores the setup', async ({ page, browser }) => {
 	await open(page);
+	// The link is there before any edit
+	await expect(page.getByTestId('share-url')).toHaveValue(/\/ancilla-mzi\?/);
 	await page.getByTestId('nS').fill('2');
 	await page.getByTestId('weight').fill('0.5');
 	await page.getByTestId('alpha-zz').uncheck();
@@ -184,7 +200,7 @@ test('the share URL restores the setup', async ({ page, browser }) => {
 
 test('Clear saved data removes the saved setup and result', async ({ page }) => {
 	await open(page);
-	await smallAdSetup(page);
+	await page.getByTestId('system-dephasing').fill('0.1');
 	await page.getByTestId('start').click();
 	await expect
 		.poll(() => seeds(page), {
@@ -197,13 +213,13 @@ test('Clear saved data removes the saved setup and result', async ({ page }) => 
 
 	// Both survive a reload
 	await open(page);
-	await expect(page.getByTestId('system-amplitudeDamping')).toHaveValue('1');
+	await expect(page.getByTestId('system-dephasing')).toHaveValue('0.1');
 	await expect(page.getByText('Saved result from your last finished run.')).toBeVisible();
 
 	await page.getByTestId('clear-saved').click();
 	await expect(hydrated(page)).toBeVisible();
 	await expect.poll(() => savedKeys(page)).toEqual([]);
-	await expect(page.getByTestId('system-amplitudeDamping')).toHaveValue('0');
-	await expect(page.getByTestId('system-dephasing')).toHaveValue('1');
+	await expect(page.getByTestId('system-dephasing')).toHaveValue('0');
+	await expect(page.getByTestId('system-amplitudeDamping')).toHaveValue('1');
 	await expect(page.getByTestId('metric-R')).toHaveCount(0);
 });

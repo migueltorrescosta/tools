@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '$lib/symbolic-regression/prng';
+import { Prng } from '$lib/prng';
 import type { LorentzianNoise, MarkovNoise, RegisterNoise } from './types';
 import {
 	type CMat,
@@ -13,14 +13,14 @@ import {
 	scale,
 	zeros
 } from './linalg';
-import { HoldMap, freeHold } from './hold';
+import { HoldMap } from './hold';
 import {
 	lorentzianExponent,
 	perQubitNoise,
 	pseudomodeHamiltonian,
 	registerNoiseStep
 } from './noise';
-import { qfiAndSld, qfiOfState, randomState, seesaw, seesawMultistart } from './qfi';
+import { qfiAndSld, qfiOfState, randomState, seesaw } from './qfi';
 import {
 	type Register,
 	collectiveSpin,
@@ -55,7 +55,16 @@ function mziHold(n: number, noise: RegisterNoise): { hold: HoldMap; reg: Registe
 		1,
 		true
 	);
-	return { hold: freeHold(reg.dims, n, collectiveSpin(reg, 'z', 'T'), step), reg };
+	const hold = new HoldMap({
+		dims: reg.dims,
+		nQubits: n,
+		generator: collectiveSpin(reg, 'z', 'T'),
+		hCtrl: zeros(reg.dim),
+		noise: step,
+		steps: 1,
+		t: 1
+	});
+	return { hold, reg };
 }
 
 function product(n: number): CVec {
@@ -179,11 +188,12 @@ describe('seesaw', () => {
 		const n = 4;
 		const { hold, reg } = mziHold(n, markov({}));
 		const prng = new Prng(1);
-		const sym = seesawMultistart(hold, inputIsometry(reg, 'symT'), [
-			randomState(n + 1, prng),
-			randomState(n + 1, prng)
-		]);
-		expect(rel(sym.best.qfi, 16)).toBeLessThan(1e-6);
+		const sym = Math.max(
+			...[randomState(n + 1, prng), randomState(n + 1, prng)].map(
+				(start) => seesaw(hold, inputIsometry(reg, 'symT'), start, 300).qfi
+			)
+		);
+		expect(rel(sym, 16)).toBeLessThan(1e-6);
 		const full = seesaw(hold, inputIsometry(reg, 'full'), randomState(16, prng));
 		expect(rel(full.qfi, 16)).toBeLessThan(1e-6);
 	});

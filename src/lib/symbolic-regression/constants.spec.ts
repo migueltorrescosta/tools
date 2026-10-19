@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { fitConstants } from './constants';
 import { binary, constant, getConstants, unary, variable } from './expr';
-import { Prng } from './prng';
+import { Prng } from '$lib/prng';
 
 describe('fitConstants', () => {
 	const prng = new Prng(5);

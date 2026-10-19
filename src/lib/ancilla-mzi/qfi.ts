@@ -1,5 +1,5 @@
 /** SLD quantum Fisher information and the see-saw optimal-input search (Macieszczak 2014). */
-import type { Prng } from '$lib/symbolic-regression/prng';
+import type { Prng } from '$lib/prng';
 import {
 	type CMat,
 	type CRect,
@@ -21,7 +21,7 @@ import {
 import type { HoldMap } from './hold';
 
 /** Eigenvalue-sum threshold below which a pair (i, j) is dropped from the QFI. */
-export const EIG_TOL = 1e-10;
+const EIG_TOL = 1e-10;
 
 /**
  * SLD QFI F = 2 Σ |⟨i|dρ|j⟩|² / (λ_i + λ_j) over pairs with λ_i + λ_j > eps,
@@ -101,18 +101,6 @@ export function seesaw(
 		psi = column(vectors, m.n - 1);
 	}
 	return { qfi: history[history.length - 1], psi: best, iterations: maxIter, history };
-}
-
-/** See-saw from each start; the best result and every optimum. */
-export function seesawMultistart(
-	hold: HoldMap,
-	iso: CRect,
-	starts: readonly CVec[],
-	maxIter = 300
-): { best: SeesawResult; optima: number[] } {
-	const results = starts.map((s) => seesaw(hold, iso, s, maxIter));
-	const best = results.reduce((a, b) => (b.qfi > a.qfi ? b : a));
-	return { best, optima: results.map((r) => r.qfi) };
 }
 
 /** Random unit vector: independent standard normal real and imaginary parts, normalised. */

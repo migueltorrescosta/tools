@@ -4,7 +4,14 @@
  * `hold` that turns a control vector into a `HoldMap` (port of the Python
  * `ancilla_setup`, `control_hamiltonian`, `ancilla_hold` and `mzi_hold`).
  */
-import { AXES, controlCount, type RegisterNoise, type Role, type Setup } from './types';
+import {
+	AXES,
+	controlCount,
+	freeControls,
+	type RegisterNoise,
+	type Role,
+	type Setup
+} from './types';
 import { type CMat, type CRect, axpy, identity, kron, matmul, zeros } from './linalg';
 import { HoldMap } from './hold';
 import { GradientHold } from './gradient';
@@ -26,7 +33,7 @@ import {
 } from './register';
 
 /** Fock cutoff of Lorentzian damping pseudomodes: exact for one excitation per particle. */
-export const AD_MODE_LEVELS = 2;
+const AD_MODE_LEVELS = 2;
 
 /** exp(−i u · σ/2), the single-qubit factor of a collective rotation exp(−i u · J). */
 export function su2(u: ArrayLike<number>): CMat {
@@ -46,27 +53,8 @@ export function kronAll(ops: readonly CMat[]): CMat {
 }
 
 /** True when a register carries a Lorentzian bath. */
-export function hasBath(noise: RegisterNoise): boolean {
+function hasBath(noise: RegisterNoise): boolean {
 	return noise.lorentzian.kind !== 'none' && noise.lorentzian.gamma > 0;
-}
-
-/** Free control entries: coupling mask, field axes and pulse targets (layout of types.ts). */
-export function freeControls(setup: Setup): number[] {
-	const K = setup.pulses.length;
-	const free: number[] = [];
-	setup.coupling.forEach((on, k) => on && setup.nA > 0 && free.push(k));
-	setup.fieldA.forEach((on, k) => on && setup.nA > 0 && free.push(9 + k));
-	setup.fieldS.forEach((on, k) => on && free.push(12 + k));
-	setup.pulses.forEach((p, q) => {
-		if (p.target !== 'S' && setup.nA > 0) free.push(15 + 3 * q, 16 + 3 * q, 17 + 3 * q);
-	});
-	setup.pulses.forEach((p, q) => {
-		if (p.target !== 'A') {
-			const o = 15 + 3 * K + 3 * q;
-			free.push(o, o + 1, o + 2);
-		}
-	});
-	return free.sort((a, b) => a - b);
 }
 
 /** Step boundary of a pulse at `time` in a hold of length t with M steps: round(time / t · M), clamped to [1, M − 1]. */
@@ -104,11 +92,6 @@ export interface AncillaProblem {
 
 function rhoPair(r: { rho: CMat; drho: CMat }): [CMat, CMat] {
 	return [r.rho, r.drho];
-}
-
-/** Whether the setup's hold has any free control. */
-export function isControlled(setup: Setup): boolean {
-	return freeControls(setup).length > 0;
 }
 
 /** Noise of every qubit of the register (S, then A). */

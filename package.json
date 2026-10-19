@@ -21,7 +21,6 @@
 		"test": "pnpm run test:unit && pnpm run test:e2e",
 		"test:e2e": "playwright test",
 		"gen": "wrangler types",
-		"typeset:ancilla-mzi": "node scripts/typeset-ancilla-mzi.ts",
 		"deploy": "pnpm run build && wrangler deploy"
 	},
 	"devDependencies": {

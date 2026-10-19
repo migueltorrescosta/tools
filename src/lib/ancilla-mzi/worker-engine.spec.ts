@@ -2,10 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { createAncillaHost, taskSeed, type FromWorker, type ToWorker } from './host';
 import { applyPreset, defaultSetup, noiseless } from './presets';
 import type { Budget, RunEvent, RunSnapshot, SeedResult, Setup } from './types';
-import { createAncillaEngine, defaultWorkerCount, type WorkerLike } from './worker-engine';
+import type { WorkerLike } from '$lib/worker-pool';
+import { createAncillaEngine } from './worker-engine';
 
 /** Runs the real host in-process, with structured cloning and async delivery like a worker. */
-class FakeWorker implements WorkerLike {
+class FakeWorker implements WorkerLike<ToWorker, FromWorker> {
 	onmessage: ((e: MessageEvent<FromWorker>) => void) | null = null;
 	onerror: ((e: ErrorEvent) => void) | null = null;
 	received: ToWorker[] = [];
@@ -62,15 +63,6 @@ function waitFor(
 }
 
 const snap = (e: RunEvent): RunSnapshot | null => (e.type === 'error' ? null : e.snapshot);
-
-describe('defaultWorkerCount', () => {
-	it('uses hardwareConcurrency − 1, between 1 and 4', () => {
-		expect(defaultWorkerCount(1)).toBe(1);
-		expect(defaultWorkerCount(3)).toBe(2);
-		expect(defaultWorkerCount(16)).toBe(4);
-		expect(defaultWorkerCount(NaN)).toBe(1);
-	});
-});
 
 describe('taskSeed', () => {
 	it('separates runs, roles, seeds and stages', () => {

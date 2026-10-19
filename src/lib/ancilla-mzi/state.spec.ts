@@ -1,14 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_BUDGET, applyPreset, defaultSetup, noiseless } from './presets';
+import { DEFAULT_BUDGET, applyPreset, defaultSetup, detectPreset, noiseless } from './presets';
 import {
 	RESULT_KEY,
 	SETUP_KEY,
 	STORAGE_PREFIX,
-	clearSaved,
 	decodeShareParams,
 	encodeShareParams,
 	hasShareParams,
-	readJson,
 	readSavedResult,
 	type ShareState
 } from './state';
@@ -67,14 +65,20 @@ describe('share params', () => {
 		};
 		const back = roundTrip(state);
 		expect(back.budget).toEqual(state.budget);
+		// Pulse times come back to 4 decimals
+		state.setup.pulses[2].time = 0.7333;
 		expect(back).toEqual(state);
 	});
 
-	it('round-trips the default setup exactly, and leaves out ancilla noise equal to the system', () => {
+	it('rounds pulse times to 4 decimals and still detects the preset', () => {
 		const state = { setup: defaultSetup(), budget: { ...DEFAULT_BUDGET } };
 		const params = encodeShareParams(state);
+		expect(params.get('p')).toBe('0.3333A_0.6667A');
 		expect(params.has('na')).toBe(false);
-		expect(roundTrip(state)).toEqual(state);
+		const back = roundTrip(state);
+		expect(back.setup.pulses.map((p) => p.time)).toEqual([0.3333, 0.6667]);
+		expect(detectPreset(back.setup)).toBe('active');
+		expect({ ...back.setup, pulses: [] }).toEqual({ ...state.setup, pulses: [] });
 	});
 
 	it('needs no percent-encoding', () => {
@@ -114,12 +118,8 @@ describe('saved state', () => {
 		metrics: null
 	};
 
-	it('clears only keys under the prefix', () => {
-		const storage = memoryStorage({ [SETUP_KEY]: 'n=1_1', [RESULT_KEY]: '{}', other: 'x' });
-		expect(SETUP_KEY.startsWith(STORAGE_PREFIX)).toBe(true);
-		clearSaved(storage);
-		expect(storage.length).toBe(1);
-		expect(storage.getItem('other')).toBe('x');
+	it('keeps every key under the prefix', () => {
+		expect([SETUP_KEY, RESULT_KEY].every((k) => k.startsWith(STORAGE_PREFIX))).toBe(true);
 	});
 
 	it('reads a saved result and rejects corrupt ones', () => {
@@ -128,6 +128,5 @@ describe('saved state', () => {
 		expect(readSavedResult(memoryStorage({ [RESULT_KEY]: '{bad' }))).toBeNull();
 		expect(readSavedResult(memoryStorage({ [RESULT_KEY]: '{"query":"x"}' }))).toBeNull();
 		expect(readSavedResult(null)).toBeNull();
-		expect(readJson(memoryStorage({}), RESULT_KEY)).toBeNull();
 	});
 });

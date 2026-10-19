@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '$lib/symbolic-regression/prng';
+import { Prng } from '$lib/prng';
 import { applyPreset, defaultSetup, noiseless, type PresetId } from './presets';
-import type { RegisterNoise, Setup } from './types';
+import { freeControls, type RegisterNoise, type Setup } from './types';
 import { outer, rectApply } from './linalg';
-import { buildAncilla, buildMzi, freeControls, hasCompanion, pulseBoundary, su2 } from './build';
+import { buildAncilla, buildMzi, hasCompanion, pulseBoundary, su2 } from './build';
 import { qfiOfState, randomState } from './qfi';
 import { dist } from './test-helpers';
 import { expm, scale } from './linalg';
@@ -85,6 +85,19 @@ describe('buildAncilla', () => {
 		expect(p.bound[0]).toBe(0);
 		expect(p.exact).toBe(false);
 		expect(p.steps).toBe(24);
+	});
+
+	it('ignores the A-only controls without an ancilla: an MZI with local fields', () => {
+		// 'active+S': coupling, both fields, two pulses on both registers
+		const s = setupWith(2, 0, 'active+S', (n) => void (n.markov.amplitudeDamping = 1));
+		const K = 2;
+		const o = 15 + 3 * K;
+		expect(freeControls(s)).toEqual([12, 13, 14, o, o + 1, o + 2, o + 3, o + 4, o + 5]);
+		// Pulses on A alone are dropped
+		expect(freeControls(applyPreset(s, 'active'))).toEqual([12, 13, 14]);
+		const p = buildAncilla(s, 24);
+		expect(p.reg.dim).toBe(4);
+		for (let k = 0; k < 12; k++) expect(p.bound[k]).toBe(0);
 	});
 
 	it('uses one exact step for an uncontrolled covariant hold, Strang steps otherwise', () => {

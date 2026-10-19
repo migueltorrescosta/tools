@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '$lib/symbolic-regression/prng';
+import { Prng } from '$lib/prng';
 import { applyPreset, defaultSetup, DEFAULT_BUDGET, noiseless } from './presets';
 import type { Setup } from './types';
 import { buildAncilla } from './build';
