@@ -124,7 +124,7 @@ class WorkerAncillaEngine implements AncillaEngine {
 		const slot: Slot = { worker, task: null };
 		worker.onmessage = (e) => this.onMessage(slot, e.data);
 		worker.onerror = (e) => this.fail(e.message || 'Worker error');
-		worker.postMessage({ type: 'init', setup: this.setup, budget: this.budget });
+		worker.postMessage({ type: 'init', setup: this.setup as Setup, budget: this.budget as Budget });
 		this.slots.push(slot);
 		this.finishing = true;
 		this.assign(slot);
