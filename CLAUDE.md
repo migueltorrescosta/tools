@@ -23,7 +23,7 @@ pnpm test:e2e
 - `src/routes/` — SvelteKit pages (format, verb-conjugator, warhammer-simulator, split, wordle, decision-tree, timelines, rank-vote, jwt, volt, cipher, company-trends, symbolic-regression, ancilla-mzi)
 - `src/lib/` — tool logic lives in `src/lib/<tool>/` or `src/lib/<tool>.ts`; a route may keep route-only helpers in `src/routes/<tool>/lib/`; specs sit next to the module they test. Bundled data is in `src/lib/data/`.
 - `static/` — static assets
-- Ancilla vs MZI equations: TeX in `src/routes/ancilla-mzi/lib/equations.ts`, typeset to SVG while the page prerenders (`+page.server.ts` load; MathJax is a devDependency, and neither the client nor the Worker loads it).
+- Math: TeX rendered with KaTeX through `renderTex` (`src/lib/tex.ts`) inside `Tex` (`src/lib/ui`). Ancilla vs MZI renders its TeX (`src/routes/ancilla-mzi/lib/equations.ts`) while the page prerenders (`+page.server.ts` load), so it ships KaTeX CSS and fonts but no KaTeX JS; Symbolic Regression renders at runtime.
 
 ## Conventions
 

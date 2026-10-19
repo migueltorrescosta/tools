@@ -62,7 +62,7 @@ test('custom edits: coupling toggle, pulse count, time and target', async ({ pag
 
 	await page.getByTestId('pulse-1-time').fill('0.6');
 	await page.getByTestId('pulse-1-target').selectOption('both');
-	await expect(page.getByTestId('share-url')).toHaveValue(/p=0\.25A_0\.6B_0\.75A/);
+	await expect(page.getByTestId('copy-link')).toHaveAttribute('data-url', /p=0\.25A_0\.6B_0\.75A/);
 	await expect(page.getByTestId('start')).toBeEnabled();
 
 	// Out of order breaks the pulse sequence
@@ -170,7 +170,7 @@ test('Start, Stop and Continue with live updates', async ({ page }) => {
 test('the share URL restores the setup', async ({ page, browser }) => {
 	await open(page);
 	// The link is there before any edit
-	await expect(page.getByTestId('share-url')).toHaveValue(/\/ancilla-mzi\?/);
+	await expect(page.getByTestId('copy-link')).toHaveAttribute('data-url', /\/ancilla-mzi\?/);
 	await page.getByTestId('nS').fill('2');
 	await page.getByTestId('weight').fill('0.5');
 	await page.getByTestId('alpha-zz').uncheck();
@@ -178,7 +178,8 @@ test('the share URL restores the setup', async ({ page, browser }) => {
 	await page.getByTestId('system-amplitudeDamping').fill('0.3');
 	await page.getByTestId('ancilla-same').uncheck();
 	await page.getByTestId('ancilla-depolarizing').fill('0.2');
-	const url = await page.getByTestId('share-url').inputValue();
+	await expect(page.getByTestId('copy-link')).toHaveAttribute('data-url', /n=2_1/);
+	const url = (await page.getByTestId('copy-link').getAttribute('data-url')) ?? '';
 	expect(url).toContain('n=2_1');
 
 	// A fresh context, so nothing comes from localStorage
@@ -216,6 +217,8 @@ test('Clear saved data removes the saved setup and result', async ({ page }) => 
 	await expect(page.getByTestId('system-dephasing')).toHaveValue('0.1');
 	await expect(page.getByText('Saved result from your last finished run.')).toBeVisible();
 
+	// The first click asks for confirmation
+	await page.getByTestId('clear-saved').click();
 	await page.getByTestId('clear-saved').click();
 	await expect(hydrated(page)).toBeVisible();
 	await expect.poll(() => savedKeys(page)).toEqual([]);

@@ -39,6 +39,12 @@ function node(e: Expr, depth = 0): Expr {
 			if (Number.isFinite(v)) return constant(v);
 			return e;
 		}
+		// 1_A is 0 or 1, so these leave it unchanged
+		if (
+			a.kind === 'indicator' &&
+			(e.op === 'square' || e.op === 'cube' || e.op === 'sqrt' || e.op === 'abs')
+		)
+			return a;
 		if (a.kind === 'unary') {
 			if (e.op === 'square' && a.op === 'sqrt') return a.child;
 			if (e.op === 'exp' && a.op === 'log') return a.child;

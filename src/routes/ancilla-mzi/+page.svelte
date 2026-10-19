@@ -4,7 +4,6 @@
 	import { replaceState } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { clearSaved, createPersistGate } from '$lib/persist-gate';
-	import { copyToClipboard } from '$lib/clipboard';
 	import {
 		MAX_HOLD,
 		MAX_PULSES,
@@ -47,7 +46,7 @@
 		type RunSnapshot,
 		type Setup
 	} from '$lib/ancilla-mzi/types';
-	import { Alert, Button, Field, PageHeader, Panel, SegmentedControl } from '$lib/ui';
+	import { Alert, Button, Field, PageHeader, Panel, ShareActions, SegmentedControl } from '$lib/ui';
 	import { createAncillaEngine } from '$lib/ancilla-mzi/worker-engine';
 	import { activeControls } from './lib/controls';
 	import ConvergencePlot, { type RefLine } from './lib/ConvergencePlot.svelte';
@@ -55,7 +54,6 @@
 	import Description from './lib/Description.svelte';
 	import NoiseColumn from './lib/NoiseColumn.svelte';
 	import T from './lib/Tex.svelte';
-	import TexDefs from './lib/TexDefs.svelte';
 
 	/** Traces drawn at most (the newest, plus each role's best). */
 	const MAX_TRACES = 40;
@@ -346,11 +344,15 @@
 	];
 </script>
 
-<TexDefs />
 <div class="container" data-hydrated={hydrated || undefined}>
-	<PageHeader path="/ancilla-mzi"
-		>Does an ancilla really beat a Mach-Zehnder interferometer under noise? Build a scheme, count it
-		fairly, and see. Everything runs in your browser.</PageHeader
+	<PageHeader path="/ancilla-mzi">
+		{#snippet actions()}<ShareActions
+				url={shareUrl}
+				onClear={clearAll}
+				description="the setup, never results"
+			/>{/snippet}
+		Does an ancilla really beat a Mach-Zehnder interferometer under noise? Build a scheme, count it fairly,
+		and see. Everything runs in your browser.</PageHeader
 	>
 
 	<div class="layout">
@@ -1006,31 +1008,6 @@
 		</div>
 	</div>
 
-	<div class="share">
-		<Panel title="Share and saved data">
-			<div class="share-row">
-				<Field label="Share link (the setup, never results)">
-					{#snippet children(props)}
-						<input
-							class="control"
-							type="text"
-							readonly
-							value={shareUrl}
-							data-testid="share-url"
-							{...props}
-						/>
-					{/snippet}
-				</Field>
-				<div class="cluster">
-					<Button onclick={() => copyToClipboard(shareUrl)}>Copy link</Button>
-					<Button variant="danger" onclick={clearAll} data-testid="clear-saved"
-						>Clear saved data</Button
-					>
-				</div>
-			</div>
-		</Panel>
-	</div>
-
 	<Description />
 </div>
 
@@ -1048,9 +1025,6 @@
 	.inputs,
 	.results {
 		min-width: 0;
-	}
-	.share {
-		margin-top: var(--sp-3);
 	}
 	p {
 		margin: 0;
@@ -1256,14 +1230,5 @@
 	.num {
 		text-align: right !important;
 		font-variant-numeric: tabular-nums;
-	}
-	.share-row {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--sp-2) var(--sp-3);
-		align-items: end;
-	}
-	.share-row > :global(:first-child) {
-		flex: 1 1 20rem;
 	}
 </style>

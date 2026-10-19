@@ -18,14 +18,30 @@ export const UNARY_OPS: readonly UnaryOp[] = [
 export const ALL_OPERATORS: readonly OperatorName[] = [...BINARY_OPS, ...UNARY_OPS];
 export const DEFAULT_OPERATORS: readonly OperatorName[] = ['add', 'sub', 'mul', 'div'];
 
-/** An expression tree. `var` indexes into the input columns. Complexity is the node count. */
+/** How a column enters the search. */
+export type InputMode = 'exclude' | 'include' | 'categorical';
+
+/** A categorical input with more levels than this gets a warning. */
+export const CATEGORY_WARN = 10;
+/** The most levels a categorical input may have: an indicator's set is a 32-bit mask. */
+export const CATEGORY_MAX = 32;
+
+/**
+ * An expression tree. `var` and `indicator` index into the input columns.
+ * `indicator` is 1_A(x): 1 where the categorical input's level code is in the
+ * set A, bit k of `mask` standing for level k, else 0. Complexity is the node count.
+ */
 export type Expr =
 	| { kind: 'const'; value: number }
 	| { kind: 'var'; index: number }
+	| { kind: 'indicator'; index: number; mask: number }
 	| { kind: 'unary'; op: UnaryOp; child: Expr }
 	| { kind: 'binary'; op: BinaryOp; left: Expr; right: Expr };
 
-/** Columnar numeric data: `x[j][i]` is input j on row i, `y[i]` the target. */
+/**
+ * Columnar numeric data: `x[j][i]` is input j on row i, `y[i]` the target. A
+ * categorical input holds level codes 0, 1, … (see `PreparedData.levels`).
+ */
 export interface Dataset {
 	x: Float64Array[];
 	y: Float64Array;
@@ -35,6 +51,8 @@ export interface Dataset {
 export interface PreparedData {
 	/** Input column names, in the order `var` indices refer to. */
 	inputNames: string[];
+	/** Per input: its level names when categorical (code k is `levels[j][k]`), else null. */
+	levels: (string[] | null)[];
 	targetName: string;
 	train: Dataset;
 	validation: Dataset;

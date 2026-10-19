@@ -4,8 +4,10 @@ import type { PreparedData } from './types';
 
 export interface SyntheticOptions {
 	rows: number;
-	/** Input ranges, one per input column. */
+	/** Input ranges, one per input column (ignored for a categorical one). */
 	ranges: [number, number][];
+	/** Per input: level names to make it categorical, drawn uniformly as codes 0, 1, …; else null. */
+	levels?: (string[] | null)[];
 	f: (x: number[]) => number;
 	/** Relative Gaussian noise on the target. */
 	noise?: number;
@@ -29,12 +31,16 @@ export function syntheticData(o: SyntheticOptions): PreparedData {
 	for (let i = 0; i < o.rows; i++) {
 		const set = i < nTrain ? train : validation;
 		const r = i < nTrain ? i : i - nTrain;
-		const row = o.ranges.map(([lo, hi]) => lo + (hi - lo) * prng.next());
+		const row = o.ranges.map(([lo, hi], j) => {
+			const levels = o.levels?.[j];
+			return levels ? prng.int(levels.length) : lo + (hi - lo) * prng.next();
+		});
 		row.forEach((v, j) => (set.x[j][r] = v));
 		set.y[r] = o.f(row) * (1 + (o.noise ?? 0) * prng.normal());
 	}
 	return {
 		inputNames: o.names ?? Array.from({ length: m }, (_, j) => `x${j + 1}`),
+		levels: Array.from({ length: m }, (_, j) => o.levels?.[j] ?? null),
 		targetName: 'y',
 		train,
 		validation

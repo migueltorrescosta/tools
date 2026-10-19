@@ -1,5 +1,5 @@
-// TeX sources of every equation on the Ancilla vs MZI page, typeset to SVG
-// while the page prerenders (typeset.ts).
+// TeX sources of every equation on the Ancilla vs MZI page, typeset with KaTeX
+// while the page prerenders (+page.server.ts).
 
 export const EQUATIONS = {
 	N: 'N=N_S+N_A',

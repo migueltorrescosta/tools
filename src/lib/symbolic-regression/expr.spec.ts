@@ -8,6 +8,7 @@ import {
 	exprEquals,
 	exprKey,
 	getConstants,
+	indicator,
 	mse,
 	setConstants,
 	unary,
@@ -89,5 +90,29 @@ describe('evaluate', () => {
 
 	it('computes the MSE', () => {
 		expect(mse(x0, { x: cols, y: Float64Array.from([1, 2, 3, 6]) })).toBe(1);
+	});
+});
+
+describe('indicator', () => {
+	// Level codes 0..3 on four rows
+	const codes = [Float64Array.from([0, 1, 2, 3])];
+	const ind = indicator(0, 0b1010);
+
+	it('is a leaf of complexity 1 keyed by its set', () => {
+		expect(complexity(ind)).toBe(1);
+		expect(exprKey(ind)).not.toBe(exprKey(indicator(0, 0b0110)));
+		expect(exprEquals(ind, clone(ind))).toBe(true);
+		expect(getConstants(binary('mul', constant(3), ind))).toEqual([3]);
+	});
+
+	it('evaluates to 1 on rows whose level is in the set', () => {
+		expect(Array.from(evaluate(binary('mul', constant(3), ind), codes)!)).toEqual([0, 3, 0, 3]);
+		expect(Array.from(evaluate(ind, codes, [3, 0, 1])!)).toEqual([1, 0, 1]);
+	});
+
+	it('handles level 31 of a 32-bit mask', () => {
+		const top = indicator(0, 2 ** 31);
+		expect(top).toMatchObject({ mask: 2 ** 31 });
+		expect(Array.from(evaluate(top, [Float64Array.from([31, 30])])!)).toEqual([1, 0]);
 	});
 });

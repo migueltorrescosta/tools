@@ -9,8 +9,14 @@
 		name = `seg-${uid}`
 	}: {
 		legend: string;
-		/** `icon` is decorative (e.g. an emoji) and hidden from screen readers. */
-		options: readonly { value: T; label: string; icon?: string }[];
+		/** `icon` is decorative (e.g. an emoji) and hidden from screen readers; `title` explains a disabled option. */
+		options: readonly {
+			value: T;
+			label: string;
+			icon?: string;
+			disabled?: boolean;
+			title?: string;
+		}[];
 		value: T;
 		hideLegend?: boolean;
 		name?: string;
@@ -21,8 +27,18 @@
 	<legend class:sr-only={hideLegend}>{legend}</legend>
 	<div class="ui-options">
 		{#each options as option (option.value)}
-			<label class:checked={value === option.value}>
-				<input type="radio" {name} value={option.value} bind:group={value} />
+			<label
+				class:checked={value === option.value}
+				class:disabled={option.disabled}
+				title={option.title}
+			>
+				<input
+					type="radio"
+					{name}
+					value={option.value}
+					disabled={option.disabled}
+					bind:group={value}
+				/>
 				{#if option.icon}<span class="ui-seg-icon" aria-hidden="true">{option.icon}</span>{/if}
 				{option.label}
 			</label>
@@ -70,6 +86,19 @@
 
 	label:hover {
 		background: var(--surface-2);
+	}
+
+	label.disabled {
+		color: var(--text-muted);
+		cursor: not-allowed;
+	}
+
+	label.disabled:hover {
+		background: var(--surface);
+	}
+
+	label.disabled input {
+		cursor: not-allowed;
 	}
 
 	label.checked {

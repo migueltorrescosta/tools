@@ -9,7 +9,10 @@ export interface Example {
 	description: string;
 	csv: string;
 	target: string;
+	/** Numeric inputs. */
 	inputs: string[];
+	/** Categorical inputs. */
+	categorical?: string[];
 	operators?: OperatorName[];
 }
 
@@ -62,6 +65,31 @@ export function generateNewtonCsv(rows = 300, seed = 2026): string {
 	return lines.join('\n') + '\n';
 }
 
+/** Delivery zones; island and remote ones carry a surcharge. */
+export const ZONES = ['city', 'suburb', 'rural', 'island', 'remote'] as const;
+export const SURCHARGE_ZONES: readonly string[] = ['island', 'remote'];
+
+/**
+ * Noisy parcel prices: cost = 4 + 0.8·weight + 6·1[zone ∈ {island, remote}],
+ * with 2% multiplicative noise and an unrelated `carrier` column.
+ */
+export function generateShippingCsv(rows = 300, seed = 2026): string {
+	const prng = new Prng(seed);
+	const carriers = ['north', 'south', 'east'];
+	const lines = ['weight_kg,zone,carrier,cost'];
+	for (let i = 0; i < rows; i++) {
+		const weight = 0.5 + 19.5 * prng.next();
+		const zone = ZONES[prng.int(ZONES.length)];
+		const carrier = carriers[prng.int(carriers.length)];
+		const cost =
+			(4 + 0.8 * weight + (SURCHARGE_ZONES.includes(zone) ? 6 : 0)) * (1 + 0.02 * prng.normal());
+		lines.push(
+			[Number(weight.toPrecision(4)), zone, carrier, Number(cost.toPrecision(5))].join(',')
+		);
+	}
+	return lines.join('\n') + '\n';
+}
+
 export const EXAMPLES: Example[] = [
 	{
 		id: 'kepler',
@@ -81,5 +109,15 @@ export const EXAMPLES: Example[] = [
 		csv: generateNewtonCsv(),
 		target: 'F',
 		inputs: ['m1', 'm2', 'r', 'temperature_K']
+	},
+	{
+		id: 'shipping',
+		name: 'Parcel prices (categorical)',
+		description:
+			'300 synthetic parcels: weight in kg, delivery zone and carrier, price with 2% noise. Expect cost ≈ 4 + 0.8·weight + 6·1[zone ∈ {island, remote}]; carrier is a distractor.',
+		csv: generateShippingCsv(),
+		target: 'cost',
+		inputs: ['weight_kg'],
+		categorical: ['zone', 'carrier']
 	}
 ];
