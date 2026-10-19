@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import { replaceState } from '$app/navigation';
 	import { browser } from '$app/environment';
-	import { createPersistGate } from '$lib/persist-gate';
+	import { clearSaved, createPersistGate, readJson } from '$lib/persist-gate';
 	import { copyToClipboard } from '$lib/clipboard';
 	import { EXAMPLES } from '$lib/data/symbolic-regression-examples';
 	import { parseCsv, type ParsedCsv } from '$lib/symbolic-regression/csv';
@@ -23,17 +23,17 @@
 	} from '$lib/symbolic-regression/format';
 	import { toMathML } from '$lib/symbolic-regression/mathml';
 	import { recommendedIndex } from '$lib/symbolic-regression/front';
-	import { WorkerSearchEngine, defaultWorkerCount } from '$lib/symbolic-regression/worker-engine';
+	import { WorkerSearchEngine } from '$lib/symbolic-regression/worker-engine';
+	import { defaultWorkerCount } from '$lib/worker-pool';
 	import {
 		DATASET_KEY,
 		FRONT_KEY,
 		SETTINGS_KEY,
+		STORAGE_PREFIX,
 		canSaveCsv,
-		clearSaved,
 		decodeShareParams,
 		encodeShareParams,
 		hasShareParams,
-		readJson,
 		type SavedDataset,
 		type ShareState
 	} from '$lib/symbolic-regression/state';
@@ -48,7 +48,7 @@
 	} from '$lib/symbolic-regression/types';
 	import { Alert, Button, Field, PageHeader, Panel } from '$lib/ui';
 	import ScatterPlot from './lib/ScatterPlot.svelte';
-	import { thin, type Point } from './lib/plot';
+	import { thin, type Point } from '$lib/plot';
 
 	const OPERATOR_LABELS: Record<OperatorName, string> = {
 		add: '+',
@@ -424,7 +424,7 @@
 	function clearAll() {
 		engine?.dispose();
 		engine = null;
-		if (storage) clearSaved(storage);
+		if (storage) clearSaved(storage, STORAGE_PREFIX);
 		// A fresh load resets every piece of state, and nothing is written back until the user acts
 		window.location.replace(page.url.pathname);
 	}

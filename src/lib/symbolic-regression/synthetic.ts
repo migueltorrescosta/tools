@@ -1,5 +1,5 @@
 /** Synthetic datasets for specs and benchmarks. */
-import { Prng } from './prng';
+import { Prng } from '$lib/prng';
 import type { PreparedData } from './types';
 
 export interface SyntheticOptions {

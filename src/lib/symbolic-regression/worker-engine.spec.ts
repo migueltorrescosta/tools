@@ -2,15 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { createIslandHost, type FromWorker, type ToWorker } from './host';
 import { syntheticData } from './synthetic';
 import { DEFAULT_SETTINGS, type SearchEvent } from './types';
-import {
-	WorkerSearchEngine,
-	defaultWorkerCount,
-	islandSeed,
-	type WorkerLike
-} from './worker-engine';
+import type { WorkerLike } from '$lib/worker-pool';
+import { WorkerSearchEngine, islandSeed } from './worker-engine';
 
 /** Runs the real island host in-process, with structured cloning and async delivery like a worker. */
-class FakeWorker implements WorkerLike {
+class FakeWorker implements WorkerLike<ToWorker, FromWorker> {
 	onmessage: ((e: MessageEvent<FromWorker>) => void) | null = null;
 	onerror: ((e: ErrorEvent) => void) | null = null;
 	received: ToWorker['type'][] = [];
@@ -57,16 +53,7 @@ function nextStop(engine: WorkerSearchEngine, events: SearchEvent[]): Promise<Se
 	});
 }
 
-describe('defaultWorkerCount', () => {
-	it('uses hardwareConcurrency − 1, between 1 and 4', () => {
-		expect(defaultWorkerCount(1)).toBe(1);
-		expect(defaultWorkerCount(2)).toBe(1);
-		expect(defaultWorkerCount(4)).toBe(3);
-		expect(defaultWorkerCount(16)).toBe(4);
-		expect(defaultWorkerCount(NaN)).toBe(1);
-		expect(defaultWorkerCount()).toBeGreaterThanOrEqual(1);
-	});
-
+describe('islandSeed', () => {
 	it('derives distinct island seeds, island 0 using the seed', () => {
 		expect(islandSeed(7, 0)).toBe(7);
 		const seeds = new Set([0, 1, 2, 3].map((i) => islandSeed(7, i)));

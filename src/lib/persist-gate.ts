@@ -1,3 +1,27 @@
+/** Remove every key that starts with `prefix` (one tool's saved data). */
+export function clearSaved(
+	storage: Pick<Storage, 'length' | 'key' | 'removeItem'>,
+	prefix: string
+): void {
+	const keys: string[] = [];
+	for (let i = 0; i < storage.length; i++) {
+		const key = storage.key(i);
+		if (key?.startsWith(prefix)) keys.push(key);
+	}
+	for (const key of keys) storage.removeItem(key);
+}
+
+/** Parse JSON saved under `key`; null when absent or corrupt. */
+export function readJson<T>(storage: Pick<Storage, 'getItem'> | null, key: string): T | null {
+	if (!storage) return null;
+	try {
+		const raw = storage.getItem(key);
+		return raw === null ? null : (JSON.parse(raw) as T);
+	} catch {
+		return null;
+	}
+}
+
 /** The subset of the Web Storage API the gate writes through. */
 export type WritableStorage = Pick<Storage, 'setItem'>;
 

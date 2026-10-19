@@ -1,7 +1,7 @@
 /** Turn a parsed CSV into numeric columns and a seeded train/validation split. */
 
 import type { ParsedCsv } from './csv';
-import { Prng } from './prng';
+import { Prng } from '$lib/prng';
 import type { Dataset, PreparedData } from './types';
 
 export interface ColumnInfo {

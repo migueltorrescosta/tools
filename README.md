@@ -19,6 +19,7 @@ A collection of small browser tools built with SvelteKit 2, Svelte 5 and TypeScr
 | `/company-trends`      | Company Trends      | Animated log-log revenue vs operating margin for 43 companies since 2000, in EUR. |
 | `/warhammer-simulator` | Warhammer Simulator | Monte Carlo duel odds for Warhammer: The Old World.                               |
 | `/symbolic-regression` | Symbolic Regression | Fit interpretable equations to a CSV, with a Pareto front of accuracy vs size.    |
+| `/ancilla-mzi`         | Ancilla vs MZI      | Noisy ancilla-assisted interferometry against a fairly counted MZI.               |
 
 The index page is generated from `src/lib/routes.ts`. Add new tools there.
 

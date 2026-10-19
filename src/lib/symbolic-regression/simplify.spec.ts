@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { binary, complexity, constant, evaluate, exprKey, unary, variable } from './expr';
-import { Prng } from './prng';
+import { Prng } from '$lib/prng';
 import { simplify } from './simplify';
 import { ALL_OPERATORS, BINARY_OPS, UNARY_OPS, type Expr } from './types';
 

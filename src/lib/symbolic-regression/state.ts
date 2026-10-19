@@ -81,27 +81,6 @@ export function hasShareParams(params: URLSearchParams): boolean {
 	);
 }
 
-/** Remove every key under the tool's prefix. */
-export function clearSaved(storage: Pick<Storage, 'length' | 'key' | 'removeItem'>): void {
-	const keys: string[] = [];
-	for (let i = 0; i < storage.length; i++) {
-		const key = storage.key(i);
-		if (key?.startsWith(STORAGE_PREFIX)) keys.push(key);
-	}
-	for (const key of keys) storage.removeItem(key);
-}
-
 export function canSaveCsv(csv: string): boolean {
 	return csv.length <= MAX_SAVED_CSV_LENGTH;
-}
-
-/** Parse JSON saved under one of the tool's keys; null when absent or corrupt. */
-export function readJson<T>(storage: Pick<Storage, 'getItem'> | null, key: string): T | null {
-	if (!storage) return null;
-	try {
-		const raw = storage.getItem(key);
-		return raw === null ? null : (JSON.parse(raw) as T);
-	} catch {
-		return null;
-	}
 }

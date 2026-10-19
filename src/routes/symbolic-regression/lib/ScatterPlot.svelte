@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { niceTicks, formatTick, type Point } from './plot';
+	import { niceTicks, formatTick, type Point } from '$lib/plot';
 
 	interface Props {
 		points: Point[];

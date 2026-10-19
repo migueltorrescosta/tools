@@ -12,6 +12,7 @@ const ROUTES = [
 	'/split',
 	'/decision-tree',
 	'/symbolic-regression',
+	'/ancilla-mzi',
 	'/rank-vote',
 	'/verb-conjugator',
 	'/warhammer-simulator',
