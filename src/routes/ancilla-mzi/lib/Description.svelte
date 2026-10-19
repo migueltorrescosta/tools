@@ -75,7 +75,8 @@
 				Bounds, drawn on the convergence plot: the noiseless <T id="seminormBound" />, and for <T
 					id="sigmaZ"
 				/> dephasing the parallel channel-extension bound <T id="extensionBound" /> with
-				<T id="eta" />.
+				<T id="eta" />. It bounds parallel schemes only: controlled, sequential schemes like the
+				ancilla's may exceed it.
 			</li>
 		</ul>
 

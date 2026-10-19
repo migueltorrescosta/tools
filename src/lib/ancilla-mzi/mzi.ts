@@ -272,14 +272,18 @@ export function computeMzi(
 	}
 	timings.standard = now() - t0 - timings.search - timings.precise - timings.fixed;
 
-	// Readouts at the optimal window: the best over the standard inputs and the optimum
-	const oat = bestOat(opt.hold, p, oatGrid);
-	const states = [std.product, std.noon, std.twinFock, oatState(n, oat.mu, oat.theta), opt.psi];
+	// Readouts at both candidate windows (the chosen one is not known yet): the
+	// best over the standard inputs and the optimum
+	const holds = best.window === 1 ? [opt.hold] : [opt.hold, p.hold(1, fixedBias)];
 	let ro: Readouts | null = null;
-	for (const s of states) {
-		const { rho, drho } = opt.hold.forward(outer(rectApply(p.isoFull, s)));
-		const r = readouts(rho, drho, n, 0, prng, readoutStarts);
-		ro = ro ? maxReadouts(ro, r) : r;
+	for (const hold of holds) {
+		const oat = bestOat(hold, p, oatGrid);
+		const states = [std.product, std.noon, std.twinFock, oatState(n, oat.mu, oat.theta), opt.psi];
+		for (const s of states) {
+			const { rho, drho } = hold.forward(outer(rectApply(p.isoFull, s)));
+			const r = readouts(rho, drho, n, 0, prng, readoutStarts);
+			ro = ro ? maxReadouts(ro, r) : r;
+		}
 	}
 	timings.readouts =
 		now() - t0 - timings.search - timings.precise - timings.fixed - timings.standard;

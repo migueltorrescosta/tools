@@ -1,6 +1,8 @@
 <script lang="ts" module>
 	export interface RefLine {
 		label: string;
+		/** Label next to the line when `label` is too long for the margin. */
+		short?: string;
 		value: number;
 		kind: 'mzi' | 'seminorm' | 'extension';
 	}
@@ -148,7 +150,7 @@
 				y1={sy(r.value)}
 				y2={sy(r.value)}
 			/>
-			<text class="ref-label" x={M.left + innerW + 6} y={r.y + 4}>{r.label}</text>
+			<text class="ref-label" x={M.left + innerW + 6} y={r.y + 4}>{r.short ?? r.label}</text>
 		{/each}
 		{#each shown as t (`${t.role}-${t.seed}`)}
 			<path

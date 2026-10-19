@@ -352,6 +352,121 @@
 
 	<div class="layout">
 		<div class="stack inputs">
+			<Panel title="Run">
+				<div class="stack">
+					<div class="cluster">
+						<Button
+							variant="primary"
+							onclick={start}
+							disabled={running || errors.length > 0}
+							data-testid="start">Start</Button
+						>
+						<Button variant="danger" onclick={stop} disabled={!running} data-testid="stop"
+							>Stop</Button
+						>
+						<Button onclick={resume} disabled={!canContinue || running} data-testid="continue"
+							>Continue</Button
+						>
+					</div>
+					<p class="muted" data-testid="progress">
+						{#if running}Running ·
+						{/if}<span data-testid="elapsed">{elapsed}</span> ·
+						<span data-testid="seeds-done"
+							>{snapshot?.seedsDone.setup ?? 0} seeds{#if snapshot && snapshot.seedsDone.companion > 0},
+								{snapshot.seedsDone.companion} companion seeds{/if}</span
+						>
+					</p>
+					{#if errors.length > 0}
+						<div data-testid="validation-errors">
+							<Alert tone="warning">
+								Fix these to start:
+								<ul class="errors">
+									{#each errors as e (e.field + e.message)}<li>{e.message}</li>{/each}
+								</ul>
+							</Alert>
+						</div>
+					{/if}
+					{#if runError}<Alert tone="danger">{runError}</Alert>{/if}
+					<details class="budget" data-testid="budget">
+						<summary>Budget</summary>
+						<div class="grid-2">
+							<Field label="Strang steps M">
+								{#snippet children(props)}
+									<input
+										class="control"
+										type="number"
+										min="2"
+										step="1"
+										bind:value={budget.steps}
+										{...props}
+									/>
+								{/snippet}
+							</Field>
+							<Field label="Rounds per seed">
+								{#snippet children(props)}
+									<input
+										class="control"
+										type="number"
+										min="1"
+										step="1"
+										bind:value={budget.rounds}
+										{...props}
+									/>
+								{/snippet}
+							</Field>
+							<Field label="Iterations per round">
+								{#snippet children(props)}
+									<input
+										class="control"
+										type="number"
+										min="1"
+										step="1"
+										bind:value={budget.maxIter}
+										{...props}
+									/>
+								{/snippet}
+							</Field>
+							<Field label="See-saw iterations">
+								{#snippet children(props)}
+									<input
+										class="control"
+										type="number"
+										min="1"
+										step="1"
+										bind:value={budget.seesawIter}
+										{...props}
+									/>
+								{/snippet}
+							</Field>
+							<Field label="Workers" hint="0 picks one per spare core, up to 4.">
+								{#snippet children(props)}
+									<input
+										class="control"
+										type="number"
+										min="0"
+										max="16"
+										step="1"
+										bind:value={budget.workers}
+										{...props}
+									/>
+								{/snippet}
+							</Field>
+							<Field label="Seed">
+								{#snippet children(props)}
+									<input
+										class="control"
+										type="number"
+										min="0"
+										step="1"
+										bind:value={budget.seed}
+										{...props}
+									/>
+								{/snippet}
+							</Field>
+						</div>
+					</details>
+				</div>
+			</Panel>
 			<Panel title="Setup">
 				<div class="stack">
 					<Field
@@ -678,122 +793,6 @@
 							{/snippet}
 						</Field>
 					</div>
-				</div>
-			</Panel>
-
-			<Panel title="Run">
-				<div class="stack">
-					<details class="budget" data-testid="budget">
-						<summary>Budget</summary>
-						<div class="grid-2">
-							<Field label="Strang steps M">
-								{#snippet children(props)}
-									<input
-										class="control"
-										type="number"
-										min="2"
-										step="1"
-										bind:value={budget.steps}
-										{...props}
-									/>
-								{/snippet}
-							</Field>
-							<Field label="Rounds per seed">
-								{#snippet children(props)}
-									<input
-										class="control"
-										type="number"
-										min="1"
-										step="1"
-										bind:value={budget.rounds}
-										{...props}
-									/>
-								{/snippet}
-							</Field>
-							<Field label="Iterations per round">
-								{#snippet children(props)}
-									<input
-										class="control"
-										type="number"
-										min="1"
-										step="1"
-										bind:value={budget.maxIter}
-										{...props}
-									/>
-								{/snippet}
-							</Field>
-							<Field label="See-saw iterations">
-								{#snippet children(props)}
-									<input
-										class="control"
-										type="number"
-										min="1"
-										step="1"
-										bind:value={budget.seesawIter}
-										{...props}
-									/>
-								{/snippet}
-							</Field>
-							<Field label="Workers" hint="0 picks one per spare core, up to 4.">
-								{#snippet children(props)}
-									<input
-										class="control"
-										type="number"
-										min="0"
-										max="16"
-										step="1"
-										bind:value={budget.workers}
-										{...props}
-									/>
-								{/snippet}
-							</Field>
-							<Field label="Seed">
-								{#snippet children(props)}
-									<input
-										class="control"
-										type="number"
-										min="0"
-										step="1"
-										bind:value={budget.seed}
-										{...props}
-									/>
-								{/snippet}
-							</Field>
-						</div>
-					</details>
-					{#if errors.length > 0}
-						<div data-testid="validation-errors">
-							<Alert tone="warning">
-								Fix these to start:
-								<ul class="errors">
-									{#each errors as e (e.field + e.message)}<li>{e.message}</li>{/each}
-								</ul>
-							</Alert>
-						</div>
-					{/if}
-					<div class="cluster">
-						<Button
-							variant="primary"
-							onclick={start}
-							disabled={running || errors.length > 0}
-							data-testid="start">Start</Button
-						>
-						<Button variant="danger" onclick={stop} disabled={!running} data-testid="stop"
-							>Stop</Button
-						>
-						<Button onclick={resume} disabled={!canContinue || running} data-testid="continue"
-							>Continue</Button
-						>
-					</div>
-					<p class="muted" data-testid="progress">
-						{#if running}Running ·
-						{/if}<span data-testid="elapsed">{elapsed}</span> ·
-						<span data-testid="seeds-done"
-							>{snapshot?.seedsDone.setup ?? 0} seeds{#if snapshot && snapshot.seedsDone.companion > 0},
-								{snapshot.seedsDone.companion} companion{/if}</span
-						>
-					</p>
-					{#if runError}<Alert tone="danger">{runError}</Alert>{/if}
 				</div>
 			</Panel>
 		</div>

@@ -1,7 +1,7 @@
-import { FakeAncillaEngine } from '$lib/ancilla-mzi/fake-engine';
+import { createAncillaEngine } from '$lib/ancilla-mzi/worker-engine';
 import type { AncillaEngine } from '$lib/ancilla-mzi/types';
 
-/** The engine the page drives. Swap in the worker engine here once it exists. */
+/** The engine the page drives: the worker pool. */
 export function createEngine(): AncillaEngine {
-	return new FakeAncillaEngine();
+	return createAncillaEngine();
 }
