@@ -88,5 +88,11 @@ export const routes: ToolRoute[] = [
 		name: 'Ancilla vs MZI',
 		description:
 			'Compare a noisy ancilla-assisted interferometer against a fairly counted Mach-Zehnder interferometer. Optimised live on Web Workers, with a panel of fair-accounting rules.'
+	},
+	{
+		path: '/scientific-derivations',
+		name: 'Scientific Derivations',
+		description:
+			"Follow a paper's key derivations as graphs: LaTeX equations as nodes, the facts that connect them as edges, with corrections where the paper slips."
 	}
 ];
