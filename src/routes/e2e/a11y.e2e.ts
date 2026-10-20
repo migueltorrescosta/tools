@@ -13,6 +13,7 @@ const ROUTES = [
 	'/decision-tree',
 	'/symbolic-regression',
 	'/ancilla-mzi',
+	'/scientific-derivations',
 	'/rank-vote',
 	'/verb-conjugator',
 	'/warhammer-simulator',
