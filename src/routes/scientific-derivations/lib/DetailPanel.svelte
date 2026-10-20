@@ -2,7 +2,7 @@
 	import { edgeId, type Derivation, type Paper } from '$lib/scientific-derivations';
 	import { renderProse, stackTex } from '$lib/scientific-derivations/prose';
 	import { renderTex } from '$lib/tex';
-	import { Alert, Panel } from '$lib/ui';
+	import { Alert, Button, Panel } from '$lib/ui';
 	import Tex from '$lib/ui/Tex.svelte';
 	import type { Selection } from './DerivationGraph.svelte';
 
@@ -43,7 +43,12 @@
 	);
 </script>
 
-<Panel title={node?.title ?? (edge ? 'Fact' : 'Details')} level={3}>
+<Panel title={node?.title ?? 'Fact'} level={3}>
+	{#snippet actions()}
+		<Button size="sm" variant="ghost" aria-label="Close details" onclick={() => (selected = null)}
+			>✕</Button
+		>
+	{/snippet}
 	<div class="dp" data-testid="detail">
 		{#if node}
 			<p class="dp-meta">{meta}</p>
@@ -111,11 +116,6 @@
 					{@html renderProse(edge.correction)}
 				</Alert>
 			{/if}
-		{:else}
-			<p class="dp-hint">
-				Select an equation or a fact on the graph. Dashed boxes are assumptions, bold boxes are
-				results. Tags mark steps that are corrected from, or added to, the paper.
-			</p>
 		{/if}
 	</div>
 </Panel>
@@ -147,8 +147,7 @@
 		padding-left: var(--sp-4);
 	}
 
-	.dp-meta,
-	.dp-hint {
+	.dp-meta {
 		font-size: var(--text-sm);
 		color: var(--text-muted);
 	}

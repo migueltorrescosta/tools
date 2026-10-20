@@ -19,18 +19,40 @@ export interface GraphLayout {
 	edges: Record<string, { points: Point[]; label: Point }>;
 }
 
-/** Top-to-bottom layered layout; edge labels get their own space so they never cover nodes. */
+/** Boxes allowed side by side before extra inputs are pushed up a row. */
+export const MAX_PER_ROW = 3;
+
+/**
+ * Top-to-bottom layered layout; edge labels get their own space so they never cover nodes.
+ * Rows with more than `maxPerRow` boxes send their inputs (nodes nothing points to) one row
+ * higher, so graphs grow taller instead of wider.
+ */
 export function layoutGraph(
 	nodes: Record<string, Size>,
-	edges: { id: string; from: string; to: string; label: Size }[]
+	edges: { id: string; from: string; to: string; label: Size }[],
+	maxPerRow = MAX_PER_ROW
 ): GraphLayout {
-	const g = new dagre.graphlib.Graph({ multigraph: true });
-	g.setGraph({ rankdir: 'TB', nodesep: 32, ranksep: 36, edgesep: 16, marginx: 8, marginy: 8 });
-	for (const [id, size] of Object.entries(nodes)) g.setNode(id, { ...size });
-	for (const edge of edges) {
-		g.setEdge(edge.from, edge.to, { ...edge.label, labelpos: 'c' }, edge.id);
+	const minlen: Record<string, number> = Object.fromEntries(edges.map((e) => [e.id, 1]));
+	const inputs = new Set(Object.keys(nodes).filter((id) => !edges.some((e) => e.to === id)));
+
+	let g = run(nodes, edges, minlen);
+	for (let pass = 0; pass < 8; pass++) {
+		const rows = new Map<number, string[]>();
+		for (const id of Object.keys(nodes)) {
+			const y = Math.round(g.node(id).y);
+			rows.set(y, [...(rows.get(y) ?? []), id]);
+		}
+		let moved = false;
+		for (const row of rows.values()) {
+			const movable = row.filter((id) => inputs.has(id));
+			for (const id of movable.slice(0, Math.max(0, row.length - maxPerRow))) {
+				for (const e of edges) if (e.from === id) minlen[e.id]++;
+				moved = true;
+			}
+		}
+		if (!moved) break;
+		g = run(nodes, edges, minlen);
 	}
-	dagre.layout(g);
 
 	const graph = g.graph();
 	return {
@@ -52,6 +74,26 @@ export function layoutGraph(
 			})
 		)
 	};
+}
+
+function run(
+	nodes: Record<string, Size>,
+	edges: { id: string; from: string; to: string; label: Size }[],
+	minlen: Record<string, number>
+) {
+	const g = new dagre.graphlib.Graph({ multigraph: true });
+	g.setGraph({ rankdir: 'TB', nodesep: 16, ranksep: 44, edgesep: 8, marginx: 8, marginy: 8 });
+	for (const [id, size] of Object.entries(nodes)) g.setNode(id, { ...size });
+	for (const edge of edges) {
+		g.setEdge(
+			edge.from,
+			edge.to,
+			{ ...edge.label, labelpos: 'c', minlen: minlen[edge.id] },
+			edge.id
+		);
+	}
+	dagre.layout(g);
+	return g;
 }
 
 /** An SVG path through the points, rounded with quadratic curves at each bend. */

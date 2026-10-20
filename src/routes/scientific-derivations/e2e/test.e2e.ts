@@ -17,9 +17,12 @@ test('opens the first derivation of the first paper', async ({ page }) => {
 	await expect(page.getByTestId('node-gksl')).toBeVisible();
 });
 
-test('every derivation lays out and renders its TeX', async ({ page }) => {
+test('every derivation of every paper lays out and renders its TeX', async ({ page }) => {
 	await open(page);
-	for (const derivation of paper.derivations) {
+	for (const derivation of PAPERS.flatMap((p) =>
+		p.derivations.map((d) => ({ ...d, paper: p.id }))
+	)) {
+		await page.getByTestId('paper').selectOption(derivation.paper);
 		await page.getByTestId('derivation').selectOption(derivation.id);
 		await expect(page).toHaveURL(new RegExp(`derivation=${derivation.id}`));
 		await expect(page.getByTestId('graph')).toHaveAttribute('data-ready', '');
@@ -56,7 +59,7 @@ test('an edge label selects the fact; clicking again clears it', async ({ page }
 	await edge.click();
 	await expect(page.getByTestId('detail')).toContainText('diagonalise Λ');
 	await edge.click();
-	await expect(page.getByTestId('detail')).toContainText('Select an equation or a fact');
+	await expect(page.getByTestId('detail')).toHaveCount(0);
 });
 
 test('an imported result links to the derivation it comes from', async ({ page }) => {
@@ -74,4 +77,23 @@ test('fit to width shrinks a wide graph; 100% restores it', async ({ page }) => 
 	await expect(canvas).toHaveAttribute('style', /scale\(/);
 	await page.getByText('100%').click();
 	await expect(canvas).not.toHaveAttribute('style', /scale\(/);
+});
+
+test('the details drawer closes with its button and with Escape', async ({ page }) => {
+	await open(page);
+	await page.getByTestId('node-gksl').click();
+	await page.getByRole('button', { name: 'Close details' }).click();
+	await expect(page.getByTestId('detail')).toHaveCount(0);
+	await page.getByTestId('node-gksl').click();
+	await expect(page.getByTestId('detail')).toBeVisible();
+	await page.keyboard.press('Escape');
+	await expect(page.getByTestId('detail')).toHaveCount(0);
+});
+
+test('the second paper opens with its own derivations', async ({ page }) => {
+	await open(page);
+	await page.getByTestId('paper').selectOption('shannon-communication');
+	await expect(page.getByTestId('derivation')).toHaveValue('noiseless-capacity');
+	await expect(page).toHaveURL(/paper=shannon-communication/);
+	await expect(page.getByTestId('node-telegraph')).toBeVisible();
 });

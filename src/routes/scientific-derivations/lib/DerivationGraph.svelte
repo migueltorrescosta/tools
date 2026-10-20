@@ -88,6 +88,12 @@
 	data-ready={layout ? '' : undefined}
 	bind:clientWidth={boxWidth}
 >
+	{#if !layout}
+		<p class="dg-loading" role="status">
+			<span class="dg-spinner" aria-hidden="true"></span>
+			Drawing the derivation…
+		</p>
+	{/if}
 	<div
 		class="dg-size"
 		style:width={layout ? `${layout.width * scale}px` : '100%'}
@@ -173,11 +179,40 @@
 
 <style>
 	.dg-scroll {
+		position: relative;
 		overflow: auto;
 		max-width: 100%;
 		background: var(--surface);
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
+	}
+
+	.dg-loading {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--sp-2);
+		margin: 0;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+	}
+
+	.dg-spinner {
+		width: 1.25rem;
+		height: 1.25rem;
+		border: 2px solid var(--border);
+		border-top-color: var(--accent);
+		border-radius: 50%;
+		animation: dg-spin 0.8s linear infinite;
+	}
+
+	@keyframes dg-spin {
+		to {
+			transform: rotate(360deg);
+		}
 	}
 
 	.dg-size {

@@ -32,6 +32,24 @@ describe('layoutGraph', () => {
 	});
 });
 
+describe('row cap', () => {
+	it('pushes extra inputs up so no row holds more than the cap', () => {
+		const ids = ['a', 'b', 'c', 'd', 'e'];
+		const layout = layoutGraph(
+			Object.fromEntries([...ids, 'z'].map((id) => [id, box])),
+			ids.map((id) => ({ id: `${id}->z`, from: id, to: 'z', label })),
+			3
+		);
+		const rows = new Map<number, number>();
+		for (const id of ids) {
+			const y = Math.round(layout.nodes[id].y);
+			rows.set(y, (rows.get(y) ?? 0) + 1);
+		}
+		expect(Math.max(...rows.values())).toBeLessThanOrEqual(3);
+		expect(rows.size).toBeGreaterThan(1);
+	});
+});
+
 describe('edgePath', () => {
 	it('draws a straight segment for two points and curves at bends', () => {
 		expect(

@@ -59,9 +59,11 @@
 	});
 </script>
 
-<div class="container" data-hydrated={hydrated || undefined}>
+<svelte:window onkeydown={(e) => e.key === 'Escape' && (selected = null)} />
+
+<div class="container sd-page" data-hydrated={hydrated || undefined}>
 	<PageHeader path="/scientific-derivations">
-		Key derivations of physics papers as graphs: equations are nodes, the facts that connect them
+		Key derivations of scientific papers as graphs: equations are nodes, the facts that connect them
 		are edges.
 	</PageHeader>
 
@@ -94,25 +96,29 @@
 		<p>{@html renderProse(derivation.summary)}</p>
 	</section>
 
-	<div class="sd-main">
-		<div class="sd-graph">
-			<SegmentedControl
-				legend="Zoom"
-				hideLegend
-				options={[
-					{ value: 'fit', label: 'Fit to width' },
-					{ value: 'full', label: '100%' }
-				]}
-				bind:value={zoom}
-			/>
-			{#key derivation.id}
-				<DerivationGraph {derivation} bind:selected fit={zoom === 'fit'} />
-			{/key}
-		</div>
-		<aside class="sd-detail">
+	<div class="sd-toolbar">
+		<SegmentedControl
+			legend="Zoom"
+			hideLegend
+			options={[
+				{ value: 'fit', label: 'Fit to width' },
+				{ value: 'full', label: '100%' }
+			]}
+			bind:value={zoom}
+		/>
+		<p class="sd-hint">
+			Select an equation or a fact for details. Dashed boxes are assumptions, bold boxes results;
+			tags mark steps corrected from, or added to, the paper.
+		</p>
+	</div>
+	{#key derivation.id}
+		<DerivationGraph {derivation} bind:selected fit={zoom === 'fit'} />
+	{/key}
+	{#if selected}
+		<aside class="sd-drawer" aria-label="Details">
 			<DetailPanel {paper} {derivation} bind:selected onopen={open} />
 		</aside>
-	</div>
+	{/if}
 </div>
 
 <style>
@@ -145,40 +151,55 @@
 		line-height: var(--leading);
 	}
 
-	.sd-main {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(16rem, 24rem);
-		gap: var(--sp-3);
-		align-items: start;
+	/* Complex graphs need every pixel: this page ignores the shared content cap. */
+	.sd-page {
+		max-width: none;
 	}
 
-	.sd-graph {
+	.sd-toolbar {
 		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: var(--sp-2);
-		min-width: 0;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--sp-2) var(--sp-3);
+		margin-bottom: var(--sp-2);
 	}
 
-	.sd-graph > :global(.dg-scroll) {
-		align-self: stretch;
+	.sd-hint {
+		margin: 0;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
 	}
 
-	.sd-detail {
-		position: sticky;
-		top: var(--sp-3);
-		max-height: calc(100vh - 2 * var(--sp-3));
+	/* Details slide over the right edge, so the graph keeps the full width. */
+	.sd-drawer {
+		position: fixed;
+		top: var(--topbar-h);
+		right: 0;
+		bottom: 0;
+		z-index: 10;
+		width: min(26rem, 100vw);
 		overflow-y: auto;
+		background: var(--bg);
+		border-left: 1px solid var(--border);
+		box-shadow: -4px 0 16px rgb(0 0 0 / 0.15);
+		animation: sd-slide 0.15s ease-out;
 	}
 
-	@media (max-width: 900px) {
-		.sd-main {
-			grid-template-columns: minmax(0, 1fr);
-		}
+	.sd-drawer > :global(.ui-panel) {
+		min-height: 100%;
+		border: none;
+		border-radius: 0;
+	}
 
-		.sd-detail {
-			position: static;
-			max-height: none;
+	@keyframes sd-slide {
+		from {
+			transform: translateX(100%);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.sd-drawer {
+			animation: none;
 		}
 	}
 </style>
