@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { maximize } from './lp';
+import { maximize, type Constraint } from './lp';
 
 describe('split LP solver', () => {
 	it('solves a textbook maximisation', () => {
@@ -84,5 +84,27 @@ describe('split LP solver', () => {
 		if (r.status !== 'optimal') return;
 		expect(r.value).toBeCloseTo(4, 9);
 		expect(r.x[1]).toBeCloseTo(2, 9);
+	});
+});
+
+describe('split LP solver: regression', () => {
+	it('solves the 10 × 500 transfer LP that tiny pivots used to corrupt', async () => {
+		// Stage 1 of transfersFor for the first proposal of the 10-person,
+		// 500-item benchmark with half the items placed at Start. With pivots
+		// down to 1e-9 the tableau degraded until it reported "unbounded".
+		const { c1, rows } = (await import('./fixtures/transfer-lp-10x500.json')).default as {
+			c1: number[];
+			rows: Constraint[];
+		};
+		const r = maximize(c1, rows);
+		expect(r.status).toBe('optimal');
+		if (r.status !== 'optimal') return;
+		expect(r.value).toBeLessThanOrEqual(10);
+		for (const row of rows) {
+			const lhs = row.coeffs.reduce((s, a, j) => s + a * r.x[j], 0);
+			if (row.op === '<=') expect(lhs).toBeLessThanOrEqual(row.rhs + 1e-7);
+			else if (row.op === '>=') expect(lhs).toBeGreaterThanOrEqual(row.rhs - 1e-7);
+			else expect(Math.abs(lhs - row.rhs)).toBeLessThan(1e-7);
+		}
 	});
 });

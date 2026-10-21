@@ -18,6 +18,12 @@ export type LpResult =
 	| { status: 'unbounded' };
 
 const EPS = 1e-9;
+/**
+ * Smallest pivot the ratio test accepts. Pivoting on near-zero entries (an
+ * absolute 1e-9 used to be allowed) blows rounding error up until the tableau
+ * shows rays that do not exist; callers scale their rows to O(1).
+ */
+const PIVOT_TOL = 1e-7;
 
 export function maximize(c: readonly number[], constraints: readonly Constraint[]): LpResult {
 	const nv = c.length;
@@ -87,7 +93,7 @@ export function maximize(c: readonly number[], constraints: readonly Constraint[
 			let best = Infinity;
 			for (let i = 0; i < t.length; i++) {
 				const a = t[i][col];
-				if (a <= EPS) continue;
+				if (a <= PIVOT_TOL) continue;
 				const ratio = t[i][nc] / a;
 				if (ratio < best - EPS || (Math.abs(ratio - best) <= EPS && basis[i] < basis[r])) {
 					best = ratio;
@@ -102,6 +108,9 @@ export function maximize(c: readonly number[], constraints: readonly Constraint[
 	if (na > 0) {
 		const cost1 = Array.from({ length: nc }, (_, j) => (j >= nv + ns ? -1 : 0));
 		const d1 = reduced(cost1);
+		// Phase 1 is bounded (its objective is at most 0), so an "improving ray"
+		// here is rounding noise in the reduced costs: stop, and let the
+		// infeasibility check below decide.
 		run(d1, nc);
 		const infeas = t.reduce((s, row, r) => s + (basis[r] >= nv + ns ? row[nc] : 0), 0);
 		if (infeas > EPS * scale) return { status: 'infeasible' };
@@ -110,10 +119,7 @@ export function maximize(c: readonly number[], constraints: readonly Constraint[
 			if (basis[r] < nv + ns) continue;
 			let col = -1;
 			for (let j = 0; j < nv + ns; j++)
-				if (Math.abs(t[r][j]) > EPS) {
-					col = j;
-					break;
-				}
+				if (Math.abs(t[r][j]) > Math.max(PIVOT_TOL, col < 0 ? 0 : Math.abs(t[r][col]))) col = j;
 			if (col >= 0) pivot(r, col, d1);
 			else {
 				t.splice(r, 1);
