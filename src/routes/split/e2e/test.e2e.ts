@@ -197,7 +197,7 @@ test('Asset Splitting - picks on different groups certify the split', async ({ p
 	expect(errors).toEqual([]);
 });
 
-test('Asset Splitting - Start: agree who wants which item, then continue', async ({ page }) => {
+test('Asset Splitting - Start: claim items by colour, then continue', async ({ page }) => {
 	const errors = trackErrors(page);
 	await open(page);
 	await addPerson(page, 'Alice');
@@ -209,68 +209,63 @@ test('Asset Splitting - Start: agree who wants which item, then continue', async
 	await expect(currentStep(page)).toHaveText(/^2\s*Start$/);
 	await expect(page.getByRole('list', { name: 'Progress' })).toContainText(/Setup\s\(done\)/);
 
-	const contested = page.getByTestId('start-contested');
-	const card = (name: string) =>
-		page.getByTestId('start-person').filter({ has: page.getByRole('heading', { name }) });
-	const pill = (name: string) => page.getByRole('button', { name, exact: true });
-	// Every item starts in Contested, highest price first.
-	await expect(contested.locator('.items li')).toHaveText([/House/, /Car/, /Lamp/]);
+	// Items in price order, each with one claim toggle per person; no drag targets.
+	const item = (name: string) => page.getByTestId('claim-item').filter({ hasText: name });
+	await expect(page.getByTestId('claim-item')).toHaveText([/House/, /Car/, /Lamp/]);
+	const aliceHouse = page.getByRole('button', { name: 'Alice wants House' });
+	await expect(aliceHouse).toHaveAttribute('aria-pressed', 'false');
+	const box = (await aliceHouse.boundingBox())!;
+	expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(24);
 
-	const drag = async (item: string, x: number, y: number) => {
-		const from = (await pill(item).boundingBox())!;
-		await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
-		await page.mouse.down();
-		await page.mouse.move(x, y, { steps: 8 });
-		await page.mouse.up();
-	};
-	// Drag the House onto Alice.
-	const alice = (await card('Alice').boundingBox())!;
-	await drag('House', alice.x + alice.width / 2, alice.y + alice.height / 2);
-	await expect(card('Alice')).toContainText('House');
-	await expect(contested).not.toContainText('House');
-	await expect(page.getByTestId('start-announce')).toHaveText('House goes to Alice');
+	// Fair share 30 010 €. Nothing claimed: everyone would roughly receive it.
+	const bar = (name: string) => page.getByTestId('start-bar').filter({ hasText: name });
+	await expect(bar('Alice')).toContainText(/≈ Receive 30\s010\s€/);
+	await aliceHouse.click();
+	await expect(aliceHouse).toHaveAttribute('aria-pressed', 'true');
+	await expect(bar('Alice')).toContainText(/≈ Pay 19\s990\s€/);
+	await expect(bar('Alice').getByRole('img')).toHaveAccessibleName(
+		/^Alice: items worth 50\s000\s€ of a 30\s010\s€ fair share$/
+	);
+	await expect(item('House')).not.toHaveClass(/shared/);
 
-	// Tap fallback: tap the Car, then Bob's card; then back to Contested.
-	await pill('Car').click();
-	await page.getByRole('button', { name: 'Give Car to Bob' }).click();
-	await expect(card('Bob')).toContainText('Car');
-	await pill('Car').click();
-	// The target covers the whole area; click its corner, clear of the pills.
-	await page
-		.getByRole('button', { name: 'Move Car back to contested' })
-		.click({ position: { x: 8, y: 8 } });
-	await expect(contested).toContainText('Car');
-
-	// Dropping outside every person returns the item to Contested.
-	await drag('House', 5, 5);
-	await expect(contested.locator('.items li')).toHaveText([/House/, /Car/, /Lamp/]);
-	await drag('House', alice.x + alice.width / 2, alice.y + alice.height / 2);
-	await expect(card('Alice')).toContainText('House');
+	// A shared claim counts for nobody and gets a dashed border.
+	await page.getByRole('button', { name: 'Bob wants House' }).click();
+	await expect(item('House')).toHaveClass(/shared/);
+	await expect(bar('Alice')).toContainText(/≈ Receive 30\s010\s€/);
+	await page.getByRole('button', { name: 'Bob wants House' }).click();
+	await expect(item('House')).not.toHaveClass(/shared/);
+	await page.getByRole('button', { name: 'Bob wants Car' }).click();
+	await expect(bar('Bob')).toContainText(/≈ Receive 20\s010\s€/);
 
 	await page.getByRole('button', { name: 'Continue' }).click();
 	await expect(currentStep(page)).toHaveText(/^3\s*Rounds · 1$/);
 	await expect(page.getByRole('heading', { name: 'Round 1', exact: true })).toBeVisible();
-	await expect(page.getByTestId('split-group')).toHaveCount(2);
+	const groups = page.getByTestId('split-group');
+	await expect(groups).toHaveCount(2);
 
-	// Alice takes the House group: its pill is marked as placed at Start, with a legend.
-	await expect(page.getByTestId('split-group').nth(0)).toContainText('House');
-	await tapPlace(page, 'Alice', 0);
-	await tapPlace(page, 'Bob', 1);
+	// Alice takes the House group: its pill is marked as claimed at Start.
+	const houseGroup = (await groups.nth(0).innerText()).includes('House') ? 0 : 1;
+	await tapPlace(page, 'Alice', houseGroup);
+	await tapPlace(page, 'Bob', 1 - houseGroup);
 	await page.getByRole('button', { name: 'Complete round' }).click();
 	const aliceCard = finalRows(page).filter({ has: page.getByRole('heading', { name: 'Alice' }) });
 	const housePill = aliceCard.getByRole('button', { name: 'House', exact: true });
 	await expect(housePill.locator('.start-mark')).toBeVisible();
-	await expect(housePill).toHaveAccessibleDescription('Stayed where it was placed at Start.');
-	await expect(finalRows(page).locator('.start-mark')).toHaveCount(1);
+	await expect(housePill).toHaveAccessibleDescription('Claimed at Start');
+	// Lamp was claimed by nobody, so it is never marked.
+	await expect(
+		finalRows(page).getByRole('button', { name: 'Lamp', exact: true }).locator('.start-mark')
+	).toHaveCount(0);
 	for (const colorScheme of ['light', 'dark'] as const) {
 		await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
 		expect(await axe(page)).toEqual([]);
 	}
-	// Moving the House away drops the mark and the legend.
+	// Moving the House to Bob (who didn't claim it) drops its mark.
 	await housePill.click();
 	await page.getByRole('button', { name: 'Give House to Bob' }).click();
-	await expect(page.locator('.start-mark')).toHaveCount(0);
-	await expect(page.getByText('Stayed where it was placed at Start.')).toHaveCount(0);
+	await expect(
+		finalRows(page).getByRole('button', { name: 'House', exact: true }).locator('.start-mark')
+	).toHaveCount(0);
 	expect(errors).toEqual([]);
 });
 
@@ -510,12 +505,11 @@ for (const colorScheme of ['light', 'dark'] as const) {
 		expect(await axe(page)).toEqual([]);
 
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
-		// Start, with a pill placed and another selected.
-		await page.getByRole('button', { name: 'House', exact: true }).click();
-		await page.getByRole('button', { name: 'Give House to Alice' }).click();
-		await page.getByRole('button', { name: 'Car', exact: true }).click();
+		// Start, with a sole claim and a shared one.
+		await page.getByRole('button', { name: 'Alice wants House' }).click();
+		await page.getByRole('button', { name: 'Alice wants Car' }).click();
+		await page.getByRole('button', { name: 'Bob wants Car' }).click();
 		expect(await axe(page)).toEqual([]);
-		await page.keyboard.press('Escape');
 		await page.getByRole('button', { name: 'Continue' }).click();
 		await tapPlace(page, 'Alice', 0);
 		await tapPlace(page, 'Bob', 0);
@@ -554,7 +548,7 @@ test('Asset Splitting - group cards fill the row and the page fits 390px', async
 	expect(await width()).toBeLessThanOrEqual(390);
 	await page.getByRole('button', { name: 'Back to setup' }).click();
 	await page.getByRole('button', { name: 'Start', exact: true }).click();
-	await expect(page.getByTestId('start-contested')).toBeVisible();
+	await expect(page.getByTestId('start-bar').first()).toBeVisible();
 	expect(await width()).toBeLessThanOrEqual(390);
 	await page.getByRole('button', { name: 'Continue' }).click();
 	await tapPlace(page, 'Alice', 0);

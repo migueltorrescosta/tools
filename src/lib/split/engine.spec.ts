@@ -160,29 +160,51 @@ function inverse(a: number[][]): number[][] {
 	return t.map((r) => r.slice(n));
 }
 
-describe('split engine: Start placements', () => {
+describe('split engine: Start claims', () => {
 	const prices = [4000, 3000, 2000, 1000];
 
-	it('validates start', () => {
-		expect(() => initState(prices, 2, DEFAULT_PARAMS, [0, 1])).toThrow();
-		expect(() => initState(prices, 2, DEFAULT_PARAMS, [0, 2, -1, -1])).toThrow();
+	it('validates claims', () => {
+		expect(() => initState(prices, 2, DEFAULT_PARAMS, [[0], [1]])).toThrow();
+		expect(() => initState(prices, 2, DEFAULT_PARAMS, [[0], [2], [], []])).toThrow();
+		expect(() => initState(prices, 2, DEFAULT_PARAMS, [[0, 0], [], [], []])).toThrow();
+		expect(() => initState(prices, 2, DEFAULT_PARAMS, [[0.5], [], [], []])).toThrow();
 		expect(() =>
-			initState(prices, 2, { ...DEFAULT_PARAMS, sigmaMu: 0 }, [0, -1, -1, -1])
+			initState(prices, 2, { ...DEFAULT_PARAMS, sigmaMu: 0 }, [[0], [], [], []])
 		).toThrow();
-		const all = propose(initState(prices, 3, DEFAULT_PARAMS, [-1, -1, -1, -1]));
-		expect(all).toEqual(propose(initState(prices, 3)));
 	});
 
-	it('gives placed items to their owners in round 1', () => {
-		const start = [1, 0, 1, -1];
-		const p = propose(initState(prices, 2, DEFAULT_PARAMS, start));
-		start.forEach((o, k) => {
-			if (o >= 0) expect(p.groups[o]).toContain(k);
+	it('learns nothing from items claimed by nobody or by everyone', () => {
+		const plain = propose(initState(prices, 3));
+		expect(propose(initState(prices, 3, DEFAULT_PARAMS, [[], [], [], []]))).toEqual(plain);
+		const all = [0, 1, 2];
+		expect(propose(initState(prices, 3, DEFAULT_PARAMS, [all, all, all, all]))).toEqual(plain);
+	});
+
+	it('gives singly claimed items to their claimant in round 1', () => {
+		const claims = [[1], [0], [1], []];
+		const p = propose(initState(prices, 2, DEFAULT_PARAMS, claims));
+		claims.forEach((who, k) => {
+			if (who.length === 1) expect(p.groups[who[0]]).toContain(k);
 		});
 	});
 
-	it('lets round picks override a placement', () => {
-		let s = initState(prices, 2, DEFAULT_PARAMS, [0, -1, -1, -1]);
+	it('gives a jointly claimed item to one of its claimants in round 1', () => {
+		for (const claims of [
+			[[1, 2], [], [], []],
+			[[], [0, 2], [], []],
+			[[0, 1], [0, 1], [2], []]
+		]) {
+			const p = propose(initState(prices, 3, DEFAULT_PARAMS, claims));
+			claims.forEach((who, k) => {
+				if (who.length === 0) return;
+				const owner = p.owners[p.groups.findIndex((g) => g.includes(k))];
+				expect(who).toContain(owner);
+			});
+		}
+	});
+
+	it('lets round picks override a claim', () => {
+		let s = initState(prices, 2, DEFAULT_PARAMS, [[0], [], [], []]);
 		let owner = -1;
 		for (let r = 0; r < 4; r++) {
 			const p = propose(s);
@@ -193,61 +215,77 @@ describe('split engine: Start placements', () => {
 		expect(owner).toBe(1);
 	});
 
-	it('keeps the Laplace covariance exact for the Woodbury form with Start scaling', () => {
-		// No rounds: P = prior precision + the Start curvature bound; compare the
-		// covariance rebuilt from the fit's factors with a dense inverse of P.
-		const n = 3;
-		const m = prices.length;
-		const start = [0, 2, -1, 0];
-		const params = { ...DEFAULT_PARAMS, lambdaStart: 3 };
-		const s = initState(prices, n, params, start) as unknown as {
-			fit: { ut: Float64Array[]; ls: Float64Array; scale: Float64Array };
-		};
-		const tau2 = params.tau ** 2;
-		const mu2 = params.sigmaMu ** 2;
-		const c = mu2 / (tau2 * (tau2 + n * mu2));
-		const N = n * m;
-		const P = Array.from({ length: N }, () => Array<number>(N).fill(0));
-		for (let i = 0; i < n; i++)
-			for (let j = 0; j < n; j++)
-				for (let k = 0; k < m; k++) P[i * m + k][j * m + k] += (i === j ? 1 / tau2 : 0) - c;
-		start.forEach((o, k) => {
-			if (o < 0) return;
+	// No rounds: P = prior precision + the Start curvature (λ_S²/4 per
+	// claimant/non-claimant pair), plus, when both sides have ≥ 2 people, the
+	// bound c(α² − 1)(|X| diag 1_X − 1_X 1_Xᵀ) on the smaller side X (C on a
+	// tie). Compare the covariance rebuilt from the fit's factors with a
+	// dense inverse of that P.
+	const cases = [
+		{ n: 3, claims: [[0], [0, 2], [], [1]], bounded: false },
+		{ n: 4, claims: [[0, 1], [2], [0, 1, 2], []], bounded: true }
+	];
+	for (const { n, claims, bounded } of cases)
+		it(`keeps the Laplace covariance exact for the Woodbury form (n=${n}${bounded ? ', with a 2–2 claim' : ''})`, () => {
+			const m = prices.length;
+			const params = { ...DEFAULT_PARAMS, lambdaStart: 3 };
+			const s = initState(prices, n, params, claims) as unknown as {
+				fit: { ut: Float64Array[]; ls: Float64Array; scale: Float64Array };
+			};
+			const tau2 = params.tau ** 2;
+			const mu2 = params.sigmaMu ** 2;
+			const c = mu2 / (tau2 * (tau2 + n * mu2));
 			const a = params.lambdaStart ** 2 / 4;
-			for (let j = 0; j < n; j++) {
-				if (j === o) continue;
-				P[o * m + k][o * m + k] += a;
-				P[j * m + k][j * m + k] += a;
-				P[o * m + k][j * m + k] -= a;
-				P[j * m + k][o * m + k] -= a;
-			}
-		});
-		const cov = inverse(P);
-		const { ut, ls, scale } = s.fit;
-		const gram = (u: Float64Array) =>
-			Array.from({ length: m }, (_, a) =>
-				Array.from({ length: m }, (_, b) => {
-					let t = 0;
-					for (let k = 0; k < m; k++) t += u[a * m + k] * u[b * m + k];
-					return t;
-				})
-			);
-		const eInv = ut.map(gram);
-		const sInv = inverse(gram(ls));
-		let err = 0;
-		for (let i = 0; i < n; i++)
-			for (let j = 0; j < n; j++)
-				for (let a = 0; a < m; a++)
-					for (let b = 0; b < m; b++) {
-						let v = i === j ? eInv[i][a][b] : 0;
-						for (let k = 0; k < m; k++)
-							for (let l = 0; l < m; l++)
-								v +=
-									eInv[i][a][k] * scale[i * m + k] * sInv[k][l] * scale[j * m + l] * eInv[j][l][b];
-						err = Math.max(err, Math.abs(v - cov[i * m + a][j * m + b]));
+			const alpha = 1 + a / c;
+			const N = n * m;
+			const P = Array.from({ length: N }, () => Array<number>(N).fill(0));
+			for (let i = 0; i < n; i++)
+				for (let j = 0; j < n; j++)
+					for (let k = 0; k < m; k++) P[i * m + k][j * m + k] += (i === j ? 1 / tau2 : 0) - c;
+			claims.forEach((who, k) => {
+				const others = [...Array(n).keys()].filter((j) => !who.includes(j));
+				for (const i of who)
+					for (const j of others) {
+						P[i * m + k][i * m + k] += a;
+						P[j * m + k][j * m + k] += a;
+						P[i * m + k][j * m + k] -= a;
+						P[j * m + k][i * m + k] -= a;
 					}
-		expect(err).toBeLessThan(1e-12);
-	});
+				const x = who.length <= others.length ? who : others;
+				if (x.length >= 2 && others.length > 0 && who.length > 0)
+					for (const i of x)
+						for (const j of x)
+							P[i * m + k][j * m + k] += c * (alpha * alpha - 1) * ((i === j ? x.length : 0) - 1);
+			});
+			const cov = inverse(P);
+			const { ut, ls, scale } = s.fit;
+			const gram = (u: Float64Array) =>
+				Array.from({ length: m }, (_, r) =>
+					Array.from({ length: m }, (_, q) => {
+						let t = 0;
+						for (let k = 0; k < m; k++) t += u[r * m + k] * u[q * m + k];
+						return t;
+					})
+				);
+			const eInv = ut.map(gram);
+			const sInv = inverse(gram(ls));
+			let err = 0;
+			for (let i = 0; i < n; i++)
+				for (let j = 0; j < n; j++)
+					for (let r = 0; r < m; r++)
+						for (let q = 0; q < m; q++) {
+							let v = i === j ? eInv[i][r][q] : 0;
+							for (let k = 0; k < m; k++)
+								for (let l = 0; l < m; l++)
+									v +=
+										eInv[i][r][k] *
+										scale[i * m + k] *
+										sInv[k][l] *
+										scale[j * m + l] *
+										eInv[j][l][q];
+							err = Math.max(err, Math.abs(v - cov[i * m + r][j * m + q]));
+						}
+			expect(err).toBeLessThan(1e-12);
+		});
 });
 
 describe('split engine: transfersFor', () => {

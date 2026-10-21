@@ -116,6 +116,6 @@ export const REFERENCES: readonly Reference[] = [
 		venue: '',
 		href: 'https://github.com/migueltorrescosta/tools/pull/39',
 		impact:
-			'No paper covers group-agreed placements; in simulation they raised items with whoever values them most from 54% to 85–95% (2 people, 50 items).'
+			'No paper covers claims at Start; in simulation they raised items with whoever values them most from 54% to 85–95% (2 people, 50 items) and from 41% to 81–93% (3 people, 50 items).'
 	}
 ];

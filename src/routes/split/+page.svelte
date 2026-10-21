@@ -38,7 +38,14 @@
 		toPicks,
 		whoPaysWhom
 	} from './lib/board';
-	import { SETUP_KEY, byPriceDesc, parseSetup, personNameError, priceTint } from './lib/setup';
+	import {
+		SETUP_KEY,
+		byPriceDesc,
+		parseSetup,
+		personNameError,
+		priceTint,
+		soleClaimValues
+	} from './lib/setup';
 	import { REFERENCES } from './lib/references';
 
 	interface Item {
@@ -144,8 +151,7 @@
 	let announcement = $state('');
 	let busy = $state(false);
 	/** Start screen: per item, the person everyone agrees wants it most, or −1 (Contested). */
-	let startOwner = $state<number[]>([]);
-	let contestedEl = $state<HTMLElement | null>(null);
+	let claimed = $state<boolean[][]>([]);
 	/** Round count at which the fallback offer was dismissed. */
 	let dismissedAt = $state(-1);
 	/** The agreed split: holder[g] = person taking group g. */
@@ -196,20 +202,27 @@
 		phase = 'round';
 	}
 
-	/** Setup → Start: every item begins in Contested. */
+	/** Setup → Start: nobody has claimed anything yet. */
 	function toStart() {
 		if (startMsg) return;
-		startOwner = items.map(() => -1);
+		claimed = items.map(() => people.map(() => false));
 		selectedItem = null;
 		announcement = '';
 		phase = 'start';
 	}
 
+	/** claims[k]: the people who claimed item k at Start. */
+	const claims = $derived(claimed.map((row) => row.flatMap((c, i) => (c ? [i] : []))));
+	/** Start bars: value of items only that person claimed, and value minus a fair share. */
+	const soleValues = $derived(soleClaimValues(prices, claims, n));
+	const estimates = $derived(soleValues.map((v) => v - fairShare));
+	const estimateMax = $derived(maxAbsRounded(estimates));
+
 	async function startAlgorithm() {
 		if (busy) return;
 		busy = true;
 		await yieldToPaint();
-		engine = initState(prices, n, undefined, [...startOwner]);
+		engine = initState(prices, n, undefined, claims);
 		dismissedAt = -1;
 		final = null;
 		showProposal(propose(engine));
@@ -301,16 +314,6 @@
 		selectedItem = null;
 	}
 
-	/** Start screen: put item k on person i, or back in Contested (−1). */
-	function seed(k: number, i: number) {
-		startOwner[k] = i;
-		announcement =
-			i < 0
-				? `${items[k].description} is back in contested`
-				: `${items[k].description} goes to ${people[i].name}`;
-		selectedItem = null;
-	}
-
 	function undoChanges() {
 		if (final) editOwner = [...agreedOwner];
 		selectedItem = null;
@@ -324,7 +327,7 @@
 	 * What is dragged: a person's chip onto a group (rounds), an item pill onto a
 	 * person (final screen), or an item pill onto a person or Contested (start).
 	 */
-	type Kind = 'chip' | 'item' | 'seed';
+	type Kind = 'chip' | 'item';
 	type Pending = { kind: Kind; idx: number; id: number; x0: number; y0: number; active: boolean };
 	let pending: Pending | null = null;
 	let suppressClick = false;
@@ -340,10 +343,8 @@
 	} | null>(null);
 	const isLifted = (kind: Kind, idx: number) => drag?.kind === kind && drag.idx === idx;
 
-	/** Index of the card under the point; on Start, index n is the Contested area. */
 	function targetAt(kind: Kind, x: number, y: number): number | null {
 		const els = (kind === 'chip' ? colEls : personEls).slice(0, n);
-		if (kind === 'seed' && contestedEl) els.push(contestedEl);
 		const hit = hitTest(
 			x,
 			y,
@@ -386,10 +387,7 @@
 			setTimeout(() => (suppressClick = false));
 			// A chip dropped outside every group card goes back to Unplaced; an
 			// item dropped outside every person stays where it was.
-			// On Start, an item dropped outside every person goes back to Contested.
 			if (p.kind === 'chip') move(p.idx, drag.target);
-			else if (p.kind === 'seed')
-				seed(p.idx, drag.target === null || drag.target >= n ? -1 : drag.target);
 			else if (drag.target !== null) give(p.idx, drag.target);
 		}
 		cancelDrag();
@@ -575,68 +573,57 @@
 		<div class="tip-panel">
 			<Panel title="Start">
 				{#snippet actions()}<InfoTip label="the start"
-						>Drag each item to whoever wants it most. Leave it in Contested if you disagree or
-						aren't sure. This is a starting guess: the rounds can still move items.</InfoTip
+						>Tap your colour on each item you'd like. Several people can want the same item. The
+						amounts are a rough guide from items only you want; the rounds settle the real split.</InfoTip
 					>{/snippet}
 				<div class="stack" aria-busy={busy}>
-					<div class="groups">
+					<ul class="bars" aria-label="Rough amounts">
 						{#each people as p, i (p.id)}
-							<section
-								class="group"
-								class:targetable={selectedItem !== null || drag?.kind === 'seed'}
-								class:drop-over={drag?.kind === 'seed' && drag.target === i}
-								style:--person={personColour(i)}
-								data-testid="start-person"
-								aria-labelledby="start-{i}-heading"
-								bind:this={personEls[i]}
-							>
-								{#if selectedItem !== null && startOwner[selectedItem] !== i}
-									<!-- Tap/keyboard fallback for dragging (WCAG 2.5.7). -->
-									<button
-										type="button"
-										class="card-target"
-										aria-label="Give {items[selectedItem].description} to {p.name}"
-										onclick={() => selectedItem !== null && seed(selectedItem, i)}
-									></button>
-								{/if}
-								<h3 id="start-{i}-heading">
-									<span class="dot" aria-hidden="true"></span>{p.name}
-								</h3>
-								<ul class="items">
-									{#each itemOrder as k (items[k].id)}
-										{#if startOwner[k] === i}<li>{@render seedPill(k)}</li>{/if}
-									{/each}
-									{#if !startOwner.includes(i)}<li class="note">Drop items here</li>{/if}
-								</ul>
-							</section>
+							<li class="bar" style:--person={personColour(i)} data-testid="start-bar">
+								<span class="bar-name"><span class="dot" aria-hidden="true"></span>{p.name}</span>
+								<span
+									class="track"
+									role="img"
+									aria-label="{p.name}: items worth {fmt(Math.round(soleValues[i]))} of a {fmt(
+										Math.round(fairShare)
+									)} fair share"
+								>
+									<span
+										class="fill"
+										style:width="{Math.min(100, (soleValues[i] / (2 * fairShare)) * 100)}%"
+									></span>
+									<span class="fair"></span>
+								</span>
+								<span
+									class="estimate"
+									style:color={amountColour(estimates[i], fairShare, estimateMax)}
+									>≈ {paymentLabel(estimates[i], fmt)}</span
+								>
+							</li>
 						{/each}
-					</div>
+					</ul>
 
-					<section
-						class="contested"
-						class:targetable={selectedItem !== null || drag?.kind === 'seed'}
-						class:drop-over={drag?.kind === 'seed' && drag.target === n}
-						data-testid="start-contested"
-						aria-labelledby="contested-heading"
-						bind:this={contestedEl}
-					>
-						{#if selectedItem !== null && startOwner[selectedItem] !== -1}
-							<button
-								type="button"
-								class="card-target"
-								aria-label="Move {items[selectedItem].description} back to contested"
-								onclick={() => selectedItem !== null && seed(selectedItem, -1)}
-							></button>
-						{/if}
-						<h3 id="contested-heading" class="unplaced-label">Contested</h3>
-						<ul class="items centred">
-							{#each itemOrder as k (items[k].id)}
-								{#if startOwner[k] === -1}<li>{@render seedPill(k)}</li>{/if}
-							{/each}
-							{#if !startOwner.includes(-1)}<li class="note">Nothing contested.</li>{/if}
-						</ul>
-					</section>
-					<p class="sr-only" aria-live="polite" data-testid="start-announce">{announcement}</p>
+					<ul class="pills claim-pills" aria-label="Items to claim">
+						{#each itemOrder as k (items[k].id)}
+							<li class="pill claim" class:shared={claims[k]?.length >= 2} data-testid="claim-item">
+								<span class="pill-name">{items[k].description}</span>
+								<span class="pill-value">{fmt(Math.round(items[k].price))}</span>
+								<span class="rings">
+									{#each people as p, i (p.id)}
+										<button
+											type="button"
+											class="ring"
+											style:--person={personColour(i)}
+											aria-pressed={claimed[k]?.[i] ?? false}
+											aria-label="{p.name} wants {items[k].description}"
+											title="{p.name} wants {items[k].description}"
+											onclick={() => (claimed[k][i] = !claimed[k][i])}
+										></button>
+									{/each}
+								</span>
+							</li>
+						{/each}
+					</ul>
 
 					<div class="cluster">
 						<Button variant="primary" disabled={busy} onclick={startAlgorithm}
@@ -794,14 +781,14 @@
 														? `translate(${drag.dx}px, ${drag.dy}px)`
 														: undefined}
 													aria-pressed={selectedItem === k}
-													aria-describedby={startOwner[k] === i ? 'start-legend' : undefined}
+													aria-describedby={claimed[k]?.[i] ? 'start-legend' : undefined}
 													disabled={busy}
 													onclick={() => onPick('item', k)}
 													onpointerdown={(e) => onPointerDown(e, 'item', k)}
 													onpointermove={onPointerMove}
 													onpointerup={onPointerUp}
 													onpointercancel={cancelDrag}
-													>{items[k].description}{#if startOwner[k] === i}<span
+													>{items[k].description}{#if claimed[k]?.[i]}<span
 															class="start-mark"
 															aria-hidden="true">S</span
 														>{/if}</button
@@ -814,9 +801,9 @@
 							</section>
 						{/each}
 					</div>
-					{#if editOwner.some((o, k) => o >= 0 && startOwner[k] === o)}
+					{#if editOwner.some((o, k) => claimed[k]?.[o])}
 						<p id="start-legend" class="note">
-							<span class="start-mark" aria-hidden="true">S</span> Stayed where it was placed at Start.
+							<span class="start-mark" aria-hidden="true">S</span> Claimed at Start
 						</p>
 					{/if}
 					<p class="sr-only" aria-live="polite" data-testid="final-announce">{announcement}</p>
@@ -865,24 +852,6 @@
 		</ol>
 	</section>
 </div>
-
-{#snippet seedPill(k: number)}
-	<button
-		type="button"
-		class="pill draggable"
-		class:lifted={isLifted('seed', k)}
-		style:transform={drag && isLifted('seed', k)
-			? `translate(${drag.dx}px, ${drag.dy}px)`
-			: undefined}
-		aria-pressed={selectedItem === k}
-		disabled={busy}
-		onclick={() => onPick('seed', k)}
-		onpointerdown={(e) => onPointerDown(e, 'seed', k)}
-		onpointermove={onPointerMove}
-		onpointerup={onPointerUp}
-		onpointercancel={cancelDrag}>{items[k].description}</button
-	>
-{/snippet}
 
 {#snippet personCard(i: number)}
 	<button
@@ -1163,21 +1132,95 @@
 		line-height: 1;
 	}
 
-	.contested {
-		position: relative;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
+	/* Start: one bar per person against a fair share (the tick, at half the track). */
+	.bars {
+		display: grid;
 		gap: var(--sp-1);
-		min-height: calc(var(--control-h) * 2);
-		padding: var(--sp-2);
-		border-radius: var(--radius);
-		outline: 2px solid transparent;
-		outline-offset: 1px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
 	}
 
-	.items.centred {
-		justify-content: center;
+	.bar {
+		display: grid;
+		grid-template-columns: minmax(4rem, 8rem) 1fr minmax(7rem, auto);
+		align-items: center;
+		gap: var(--sp-2);
+		font-size: var(--text-sm);
+	}
+
+	.bar-name {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--sp-1);
+		min-width: 0;
+		overflow-wrap: anywhere;
+	}
+
+	.track {
+		position: relative;
+		height: 12px;
+		overflow: hidden;
+		background: var(--surface-2);
+		border: 1px solid var(--border);
+		border-radius: 6px;
+	}
+
+	.fill {
+		position: absolute;
+		inset: 0 auto 0 0;
+		background: var(--person);
+	}
+
+	.fair {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: calc(50% - 1px);
+		width: 2px;
+		background: var(--text);
+	}
+
+	.estimate {
+		font-weight: 600;
+		text-align: right;
+		white-space: nowrap;
+	}
+
+	/* Claim pills wrap their circles inside, so 10 people still fit a phone. */
+	.claim {
+		flex-wrap: wrap;
+		max-width: 100%;
+		padding-top: var(--sp-0);
+		padding-bottom: var(--sp-0);
+	}
+
+	.claim.shared {
+		border-style: dashed;
+		border-color: var(--border-strong);
+	}
+
+	.rings {
+		display: inline-flex;
+		flex-wrap: wrap;
+		gap: var(--sp-0);
+		align-self: center;
+	}
+
+	/* A claim toggle: 24px target (WCAG 2.5.8), filled in the person's colour when on. */
+	.ring {
+		width: 24px;
+		height: 24px;
+		padding: 0;
+		border: 2px solid var(--person);
+		border-radius: 50%;
+		background: var(--surface);
+		cursor: pointer;
+	}
+
+	.ring[aria-pressed='true'] {
+		background: var(--person);
+		box-shadow: inset 0 0 0 2px var(--surface);
 	}
 
 	.unplaced-label {

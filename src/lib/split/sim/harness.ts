@@ -81,26 +81,28 @@ interface EngineRun {
 	valueLost: number;
 }
 
-/** Start simulation: θ is the confidence margin, err the share of wrong placements. */
+/** Start simulation: θ is the claim margin, err the share of claim decisions flipped. */
 export interface StartOptions {
 	theta: number;
 	err: number;
 }
 
 /**
- * Simulated Start: item k goes on its true top valuer when that value beats
- * the second-highest by more than θ p_k, else stays contested (−1). A share
- * `err` of placements then go to a uniformly chosen wrong person instead.
+ * Simulated Start claims: person i claims item k when their true value is
+ * within θ p_k of the item's top value, so the top valuer always claims and
+ * near-tied people claim too. A share `err` of the n × m claim decisions are
+ * then flipped at random.
  */
-function simulateStart(c: Case, o: StartOptions, seed: number): number[] {
-	const n = c.truth.length;
+function simulateClaims(c: Case, o: StartOptions, seed: number): number[][] {
 	const prng = new Prng(0x57a27 + seed);
 	return c.entered.map((p, k) => {
-		const order = c.truth.map((_, i) => i).sort((a, b) => c.truth[b][k] - c.truth[a][k]);
-		if (n < 2 || c.truth[order[0]][k] - c.truth[order[1]][k] <= o.theta * p) return -1;
-		if (prng.next() >= o.err) return order[0];
-		const wrong = 1 + prng.int(n - 1);
-		return order[wrong];
+		const top = Math.max(...c.truth.map((t) => t[k]));
+		const who: number[] = [];
+		c.truth.forEach((t, i) => {
+			const claims = t[k] >= top - o.theta * p;
+			if (claims !== prng.next() < o.err) who.push(i);
+		});
+		return who;
 	});
 }
 
@@ -116,7 +118,7 @@ function holders(p: Proposal, take: readonly number[], m: number): number[] {
  * rounds. At the cap, the fallback (owners take their groups) is the outcome
  * if not yet certified.
  */
-function runEngine(c: Case, params: SplitParams, start?: number[]): EngineRun {
+function runEngine(c: Case, params: SplitParams, claims?: number[][]): EngineRun {
 	const n = c.truth.length;
 	const m = c.entered.length;
 	const share = c.entered.reduce((a, b) => a + b, 0) / n;
@@ -127,7 +129,7 @@ function runEngine(c: Case, params: SplitParams, start?: number[]): EngineRun {
 			h.filter((i, k) => c.truth[i][k] === Math.max(...c.truth.map((t) => t[k]))).length / m,
 		valueLost: (best - h.reduce((s, i, k) => s + c.truth[i][k], 0)) / share
 	});
-	let state = initState(c.entered, n, params, start);
+	let state = initState(c.entered, n, params, claims);
 	let atCap = { envy: NaN, topShare: NaN, valueLost: NaN };
 	for (let r = 1; r <= 3 * cap; r++) {
 		const p = propose(state);
@@ -191,8 +193,8 @@ interface SettingStats {
 	/** Mean share of items with their top valuer, and mean value lost (fair shares), by the cap. */
 	topShare: number;
 	valueLost: number;
-	/** Mean share of items placed at Start (0 without Start). */
-	placed: number;
+	/** Mean claimants per item (0 without Start). */
+	claimants: number;
 }
 
 /** Engine statistics on seeds 1..seeds of one setting, optionally with a simulated Start. */
@@ -205,11 +207,11 @@ export function compare(
 	start?: StartOptions
 ): SettingStats {
 	const runs: EngineRun[] = [];
-	let placed = 0;
+	let claimants = 0;
 	for (let s = 1; s <= seeds; s++) {
 		const c = makeCase(n, m, sigma, s);
-		const st = start && simulateStart(c, start, s);
-		if (st) placed += st.filter((i) => i >= 0).length / m;
+		const st = start && simulateClaims(c, start, s);
+		if (st) claimants += st.reduce((a, who) => a + who.length, 0) / m;
 		runs.push(runEngine(c, params, st));
 	}
 	const rounds = runs.map((r) => (r.certifiedAt < 0 ? Infinity : r.certifiedAt));
@@ -229,6 +231,6 @@ export function compare(
 		worstRoundingEnvy: Math.max(...runs.map((r) => r.roundingEnvy)),
 		topShare: mean((r) => r.topShare),
 		valueLost: mean((r) => r.valueLost),
-		placed: placed / seeds
+		claimants: claimants / seeds
 	};
 }

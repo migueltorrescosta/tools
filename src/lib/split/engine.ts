@@ -7,11 +7,13 @@
  * person picks a group; a pick is a logit choice over bundle surplus. The
  * split is certified the first round the picks form a permutation.
  *
- * Start. Before the rounds the group may place items on the person who wants
- * them most. A placement of item k on person i adds, for every other person
- * j, a logit factor σ(λ_S (w_ik − w_jk)), the same weight at any price or
- * item count: weak evidence, like a prior, that rounds can override.
- * Contested items add nothing.
+ * Start. Before the rounds each person claims the items they want; several
+ * people may claim the same item. For item k with claimants C_k, every
+ * claimant i ∈ C_k and non-claimant j ∉ C_k add a logit factor
+ * σ(λ_S (w_ik − w_jk)), the same weight at any price or item count: weak
+ * evidence, like a prior, that the top valuer is one of C_k, which rounds
+ * can override. Claimants are not compared with each other; an item claimed
+ * by nobody or by everyone adds nothing.
  *
  * All functions are pure and synchronous. Items and people are indices.
  *
@@ -26,11 +28,11 @@
  * P⁻¹ = D⁻¹ + D⁻¹ U S⁻¹ Uᵀ D⁻¹ with S = I/c − Σ_i E_i⁻¹ (an m×m PD matrix
  * whose condition number is at most 1 + n σμ²/τ²). Start factors couple
  * people per item; with their curvature fixed at its bound λ_S²/4 they
- * fold into the same form: U's column k becomes v_k ⊗ e_k with v_k = 1 off
- * the owner (see startTerms), so S = I/c − Σ_i V_i E_i⁻¹ V_i. The gradient
- * stays exact, so the MAP is exact (the bound only makes those steps
- * conservative); the Laplace covariance uses the bound, which slightly
- * understates the variance a placement leaves (exactly so at w_ik = w_jk). Each Newton step costs n
+ * fold into the same form: U's column k becomes v_k ⊗ e_k (see startTerms),
+ * so S = I/c − Σ_i V_i E_i⁻¹ V_i. The gradient stays exact, so the MAP is
+ * exact (the bounds only make those steps conservative); the Laplace
+ * covariance uses the bounds, which slightly understate the variance a claim
+ * leaves. Each Newton step costs n
  * Cholesky factorisations of m×m and a conjugate-gradient solve with S, whose
  * matvec is 2n triangular solves. After convergence the Laplace approximation
  * N(Ŵ, P⁻¹) is kept as L_i⁻¹ (inverse Cholesky factor of E_i) for every
@@ -71,10 +73,10 @@ export interface SplitParams {
 	/** Logit sharpness: a surplus gap of 1/λ fair shares (T/n) gives odds e. */
 	lambda: number;
 	/**
-	 * Sharpness of the Start evidence: an item placed on person i adds, for
-	 * every other person j, a logit factor σ(λ_S (w_ik − w_jk)), the same at
-	 * any price or item count. Set so a placement weighs clearly less than one
-	 * round pick (see the simulation spec).
+	 * Sharpness of the Start evidence: for an item claimed by i and not by j,
+	 * a logit factor σ(λ_S (w_ik − w_jk)), the same at any price or item
+	 * count. Set so a claim weighs clearly less than one round pick (see the
+	 * simulation spec).
 	 */
 	lambdaStart: number;
 }
@@ -139,13 +141,12 @@ interface Fit {
 }
 
 /**
- * Start evidence in array form. owner[k] is the person item k was placed on
- * (−1: contested). Each placed item's factors get the fixed curvature
- * a = λ_S² / 4 per pair, an upper bound on the logit curvature; see
- * fitPosterior.
+ * Start evidence in array form. claimed[i m + k] = 1 when person i claimed
+ * item k. Each claimant/non-claimant pair gets the fixed curvature
+ * a = λ_S² / 4, an upper bound on the logit curvature; see startTerms.
  */
 interface StartTerms {
-	owner: Int32Array;
+	claimed: Uint8Array;
 	lambdaS: number;
 	/** Extra diagonal of E_j at item k, n×m. */
 	diag: Float64Array;
@@ -167,8 +168,8 @@ class FittedState implements SplitState {
 	readonly n: number;
 	readonly params: SplitParams;
 	readonly rounds: readonly RoundRecord[];
-	/** @internal Start placements: person per item, −1 contested. */
-	readonly start: Int32Array;
+	/** @internal Start claims: claimed[i m + k] = 1 when person i claimed item k. */
+	readonly claimed: Uint8Array;
 	/** @internal */
 	readonly fit: Fit;
 	/** @internal memoised propose() */
@@ -179,14 +180,14 @@ class FittedState implements SplitState {
 		n: number,
 		params: SplitParams,
 		rounds: readonly RoundRecord[],
-		start: Int32Array,
+		claimed: Uint8Array,
 		fit: Fit
 	) {
 		this.prices = prices;
 		this.n = n;
 		this.params = params;
 		this.rounds = rounds;
-		this.start = start;
+		this.claimed = claimed;
 		this.fit = fit;
 	}
 }
@@ -197,26 +198,35 @@ function internal(state: SplitState): FittedState {
 }
 
 /**
- * A fresh state. `start[k]` is the person item k was placed on at Start, or −1
- * when contested (omitted: everything contested). Placements are evidence
- * that that person values the item most, weighted by params.lambdaStart.
+ * A fresh state. `claims[k]` lists the people who claimed item k at Start
+ * (empty, one person or several; omitted: no claims). Claims are evidence
+ * that the item's top valuer is one of its claimants, weighted by
+ * params.lambdaStart.
  */
 export function initState(
 	prices: readonly number[],
 	n: number,
 	params: SplitParams = DEFAULT_PARAMS,
-	start?: readonly number[]
+	claims?: readonly (readonly number[])[]
 ): SplitState {
 	if (!Number.isInteger(n) || n < 1) throw new Error('split: n must be a positive integer');
 	if (prices.length === 0 || prices.some((p) => !(p > 0 && Number.isFinite(p))))
 		throw new Error('split: prices must be positive');
 	const m = prices.length;
-	if (start && (start.length !== m || start.some((i) => !Number.isInteger(i) || i < -1 || i >= n)))
-		throw new Error('split: start must give a person index or −1 per item');
+	const claimed = new Uint8Array(n * m);
+	if (claims) {
+		if (claims.length !== m) throw new Error('split: claims must list claimants per item');
+		claims.forEach((who, k) => {
+			for (const i of who) {
+				if (!Number.isInteger(i) || i < 0 || i >= n || claimed[i * m + k])
+					throw new Error('split: claimants must be distinct person indices');
+				claimed[i * m + k] = 1;
+			}
+		});
+	}
 	const ps = Object.freeze([...prices]);
-	const st = start ? Int32Array.from(start) : new Int32Array(m).fill(-1);
-	const fit = fitPosterior(ps, n, params, [], st, new Float64Array(n * m));
-	return new FittedState(ps, n, Object.freeze({ ...params }), Object.freeze([]), st, fit);
+	const fit = fitPosterior(ps, n, params, [], claimed, new Float64Array(n * m));
+	return new FittedState(ps, n, Object.freeze({ ...params }), Object.freeze([]), claimed, fit);
 }
 
 /** Append a completed round and refit the posterior. */
@@ -242,8 +252,8 @@ export function recordRound(
 		picks: [...picks]
 	};
 	const rounds = Object.freeze([...s.rounds, record]);
-	const fit = fitPosterior(prices, n, s.params, rounds, s.start, s.fit.w);
-	return new FittedState(prices, n, s.params, rounds, s.start, fit);
+	const fit = fitPosterior(prices, n, s.params, rounds, s.claimed, s.fit.w);
+	return new FittedState(prices, n, s.params, rounds, s.claimed, fit);
 }
 
 /** True when every person picked a different group. */
@@ -269,8 +279,9 @@ export function roundCap(m: number, n: number): number {
  * Items go out by descending price (stable). For each item the candidates are
  * the people whose posterior-mean w_ik is within OWNER_SLACK = 0.1 posterior
  * SDs (of w_jk − w_best,k, from the draws) of the best; among them the item
- * goes to the person it was placed on at Start, if any, else to the one whose
- * bundle so far is worth least at entered prices (lowest index on ties).
+ * goes to the one whose bundle so far is worth least at entered prices
+ * (lowest index on ties), considering only those who claimed it at Start if
+ * any of them is a candidate.
  * Group b is person b's bundle; transfers come from transfersFor.
  */
 export function propose(state: SplitState): Proposal {
@@ -286,9 +297,10 @@ export function propose(state: SplitState): Proposal {
 		let best = 0;
 		for (let j = 1; j < n; j++) if (w[j * m + k] > w[best * m + k]) best = j;
 		const db = draws[best];
-		const placed = s.start[k];
 		let pick = best;
-		let placedIsCandidate = placed === best;
+		// A Start claim breaks a near-tie: claimants in the band beat the rest.
+		// Rounds override it once they move a claimant's mean out of the band.
+		let claimant = -1;
 		for (let j = 0; j < n; j++) {
 			if (j !== best) {
 				const dj = draws[j];
@@ -301,13 +313,11 @@ export function propose(state: SplitState): Proposal {
 				}
 				const sd = Math.sqrt(Math.max(0, s2 / SAMPLES - (s1 / SAMPLES) ** 2));
 				if (w[best * m + k] - w[j * m + k] > OWNER_SLACK * sd) continue;
-				if (j === placed) placedIsCandidate = true;
 			}
 			if (held[j] < held[pick] || (held[j] === held[pick] && j < pick)) pick = j;
+			if (s.claimed[j * m + k] && (claimant < 0 || held[j] < held[claimant])) claimant = j;
 		}
-		// A Start placement breaks a near-tie; rounds override it once they move
-		// that person's mean out of the tie band.
-		if (placedIsCandidate) pick = placed;
+		if (claimant >= 0) pick = claimant;
 		groups[pick].push(k);
 		held[pick] += prices[k];
 	}
@@ -603,22 +613,22 @@ function evaluate(
 	}
 	for (let k = 0; k < m; k++) lp += 0.5 * c * sumW[k] * sumW[k];
 	if (start) {
-		// log σ(x) with x = λ_S (w_ik − w_jk) for the owner i of each placed item.
-		for (let k = 0; k < m; k++) {
-			const i = start.owner[k];
-			if (i < 0) continue;
-			const bp = start.lambdaS;
-			for (let j = 0; j < n; j++) {
-				if (j === i) continue;
-				const x = bp * (w[i * m + k] - w[j * m + k]);
-				lp -= x > 0 ? Math.log1p(Math.exp(-x)) : -x + Math.log1p(Math.exp(x));
-				if (grad) {
-					const g = bp / (1 + Math.exp(x)); // λ_S σ(−x)
-					grad[i * m + k] += g;
-					grad[j * m + k] -= g;
+		// log σ(x) with x = λ_S (w_ik − w_jk) for claimant i and non-claimant j.
+		const bp = start.lambdaS;
+		for (let k = 0; k < m; k++)
+			for (let i = 0; i < n; i++) {
+				if (!start.claimed[i * m + k]) continue;
+				for (let j = 0; j < n; j++) {
+					if (start.claimed[j * m + k]) continue;
+					const x = bp * (w[i * m + k] - w[j * m + k]);
+					lp -= x > 0 ? Math.log1p(Math.exp(-x)) : -x + Math.log1p(Math.exp(x));
+					if (grad) {
+						const g = bp / (1 + Math.exp(x)); // λ_S σ(−x)
+						grad[i * m + k] += g;
+						grad[j * m + k] -= g;
+					}
 				}
 			}
-		}
 	}
 	return lp;
 }
@@ -698,29 +708,44 @@ function solveS(
 }
 
 /**
- * Start evidence for the fit, or null with no placements (or λ_S = 0). Each
- * placed item k (owner i) gets curvature a = λ_S²/4 per pair (i, j):
- * across people that is a_k (I + n e_i e_iᵀ − e_i 1ᵀ − 1 e_iᵀ). Together with
- * the prior's −c 1 1ᵀ this equals a diagonal minus c v_k v_kᵀ with
- * v_k = 1 + (a_k/c) e_i, so P keeps the form D − c U Uᵀ with U's column k
- * equal to v_k ⊗ e_k: E_j gains a_k on its diagonal (plus n a_k + a_k²/c for
- * the owner), and v_k[j] scales the Woodbury coupling.
+ * Start evidence for the fit, or null with no informative claims (or
+ * λ_S = 0). For item k with claimants C (s people) and non-claimants N
+ * (n − s), each pair gets curvature a = λ_S²/4, so across people the item's
+ * curvature is the bipartite Laplacian
+ *   a ((n − s) diag 1_C + s diag 1_N − 1_C 1_Nᵀ − 1_N 1_Cᵀ).
+ * With the prior's −c 1 1ᵀ and α = 1 + a/c, the cross terms equal those of
+ * −c v vᵀ for v = α 1_X + 1_Y, where X is the smaller of C and N and Y the
+ * other; that leaves + c(α² − 1) 1_X 1_Xᵀ, which is diagonal when |X| = 1
+ * (any single claim, and every case with n ≤ 3) and is otherwise bounded by
+ * c(α² − 1) |X| on X's diagonal. So P keeps the form D − c U Uᵀ with U's
+ * column k equal to v_k ⊗ e_k: E_j gains those diagonal terms, and v_k[j]
+ * scales the Woodbury coupling.
  */
-function startTerms(owner: Int32Array, n: number, lambdaS: number, c: number): StartTerms | null {
-	const m = owner.length;
-	if (!(lambdaS > 0) || owner.every((i) => i < 0)) return null;
-	if (!(c > 0)) throw new Error('split: Start placements need sigmaMu > 0');
+function startTerms(claimed: Uint8Array, n: number, lambdaS: number, c: number): StartTerms | null {
+	const m = claimed.length / n;
 	const diag = new Float64Array(n * m);
 	const scale = new Float64Array(n * m).fill(1);
+	const a = (lambdaS * lambdaS) / 4;
+	const alpha = 1 + a / c;
+	let any = false;
 	for (let k = 0; k < m; k++) {
-		const i = owner[k];
-		if (i < 0) continue;
-		const a = (lambdaS * lambdaS) / 4;
-		for (let j = 0; j < n; j++) diag[j * m + k] += a;
-		diag[i * m + k] += n * a + (a * a) / c;
-		scale[i * m + k] = 1 + a / c;
+		let sC = 0;
+		for (let i = 0; i < n; i++) sC += claimed[i * m + k];
+		if (sC === 0 || sC === n || !(lambdaS > 0)) continue;
+		if (!(c > 0)) throw new Error('split: Start claims need sigmaMu > 0');
+		any = true;
+		const xIsC = sC <= n - sC;
+		const sizeX = xIsC ? sC : n - sC;
+		for (let j = 0; j < n; j++) {
+			const isC = claimed[j * m + k] === 1;
+			diag[j * m + k] += a * (isC ? n - sC : sC);
+			if (isC === xIsC) {
+				diag[j * m + k] += c * (alpha * alpha - 1) * sizeX;
+				scale[j * m + k] = alpha;
+			}
+		}
 	}
-	return { owner, lambdaS, diag, scale };
+	return any ? { claimed, lambdaS, diag, scale } : null;
 }
 
 function fitPosterior(
@@ -728,7 +753,7 @@ function fitPosterior(
 	n: number,
 	params: SplitParams,
 	records: readonly RoundRecord[],
-	placed: Int32Array,
+	claimed: Uint8Array,
 	warm: Float64Array
 ): Fit {
 	const m = prices.length;
@@ -740,7 +765,7 @@ function fitPosterior(
 	const c = mu2 / (tau2 * (tau2 + n * mu2));
 	const rounds = toRounds(records, m);
 	const R = rounds.length;
-	const start = startTerms(placed, n, params.lambdaStart, c);
+	const start = startTerms(claimed, n, params.lambdaStart, c);
 	const scale = start ? start.scale : new Float64Array(n * m).fill(1);
 
 	const w = Float64Array.from(warm);

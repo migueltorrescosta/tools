@@ -63,3 +63,20 @@ export function parseSetup(data: unknown): SavedSetup | null {
 	const next = (list: { id: number }[]) => Math.max(0, ...list.map((x) => x.id + 1));
 	return { people, items, nextPersonId: next(people), nextItemId: next(items) };
 }
+
+/**
+ * Start screen: per person, the entered value of the items only they claimed
+ * (claims[k] lists who claimed item k). Shared and unclaimed items count for
+ * nobody. The rough settlement estimate is this value minus a fair share.
+ */
+export function soleClaimValues(
+	prices: readonly number[],
+	claims: readonly (readonly number[])[],
+	n: number
+): number[] {
+	const value = Array<number>(n).fill(0);
+	claims.forEach((who, k) => {
+		if (who.length === 1) value[who[0]] += prices[k] ?? 0;
+	});
+	return value;
+}
