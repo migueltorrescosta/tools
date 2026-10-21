@@ -1,6 +1,6 @@
 /**
- * Route-only helpers for the split chip board: chip placements, picks,
- * demand cues, colours and the final table.
+ * Route-only helpers for the split rounds and result: chip placements,
+ * picks, demand cues, colours, the final split and who pays whom.
  * Pure functions over the engine's types; the page holds the state.
  */
 import type { Fallback, Proposal } from '$lib/split';
@@ -62,23 +62,18 @@ export function holdersFromPicks(picks: readonly number[]): number[] {
 	return holder;
 }
 
-/** Per person: item indices and raw settlement (+ pays), from a proposal and its holders. */
-export function allocation(proposal: Proposal, holder: readonly number[]) {
-	const n = holder.length;
-	const items = Array.from({ length: n }, () => [] as number[]);
-	const owed = Array<number>(n).fill(0);
+/**
+ * The agreed split from a proposal and its holders (holder[g] takes group g):
+ * owner[k] = person holding item k, owed[i] = person i's raw settlement (+ pays).
+ */
+export function finalSplit(proposal: Proposal, holder: readonly number[]) {
+	const owner: number[] = [];
+	const owed = Array<number>(holder.length).fill(0);
 	holder.forEach((person, g) => {
-		items[person] = [...proposal.groups[g]];
+		for (const k of proposal.groups[g]) owner[k] = person;
 		owed[person] = proposal.transfers[g];
 	});
-	return { items, owed };
-}
-
-/** itemOwner[k] = person holding item k, for editing the final screen. */
-export function itemOwners(personItems: readonly (readonly number[])[], m: number): number[] {
-	const owner = Array<number>(m).fill(0);
-	personItems.forEach((list, person) => list.forEach((k) => (owner[k] = person)));
-	return owner;
+	return { owner, owed };
 }
 
 /** Groups (one per person, in person order) from an item → person map. */
@@ -172,18 +167,4 @@ export function hitTest(
 		}
 	});
 	return best;
-}
-
-export const STEPS = ['Setup', 'Start', 'Rounds', 'Result'] as const;
-
-export type Phase = 'setup' | 'start' | 'round' | 'final';
-
-/** Current step of the progress stepper: the index into STEPS, one step per phase. */
-export function stepOf(phase: Phase): number {
-	return { setup: 0, start: 1, round: 2, final: 3 }[phase];
-}
-
-/** Step labels; the current Rounds step shows its round number ("Rounds · 3"). */
-export function stepLabels(current: number, round: number): string[] {
-	return STEPS.map((s, i) => (i === 2 && current === 2 ? `${s} · ${round}` : s));
 }

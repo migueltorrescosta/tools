@@ -19,22 +19,18 @@
 		type SplitState
 	} from '$lib/split';
 	import {
-		allocation,
 		amountColour,
 		bundlesFromOwners,
+		finalSplit,
 		chipsOn,
 		demand,
 		fallbackText,
 		hitTest,
 		holdersFromPicks,
 		maxAbsRounded,
-		itemOwners,
 		moveAnnouncement,
 		personColour,
 		place,
-		stepLabels,
-		stepOf,
-		type Phase,
 		toPicks,
 		whoPaysWhom
 	} from './lib/board';
@@ -139,7 +135,8 @@
 
 	// ---- Rounds -------------------------------------------------------------
 
-	let phase = $state<Phase>('setup');
+	const PHASES = ['setup', 'start', 'round', 'final'] as const;
+	let phase = $state<(typeof PHASES)[number]>('setup');
 	/** Engine state and the proposal on the board; raw, since the engine owns their shape. */
 	let engine = $state.raw<SplitState | null>(null);
 	let proposal = $state.raw<Proposal | null>(null);
@@ -150,12 +147,10 @@
 	let selectedItem = $state<number | null>(null);
 	let announcement = $state('');
 	let busy = $state(false);
-	/** Start screen: per item, the person everyone agrees wants it most, or −1 (Contested). */
+	/** Start screen: claimed[k][i] is true when person i wants item k. */
 	let claimed = $state<boolean[][]>([]);
-	/** Round count at which the fallback offer was dismissed. */
-	let dismissedAt = $state(-1);
-	/** The agreed split: holder[g] = person taking group g. */
-	let final = $state.raw<{ proposal: Proposal; holder: number[]; fallback: boolean } | null>(null);
+	/** The agreed split: owner per item and rounded settlements per person (+ pays). */
+	let final = $state.raw<{ owner: number[]; balances: number[]; fallback: boolean } | null>(null);
 	/** Final screen: owner per item, as edited by dragging pills between people. */
 	let editOwner = $state<number[]>([]);
 
@@ -168,22 +163,14 @@
 	const itemOrder = $derived(
 		byPriceDesc(items.map((item, k) => ({ k, price: item.price }))).map((x) => x.k)
 	);
-	const rank = $derived(
-		Object.fromEntries(itemOrder.map((k, r) => [k, r])) as Record<number, number>
-	);
-	const byPrice = (list: readonly number[]) => [...list].sort((a, b) => rank[a] - rank[b]);
 	const boardMax = $derived(proposal ? maxAbsRounded(proposal.transfers) : 0);
 	const onGroup = $derived(chipsOn(placements, n));
 	const unplaced = $derived(placements.flatMap((g, i) => (g === null ? [i] : [])));
 	const groupDemand = $derived(demand(placements, n));
-	const step = $derived(stepOf(phase));
-	const stepNames = $derived(stepLabels(step, rounds.length + 1));
+	const step = $derived(PHASES.indexOf(phase));
 	const ready = $derived(toPicks(placements) !== null);
 	const fallback = $derived(
-		engine &&
-			phase === 'round' &&
-			rounds.length >= roundCap(items.length, n) &&
-			dismissedAt !== rounds.length
+		engine && phase === 'round' && rounds.length >= roundCap(items.length, n)
 			? bestFallback(engine)
 			: null
 	);
@@ -204,10 +191,7 @@
 
 	/** Setup → Start: nobody has claimed anything yet. */
 	function toStart() {
-		if (startMsg) return;
 		claimed = items.map(() => people.map(() => false));
-		selectedItem = null;
-		announcement = '';
 		phase = 'start';
 	}
 
@@ -219,12 +203,9 @@
 	const estimateMax = $derived(maxAbsRounded(estimates));
 
 	async function startAlgorithm() {
-		if (busy) return;
 		busy = true;
 		await yieldToPaint();
-		engine = initState(prices, n, undefined, claims);
-		dismissedAt = -1;
-		final = null;
+		engine = initState(prices, n, claims);
 		showProposal(propose(engine));
 		busy = false;
 	}
@@ -233,10 +214,6 @@
 	function backToSetup() {
 		phase = 'setup';
 		engine = null;
-		proposal = null;
-		final = null;
-		placements = [];
-		selected = null;
 	}
 
 	async function completeRound() {
@@ -254,8 +231,9 @@
 	}
 
 	function finish(p: Proposal, holder: number[], isFallback: boolean) {
-		final = { proposal: p, holder, fallback: isFallback };
-		editOwner = itemOwners(allocation(p, holder).items, items.length);
+		const { owner, owed } = finalSplit(p, holder);
+		final = { owner, balances: roundedBalances(owed), fallback: isFallback };
+		editOwner = [...owner];
 		selected = null;
 		selectedItem = null;
 		phase = 'final';
@@ -315,7 +293,7 @@
 	}
 
 	function undoChanges() {
-		if (final) editOwner = [...agreedOwner];
+		if (final) editOwner = [...final.owner];
 		selectedItem = null;
 		announcement = 'Changes undone';
 	}
@@ -323,10 +301,7 @@
 	// Hand-rolled pointer drag: starts after the pointer moves a few px, for
 	// mouse, pen and touch alike (chips have touch-action: none).
 	const DRAG_THRESHOLD = 5;
-	/**
-	 * What is dragged: a person's chip onto a group (rounds), an item pill onto a
-	 * person (final screen), or an item pill onto a person or Contested (start).
-	 */
+	/** What is dragged: a person's chip onto a group (rounds), or an item pill onto a person (final screen). */
 	type Kind = 'chip' | 'item';
 	type Pending = { kind: Kind; idx: number; id: number; x0: number; y0: number; active: boolean };
 	let pending: Pending | null = null;
@@ -400,20 +375,9 @@
 
 	// ---- Final screen ---------------------------------------------------------
 
-	/** The agreed split, computed once: items per person and rounded settlements (+ pays). */
-	const agreed = $derived.by(() => {
-		if (!final) return null;
-		const { items: mine, owed } = allocation(final.proposal, final.holder);
-		return { mine, balances: roundedBalances(owed) };
-	});
-	const agreedOwner = $derived(agreed ? itemOwners(agreed.mine, items.length) : []);
-	/** Per person: whether their items differ from the agreed split. */
-	const cardChanged = $derived(
-		people.map((_, i) => editOwner.some((o, k) => (o === i) !== (agreedOwner[k] === i)))
-	);
-	const edited = $derived(cardChanged.some(Boolean));
-	const payments = $derived(agreed ? whoPaysWhom(agreed.balances) : []);
-	const finalMax = $derived(agreed ? maxAbsRounded(agreed.balances) : 0);
+	const edited = $derived(final !== null && editOwner.some((o, k) => o !== final!.owner[k]));
+	const payments = $derived(final ? whoPaysWhom(final.balances) : []);
+	const finalMax = $derived(final ? maxAbsRounded(final.balances) : 0);
 </script>
 
 <svelte:window onkeydown={onKeydown} />
@@ -426,7 +390,8 @@
 	</PageHeader>
 
 	<ol class="stepper" aria-label="Progress">
-		{#each stepNames as label, i (i)}
+		{#each ['Setup', 'Start', 'Rounds', 'Result'] as name, i (i)}
+			{@const label = i === 2 && step === 2 ? `${name} · ${rounds.length + 1}` : name}
 			<li
 				class="step"
 				class:done={i < step}
@@ -443,401 +408,373 @@
 
 	{#if phase === 'setup'}
 		<div class="split-view">
-			<div class="tip-panel">
-				<Panel title="People">
-					{#snippet actions()}<InfoTip label="people">Everyone who shares the assets.</InfoTip
-						>{/snippet}
-					<div class="stack">
-						{#if people.length > 0}
-							<ul class="pills" aria-label="People">
-								{#each people as p, i (p.id)}
-									<li class="pill person-pill" style:--person={personColour(i)}>
-										<span class="dot" aria-hidden="true"></span>
-										<span class="pill-name">{p.name}</span>
-										<button
-											type="button"
-											class="remove"
-											aria-label="Remove {p.name}"
-											title="Remove {p.name}"
-											onclick={() => deletePerson(p.id)}>×</button
-										>
-									</li>
-								{/each}
-							</ul>
-						{:else}
-							<p class="note">No people yet.</p>
-						{/if}
-						<form class="add-form" onsubmit={addPerson} novalidate>
-							<Field label="Person name">
-								{#snippet children(props)}
-									<input
-										class="control"
-										type="text"
-										{...props}
-										bind:this={nameInput}
-										bind:value={newPerson.name}
-										placeholder="Name"
-										aria-invalid={personMsg ? 'true' : undefined}
-										aria-describedby={personMsg ? 'person-error' : undefined}
-									/>
-								{/snippet}
-							</Field>
-							<Button type="submit" class="add" aria-label="Add person" title="Add person">+</Button
-							>
-						</form>
-						{#if personMsg}
-							<div id="person-error"><Alert tone="danger">{personMsg}</Alert></div>
-						{/if}
-					</div>
-				</Panel>
-			</div>
+			<Panel title="People">
+				{#snippet actions()}<InfoTip label="people">Everyone who shares the assets.</InfoTip
+					>{/snippet}
+				<div class="stack">
+					{#if people.length > 0}
+						<ul class="pills" aria-label="People">
+							{#each people as p, i (p.id)}
+								<li class="pill person-pill" style:--person={personColour(i)}>
+									<span class="dot" aria-hidden="true"></span>
+									<span class="pill-name">{p.name}</span>
+									<button
+										type="button"
+										class="remove"
+										aria-label="Remove {p.name}"
+										title="Remove {p.name}"
+										onclick={() => deletePerson(p.id)}>×</button
+									>
+								</li>
+							{/each}
+						</ul>
+					{:else}
+						<p class="note">No people yet.</p>
+					{/if}
+					<form class="add-form" onsubmit={addPerson} novalidate>
+						<Field label="Person name">
+							{#snippet children(props)}
+								<input
+									class="control"
+									type="text"
+									{...props}
+									bind:this={nameInput}
+									bind:value={newPerson.name}
+									placeholder="Name"
+									aria-invalid={personMsg ? 'true' : undefined}
+									aria-describedby={personMsg ? 'person-error' : undefined}
+								/>
+							{/snippet}
+						</Field>
+						<Button type="submit" class="add" aria-label="Add person" title="Add person">+</Button>
+					</form>
+					{#if personMsg}
+						<div id="person-error"><Alert tone="danger">{personMsg}</Alert></div>
+					{/if}
+				</div>
+			</Panel>
 
-			<div class="tip-panel">
-				<Panel title="Items">
-					{#snippet actions()}<InfoTip label="items"
-							>Your best guess of each item's price. It only sets the starting split; people's picks
-							decide the rest.</InfoTip
-						>{/snippet}
-					<div class="stack">
-						{#if items.length > 0}
-							<ul class="pills" aria-label="Items">
-								{#each itemPills as item (item.id)}
-									<li class="pill" style:border-color={item.tint}>
-										<span class="pill-name">{item.description}</span>
-										<span class="pill-value">{fmt(Math.round(item.price))}</span>
-										<button
-											type="button"
-											class="remove"
-											aria-label="Remove {item.description}"
-											title="Remove {item.description}"
-											onclick={() => deleteItem(item.id)}>×</button
-										>
-									</li>
-								{/each}
-							</ul>
-						{:else}
-							<p class="note">No items yet.</p>
-						{/if}
-						<form class="add-form" onsubmit={addItem} novalidate>
-							<Field label="Item description">
+			<Panel title="Items">
+				{#snippet actions()}<InfoTip label="items"
+						>Your best guess of each item's price. It only sets the starting split; people's picks
+						decide the rest.</InfoTip
+					>{/snippet}
+				<div class="stack">
+					{#if items.length > 0}
+						<ul class="pills" aria-label="Items">
+							{#each itemPills as item (item.id)}
+								<li class="pill" style:border-color={item.tint}>
+									<span class="pill-name">{item.description}</span>
+									<span class="pill-value">{fmt(Math.round(item.price))}</span>
+									<button
+										type="button"
+										class="remove"
+										aria-label="Remove {item.description}"
+										title="Remove {item.description}"
+										onclick={() => deleteItem(item.id)}>×</button
+									>
+								</li>
+							{/each}
+						</ul>
+					{:else}
+						<p class="note">No items yet.</p>
+					{/if}
+					<form class="add-form" onsubmit={addItem} novalidate>
+						<Field label="Item description">
+							{#snippet children(props)}
+								<input
+									class="control"
+									type="text"
+									{...props}
+									bind:this={descInput}
+									bind:value={newItem.description}
+									placeholder="Description"
+									aria-invalid={itemMsg ? 'true' : undefined}
+									aria-describedby={itemMsg ? 'item-error' : undefined}
+								/>
+							{/snippet}
+						</Field>
+						<div class="price">
+							<Field label="Item price (€)">
 								{#snippet children(props)}
 									<input
 										class="control"
-										type="text"
+										type="number"
+										min="0"
+										step="any"
 										{...props}
-										bind:this={descInput}
-										bind:value={newItem.description}
-										placeholder="Description"
+										bind:value={newItem.price}
+										placeholder="Price"
 										aria-invalid={itemMsg ? 'true' : undefined}
 										aria-describedby={itemMsg ? 'item-error' : undefined}
 									/>
 								{/snippet}
 							</Field>
-							<div class="price">
-								<Field label="Item price (€)">
-									{#snippet children(props)}
-										<input
-											class="control"
-											type="number"
-											min="0"
-											step="any"
-											{...props}
-											bind:value={newItem.price}
-											placeholder="Price"
-											aria-invalid={itemMsg ? 'true' : undefined}
-											aria-describedby={itemMsg ? 'item-error' : undefined}
-										/>
-									{/snippet}
-								</Field>
-							</div>
-							<Button type="submit" class="add" aria-label="Add item" title="Add item">+</Button>
-						</form>
-						{#if itemMsg}
-							<div id="item-error"><Alert tone="danger">{itemMsg}</Alert></div>
-						{/if}
-					</div>
-				</Panel>
-			</div>
+						</div>
+						<Button type="submit" class="add" aria-label="Add item" title="Add item">+</Button>
+					</form>
+					{#if itemMsg}
+						<div id="item-error"><Alert tone="danger">{itemMsg}</Alert></div>
+					{/if}
+				</div>
+			</Panel>
 		</div>
 
 		<div class="cluster start">
 			<Button
 				variant="primary"
-				disabled={startMsg !== null || busy}
+				disabled={startMsg !== null}
 				aria-describedby={startMsg ? 'start-error' : undefined}
 				onclick={toStart}>Start</Button
 			>
 			{#if startMsg}<p id="start-error" class="note">{startMsg}</p>{/if}
 		</div>
 	{:else if phase === 'start'}
-		<div class="tip-panel">
-			<Panel title="Start">
-				{#snippet actions()}<InfoTip label="the start"
-						>Tap your colour on each item you'd like. Several people can want the same item. The
-						amounts compare what you picked with a fair share; shared items count for everyone who
-						picked them. The rounds settle the real split.</InfoTip
-					>{/snippet}
-				<div class="stack" aria-busy={busy}>
-					<ul class="bars" aria-label="Rough amounts">
-						{#each people as p, i (p.id)}
-							<li class="bar" style:--person={personColour(i)} data-testid="start-bar">
-								<span class="bar-name"><span class="dot" aria-hidden="true"></span>{p.name}</span>
-								<span
-									class="track"
-									role="img"
-									aria-label="{p.name}: items worth {fmt(Math.round(claimedTotals[i]))} of a {fmt(
-										Math.round(fairShare)
-									)} fair share"
-								>
-									<span
-										class="fill"
-										style:width="{Math.min(100, (claimedTotals[i] / (n * fairShare)) * 100)}%"
-									></span>
-									<span class="fair" style:left="calc({100 / n}% - 1px)"></span>
-								</span>
-								<span
-									class="estimate"
-									style:color={amountColour(estimates[i], fairShare, estimateMax)}
-									>≈ {paymentLabel(estimates[i], fmt)}</span
-								>
-							</li>
-						{/each}
-					</ul>
-
-					<ul class="pills claim-pills" aria-label="Items to claim">
-						{#each itemOrder as k (items[k].id)}
-							<li class="pill claim" class:shared={claims[k]?.length >= 2} data-testid="claim-item">
-								<span class="pill-name">{items[k].description}</span>
-								<span class="pill-value">{fmt(Math.round(items[k].price))}</span>
-								<span class="rings">
-									{#each people as p, i (p.id)}
-										<button
-											type="button"
-											class="ring"
-											style:--person={personColour(i)}
-											aria-pressed={claimed[k]?.[i] ?? false}
-											aria-label="{p.name} wants {items[k].description}"
-											title="{p.name} wants {items[k].description}"
-											onclick={() => (claimed[k][i] = !claimed[k][i])}
-										></button>
-									{/each}
-								</span>
-							</li>
-						{/each}
-					</ul>
-
-					<div class="cluster">
-						<Button variant="primary" disabled={busy} onclick={startAlgorithm}
-							>{busy ? 'Updating…' : 'Continue'}</Button
-						>
-						<Button onclick={backToSetup} disabled={busy}>Back to setup</Button>
-					</div>
-				</div>
-			</Panel>
-		</div>
-	{:else if phase === 'round' && proposal}
-		<div class="tip-panel">
-			<Panel title="Round {rounds.length + 1}">
-				{#snippet actions()}<InfoTip label="rounds"
-						>Drag your chip to the group you'd take at these amounts. When everyone picks a
-						different group, you're done. Back to setup discards all rounds.</InfoTip
-					>{/snippet}
-				<div class="stack" aria-busy={busy}>
-					{#if fallback}
-						<Alert tone="warning">
-							<div class="stack">
-								<div>{fallbackText(fallback)}</div>
-								<div class="cluster">
-									<Button size="sm" variant="primary" onclick={acceptFallback}
-										>Accept this split</Button
-									>
-									<Button size="sm" onclick={() => (dismissedAt = rounds.length)}>Keep going</Button
-									>
-								</div>
-							</div>
-						</Alert>
-					{/if}
-
-					<div class="groups">
-						{#each proposal.groups as g, gi (gi)}
-							{@const tag = groupDemand[gi]}
-							<section
-								class="group"
-								class:over={tag === 'over'}
-								class:unclaimed={tag === 'unclaimed'}
-								class:targetable={selected !== null || drag?.kind === 'chip'}
-								class:drop-over={drag?.kind === 'chip' && drag.target === gi}
-								data-testid="split-group"
-								aria-labelledby="group-{gi}-heading"
-								bind:this={colEls[gi]}
+		<Panel title="Start">
+			{#snippet actions()}<InfoTip label="the start"
+					>Tap your colour on each item you'd like. Several people can want the same item. The
+					amounts compare what you picked with a fair share; shared items count for everyone who
+					picked them. The rounds settle the real split.</InfoTip
+				>{/snippet}
+			<div class="stack" aria-busy={busy}>
+				<ul class="bars" aria-label="Rough amounts">
+					{#each people as p, i (p.id)}
+						<li class="bar" style:--person={personColour(i)} data-testid="start-bar">
+							<span class="bar-name"><span class="dot" aria-hidden="true"></span>{p.name}</span>
+							<span
+								class="track"
+								role="img"
+								aria-label="{p.name}: items worth {fmt(Math.round(claimedTotals[i]))} of a {fmt(
+									Math.round(fairShare)
+								)} fair share"
 							>
-								{#if selected !== null}
-									<!-- Tap/keyboard fallback for dragging (WCAG 2.5.7): an invisible button over the card. -->
+								<span
+									class="fill"
+									style:width="{Math.min(100, (claimedTotals[i] / (n * fairShare)) * 100)}%"
+								></span>
+								<span class="fair" style:left="calc({100 / n}% - 1px)"></span>
+							</span>
+							<span
+								class="estimate"
+								style:color={amountColour(estimates[i], fairShare, estimateMax)}
+								>≈ {paymentLabel(estimates[i], fmt)}</span
+							>
+						</li>
+					{/each}
+				</ul>
+
+				<ul class="pills" aria-label="Items to claim">
+					{#each itemOrder as k (items[k].id)}
+						<li class="pill claim" class:shared={claims[k].length >= 2} data-testid="claim-item">
+							<span class="pill-name">{items[k].description}</span>
+							<span class="pill-value">{fmt(Math.round(items[k].price))}</span>
+							<span class="rings">
+								{#each people as p, i (p.id)}
 									<button
 										type="button"
-										class="card-target"
-										aria-label="Place {people[selected].name} in group {gi + 1}"
-										onclick={() => selected !== null && move(selected, gi)}
+										class="ring"
+										style:--person={personColour(i)}
+										aria-pressed={claimed[k][i]}
+										aria-label="{p.name} wants {items[k].description}"
+										title="{p.name} wants {items[k].description}"
+										onclick={() => (claimed[k][i] = !claimed[k][i])}
 									></button>
-								{/if}
-								<div class="group-head">
-									<h3 id="group-{gi}-heading">Group {gi + 1}</h3>
-									{#if tag}<span class="tag {tag}"
-											>{tag === 'over' ? 'Over-demanded' : 'Unclaimed'}</span
-										>{/if}
-								</div>
+								{/each}
+							</span>
+						</li>
+					{/each}
+				</ul>
+
+				<div class="cluster">
+					<Button variant="primary" disabled={busy} onclick={startAlgorithm}
+						>{busy ? 'Updating…' : 'Continue'}</Button
+					>
+					<Button onclick={backToSetup} disabled={busy}>Back to setup</Button>
+				</div>
+			</div>
+		</Panel>
+	{:else if phase === 'round' && proposal}
+		<Panel title="Round {rounds.length + 1}">
+			{#snippet actions()}<InfoTip label="rounds"
+					>Drag your chip to the group you'd take at these amounts. When everyone picks a different
+					group, you're done. Back to setup discards all rounds.</InfoTip
+				>{/snippet}
+			<div class="stack" aria-busy={busy}>
+				{#if fallback}
+					<Alert tone="warning">
+						<div class="stack">
+							<div>{fallbackText(fallback)}</div>
+							<div class="cluster">
+								<Button size="sm" variant="primary" onclick={acceptFallback}
+									>Accept this split</Button
+								>
+							</div>
+						</div>
+					</Alert>
+				{/if}
+
+				<div class="groups">
+					{#each proposal.groups as g, gi (gi)}
+						{@const tag = groupDemand[gi]}
+						<section
+							class="group"
+							class:over={tag === 'over'}
+							class:unclaimed={tag === 'unclaimed'}
+							class:targetable={selected !== null || drag?.kind === 'chip'}
+							class:drop-over={drag?.kind === 'chip' && drag.target === gi}
+							data-testid="split-group"
+							aria-labelledby="group-{gi}-heading"
+							bind:this={colEls[gi]}
+						>
+							{#if selected !== null}
+								<!-- Tap/keyboard fallback for dragging (WCAG 2.5.7): an invisible button over the card. -->
+								<button
+									type="button"
+									class="card-target"
+									aria-label="Place {people[selected].name} in group {gi + 1}"
+									onclick={() => selected !== null && move(selected, gi)}
+								></button>
+							{/if}
+							<div class="group-head">
+								<h3 id="group-{gi}-heading">Group {gi + 1}</h3>
+								{#if tag}<span class="tag {tag}"
+										>{tag === 'over' ? 'Over-demanded' : 'Unclaimed'}</span
+									>{/if}
+							</div>
+							<p
+								class="settlement"
+								style:color={amountColour(proposal.transfers[gi], fairShare, boardMax)}
+							>
+								{paymentLabel(proposal.transfers[gi], fmt)}
+							</p>
+							<ul class="items">
+								{#each itemOrder.filter((k) => g.includes(k)) as k (k)}<li class="pill">
+										{items[k].description}
+									</li>{/each}
+								{#if g.length === 0}<li class="note">(empty)</li>{/if}
+							</ul>
+							<div class="drop">
+								{#each onGroup[gi] ?? [] as i (people[i].id)}{@render personCard(i)}{/each}
+							</div>
+						</section>
+					{/each}
+				</div>
+
+				<div class="unplaced" data-testid="split-unplaced">
+					<p class="unplaced-label">Unplaced</p>
+					<div class="drop centred">
+						{#each unplaced as i (people[i].id)}{@render personCard(i)}{/each}
+						{#if unplaced.length === 0}<p class="note">Everyone has picked.</p>{/if}
+					</div>
+				</div>
+
+				<p class="sr-only" aria-live="polite" data-testid="split-announce">{announcement}</p>
+
+				<div class="cluster">
+					<Button variant="primary" disabled={!ready || busy} onclick={completeRound}
+						>{busy ? 'Updating…' : 'Complete round'}</Button
+					>
+					<Button onclick={backToSetup} disabled={busy}>Back to setup</Button>
+				</div>
+			</div>
+		</Panel>
+	{:else if phase === 'final' && final}
+		<Panel title="Everyone keeps their own group">
+			{#snippet actions()}<InfoTip label="the final split"
+					>{final?.fallback
+						? 'The best split found so far, so someone may still prefer another group.'
+						: 'At these amounts, nobody would rather swap.'} Drag items between people to try a change,
+					then check it with everyone again.</InfoTip
+				>{/snippet}
+			<div class="stack" aria-busy={busy}>
+				<div class="groups">
+					{#each people as p, i (p.id)}
+						<section
+							class="group"
+							class:targetable={selectedItem !== null || drag?.kind === 'item'}
+							class:drop-over={drag?.kind === 'item' && drag.target === i}
+							style:--person={personColour(i)}
+							data-testid="final-person"
+							aria-labelledby="final-{i}-heading"
+							bind:this={personEls[i]}
+						>
+							{#if selectedItem !== null && editOwner[selectedItem] !== i}
+								<!-- Tap/keyboard fallback for dragging (WCAG 2.5.7). -->
+								<button
+									type="button"
+									class="card-target"
+									aria-label="Give {items[selectedItem].description} to {p.name}"
+									onclick={() => selectedItem !== null && give(selectedItem, i)}
+								></button>
+							{/if}
+							<h3 id="final-{i}-heading">
+								<span class="dot" aria-hidden="true"></span>{p.name}
+							</h3>
+							{#if !edited}
 								<p
 									class="settlement"
-									style:color={amountColour(proposal.transfers[gi], fairShare, boardMax)}
+									style:color={amountColour(final.balances[i], fairShare, finalMax)}
 								>
-									{paymentLabel(proposal.transfers[gi], fmt)}
+									{paymentLabel(final.balances[i], fmt)}
 								</p>
-								<ul class="items">
-									{#each byPrice(g) as k (k)}<li class="pill">{items[k].description}</li>{/each}
-									{#if g.length === 0}<li class="note">(empty)</li>{/if}
-								</ul>
-								<div class="drop">
-									{#each onGroup[gi] ?? [] as i (people[i].id)}{@render personCard(i)}{/each}
-								</div>
-							</section>
-						{/each}
-					</div>
-
-					<div class="unplaced" data-testid="split-unplaced">
-						<p class="unplaced-label">Unplaced</p>
-						<div class="drop centred">
-							{#each unplaced as i (people[i].id)}{@render personCard(i)}{/each}
-							{#if unplaced.length === 0}<p class="note">Everyone has picked.</p>{/if}
-						</div>
-					</div>
-
-					<p class="sr-only" aria-live="polite" data-testid="split-announce">{announcement}</p>
-
-					<div class="cluster">
-						<Button variant="primary" disabled={!ready || busy} onclick={completeRound}
-							>{busy ? 'Updating…' : 'Complete round'}</Button
-						>
-						<Button onclick={backToSetup} disabled={busy}>Back to setup</Button>
-					</div>
-				</div>
-			</Panel>
-		</div>
-	{:else if phase === 'final' && final && agreed}
-		<div class="tip-panel">
-			<Panel title="Everyone keeps their own group">
-				{#snippet actions()}<InfoTip label="the final split"
-						>{final?.fallback
-							? 'The best split found so far, so someone may still prefer another group.'
-							: 'At these amounts, nobody would rather swap.'} Drag items between people to try a change,
-						then check it with everyone again.</InfoTip
-					>{/snippet}
-				<div class="stack" aria-busy={busy}>
-					{#if final.fallback}
-						<p class="note">The best split found so far. It may not suit everyone.</p>
-					{/if}
-					<div class="groups">
-						{#each people as p, i (p.id)}
-							<section
-								class="group"
-								class:targetable={selectedItem !== null || drag?.kind === 'item'}
-								class:drop-over={drag?.kind === 'item' && drag.target === i}
-								style:--person={personColour(i)}
-								data-testid="final-person"
-								aria-labelledby="final-{i}-heading"
-								bind:this={personEls[i]}
-							>
-								{#if selectedItem !== null && editOwner[selectedItem] !== i}
-									<!-- Tap/keyboard fallback for dragging (WCAG 2.5.7). -->
-									<button
-										type="button"
-										class="card-target"
-										aria-label="Give {items[selectedItem].description} to {p.name}"
-										onclick={() => selectedItem !== null && give(selectedItem, i)}
-									></button>
-								{/if}
-								<h3 id="final-{i}-heading">
-									<span class="dot" aria-hidden="true"></span>{p.name}
-								</h3>
-								{#if cardChanged[i]}
-									<p class="settlement changed">Changed: check with everyone</p>
-								{:else if edited}
-									<p class="settlement changed">Re-check to update</p>
-								{:else}
-									<p
-										class="settlement"
-										style:color={amountColour(agreed.balances[i], fairShare, finalMax)}
-									>
-										{paymentLabel(agreed.balances[i], fmt)}
-									</p>
-								{/if}
-								<ul class="items">
-									{#each itemOrder as k (items[k].id)}
-										{#if editOwner[k] === i}
-											<li>
-												<button
-													type="button"
-													class="pill draggable"
-													class:lifted={isLifted('item', k)}
-													style:transform={drag && isLifted('item', k)
-														? `translate(${drag.dx}px, ${drag.dy}px)`
-														: undefined}
-													aria-pressed={selectedItem === k}
-													aria-describedby={claimed[k]?.[i] ? 'start-legend' : undefined}
-													disabled={busy}
-													onclick={() => onPick('item', k)}
-													onpointerdown={(e) => onPointerDown(e, 'item', k)}
-													onpointermove={onPointerMove}
-													onpointerup={onPointerUp}
-													onpointercancel={cancelDrag}
-													>{items[k].description}{#if claimed[k]?.[i]}<span
-															class="start-mark"
-															aria-hidden="true">S</span
-														>{/if}</button
-												>
-											</li>
-										{/if}
-									{/each}
-									{#if !editOwner.includes(i)}<li class="note">(none)</li>{/if}
-								</ul>
-							</section>
-						{/each}
-					</div>
-					{#if editOwner.some((o, k) => claimed[k]?.[o])}
-						<p id="start-legend" class="note">
-							<span class="start-mark" aria-hidden="true">S</span> Claimed at Start
-						</p>
-					{/if}
-					<p class="sr-only" aria-live="polite" data-testid="final-announce">{announcement}</p>
-					{#if edited}
-						<Alert tone="warning"
-							>Changed: check with everyone. Amounts update after the re-check.</Alert
-						>
-					{:else}
-						<section class="payments" aria-labelledby="payments-heading">
-							<h3 id="payments-heading">Who pays whom</h3>
-							{#if payments.length > 0}
-								<ul>
-									{#each payments as pay, i (i)}
-										<li>{people[pay.from].name} pays {people[pay.to].name} {fmt(pay.amount)}</li>
-									{/each}
-								</ul>
-							{:else}
-								<p class="note">No payments needed.</p>
 							{/if}
+							<ul class="items">
+								{#each itemOrder as k (items[k].id)}
+									{#if editOwner[k] === i}
+										<li>
+											<button
+												type="button"
+												class="pill draggable"
+												class:lifted={isLifted('item', k)}
+												style:transform={drag && isLifted('item', k)
+													? `translate(${drag.dx}px, ${drag.dy}px)`
+													: undefined}
+												aria-pressed={selectedItem === k}
+												disabled={busy}
+												onclick={() => onPick('item', k)}
+												onpointerdown={(e) => onPointerDown(e, 'item', k)}
+												onpointermove={onPointerMove}
+												onpointerup={onPointerUp}
+												onpointercancel={cancelDrag}>{items[k].description}</button
+											>
+										</li>
+									{/if}
+								{/each}
+								{#if !editOwner.includes(i)}<li class="note">(none)</li>{/if}
+							</ul>
 						</section>
-					{/if}
-					<div class="cluster">
-						{#if edited}
-							<Button variant="primary" disabled={busy} onclick={recheck}
-								>{busy ? 'Updating…' : 'Re-check'}</Button
-							>
-							<Button disabled={busy} onclick={undoChanges}>Undo changes</Button>
-						{/if}
-						<Button disabled={busy} onclick={backToSetup}>Start over</Button>
-					</div>
+					{/each}
 				</div>
-			</Panel>
-		</div>
+				<p class="sr-only" aria-live="polite" data-testid="final-announce">{announcement}</p>
+				{#if edited}
+					<Alert tone="warning"
+						>Changed: check with everyone. Amounts update after the re-check.</Alert
+					>
+				{:else}
+					<section class="payments" aria-labelledby="payments-heading">
+						<h3 id="payments-heading">Who pays whom</h3>
+						{#if payments.length > 0}
+							<ul>
+								{#each payments as pay, i (i)}
+									<li>{people[pay.from].name} pays {people[pay.to].name} {fmt(pay.amount)}</li>
+								{/each}
+							</ul>
+						{:else}
+							<p class="note">No payments needed.</p>
+						{/if}
+					</section>
+				{/if}
+				<div class="cluster">
+					{#if edited}
+						<Button variant="primary" disabled={busy} onclick={recheck}
+							>{busy ? 'Updating…' : 'Re-check'}</Button
+						>
+						<Button disabled={busy} onclick={undoChanges}>Undo changes</Button>
+					{/if}
+					<Button disabled={busy} onclick={backToSetup}>Start over</Button>
+				</div>
+			</div>
+		</Panel>
 	{/if}
 
 	<section class="references" aria-labelledby="references-heading">
@@ -882,7 +819,7 @@
 	}
 
 	/* Info tip right next to the panel title, not pushed to the far right. */
-	.tip-panel :global(.ui-panel-actions) {
+	.container :global(.ui-panel-actions) {
 		margin-left: 0;
 	}
 
@@ -1084,10 +1021,6 @@
 		font-weight: 600;
 	}
 
-	.settlement.changed {
-		color: var(--warning-text);
-	}
-
 	.items {
 		display: flex;
 		flex-wrap: wrap;
@@ -1119,21 +1052,6 @@
 		gap: var(--sp-1);
 	}
 
-	/* Final screen: an item still with the person it was placed on at Start. */
-	.start-mark {
-		display: inline-grid;
-		place-items: center;
-		width: 1.3em;
-		height: 1.3em;
-		border: 1px solid var(--border-strong);
-		border-radius: 50%;
-		color: var(--text-muted);
-		font-size: var(--text-xs);
-		font-weight: 700;
-		line-height: 1;
-	}
-
-	/* Start: one bar per person, 0 to the total of all items, with a tick at a fair share (total / n). */
 	.bars {
 		display: grid;
 		gap: var(--sp-1);

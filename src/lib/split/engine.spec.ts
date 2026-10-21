@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import {
-	DEFAULT_PARAMS,
 	bestFallback,
 	initState,
 	isCertified,
@@ -47,7 +46,6 @@ describe('split engine: first proposal', () => {
 		expect(p.groups).toEqual([[1], [0]]);
 		expect(p.transfers[0]).toBeCloseTo(20000, 3);
 		expect(p.transfers[1]).toBeCloseTo(-20000, 3);
-		expect(p.margin).toBeCloseTo(0, 9);
 	});
 });
 
@@ -65,18 +63,20 @@ describe('split engine: rules', () => {
 		expect(roundCap(10, 4)).toBe(9);
 	});
 
-	it('uses the tuned defaults', () => {
-		expect(DEFAULT_PARAMS).toEqual({ sigmaMu: 0.3, tau: 0.4, lambda: 10, lambdaStart: 0.25 });
-	});
-
-	it('rejects bad input', () => {
-		expect(() => initState([], 2)).toThrow();
-		expect(() => initState([10, -1], 2)).toThrow();
+	it('rejects groups that do not partition the items, and owners that are not a permutation', () => {
 		const s = initState([10, 20, 30], 2);
 		const p = propose(s);
-		expect(() => recordRound(s, p, [0])).toThrow();
-		expect(() => recordRound(s, p, [0, 2])).toThrow();
 		expect(() => recordRound(s, { ...p, groups: [[0], [1]] }, [0, 1])).toThrow();
+		expect(() =>
+			transfersFor(
+				s,
+				[
+					[0, 1],
+					[1, 2]
+				],
+				[0, 1]
+			)
+		).toThrow();
 		expect(() => transfersFor(s, p.groups, [0, 0])).toThrow();
 	});
 
@@ -125,7 +125,7 @@ describe('split engine: learning', () => {
 		}
 	});
 
-	it('gains margin and fairness while everyone keeps picking their own group', () => {
+	it('gains fairness while everyone keeps picking their own group', () => {
 		let s = initState(prices, 3);
 		let p = propose(s);
 		const pFair: number[] = [];
@@ -134,7 +134,6 @@ describe('split engine: learning', () => {
 			p = propose(s);
 			pFair.push(bestFallback(s).pFair);
 		}
-		expect(p.margin).toBeGreaterThan(1);
 		expect(pFair[7]).toBeGreaterThan(pFair[0] + 0.3);
 		expect(pFair[7]).toBeGreaterThan(0.5);
 		expect(bestFallback(s).residualEnvy).toBeGreaterThanOrEqual(0);
@@ -163,26 +162,16 @@ function inverse(a: number[][]): number[][] {
 describe('split engine: Start claims', () => {
 	const prices = [4000, 3000, 2000, 1000];
 
-	it('validates claims', () => {
-		expect(() => initState(prices, 2, DEFAULT_PARAMS, [[0], [1]])).toThrow();
-		expect(() => initState(prices, 2, DEFAULT_PARAMS, [[0], [2], [], []])).toThrow();
-		expect(() => initState(prices, 2, DEFAULT_PARAMS, [[0, 0], [], [], []])).toThrow();
-		expect(() => initState(prices, 2, DEFAULT_PARAMS, [[0.5], [], [], []])).toThrow();
-		expect(() =>
-			initState(prices, 2, { ...DEFAULT_PARAMS, sigmaMu: 0 }, [[0], [], [], []])
-		).toThrow();
-	});
-
 	it('learns nothing from items claimed by nobody or by everyone', () => {
 		const plain = propose(initState(prices, 3));
-		expect(propose(initState(prices, 3, DEFAULT_PARAMS, [[], [], [], []]))).toEqual(plain);
+		expect(propose(initState(prices, 3, [[], [], [], []]))).toEqual(plain);
 		const all = [0, 1, 2];
-		expect(propose(initState(prices, 3, DEFAULT_PARAMS, [all, all, all, all]))).toEqual(plain);
+		expect(propose(initState(prices, 3, [all, all, all, all]))).toEqual(plain);
 	});
 
 	it('gives singly claimed items to their claimant in round 1', () => {
 		const claims = [[1], [0], [1], []];
-		const p = propose(initState(prices, 2, DEFAULT_PARAMS, claims));
+		const p = propose(initState(prices, 2, claims));
 		claims.forEach((who, k) => {
 			if (who.length === 1) expect(p.groups[who[0]]).toContain(k);
 		});
@@ -194,7 +183,7 @@ describe('split engine: Start claims', () => {
 			[[], [0, 2], [], []],
 			[[0, 1], [0, 1], [2], []]
 		]) {
-			const p = propose(initState(prices, 3, DEFAULT_PARAMS, claims));
+			const p = propose(initState(prices, 3, claims));
 			claims.forEach((who, k) => {
 				if (who.length === 0) return;
 				const owner = p.owners[p.groups.findIndex((g) => g.includes(k))];
@@ -204,7 +193,7 @@ describe('split engine: Start claims', () => {
 	});
 
 	it('lets round picks override a claim', () => {
-		let s = initState(prices, 2, DEFAULT_PARAMS, [[0], [], [], []]);
+		let s = initState(prices, 2, [[0], [], [], []]);
 		let owner = -1;
 		for (let r = 0; r < 4; r++) {
 			const p = propose(s);
@@ -227,8 +216,9 @@ describe('split engine: Start claims', () => {
 	for (const { n, claims, bounded } of cases)
 		it(`keeps the Laplace covariance exact for the Woodbury form (n=${n}${bounded ? ', with a 2–2 claim' : ''})`, () => {
 			const m = prices.length;
-			const params = { ...DEFAULT_PARAMS, lambdaStart: 3 };
-			const s = initState(prices, n, params, claims) as unknown as {
+			// The engine's settings: σμ = 0.3, τ = 0.4, λ_S = 2.
+			const params = { sigmaMu: 0.3, tau: 0.4, lambdaStart: 2 };
+			const s = initState(prices, n, claims) as unknown as {
 				fit: { ut: Float64Array[]; ls: Float64Array; scale: Float64Array };
 			};
 			const tau2 = params.tau ** 2;

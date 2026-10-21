@@ -1,22 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import type { Proposal } from '$lib/split';
 import {
-	allocation,
 	amountColour,
 	amountIntensity,
 	bundlesFromOwners,
+	finalSplit,
 	chipsOn,
 	demand,
 	fallbackText,
 	hitTest,
 	holdersFromPicks,
 	maxAbsRounded,
-	itemOwners,
 	moveAnnouncement,
 	personColour,
 	place,
-	stepLabels,
-	stepOf,
 	toPicks,
 	whoPaysWhom
 } from './board';
@@ -24,8 +21,7 @@ import {
 const proposal: Proposal = {
 	groups: [[1], [0, 2], []],
 	transfers: [20, -5, -15],
-	owners: [0, 1, 2],
-	margin: 1
+	owners: [0, 1, 2]
 };
 
 describe('placements', () => {
@@ -65,17 +61,13 @@ describe('colours', () => {
 });
 
 describe('final allocation', () => {
-	it('maps picks to holders and holders to rows', () => {
+	it('maps picks to holders, and holders to item owners and settlements', () => {
 		const holder = holdersFromPicks([2, 0, 1]);
 		expect(holder).toEqual([1, 2, 0]);
-		const { items, owed } = allocation(proposal, holder);
-		expect(items).toEqual([[], [1], [0, 2]]);
+		const { owner, owed } = finalSplit(proposal, holder);
+		expect(owner).toEqual([2, 1, 2]);
 		expect(owed).toEqual([-15, 20, -5]);
-	});
-	it('round-trips owners and bundles', () => {
-		const owner = itemOwners([[1], [0, 2], []], 3);
-		expect(owner).toEqual([1, 0, 1]);
-		expect(bundlesFromOwners(owner, 3)).toEqual([[1], [0, 2], []]);
+		expect(bundlesFromOwners(owner, 3)).toEqual([[], [1], [0, 2]]);
 	});
 	it('scales settlement colour on a symlog scale', () => {
 		// Fair share 1000, so C = 10.
@@ -142,18 +134,5 @@ describe('whoPaysWhom', () => {
 	});
 	it('needs no payments when everyone is even', () => {
 		expect(check([0, 0, 0])).toEqual([]);
-	});
-});
-
-describe('progress stepper', () => {
-	it('maps each phase to its step', () => {
-		expect(stepOf('setup')).toBe(0);
-		expect(stepOf('start')).toBe(1);
-		expect(stepOf('round')).toBe(2);
-		expect(stepOf('final')).toBe(3);
-	});
-	it('shows the round number only on the current Rounds step', () => {
-		expect(stepLabels(2, 3)).toEqual(['Setup', 'Start', 'Rounds · 3', 'Result']);
-		expect(stepLabels(3, 3)).toEqual(['Setup', 'Start', 'Rounds', 'Result']);
 	});
 });

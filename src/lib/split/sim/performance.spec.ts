@@ -9,7 +9,7 @@ import { bestResponse, makeCase } from './harness';
 function timeRound(n: number, m: number, rounds: number): number {
 	const c = makeCase(n, m, 0.3, 1);
 	const claims = c.entered.map((_, k) => (k % 2 ? [] : [k % n, (k + 1) % n]));
-	let s: SplitState = initState(c.entered, n, undefined, claims);
+	let s: SplitState = initState(c.entered, n, claims);
 	const play = () => {
 		const p = propose(s);
 		s = recordRound(
@@ -26,12 +26,11 @@ function timeRound(n: number, m: number, rounds: number): number {
 
 describe('split engine performance', () => {
 	it('fits 6 people × 30 items in well under the 50 ms budget', () => {
-		// Measured ≈ 6 ms on fugaku; the bound leaves room for slow CI runners.
+		// The bound leaves room for slow CI runners.
 		expect(timeRound(6, 30, 20)).toBeLessThan(250);
 	});
 
-	// Budget 2 s after ~50 rounds; measured ≈ 1.7 s in Node on fugaku. Takes
-	// about 90 s, so it only runs with SPLIT_BENCH=1.
+	// Budget 2 s after ~50 rounds. Slow, so it only runs with SPLIT_BENCH=1.
 	it.skipIf(!process.env.SPLIT_BENCH)(
 		'fits 10 people × 500 items within 2 s after 50 rounds',
 		() => {

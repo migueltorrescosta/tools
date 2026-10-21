@@ -19,9 +19,9 @@ export type LpResult =
 
 const EPS = 1e-9;
 /**
- * Smallest pivot the ratio test accepts. Pivoting on near-zero entries (an
- * absolute 1e-9 used to be allowed) blows rounding error up until the tableau
- * shows rays that do not exist; callers scale their rows to O(1).
+ * Smallest pivot the ratio test accepts: pivoting on near-zero entries blows
+ * rounding error up until the tableau shows rays that do not exist (see the
+ * fixture test in lp.spec.ts). Callers scale their rows to O(1).
  */
 const PIVOT_TOL = 1e-7;
 

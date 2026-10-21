@@ -21,7 +21,7 @@
  * likelihood depends on w_i only, and the prior on W = (w_1..w_n) has
  * precision Λ0 = (I_n/τ² − c 1 1ᵀ) ⊗ I_m with c = σμ² / (τ² (τ² + n σμ²)).
  * The MAP is found by damped Newton, warm-started from the previous fit; once
- * a step is below 1e-3 the next step reuses the factors (a chord step), and
+ * a step is below CHORD_STEP the next step reuses the factors (a chord step), and
  * iteration stops below 1e-5. The
  * negative Hessian is P = D − c U Uᵀ with D = blockdiag(E_i), E_i = H_i + I/τ²
  * (H_i the data Hessian of person i, m×m) and U = 1_n ⊗ I_m. By Woodbury,
@@ -31,8 +31,7 @@
  * fold into the same form: U's column k becomes v_k ⊗ e_k (see startTerms),
  * so S = I/c − Σ_i V_i E_i⁻¹ V_i. The gradient stays exact, so the MAP is
  * exact (the bounds only make those steps conservative); the Laplace
- * covariance uses the bounds, which slightly understate the variance a claim
- * leaves. Each Newton step costs n
+ * covariance uses the bounds, which understate the variance a claim leaves. Each Newton step costs n
  * Cholesky factorisations of m×m and a conjugate-gradient solve with S, whose
  * matvec is 2n triangular solves. After convergence the Laplace approximation
  * N(Ŵ, P⁻¹) is kept as L_i⁻¹ (inverse Cholesky factor of E_i) for every
@@ -47,8 +46,8 @@
  *
  * Cost per fit at n people, m items, R rounds: about 2 n m³/6 per Newton
  * factorisation (Hessian blocks cost n m² R / 2), 2 n m³/6 for the inverses
- * and S, and n m² SAMPLES for the draws. At 10 × 500 after 50 rounds that is
- * about 1.7 s in Node on fugaku (draws ≈ 0.5 s, Cholesky ≈ 0.36 s).
+ * and S, and n m² SAMPLES for the draws. The budget is checked by
+ * sim/performance.spec.ts.
  */
 
 import {
@@ -65,29 +64,18 @@ import {
 import { maximize, type Constraint } from './lp';
 import { Prng } from '$lib/prng';
 
-export interface SplitParams {
-	/** Prior SD of the shared per-item deviation μ_k. */
-	sigmaMu: number;
-	/** Prior SD of the personal deviation δ_ik. */
-	tau: number;
-	/** Logit sharpness: a surplus gap of 1/λ fair shares (T/n) gives odds e. */
-	lambda: number;
-	/**
-	 * Sharpness of the Start evidence: for an item claimed by i and not by j,
-	 * a logit factor σ(λ_S (w_ik − w_jk)), the same at any price or item
-	 * count. Set so a claim weighs clearly less than one round pick (see the
-	 * simulation spec).
-	 */
-	lambdaStart: number;
-}
-
-/** Tuned by the truthful-agent simulation (src/lib/split/sim/simulation.spec.ts). */
-export const DEFAULT_PARAMS: SplitParams = {
-	sigmaMu: 0.3,
-	tau: 0.4,
-	lambda: 10,
-	lambdaStart: 0.25
-};
+/** Prior SD of the shared per-item deviation μ_k. */
+const SIGMA_MU = 0.3;
+/** Prior SD of the personal deviation δ_ik. */
+const TAU = 0.4;
+/** Logit sharpness of a round pick: a surplus gap of 1/λ fair shares (T/n) gives odds e. */
+const LAMBDA = 10;
+/**
+ * Sharpness of the Start evidence: for an item claimed by i and not by j, a
+ * logit factor σ(λ_S (w_ik − w_jk)), the same at any price or item count.
+ * Chosen by the claims simulation (see sim/simulation.spec.ts and PR #39).
+ */
+const LAMBDA_START = 2;
 
 export interface Proposal {
 	/** Item indices per group; exactly n groups, every item in one group. Groups may be empty. */
@@ -96,8 +84,6 @@ export interface Proposal {
 	transfers: number[];
 	/** Per group: the person the model expects to take it (a permutation of 0..n-1). */
 	owners: number[];
-	/** Robustness margin z of the transfer LP (> 0: envy-free with slack under the posterior). */
-	margin: number;
 }
 
 interface RoundRecord {
@@ -106,12 +92,17 @@ interface RoundRecord {
 	picks: number[];
 }
 
-/** Opaque fitted state; the UI never reads its fields. */
+/** Fitted state; the UI never reads its fields. Keep it in $state.raw (propose memoises into it). */
 export interface SplitState {
 	readonly prices: readonly number[];
 	readonly n: number;
-	readonly params: SplitParams;
 	readonly rounds: readonly RoundRecord[];
+	/** @internal Start claims: claimed[i m + k] = 1 when person i claimed item k. */
+	readonly claimed: Uint8Array;
+	/** @internal */
+	readonly fit: Fit;
+	/** @internal memoised propose() */
+	proposal?: Proposal;
 }
 
 /** Posterior draws kept per fit. */
@@ -119,12 +110,13 @@ const SAMPLES = 200;
 /** Upper bound on the LP margin z, to keep stage 1 bounded. */
 const MAX_MARGIN = 10;
 const MAX_NEWTON = 10;
-/** Below this Newton step (max |Δw|), the next step reuses the current factors. */
-const CHORD_STEP = 1e-3;
 /**
- * Owner rule: a person stays a candidate for an item while their posterior
- * mean is within OWNER_SLACK posterior SDs of the best (tuned by simulation).
+ * Below this Newton step (max |Δw|), the next step reuses the current factors.
+ * With several claimants per item the Start curvature is a bound, so Newton
+ * converges linearly there and refactoring after small steps buys little.
  */
+const CHORD_STEP = 1e-2;
+/** Owner rule: candidates are within this many posterior SDs of the best (tuned by simulation). */
 const OWNER_SLACK = 0.1;
 
 interface Fit {
@@ -132,8 +124,8 @@ interface Fit {
 	w: Float64Array;
 	/** Per person: L_i⁻ᵀ where E_i = L_i L_iᵀ, m×m upper triangular. */
 	ut: Float64Array[];
-	/** Cholesky factor of S (null when σμ = 0: no coupling). */
-	ls: Float64Array | null;
+	/** Cholesky factor of S. */
+	ls: Float64Array;
 	/** Per person: draws of x_i = w_i − ŵ_i, sample-major SAMPLES×m. */
 	draws: Float64Array[];
 	/** Woodbury scaling v_k[j] per person and item, n×m (all 1 without Start placements). */
@@ -147,7 +139,6 @@ interface Fit {
  */
 interface StartTerms {
 	claimed: Uint8Array;
-	lambdaS: number;
 	/** Extra diagonal of E_j at item k, n×m. */
 	diag: Float64Array;
 	/** v_k[j], n×m. */
@@ -163,70 +154,22 @@ interface Round {
 	members: Int32Array[];
 }
 
-class FittedState implements SplitState {
-	readonly prices: readonly number[];
-	readonly n: number;
-	readonly params: SplitParams;
-	readonly rounds: readonly RoundRecord[];
-	/** @internal Start claims: claimed[i m + k] = 1 when person i claimed item k. */
-	readonly claimed: Uint8Array;
-	/** @internal */
-	readonly fit: Fit;
-	/** @internal memoised propose() */
-	proposal: Proposal | null = null;
-
-	constructor(
-		prices: readonly number[],
-		n: number,
-		params: SplitParams,
-		rounds: readonly RoundRecord[],
-		claimed: Uint8Array,
-		fit: Fit
-	) {
-		this.prices = prices;
-		this.n = n;
-		this.params = params;
-		this.rounds = rounds;
-		this.claimed = claimed;
-		this.fit = fit;
-	}
-}
-
-function internal(state: SplitState): FittedState {
-	if (!(state instanceof FittedState)) throw new Error('split: state must come from initState');
-	return state;
-}
-
 /**
  * A fresh state. `claims[k]` lists the people who claimed item k at Start
  * (empty, one person or several; omitted: no claims). Claims are evidence
- * that the item's top valuer is one of its claimants, weighted by
- * params.lambdaStart.
+ * that the item's top valuer is one of its claimants.
  */
 export function initState(
 	prices: readonly number[],
 	n: number,
-	params: SplitParams = DEFAULT_PARAMS,
 	claims?: readonly (readonly number[])[]
 ): SplitState {
-	if (!Number.isInteger(n) || n < 1) throw new Error('split: n must be a positive integer');
-	if (prices.length === 0 || prices.some((p) => !(p > 0 && Number.isFinite(p))))
-		throw new Error('split: prices must be positive');
 	const m = prices.length;
 	const claimed = new Uint8Array(n * m);
-	if (claims) {
-		if (claims.length !== m) throw new Error('split: claims must list claimants per item');
-		claims.forEach((who, k) => {
-			for (const i of who) {
-				if (!Number.isInteger(i) || i < 0 || i >= n || claimed[i * m + k])
-					throw new Error('split: claimants must be distinct person indices');
-				claimed[i * m + k] = 1;
-			}
-		});
-	}
+	claims?.forEach((who, k) => who.forEach((i) => (claimed[i * m + k] = 1)));
 	const ps = Object.freeze([...prices]);
-	const fit = fitPosterior(ps, n, params, [], claimed, new Float64Array(n * m));
-	return new FittedState(ps, n, Object.freeze({ ...params }), Object.freeze([]), claimed, fit);
+	const fit = fitPosterior(ps, n, [], claimed, new Float64Array(n * m));
+	return { prices: ps, n, rounds: Object.freeze([]), claimed, fit };
 }
 
 /** Append a completed round and refit the posterior. */
@@ -235,25 +178,19 @@ export function recordRound(
 	proposal: Proposal,
 	picks: readonly number[]
 ): SplitState {
-	const s = internal(state);
-	const { n, prices } = s;
-	const m = prices.length;
-	checkGroups(proposal.groups, n, m);
-	if (proposal.transfers.length !== n) throw new Error('split: need one transfer per group');
-	if (picks.length !== n || picks.some((c) => !Number.isInteger(c) || c < 0 || c >= n))
-		throw new Error('split: need one pick per person, a group index');
+	const { n, prices, claimed } = state;
+	checkGroups(proposal.groups, n, prices.length);
 	const record: RoundRecord = {
 		proposal: {
 			groups: proposal.groups.map((g) => [...g]),
 			transfers: [...proposal.transfers],
-			owners: [...proposal.owners],
-			margin: proposal.margin
+			owners: [...proposal.owners]
 		},
 		picks: [...picks]
 	};
-	const rounds = Object.freeze([...s.rounds, record]);
-	const fit = fitPosterior(prices, n, s.params, rounds, s.claimed, s.fit.w);
-	return new FittedState(prices, n, s.params, rounds, s.claimed, fit);
+	const rounds = Object.freeze([...state.rounds, record]);
+	const fit = fitPosterior(prices, n, rounds, claimed, state.fit.w);
+	return { prices, n, rounds, claimed, fit };
 }
 
 /** True when every person picked a different group. */
@@ -277,15 +214,14 @@ export function roundCap(m: number, n: number): number {
  * grouping on the prices.
  *
  * Items go out by descending price (stable). For each item the candidates are
- * the people whose posterior-mean w_ik is within OWNER_SLACK = 0.1 posterior
- * SDs (of w_jk − w_best,k, from the draws) of the best; among them the item
+ * the people whose posterior-mean w_ik is within OWNER_SLACK posterior SDs
+ * (of w_jk − w_best,k, from the draws) of the best; among them the item
  * goes to the one whose bundle so far is worth least at entered prices
  * (lowest index on ties), considering only those who claimed it at Start if
  * any of them is a candidate.
  * Group b is person b's bundle; transfers come from transfersFor.
  */
-export function propose(state: SplitState): Proposal {
-	const s = internal(state);
+export function propose(s: SplitState): Proposal {
 	if (s.proposal) return s.proposal;
 	const { n, prices } = s;
 	const m = prices.length;
@@ -337,14 +273,13 @@ export function propose(state: SplitState): Proposal {
  * posterior SD of V_i(own) − V_i(b), stage 1 maximises z subject to
  * V_io − t_o ≥ V_ib − t_b + z σ_ib for every person i (owning o) and group
  * b ≠ o, Σ t = 0 and z ≤ 10. Stage 2 keeps z ≥ z* and maximises the smallest
- * owner surplus min_i (V_io − t_o). Returns margin = z*.
+ * owner surplus min_i (V_io − t_o).
  */
 export function transfersFor(
-	state: SplitState,
+	s: SplitState,
 	groups: readonly (readonly number[])[],
 	owners: readonly number[]
 ): Proposal {
-	const s = internal(state);
 	const { n, prices } = s;
 	const m = prices.length;
 	checkGroups(groups, n, m);
@@ -409,8 +344,7 @@ export function transfersFor(
 	return {
 		groups: groups.map((g) => [...g]),
 		transfers: t.map((v) => v - avg),
-		owners: [...owners],
-		margin: zStar
+		owners: [...owners]
 	};
 }
 
@@ -427,8 +361,7 @@ export interface Fallback {
  * Probabilities and expected envy are Monte Carlo over the fit's posterior
  * draws; ties go to the lower expected envy, then the later proposal.
  */
-export function bestFallback(state: SplitState): Fallback {
-	const s = internal(state);
+export function bestFallback(s: SplitState): Fallback {
 	const candidates = [...s.rounds.map((r) => r.proposal), propose(s)];
 	let best: Fallback | null = null;
 	for (const proposal of candidates) {
@@ -444,7 +377,7 @@ export function bestFallback(state: SplitState): Fallback {
 }
 
 /** Posterior P(envy-free) and mean largest envy (fair shares) of a proposal under its owners. */
-function envyStats(s: FittedState, proposal: Proposal): { pFair: number; residualEnvy: number } {
+function envyStats(s: SplitState, proposal: Proposal): { pFair: number; residualEnvy: number } {
 	const { n, prices } = s;
 	const m = prices.length;
 	const { w, draws } = s.fit;
@@ -522,11 +455,9 @@ function groupMoments(
 			g.fill(0);
 			for (let k = 0; k < m; k++) if (groupOf[k] === b) g[k] = prices[k];
 			upperTMul(ui, m, g, y[b]);
-			if (fit.ls) {
-				upperMul(ui, m, y[b], z[b]);
-				for (let k = 0; k < m; k++) z[b][k] *= fit.scale[i * m + k];
-				forwardSolve(fit.ls, m, z[b]);
-			}
+			upperMul(ui, m, y[b], z[b]);
+			for (let k = 0; k < m; k++) z[b][k] *= fit.scale[i * m + k];
+			forwardSolve(fit.ls, m, z[b]);
 		}
 		for (let o = 0; o < n; o++)
 			for (let b = 0; b < n; b++) {
@@ -614,7 +545,7 @@ function evaluate(
 	for (let k = 0; k < m; k++) lp += 0.5 * c * sumW[k] * sumW[k];
 	if (start) {
 		// log σ(x) with x = λ_S (w_ik − w_jk) for claimant i and non-claimant j.
-		const bp = start.lambdaS;
+		const bp = LAMBDA_START;
 		for (let k = 0; k < m; k++)
 			for (let i = 0; i < n; i++) {
 				if (!start.claimed[i * m + k]) continue;
@@ -708,8 +639,7 @@ function solveS(
 }
 
 /**
- * Start evidence for the fit, or null with no informative claims (or
- * λ_S = 0). For item k with claimants C (s people) and non-claimants N
+ * Start evidence for the fit, or null with no informative claims. For item k with claimants C (s people) and non-claimants N
  * (n − s), each pair gets curvature a = λ_S²/4, so across people the item's
  * curvature is the bipartite Laplacian
  *   a ((n − s) diag 1_C + s diag 1_N − 1_C 1_Nᵀ − 1_N 1_Cᵀ).
@@ -721,18 +651,17 @@ function solveS(
  * column k equal to v_k ⊗ e_k: E_j gains those diagonal terms, and v_k[j]
  * scales the Woodbury coupling.
  */
-function startTerms(claimed: Uint8Array, n: number, lambdaS: number, c: number): StartTerms | null {
+function startTerms(claimed: Uint8Array, n: number, c: number): StartTerms | null {
 	const m = claimed.length / n;
 	const diag = new Float64Array(n * m);
 	const scale = new Float64Array(n * m).fill(1);
-	const a = (lambdaS * lambdaS) / 4;
+	const a = (LAMBDA_START * LAMBDA_START) / 4;
 	const alpha = 1 + a / c;
 	let any = false;
 	for (let k = 0; k < m; k++) {
 		let sC = 0;
 		for (let i = 0; i < n; i++) sC += claimed[i * m + k];
-		if (sC === 0 || sC === n || !(lambdaS > 0)) continue;
-		if (!(c > 0)) throw new Error('split: Start claims need sigmaMu > 0');
+		if (sC === 0 || sC === n) continue;
 		any = true;
 		const xIsC = sC <= n - sC;
 		const sizeX = xIsC ? sC : n - sC;
@@ -745,27 +674,26 @@ function startTerms(claimed: Uint8Array, n: number, lambdaS: number, c: number):
 			}
 		}
 	}
-	return any ? { claimed, lambdaS, diag, scale } : null;
+	return any ? { claimed, diag, scale } : null;
 }
 
 function fitPosterior(
 	prices: readonly number[],
 	n: number,
-	params: SplitParams,
 	records: readonly RoundRecord[],
 	claimed: Uint8Array,
 	warm: Float64Array
 ): Fit {
 	const m = prices.length;
 	const total = prices.reduce((a, b) => a + b, 0);
-	const beta = (params.lambda * n) / total;
-	const tau2 = params.tau * params.tau;
-	const mu2 = params.sigmaMu * params.sigmaMu;
+	const beta = (LAMBDA * n) / total;
+	const tau2 = TAU * TAU;
+	const mu2 = SIGMA_MU * SIGMA_MU;
 	const invTau2 = 1 / tau2;
 	const c = mu2 / (tau2 * (tau2 + n * mu2));
 	const rounds = toRounds(records, m);
 	const R = rounds.length;
-	const start = startTerms(claimed, n, params.lambdaStart, c);
+	const start = startTerms(claimed, n, c);
 	const scale = start ? start.scale : new Float64Array(n * m).fill(1);
 
 	const w = Float64Array.from(warm);
@@ -795,14 +723,12 @@ function fitPosterior(
 			backSolve(chol[i], m, step, i * m);
 			for (let k = 0; k < m; k++) sum[k] += scale[i * m + k] * step[i * m + k];
 		}
-		if (c > 0) {
-			const u = solveS(chol, m, c, scale, sum);
-			for (let i = 0; i < n; i++) {
-				for (let k = 0; k < m; k++) tmp[k] = scale[i * m + k] * u[k];
-				forwardSolve(chol[i], m, tmp);
-				backSolve(chol[i], m, tmp);
-				for (let k = 0; k < m; k++) step[i * m + k] += tmp[k];
-			}
+		const u = solveS(chol, m, c, scale, sum);
+		for (let i = 0; i < n; i++) {
+			for (let k = 0; k < m; k++) tmp[k] = scale[i * m + k] * u[k];
+			forwardSolve(chol[i], m, tmp);
+			backSolve(chol[i], m, tmp);
+			for (let k = 0; k < m; k++) step[i * m + k] += tmp[k];
 		}
 		const slope = dot(grad, 0, step, 0, step.length);
 		let maxStep = 0;
@@ -820,23 +746,20 @@ function fitPosterior(
 		// After a small step the Hessian barely moves: reuse its factors (a chord step).
 		refactor = alpha * maxStep >= CHORD_STEP;
 	}
-	// Laplace: chol holds E_i at the last refactored iterate, within 1e-3 (max |Δw|) of Ŵ.
+	// Laplace: chol holds E_i at the last refactored iterate, within about CHORD_STEP of Ŵ.
 	const ut = chol.map((l) => inverseTranspose(l, m));
-	let ls: Float64Array | null = null;
-	if (c > 0) {
-		ls = new Float64Array(m * m);
-		for (let k = 0; k < m; k++) ls[k * m + k] = 1 / c;
-		const vu = new Float64Array(m * m);
-		ut.forEach((u, i) => {
-			// V_i E_i⁻¹ V_i = (V_i U_i)(V_i U_i)ᵀ, with V_i U_i still upper triangular.
-			for (let k = 0; k < m; k++) {
-				const f = scale[i * m + k];
-				for (let l = k; l < m; l++) vu[k * m + l] = f * u[k * m + l];
-			}
-			subtractGram(ls!, vu, m);
-		});
-		if (!cholesky(ls, m)) throw new Error('split: Schur complement not positive');
-	}
+	const ls = new Float64Array(m * m);
+	for (let k = 0; k < m; k++) ls[k * m + k] = 1 / c;
+	const vu = new Float64Array(m * m);
+	ut.forEach((u, i) => {
+		// V_i E_i⁻¹ V_i = (V_i U_i)(V_i U_i)ᵀ, with V_i U_i still upper triangular.
+		for (let k = 0; k < m; k++) {
+			const f = scale[i * m + k];
+			for (let l = k; l < m; l++) vu[k * m + l] = f * u[k * m + l];
+		}
+		subtractGram(ls, vu, m);
+	});
+	if (!cholesky(ls, m)) throw new Error('split: Schur complement not positive');
 	return { w, ut, ls, scale, draws: drawSamples(chol, ut, ls, scale, m, R) };
 }
 
@@ -848,7 +771,7 @@ function fitPosterior(
 function drawSamples(
 	chol: readonly Float64Array[],
 	ut: readonly Float64Array[],
-	ls: Float64Array | null,
+	ls: Float64Array,
 	scale: Float64Array,
 	m: number,
 	seed: number
@@ -858,10 +781,8 @@ function drawSamples(
 		for (let i = 0; i < out.length; i++) out[i] = rng.normal();
 	};
 	const u = new Float64Array(m * SAMPLES);
-	if (ls) {
-		fillGaussian(u);
-		for (let r = 0; r < SAMPLES; r++) backSolve(ls, m, u, r * m);
-	}
+	fillGaussian(u);
+	for (let r = 0; r < SAMPLES; r++) backSolve(ls, m, u, r * m);
 	const y = new Float64Array(m * SAMPLES);
 	const eps = new Float64Array(m * SAMPLES);
 	return chol.map((l, j) => {

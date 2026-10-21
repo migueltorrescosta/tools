@@ -47,6 +47,9 @@ describe('parseSetup', () => {
 		expect(parseSetup(null)).toBeNull();
 		expect(parseSetup([])).toBeNull();
 		expect(parseSetup({ people: [] })).toBeNull();
+		// A price saved as a string is dropped, not kept as a string.
+		const stringPrice = { people: [], items: [{ id: 1, description: 'Car', price: '10' }] };
+		expect(parseSetup(stringPrice)?.items).toEqual([]);
 	});
 });
 

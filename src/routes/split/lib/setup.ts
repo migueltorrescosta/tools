@@ -1,6 +1,6 @@
 /**
- * Route-only helpers for the split setup screen: name checks, item pills,
- * and the shape check for the saved setup.
+ * Route-only helpers for the split setup and Start screens: name checks,
+ * item pills, the saved-setup shape check, and claimedValues for Start.
  */
 import { personError } from '$lib/split';
 import { amountIntensity } from './board';
@@ -57,7 +57,11 @@ export function parseSetup(data: unknown): SavedSetup | null {
 	);
 	const items = data.items.filter(
 		(i): i is SetupItem =>
-			ok(i) && Number.isInteger(i.id) && typeof i.description === 'string' && Number(i.price) > 0
+			ok(i) &&
+			Number.isInteger(i.id) &&
+			typeof i.description === 'string' &&
+			typeof i.price === 'number' &&
+			i.price > 0
 	);
 	// Next ids stay above every saved id, so keys never collide.
 	const next = (list: { id: number }[]) => Math.max(0, ...list.map((x) => x.id + 1));

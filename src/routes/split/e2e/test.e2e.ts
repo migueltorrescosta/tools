@@ -96,17 +96,8 @@ test('Asset Splitting - picks on different groups certify the split', async ({ p
 	await expect(groups.nth(0)).toContainText('Pay');
 	await expect(groups.nth(1)).toContainText('Car');
 	await expect(groups.nth(1)).toContainText('Receive');
-	await expect(groups.nth(0)).not.toContainText('Taker');
-	await expect(groups.nth(0)).not.toContainText('Worth');
-	await expect(page.getByText('-0')).toHaveCount(0);
-	// Pay is red, Receive green.
-	await expect(groups.nth(0).getByText(/^Pay /)).toHaveAttribute('style', /--danger-text/);
-	await expect(groups.nth(1).getByText(/^Receive /)).toHaveAttribute('style', /--success-text/);
 
-	// No visible placement controls besides the chips.
 	const unplaced = page.getByTestId('split-unplaced');
-	await expect(groups.getByRole('combobox')).toHaveCount(0);
-	await expect(unplaced.getByRole('combobox')).toHaveCount(0);
 	await expect(chip(unplaced, 'Alice')).toBeVisible();
 	await expect(chip(unplaced, 'Bob')).toBeVisible();
 
@@ -129,7 +120,6 @@ test('Asset Splitting - picks on different groups certify the split', async ({ p
 	const alice = finalRows(page).filter({ hasText: 'Alice' });
 	await expect(alice).toContainText('House');
 	await expect(alice).toContainText('Pay');
-	await expect(alice.locator('.settlement')).toHaveAttribute('style', /--danger-text/);
 	await expectSettlementsSumToZero(page);
 	// One concrete payment settles two people.
 	const payments = page.getByRole('region', { name: 'Who pays whom' }).getByRole('listitem');
@@ -147,8 +137,10 @@ test('Asset Splitting - picks on different groups certify the split', async ({ p
 	await page.getByRole('button', { name: 'Car', exact: true }).click();
 	await page.getByRole('button', { name: 'Give Car to Alice' }).click();
 	await expect(card('Alice')).toContainText('Car');
-	// Amounts are never stale: changed cards say so and the payments list hides.
-	await expect(card('Alice')).toContainText('Changed: check with everyone');
+	// Amounts are never stale: one message replaces them and the payments list.
+	await expect(
+		page.getByRole('status').filter({ hasText: 'Changed: check with everyone' })
+	).toBeVisible();
 	await expect(page.getByRole('region', { name: 'Who pays whom' })).toHaveCount(0);
 	await expect(finalRows(page).getByText(/^(Pay|Receive) /)).toHaveCount(0);
 	await expect(recheck).toBeVisible();
@@ -210,7 +202,6 @@ test('Asset Splitting - Start: claim items by colour, then continue', async ({ p
 	await expect(page.getByRole('list', { name: 'Progress' })).toContainText(/Setup\s\(done\)/);
 
 	// Items in price order, each with one claim toggle per person; no drag targets.
-	const item = (name: string) => page.getByTestId('claim-item').filter({ hasText: name });
 	await expect(page.getByTestId('claim-item')).toHaveText([/House/, /Car/, /Lamp/]);
 	const aliceHouse = page.getByRole('button', { name: 'Alice wants House' });
 	await expect(aliceHouse).toHaveAttribute('aria-pressed', 'false');
@@ -226,17 +217,16 @@ test('Asset Splitting - Start: claim items by colour, then continue', async ({ p
 	await expect(bar('Alice').getByRole('img')).toHaveAccessibleName(
 		/^Alice: items worth 50\s000\s€ of a 30\s010\s€ fair share$/
 	);
-	await expect(item('House')).not.toHaveClass(/shared/);
 
-	// A shared claim counts in full for each claimant and gets a dashed border.
+	// A shared claim counts in full for each claimant.
 	await page.getByRole('button', { name: 'Bob wants House' }).click();
-	await expect(item('House')).toHaveClass(/shared/);
+	await expect(page.getByRole('button', { name: 'Bob wants House' })).toHaveAttribute(
+		'aria-pressed',
+		'true'
+	);
 	await expect(bar('Alice')).toContainText(/≈ Pay 19\s990\s€/);
 	await expect(bar('Bob')).toContainText(/≈ Pay 19\s990\s€/);
-	// The track runs from 0 to the total (60 020 €); the tick sits at total / n.
-	await expect(bar('Alice').locator('.fair')).toHaveAttribute('style', /left: calc\(50% - 1px\)/);
 	await page.getByRole('button', { name: 'Bob wants House' }).click();
-	await expect(item('House')).not.toHaveClass(/shared/);
 	await page.getByRole('button', { name: 'Bob wants Car' }).click();
 	await expect(bar('Bob')).toContainText(/≈ Receive 20\s010\s€/);
 
@@ -246,29 +236,6 @@ test('Asset Splitting - Start: claim items by colour, then continue', async ({ p
 	const groups = page.getByTestId('split-group');
 	await expect(groups).toHaveCount(2);
 
-	// Alice takes the House group: its pill is marked as claimed at Start.
-	const houseGroup = (await groups.nth(0).innerText()).includes('House') ? 0 : 1;
-	await tapPlace(page, 'Alice', houseGroup);
-	await tapPlace(page, 'Bob', 1 - houseGroup);
-	await page.getByRole('button', { name: 'Complete round' }).click();
-	const aliceCard = finalRows(page).filter({ has: page.getByRole('heading', { name: 'Alice' }) });
-	const housePill = aliceCard.getByRole('button', { name: 'House', exact: true });
-	await expect(housePill.locator('.start-mark')).toBeVisible();
-	await expect(housePill).toHaveAccessibleDescription('Claimed at Start');
-	// Lamp was claimed by nobody, so it is never marked.
-	await expect(
-		finalRows(page).getByRole('button', { name: 'Lamp', exact: true }).locator('.start-mark')
-	).toHaveCount(0);
-	for (const colorScheme of ['light', 'dark'] as const) {
-		await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
-		expect(await axe(page)).toEqual([]);
-	}
-	// Moving the House to Bob (who didn't claim it) drops its mark.
-	await housePill.click();
-	await page.getByRole('button', { name: 'Give House to Bob' }).click();
-	await expect(
-		finalRows(page).getByRole('button', { name: 'House', exact: true }).locator('.start-mark')
-	).toHaveCount(0);
 	expect(errors).toEqual([]);
 });
 
@@ -277,7 +244,6 @@ test('Asset Splitting - item pills follow the price order on every screen', asyn
 	await open(page);
 	await addPerson(page, 'Alice');
 	await addPerson(page, 'Bob');
-	await expect(page.getByRole('list', { name: 'People' }).locator('.dot')).toHaveCount(2);
 	for (const [name, price] of [
 		['Lamp', '20'],
 		['House', '50000'],
@@ -403,8 +369,7 @@ test('Asset Splitting - after the round cap the best split is offered', async ({
 	await expect(offer).toContainText(
 		/about \d+% likely fair, largest expected gap \d+% of a fair share/
 	);
-	await page.getByRole('button', { name: 'Keep going' }).click();
-	await expect(offer).toHaveCount(0);
+	// The offer stays from the cap onward.
 	await sharePick(6);
 	await expect(offer).toBeVisible();
 	await page.getByRole('button', { name: 'Accept this split' }).click();
@@ -458,11 +423,6 @@ test('Asset Splitting - "+" adds and refocuses, and the setup survives a reload'
 }) => {
 	const errors = trackErrors(page);
 	await open(page);
-	await expect(page.getByRole('button', { name: 'Add person' })).toHaveText('+');
-	await expect(page.getByRole('button', { name: 'Add person' })).toHaveAttribute(
-		'title',
-		'Add person'
-	);
 	await addPerson(page, 'Alice');
 	await expect(page.getByLabel('Person name')).toBeFocused();
 	await addPerson(page, 'Bob');

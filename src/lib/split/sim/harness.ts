@@ -6,8 +6,7 @@ import {
 	propose,
 	recordRound,
 	roundCap,
-	type Proposal,
-	type SplitParams
+	type Proposal
 } from '../engine';
 import { Prng } from '$lib/prng';
 import { roundedBalances } from '../settle';
@@ -77,33 +76,30 @@ interface EngineRun {
 	roundingEnvy: number;
 	/** At the outcome by the cap: share of items held by their top valuer. */
 	topShare: number;
-	/** At the outcome by the cap: true value lost against the best allocation, in fair shares. */
-	valueLost: number;
-}
-
-/** Start simulation: θ is the claim margin, err the share of claim decisions flipped. */
-export interface StartOptions {
-	theta: number;
-	err: number;
 }
 
 /**
- * Simulated Start claims: person i claims item k when their true value is
- * within θ p_k of the item's top value, so the top valuer always claims and
- * near-tied people claim too. A share `err` of the n × m claim decisions are
- * then flipped at random.
+ * Simulated Start claims, the private "own share" model: each person sorts
+ * the items by their own value per entered euro (v_ik / p_k, descending) and
+ * claims them until the entered prices of their claims reach a fair share
+ * T/n, using only their own values.
  */
-function simulateClaims(c: Case, o: StartOptions, seed: number): number[][] {
-	const prng = new Prng(0x57a27 + seed);
-	return c.entered.map((p, k) => {
-		const top = Math.max(...c.truth.map((t) => t[k]));
-		const who: number[] = [];
-		c.truth.forEach((t, i) => {
-			const claims = t[k] >= top - o.theta * p;
-			if (claims !== prng.next() < o.err) who.push(i);
-		});
-		return who;
+function simulateClaims(c: Case): number[][] {
+	const n = c.truth.length;
+	const share = c.entered.reduce((a, b) => a + b, 0) / n;
+	const claims: number[][] = c.entered.map(() => []);
+	c.truth.forEach((t, i) => {
+		const order = c.entered
+			.map((_, k) => k)
+			.sort((a, b) => t[b] / c.entered[b] - t[a] / c.entered[a]);
+		let sum = 0;
+		for (const k of order) {
+			if (sum >= share) break;
+			claims[k].push(i);
+			sum += c.entered[k];
+		}
 	});
+	return claims;
 }
 
 /** Item → person of an outcome where person i takes group take[i]. */
@@ -118,34 +114,22 @@ function holders(p: Proposal, take: readonly number[], m: number): number[] {
  * rounds. At the cap, the fallback (owners take their groups) is the outcome
  * if not yet certified.
  */
-function runEngine(c: Case, params: SplitParams, claims?: number[][]): EngineRun {
+function runEngine(c: Case, claims?: number[][]): EngineRun {
 	const n = c.truth.length;
 	const m = c.entered.length;
 	const share = c.entered.reduce((a, b) => a + b, 0) / n;
 	const cap = roundCap(m, n);
-	const best = c.entered.reduce((s, _, k) => s + Math.max(...c.truth.map((t) => t[k])), 0);
-	const allocation = (h: number[]) => ({
-		topShare:
-			h.filter((i, k) => c.truth[i][k] === Math.max(...c.truth.map((t) => t[k]))).length / m,
-		valueLost: (best - h.reduce((s, i, k) => s + c.truth[i][k], 0)) / share
-	});
-	let state = initState(c.entered, n, params, claims);
-	let atCap = { envy: NaN, topShare: NaN, valueLost: NaN };
+	const topShare = (h: number[]) =>
+		h.filter((i, k) => c.truth[i][k] === Math.max(...c.truth.map((t) => t[k]))).length / m;
+	let state = initState(c.entered, n, claims);
+	let atCap = { envy: NaN, top: NaN };
 	for (let r = 1; r <= 3 * cap; r++) {
 		const p = propose(state);
 		const picks = c.truth.map((v) => bestResponse(v, p));
 		if (isCertified(picks, n)) {
-			const t = roundedBalances(p.transfers);
-			const e = maxEnvy(c.truth, p, picks, t);
-			if (r <= cap) atCap = { envy: e / share, ...allocation(holders(p, picks, m)) };
-			return {
-				certifiedAt: r,
-				cap,
-				envyAtCap: atCap.envy,
-				roundingEnvy: e,
-				topShare: atCap.topShare,
-				valueLost: atCap.valueLost
-			};
+			const e = maxEnvy(c.truth, p, picks, roundedBalances(p.transfers));
+			if (r <= cap) atCap = { envy: e / share, top: topShare(holders(p, picks, m)) };
+			return { certifiedAt: r, cap, envyAtCap: atCap.envy, roundingEnvy: e, topShare: atCap.top };
 		}
 		state = recordRound(state, p, picks);
 		if (r === cap) {
@@ -154,83 +138,51 @@ function runEngine(c: Case, params: SplitParams, claims?: number[][]): EngineRun
 			fb.owners.forEach((i, b) => (take[i] = b));
 			atCap = {
 				envy: maxEnvy(c.truth, fb, take, fb.transfers) / share,
-				...allocation(holders(fb, take, m))
+				top: topShare(holders(fb, take, m))
 			};
 		}
 	}
-	return {
-		certifiedAt: -1,
-		cap,
-		envyAtCap: atCap.envy,
-		roundingEnvy: 0,
-		topShare: atCap.topShare,
-		valueLost: atCap.valueLost
-	};
+	return { certifiedAt: -1, cap, envyAtCap: atCap.envy, roundingEnvy: 0, topShare: atCap.top };
 }
 
-/** Quantile by the lower-index convention of the original harness. */
+/** Lower-index quantile. */
 function quantile(xs: readonly number[], q: number): number {
 	const s = [...xs].sort((a, b) => a - b);
 	return s[Math.floor(q * (s.length - 1))];
 }
 
 interface SettingStats {
-	n: number;
-	m: number;
-	sigma: number;
-	seeds: number;
-	cap: number;
-	/** Median and p90 rounds to a certificate (Infinity when not certified within 3 × cap). */
+	/** Median rounds to a certificate (Infinity when not certified within 3 × cap). */
 	medianRounds: number;
-	p90Rounds: number;
-	/** Share certified within the cap, and within 3 × cap. */
+	/** Share certified within the cap. */
 	certifiedByCap: number;
-	certifiedEver: number;
 	/** Share whose outcome by the cap has true max envy < 1% of the fair share. */
 	envyFree: number;
 	/** Largest envy (euros) of a certified split at whole-euro transfers. */
 	worstRoundingEnvy: number;
-	/** Mean share of items with their top valuer, and mean value lost (fair shares), by the cap. */
+	/** Mean share of items with their top valuer at the outcome by the cap. */
 	topShare: number;
-	valueLost: number;
-	/** Mean claimants per item (0 without Start). */
-	claimants: number;
 }
 
-/** Engine statistics on seeds 1..seeds of one setting, optionally with a simulated Start. */
+/** Engine statistics on seeds 1..seeds of one setting, optionally with simulated claims. */
 export function compare(
 	n: number,
 	m: number,
 	sigma: number,
 	seeds: number,
-	params: SplitParams,
-	start?: StartOptions
+	claims = false
 ): SettingStats {
 	const runs: EngineRun[] = [];
-	let claimants = 0;
 	for (let s = 1; s <= seeds; s++) {
 		const c = makeCase(n, m, sigma, s);
-		const st = start && simulateClaims(c, start, s);
-		if (st) claimants += st.reduce((a, who) => a + who.length, 0) / m;
-		runs.push(runEngine(c, params, st));
+		runs.push(runEngine(c, claims ? simulateClaims(c) : undefined));
 	}
 	const rounds = runs.map((r) => (r.certifiedAt < 0 ? Infinity : r.certifiedAt));
-	const cap = runs[0].cap;
-	const mean = (f: (r: EngineRun) => number) => runs.reduce((a, r) => a + f(r), 0) / seeds;
 	return {
-		n,
-		m,
-		sigma,
-		seeds,
-		cap,
 		medianRounds: quantile(rounds, 0.5),
-		p90Rounds: quantile(rounds, 0.9),
-		certifiedByCap: runs.filter((r) => r.certifiedAt > 0 && r.certifiedAt <= cap).length / seeds,
-		certifiedEver: runs.filter((r) => r.certifiedAt > 0).length / seeds,
+		certifiedByCap: runs.filter((r) => r.certifiedAt > 0 && r.certifiedAt <= r.cap).length / seeds,
 		envyFree: runs.filter((r) => r.envyAtCap < 0.01).length / seeds,
 		worstRoundingEnvy: Math.max(...runs.map((r) => r.roundingEnvy)),
-		topShare: mean((r) => r.topShare),
-		valueLost: mean((r) => r.valueLost),
-		claimants: claimants / seeds
+		topShare: runs.reduce((a, r) => a + r.topShare, 0) / seeds
 	};
 }
