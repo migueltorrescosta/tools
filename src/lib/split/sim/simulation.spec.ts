@@ -39,34 +39,39 @@ describe('split simulation: propose and certify', () => {
  * With a simulated Start (100 seeds): the group places item k on its top
  * valuer when that value beats the second-highest by more than θ p_k (θ =
  * 0.15), else leaves it contested; with err = 0.1 a tenth of placements go to
- * a wrong person. params.lambdaStart was picked by a grid over {2, 5, 10, 20}
- * (stronger Start was better on every measure, wrong placements included; 10
- * keeps a Start pair no stronger than a round pick). Pinned: median rounds,
- * share of items with their top valuer at the outcome (`top`, against `topWithout`
- * measured without Start) and the envy-free share, with and without errors.
+ * a wrong person. A placement must weigh clearly less than a round pick:
+ * measured as the posterior shift in w_ik − w_jk from the prior, one
+ * placement moves it 0.040 (n = 2) or 0.060 (n = 3) at λ_S = 0.25, against
+ * 0.13 / 0.093 (n = 2, m = 10 / 20) and 0.17 / 0.12 (n = 3) for the
+ * median-priced item after one round in which i takes its group and j does
+ * not — at most about half. Within λ_S ≤ 0.25 the grid {0.1, 0.2, 0.25}
+ * barely differs, because a placement mostly acts by breaking the owner
+ * rule's near-ties. Pinned: median rounds, share of items with their top
+ * valuer at the outcome (`top`, against `without`, measured without Start)
+ * and the envy-free share, with and without errors.
  */
 const START_SETTINGS = [
-	// n, m, σ, median, top, envy-free; topWithout; with err 0.1: top, envy-free
+	// n, m, σ, median, top, envy-free; top without Start; with err 0.1: top, envy-free
 	{
 		n: 2,
 		m: 4,
 		sigma: 0.1,
 		median: 1,
-		top: 0.752,
-		ef: 0.99,
+		top: 0.73,
+		ef: 0.98,
 		without: 0.715,
-		errTop: 0.748,
-		errEf: 0.99
+		errTop: 0.725,
+		errEf: 0.98
 	},
 	{
 		n: 2,
 		m: 4,
 		sigma: 0.5,
 		median: 1,
-		top: 0.907,
+		top: 0.91,
 		ef: 1,
 		without: 0.718,
-		errTop: 0.828,
+		errTop: 0.84,
 		errEf: 0.97
 	},
 	{
@@ -74,44 +79,44 @@ const START_SETTINGS = [
 		m: 6,
 		sigma: 0.3,
 		median: 2,
-		top: 0.81,
-		ef: 0.97,
+		top: 0.79,
+		ef: 0.95,
 		without: 0.627,
-		errTop: 0.748,
-		errEf: 0.97
+		errTop: 0.735,
+		errEf: 0.93
 	},
-	{ n: 3, m: 12, sigma: 0.3, median: 1, top: 0.744, ef: 1, without: 0.5, errTop: 0.687, errEf: 1 },
+	{ n: 3, m: 12, sigma: 0.3, median: 1, top: 0.754, ef: 1, without: 0.5, errTop: 0.685, errEf: 1 },
 	{
 		n: 4,
 		m: 10,
 		sigma: 0.5,
-		median: 3,
-		top: 0.817,
+		median: 2,
+		top: 0.801,
 		ef: 0.99,
 		without: 0.543,
-		errTop: 0.745,
-		errEf: 0.97
+		errTop: 0.746,
+		errEf: 0.99
 	},
 	{
 		n: 5,
 		m: 20,
 		sigma: 0.3,
 		median: 2,
-		top: 0.705,
-		ef: 1,
+		top: 0.699,
+		ef: 0.99,
 		without: 0.412,
-		errTop: 0.657,
-		errEf: 0.99
+		errTop: 0.639,
+		errEf: 1
 	},
 	{
 		n: 2,
 		m: 50,
 		sigma: 0.3,
 		median: 1,
-		top: 0.694,
+		top: 0.853,
 		ef: 1,
 		without: 0.539,
-		errTop: 0.647,
+		errTop: 0.781,
 		errEf: 1
 	},
 	{
@@ -119,13 +124,13 @@ const START_SETTINGS = [
 		m: 50,
 		sigma: 0.3,
 		median: 1,
-		top: 0.675,
+		top: 0.761,
 		ef: 1,
 		without: 0.405,
-		errTop: 0.627,
+		errTop: 0.699,
 		errEf: 1
 	},
-	{ n: 2, m: 50, sigma: 0.6, median: 1, top: 0.732, ef: 1, without: 0.539, errTop: 0.692, errEf: 1 }
+	{ n: 2, m: 50, sigma: 0.6, median: 1, top: 0.908, ef: 1, without: 0.539, errTop: 0.826, errEf: 1 }
 ];
 const START_SEEDS = 100;
 const START_SLACK = 0.03;

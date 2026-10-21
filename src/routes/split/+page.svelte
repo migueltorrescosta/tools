@@ -794,12 +794,17 @@
 														? `translate(${drag.dx}px, ${drag.dy}px)`
 														: undefined}
 													aria-pressed={selectedItem === k}
+													aria-describedby={startOwner[k] === i ? 'start-legend' : undefined}
 													disabled={busy}
 													onclick={() => onPick('item', k)}
 													onpointerdown={(e) => onPointerDown(e, 'item', k)}
 													onpointermove={onPointerMove}
 													onpointerup={onPointerUp}
-													onpointercancel={cancelDrag}>{items[k].description}</button
+													onpointercancel={cancelDrag}
+													>{items[k].description}{#if startOwner[k] === i}<span
+															class="start-mark"
+															aria-hidden="true">S</span
+														>{/if}</button
 												>
 											</li>
 										{/if}
@@ -809,6 +814,11 @@
 							</section>
 						{/each}
 					</div>
+					{#if editOwner.some((o, k) => o >= 0 && startOwner[k] === o)}
+						<p id="start-legend" class="note">
+							<span class="start-mark" aria-hidden="true">S</span> Stayed where it was placed at Start.
+						</p>
+					{/if}
 					<p class="sr-only" aria-live="polite" data-testid="final-announce">{announcement}</p>
 					{#if edited}
 						<Alert tone="warning"
@@ -1137,6 +1147,20 @@
 		flex-direction: column;
 		align-items: center;
 		gap: var(--sp-1);
+	}
+
+	/* Final screen: an item still with the person it was placed on at Start. */
+	.start-mark {
+		display: inline-grid;
+		place-items: center;
+		width: 1.3em;
+		height: 1.3em;
+		border: 1px solid var(--border-strong);
+		border-radius: 50%;
+		color: var(--text-muted);
+		font-size: var(--text-xs);
+		font-weight: 700;
+		line-height: 1;
 	}
 
 	.contested {

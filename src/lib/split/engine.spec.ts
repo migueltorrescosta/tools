@@ -66,7 +66,7 @@ describe('split engine: rules', () => {
 	});
 
 	it('uses the tuned defaults', () => {
-		expect(DEFAULT_PARAMS).toEqual({ sigmaMu: 0.3, tau: 0.4, lambda: 10, lambdaStart: 10 });
+		expect(DEFAULT_PARAMS).toEqual({ sigmaMu: 0.3, tau: 0.4, lambda: 10, lambdaStart: 0.25 });
 	});
 
 	it('rejects bad input', () => {
@@ -206,7 +206,6 @@ describe('split engine: Start placements', () => {
 		const tau2 = params.tau ** 2;
 		const mu2 = params.sigmaMu ** 2;
 		const c = mu2 / (tau2 * (tau2 + n * mu2));
-		const betaS = (params.lambdaStart * n) / sum(prices);
 		const N = n * m;
 		const P = Array.from({ length: N }, () => Array<number>(N).fill(0));
 		for (let i = 0; i < n; i++)
@@ -214,7 +213,7 @@ describe('split engine: Start placements', () => {
 				for (let k = 0; k < m; k++) P[i * m + k][j * m + k] += (i === j ? 1 / tau2 : 0) - c;
 		start.forEach((o, k) => {
 			if (o < 0) return;
-			const a = (betaS * prices[k]) ** 2 / 4;
+			const a = params.lambdaStart ** 2 / 4;
 			for (let j = 0; j < n; j++) {
 				if (j === o) continue;
 				P[o * m + k][o * m + k] += a;

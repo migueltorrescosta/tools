@@ -251,6 +251,26 @@ test('Asset Splitting - Start: agree who wants which item, then continue', async
 	await expect(currentStep(page)).toHaveText(/^3\s*Rounds · 1$/);
 	await expect(page.getByRole('heading', { name: 'Round 1', exact: true })).toBeVisible();
 	await expect(page.getByTestId('split-group')).toHaveCount(2);
+
+	// Alice takes the House group: its pill is marked as placed at Start, with a legend.
+	await expect(page.getByTestId('split-group').nth(0)).toContainText('House');
+	await tapPlace(page, 'Alice', 0);
+	await tapPlace(page, 'Bob', 1);
+	await page.getByRole('button', { name: 'Complete round' }).click();
+	const aliceCard = finalRows(page).filter({ has: page.getByRole('heading', { name: 'Alice' }) });
+	const housePill = aliceCard.getByRole('button', { name: 'House', exact: true });
+	await expect(housePill.locator('.start-mark')).toBeVisible();
+	await expect(housePill).toHaveAccessibleDescription('Stayed where it was placed at Start.');
+	await expect(finalRows(page).locator('.start-mark')).toHaveCount(1);
+	for (const colorScheme of ['light', 'dark'] as const) {
+		await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+		expect(await axe(page)).toEqual([]);
+	}
+	// Moving the House away drops the mark and the legend.
+	await housePill.click();
+	await page.getByRole('button', { name: 'Give House to Bob' }).click();
+	await expect(page.locator('.start-mark')).toHaveCount(0);
+	await expect(page.getByText('Stayed where it was placed at Start.')).toHaveCount(0);
 	expect(errors).toEqual([]);
 });
 

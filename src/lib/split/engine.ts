@@ -9,8 +9,9 @@
  *
  * Start. Before the rounds the group may place items on the person who wants
  * them most. A placement of item k on person i adds, for every other person
- * j, a logit factor σ(λ_S p_k (w_ik − w_jk) / (T/n)): weak evidence, like a
- * prior, that rounds can override. Contested items add nothing.
+ * j, a logit factor σ(λ_S (w_ik − w_jk)), the same weight at any price or
+ * item count: weak evidence, like a prior, that rounds can override.
+ * Contested items add nothing.
  *
  * All functions are pure and synchronous. Items and people are indices.
  *
@@ -24,7 +25,7 @@
  * (H_i the data Hessian of person i, m×m) and U = 1_n ⊗ I_m. By Woodbury,
  * P⁻¹ = D⁻¹ + D⁻¹ U S⁻¹ Uᵀ D⁻¹ with S = I/c − Σ_i E_i⁻¹ (an m×m PD matrix
  * whose condition number is at most 1 + n σμ²/τ²). Start factors couple
- * people per item; with their curvature fixed at its bound β_S² p_k²/4 they
+ * people per item; with their curvature fixed at its bound λ_S²/4 they
  * fold into the same form: U's column k becomes v_k ⊗ e_k with v_k = 1 off
  * the owner (see startTerms), so S = I/c − Σ_i V_i E_i⁻¹ V_i. The gradient
  * stays exact, so the MAP is exact (the bound only makes those steps
@@ -71,14 +72,20 @@ export interface SplitParams {
 	lambda: number;
 	/**
 	 * Sharpness of the Start evidence: an item placed on person i adds, for
-	 * every other person j, a logit factor on p_k (w_ik − w_jk) / (T/n) with
-	 * this sharpness. Much weaker than λ, so round picks dominate.
+	 * every other person j, a logit factor σ(λ_S (w_ik − w_jk)), the same at
+	 * any price or item count. Set so a placement weighs clearly less than one
+	 * round pick (see the simulation spec).
 	 */
 	lambdaStart: number;
 }
 
 /** Tuned by the truthful-agent simulation (src/lib/split/sim/simulation.spec.ts). */
-export const DEFAULT_PARAMS: SplitParams = { sigmaMu: 0.3, tau: 0.4, lambda: 10, lambdaStart: 10 };
+export const DEFAULT_PARAMS: SplitParams = {
+	sigmaMu: 0.3,
+	tau: 0.4,
+	lambda: 10,
+	lambdaStart: 0.25
+};
 
 export interface Proposal {
 	/** Item indices per group; exactly n groups, every item in one group. Groups may be empty. */
@@ -134,12 +141,12 @@ interface Fit {
 /**
  * Start evidence in array form. owner[k] is the person item k was placed on
  * (−1: contested). Each placed item's factors get the fixed curvature
- * a_k = β_S² p_k² / 4 per pair, an upper bound on the logit curvature; see
+ * a = λ_S² / 4 per pair, an upper bound on the logit curvature; see
  * fitPosterior.
  */
 interface StartTerms {
 	owner: Int32Array;
-	betaS: number;
+	lambdaS: number;
 	/** Extra diagonal of E_j at item k, n×m. */
 	diag: Float64Array;
 	/** v_k[j], n×m. */
@@ -261,9 +268,10 @@ export function roundCap(m: number, n: number): number {
  *
  * Items go out by descending price (stable). For each item the candidates are
  * the people whose posterior-mean w_ik is within OWNER_SLACK = 0.1 posterior
- * SDs (of w_jk − w_best,k, from the draws) of the best; among them the item goes to
- * the one whose bundle so far is worth least at entered prices (lowest index
- * on ties). Group b is person b's bundle; transfers come from transfersFor.
+ * SDs (of w_jk − w_best,k, from the draws) of the best; among them the item
+ * goes to the person it was placed on at Start, if any, else to the one whose
+ * bundle so far is worth least at entered prices (lowest index on ties).
+ * Group b is person b's bundle; transfers come from transfersFor.
  */
 export function propose(state: SplitState): Proposal {
 	const s = internal(state);
@@ -278,7 +286,9 @@ export function propose(state: SplitState): Proposal {
 		let best = 0;
 		for (let j = 1; j < n; j++) if (w[j * m + k] > w[best * m + k]) best = j;
 		const db = draws[best];
+		const placed = s.start[k];
 		let pick = best;
+		let placedIsCandidate = placed === best;
 		for (let j = 0; j < n; j++) {
 			if (j !== best) {
 				const dj = draws[j];
@@ -291,9 +301,13 @@ export function propose(state: SplitState): Proposal {
 				}
 				const sd = Math.sqrt(Math.max(0, s2 / SAMPLES - (s1 / SAMPLES) ** 2));
 				if (w[best * m + k] - w[j * m + k] > OWNER_SLACK * sd) continue;
+				if (j === placed) placedIsCandidate = true;
 			}
 			if (held[j] < held[pick] || (held[j] === held[pick] && j < pick)) pick = j;
 		}
+		// A Start placement breaks a near-tie; rounds override it once they move
+		// that person's mean out of the tie band.
+		if (placedIsCandidate) pick = placed;
 		groups[pick].push(k);
 		held[pick] += prices[k];
 	}
@@ -589,17 +603,17 @@ function evaluate(
 	}
 	for (let k = 0; k < m; k++) lp += 0.5 * c * sumW[k] * sumW[k];
 	if (start) {
-		// log σ(x) with x = β_S p_k (w_ik − w_jk) for the owner i of each placed item.
+		// log σ(x) with x = λ_S (w_ik − w_jk) for the owner i of each placed item.
 		for (let k = 0; k < m; k++) {
 			const i = start.owner[k];
 			if (i < 0) continue;
-			const bp = start.betaS * prices[k];
+			const bp = start.lambdaS;
 			for (let j = 0; j < n; j++) {
 				if (j === i) continue;
 				const x = bp * (w[i * m + k] - w[j * m + k]);
 				lp -= x > 0 ? Math.log1p(Math.exp(-x)) : -x + Math.log1p(Math.exp(x));
 				if (grad) {
-					const g = bp / (1 + Math.exp(x)); // β_S p_k σ(−x)
+					const g = bp / (1 + Math.exp(x)); // λ_S σ(−x)
 					grad[i * m + k] += g;
 					grad[j * m + k] -= g;
 				}
@@ -685,34 +699,28 @@ function solveS(
 
 /**
  * Start evidence for the fit, or null with no placements (or λ_S = 0). Each
- * placed item k (owner i) gets curvature a_k = β_S² p_k²/4 per pair (i, j):
+ * placed item k (owner i) gets curvature a = λ_S²/4 per pair (i, j):
  * across people that is a_k (I + n e_i e_iᵀ − e_i 1ᵀ − 1 e_iᵀ). Together with
  * the prior's −c 1 1ᵀ this equals a diagonal minus c v_k v_kᵀ with
  * v_k = 1 + (a_k/c) e_i, so P keeps the form D − c U Uᵀ with U's column k
  * equal to v_k ⊗ e_k: E_j gains a_k on its diagonal (plus n a_k + a_k²/c for
  * the owner), and v_k[j] scales the Woodbury coupling.
  */
-function startTerms(
-	owner: Int32Array,
-	prices: readonly number[],
-	n: number,
-	betaS: number,
-	c: number
-): StartTerms | null {
-	const m = prices.length;
-	if (!(betaS > 0) || owner.every((i) => i < 0)) return null;
+function startTerms(owner: Int32Array, n: number, lambdaS: number, c: number): StartTerms | null {
+	const m = owner.length;
+	if (!(lambdaS > 0) || owner.every((i) => i < 0)) return null;
 	if (!(c > 0)) throw new Error('split: Start placements need sigmaMu > 0');
 	const diag = new Float64Array(n * m);
 	const scale = new Float64Array(n * m).fill(1);
 	for (let k = 0; k < m; k++) {
 		const i = owner[k];
 		if (i < 0) continue;
-		const a = (betaS * prices[k]) ** 2 / 4;
+		const a = (lambdaS * lambdaS) / 4;
 		for (let j = 0; j < n; j++) diag[j * m + k] += a;
 		diag[i * m + k] += n * a + (a * a) / c;
 		scale[i * m + k] = 1 + a / c;
 	}
-	return { owner, betaS, diag, scale };
+	return { owner, lambdaS, diag, scale };
 }
 
 function fitPosterior(
@@ -732,7 +740,7 @@ function fitPosterior(
 	const c = mu2 / (tau2 * (tau2 + n * mu2));
 	const rounds = toRounds(records, m);
 	const R = rounds.length;
-	const start = startTerms(placed, prices, n, (params.lambdaStart * n) / total, c);
+	const start = startTerms(placed, n, params.lambdaStart, c);
 	const scale = start ? start.scale : new Float64Array(n * m).fill(1);
 
 	const w = Float64Array.from(warm);
