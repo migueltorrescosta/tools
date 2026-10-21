@@ -1,16 +1,16 @@
 /**
  * Route-only helpers for the split setup screen: name checks, item pills,
- * and saving the setup in the browser.
+ * and the shape check for the saved setup.
  */
 import { personError } from '$lib/split';
 import { amountIntensity } from './board';
 
-export interface SetupItem {
+interface SetupItem {
 	id: number;
 	description: string;
 	price: number;
 }
-export interface SetupPerson {
+interface SetupPerson {
 	id: number;
 	name: string;
 }
@@ -47,55 +47,19 @@ export function priceTint(price: number, prices: readonly number[]): string {
 
 export const SETUP_KEY = 'split-setup-v1';
 
-const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null;
-const isInt = (x: unknown): x is number => Number.isInteger(x);
+const ok = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null;
 
-/** Parse a saved setup, or null if it is missing or malformed. */
-export function parseSetup(raw: string | null): SavedSetup | null {
-	if (!raw) return null;
-	let data: unknown;
-	try {
-		data = JSON.parse(raw);
-	} catch {
-		return null;
-	}
-	if (!isObj(data) || !Array.isArray(data.people) || !Array.isArray(data.items)) return null;
+/** Minimal shape check of a saved setup (from readJson); null if unusable. */
+export function parseSetup(data: unknown): SavedSetup | null {
+	if (!ok(data) || !Array.isArray(data.people) || !Array.isArray(data.items)) return null;
 	const people = data.people.filter(
-		(p): p is SetupPerson => isObj(p) && isInt(p.id) && typeof p.name === 'string' && !!p.name
+		(p): p is SetupPerson => ok(p) && Number.isInteger(p.id) && typeof p.name === 'string'
 	);
 	const items = data.items.filter(
 		(i): i is SetupItem =>
-			isObj(i) &&
-			isInt(i.id) &&
-			typeof i.description === 'string' &&
-			typeof i.price === 'number' &&
-			Number.isFinite(i.price) &&
-			i.price > 0
+			ok(i) && Number.isInteger(i.id) && typeof i.description === 'string' && Number(i.price) > 0
 	);
-	const next = (v: unknown, list: { id: number }[]) =>
-		Math.max(isInt(v) ? v : 0, ...list.map((x) => x.id + 1));
-	return {
-		people: people.map(({ id, name }) => ({ id, name })),
-		items: items.map(({ id, description, price }) => ({ id, description, price })),
-		nextPersonId: next(data.nextPersonId, people),
-		nextItemId: next(data.nextItemId, items)
-	};
-}
-
-/** Read the saved setup; null without storage or data. */
-export function loadSetup(): SavedSetup | null {
-	try {
-		return parseSetup(localStorage.getItem(SETUP_KEY));
-	} catch {
-		return null;
-	}
-}
-
-/** Save the setup; silently skipped when storage is unavailable. */
-export function saveSetup(setup: SavedSetup): void {
-	try {
-		localStorage.setItem(SETUP_KEY, JSON.stringify(setup));
-	} catch {
-		// Private mode or blocked storage: the page works without it.
-	}
+	// Next ids stay above every saved id, so keys never collide.
+	const next = (list: { id: number }[]) => Math.max(0, ...list.map((x) => x.id + 1));
+	return { people, items, nextPersonId: next(people), nextItemId: next(items) };
 }

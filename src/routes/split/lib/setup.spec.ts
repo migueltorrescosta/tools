@@ -28,26 +28,24 @@ describe('item pills', () => {
 });
 
 describe('parseSetup', () => {
-	it('restores a saved setup and repairs the next ids', () => {
-		const raw = JSON.stringify({
+	it('restores a saved setup, dropping bad entries and keeping ids unique', () => {
+		const saved = {
 			people: [{ id: 3, name: 'Ana' }, { id: 'x' }],
 			items: [
 				{ id: 1, description: 'Car', price: 10 },
 				{ id: 2, description: 'Bad', price: -1 }
-			],
-			nextPersonId: 0,
-			nextItemId: 9
-		});
-		expect(parseSetup(raw)).toEqual({
+			]
+		};
+		expect(parseSetup(saved)).toEqual({
 			people: [{ id: 3, name: 'Ana' }],
 			items: [{ id: 1, description: 'Car', price: 10 }],
 			nextPersonId: 4,
-			nextItemId: 9
+			nextItemId: 2
 		});
 	});
 	it('ignores missing or broken data', () => {
 		expect(parseSetup(null)).toBeNull();
-		expect(parseSetup('{oops')).toBeNull();
-		expect(parseSetup('[]')).toBeNull();
+		expect(parseSetup([])).toBeNull();
+		expect(parseSetup({ people: [] })).toBeNull();
 	});
 });

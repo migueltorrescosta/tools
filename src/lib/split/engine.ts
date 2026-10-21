@@ -49,7 +49,7 @@ import {
 	upperTMul
 } from './linalg';
 import { maximize, type Constraint } from './lp';
-import { fillGaussian, seededRng } from './rng';
+import { Prng } from '$lib/prng';
 
 export interface SplitParams {
 	/** Prior SD of the shared per-item deviation μ_k. */
@@ -74,7 +74,7 @@ export interface Proposal {
 	margin: number;
 }
 
-export interface RoundRecord {
+interface RoundRecord {
 	proposal: Proposal;
 	/** picks[i] = group index person i chose. */
 	picks: number[];
@@ -89,7 +89,7 @@ export interface SplitState {
 }
 
 /** Posterior draws kept per fit. */
-export const SAMPLES = 200;
+const SAMPLES = 200;
 /** Upper bound on the LP margin z, to keep stage 1 bounded. */
 const MAX_MARGIN = 10;
 const MAX_NEWTON = 10;
@@ -699,17 +699,20 @@ function drawSamples(
 	m: number,
 	seed: number
 ): Float64Array[] {
-	const rng = seededRng(0x5eed0000 + seed);
+	const rng = new Prng(0x5eed0000 + seed);
+	const fillGaussian = (out: Float64Array) => {
+		for (let i = 0; i < out.length; i++) out[i] = rng.normal();
+	};
 	const u = new Float64Array(m * SAMPLES);
 	if (ls) {
-		fillGaussian(rng, u);
+		fillGaussian(u);
 		for (let r = 0; r < SAMPLES; r++) backSolve(ls, m, u, r * m);
 	}
 	const y = new Float64Array(m * SAMPLES);
 	const eps = new Float64Array(m * SAMPLES);
 	return chol.map((l, j) => {
 		y.set(u);
-		fillGaussian(rng, eps);
+		fillGaussian(eps);
 		const x = new Float64Array(m * SAMPLES);
 		solveThenUpper(l, ut[j], m, y, eps, x, SAMPLES);
 		return x;

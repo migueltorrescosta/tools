@@ -9,26 +9,34 @@ import {
 	roundCap,
 	transfersFor
 } from './engine';
-import { lptGroups } from './groups';
-import { seededRng } from './rng';
+import { Prng } from '$lib/prng';
 
 const sum = (xs: readonly number[]) => xs.reduce((a, b) => a + b, 0);
 
+/** LPT oracle: items by descending price, each to the lowest-valued group (lowest index on ties). */
+function lpt(prices: readonly number[], n: number): number[][] {
+	const groups = Array.from({ length: n }, () => [] as number[]);
+	const vals = Array<number>(n).fill(0);
+	const order = prices.map((_, k) => k).sort((a, b) => prices[b] - prices[a]);
+	for (const k of order) {
+		const g = vals.indexOf(Math.min(...vals));
+		groups[g].push(k);
+		vals[g] += prices[k];
+	}
+	return groups;
+}
+
 describe('split engine: first proposal', () => {
 	it('equals LPT grouping, group b owned by person b, for random prices', () => {
-		const rng = seededRng(3);
+		const prng = new Prng(3);
+		const rng = () => prng.next();
 		for (let trial = 0; trial < 40; trial++) {
 			const n = 2 + Math.floor(rng() * 5);
 			const prices = Array.from({ length: 1 + Math.floor(rng() * 12) }, () =>
 				rng() < 0.3 ? 100 : Math.round(1 + rng() * 10000)
 			);
 			const p = propose(initState(prices, n));
-			expect(p.groups).toEqual(
-				lptGroups(
-					prices.map((price, id) => ({ id, price })),
-					n
-				)
-			);
+			expect(p.groups).toEqual(lpt(prices, n));
 			expect(p.owners).toEqual(Array.from({ length: n }, (_, i) => i));
 			expect(Math.abs(sum(p.transfers))).toBeLessThan(1e-6 * sum(prices));
 		}
@@ -117,17 +125,19 @@ describe('split engine: learning', () => {
 		}
 	});
 
-	it('gains margin while everyone keeps picking their own group', () => {
+	it('gains margin and fairness while everyone keeps picking their own group', () => {
 		let s = initState(prices, 3);
 		let p = propose(s);
-		for (let r = 0; r < 4; r++) {
+		const pFair: number[] = [];
+		for (let r = 0; r < 8; r++) {
 			s = recordRound(s, p, [0, 1, 2]);
 			p = propose(s);
+			pFair.push(bestFallback(s).pFair);
 		}
-		expect(p.margin).toBeGreaterThan(0.5);
-		const fb = bestFallback(s);
-		expect(fb.pFair).toBeGreaterThan(0.5);
-		expect(fb.residualEnvy).toBeGreaterThanOrEqual(0);
+		expect(p.margin).toBeGreaterThan(1);
+		expect(pFair[7]).toBeGreaterThan(pFair[0] + 0.3);
+		expect(pFair[7]).toBeGreaterThan(0.5);
+		expect(bestFallback(s).residualEnvy).toBeGreaterThanOrEqual(0);
 	});
 });
 

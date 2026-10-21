@@ -1,7 +1,4 @@
-/**
- * Truthful-agent simulation of the split engine, shared by the simulation
- * spec and throwaway tuning scripts.
- */
+/** Truthful-agent simulation of the split engine, for the simulation and performance specs. */
 import {
 	bestFallback,
 	initState,
@@ -12,16 +9,12 @@ import {
 	type Proposal,
 	type SplitParams
 } from '../engine';
-import { seededRng } from '../rng';
+import { Prng } from '$lib/prng';
 import { roundedBalances } from '../settle';
-import { runBaseline } from './baseline';
-import type { Rng } from '../types';
 
-export interface Case {
+interface Case {
 	entered: number[];
 	truth: number[][];
-	/** The case's stream, positioned after drawing prices and values. */
-	rng: Rng;
 }
 
 /**
@@ -29,7 +22,8 @@ export interface Case {
  * person's row rescaled to the entered total.
  */
 export function makeCase(n: number, m: number, sigma: number, seed: number): Case {
-	const rng = seededRng(seed);
+	const prng = new Prng(seed);
+	const rng = () => prng.next();
 	const gauss = () => Math.sqrt(-2 * Math.log(rng() + 1e-12)) * Math.cos(2 * Math.PI * rng());
 	const entered = Array.from({ length: m }, () => Math.round(100 + rng() * 9900));
 	const total = entered.reduce((a, b) => a + b, 0);
@@ -38,11 +32,11 @@ export function makeCase(n: number, m: number, sigma: number, seed: number): Cas
 		const s = r.reduce((a, b) => a + b, 0);
 		return r.map((v) => (v * total) / s);
 	});
-	return { entered, truth, rng };
+	return { entered, truth };
 }
 
 /** Surplus of each group for one person: true bundle value minus its transfer. */
-export function surpluses(
+function surpluses(
 	values: readonly number[],
 	p: Proposal,
 	transfers: readonly number[] = p.transfers
@@ -59,7 +53,7 @@ export function bestResponse(values: readonly number[], p: Proposal): number {
 }
 
 /** Largest true envy (euros) when person i takes group take[i] at the given transfers. */
-export function maxEnvy(
+function maxEnvy(
 	truth: readonly (readonly number[])[],
 	p: Proposal,
 	take: readonly number[],
@@ -73,7 +67,7 @@ export function maxEnvy(
 	return worst;
 }
 
-export interface EngineRun {
+interface EngineRun {
 	/** Round on which picks were a permutation (1-based), or −1 within the horizon. */
 	certifiedAt: number;
 	cap: number;
@@ -83,28 +77,21 @@ export interface EngineRun {
 	roundingEnvy: number;
 }
 
-export type Picker = (values: readonly number[], p: Proposal, rng: Rng) => number;
-
 /**
- * propose → picks → stop when certified → recordRound, up to `horizon` × cap
+ * propose → truthful picks → stop when certified → recordRound, up to 3 × cap
  * rounds. At the cap, the fallback's true envy (owners take their groups) is
  * the outcome if not yet certified.
  */
-export function runEngine(
-	c: Case,
-	params: SplitParams,
-	horizon = 3,
-	pick: Picker = (v, p) => bestResponse(v, p)
-): EngineRun {
+function runEngine(c: Case, params: SplitParams): EngineRun {
 	const n = c.truth.length;
 	const m = c.entered.length;
 	const share = c.entered.reduce((a, b) => a + b, 0) / n;
 	const cap = roundCap(m, n);
 	let state = initState(c.entered, n, params);
 	let envyAtCap = NaN;
-	for (let r = 1; r <= horizon * cap; r++) {
+	for (let r = 1; r <= 3 * cap; r++) {
 		const p = propose(state);
-		const picks = c.truth.map((v) => pick(v, p, c.rng));
+		const picks = c.truth.map((v) => bestResponse(v, p));
 		if (isCertified(picks, n)) {
 			const t = roundedBalances(p.transfers);
 			const e = maxEnvy(c.truth, p, picks, t);
@@ -122,12 +109,12 @@ export function runEngine(
 }
 
 /** Quantile by the lower-index convention of the original harness. */
-export function quantile(xs: readonly number[], q: number): number {
+function quantile(xs: readonly number[], q: number): number {
 	const s = [...xs].sort((a, b) => a - b);
 	return s[Math.floor(q * (s.length - 1))];
 }
 
-export interface SettingStats {
+interface SettingStats {
 	n: number;
 	m: number;
 	sigma: number;
@@ -143,26 +130,18 @@ export interface SettingStats {
 	envyFree: number;
 	/** Largest envy (euros) of a certified split at whole-euro transfers. */
 	worstRoundingEnvy: number;
-	baselineMedianRounds: number;
-	baselineEnvyFree: number;
 }
 
-/** New engine vs the old one on seeds 1..seeds of one setting. */
+/** Engine statistics on seeds 1..seeds of one setting. */
 export function compare(
 	n: number,
 	m: number,
 	sigma: number,
 	seeds: number,
-	params: SplitParams,
-	pick?: Picker
+	params: SplitParams
 ): SettingStats {
 	const runs: EngineRun[] = [];
-	const base: { rounds: number; envy: number }[] = [];
-	for (let s = 1; s <= seeds; s++) {
-		const c = makeCase(n, m, sigma, s);
-		base.push(runBaseline(c.entered, c.truth, c.rng));
-		runs.push(runEngine(makeCase(n, m, sigma, s), params, 3, pick));
-	}
+	for (let s = 1; s <= seeds; s++) runs.push(runEngine(makeCase(n, m, sigma, s), params));
 	const rounds = runs.map((r) => (r.certifiedAt < 0 ? Infinity : r.certifiedAt));
 	const cap = runs[0].cap;
 	return {
@@ -176,11 +155,6 @@ export function compare(
 		certifiedByCap: runs.filter((r) => r.certifiedAt > 0 && r.certifiedAt <= cap).length / seeds,
 		certifiedEver: runs.filter((r) => r.certifiedAt > 0).length / seeds,
 		envyFree: runs.filter((r) => r.envyAtCap < 0.01).length / seeds,
-		worstRoundingEnvy: Math.max(...runs.map((r) => r.roundingEnvy)),
-		baselineMedianRounds: quantile(
-			base.map((b) => b.rounds),
-			0.5
-		),
-		baselineEnvyFree: base.filter((b) => b.envy < 0.01).length / seeds
+		worstRoundingEnvy: Math.max(...runs.map((r) => r.roundingEnvy))
 	};
 }

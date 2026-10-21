@@ -1,14 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { Proposal } from '$lib/split';
 import {
-	allPlaced,
 	allocation,
 	amountColour,
 	amountIntensity,
 	bundlesFromOwners,
 	chipsOn,
 	demand,
-	emptyPlacements,
 	fallbackText,
 	hitTest,
 	holdersFromPicks,
@@ -17,6 +15,8 @@ import {
 	moveAnnouncement,
 	personColour,
 	place,
+	stepLabels,
+	stepOf,
 	toPicks,
 	whoPaysWhom
 } from './board';
@@ -30,8 +30,8 @@ const proposal: Proposal = {
 
 describe('placements', () => {
 	it('places, moves and returns chips', () => {
-		let p = emptyPlacements(3);
-		expect(allPlaced(p)).toBe(false);
+		let p: (number | null)[] = [null, null, null];
+		expect(toPicks(p)).toBeNull();
 		p = place(p, 0, 1);
 		p = place(p, 2, 1);
 		expect(chipsOn(p, 3)).toEqual([[], [0, 2], []]);
@@ -142,5 +142,19 @@ describe('whoPaysWhom', () => {
 	});
 	it('needs no payments when everyone is even', () => {
 		expect(check([0, 0, 0])).toEqual([]);
+	});
+});
+
+describe('progress stepper', () => {
+	it('maps phases and rounds to steps', () => {
+		expect(stepOf('setup', 1, false)).toBe(0);
+		expect(stepOf('round', 1, false)).toBe(1);
+		expect(stepOf('round', 2, false)).toBe(2);
+		expect(stepOf('round', 1, true)).toBe(2);
+		expect(stepOf('final', 3, false)).toBe(3);
+	});
+	it('shows the round number only on the current Rounds step', () => {
+		expect(stepLabels(2, 3)).toEqual(['Setup', 'Start', 'Rounds · 3', 'Result']);
+		expect(stepLabels(3, 3)).toEqual(['Setup', 'Start', 'Rounds', 'Result']);
 	});
 });

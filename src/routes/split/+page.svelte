@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
+	import { browser } from '$app/environment';
+	import { createPersistGate, readJson } from '$lib/persist-gate';
 	import { Alert, Button, Field, InfoTip, PageHeader, Panel } from '$lib/ui';
 	import {
 		bestFallback,
@@ -17,14 +19,11 @@
 		type SplitState
 	} from '$lib/split';
 	import {
-		DEMAND_LABEL,
-		allPlaced,
 		allocation,
 		amountColour,
 		bundlesFromOwners,
 		chipsOn,
 		demand,
-		emptyPlacements,
 		fallbackText,
 		hitTest,
 		holdersFromPicks,
@@ -33,10 +32,12 @@
 		moveAnnouncement,
 		personColour,
 		place,
+		stepLabels,
+		stepOf,
 		toPicks,
 		whoPaysWhom
 	} from './lib/board';
-	import { byPriceDesc, loadSetup, personNameError, priceTint, saveSetup } from './lib/setup';
+	import { SETUP_KEY, byPriceDesc, parseSetup, personNameError, priceTint } from './lib/setup';
 	import { REFERENCES } from './lib/references';
 
 	interface Item {
@@ -57,17 +58,25 @@
 	const fmt = (n: number) => formatter.format(n);
 
 	let hydrated = $state(false);
-	/** True once the saved setup has been read, so saving never overwrites it with the empty start. */
-	let loaded = $state(false);
+	function getStorage(): Storage | null {
+		if (!browser) return null;
+		try {
+			return localStorage;
+		} catch {
+			return null;
+		}
+	}
+	const storage = getStorage();
+	const persist = createPersistGate(storage);
 	onMount(() => {
-		const saved = loadSetup();
+		const saved = parseSetup(readJson(storage, SETUP_KEY));
 		if (saved) {
 			people = saved.people;
 			items = saved.items;
 			newPerson = { id: saved.nextPersonId, name: '' };
 			newItem = { id: saved.nextItemId, description: '', price: 0 };
 		}
-		loaded = true;
+		persist.open();
 		hydrated = true;
 	});
 
@@ -82,13 +91,7 @@
 
 	// Keep the setup across reloads (rounds are not saved).
 	$effect(() => {
-		if (!loaded) return;
-		saveSetup({
-			people: $state.snapshot(people),
-			items: $state.snapshot(items),
-			nextPersonId: newPerson.id,
-			nextItemId: newItem.id
-		});
+		persist.write(SETUP_KEY, JSON.stringify({ people, items }));
 	});
 
 	const itemPills = $derived.by(() => {
@@ -128,7 +131,7 @@
 
 	// ---- Rounds -------------------------------------------------------------
 
-	type Phase = 'setup' | 'round' | 'final' | 'adjust';
+	type Phase = 'setup' | 'round' | 'final';
 	let phase = $state<Phase>('setup');
 	/** Engine state and the proposal on the board; raw, since the engine owns their shape. */
 	let engine = $state.raw<SplitState | null>(null);
@@ -136,16 +139,18 @@
 	let placements = $state<(number | null)[]>([]);
 	/** Chip picked up by tap/click, waiting for a target. */
 	let selected = $state<number | null>(null);
-	/** Swap or adjust: item pill picked up by tap/click, waiting for a person. */
+	/** Final screen: item pill picked up by tap/click, waiting for a person. */
 	let selectedItem = $state<number | null>(null);
 	let announcement = $state('');
 	let busy = $state(false);
+	/** True after a re-check from the final screen: the stepper then shows Rounds. */
+	let rechecked = $state(false);
 	/** Round count at which the fallback offer was dismissed. */
 	let dismissedAt = $state(-1);
 	/** The agreed split: holder[g] = person taking group g. */
 	let final = $state.raw<{ proposal: Proposal; holder: number[]; fallback: boolean } | null>(null);
-	/** Swap-or-adjust editor: owner per item. */
-	let adjustOwner = $state<number[]>([]);
+	/** Final screen: owner per item, as edited by dragging pills between people. */
+	let editOwner = $state<number[]>([]);
 
 	const n = $derived(people.length);
 	const prices = $derived(items.map((i) => i.price));
@@ -164,7 +169,9 @@
 	const onGroup = $derived(chipsOn(placements, n));
 	const unplaced = $derived(placements.flatMap((g, i) => (g === null ? [i] : [])));
 	const groupDemand = $derived(demand(placements, n));
-	const ready = $derived(allPlaced(placements));
+	const step = $derived(stepOf(phase, rounds.length + 1, rechecked));
+	const stepNames = $derived(stepLabels(step, rounds.length + 1));
+	const ready = $derived(toPicks(placements) !== null);
 	const fallback = $derived(
 		engine &&
 			phase === 'round' &&
@@ -182,7 +189,7 @@
 
 	function showProposal(next: Proposal) {
 		proposal = next;
-		placements = emptyPlacements(n);
+		placements = Array(n).fill(null);
 		selected = null;
 		announcement = '';
 		phase = 'round';
@@ -194,6 +201,7 @@
 		await yieldToPaint();
 		engine = initState(prices, n);
 		dismissedAt = -1;
+		rechecked = false;
 		final = null;
 		showProposal(propose(engine));
 		busy = false;
@@ -225,7 +233,9 @@
 
 	function finish(p: Proposal, holder: number[], isFallback: boolean) {
 		final = { proposal: p, holder, fallback: isFallback };
+		editOwner = itemOwners(allocation(p, holder).items, items.length);
 		selected = null;
+		selectedItem = null;
 		phase = 'final';
 	}
 
@@ -233,18 +243,12 @@
 		if (fallback) finish(fallback.proposal, [...fallback.proposal.owners], true);
 	}
 
-	function startAdjust() {
-		if (!final) return;
-		adjustOwner = itemOwners(allocation(final.proposal, final.holder).items, items.length);
-		selectedItem = null;
-		phase = 'adjust';
-	}
-
 	async function recheck() {
 		if (!engine || busy) return;
 		busy = true;
 		await yieldToPaint();
-		const groups = bundlesFromOwners(adjustOwner, n);
+		rechecked = true;
+		const groups = bundlesFromOwners(editOwner, n);
 		showProposal(
 			transfersFor(
 				engine,
@@ -263,12 +267,14 @@
 		selected = null;
 	}
 
-	function onChipClick(person: number) {
+	/** Tap/click/Enter on a chip or an item pill: select it, or unselect it. */
+	function onPick(kind: Kind, idx: number) {
 		if (suppressClick) {
 			suppressClick = false;
 			return;
 		}
-		selected = selected === person ? null : person;
+		if (kind === 'chip') selected = selected === idx ? null : idx;
+		else selectedItem = selectedItem === idx ? null : idx;
 	}
 
 	function onKeydown(e: KeyboardEvent) {
@@ -280,25 +286,23 @@
 		}
 	}
 
-	/** Swap or adjust: give item k to person i. */
+	/** Final screen: give item k to person i. */
 	function give(k: number, i: number) {
-		adjustOwner[k] = i;
+		editOwner[k] = i;
 		announcement = `${items[k].description} goes to ${people[i].name}`;
 		selectedItem = null;
 	}
 
-	function onItemClick(k: number) {
-		if (suppressClick) {
-			suppressClick = false;
-			return;
-		}
-		selectedItem = selectedItem === k ? null : k;
+	function undoChanges() {
+		if (final) editOwner = [...agreedOwner];
+		selectedItem = null;
+		announcement = 'Changes undone';
 	}
 
 	// Hand-rolled pointer drag: starts after the pointer moves a few px, for
 	// mouse, pen and touch alike (chips have touch-action: none).
 	const DRAG_THRESHOLD = 5;
-	/** What is dragged: a person's chip onto a group, or an item pill onto a person (Swap or adjust). */
+	/** What is dragged: a person's chip onto a group, or an item pill onto a person (final screen). */
 	type Kind = 'chip' | 'item';
 	type Pending = { kind: Kind; idx: number; id: number; x0: number; y0: number; active: boolean };
 	let pending: Pending | null = null;
@@ -372,24 +376,20 @@
 
 	// ---- Final screen ---------------------------------------------------------
 
-	/** Rounded settlements per person on the final screen (+ pays). */
-	const finalBalances = $derived(
-		final ? roundedBalances(allocation(final.proposal, final.holder).owed) : []
-	);
-	const payments = $derived(whoPaysWhom(finalBalances));
-
-	const finalRows = $derived.by(() => {
-		if (!final) return [];
-		const { items: mine } = allocation(final.proposal, final.holder);
-		const rounded = finalBalances;
-		const max = maxAbsRounded(rounded);
-		return people.map((p, i) => ({
-			name: p.name,
-			items: byPrice(mine[i]).map((k) => items[k].description),
-			payment: paymentLabel(rounded[i], fmt),
-			colour: amountColour(rounded[i], fairShare, max)
-		}));
+	/** The agreed split, computed once: items per person and rounded settlements (+ pays). */
+	const agreed = $derived.by(() => {
+		if (!final) return null;
+		const { items: mine, owed } = allocation(final.proposal, final.holder);
+		return { mine, balances: roundedBalances(owed) };
 	});
+	const agreedOwner = $derived(agreed ? itemOwners(agreed.mine, items.length) : []);
+	/** Per person: whether their items differ from the agreed split. */
+	const cardChanged = $derived(
+		people.map((_, i) => editOwner.some((o, k) => (o === i) !== (agreedOwner[k] === i)))
+	);
+	const edited = $derived(cardChanged.some(Boolean));
+	const payments = $derived(agreed ? whoPaysWhom(agreed.balances) : []);
+	const finalMax = $derived(agreed ? maxAbsRounded(agreed.balances) : 0);
 </script>
 
 <svelte:window onkeydown={onKeydown} />
@@ -400,6 +400,22 @@
 			>First written up on the blog</a
 		>
 	</PageHeader>
+
+	<ol class="stepper" aria-label="Progress">
+		{#each stepNames as label, i (i)}
+			<li
+				class="step"
+				class:done={i < step}
+				class:now={i === step}
+				aria-current={i === step ? 'step' : undefined}
+			>
+				<span class="step-dot" aria-hidden="true">{i < step ? '✓' : i + 1}</span>
+				<span
+					>{label}{#if i < step}<span class="sr-only">&nbsp;(done)</span>{/if}</span
+				>
+			</li>
+		{/each}
+	</ol>
 
 	{#if phase === 'setup'}
 		<div class="split-view">
@@ -540,7 +556,7 @@
 					{#if fallback}
 						<Alert tone="warning">
 							<div class="stack">
-								<p class="alert-text">{fallbackText(fallback)}</p>
+								<div>{fallbackText(fallback)}</div>
 								<div class="cluster">
 									<Button size="sm" variant="primary" onclick={acceptFallback}
 										>Accept this split</Button
@@ -576,7 +592,9 @@
 								{/if}
 								<div class="group-head">
 									<h3 id="group-{gi}-heading">Group {gi + 1}</h3>
-									{#if tag}<span class="tag {tag}">{DEMAND_LABEL[tag]}</span>{/if}
+									{#if tag}<span class="tag {tag}"
+											>{tag === 'over' ? 'Over-demanded' : 'Unclaimed'}</span
+										>{/if}
 								</div>
 								<p
 									class="settlement"
@@ -614,64 +632,19 @@
 				</div>
 			</Panel>
 		</div>
-	{:else if phase === 'final' && final}
+	{:else if phase === 'final' && final && agreed}
 		<div class="tip-panel">
 			<Panel title="Everyone keeps their own group">
 				{#snippet actions()}<InfoTip label="the final split"
 						>{final?.fallback
 							? 'The best split found so far, so someone may still prefer another group.'
-							: 'At these amounts, nobody would rather swap.'} Swap or adjust to try a change and check
-						it with everyone again.</InfoTip
+							: 'At these amounts, nobody would rather swap.'} Drag items between people to try a change,
+						then check it with everyone again.</InfoTip
 					>{/snippet}
-				<div class="stack">
+				<div class="stack" aria-busy={busy}>
 					{#if final.fallback}
 						<p class="note">The best split found so far. It may not suit everyone.</p>
 					{/if}
-					<div class="groups">
-						{#each finalRows as row, i (i)}
-							<section
-								class="group"
-								style:--person={personColour(i)}
-								data-testid="final-person"
-								aria-labelledby="final-{i}-heading"
-							>
-								<h3 id="final-{i}-heading">
-									<span class="dot" aria-hidden="true"></span>{row.name}
-								</h3>
-								<p class="settlement" style:color={row.colour}>{row.payment}</p>
-								<ul class="items">
-									{#each row.items as item, k (k)}<li class="pill">{item}</li>{/each}
-									{#if row.items.length === 0}<li class="note">(none)</li>{/if}
-								</ul>
-							</section>
-						{/each}
-					</div>
-					<section class="payments" aria-labelledby="payments-heading">
-						<h3 id="payments-heading">Who pays whom</h3>
-						{#if payments.length > 0}
-							<ul>
-								{#each payments as pay, i (i)}
-									<li>{people[pay.from].name} pays {people[pay.to].name} {fmt(pay.amount)}</li>
-								{/each}
-							</ul>
-						{:else}
-							<p class="note">No payments needed.</p>
-						{/if}
-					</section>
-					<div class="cluster">
-						<Button onclick={startAdjust}>Swap or adjust</Button>
-						<Button onclick={backToSetup}>Start over</Button>
-					</div>
-				</div>
-			</Panel>
-		</div>
-	{:else if phase === 'adjust'}
-		<div class="tip-panel">
-			<Panel title="Swap or adjust">
-				{#snippet actions()}<InfoTip label="swap or adjust"
-						>Drag items to someone else, then check the new split with everyone.</InfoTip
-					>{/snippet}
-				<div class="stack">
 					<div class="groups">
 						{#each people as p, i (p.id)}
 							<section
@@ -679,11 +652,11 @@
 								class:targetable={selectedItem !== null || drag?.kind === 'item'}
 								class:drop-over={drag?.kind === 'item' && drag.target === i}
 								style:--person={personColour(i)}
-								data-testid="adjust-person"
-								aria-labelledby="adjust-{i}-heading"
+								data-testid="final-person"
+								aria-labelledby="final-{i}-heading"
 								bind:this={personEls[i]}
 							>
-								{#if selectedItem !== null && adjustOwner[selectedItem] !== i}
+								{#if selectedItem !== null && editOwner[selectedItem] !== i}
 									<!-- Tap/keyboard fallback for dragging (WCAG 2.5.7). -->
 									<button
 										type="button"
@@ -692,23 +665,35 @@
 										onclick={() => selectedItem !== null && give(selectedItem, i)}
 									></button>
 								{/if}
-								<h3 id="adjust-{i}-heading">
+								<h3 id="final-{i}-heading">
 									<span class="dot" aria-hidden="true"></span>{p.name}
 								</h3>
+								{#if cardChanged[i]}
+									<p class="settlement changed">Changed: check with everyone</p>
+								{:else if edited}
+									<p class="settlement changed">Re-check to update</p>
+								{:else}
+									<p
+										class="settlement"
+										style:color={amountColour(agreed.balances[i], fairShare, finalMax)}
+									>
+										{paymentLabel(agreed.balances[i], fmt)}
+									</p>
+								{/if}
 								<ul class="items">
 									{#each itemOrder as k (items[k].id)}
-										{#if adjustOwner[k] === i}
+										{#if editOwner[k] === i}
 											<li>
 												<button
 													type="button"
-													class="pill item-btn"
+													class="pill draggable"
 													class:lifted={isLifted('item', k)}
 													style:transform={drag && isLifted('item', k)
 														? `translate(${drag.dx}px, ${drag.dy}px)`
 														: undefined}
 													aria-pressed={selectedItem === k}
 													disabled={busy}
-													onclick={() => onItemClick(k)}
+													onclick={() => onPick('item', k)}
 													onpointerdown={(e) => onPointerDown(e, 'item', k)}
 													onpointermove={onPointerMove}
 													onpointerup={onPointerUp}
@@ -717,17 +702,38 @@
 											</li>
 										{/if}
 									{/each}
-									{#if !adjustOwner.includes(i)}<li class="note">(none)</li>{/if}
+									{#if !editOwner.includes(i)}<li class="note">(none)</li>{/if}
 								</ul>
 							</section>
 						{/each}
 					</div>
-					<p class="sr-only" aria-live="polite">{announcement}</p>
-					<div class="cluster">
-						<Button variant="primary" disabled={busy} onclick={recheck}
-							>{busy ? 'Updating…' : 'Re-check'}</Button
+					<p class="sr-only" aria-live="polite" data-testid="final-announce">{announcement}</p>
+					{#if edited}
+						<Alert tone="warning"
+							>Changed: check with everyone. Amounts update after the re-check.</Alert
 						>
-						<Button onclick={() => (phase = 'final')} disabled={busy}>Cancel</Button>
+					{:else}
+						<section class="payments" aria-labelledby="payments-heading">
+							<h3 id="payments-heading">Who pays whom</h3>
+							{#if payments.length > 0}
+								<ul>
+									{#each payments as pay, i (i)}
+										<li>{people[pay.from].name} pays {people[pay.to].name} {fmt(pay.amount)}</li>
+									{/each}
+								</ul>
+							{:else}
+								<p class="note">No payments needed.</p>
+							{/if}
+						</section>
+					{/if}
+					<div class="cluster">
+						{#if edited}
+							<Button variant="primary" disabled={busy} onclick={recheck}
+								>{busy ? 'Updating…' : 'Re-check'}</Button
+							>
+							<Button disabled={busy} onclick={undoChanges}>Undo changes</Button>
+						{/if}
+						<Button disabled={busy} onclick={backToSetup}>Start over</Button>
 					</div>
 				</div>
 			</Panel>
@@ -749,24 +755,23 @@
 </div>
 
 {#snippet personCard(i: number)}
-	{@const name = people[i].name}
-	<div class="person" style:--person={personColour(i)}>
-		<button
-			type="button"
-			class="chip-btn"
-			class:lifted={isLifted('chip', i)}
-			style:transform={drag && isLifted('chip', i)
-				? `translate(${drag.dx}px, ${drag.dy}px)`
-				: undefined}
-			aria-pressed={selected === i}
-			disabled={busy}
-			onclick={() => onChipClick(i)}
-			onpointerdown={(e) => onPointerDown(e, 'chip', i)}
-			onpointermove={onPointerMove}
-			onpointerup={onPointerUp}
-			onpointercancel={cancelDrag}><span class="dot" aria-hidden="true"></span>{name}</button
-		>
-	</div>
+	<button
+		type="button"
+		class="chip-btn draggable"
+		class:lifted={isLifted('chip', i)}
+		style:--person={personColour(i)}
+		style:transform={drag && isLifted('chip', i)
+			? `translate(${drag.dx}px, ${drag.dy}px)`
+			: undefined}
+		aria-pressed={selected === i}
+		disabled={busy}
+		onclick={() => onPick('chip', i)}
+		onpointerdown={(e) => onPointerDown(e, 'chip', i)}
+		onpointermove={onPointerMove}
+		onpointerup={onPointerUp}
+		onpointercancel={cancelDrag}
+		><span class="dot" aria-hidden="true"></span>{people[i].name}</button
+	>
 {/snippet}
 
 <style>
@@ -790,7 +795,7 @@
 		list-style: none;
 	}
 
-	/* One item-pill shape everywhere: setup, board, final and Swap or adjust. */
+	/* One item-pill shape everywhere: setup, board and final screens. */
 	.pill {
 		display: inline-flex;
 		align-items: center;
@@ -878,10 +883,6 @@
 		margin: 0;
 		padding-left: var(--sp-4);
 		font-size: var(--text-sm);
-	}
-
-	.alert-text {
-		margin: 0;
 	}
 
 	.groups {
@@ -977,20 +978,14 @@
 		outline-offset: 2px;
 	}
 
-	.person,
-	.group :global(.above) {
-		position: relative;
-		z-index: 1;
-	}
-
-	.person:has(.lifted) {
-		z-index: 20;
-	}
-
 	.settlement {
 		margin: 0;
 		font-size: var(--text-sm);
 		font-weight: 600;
+	}
+
+	.settlement.changed {
+		color: var(--warning-text);
 	}
 
 	.items {
@@ -1031,13 +1026,6 @@
 		color: var(--text-muted);
 	}
 
-	.person {
-		display: flex;
-		flex-direction: column;
-		gap: var(--sp-0);
-		min-width: 0;
-	}
-
 	.chip-btn {
 		align-self: flex-start;
 		display: inline-flex;
@@ -1050,25 +1038,30 @@
 		border: 2px solid var(--person);
 		border-radius: 999px;
 		font-weight: 600;
+	}
+
+	/* Chips and item pills: dragged, or tapped then placed. Above the card's tap target. */
+	.draggable {
+		position: relative;
+		z-index: 1;
 		cursor: grab;
 		touch-action: none;
 		user-select: none;
-		position: relative;
 	}
 
-	.chip-btn[aria-pressed='true'] {
+	.draggable[aria-pressed='true'] {
 		background: var(--accent-bg);
 		box-shadow: 0 0 0 2px var(--accent);
 	}
 
-	.chip-btn.lifted {
-		z-index: 10;
+	.draggable.lifted {
+		z-index: 20;
 		cursor: grabbing;
 		box-shadow: 0 6px 16px color-mix(in srgb, var(--text) 30%, transparent);
 		scale: 1.06;
 	}
 
-	.chip-btn:disabled {
+	.draggable:disabled {
 		opacity: 0.6;
 		cursor: progress;
 	}
@@ -1085,24 +1078,74 @@
 		margin-right: var(--sp-1);
 	}
 
-	.item-btn {
+	/* Progress stepper: numbered circles joined by a line. */
+	.stepper {
+		display: flex;
+		align-items: flex-start;
+		margin: 0 0 var(--sp-3);
+		padding: 0;
+		list-style: none;
+	}
+
+	.step {
+		position: relative;
+		display: flex;
+		flex: 1 1 0;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--sp-1);
+		min-width: 0;
+		font-size: var(--text-xs);
+		color: var(--text-muted);
+		text-align: center;
+	}
+
+	.step + .step::before {
+		content: '';
+		position: absolute;
+		top: 12px;
+		left: -50%;
+		right: 50%;
+		height: 2px;
+		background: var(--border);
+	}
+
+	.step.done::before,
+	.step.now::before {
+		background: var(--success);
+	}
+
+	.step-dot {
 		position: relative;
 		z-index: 1;
-		cursor: grab;
-		touch-action: none;
-		user-select: none;
+		display: grid;
+		place-items: center;
+		width: 26px;
+		height: 26px;
+		border: 2px solid var(--border);
+		border-radius: 50%;
+		background: var(--surface);
+		font-weight: 700;
 	}
 
-	.item-btn[aria-pressed='true'] {
+	.step.done {
+		color: var(--text);
+	}
+
+	.step.done .step-dot {
+		background: var(--success);
+		border-color: var(--success);
+		color: var(--surface);
+	}
+
+	.step.now {
+		color: var(--accent);
+		font-weight: 600;
+	}
+
+	.step.now .step-dot {
+		border-color: var(--accent);
 		background: var(--accent-bg);
-		box-shadow: 0 0 0 2px var(--accent);
-	}
-
-	.item-btn.lifted {
-		z-index: 10;
-		cursor: grabbing;
-		box-shadow: 0 6px 16px color-mix(in srgb, var(--text) 30%, transparent);
-		scale: 1.06;
 	}
 
 	.references {

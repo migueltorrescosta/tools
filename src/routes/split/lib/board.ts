@@ -6,24 +6,18 @@
 import type { Fallback, Proposal } from '$lib/split';
 
 /** placements[i] = group index person i's chip sits on, or null while unplaced. */
-export type Placements = readonly (number | null)[];
-
-export function emptyPlacements(n: number): (number | null)[] {
-	return Array<number | null>(n).fill(null);
-}
+type Placements = readonly (number | null)[];
 
 /** Move person's chip to a group (or back to the tray with null). */
 export function place(placements: Placements, person: number, group: number | null) {
 	return placements.map((g, i) => (i === person ? group : g));
 }
 
-export function allPlaced(placements: Placements): boolean {
-	return placements.length > 0 && placements.every((g) => g !== null);
-}
-
 /** The engine's picks once every chip is placed, else null. */
 export function toPicks(placements: Placements): number[] | null {
-	return allPlaced(placements) ? placements.map((g) => g as number) : null;
+	return placements.length > 0 && placements.every((g) => g !== null)
+		? placements.map((g) => g as number)
+		: null;
 }
 
 /** People whose chip sits on each group, in person order. */
@@ -35,23 +29,18 @@ export function chipsOn(placements: Placements, n: number): number[][] {
 	return out;
 }
 
-export type Demand = 'over' | 'unclaimed' | null;
+type Demand = 'over' | 'unclaimed' | null;
 
 /**
  * Per group: 'over' with two or more chips, 'unclaimed' with none once every
  * chip is placed, else null.
  */
 export function demand(placements: Placements, n: number): Demand[] {
-	const done = allPlaced(placements);
+	const done = toPicks(placements) !== null;
 	return chipsOn(placements, n).map((c) =>
 		c.length >= 2 ? 'over' : done && c.length === 0 ? 'unclaimed' : null
 	);
 }
-
-export const DEMAND_LABEL: Record<Exclude<Demand, null>, string> = {
-	over: 'Over-demanded',
-	unclaimed: 'Unclaimed'
-};
 
 /** Live-region text for a chip move. */
 export function moveAnnouncement(name: string, group: number | null): string {
@@ -99,7 +88,7 @@ export function bundlesFromOwners(owner: readonly number[], n: number): number[]
 	return groups;
 }
 
-export const pct = (x: number) => `${Math.round(x * 100)}%`;
+const pct = (x: number) => `${Math.round(x * 100)}%`;
 
 /** The round-cap offer, in plain words. */
 export function fallbackText(fb: Pick<Fallback, 'pFair' | 'residualEnvy'>): string {
@@ -132,7 +121,7 @@ export function maxAbsRounded(amounts: readonly number[]): number {
 	return amounts.reduce((m, x) => Math.max(m, Math.abs(Math.round(x))), 0);
 }
 
-export interface Payment {
+interface Payment {
 	from: number;
 	to: number;
 	amount: number;
@@ -183,4 +172,21 @@ export function hitTest(
 		}
 	});
 	return best;
+}
+
+export const STEPS = ['Setup', 'Start', 'Rounds', 'Result'] as const;
+
+/**
+ * Current step of the progress stepper (index into STEPS): Setup, Start (round
+ * 1), Rounds (round 2 on, or any round after a re-check from the result), Result.
+ */
+export function stepOf(phase: 'setup' | 'round' | 'final', round: number, rechecked: boolean) {
+	if (phase === 'setup') return 0;
+	if (phase === 'final') return 3;
+	return round > 1 || rechecked ? 2 : 1;
+}
+
+/** Step labels; the current Rounds step shows its round number ("Rounds · 3"). */
+export function stepLabels(current: number, round: number): string[] {
+	return STEPS.map((s, i) => (i === 2 && current === 2 ? `${s} · ${round}` : s));
 }

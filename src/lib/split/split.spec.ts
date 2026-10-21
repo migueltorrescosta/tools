@@ -1,13 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import {
-	itemError,
-	lptGroups,
-	paymentLabel,
-	personError,
-	roundedBalances,
-	startError
-} from './index';
-import { seededRng } from './rng';
+import { Prng } from '$lib/prng';
+import { itemError, paymentLabel, personError, roundedBalances, startError } from './index';
+
+/** Uniform [0, 1) draws from a seeded stream. */
+function seededRng(seed: number): () => number {
+	const prng = new Prng(seed);
+	return () => prng.next();
+}
 
 /** Signed balance per person: value of the items they receive minus the fair share. */
 function balances(prices: number[], owner: number[], n: number): number[] {
@@ -16,39 +15,6 @@ function balances(prices: number[], owner: number[], n: number): number[] {
 	owner.forEach((f, i) => (mine[f] += prices[i]));
 	return mine;
 }
-
-const car = { id: 0, price: 10000 };
-const house = { id: 1, price: 50000 };
-
-describe('split groups (LPT)', () => {
-	it('puts every item in exactly one of n groups', () => {
-		const rng = seededRng(1);
-		for (let trial = 0; trial < 50; trial++) {
-			const n = 2 + Math.floor(rng() * 5);
-			const items = Array.from({ length: 1 + Math.floor(rng() * 10) }, (_, id) => ({
-				id,
-				price: Math.round(rng() * 1000)
-			}));
-			const groups = lptGroups(items, n);
-			expect(groups).toHaveLength(n);
-			expect(
-				groups
-					.flat()
-					.slice()
-					.sort((a, b) => a - b)
-			).toEqual(items.map((i) => i.id));
-		}
-	});
-
-	it('splits [Car 10000, House 50000] between two into {House},{Car}', () => {
-		expect(lptGroups([car, house], 2)).toEqual([[1], [0]]);
-	});
-
-	it('returns no groups for no people or no items', () => {
-		expect(lptGroups([car], 0)).toEqual([]);
-		expect(lptGroups([], 3)).toEqual([]);
-	});
-});
 
 describe('split settlement', () => {
 	it('rounds balances to whole euros', () => {
