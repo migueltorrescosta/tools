@@ -86,9 +86,10 @@ test('Asset Splitting - picks on different groups certify the split', async ({ p
 	const groups = page.getByTestId('split-group');
 	await expect(groups).toHaveCount(2);
 	await expect(groups.nth(0)).toContainText('House');
-	await expect(groups.nth(0)).toContainText('Taker: Pay');
+	await expect(groups.nth(0)).toContainText('Pay');
 	await expect(groups.nth(1)).toContainText('Car');
-	await expect(groups.nth(1)).toContainText('Taker: Receive');
+	await expect(groups.nth(1)).toContainText('Receive');
+	await expect(groups.nth(0)).not.toContainText('Taker');
 	await expect(groups.nth(0)).not.toContainText('Worth');
 	await expect(page.getByText('-0')).toHaveCount(0);
 	// Pay is red, Receive green.
@@ -112,7 +113,11 @@ test('Asset Splitting - picks on different groups certify the split', async ({ p
 	await complete.click();
 
 	await expect(page.getByRole('heading', { name: 'Everyone keeps their own group' })).toBeVisible();
-	await expect(page.getByText('At these amounts, nobody would rather swap.')).toBeVisible();
+	// The explanation lives in the heading's info tip.
+	await page.getByRole('button', { name: 'About the final split' }).focus();
+	await expect(
+		page.getByRole('tooltip').filter({ hasText: 'nobody would rather swap' })
+	).toBeVisible();
 	const alice = finalRows(page).filter({ hasText: 'Alice' });
 	await expect(alice).toContainText('House');
 	await expect(alice).toContainText('Pay');
@@ -159,6 +164,37 @@ test('Asset Splitting - picks on different groups certify the split', async ({ p
 	await expect(itemPill(page, 'House')).toBeVisible();
 	await expect(page.getByRole('listitem').filter({ hasText: 'Bob' })).toBeVisible();
 
+	expect(errors).toEqual([]);
+});
+
+test('Asset Splitting - item pills follow the price order on every screen', async ({ page }) => {
+	const errors = trackErrors(page);
+	await open(page);
+	await addPerson(page, 'Alice');
+	await addPerson(page, 'Bob');
+	await expect(page.getByRole('list', { name: 'People' }).locator('.dot')).toHaveCount(2);
+	for (const [name, price] of [
+		['Lamp', '20'],
+		['House', '50000'],
+		['Boat', '3000'],
+		['Car', '10000']
+	])
+		await addItem(page, name, price);
+	const order = [/Car/, /Boat/, /Lamp/];
+	await expect(page.getByRole('list', { name: 'Items' }).getByRole('listitem')).toHaveText([
+		/House/,
+		...order
+	]);
+	await page.getByRole('button', { name: 'Start', exact: true }).click();
+	// The price-balanced start: House alone, the rest together.
+	const groups = page.getByTestId('split-group');
+	await expect(groups.nth(1).locator('.items li')).toHaveText(order);
+	await tapPlace(page, 'Alice', 0);
+	await tapPlace(page, 'Bob', 1);
+	await page.getByRole('button', { name: 'Complete round' }).click();
+	await expect(finalRows(page).nth(1).locator('.items li')).toHaveText(order);
+	await page.getByRole('button', { name: 'Swap or adjust' }).click();
+	await expect(page.getByTestId('adjust-person').nth(1).locator('.items li')).toHaveText(order);
 	expect(errors).toEqual([]);
 });
 
