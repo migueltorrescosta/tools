@@ -97,6 +97,7 @@ describe('buildDataset', () => {
 		expect(built.totalRows).toBe(5);
 		expect(built.droppedRows).toBe(3);
 		expect(Array.from(built.data.y)).toEqual([2, 10]);
+		expect(Array.from(built.sourceRows)).toEqual([0, 4]);
 		expect(built.data.x.map((c) => Array.from(c))).toEqual([
 			[1, 5],
 			[3, 8]
@@ -131,6 +132,7 @@ function sequence(n: number): BuiltDataset {
 		levels: [null],
 		targetName: 'y',
 		data: { x: [Float64Array.from(y, (v) => v * 10)], y },
+		sourceRows: Int32Array.from(y),
 		droppedRows: 0,
 		totalRows: n
 	};

@@ -12,6 +12,10 @@
 		/** The entry hovered in the equation list, highlighted here. */
 		highlighted?: number | null;
 		onSelect: (index: number) => void;
+		/** Called with the entry hovered or focused here, and null when it leaves. */
+		onHover?: (index: number | null) => void;
+		/** viewBox height; the width is fixed, so this sets the aspect ratio. */
+		height?: number;
 		/** Tooltip body for one entry. */
 		tooltip: Snippet<[number]>;
 	}
@@ -23,14 +27,16 @@
 		recommended,
 		highlighted = null,
 		onSelect,
+		onHover,
+		height = 280,
 		tooltip
 	}: Props = $props();
 
 	const W = 420;
-	const H = 280;
+	const H = $derived(height);
 	const M = { top: 12, right: 14, bottom: 44, left: 52 };
 	const innerW = W - M.left - M.right;
-	const innerH = H - M.top - M.bottom;
+	const innerH = $derived(H - M.top - M.bottom);
 
 	const shown = $derived(
 		front.map((f, i) => ({ f, i })).filter(({ f }) => Number.isFinite(f.valR2))
@@ -77,6 +83,10 @@
 		`M${x},${y - r}L${x + r},${y}L${x},${y + r}L${x - r},${y}Z`;
 
 	let hovered = $state<number | null>(null);
+	function hover(i: number | null) {
+		hovered = i;
+		onHover?.(i);
+	}
 	const tipPos = $derived.by(() => {
 		if (hovered === null || !front[hovered]) return null;
 		const f = front[hovered];
@@ -134,15 +144,15 @@
 					data-r2={f.valR2}
 					style:--c={colors[i]}
 					onclick={() => onSelect(i)}
-					onmouseenter={() => (hovered = i)}
-					onmouseleave={() => (hovered = null)}
-					onfocus={() => (hovered = i)}
-					onblur={() => (hovered = null)}
+					onmouseenter={() => hover(i)}
+					onmouseleave={() => hover(null)}
+					onfocus={() => hover(i)}
+					onblur={() => hover(null)}
 					onkeydown={(e) => {
 						if (e.key === 'Enter' || e.key === ' ') {
 							e.preventDefault();
 							onSelect(i);
-						} else if (e.key === 'Escape') hovered = null;
+						} else if (e.key === 'Escape') hover(null);
 					}}
 				>
 					<circle class="hit" {cx} {cy} r={12} />

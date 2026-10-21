@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import { niceTicks, formatTick, type Point } from '$lib/plot';
 
 	interface Props {
@@ -8,6 +9,10 @@
 		xLabel: string;
 		yLabel: string;
 		title: string;
+		/** Replaces the title in the caption, e.g. to hold a control; `title` still labels the plot. */
+		caption?: Snippet;
+		/** viewBox height; the width is fixed, so this sets the aspect ratio. */
+		height?: number;
 		/** Draw y = x across the plot (predicted vs actual). */
 		identityLine?: boolean;
 		/** Draw y = 0 (residuals). */
@@ -24,6 +29,8 @@
 		xLabel,
 		yLabel,
 		title,
+		caption,
+		height = 280,
 		identityLine = false,
 		zeroLine = false,
 		testId,
@@ -32,10 +39,10 @@
 	}: Props = $props();
 
 	const W = 420;
-	const H = 280;
+	const H = $derived(height);
 	const M = { top: 12, right: 14, bottom: 44, left: 62 };
 	const innerW = W - M.left - M.right;
-	const innerH = H - M.top - M.bottom;
+	const innerH = $derived(H - M.top - M.bottom);
 
 	const shown = (p: Point) => Number.isFinite(p.x) && Number.isFinite(p.y);
 	const visible = $derived(points.filter(shown));
@@ -76,7 +83,9 @@
 
 <figure class="plot" data-testid={testId}>
 	<figcaption>
-		<span>{title}</span>
+		<span class="title"
+			>{#if caption}{@render caption()}{:else}{title}{/if}</span
+		>
 		{#if overlay.length > 0}
 			<span class="plot-legend" aria-hidden="true">
 				<span
@@ -146,12 +155,18 @@
 	}
 	figcaption {
 		display: flex;
+		align-items: center;
 		flex-wrap: wrap;
 		justify-content: space-between;
 		gap: var(--sp-1) var(--sp-3);
 		font-size: var(--text-sm);
 		font-weight: 500;
 		margin-bottom: var(--sp-1);
+	}
+	.title {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--sp-1);
 	}
 	.plot-legend {
 		display: inline-flex;

@@ -12,6 +12,18 @@ async function open(page: Page, query = '') {
 	await expect(hydrated(page)).toBeVisible();
 }
 
+/** Open the collapsed Example datasets section and load one. */
+async function loadExample(page: Page, name: RegExp) {
+	const examples = page.getByTestId('examples');
+	if ((await examples.getAttribute('open')) === null) await examples.locator('summary').click();
+	await examples.getByRole('button', { name }).click();
+}
+
+/** The selected equation as text. */
+async function selectedText(page: Page): Promise<string> {
+	return (await page.getByTestId('equation').getAttribute('data-equation')) ?? '';
+}
+
 /** The equation list's rows (one button each). */
 function frontRows(page: Page) {
 	return page.getByTestId('front').getByRole('listitem');
@@ -85,7 +97,7 @@ async function savedKeys(page: Page): Promise<string[]> {
 test('Kepler example finds c·a^1.5 with validation R² > 0.999 within 20 s', async ({ page }) => {
 	test.setTimeout(60000);
 	await open(page);
-	await page.getByRole('button', { name: /Kepler/ }).click();
+	await loadExample(page, /Kepler/);
 	await expect(page.getByTestId('target')).toHaveValue(/\d+/);
 	await page.getByRole('button', { name: 'Start' }).click();
 	await expect.poll(() => frontHasKeplerLaw(page), { timeout: 20000 }).toBe(true);
@@ -95,7 +107,7 @@ test('Kepler example finds c·a^1.5 with validation R² > 0.999 within 20 s', as
 test('noisy Newton example reaches validation R² > 0.95 within 30 s', async ({ page }) => {
 	test.setTimeout(60000);
 	await open(page);
-	await page.getByRole('button', { name: /Newton/ }).click();
+	await loadExample(page, /Newton/);
 	await page.getByRole('button', { name: 'Start' }).click();
 	await expect.poll(() => bestR2(page), { timeout: 30000 }).toBeGreaterThan(0.95);
 	await stopSearch(page);
@@ -177,7 +189,7 @@ test('categorical columns: level warnings, the limit, and an indicator in the fr
 	await expect(mode(page, 'h', 'Exclude')).toBeChecked();
 	await expect(mode(page, 'h', 'Categorical')).toBeDisabled();
 
-	await page.getByRole('button', { name: /Parcel prices/ }).click();
+	await loadExample(page, /Parcel prices/);
 	await expect(mode(page, 'zone', 'Categorical')).toBeChecked();
 	await expect(mode(page, 'carrier', 'Categorical')).toBeChecked();
 	await page.getByRole('button', { name: 'Start' }).click();
@@ -185,7 +197,9 @@ test('categorical columns: level warnings, the limit, and an indicator in the fr
 		.poll(
 			async () =>
 				(await frontEquations(page)).some(
-					({ text, r2 }) => text.includes('1[zone ∈ {island, remote}]') && r2 > 0.99
+					// The search may find the indicator or its complement
+					({ text, r2 }) =>
+						/1\[zone ∈ \{(island, remote|city, rural, suburb)\}\]/.test(text) && r2 > 0.99
 				),
 			{ timeout: 30000 }
 		)
@@ -196,7 +210,7 @@ test('categorical columns: level warnings, the limit, and an indicator in the fr
 
 test('Stop and Continue resume the search', async ({ page }) => {
 	await open(page);
-	await page.getByRole('button', { name: /Newton/ }).click();
+	await loadExample(page, /Newton/);
 	await runUntilFront(page);
 	await stopSearch(page);
 	const progress = page.getByTestId('progress');
@@ -213,7 +227,7 @@ test('the front plot: integer complexity ticks, hover tooltips, and info tips', 
 	page
 }) => {
 	await open(page);
-	await page.getByRole('button', { name: /Kepler/ }).click();
+	await loadExample(page, /Kepler/);
 	await runUntilFront(page, 3);
 	await stopSearch(page);
 
@@ -250,7 +264,7 @@ test('clicking a Pareto point selects that equation; copy buttons copy each form
 }) => {
 	await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 	await open(page);
-	await page.getByRole('button', { name: /Kepler/ }).click();
+	await loadExample(page, /Kepler/);
 	await runUntilFront(page, 3);
 	await stopSearch(page);
 
@@ -262,7 +276,7 @@ test('clicking a Pareto point selects that equation; copy buttons copy each form
 	await expect(row.getByRole('button')).toHaveAttribute('aria-pressed', 'true');
 	await expect(page.getByTestId('front').getByRole('button', { pressed: true })).toHaveCount(1);
 	const text = (await row.getByRole('button').getAttribute('data-equation')) ?? '';
-	await expect(page.getByTestId('equation-text')).toHaveText(text);
+	await expect(page.getByTestId('equation')).toHaveAttribute('data-equation', text);
 	await expect(page.getByTestId('equation').locator('.katex-html')).toBeVisible();
 
 	// Select a row that uses a_AU so every format names it
@@ -273,7 +287,7 @@ test('clicking a Pareto point selects that equation; copy buttons copy each form
 		.click();
 	const clip = () => page.evaluate(() => navigator.clipboard.readText());
 	await page.getByRole('button', { name: 'Text', exact: true }).click();
-	await expect.poll(clip).toBe(await page.getByTestId('equation-text').textContent());
+	await expect.poll(clip).toBe(await selectedText(page));
 	await page.getByRole('button', { name: 'LaTeX' }).click();
 	await expect.poll(clip).toContain('\\mathrm{a\\_AU}');
 	await page.getByRole('button', { name: 'Python' }).click();
@@ -289,12 +303,96 @@ test('clicking a Pareto point selects that equation; copy buttons copy each form
 	expect(atEarth).toBeGreaterThan(0);
 });
 
+test('example datasets start collapsed and a loaded one is labelled', async ({ page }) => {
+	await open(page);
+	const examples = page.getByTestId('examples');
+	await expect(examples).not.toHaveAttribute('open');
+	await expect(examples.getByRole('button', { name: /Kepler/ })).toBeHidden();
+	await loadExample(page, /Kepler/);
+	await expect(page.getByTestId('data-status')).toContainText("Example dataset Kepler's third law");
+	await expect(examples).not.toHaveAttribute('open');
+});
+
+test('hovering an equation previews it in every plot; leaving restores the selection', async ({
+	page
+}) => {
+	await open(page);
+	await loadExample(page, /Kepler/);
+	await runUntilFront(page, 3);
+	await stopSearch(page);
+
+	const plots = page.getByTestId('plots');
+	// Only the three plots, no residuals
+	await expect(plots.locator('figure')).toHaveCount(3);
+	await expect(plots).not.toContainText('Residuals');
+
+	const selected = page.getByTestId('front').getByRole('button', { pressed: true });
+	const selectedComplexity = await selected.getAttribute('data-complexity');
+	const predicted = page.getByTestId('predicted-plot').locator('circle');
+	const before = await predicted.evaluateAll((els) => els.map((e) => e.getAttribute('cy')));
+	const other = page
+		.getByTestId('front')
+		.getByRole('button', { pressed: false })
+		.and(page.locator('[data-complexity="1"]'));
+	await other.hover();
+	await expect(page.getByTestId('plots-for')).toHaveText('Complexity 1 (preview)');
+	await expect(page.getByTestId('chip-tooltip')).toContainText('Validation RMSE');
+	await expect
+		.poll(() => predicted.evaluateAll((els) => els.map((e) => e.getAttribute('cy'))))
+		.not.toEqual(before);
+	// The header keeps the selected equation
+	await expect(selected).toHaveAttribute('data-complexity', selectedComplexity!);
+
+	await page.getByTestId('equation').hover();
+	await expect(page.getByTestId('plots-for')).toHaveText(`Complexity ${selectedComplexity}`);
+	await expect
+		.poll(() => predicted.evaluateAll((els) => els.map((e) => e.getAttribute('cy'))))
+		.toEqual(before);
+
+	// A Pareto point previews too
+	await page.getByTestId('pareto-plot').locator('[data-complexity="1"]').hover();
+	await expect(page.getByTestId('plots-for')).toHaveText('Complexity 1 (preview)');
+});
+
+test('Download CSV adds the selected equation and the split to every row', async ({ page }) => {
+	await open(page);
+	await page.getByLabel('Choose a CSV file').setInputFiles({
+		name: 'line.csv',
+		mimeType: 'text/csv',
+		buffer: Buffer.from(
+			['x,y', ...Array.from({ length: 20 }, (_, i) => `${i},${2 * i + 1}`), ',5'].join('\n')
+		)
+	});
+	await runUntilFront(page, 2);
+	await stopSearch(page);
+	const download = page.waitForEvent('download');
+	await page.getByRole('button', { name: 'Download CSV' }).click();
+	const file = await download;
+	expect(file.suggestedFilename()).toBe('line-predicted.csv');
+	const lines = (await (await file.createReadStream()).toArray()).join('').trim().split('\n');
+	expect(lines[0]).toBe('x,y,y_predicted,split');
+	expect(lines).toHaveLength(22);
+	expect(lines[21]).toBe(',5,,dropped');
+	const splits = lines.slice(1, 21).map((l) => l.split(',')[3]);
+	expect(splits).toContain('validation');
+	expect(splits).toContain('train');
+	const text = await selectedText(page);
+	for (const line of lines.slice(1, 21)) {
+		const [x, , pred] = line.split(',').map(Number);
+		const expected = await page.evaluate(
+			([code, x]) => new Function('x', `return ${code};`)(x) as number,
+			[text.replaceAll('^', '**'), x] as const
+		);
+		expect(pred).toBeCloseTo(expected, 3);
+	}
+});
+
 test('share URL restores settings and the example, and never carries data', async ({
 	page,
 	context
 }) => {
 	await open(page);
-	await page.getByRole('button', { name: /Kepler/ }).click();
+	await loadExample(page, /Kepler/);
 	await page.getByLabel('Seed').fill('42');
 	await page.getByLabel('Time budget (s)').fill('15');
 	await page.getByRole('checkbox', { name: 'Operator cos' }).check();

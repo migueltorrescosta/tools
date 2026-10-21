@@ -30,6 +30,8 @@ export interface BuiltDataset {
 	levels: (string[] | null)[];
 	targetName: string;
 	data: Dataset;
+	/** For each kept row, its index in the parsed CSV's rows. */
+	sourceRows: Int32Array;
 	/** Rows dropped for a missing or non-numeric value in a selected column. */
 	droppedRows: number;
 	totalRows: number;
@@ -126,9 +128,11 @@ export function buildDataset(
 	const codes = levels.map((l) => (l ? new Map(l.map((name, k) => [name, k])) : null));
 	const x = inputs.map(() => new Float64Array(totalRows));
 	const y = new Float64Array(totalRows);
+	const source = new Int32Array(totalRows);
 	const values = new Float64Array(inputs.length);
 	let kept = 0;
-	rows: for (const row of parsed.rows) {
+	rows: for (let r = 0; r < totalRows; r++) {
+		const row = parsed.rows[r];
 		const t = parseNumber(row[targetIndex] ?? '');
 		if (!Number.isFinite(t)) continue;
 		for (let j = 0; j < inputs.length; j++) {
@@ -140,6 +144,7 @@ export function buildDataset(
 		}
 		for (let j = 0; j < inputs.length; j++) x[j][kept] = values[j];
 		y[kept] = t;
+		source[kept] = r;
 		kept++;
 	}
 	return {
@@ -147,6 +152,7 @@ export function buildDataset(
 		levels,
 		targetName: parsed.header[targetIndex],
 		data: { x: x.map((col) => col.slice(0, kept)), y: y.slice(0, kept) },
+		sourceRows: source.slice(0, kept),
 		droppedRows: totalRows - kept,
 		totalRows
 	};
@@ -158,15 +164,10 @@ function pick(data: Dataset, indices: number[]): Dataset {
 }
 
 /**
- * Seeded random split. With at least 2 rows each part gets at least 1 row;
- * a single row goes to train. Rows keep their original order within each part.
+ * Seeded random split of `n` rows: the validation rows' indices, ascending.
+ * With at least 2 rows each part gets at least 1 row; a single row goes to train.
  */
-export function splitDataset(
-	built: BuiltDataset,
-	validationFraction: number,
-	seed: number
-): PreparedData {
-	const n = built.data.y.length;
+export function validationIndices(n: number, validationFraction: number, seed: number): number[] {
 	const order = Array.from({ length: n }, (_, i) => i);
 	const prng = new Prng(seed);
 	for (let i = n - 1; i > 0; i--) {
@@ -174,12 +175,26 @@ export function splitDataset(
 		[order[i], order[j]] = [order[j], order[i]];
 	}
 	const nVal = n < 2 ? 0 : Math.min(n - 1, Math.max(1, Math.round(n * validationFraction)));
-	const byIndex = (a: number, b: number) => a - b;
+	return order.slice(0, nVal).sort((a, b) => a - b);
+}
+
+/** Split by `validationIndices`; rows keep their original order within each part. */
+export function splitDataset(
+	built: BuiltDataset,
+	validationFraction: number,
+	seed: number
+): PreparedData {
+	const n = built.data.y.length;
+	const val = validationIndices(n, validationFraction, seed);
+	const isVal = new Uint8Array(n);
+	for (const i of val) isVal[i] = 1;
+	const train: number[] = [];
+	for (let i = 0; i < n; i++) if (!isVal[i]) train.push(i);
 	return {
 		inputNames: built.inputNames,
 		levels: built.levels,
 		targetName: built.targetName,
-		train: pick(built.data, order.slice(nVal).sort(byIndex)),
-		validation: pick(built.data, order.slice(0, nVal).sort(byIndex))
+		train: pick(built.data, train),
+		validation: pick(built.data, val)
 	};
 }
