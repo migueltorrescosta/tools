@@ -235,6 +235,10 @@ test('the front plot: integer complexity ticks, hover tooltips, and info tips', 
 	const ticks = await plot.locator('.grid text[text-anchor="middle"]').allTextContents();
 	expect(ticks.length).toBeGreaterThan(1);
 	for (const t of ticks) expect(Number.isInteger(Number(t)), t).toBe(true);
+	// The R² axis has one tick per nine (log scale of 1 − R²)
+	const yTicks = await plot.locator('.grid text[text-anchor="end"]').allTextContents();
+	expect(yTicks.slice(0, 3)).toEqual(['0', '0.9', '0.99']);
+	for (const t of yTicks) expect(t).toMatch(/^0(\.9+)?$/);
 	// Points sit at their complexity, not their rank
 	const complexities = await plot
 		.getByRole('button')

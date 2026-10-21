@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { niceTicks, formatTick } from '$lib/plot';
+	import { niceTicks } from '$lib/plot';
 	import type { FrontEntry } from '$lib/symbolic-regression/types';
 
 	interface Props {
@@ -34,7 +34,7 @@
 
 	const W = 420;
 	const H = $derived(height);
-	const M = { top: 12, right: 14, bottom: 44, left: 52 };
+	const M = { top: 12, right: 14, bottom: 44, left: 80 };
 	const innerW = W - M.left - M.right;
 	const innerH = $derived(H - M.top - M.bottom);
 
@@ -42,23 +42,33 @@
 		front.map((f, i) => ({ f, i })).filter(({ f }) => Number.isFinite(f.valR2))
 	);
 
+	/** The most nines plotted; an exact fit sits here. */
+	const MAX_NINES = 8;
+	/**
+	 * The y axis is log₁₀ of 1 − R², counted in nines: R² 0.9 is 1, 0.99 is 2. Poor fits
+	 * crowd into the bottom decade and each nine gets a decade. R² below 0 (worse than the
+	 * mean) sits on the floor.
+	 */
+	const nines = (r2: number) =>
+		Math.min(MAX_NINES, -Math.log10(Math.max(1 - Math.max(r2, 0), 10 ** -MAX_NINES)));
+
 	const domain = $derived.by(() => {
-		if (shown.length === 0) return { x0: 0, x1: 2, y0: 0, y1: 1 };
+		if (shown.length === 0) return { x0: 0, x1: 2, y1: 1 };
 		let x0 = Infinity;
 		let x1 = -Infinity;
-		let y1 = 0;
+		let top = 0;
 		for (const { f } of shown) {
 			x0 = Math.min(x0, f.complexity);
 			x1 = Math.max(x1, f.complexity);
-			y1 = Math.max(y1, f.valR2);
+			top = Math.max(top, nines(f.valR2));
 		}
-		// R² below 0 (worse than the mean) sits on the floor
-		return { x0: x0 - 1, x1: x1 + 1, y0: 0, y1: Math.min(1, y1) + 0.05 };
+		// Headroom up to the next whole nine
+		return { x0: x0 - 1, x1: x1 + 1, y1: Math.min(MAX_NINES, Math.floor(top) + 1) };
 	});
 
 	const sx = (x: number) => M.left + ((x - domain.x0) / (domain.x1 - domain.x0)) * innerW;
-	const sy = (y: number) =>
-		M.top + innerH - ((Math.max(y, 0) - domain.y0) / (domain.y1 - domain.y0)) * innerH;
+	/** Screen y of an R². */
+	const sy = (r2: number) => M.top + innerH - (nines(r2) / domain.y1) * innerH;
 
 	/** Whole-number ticks only: complexity is a node count. */
 	const xTicks = $derived.by(() => {
@@ -67,7 +77,13 @@
 		const hi = Math.floor(domain.x1);
 		return ticks.length >= 2 ? ticks : Array.from({ length: hi - lo + 1 }, (_, k) => lo + k);
 	});
-	const yTicks = $derived(niceTicks(domain.y0, domain.y1, 5).filter((t) => t <= 1));
+	/** One tick per nine, as R²: 0, 0.9, 0.99, … */
+	const yTicks = $derived(
+		Array.from({ length: domain.y1 + 1 }, (_, k) => ({
+			r2: 1 - 10 ** -k,
+			label: k === 0 ? '0' : `0.${'9'.repeat(k)}`
+		}))
+	);
 
 	const path = $derived(
 		shown
@@ -122,9 +138,9 @@
 					<line x1={sx(t)} x2={sx(t)} y1={M.top} y2={M.top + innerH} />
 					<text x={sx(t)} y={M.top + innerH + 16} text-anchor="middle">{t}</text>
 				{/each}
-				{#each yTicks as t (t)}
-					<line x1={M.left} x2={M.left + innerW} y1={sy(t)} y2={sy(t)} />
-					<text x={M.left - 6} y={sy(t) + 4} text-anchor="end">{formatTick(t)}</text>
+				{#each yTicks as t (t.label)}
+					<line x1={M.left} x2={M.left + innerW} y1={sy(t.r2)} y2={sy(t.r2)} />
+					<text x={M.left - 6} y={sy(t.r2) + 4} text-anchor="end">{t.label}</text>
 				{/each}
 			</g>
 			<path class="front" d={path} />
@@ -174,7 +190,7 @@
 				x={14}
 				y={M.top + innerH / 2}
 				text-anchor="middle"
-				transform="rotate(-90 14 {M.top + innerH / 2})">Validation R²</text
+				transform="rotate(-90 14 {M.top + innerH / 2})">Validation R² (log)</text
 			>
 		</svg>
 		{#if tipPos && hovered !== null}
