@@ -2,10 +2,14 @@ import { describe, it, expect } from 'vitest';
 import { initState, propose, recordRound, type SplitState } from '../engine';
 import { bestResponse, makeCase } from './harness';
 
-/** Plays `rounds` truthful rounds, then times one more propose + recordRound (ms). */
+/**
+ * Plays `rounds` truthful rounds after a Start that places every other item,
+ * then times one more propose + recordRound (ms).
+ */
 function timeRound(n: number, m: number, rounds: number): number {
 	const c = makeCase(n, m, 0.3, 1);
-	let s: SplitState = initState(c.entered, n);
+	const start = c.entered.map((_, k) => (k % 2 ? -1 : k % n));
+	let s: SplitState = initState(c.entered, n, undefined, start);
 	const play = () => {
 		const p = propose(s);
 		s = recordRound(

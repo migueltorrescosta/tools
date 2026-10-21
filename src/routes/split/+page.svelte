@@ -34,6 +34,7 @@
 		place,
 		stepLabels,
 		stepOf,
+		type Phase,
 		toPicks,
 		whoPaysWhom
 	} from './lib/board';
@@ -131,7 +132,6 @@
 
 	// ---- Rounds -------------------------------------------------------------
 
-	type Phase = 'setup' | 'round' | 'final';
 	let phase = $state<Phase>('setup');
 	/** Engine state and the proposal on the board; raw, since the engine owns their shape. */
 	let engine = $state.raw<SplitState | null>(null);
@@ -143,8 +143,9 @@
 	let selectedItem = $state<number | null>(null);
 	let announcement = $state('');
 	let busy = $state(false);
-	/** True after a re-check from the final screen: the stepper then shows Rounds. */
-	let rechecked = $state(false);
+	/** Start screen: per item, the person everyone agrees wants it most, or −1 (Contested). */
+	let startOwner = $state<number[]>([]);
+	let contestedEl = $state<HTMLElement | null>(null);
 	/** Round count at which the fallback offer was dismissed. */
 	let dismissedAt = $state(-1);
 	/** The agreed split: holder[g] = person taking group g. */
@@ -169,7 +170,7 @@
 	const onGroup = $derived(chipsOn(placements, n));
 	const unplaced = $derived(placements.flatMap((g, i) => (g === null ? [i] : [])));
 	const groupDemand = $derived(demand(placements, n));
-	const step = $derived(stepOf(phase, rounds.length + 1, rechecked));
+	const step = $derived(stepOf(phase));
 	const stepNames = $derived(stepLabels(step, rounds.length + 1));
 	const ready = $derived(toPicks(placements) !== null);
 	const fallback = $derived(
@@ -195,13 +196,21 @@
 		phase = 'round';
 	}
 
+	/** Setup → Start: every item begins in Contested. */
+	function toStart() {
+		if (startMsg) return;
+		startOwner = items.map(() => -1);
+		selectedItem = null;
+		announcement = '';
+		phase = 'start';
+	}
+
 	async function startAlgorithm() {
-		if (startMsg || busy) return;
+		if (busy) return;
 		busy = true;
 		await yieldToPaint();
-		engine = initState(prices, n);
+		engine = initState(prices, n, undefined, [...startOwner]);
 		dismissedAt = -1;
-		rechecked = false;
 		final = null;
 		showProposal(propose(engine));
 		busy = false;
@@ -247,7 +256,6 @@
 		if (!engine || busy) return;
 		busy = true;
 		await yieldToPaint();
-		rechecked = true;
 		const groups = bundlesFromOwners(editOwner, n);
 		showProposal(
 			transfersFor(
@@ -293,6 +301,16 @@
 		selectedItem = null;
 	}
 
+	/** Start screen: put item k on person i, or back in Contested (−1). */
+	function seed(k: number, i: number) {
+		startOwner[k] = i;
+		announcement =
+			i < 0
+				? `${items[k].description} is back in contested`
+				: `${items[k].description} goes to ${people[i].name}`;
+		selectedItem = null;
+	}
+
 	function undoChanges() {
 		if (final) editOwner = [...agreedOwner];
 		selectedItem = null;
@@ -302,8 +320,11 @@
 	// Hand-rolled pointer drag: starts after the pointer moves a few px, for
 	// mouse, pen and touch alike (chips have touch-action: none).
 	const DRAG_THRESHOLD = 5;
-	/** What is dragged: a person's chip onto a group, or an item pill onto a person (final screen). */
-	type Kind = 'chip' | 'item';
+	/**
+	 * What is dragged: a person's chip onto a group (rounds), an item pill onto a
+	 * person (final screen), or an item pill onto a person or Contested (start).
+	 */
+	type Kind = 'chip' | 'item' | 'seed';
 	type Pending = { kind: Kind; idx: number; id: number; x0: number; y0: number; active: boolean };
 	let pending: Pending | null = null;
 	let suppressClick = false;
@@ -319,8 +340,10 @@
 	} | null>(null);
 	const isLifted = (kind: Kind, idx: number) => drag?.kind === kind && drag.idx === idx;
 
+	/** Index of the card under the point; on Start, index n is the Contested area. */
 	function targetAt(kind: Kind, x: number, y: number): number | null {
 		const els = (kind === 'chip' ? colEls : personEls).slice(0, n);
+		if (kind === 'seed' && contestedEl) els.push(contestedEl);
 		const hit = hitTest(
 			x,
 			y,
@@ -363,7 +386,10 @@
 			setTimeout(() => (suppressClick = false));
 			// A chip dropped outside every group card goes back to Unplaced; an
 			// item dropped outside every person stays where it was.
+			// On Start, an item dropped outside every person goes back to Contested.
 			if (p.kind === 'chip') move(p.idx, drag.target);
+			else if (p.kind === 'seed')
+				seed(p.idx, drag.target === null || drag.target >= n ? -1 : drag.target);
 			else if (drag.target !== null) give(p.idx, drag.target);
 		}
 		cancelDrag();
@@ -541,9 +567,85 @@
 				variant="primary"
 				disabled={startMsg !== null || busy}
 				aria-describedby={startMsg ? 'start-error' : undefined}
-				onclick={startAlgorithm}>Start</Button
+				onclick={toStart}>Start</Button
 			>
 			{#if startMsg}<p id="start-error" class="note">{startMsg}</p>{/if}
+		</div>
+	{:else if phase === 'start'}
+		<div class="tip-panel">
+			<Panel title="Start">
+				{#snippet actions()}<InfoTip label="the start"
+						>Drag each item to whoever wants it most. Leave it in Contested if you disagree or
+						aren't sure. This is a starting guess: the rounds can still move items.</InfoTip
+					>{/snippet}
+				<div class="stack" aria-busy={busy}>
+					<div class="groups">
+						{#each people as p, i (p.id)}
+							<section
+								class="group"
+								class:targetable={selectedItem !== null || drag?.kind === 'seed'}
+								class:drop-over={drag?.kind === 'seed' && drag.target === i}
+								style:--person={personColour(i)}
+								data-testid="start-person"
+								aria-labelledby="start-{i}-heading"
+								bind:this={personEls[i]}
+							>
+								{#if selectedItem !== null && startOwner[selectedItem] !== i}
+									<!-- Tap/keyboard fallback for dragging (WCAG 2.5.7). -->
+									<button
+										type="button"
+										class="card-target"
+										aria-label="Give {items[selectedItem].description} to {p.name}"
+										onclick={() => selectedItem !== null && seed(selectedItem, i)}
+									></button>
+								{/if}
+								<h3 id="start-{i}-heading">
+									<span class="dot" aria-hidden="true"></span>{p.name}
+								</h3>
+								<ul class="items">
+									{#each itemOrder as k (items[k].id)}
+										{#if startOwner[k] === i}<li>{@render seedPill(k)}</li>{/if}
+									{/each}
+									{#if !startOwner.includes(i)}<li class="note">Drop items here</li>{/if}
+								</ul>
+							</section>
+						{/each}
+					</div>
+
+					<section
+						class="contested"
+						class:targetable={selectedItem !== null || drag?.kind === 'seed'}
+						class:drop-over={drag?.kind === 'seed' && drag.target === n}
+						data-testid="start-contested"
+						aria-labelledby="contested-heading"
+						bind:this={contestedEl}
+					>
+						{#if selectedItem !== null && startOwner[selectedItem] !== -1}
+							<button
+								type="button"
+								class="card-target"
+								aria-label="Move {items[selectedItem].description} back to contested"
+								onclick={() => selectedItem !== null && seed(selectedItem, -1)}
+							></button>
+						{/if}
+						<h3 id="contested-heading" class="unplaced-label">Contested</h3>
+						<ul class="items centred">
+							{#each itemOrder as k (items[k].id)}
+								{#if startOwner[k] === -1}<li>{@render seedPill(k)}</li>{/if}
+							{/each}
+							{#if !startOwner.includes(-1)}<li class="note">Nothing contested.</li>{/if}
+						</ul>
+					</section>
+					<p class="sr-only" aria-live="polite" data-testid="start-announce">{announcement}</p>
+
+					<div class="cluster">
+						<Button variant="primary" disabled={busy} onclick={startAlgorithm}
+							>{busy ? 'Updating…' : 'Continue'}</Button
+						>
+						<Button onclick={backToSetup} disabled={busy}>Back to setup</Button>
+					</div>
+				</div>
+			</Panel>
 		</div>
 	{:else if phase === 'round' && proposal}
 		<div class="tip-panel">
@@ -753,6 +855,24 @@
 		</ol>
 	</section>
 </div>
+
+{#snippet seedPill(k: number)}
+	<button
+		type="button"
+		class="pill draggable"
+		class:lifted={isLifted('seed', k)}
+		style:transform={drag && isLifted('seed', k)
+			? `translate(${drag.dx}px, ${drag.dy}px)`
+			: undefined}
+		aria-pressed={selectedItem === k}
+		disabled={busy}
+		onclick={() => onPick('seed', k)}
+		onpointerdown={(e) => onPointerDown(e, 'seed', k)}
+		onpointermove={onPointerMove}
+		onpointerup={onPointerUp}
+		onpointercancel={cancelDrag}>{items[k].description}</button
+	>
+{/snippet}
 
 {#snippet personCard(i: number)}
 	<button
@@ -1017,6 +1137,23 @@
 		flex-direction: column;
 		align-items: center;
 		gap: var(--sp-1);
+	}
+
+	.contested {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--sp-1);
+		min-height: calc(var(--control-h) * 2);
+		padding: var(--sp-2);
+		border-radius: var(--radius);
+		outline: 2px solid transparent;
+		outline-offset: 1px;
+	}
+
+	.items.centred {
+		justify-content: center;
 	}
 
 	.unplaced-label {

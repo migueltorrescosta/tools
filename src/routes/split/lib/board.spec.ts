@@ -146,12 +146,11 @@ describe('whoPaysWhom', () => {
 });
 
 describe('progress stepper', () => {
-	it('maps phases and rounds to steps', () => {
-		expect(stepOf('setup', 1, false)).toBe(0);
-		expect(stepOf('round', 1, false)).toBe(1);
-		expect(stepOf('round', 2, false)).toBe(2);
-		expect(stepOf('round', 1, true)).toBe(2);
-		expect(stepOf('final', 3, false)).toBe(3);
+	it('maps each phase to its step', () => {
+		expect(stepOf('setup')).toBe(0);
+		expect(stepOf('start')).toBe(1);
+		expect(stepOf('round')).toBe(2);
+		expect(stepOf('final')).toBe(3);
 	});
 	it('shows the round number only on the current Rounds step', () => {
 		expect(stepLabels(2, 3)).toEqual(['Setup', 'Start', 'Rounds · 3', 'Result']);

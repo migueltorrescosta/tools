@@ -7,6 +7,11 @@
  * person picks a group; a pick is a logit choice over bundle surplus. The
  * split is certified the first round the picks form a permutation.
  *
+ * Start. Before the rounds the group may place items on the person who wants
+ * them most. A placement of item k on person i adds, for every other person
+ * j, a logit factor σ(λ_S p_k (w_ik − w_jk) / (T/n)): weak evidence, like a
+ * prior, that rounds can override. Contested items add nothing.
+ *
  * All functions are pure and synchronous. Items and people are indices.
  *
  * Fit. The engine works in w-coordinates, w_i = μ + δ_i ∈ R^m. Person i's
@@ -18,15 +23,21 @@
  * negative Hessian is P = D − c U Uᵀ with D = blockdiag(E_i), E_i = H_i + I/τ²
  * (H_i the data Hessian of person i, m×m) and U = 1_n ⊗ I_m. By Woodbury,
  * P⁻¹ = D⁻¹ + D⁻¹ U S⁻¹ Uᵀ D⁻¹ with S = I/c − Σ_i E_i⁻¹ (an m×m PD matrix
- * whose condition number is at most 1 + n σμ²/τ²). Each Newton step costs n
+ * whose condition number is at most 1 + n σμ²/τ²). Start factors couple
+ * people per item; with their curvature fixed at its bound β_S² p_k²/4 they
+ * fold into the same form: U's column k becomes v_k ⊗ e_k with v_k = 1 off
+ * the owner (see startTerms), so S = I/c − Σ_i V_i E_i⁻¹ V_i. The gradient
+ * stays exact, so the MAP is exact (the bound only makes those steps
+ * conservative); the Laplace covariance uses the bound, which slightly
+ * understates the variance a placement leaves (exactly so at w_ik = w_jk). Each Newton step costs n
  * Cholesky factorisations of m×m and a conjugate-gradient solve with S, whose
  * matvec is 2n triangular solves. After convergence the Laplace approximation
  * N(Ŵ, P⁻¹) is kept as L_i⁻¹ (inverse Cholesky factor of E_i) for every
  * person and the Cholesky factor of S, formed explicitly once per fit.
  *
  * Draws. Writing W − Ŵ = X, the Laplace Gaussian is the hierarchical model
- * x_i | u ~ N(E_i⁻¹ u, E_i⁻¹) with u ~ N(0, S⁻¹), which has exactly the
- * covariance above. So x_i = L_i⁻ᵀ (L_i⁻¹ u + ε_i) with u = L_S⁻ᵀ η. The fit
+ * x_i | u ~ N(E_i⁻¹ V_i u, E_i⁻¹) with u ~ N(0, S⁻¹), which has exactly the
+ * covariance above. So x_i = L_i⁻ᵀ (L_i⁻¹ V_i u + ε_i) with u = L_S⁻ᵀ η. The fit
  * keeps SAMPLES such draws (seeded, so deterministic per state); the owner
  * rule and the fallback's fairness are Monte Carlo over them. The
  * envy SDs σ_ib that drive the transfer LP are exact (block solves).
@@ -58,10 +69,16 @@ export interface SplitParams {
 	tau: number;
 	/** Logit sharpness: a surplus gap of 1/λ fair shares (T/n) gives odds e. */
 	lambda: number;
+	/**
+	 * Sharpness of the Start evidence: an item placed on person i adds, for
+	 * every other person j, a logit factor on p_k (w_ik − w_jk) / (T/n) with
+	 * this sharpness. Much weaker than λ, so round picks dominate.
+	 */
+	lambdaStart: number;
 }
 
 /** Tuned by the truthful-agent simulation (src/lib/split/sim/simulation.spec.ts). */
-export const DEFAULT_PARAMS: SplitParams = { sigmaMu: 0.3, tau: 0.4, lambda: 10 };
+export const DEFAULT_PARAMS: SplitParams = { sigmaMu: 0.3, tau: 0.4, lambda: 10, lambdaStart: 10 };
 
 export interface Proposal {
 	/** Item indices per group; exactly n groups, every item in one group. Groups may be empty. */
@@ -110,6 +127,23 @@ interface Fit {
 	ls: Float64Array | null;
 	/** Per person: draws of x_i = w_i − ŵ_i, sample-major SAMPLES×m. */
 	draws: Float64Array[];
+	/** Woodbury scaling v_k[j] per person and item, n×m (all 1 without Start placements). */
+	scale: Float64Array;
+}
+
+/**
+ * Start evidence in array form. owner[k] is the person item k was placed on
+ * (−1: contested). Each placed item's factors get the fixed curvature
+ * a_k = β_S² p_k² / 4 per pair, an upper bound on the logit curvature; see
+ * fitPosterior.
+ */
+interface StartTerms {
+	owner: Int32Array;
+	betaS: number;
+	/** Extra diagonal of E_j at item k, n×m. */
+	diag: Float64Array;
+	/** v_k[j], n×m. */
+	scale: Float64Array;
 }
 
 /** A round in array form: item → group, transfers, picks. */
@@ -126,6 +160,8 @@ class FittedState implements SplitState {
 	readonly n: number;
 	readonly params: SplitParams;
 	readonly rounds: readonly RoundRecord[];
+	/** @internal Start placements: person per item, −1 contested. */
+	readonly start: Int32Array;
 	/** @internal */
 	readonly fit: Fit;
 	/** @internal memoised propose() */
@@ -136,12 +172,14 @@ class FittedState implements SplitState {
 		n: number,
 		params: SplitParams,
 		rounds: readonly RoundRecord[],
+		start: Int32Array,
 		fit: Fit
 	) {
 		this.prices = prices;
 		this.n = n;
 		this.params = params;
 		this.rounds = rounds;
+		this.start = start;
 		this.fit = fit;
 	}
 }
@@ -151,17 +189,27 @@ function internal(state: SplitState): FittedState {
 	return state;
 }
 
+/**
+ * A fresh state. `start[k]` is the person item k was placed on at Start, or −1
+ * when contested (omitted: everything contested). Placements are evidence
+ * that that person values the item most, weighted by params.lambdaStart.
+ */
 export function initState(
 	prices: readonly number[],
 	n: number,
-	params: SplitParams = DEFAULT_PARAMS
+	params: SplitParams = DEFAULT_PARAMS,
+	start?: readonly number[]
 ): SplitState {
 	if (!Number.isInteger(n) || n < 1) throw new Error('split: n must be a positive integer');
 	if (prices.length === 0 || prices.some((p) => !(p > 0 && Number.isFinite(p))))
 		throw new Error('split: prices must be positive');
+	const m = prices.length;
+	if (start && (start.length !== m || start.some((i) => !Number.isInteger(i) || i < -1 || i >= n)))
+		throw new Error('split: start must give a person index or −1 per item');
 	const ps = Object.freeze([...prices]);
-	const fit = fitPosterior(ps, n, params, [], new Float64Array(n * ps.length));
-	return new FittedState(ps, n, Object.freeze({ ...params }), Object.freeze([]), fit);
+	const st = start ? Int32Array.from(start) : new Int32Array(m).fill(-1);
+	const fit = fitPosterior(ps, n, params, [], st, new Float64Array(n * m));
+	return new FittedState(ps, n, Object.freeze({ ...params }), Object.freeze([]), st, fit);
 }
 
 /** Append a completed round and refit the posterior. */
@@ -187,8 +235,8 @@ export function recordRound(
 		picks: [...picks]
 	};
 	const rounds = Object.freeze([...s.rounds, record]);
-	const fit = fitPosterior(prices, n, s.params, rounds, s.fit.w);
-	return new FittedState(prices, n, s.params, rounds, fit);
+	const fit = fitPosterior(prices, n, s.params, rounds, s.start, s.fit.w);
+	return new FittedState(prices, n, s.params, rounds, s.start, fit);
 }
 
 /** True when every person picked a different group. */
@@ -428,7 +476,7 @@ function groupIndex(groups: readonly (readonly number[])[], m: number): Int32Arr
 /**
  * Posterior mean V_ib (n×n) and exact SDs of V_i(o) − V_i(b) for every person
  * i and group pair (o, b), as sd[i n² + o n + b]. For a = g_o − g_b (g_b the
- * prices on group b), Var(aᵀ w_i) = ‖L_i⁻¹ a‖² + ‖L_S⁻¹ E_i⁻¹ a‖²; both are
+ * prices on group b), Var(aᵀ w_i) = ‖L_i⁻¹ a‖² + ‖L_S⁻¹ V_i E_i⁻¹ a‖²; both are
  * linear in g_b, so each person needs n solves.
  */
 function groupMoments(
@@ -452,6 +500,7 @@ function groupMoments(
 			upperTMul(ui, m, g, y[b]);
 			if (fit.ls) {
 				upperMul(ui, m, y[b], z[b]);
+				for (let k = 0; k < m; k++) z[b][k] *= fit.scale[i * m + k];
 				forwardSolve(fit.ls, m, z[b]);
 			}
 		}
@@ -494,6 +543,7 @@ function evaluate(
 	beta: number,
 	invTau2: number,
 	c: number,
+	start: StartTerms | null,
 	grad: Float64Array | null,
 	q: Float64Array[] | null
 ): number {
@@ -538,6 +588,24 @@ function evaluate(
 		}
 	}
 	for (let k = 0; k < m; k++) lp += 0.5 * c * sumW[k] * sumW[k];
+	if (start) {
+		// log σ(x) with x = β_S p_k (w_ik − w_jk) for the owner i of each placed item.
+		for (let k = 0; k < m; k++) {
+			const i = start.owner[k];
+			if (i < 0) continue;
+			const bp = start.betaS * prices[k];
+			for (let j = 0; j < n; j++) {
+				if (j === i) continue;
+				const x = bp * (w[i * m + k] - w[j * m + k]);
+				lp -= x > 0 ? Math.log1p(Math.exp(-x)) : -x + Math.log1p(Math.exp(x));
+				if (grad) {
+					const g = bp / (1 + Math.exp(x)); // β_S p_k σ(−x)
+					grad[i * m + k] += g;
+					grad[j * m + k] -= g;
+				}
+			}
+		}
+	}
 	return lp;
 }
 
@@ -579,8 +647,14 @@ function blockPrecision(
 	}
 }
 
-/** Solve S x = r by conjugate gradients, S v = v/c − Σ_i E_i⁻¹ v. */
-function solveS(chol: Float64Array[], m: number, c: number, r: Float64Array): Float64Array {
+/** Solve S x = r by conjugate gradients, S v = v/c − Σ_i V_i E_i⁻¹ V_i v. */
+function solveS(
+	chol: Float64Array[],
+	m: number,
+	c: number,
+	scale: Float64Array,
+	r: Float64Array
+): Float64Array {
 	const x = new Float64Array(m);
 	const res = Float64Array.from(r);
 	const dir = Float64Array.from(r);
@@ -590,12 +664,12 @@ function solveS(chol: Float64Array[], m: number, c: number, r: Float64Array): Fl
 	const stop = 1e-24 * rr;
 	for (let it = 0; it < 4 * m + 20 && rr > stop; it++) {
 		for (let k = 0; k < m; k++) sd[k] = dir[k] / c;
-		for (const l of chol) {
-			tmp.set(dir);
+		chol.forEach((l, i) => {
+			for (let k = 0; k < m; k++) tmp[k] = dir[k] * scale[i * m + k];
 			forwardSolve(l, m, tmp);
 			backSolve(l, m, tmp);
-			for (let k = 0; k < m; k++) sd[k] -= tmp[k];
-		}
+			for (let k = 0; k < m; k++) sd[k] -= tmp[k] * scale[i * m + k];
+		});
 		const alpha = rr / dot(dir, 0, sd, 0, m);
 		for (let k = 0; k < m; k++) {
 			x[k] += alpha * dir[k];
@@ -609,11 +683,44 @@ function solveS(chol: Float64Array[], m: number, c: number, r: Float64Array): Fl
 	return x;
 }
 
+/**
+ * Start evidence for the fit, or null with no placements (or λ_S = 0). Each
+ * placed item k (owner i) gets curvature a_k = β_S² p_k²/4 per pair (i, j):
+ * across people that is a_k (I + n e_i e_iᵀ − e_i 1ᵀ − 1 e_iᵀ). Together with
+ * the prior's −c 1 1ᵀ this equals a diagonal minus c v_k v_kᵀ with
+ * v_k = 1 + (a_k/c) e_i, so P keeps the form D − c U Uᵀ with U's column k
+ * equal to v_k ⊗ e_k: E_j gains a_k on its diagonal (plus n a_k + a_k²/c for
+ * the owner), and v_k[j] scales the Woodbury coupling.
+ */
+function startTerms(
+	owner: Int32Array,
+	prices: readonly number[],
+	n: number,
+	betaS: number,
+	c: number
+): StartTerms | null {
+	const m = prices.length;
+	if (!(betaS > 0) || owner.every((i) => i < 0)) return null;
+	if (!(c > 0)) throw new Error('split: Start placements need sigmaMu > 0');
+	const diag = new Float64Array(n * m);
+	const scale = new Float64Array(n * m).fill(1);
+	for (let k = 0; k < m; k++) {
+		const i = owner[k];
+		if (i < 0) continue;
+		const a = (betaS * prices[k]) ** 2 / 4;
+		for (let j = 0; j < n; j++) diag[j * m + k] += a;
+		diag[i * m + k] += n * a + (a * a) / c;
+		scale[i * m + k] = 1 + a / c;
+	}
+	return { owner, betaS, diag, scale };
+}
+
 function fitPosterior(
 	prices: readonly number[],
 	n: number,
 	params: SplitParams,
 	records: readonly RoundRecord[],
+	placed: Int32Array,
 	warm: Float64Array
 ): Fit {
 	const m = prices.length;
@@ -625,6 +732,8 @@ function fitPosterior(
 	const c = mu2 / (tau2 * (tau2 + n * mu2));
 	const rounds = toRounds(records, m);
 	const R = rounds.length;
+	const start = startTerms(placed, prices, n, (params.lambdaStart * n) / total, c);
+	const scale = start ? start.scale : new Float64Array(n * m).fill(1);
 
 	const w = Float64Array.from(warm);
 	const chol = Array.from({ length: n }, () => new Float64Array(m * m));
@@ -635,25 +744,28 @@ function fitPosterior(
 	let refactor = true;
 	for (let it = 0; it < MAX_NEWTON; it++) {
 		grad.fill(0);
-		const lp = evaluate(w, prices, n, rounds, beta, invTau2, c, grad, q);
+		const lp = evaluate(w, prices, n, rounds, beta, invTau2, c, start, grad, q);
 		if (refactor) {
-			for (let i = 0; i < n; i++) blockPrecision(q[i], rounds, prices, beta, invTau2, chol[i]);
+			for (let i = 0; i < n; i++) {
+				blockPrecision(q[i], rounds, prices, beta, invTau2, chol[i]);
+				if (start) for (let k = 0; k < m; k++) chol[i][k * m + k] += start.diag[i * m + k];
+			}
 			for (let i = 0; i < n; i++) {
 				if (!cholesky(chol[i], m)) throw new Error('split: posterior precision not positive');
 			}
 		}
-		// Newton step Δ = P⁻¹ g = D⁻¹ g + D⁻¹ U S⁻¹ Uᵀ D⁻¹ g.
+		// Newton step Δ = P⁻¹ g = D⁻¹ g + D⁻¹ U S⁻¹ Uᵀ D⁻¹ g, (Uᵀ y)_k = Σ_i v_k[i] y_ik.
 		const step = Float64Array.from(grad);
 		const sum = new Float64Array(m);
 		for (let i = 0; i < n; i++) {
 			forwardSolve(chol[i], m, step, i * m);
 			backSolve(chol[i], m, step, i * m);
-			for (let k = 0; k < m; k++) sum[k] += step[i * m + k];
+			for (let k = 0; k < m; k++) sum[k] += scale[i * m + k] * step[i * m + k];
 		}
 		if (c > 0) {
-			const u = solveS(chol, m, c, sum);
+			const u = solveS(chol, m, c, scale, sum);
 			for (let i = 0; i < n; i++) {
-				tmp.set(u);
+				for (let k = 0; k < m; k++) tmp[k] = scale[i * m + k] * u[k];
 				forwardSolve(chol[i], m, tmp);
 				backSolve(chol[i], m, tmp);
 				for (let k = 0; k < m; k++) step[i * m + k] += tmp[k];
@@ -666,7 +778,7 @@ function fitPosterior(
 		let alpha = 1;
 		for (let ls = 0; ls < 40; ls++, alpha /= 2) {
 			for (let j = 0; j < w.length; j++) trial[j] = w[j] + alpha * step[j];
-			const next = evaluate(trial, prices, n, rounds, beta, invTau2, c, null, null);
+			const next = evaluate(trial, prices, n, rounds, beta, invTau2, c, start, null, null);
 			if (next >= lp + 1e-4 * alpha * slope) break;
 		}
 		w.set(trial);
@@ -681,14 +793,22 @@ function fitPosterior(
 	if (c > 0) {
 		ls = new Float64Array(m * m);
 		for (let k = 0; k < m; k++) ls[k * m + k] = 1 / c;
-		for (const u of ut) subtractGram(ls, u, m);
+		const vu = new Float64Array(m * m);
+		ut.forEach((u, i) => {
+			// V_i E_i⁻¹ V_i = (V_i U_i)(V_i U_i)ᵀ, with V_i U_i still upper triangular.
+			for (let k = 0; k < m; k++) {
+				const f = scale[i * m + k];
+				for (let l = k; l < m; l++) vu[k * m + l] = f * u[k * m + l];
+			}
+			subtractGram(ls!, vu, m);
+		});
 		if (!cholesky(ls, m)) throw new Error('split: Schur complement not positive');
 	}
-	return { w, ut, ls, draws: drawSamples(chol, ut, ls, m, R) };
+	return { w, ut, ls, scale, draws: drawSamples(chol, ut, ls, scale, m, R) };
 }
 
 /**
- * SAMPLES draws of x_i = L_i⁻ᵀ (L_i⁻¹ u + ε_i) with u = L_S⁻ᵀ η, sample-major
+ * SAMPLES draws of x_i = L_i⁻ᵀ (L_i⁻¹ V_i u + ε_i) with u = L_S⁻ᵀ η, sample-major
  * SAMPLES×m per person. Seeded by the round count, so a state's draws are
  * reproducible.
  */
@@ -696,6 +816,7 @@ function drawSamples(
 	chol: readonly Float64Array[],
 	ut: readonly Float64Array[],
 	ls: Float64Array | null,
+	scale: Float64Array,
 	m: number,
 	seed: number
 ): Float64Array[] {
@@ -711,7 +832,8 @@ function drawSamples(
 	const y = new Float64Array(m * SAMPLES);
 	const eps = new Float64Array(m * SAMPLES);
 	return chol.map((l, j) => {
-		y.set(u);
+		for (let r = 0; r < SAMPLES; r++)
+			for (let k = 0; k < m; k++) y[r * m + k] = u[r * m + k] * scale[j * m + k];
 		fillGaussian(eps);
 		const x = new Float64Array(m * SAMPLES);
 		solveThenUpper(l, ut[j], m, y, eps, x, SAMPLES);

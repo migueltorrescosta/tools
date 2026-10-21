@@ -176,14 +176,11 @@ export function hitTest(
 
 export const STEPS = ['Setup', 'Start', 'Rounds', 'Result'] as const;
 
-/**
- * Current step of the progress stepper (index into STEPS): Setup, Start (round
- * 1), Rounds (round 2 on, or any round after a re-check from the result), Result.
- */
-export function stepOf(phase: 'setup' | 'round' | 'final', round: number, rechecked: boolean) {
-	if (phase === 'setup') return 0;
-	if (phase === 'final') return 3;
-	return round > 1 || rechecked ? 2 : 1;
+export type Phase = 'setup' | 'start' | 'round' | 'final';
+
+/** Current step of the progress stepper: the index into STEPS, one step per phase. */
+export function stepOf(phase: Phase): number {
+	return { setup: 0, start: 1, round: 2, final: 3 }[phase];
 }
 
 /** Step labels; the current Rounds step shows its round number ("Rounds · 3"). */

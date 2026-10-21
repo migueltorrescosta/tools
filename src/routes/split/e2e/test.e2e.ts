@@ -45,6 +45,7 @@ async function startTwo(page: Page) {
 	await addItem(page, 'Car', '10000');
 	await addItem(page, 'House', '50000');
 	await page.getByRole('button', { name: 'Start', exact: true }).click();
+	await page.getByRole('button', { name: 'Continue' }).click();
 	await expect(page.getByRole('heading', { name: 'Round 1', exact: true })).toBeVisible();
 }
 
@@ -86,8 +87,8 @@ test('Asset Splitting - picks on different groups certify the split', async ({ p
 	const errors = trackErrors(page);
 	await startTwo(page);
 
-	await expect(currentStep(page)).toHaveText(/^2\s*Start$/);
-	await expect(page.getByRole('list', { name: 'Progress' })).toContainText(/Setup\s\(done\)/);
+	await expect(currentStep(page)).toHaveText(/^3\s*Rounds · 1$/);
+	await expect(page.getByRole('list', { name: 'Progress' })).toContainText(/Start\s\(done\)/);
 	// The first proposal is the price-balanced grouping: House alone, Car alone.
 	const groups = page.getByTestId('split-group');
 	await expect(groups).toHaveCount(2);
@@ -196,6 +197,63 @@ test('Asset Splitting - picks on different groups certify the split', async ({ p
 	expect(errors).toEqual([]);
 });
 
+test('Asset Splitting - Start: agree who wants which item, then continue', async ({ page }) => {
+	const errors = trackErrors(page);
+	await open(page);
+	await addPerson(page, 'Alice');
+	await addPerson(page, 'Bob');
+	await addItem(page, 'Car', '10000');
+	await addItem(page, 'House', '50000');
+	await addItem(page, 'Lamp', '20');
+	await page.getByRole('button', { name: 'Start', exact: true }).click();
+	await expect(currentStep(page)).toHaveText(/^2\s*Start$/);
+	await expect(page.getByRole('list', { name: 'Progress' })).toContainText(/Setup\s\(done\)/);
+
+	const contested = page.getByTestId('start-contested');
+	const card = (name: string) =>
+		page.getByTestId('start-person').filter({ has: page.getByRole('heading', { name }) });
+	const pill = (name: string) => page.getByRole('button', { name, exact: true });
+	// Every item starts in Contested, highest price first.
+	await expect(contested.locator('.items li')).toHaveText([/House/, /Car/, /Lamp/]);
+
+	const drag = async (item: string, x: number, y: number) => {
+		const from = (await pill(item).boundingBox())!;
+		await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+		await page.mouse.down();
+		await page.mouse.move(x, y, { steps: 8 });
+		await page.mouse.up();
+	};
+	// Drag the House onto Alice.
+	const alice = (await card('Alice').boundingBox())!;
+	await drag('House', alice.x + alice.width / 2, alice.y + alice.height / 2);
+	await expect(card('Alice')).toContainText('House');
+	await expect(contested).not.toContainText('House');
+	await expect(page.getByTestId('start-announce')).toHaveText('House goes to Alice');
+
+	// Tap fallback: tap the Car, then Bob's card; then back to Contested.
+	await pill('Car').click();
+	await page.getByRole('button', { name: 'Give Car to Bob' }).click();
+	await expect(card('Bob')).toContainText('Car');
+	await pill('Car').click();
+	// The target covers the whole area; click its corner, clear of the pills.
+	await page
+		.getByRole('button', { name: 'Move Car back to contested' })
+		.click({ position: { x: 8, y: 8 } });
+	await expect(contested).toContainText('Car');
+
+	// Dropping outside every person returns the item to Contested.
+	await drag('House', 5, 5);
+	await expect(contested.locator('.items li')).toHaveText([/House/, /Car/, /Lamp/]);
+	await drag('House', alice.x + alice.width / 2, alice.y + alice.height / 2);
+	await expect(card('Alice')).toContainText('House');
+
+	await page.getByRole('button', { name: 'Continue' }).click();
+	await expect(currentStep(page)).toHaveText(/^3\s*Rounds · 1$/);
+	await expect(page.getByRole('heading', { name: 'Round 1', exact: true })).toBeVisible();
+	await expect(page.getByTestId('split-group')).toHaveCount(2);
+	expect(errors).toEqual([]);
+});
+
 test('Asset Splitting - item pills follow the price order on every screen', async ({ page }) => {
 	const errors = trackErrors(page);
 	await open(page);
@@ -215,6 +273,7 @@ test('Asset Splitting - item pills follow the price order on every screen', asyn
 		...order
 	]);
 	await page.getByRole('button', { name: 'Start', exact: true }).click();
+	await page.getByRole('button', { name: 'Continue' }).click();
 	// The price-balanced start: House alone, the rest together.
 	const groups = page.getByTestId('split-group');
 	await expect(groups.nth(1).locator('.items li')).toHaveText(order);
@@ -301,6 +360,7 @@ test('Asset Splitting - a shared pick starts another round', async ({ page }) =>
 	await expect(page.getByLabel('Person name')).toBeVisible();
 	await expect(itemPill(page, 'Car')).toContainText(/10\s000\s€/);
 	await page.getByRole('button', { name: 'Start', exact: true }).click();
+	await page.getByRole('button', { name: 'Continue' }).click();
 	await expect(page.getByRole('heading', { name: 'Round 1', exact: true })).toBeVisible();
 	expect(errors).toEqual([]);
 });
@@ -401,6 +461,7 @@ test('Asset Splitting - "+" adds and refocuses, and the setup survives a reload'
 	await addPerson(page, 'Carla');
 	await expect(page.getByRole('list', { name: 'People' }).getByRole('listitem')).toHaveCount(3);
 	await page.getByRole('button', { name: 'Start', exact: true }).click();
+	await page.getByRole('button', { name: 'Continue' }).click();
 	await expect(page.getByRole('heading', { name: 'Round 1', exact: true })).toBeVisible();
 	await expect(page.getByRole('button', { name: 'About rounds' })).toBeVisible();
 	expect(errors).toEqual([]);
@@ -429,6 +490,13 @@ for (const colorScheme of ['light', 'dark'] as const) {
 		expect(await axe(page)).toEqual([]);
 
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
+		// Start, with a pill placed and another selected.
+		await page.getByRole('button', { name: 'House', exact: true }).click();
+		await page.getByRole('button', { name: 'Give House to Alice' }).click();
+		await page.getByRole('button', { name: 'Car', exact: true }).click();
+		expect(await axe(page)).toEqual([]);
+		await page.keyboard.press('Escape');
+		await page.getByRole('button', { name: 'Continue' }).click();
 		await tapPlace(page, 'Alice', 0);
 		await tapPlace(page, 'Bob', 0);
 		await page.getByRole('button', { name: 'Complete round' }).click();
@@ -464,6 +532,11 @@ test('Asset Splitting - group cards fill the row and the page fits 390px', async
 	await page.setViewportSize({ width: 390, height: 844 });
 	const width = () => page.evaluate(() => document.documentElement.scrollWidth);
 	expect(await width()).toBeLessThanOrEqual(390);
+	await page.getByRole('button', { name: 'Back to setup' }).click();
+	await page.getByRole('button', { name: 'Start', exact: true }).click();
+	await expect(page.getByTestId('start-contested')).toBeVisible();
+	expect(await width()).toBeLessThanOrEqual(390);
+	await page.getByRole('button', { name: 'Continue' }).click();
 	await tapPlace(page, 'Alice', 0);
 	await tapPlace(page, 'Bob', 1);
 	await page.getByRole('button', { name: 'Complete round' }).click();

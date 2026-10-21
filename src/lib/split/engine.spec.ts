@@ -66,7 +66,7 @@ describe('split engine: rules', () => {
 	});
 
 	it('uses the tuned defaults', () => {
-		expect(DEFAULT_PARAMS).toEqual({ sigmaMu: 0.3, tau: 0.4, lambda: 10 });
+		expect(DEFAULT_PARAMS).toEqual({ sigmaMu: 0.3, tau: 0.4, lambda: 10, lambdaStart: 10 });
 	});
 
 	it('rejects bad input', () => {
@@ -138,6 +138,116 @@ describe('split engine: learning', () => {
 		expect(pFair[7]).toBeGreaterThan(pFair[0] + 0.3);
 		expect(pFair[7]).toBeGreaterThan(0.5);
 		expect(bestFallback(s).residualEnvy).toBeGreaterThanOrEqual(0);
+	});
+});
+
+/** Dense inverse by Gauss–Jordan with partial pivoting. */
+function inverse(a: number[][]): number[][] {
+	const n = a.length;
+	const t = a.map((r, i) => [...r, ...r.map((_, j) => (i === j ? 1 : 0))]);
+	for (let i = 0; i < n; i++) {
+		let p = i;
+		for (let r = i + 1; r < n; r++) if (Math.abs(t[r][i]) > Math.abs(t[p][i])) p = r;
+		[t[i], t[p]] = [t[p], t[i]];
+		const d = t[i][i];
+		for (let j = 0; j < 2 * n; j++) t[i][j] /= d;
+		for (let r = 0; r < n; r++)
+			if (r !== i) {
+				const f = t[r][i];
+				for (let j = 0; j < 2 * n; j++) t[r][j] -= f * t[i][j];
+			}
+	}
+	return t.map((r) => r.slice(n));
+}
+
+describe('split engine: Start placements', () => {
+	const prices = [4000, 3000, 2000, 1000];
+
+	it('validates start', () => {
+		expect(() => initState(prices, 2, DEFAULT_PARAMS, [0, 1])).toThrow();
+		expect(() => initState(prices, 2, DEFAULT_PARAMS, [0, 2, -1, -1])).toThrow();
+		expect(() =>
+			initState(prices, 2, { ...DEFAULT_PARAMS, sigmaMu: 0 }, [0, -1, -1, -1])
+		).toThrow();
+		const all = propose(initState(prices, 3, DEFAULT_PARAMS, [-1, -1, -1, -1]));
+		expect(all).toEqual(propose(initState(prices, 3)));
+	});
+
+	it('gives placed items to their owners in round 1', () => {
+		const start = [1, 0, 1, -1];
+		const p = propose(initState(prices, 2, DEFAULT_PARAMS, start));
+		start.forEach((o, k) => {
+			if (o >= 0) expect(p.groups[o]).toContain(k);
+		});
+	});
+
+	it('lets round picks override a placement', () => {
+		let s = initState(prices, 2, DEFAULT_PARAMS, [0, -1, -1, -1]);
+		let owner = -1;
+		for (let r = 0; r < 4; r++) {
+			const p = propose(s);
+			const g = p.groups.findIndex((items) => items.includes(0));
+			owner = p.owners[g];
+			s = recordRound(s, p, [1 - g, g]); // person 1 keeps taking the item
+		}
+		expect(owner).toBe(1);
+	});
+
+	it('keeps the Laplace covariance exact for the Woodbury form with Start scaling', () => {
+		// No rounds: P = prior precision + the Start curvature bound; compare the
+		// covariance rebuilt from the fit's factors with a dense inverse of P.
+		const n = 3;
+		const m = prices.length;
+		const start = [0, 2, -1, 0];
+		const params = { ...DEFAULT_PARAMS, lambdaStart: 3 };
+		const s = initState(prices, n, params, start) as unknown as {
+			fit: { ut: Float64Array[]; ls: Float64Array; scale: Float64Array };
+		};
+		const tau2 = params.tau ** 2;
+		const mu2 = params.sigmaMu ** 2;
+		const c = mu2 / (tau2 * (tau2 + n * mu2));
+		const betaS = (params.lambdaStart * n) / sum(prices);
+		const N = n * m;
+		const P = Array.from({ length: N }, () => Array<number>(N).fill(0));
+		for (let i = 0; i < n; i++)
+			for (let j = 0; j < n; j++)
+				for (let k = 0; k < m; k++) P[i * m + k][j * m + k] += (i === j ? 1 / tau2 : 0) - c;
+		start.forEach((o, k) => {
+			if (o < 0) return;
+			const a = (betaS * prices[k]) ** 2 / 4;
+			for (let j = 0; j < n; j++) {
+				if (j === o) continue;
+				P[o * m + k][o * m + k] += a;
+				P[j * m + k][j * m + k] += a;
+				P[o * m + k][j * m + k] -= a;
+				P[j * m + k][o * m + k] -= a;
+			}
+		});
+		const cov = inverse(P);
+		const { ut, ls, scale } = s.fit;
+		const gram = (u: Float64Array) =>
+			Array.from({ length: m }, (_, a) =>
+				Array.from({ length: m }, (_, b) => {
+					let t = 0;
+					for (let k = 0; k < m; k++) t += u[a * m + k] * u[b * m + k];
+					return t;
+				})
+			);
+		const eInv = ut.map(gram);
+		const sInv = inverse(gram(ls));
+		let err = 0;
+		for (let i = 0; i < n; i++)
+			for (let j = 0; j < n; j++)
+				for (let a = 0; a < m; a++)
+					for (let b = 0; b < m; b++) {
+						let v = i === j ? eInv[i][a][b] : 0;
+						for (let k = 0; k < m; k++)
+							for (let l = 0; l < m; l++)
+								v +=
+									eInv[i][a][k] * scale[i * m + k] * sInv[k][l] * scale[j * m + l] * eInv[j][l][b];
+						err = Math.max(err, Math.abs(v - cov[i * m + a][j * m + b]));
+					}
+		expect(err).toBeLessThan(1e-12);
 	});
 });
 
