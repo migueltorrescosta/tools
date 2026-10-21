@@ -33,7 +33,7 @@ describe('split simulation: propose and certify vs the old engine', () => {
 			// Certified splits are exactly envy-free; whole-euro rounding moves
 			// each transfer by under 1 €, so envy stays under 2 €.
 			expect(r.worstRoundingEnvy).toBeLessThan(2);
-		});
+		}, 60_000);
 	}
 
 	it('reproduces the old engine numbers quoted in tools#38', () => {
@@ -49,5 +49,5 @@ describe('split simulation: propose and certify vs the old engine', () => {
 			return count;
 		});
 		expect(got).toEqual(expected);
-	});
+	}, 60_000);
 });

@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
-	import { Alert, Button, Field, PageHeader, Panel } from '$lib/ui';
+	import { Alert, Button, Field, InfoTip, PageHeader, Panel } from '$lib/ui';
 	import {
 		bestFallback,
 		initState,
 		isCertified,
 		itemError,
 		paymentLabel,
-		personError,
 		propose,
 		recordRound,
 		roundCap,
@@ -34,8 +33,10 @@
 		moveAnnouncement,
 		personColour,
 		place,
-		toPicks
+		toPicks,
+		whoPaysWhom
 	} from './lib/board';
+	import { byPriceDesc, loadSetup, personNameError, priceTint, saveSetup } from './lib/setup';
 	import { REFERENCES } from './lib/references';
 
 	interface Item {
@@ -56,7 +57,19 @@
 	const fmt = (n: number) => formatter.format(n);
 
 	let hydrated = $state(false);
-	onMount(() => (hydrated = true));
+	/** True once the saved setup has been read, so saving never overwrites it with the empty start. */
+	let loaded = $state(false);
+	onMount(() => {
+		const saved = loadSetup();
+		if (saved) {
+			people = saved.people;
+			items = saved.items;
+			newPerson = { id: saved.nextPersonId, name: '' };
+			newItem = { id: saved.nextItemId, description: '', price: 0 };
+		}
+		loaded = true;
+		hydrated = true;
+	});
 
 	let items = $state<Item[]>([]);
 	let newItem = $state<Item>({ id: 0, description: '', price: 0 });
@@ -64,6 +77,24 @@
 	let newPerson = $state<Person>({ id: 0, name: '' });
 	let itemMsg = $state<string | null>(null);
 	let personMsg = $state<string | null>(null);
+	let nameInput = $state<HTMLInputElement>();
+	let descInput = $state<HTMLInputElement>();
+
+	// Keep the setup across reloads (rounds are not saved).
+	$effect(() => {
+		if (!loaded) return;
+		saveSetup({
+			people: $state.snapshot(people),
+			items: $state.snapshot(items),
+			nextPersonId: newPerson.id,
+			nextItemId: newItem.id
+		});
+	});
+
+	const itemPills = $derived.by(() => {
+		const all = items.map((i) => i.price);
+		return byPriceDesc(items).map((i) => ({ ...i, tint: priceTint(i.price, all) }));
+	});
 
 	function addItem(e: Event) {
 		e.preventDefault();
@@ -71,6 +102,7 @@
 		if (itemMsg) return;
 		items = [...items, { ...newItem, description: newItem.description.trim() }];
 		newItem = { id: newItem.id + 1, description: '', price: 0 };
+		descInput?.focus();
 	}
 
 	function deleteItem(id: number) {
@@ -82,10 +114,14 @@
 
 	function addPerson(e: Event) {
 		e.preventDefault();
-		personMsg = personError(newPerson.name);
+		personMsg = personNameError(
+			newPerson.name,
+			people.map((p) => p.name)
+		);
 		if (personMsg) return;
 		people = [...people, { ...newPerson, name: newPerson.name.trim() }];
 		newPerson = { id: newPerson.id + 1, name: '' };
+		nameInput?.focus();
 	}
 
 	const startMsg = $derived(startError(people.length, items.length));
@@ -292,14 +328,20 @@
 
 	// ---- Final table ----------------------------------------------------------
 
+	/** Rounded settlements per person on the final screen (+ pays). */
+	const finalBalances = $derived(
+		final ? roundedBalances(allocation(final.proposal, final.holder).owed) : []
+	);
+	const payments = $derived(whoPaysWhom(finalBalances));
+
 	const finalRows = $derived.by(() => {
 		if (!final) return [];
-		const { items: mine, owed } = allocation(final.proposal, final.holder);
-		const rounded = roundedBalances(owed);
+		const { items: mine } = allocation(final.proposal, final.holder);
+		const rounded = finalBalances;
 		const max = maxAbsRounded(rounded);
 		return people.map((p, i) => ({
 			name: p.name,
-			items: mine[i].map((k) => items[k].description).join(', ') || '(none)',
+			items: mine[i].map((k) => items[k].description),
 			payment: paymentLabel(rounded[i], fmt),
 			colour: amountColour(rounded[i], fairShare, max)
 		}));
@@ -317,119 +359,120 @@
 
 	{#if phase === 'setup'}
 		<div class="split-view">
-			<Panel title="People">
-				<div class="stack">
-					{#if people.length > 0}
-						<ul class="chips" aria-label="People">
-							{#each people as p (p.id)}
-								<li class="chip">
-									{p.name}
-									<Button
-										size="sm"
-										variant="ghost"
-										aria-label="Delete {p.name}"
-										onclick={() => deletePerson(p.id)}>Delete</Button
-									>
-								</li>
-							{/each}
-						</ul>
-					{:else}
-						<p class="note">No people yet.</p>
-					{/if}
-					<form class="add-form" onsubmit={addPerson} novalidate>
-						<Field label="Person name">
-							{#snippet children(props)}
-								<input
-									class="control"
-									type="text"
-									{...props}
-									bind:value={newPerson.name}
-									placeholder="Name"
-									aria-invalid={personMsg ? 'true' : undefined}
-									aria-describedby={personMsg ? 'person-error' : undefined}
-								/>
-							{/snippet}
-						</Field>
-						<Button type="submit">Add person</Button>
-					</form>
-					{#if personMsg}
-						<div id="person-error"><Alert tone="danger">{personMsg}</Alert></div>
-					{/if}
-				</div>
-			</Panel>
-
-			<Panel title="Items">
-				<div class="stack">
-					{#if items.length > 0}
-						<div class="table-wrap">
-							<table>
-								<caption class="sr-only">Items</caption>
-								<thead>
-									<tr>
-										<th scope="col">Description</th>
-										<th scope="col" class="num">Estimated price</th>
-										<th scope="col"><span class="sr-only">Actions</span></th>
-									</tr>
-								</thead>
-								<tbody>
-									{#each items as item (item.id)}
-										<tr>
-											<td>{item.description}</td>
-											<td class="num">{fmt(Math.round(item.price))}</td>
-											<td class="actions">
-												<Button
-													size="sm"
-													variant="ghost"
-													aria-label="Delete {item.description}"
-													onclick={() => deleteItem(item.id)}>Delete</Button
-												>
-											</td>
-										</tr>
-									{/each}
-								</tbody>
-							</table>
-						</div>
-					{:else}
-						<p class="note">No items yet.</p>
-					{/if}
-					<form class="add-form" onsubmit={addItem} novalidate>
-						<Field label="Item description">
-							{#snippet children(props)}
-								<input
-									class="control"
-									type="text"
-									{...props}
-									bind:value={newItem.description}
-									placeholder="Description"
-									aria-invalid={itemMsg ? 'true' : undefined}
-									aria-describedby={itemMsg ? 'item-error' : undefined}
-								/>
-							{/snippet}
-						</Field>
-						<div class="price">
-							<Field label="Item price (€)">
+			<div class="tip-panel">
+				<Panel title="People">
+					{#snippet actions()}<InfoTip label="people">Everyone who shares the assets.</InfoTip
+						>{/snippet}
+					<div class="stack">
+						{#if people.length > 0}
+							<ul class="pills" aria-label="People">
+								{#each people as p (p.id)}
+									<li class="pill">
+										<span class="pill-name">{p.name}</span>
+										<button
+											type="button"
+											class="remove"
+											aria-label="Remove {p.name}"
+											title="Remove {p.name}"
+											onclick={() => deletePerson(p.id)}>×</button
+										>
+									</li>
+								{/each}
+							</ul>
+						{:else}
+							<p class="note">No people yet.</p>
+						{/if}
+						<form class="add-form" onsubmit={addPerson} novalidate>
+							<Field label="Person name">
 								{#snippet children(props)}
 									<input
 										class="control"
-										type="number"
-										min="0"
-										step="any"
+										type="text"
 										{...props}
-										bind:value={newItem.price}
-										placeholder="Price"
+										bind:this={nameInput}
+										bind:value={newPerson.name}
+										placeholder="Name"
+										aria-invalid={personMsg ? 'true' : undefined}
+										aria-describedby={personMsg ? 'person-error' : undefined}
+									/>
+								{/snippet}
+							</Field>
+							<Button type="submit" class="add" aria-label="Add person" title="Add person">+</Button
+							>
+						</form>
+						{#if personMsg}
+							<div id="person-error"><Alert tone="danger">{personMsg}</Alert></div>
+						{/if}
+					</div>
+				</Panel>
+			</div>
+
+			<div class="tip-panel">
+				<Panel title="Items">
+					{#snippet actions()}<InfoTip label="items"
+							>Your best guess of each item's price. It only sets the starting split; people's picks
+							decide the rest.</InfoTip
+						>{/snippet}
+					<div class="stack">
+						{#if items.length > 0}
+							<ul class="pills" aria-label="Items">
+								{#each itemPills as item (item.id)}
+									<li class="pill item-pill" style:border-color={item.tint}>
+										<span class="pill-name">{item.description}</span>
+										<span class="pill-value">{fmt(Math.round(item.price))}</span>
+										<button
+											type="button"
+											class="remove"
+											aria-label="Remove {item.description}"
+											title="Remove {item.description}"
+											onclick={() => deleteItem(item.id)}>×</button
+										>
+									</li>
+								{/each}
+							</ul>
+						{:else}
+							<p class="note">No items yet.</p>
+						{/if}
+						<form class="add-form" onsubmit={addItem} novalidate>
+							<Field label="Item description">
+								{#snippet children(props)}
+									<input
+										class="control"
+										type="text"
+										{...props}
+										bind:this={descInput}
+										bind:value={newItem.description}
+										placeholder="Description"
 										aria-invalid={itemMsg ? 'true' : undefined}
 										aria-describedby={itemMsg ? 'item-error' : undefined}
 									/>
 								{/snippet}
 							</Field>
-						</div>
-						<Button type="submit">Add item</Button>
-					</form>
-					{#if itemMsg}
-						<div id="item-error"><Alert tone="danger">{itemMsg}</Alert></div>
-					{/if}
-				</div>
-			</Panel>
+							<div class="price">
+								<Field label="Item price (€)">
+									{#snippet children(props)}
+										<input
+											class="control"
+											type="number"
+											min="0"
+											step="any"
+											{...props}
+											bind:value={newItem.price}
+											placeholder="Price"
+											aria-invalid={itemMsg ? 'true' : undefined}
+											aria-describedby={itemMsg ? 'item-error' : undefined}
+										/>
+									{/snippet}
+								</Field>
+							</div>
+							<Button type="submit" class="add" aria-label="Add item" title="Add item">+</Button>
+						</form>
+						{#if itemMsg}
+							<div id="item-error"><Alert tone="danger">{itemMsg}</Alert></div>
+						{/if}
+					</div>
+				</Panel>
+			</div>
 		</div>
 
 		<div class="cluster start">
@@ -442,122 +485,153 @@
 			{#if startMsg}<p id="start-error" class="note">{startMsg}</p>{/if}
 		</div>
 	{:else if phase === 'round' && proposal}
-		<Panel title="Round {rounds.length + 1}">
-			<div class="stack" aria-busy={busy}>
-				{#if fallback}
-					<Alert tone="warning">
-						<div class="stack">
-							<p class="alert-text">{fallbackText(fallback)}</p>
-							<div class="cluster">
-								<Button size="sm" variant="primary" onclick={acceptFallback}
-									>Accept this split</Button
-								>
-								<Button size="sm" onclick={() => (dismissedAt = rounds.length)}>Keep going</Button>
+		<div class="tip-panel">
+			<Panel title="Round {rounds.length + 1}">
+				{#snippet actions()}<InfoTip label="rounds"
+						>Drag your chip to the group you'd take at these amounts. When everyone picks a
+						different group, you're done.</InfoTip
+					>{/snippet}
+				<div class="stack" aria-busy={busy}>
+					{#if fallback}
+						<Alert tone="warning">
+							<div class="stack">
+								<p class="alert-text">{fallbackText(fallback)}</p>
+								<div class="cluster">
+									<Button size="sm" variant="primary" onclick={acceptFallback}
+										>Accept this split</Button
+									>
+									<Button size="sm" onclick={() => (dismissedAt = rounds.length)}>Keep going</Button
+									>
+								</div>
 							</div>
+						</Alert>
+					{/if}
+
+					<div class="groups">
+						{#each proposal.groups as g, gi (gi)}
+							{@const tag = groupDemand[gi]}
+							<section
+								class="group"
+								class:over={tag === 'over'}
+								class:unclaimed={tag === 'unclaimed'}
+								class:targetable={selected !== null || drag !== null}
+								class:drop-over={drag?.target === gi}
+								data-testid="split-group"
+								aria-labelledby="group-{gi}-heading"
+								bind:this={colEls[gi]}
+							>
+								{#if selected !== null}
+									<!-- Tap/keyboard fallback for dragging (WCAG 2.5.7): an invisible button over the card. -->
+									<button
+										type="button"
+										class="card-target"
+										aria-label="Place {people[selected].name} in group {gi + 1}"
+										onclick={() => selected !== null && move(selected, gi)}
+									></button>
+								{/if}
+								<div class="group-head">
+									<h3 id="group-{gi}-heading">Group {gi + 1}</h3>
+									{#if tag}<span class="tag {tag}">{DEMAND_LABEL[tag]}</span>{/if}
+								</div>
+								<p class="taker">
+									Taker: <span
+										style:color={amountColour(proposal.transfers[gi], fairShare, boardMax)}
+										>{paymentLabel(proposal.transfers[gi], fmt)}</span
+									>
+								</p>
+								<ul class="items">
+									{#each g as k (k)}<li>{items[k].description}</li>{/each}
+									{#if g.length === 0}<li class="note">(empty)</li>{/if}
+								</ul>
+								<div class="drop">
+									{#each onGroup[gi] ?? [] as i (people[i].id)}{@render personCard(i)}{/each}
+								</div>
+							</section>
+						{/each}
+					</div>
+
+					<div class="unplaced" data-testid="split-unplaced">
+						<p class="unplaced-label">Unplaced</p>
+						<div class="drop centred">
+							{#each unplaced as i (people[i].id)}{@render personCard(i)}{/each}
+							{#if unplaced.length === 0}<p class="note">Everyone has picked.</p>{/if}
 						</div>
-					</Alert>
-				{/if}
+					</div>
 
-				<div class="groups">
-					{#each proposal.groups as g, gi (gi)}
-						{@const tag = groupDemand[gi]}
-						<section
-							class="group"
-							class:over={tag === 'over'}
-							class:unclaimed={tag === 'unclaimed'}
-							class:targetable={selected !== null || drag !== null}
-							class:drop-over={drag?.target === gi}
-							data-testid="split-group"
-							aria-labelledby="group-{gi}-heading"
-							bind:this={colEls[gi]}
+					<p class="sr-only" aria-live="polite" data-testid="split-announce">{announcement}</p>
+
+					<div class="cluster">
+						<Button variant="primary" disabled={!ready || busy} onclick={completeRound}
+							>{busy ? 'Updating…' : 'Complete round'}</Button
 						>
-							{#if selected !== null}
-								<!-- Tap/keyboard fallback for dragging (WCAG 2.5.7): an invisible button over the card. -->
-								<button
-									type="button"
-									class="card-target"
-									aria-label="Place {people[selected].name} in group {gi + 1}"
-									onclick={() => selected !== null && move(selected, gi)}
-								></button>
-							{/if}
-							<div class="group-head">
-								<h3 id="group-{gi}-heading">Group {gi + 1}</h3>
-								{#if tag}<span class="tag {tag}">{DEMAND_LABEL[tag]}</span>{/if}
-							</div>
-							<p class="taker">
-								Taker: <span style:color={amountColour(proposal.transfers[gi], fairShare, boardMax)}
-									>{paymentLabel(proposal.transfers[gi], fmt)}</span
-								>
-							</p>
-							<ul class="items">
-								{#each g as k (k)}<li>{items[k].description}</li>{/each}
-								{#if g.length === 0}<li class="note">(empty)</li>{/if}
-							</ul>
-							<div class="drop">
-								{#each onGroup[gi] ?? [] as i (people[i].id)}{@render personCard(i)}{/each}
-							</div>
-						</section>
-					{/each}
+						<Button onclick={backToSetup} disabled={busy}>Back to setup</Button>
+					</div>
+					<p class="note">Going back discards all rounds.</p>
 				</div>
-
-				<div class="unplaced" data-testid="split-unplaced">
-					<p class="unplaced-label">Unplaced</p>
-					<div class="drop centred">
-						{#each unplaced as i (people[i].id)}{@render personCard(i)}{/each}
-						{#if unplaced.length === 0}<p class="note">Everyone has picked.</p>{/if}
+			</Panel>
+		</div>
+	{:else if phase === 'final' && final}
+		<div class="tip-panel">
+			<Panel title="Everyone keeps their own group">
+				{#snippet actions()}<InfoTip label="the final split"
+						>Nobody would rather have someone else's group at these amounts. Swap or adjust to try a
+						change and check it with everyone again.</InfoTip
+					>{/snippet}
+				<div class="stack">
+					{#if final.fallback}
+						<p class="note">The best split found so far. It may not suit everyone.</p>
+					{:else}
+						<p class="note">At these amounts, nobody would rather swap.</p>
+					{/if}
+					<div class="table-wrap">
+						<table>
+							<caption class="sr-only">Final split</caption>
+							<thead>
+								<tr>
+									<th scope="col" class="num">Person</th>
+									<th scope="col">Items</th>
+								</tr>
+							</thead>
+							<tbody>
+								{#each finalRows as row, i (i)}
+									<tr>
+										<th scope="row" class="num person-cell">
+											{row.name}
+											<span class="settlement" style:color={row.colour}>{row.payment}</span>
+										</th>
+										<td>
+											{#if row.items.length > 0}
+												<ul class="final-items">
+													{#each row.items as item, k (k)}<li>{item}</li>{/each}
+												</ul>
+											{:else}
+												<span class="note">(none)</span>
+											{/if}
+										</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+					<section class="payments" aria-labelledby="payments-heading">
+						<h3 id="payments-heading">Who pays whom</h3>
+						{#if payments.length > 0}
+							<ul>
+								{#each payments as pay, i (i)}
+									<li>{people[pay.from].name} pays {people[pay.to].name} {fmt(pay.amount)}</li>
+								{/each}
+							</ul>
+						{:else}
+							<p class="note">No payments needed.</p>
+						{/if}
+					</section>
+					<div class="cluster">
+						<Button onclick={startAdjust}>Swap or adjust</Button>
+						<Button onclick={backToSetup}>Start over</Button>
 					</div>
 				</div>
-
-				<p class="note">
-					Drag your chip to the group you'd take at these amounts. When everyone picks a different
-					group, you're done.
-				</p>
-				<p class="sr-only" aria-live="polite" data-testid="split-announce">{announcement}</p>
-
-				<div class="cluster">
-					<Button variant="primary" disabled={!ready || busy} onclick={completeRound}
-						>{busy ? 'Updating…' : 'Complete round'}</Button
-					>
-					<Button onclick={backToSetup} disabled={busy}>Back to setup</Button>
-				</div>
-				<p class="note">Going back discards all rounds.</p>
-			</div>
-		</Panel>
-	{:else if phase === 'final' && final}
-		<Panel title="Everyone keeps their own group">
-			<div class="stack">
-				{#if final.fallback}
-					<p class="note">The best split found so far. It may not suit everyone.</p>
-				{:else}
-					<p class="note">At these amounts, nobody would rather swap.</p>
-				{/if}
-				<div class="table-wrap">
-					<table>
-						<caption class="sr-only">Final split</caption>
-						<thead>
-							<tr>
-								<th scope="col">Person</th>
-								<th scope="col">Items</th>
-								<th scope="col" class="num">Settlement</th>
-							</tr>
-						</thead>
-						<tbody>
-							{#each finalRows as row, i (i)}
-								<tr>
-									<td>{row.name}</td>
-									<td>{row.items}</td>
-									<td class="num" style:color={row.colour}>{row.payment}</td>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
-				</div>
-				<div class="cluster">
-					<Button onclick={startAdjust}>Swap or adjust</Button>
-					<Button onclick={backToSetup}>Start over</Button>
-				</div>
-			</div>
-		</Panel>
+			</Panel>
+		</div>
 	{:else if phase === 'adjust'}
 		<Panel title="Swap or adjust">
 			<div class="stack">
@@ -628,7 +702,12 @@
 		color: var(--text-muted);
 	}
 
-	.chips {
+	/* Info tip right next to the panel title, not pushed to the far right. */
+	.tip-panel :global(.ui-panel-actions) {
+		margin-left: 0;
+	}
+
+	.pills {
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--sp-1);
@@ -637,14 +716,54 @@
 		list-style: none;
 	}
 
-	.chip {
+	.pill {
+		display: inline-flex;
+		align-items: baseline;
+		gap: var(--sp-1);
+		padding: 0 var(--sp-0) 0 var(--sp-2);
+		background: var(--surface);
+		color: var(--text);
+		border: 1px solid var(--border-strong);
+		border-radius: 999px;
+	}
+
+	.item-pill {
+		border-width: 2px;
+	}
+
+	.pill-name {
+		font-weight: 600;
+	}
+
+	.pill-value {
+		font-size: var(--text-xs);
+		color: var(--text-muted);
+	}
+
+	.remove {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--sp-1);
-		padding-left: var(--sp-2);
-		background: var(--surface-2);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
+		justify-content: center;
+		align-self: center;
+		width: 24px;
+		height: 24px;
+		padding: 0;
+		background: transparent;
+		border: 0;
+		border-radius: 50%;
+		color: var(--danger-text);
+		font-size: var(--text-lg);
+		line-height: 1;
+		cursor: pointer;
+	}
+
+	.remove:hover {
+		background: var(--danger-bg);
+	}
+
+	.add-form :global(.add) {
+		min-width: var(--control-h);
+		font-size: var(--text-lg);
 	}
 
 	.add-form {
@@ -663,13 +782,15 @@
 	}
 
 	.table-wrap {
+		width: fit-content;
+		max-width: 100%;
 		overflow-x: auto;
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
 	}
 
 	table {
-		width: 100%;
+		width: auto;
 		border-collapse: collapse;
 		font-size: var(--text-sm);
 	}
@@ -679,6 +800,7 @@
 		height: 32px;
 		padding: var(--sp-1) var(--sp-3);
 		text-align: left;
+		vertical-align: middle;
 		border-bottom: 1px solid var(--border);
 	}
 
@@ -688,7 +810,7 @@
 		color: var(--text-muted);
 	}
 
-	tbody tr:last-child td {
+	tbody tr:last-child > * {
 		border-bottom: 0;
 	}
 
@@ -696,13 +818,37 @@
 		text-align: right;
 	}
 
-	td.actions {
-		width: 1%;
-		padding: 0 var(--sp-1);
+	th.person-cell {
+		background: none;
+		color: var(--text);
+		font-weight: 600;
+		white-space: nowrap;
+	}
+
+	.settlement {
+		display: block;
+		font-weight: 600;
+	}
+
+	.final-items {
+		margin: 0;
+		padding: 0;
+		list-style: none;
 	}
 
 	.start {
 		margin-top: var(--sp-3);
+	}
+
+	.payments h3 {
+		margin: 0 0 var(--sp-1);
+		font-size: var(--text-md);
+	}
+
+	.payments ul {
+		margin: 0;
+		padding-left: var(--sp-4);
+		font-size: var(--text-sm);
 	}
 
 	.alert-text {

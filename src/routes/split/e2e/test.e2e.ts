@@ -52,16 +52,20 @@ const finalRows = (page: Page) =>
 	page
 		.getByRole('table', { name: 'Final split' })
 		.getByRole('row')
-		.filter({ has: page.getByRole('cell') });
+		.filter({ has: page.getByRole('rowheader') });
 
 async function expectSettlementsSumToZero(page: Page) {
 	const rows = finalRows(page);
 	await expect(rows).toHaveCount(2);
 	const payments = await Promise.all(
-		(await rows.all()).map((row) => row.getByRole('cell').nth(2).innerText())
+		(await rows.all()).map((row) => row.locator('.settlement').innerText())
 	);
 	expect(payments.reduce((s, t) => s + signedAmount(t), 0)).toBe(0);
 }
+
+/** An item pill in the setup screen. */
+const itemPill = (page: Page, name: string) =>
+	page.getByRole('list', { name: 'Items' }).getByRole('listitem').filter({ hasText: name });
 
 const chip = (scope: Page | Locator, name: string) =>
 	scope.getByRole('button', { name, exact: true });
@@ -115,8 +119,15 @@ test('Asset Splitting - picks on different groups certify the split', async ({ p
 	const alice = finalRows(page).filter({ hasText: 'Alice' });
 	await expect(alice).toContainText('House');
 	await expect(alice).toContainText('Pay');
-	await expect(alice.getByRole('cell').nth(2)).toHaveAttribute('style', /--danger-text/);
+	await expect(alice.locator('.settlement')).toHaveAttribute('style', /--danger-text/);
 	await expectSettlementsSumToZero(page);
+	// One concrete payment settles two people.
+	const payments = page.getByRole('region', { name: 'Who pays whom' }).getByRole('listitem');
+	await expect(payments).toHaveCount(1);
+	await expect(payments).toHaveText(/^Alice pays Bob \d[\d\s]*\s€$/);
+	const paid = signedAmount('Pay ' + (await payments.innerText()));
+	const owed = signedAmount(await alice.locator('.settlement').innerText());
+	expect(paid).toBe(owed);
 
 	// Swap or adjust: trade the items, then re-check on the board.
 	await page.getByRole('button', { name: 'Swap or adjust' }).click();
@@ -134,7 +145,7 @@ test('Asset Splitting - picks on different groups certify the split', async ({ p
 
 	// Start over keeps people and items.
 	await page.getByRole('button', { name: 'Start over' }).click();
-	await expect(page.getByRole('cell', { name: 'House', exact: true })).toBeVisible();
+	await expect(itemPill(page, 'House')).toBeVisible();
 	await expect(page.getByRole('listitem').filter({ hasText: 'Bob' })).toBeVisible();
 
 	expect(errors).toEqual([]);
@@ -213,7 +224,7 @@ test('Asset Splitting - a shared pick starts another round', async ({ page }) =>
 	// Back to setup discards the rounds and keeps the entered prices.
 	await page.getByRole('button', { name: 'Back to setup' }).click();
 	await expect(page.getByLabel('Person name')).toBeVisible();
-	await expect(page.getByRole('row').filter({ hasText: 'Car' })).toContainText(/10\s000\s€/);
+	await expect(itemPill(page, 'Car')).toContainText(/10\s000\s€/);
 	await page.getByRole('button', { name: 'Start', exact: true }).click();
 	await expect(page.getByRole('heading', { name: 'Round 1', exact: true })).toBeVisible();
 	expect(errors).toEqual([]);
@@ -268,8 +279,13 @@ test('Asset Splitting - Start is blocked with a reason until 2 people and 1 item
 	await page.getByLabel('Item description').fill('House');
 	await page.getByLabel('Item price (€)').fill('50000');
 	await page.getByLabel('Item price (€)').press('Enter');
-	await expect(page.getByRole('cell', { name: 'House', exact: true })).toBeVisible();
+	await expect(itemPill(page, 'House')).toBeVisible();
 	await expect(start).toBeEnabled();
+	// Pills are sorted by price, highest first.
+	await expect(page.getByRole('list', { name: 'Items' }).getByRole('listitem')).toHaveText([
+		/House/,
+		/Car/
+	]);
 	expect(errors).toEqual([]);
 });
 
@@ -285,14 +301,71 @@ test('Asset Splitting - invalid input shows a message', async ({ page }) => {
 	await expect(page.getByText('Enter a price greater than 0.')).toBeVisible();
 	// Rejected input stays in the form for correction, and no item row is added.
 	await expect(page.getByLabel('Item description')).toHaveValue('Car');
-	await expect(page.getByRole('button', { name: 'Delete Car' })).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'Remove Car' })).toHaveCount(0);
 
 	await addItem(page, 'Boat', '3000');
-	await page.getByRole('button', { name: 'Delete Boat' }).click();
-	await expect(page.getByRole('cell', { name: 'Boat', exact: true })).toHaveCount(0);
+	await page.getByRole('button', { name: 'Remove Boat' }).click();
+	await expect(itemPill(page, 'Boat')).toHaveCount(0);
+
+	// Duplicate names are rejected, ignoring case and spaces.
+	await addPerson(page, 'Alice');
+	await addPerson(page, ' alice ');
+	await expect(page.getByText('That name is taken.')).toBeVisible();
+	await expect(page.getByRole('button', { name: /^Remove alice/i })).toHaveCount(1);
+	await page.getByRole('button', { name: 'Remove Alice' }).click();
+	await expect(page.getByRole('list', { name: 'People' })).toHaveCount(0);
+});
+
+test('Asset Splitting - "+" adds and refocuses, and the setup survives a reload', async ({
+	page
+}) => {
+	const errors = trackErrors(page);
+	await open(page);
+	await expect(page.getByRole('button', { name: 'Add person' })).toHaveText('+');
+	await expect(page.getByRole('button', { name: 'Add person' })).toHaveAttribute(
+		'title',
+		'Add person'
+	);
+	await addPerson(page, 'Alice');
+	await expect(page.getByLabel('Person name')).toBeFocused();
+	await addPerson(page, 'Bob');
+	await addItem(page, 'Car', '10000');
+	await expect(page.getByLabel('Item description')).toBeFocused();
+	await addItem(page, 'House', '50000');
+
+	await page.reload();
+	await expect(page.locator('.container[data-hydrated]')).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Remove Alice' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Remove Bob' })).toBeVisible();
+	await expect(itemPill(page, 'House')).toContainText(/50\s000\s€/);
+	// New entries after a reload get fresh ids (no duplicate keys).
+	await addPerson(page, 'Carla');
+	await expect(page.getByRole('list', { name: 'People' }).getByRole('listitem')).toHaveCount(3);
+	await page.getByRole('button', { name: 'Start', exact: true }).click();
+	await expect(page.getByRole('heading', { name: 'Round 1', exact: true })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'About rounds' })).toBeVisible();
+	expect(errors).toEqual([]);
 });
 
 const WCAG_22_AA = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
+
+for (const colorScheme of ['light', 'dark'] as const) {
+	test(`Asset Splitting - setup with pills has no WCAG 2.2 AA violations in ${colorScheme}`, async ({
+		page
+	}) => {
+		await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+		await open(page);
+		await addPerson(page, 'Alice');
+		await addPerson(page, 'Bob');
+		await addItem(page, 'House', '50000');
+		await addItem(page, 'Car', '10000');
+		await addItem(page, 'Lamp', '20');
+		await page.getByRole('button', { name: 'About items' }).focus();
+		await expect(page.getByRole('tooltip').filter({ hasText: 'best guess' })).toBeVisible();
+		const { violations } = await new AxeBuilder({ page }).withTags(WCAG_22_AA).analyze();
+		expect(violations.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([]);
+	});
+}
 
 for (const colorScheme of ['light', 'dark'] as const) {
 	test(`Asset Splitting - the board has no WCAG 2.2 AA violations in ${colorScheme}`, async ({

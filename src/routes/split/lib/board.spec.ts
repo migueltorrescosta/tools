@@ -17,7 +17,8 @@ import {
 	moveAnnouncement,
 	personColour,
 	place,
-	toPicks
+	toPicks,
+	whoPaysWhom
 } from './board';
 
 const proposal: Proposal = {
@@ -111,5 +112,35 @@ describe('hitTest', () => {
 		expect(hitTest(105, 50, rects, 16)).toBe(0);
 		expect(hitTest(50, 130, rects, 16)).toBe(-1);
 		expect(hitTest(50, 112, rects, 16)).toBe(0);
+	});
+});
+
+describe('whoPaysWhom', () => {
+	const check = (balances: number[]) => {
+		const pays = whoPaysWhom(balances);
+		const net = balances.map(() => 0);
+		for (const p of pays) {
+			expect(p.amount).toBeGreaterThan(0);
+			net[p.from] += p.amount;
+			net[p.to] -= p.amount;
+		}
+		expect(net).toEqual(balances);
+		expect(pays.length).toBeLessThanOrEqual(Math.max(0, balances.length - 1));
+		return pays;
+	};
+	it('matches the largest payer with the largest receiver', () => {
+		expect(check([145361, -50692, -43994, -50675])).toEqual([
+			{ from: 0, to: 1, amount: 50692 },
+			{ from: 0, to: 3, amount: 50675 },
+			{ from: 0, to: 2, amount: 43994 }
+		]);
+	});
+	it('settles mixed balances exactly in at most n − 1 payments', () => {
+		check([30, 20, -10, -40, 0]);
+		check([1, -1]);
+		check([7, 5, -3, -3, -3, -3]);
+	});
+	it('needs no payments when everyone is even', () => {
+		expect(check([0, 0, 0])).toEqual([]);
 	});
 });

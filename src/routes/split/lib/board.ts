@@ -132,6 +132,36 @@ export function maxAbsRounded(amounts: readonly number[]): number {
 	return amounts.reduce((m, x) => Math.max(m, Math.abs(Math.round(x))), 0);
 }
 
+export interface Payment {
+	from: number;
+	to: number;
+	amount: number;
+}
+
+/**
+ * Concrete payments that settle whole-euro balances (+ pays, − receives,
+ * summing to 0): repeatedly the largest payer pays the largest receiver as
+ * much as one of them is owed. Each step clears at least one person, so there
+ * are at most n − 1 payments.
+ */
+export function whoPaysWhom(balances: readonly number[]): Payment[] {
+	const left = balances.map((b) => Math.round(b));
+	const out: Payment[] = [];
+	for (;;) {
+		let payer = -1;
+		let receiver = -1;
+		left.forEach((b, i) => {
+			if (b > 0 && (payer < 0 || b > left[payer])) payer = i;
+			if (b < 0 && (receiver < 0 || b < left[receiver])) receiver = i;
+		});
+		if (payer < 0 || receiver < 0) return out;
+		const amount = Math.min(left[payer], -left[receiver]);
+		out.push({ from: payer, to: receiver, amount });
+		left[payer] -= amount;
+		left[receiver] += amount;
+	}
+}
+
 /**
  * Drop target under a point: the index of the rect that contains it after
  * growing each by `slop` px, nearest centre on overlaps; -1 if none.
