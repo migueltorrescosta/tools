@@ -228,10 +228,13 @@ test('Asset Splitting - Start: claim items by colour, then continue', async ({ p
 	);
 	await expect(item('House')).not.toHaveClass(/shared/);
 
-	// A shared claim counts for nobody and gets a dashed border.
+	// A shared claim counts in full for each claimant and gets a dashed border.
 	await page.getByRole('button', { name: 'Bob wants House' }).click();
 	await expect(item('House')).toHaveClass(/shared/);
-	await expect(bar('Alice')).toContainText(/≈ Receive 30\s010\s€/);
+	await expect(bar('Alice')).toContainText(/≈ Pay 19\s990\s€/);
+	await expect(bar('Bob')).toContainText(/≈ Pay 19\s990\s€/);
+	// The track runs from 0 to the total (60 020 €); the tick sits at total / n.
+	await expect(bar('Alice').locator('.fair')).toHaveAttribute('style', /left: calc\(50% - 1px\)/);
 	await page.getByRole('button', { name: 'Bob wants House' }).click();
 	await expect(item('House')).not.toHaveClass(/shared/);
 	await page.getByRole('button', { name: 'Bob wants Car' }).click();

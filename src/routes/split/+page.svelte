@@ -44,7 +44,7 @@
 		parseSetup,
 		personNameError,
 		priceTint,
-		soleClaimValues
+		claimedValues
 	} from './lib/setup';
 	import { REFERENCES } from './lib/references';
 
@@ -214,8 +214,8 @@
 	/** claims[k]: the people who claimed item k at Start. */
 	const claims = $derived(claimed.map((row) => row.flatMap((c, i) => (c ? [i] : []))));
 	/** Start bars: value of items only that person claimed, and value minus a fair share. */
-	const soleValues = $derived(soleClaimValues(prices, claims, n));
-	const estimates = $derived(soleValues.map((v) => v - fairShare));
+	const claimedTotals = $derived(claimedValues(prices, claims, n));
+	const estimates = $derived(claimedTotals.map((v) => v - fairShare));
 	const estimateMax = $derived(maxAbsRounded(estimates));
 
 	async function startAlgorithm() {
@@ -574,7 +574,8 @@
 			<Panel title="Start">
 				{#snippet actions()}<InfoTip label="the start"
 						>Tap your colour on each item you'd like. Several people can want the same item. The
-						amounts are a rough guide from items only you want; the rounds settle the real split.</InfoTip
+						amounts compare what you picked with a fair share; shared items count for everyone who
+						picked them. The rounds settle the real split.</InfoTip
 					>{/snippet}
 				<div class="stack" aria-busy={busy}>
 					<ul class="bars" aria-label="Rough amounts">
@@ -584,15 +585,15 @@
 								<span
 									class="track"
 									role="img"
-									aria-label="{p.name}: items worth {fmt(Math.round(soleValues[i]))} of a {fmt(
+									aria-label="{p.name}: items worth {fmt(Math.round(claimedTotals[i]))} of a {fmt(
 										Math.round(fairShare)
 									)} fair share"
 								>
 									<span
 										class="fill"
-										style:width="{Math.min(100, (soleValues[i] / (2 * fairShare)) * 100)}%"
+										style:width="{Math.min(100, (claimedTotals[i] / (n * fairShare)) * 100)}%"
 									></span>
-									<span class="fair"></span>
+									<span class="fair" style:left="calc({100 / n}% - 1px)"></span>
 								</span>
 								<span
 									class="estimate"
@@ -1132,7 +1133,7 @@
 		line-height: 1;
 	}
 
-	/* Start: one bar per person against a fair share (the tick, at half the track). */
+	/* Start: one bar per person, 0 to the total of all items, with a tick at a fair share (total / n). */
 	.bars {
 		display: grid;
 		gap: var(--sp-1);
@@ -1143,7 +1144,7 @@
 
 	.bar {
 		display: grid;
-		grid-template-columns: minmax(4rem, 8rem) 1fr minmax(7rem, auto);
+		grid-template-columns: minmax(4rem, 8rem) 1fr 9.5rem;
 		align-items: center;
 		gap: var(--sp-2);
 		font-size: var(--text-sm);
@@ -1176,7 +1177,6 @@
 		position: absolute;
 		top: 0;
 		bottom: 0;
-		left: calc(50% - 1px);
 		width: 2px;
 		background: var(--text);
 	}
@@ -1184,7 +1184,6 @@
 	.estimate {
 		font-weight: 600;
 		text-align: right;
-		white-space: nowrap;
 	}
 
 	/* Claim pills wrap their circles inside, so 10 people still fit a phone. */

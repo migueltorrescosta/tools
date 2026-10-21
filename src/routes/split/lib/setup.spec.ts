@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { byPriceDesc, parseSetup, personNameError, priceTint, soleClaimValues } from './setup';
+import { byPriceDesc, parseSetup, personNameError, priceTint, claimedValues } from './setup';
 
 describe('personNameError', () => {
 	it('rejects empty and duplicate names, ignoring case and spaces', () => {
@@ -50,12 +50,12 @@ describe('parseSetup', () => {
 	});
 });
 
-describe('soleClaimValues', () => {
-	it('counts only items claimed by one person, at entered prices', () => {
+describe('claimedValues', () => {
+	it('counts every item a person claimed, shared ones in full, at entered prices', () => {
 		// House shared by 0 and 1, Car only 1, Lamp only 2, Vase unclaimed.
-		const values = soleClaimValues([100, 30, 10, 5], [[0, 1], [1], [2], []], 3);
-		expect(values).toEqual([0, 30, 10]);
+		const values = claimedValues([100, 30, 10, 5], [[0, 1], [1], [2], []], 3);
+		expect(values).toEqual([100, 130, 10]);
 		// The estimate is the value minus a fair share (T / n = 145 / 3).
-		expect(values.map((v) => Math.round(v - 145 / 3))).toEqual([-48, -18, -38]);
+		expect(values.map((v) => Math.round(v - 145 / 3))).toEqual([52, 82, -38]);
 	});
 });
