@@ -136,6 +136,8 @@
 	let placements = $state<(number | null)[]>([]);
 	/** Chip picked up by tap/click, waiting for a target. */
 	let selected = $state<number | null>(null);
+	/** Swap or adjust: item pill picked up by tap/click, waiting for a person. */
+	let selectedItem = $state<number | null>(null);
 	let announcement = $state('');
 	let busy = $state(false);
 	/** Round count at which the fallback offer was dismissed. */
@@ -226,6 +228,7 @@
 	function startAdjust() {
 		if (!final) return;
 		adjustOwner = itemOwners(allocation(final.proposal, final.holder).items, items.length);
+		selectedItem = null;
 		phase = 'adjust';
 	}
 
@@ -263,33 +266,62 @@
 	function onKeydown(e: KeyboardEvent) {
 		if (e.key !== 'Escape') return;
 		if (drag) cancelDrag();
-		else if (selected !== null) selected = null;
+		else {
+			selected = null;
+			selectedItem = null;
+		}
+	}
+
+	/** Swap or adjust: give item k to person i. */
+	function give(k: number, i: number) {
+		adjustOwner[k] = i;
+		announcement = `${items[k].description} goes to ${people[i].name}`;
+		selectedItem = null;
+	}
+
+	function onItemClick(k: number) {
+		if (suppressClick) {
+			suppressClick = false;
+			return;
+		}
+		selectedItem = selectedItem === k ? null : k;
 	}
 
 	// Hand-rolled pointer drag: starts after the pointer moves a few px, for
 	// mouse, pen and touch alike (chips have touch-action: none).
 	const DRAG_THRESHOLD = 5;
-	type Pending = { person: number; id: number; x0: number; y0: number; active: boolean };
+	/** What is dragged: a person's chip onto a group, or an item pill onto a person (Swap or adjust). */
+	type Kind = 'chip' | 'item';
+	type Pending = { kind: Kind; idx: number; id: number; x0: number; y0: number; active: boolean };
 	let pending: Pending | null = null;
 	let suppressClick = false;
 	let colEls = $state<HTMLElement[]>([]);
-	/** The lifted chip, its offset and the group under the pointer (null: none, so unplace). */
-	let drag = $state<{ person: number; dx: number; dy: number; target: number | null } | null>(null);
+	let personEls = $state<HTMLElement[]>([]);
+	/** The lifted chip or pill, its offset and the card under the pointer (null: none). */
+	let drag = $state<{
+		kind: Kind;
+		idx: number;
+		dx: number;
+		dy: number;
+		target: number | null;
+	} | null>(null);
+	const isLifted = (kind: Kind, idx: number) => drag?.kind === kind && drag.idx === idx;
 
-	function targetAt(x: number, y: number): number | null {
+	function targetAt(kind: Kind, x: number, y: number): number | null {
+		const els = (kind === 'chip' ? colEls : personEls).slice(0, n);
 		const hit = hitTest(
 			x,
 			y,
-			colEls.slice(0, n).map((el) => el.getBoundingClientRect())
+			els.map((el) => el.getBoundingClientRect())
 		);
 		return hit < 0 ? null : hit;
 	}
 
-	function onPointerDown(e: PointerEvent, person: number) {
+	function onPointerDown(e: PointerEvent, kind: Kind, idx: number) {
 		if (busy || pending || (e.pointerType === 'mouse' && e.button !== 0)) return;
 		(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 		suppressClick = false;
-		pending = { person, id: e.pointerId, x0: e.clientX, y0: e.clientY, active: false };
+		pending = { kind, idx, id: e.pointerId, x0: e.clientX, y0: e.clientY, active: false };
 	}
 
 	function onPointerMove(e: PointerEvent) {
@@ -299,12 +331,14 @@
 			if (Math.hypot(e.clientX - p.x0, e.clientY - p.y0) < DRAG_THRESHOLD) return;
 			p.active = true;
 			selected = null;
+			selectedItem = null;
 		}
 		drag = {
-			person: p.person,
+			kind: p.kind,
+			idx: p.idx,
 			dx: e.clientX - p.x0,
 			dy: e.clientY - p.y0,
-			target: targetAt(e.clientX, e.clientY)
+			target: targetAt(p.kind, e.clientX, e.clientY)
 		};
 	}
 
@@ -315,8 +349,10 @@
 			// Swallow the click that may follow this pointerup, but no later one.
 			suppressClick = true;
 			setTimeout(() => (suppressClick = false));
-			// Dropped outside every group card: the chip goes back to Unplaced.
-			move(p.person, drag.target);
+			// A chip dropped outside every group card goes back to Unplaced; an
+			// item dropped outside every person stays where it was.
+			if (p.kind === 'chip') move(p.idx, drag.target);
+			else if (drag.target !== null) give(p.idx, drag.target);
 		}
 		cancelDrag();
 	}
@@ -326,7 +362,7 @@
 		drag = null;
 	}
 
-	// ---- Final table ----------------------------------------------------------
+	// ---- Final screen ---------------------------------------------------------
 
 	/** Rounded settlements per person on the final screen (+ pays). */
 	const finalBalances = $derived(
@@ -514,8 +550,8 @@
 								class="group"
 								class:over={tag === 'over'}
 								class:unclaimed={tag === 'unclaimed'}
-								class:targetable={selected !== null || drag !== null}
-								class:drop-over={drag?.target === gi}
+								class:targetable={selected !== null || drag?.kind === 'chip'}
+								class:drop-over={drag?.kind === 'chip' && drag.target === gi}
 								data-testid="split-group"
 								aria-labelledby="group-{gi}-heading"
 								bind:this={colEls[gi]}
@@ -583,35 +619,26 @@
 					{:else}
 						<p class="note">At these amounts, nobody would rather swap.</p>
 					{/if}
-					<div class="table-wrap">
-						<table>
-							<caption class="sr-only">Final split</caption>
-							<thead>
-								<tr>
-									<th scope="col" class="num">Person</th>
-									<th scope="col">Items</th>
-								</tr>
-							</thead>
-							<tbody>
-								{#each finalRows as row, i (i)}
-									<tr>
-										<th scope="row" class="num person-cell">
-											{row.name}
-											<span class="settlement" style:color={row.colour}>{row.payment}</span>
-										</th>
-										<td>
-											{#if row.items.length > 0}
-												<ul class="final-items">
-													{#each row.items as item, k (k)}<li>{item}</li>{/each}
-												</ul>
-											{:else}
-												<span class="note">(none)</span>
-											{/if}
-										</td>
-									</tr>
-								{/each}
-							</tbody>
-						</table>
+					<div class="groups">
+						{#each finalRows as row, i (i)}
+							<section
+								class="group"
+								style:--person={personColour(i)}
+								data-testid="final-person"
+								aria-labelledby="final-{i}-heading"
+							>
+								<h3 id="final-{i}-heading">
+									<span class="dot" aria-hidden="true"></span>{row.name}
+								</h3>
+								<p class="taker">
+									<span class="settlement" style:color={row.colour}>{row.payment}</span>
+								</p>
+								<ul class="items">
+									{#each row.items as item, k (k)}<li>{item}</li>{/each}
+									{#if row.items.length === 0}<li class="note">(none)</li>{/if}
+								</ul>
+							</section>
+						{/each}
 					</div>
 					<section class="payments" aria-labelledby="payments-heading">
 						<h3 id="payments-heading">Who pays whom</h3>
@@ -635,23 +662,58 @@
 	{:else if phase === 'adjust'}
 		<Panel title="Swap or adjust">
 			<div class="stack">
-				<p class="note">Give items to someone else, then check the new split with everyone.</p>
-				<ul class="adjust">
-					{#each items as item, k (item.id)}
-						<li>
-							<span class="adjust-item">{item.description}</span>
-							<select
-								class="control"
-								aria-label="Give {item.description} to"
-								value={adjustOwner[k]}
-								onchange={(e) =>
-									(adjustOwner[k] = Number((e.currentTarget as HTMLSelectElement).value))}
-							>
-								{#each people as p, i (p.id)}<option value={i}>{p.name}</option>{/each}
-							</select>
-						</li>
+				<p class="note">Drag items to someone else, then check the new split with everyone.</p>
+				<div class="groups">
+					{#each people as p, i (p.id)}
+						<section
+							class="group"
+							class:targetable={selectedItem !== null || drag?.kind === 'item'}
+							class:drop-over={drag?.kind === 'item' && drag.target === i}
+							style:--person={personColour(i)}
+							data-testid="adjust-person"
+							aria-labelledby="adjust-{i}-heading"
+							bind:this={personEls[i]}
+						>
+							{#if selectedItem !== null && adjustOwner[selectedItem] !== i}
+								<!-- Tap/keyboard fallback for dragging (WCAG 2.5.7). -->
+								<button
+									type="button"
+									class="card-target"
+									aria-label="Give {items[selectedItem].description} to {p.name}"
+									onclick={() => selectedItem !== null && give(selectedItem, i)}
+								></button>
+							{/if}
+							<h3 id="adjust-{i}-heading">
+								<span class="dot" aria-hidden="true"></span>{p.name}
+							</h3>
+							<ul class="items">
+								{#each items as item, k (item.id)}
+									{#if adjustOwner[k] === i}
+										<li class="item-li">
+											<button
+												type="button"
+												class="item-btn"
+												class:lifted={isLifted('item', k)}
+												style:transform={drag && isLifted('item', k)
+													? `translate(${drag.dx}px, ${drag.dy}px)`
+													: undefined}
+												aria-pressed={selectedItem === k}
+												disabled={busy}
+												onclick={() => onItemClick(k)}
+												onpointerdown={(e) => onPointerDown(e, 'item', k)}
+												onpointermove={onPointerMove}
+												onpointerup={onPointerUp}
+												onpointercancel={cancelDrag}>{item.description}</button
+											>
+										</li>
+									{/if}
+								{/each}
+								{#if !adjustOwner.includes(i)}<li class="note">(none)</li>{/if}
+							</ul>
+						</section>
 					{/each}
-				</ul>
+				</div>
+				<p class="sr-only" aria-live="polite">{announcement}</p>
 				<div class="cluster">
 					<Button variant="primary" disabled={busy} onclick={recheck}
 						>{busy ? 'Updating…' : 'Re-check'}</Button
@@ -682,12 +744,14 @@
 		<button
 			type="button"
 			class="chip-btn"
-			class:lifted={drag?.person === i}
-			style:transform={drag?.person === i ? `translate(${drag.dx}px, ${drag.dy}px)` : undefined}
+			class:lifted={isLifted('chip', i)}
+			style:transform={drag && isLifted('chip', i)
+				? `translate(${drag.dx}px, ${drag.dy}px)`
+				: undefined}
 			aria-pressed={selected === i}
 			disabled={busy}
 			onclick={() => onChipClick(i)}
-			onpointerdown={(e) => onPointerDown(e, i)}
+			onpointerdown={(e) => onPointerDown(e, 'chip', i)}
 			onpointermove={onPointerMove}
 			onpointerup={onPointerUp}
 			onpointercancel={cancelDrag}><span class="dot" aria-hidden="true"></span>{name}</button
@@ -779,61 +843,6 @@
 
 	.price {
 		flex: 0 1 8rem;
-	}
-
-	.table-wrap {
-		width: fit-content;
-		max-width: 100%;
-		overflow-x: auto;
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-	}
-
-	table {
-		width: auto;
-		border-collapse: collapse;
-		font-size: var(--text-sm);
-	}
-
-	th,
-	td {
-		height: 32px;
-		padding: var(--sp-1) var(--sp-3);
-		text-align: left;
-		vertical-align: middle;
-		border-bottom: 1px solid var(--border);
-	}
-
-	th {
-		background: var(--surface-2);
-		font-weight: 600;
-		color: var(--text-muted);
-	}
-
-	tbody tr:last-child > * {
-		border-bottom: 0;
-	}
-
-	.num {
-		text-align: right;
-	}
-
-	th.person-cell {
-		background: none;
-		color: var(--text);
-		font-weight: 600;
-		white-space: nowrap;
-	}
-
-	.settlement {
-		display: block;
-		font-weight: 600;
-	}
-
-	.final-items {
-		margin: 0;
-		padding: 0;
-		list-style: none;
 	}
 
 	.start {
@@ -1069,27 +1078,41 @@
 		background: var(--person);
 	}
 
-	.adjust {
-		display: grid;
-		gap: var(--sp-2);
-		margin: 0;
+	.group h3 .dot {
+		margin-right: var(--sp-1);
+	}
+
+	.items li.item-li {
 		padding: 0;
-		list-style: none;
+		border: 0;
+		background: none;
 	}
 
-	.adjust li {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: var(--sp-2);
+	.item-btn {
+		position: relative;
+		z-index: 1;
+		padding: 0 var(--sp-2);
+		min-height: 28px;
+		background: var(--surface);
+		color: var(--text);
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		font: inherit;
+		cursor: grab;
+		touch-action: none;
+		user-select: none;
 	}
 
-	.adjust-item {
-		flex: 1 1 8rem;
+	.item-btn[aria-pressed='true'] {
+		background: var(--accent-bg);
+		box-shadow: 0 0 0 2px var(--accent);
 	}
 
-	.adjust select {
-		flex: 0 1 10rem;
+	.item-btn.lifted {
+		z-index: 10;
+		cursor: grabbing;
+		box-shadow: 0 6px 16px color-mix(in srgb, var(--text) 30%, transparent);
+		scale: 1.06;
 	}
 
 	.references {

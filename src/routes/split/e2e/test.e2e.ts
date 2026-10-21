@@ -48,11 +48,8 @@ async function startTwo(page: Page) {
 	await expect(page.getByRole('heading', { name: 'Round 1', exact: true })).toBeVisible();
 }
 
-const finalRows = (page: Page) =>
-	page
-		.getByRole('table', { name: 'Final split' })
-		.getByRole('row')
-		.filter({ has: page.getByRole('rowheader') });
+/** One card per person on the final screen. */
+const finalRows = (page: Page) => page.getByTestId('final-person');
 
 async function expectSettlementsSumToZero(page: Page) {
 	const rows = finalRows(page);
@@ -132,8 +129,22 @@ test('Asset Splitting - picks on different groups certify the split', async ({ p
 	// Swap or adjust: trade the items, then re-check on the board.
 	await page.getByRole('button', { name: 'Swap or adjust' }).click();
 	await expect(page.getByText('€')).toHaveCount(0);
-	await page.getByLabel('Give Car to').selectOption({ label: 'Alice' });
-	await page.getByLabel('Give House to').selectOption({ label: 'Bob' });
+	const adjustCard = (name: string) =>
+		page.getByTestId('adjust-person').filter({ has: page.getByRole('heading', { name }) });
+	// Tap fallback: tap the Car pill, then Alice's card.
+	await page.getByRole('button', { name: 'Car', exact: true }).click();
+	await page.getByRole('button', { name: 'Give Car to Alice' }).click();
+	await expect(adjustCard('Alice')).toContainText('Car');
+	// Drag the House pill onto Bob's card.
+	const house = await page.getByRole('button', { name: 'House', exact: true }).boundingBox();
+	const bob = await adjustCard('Bob').boundingBox();
+	if (!house || !bob) throw new Error('no layout');
+	await page.mouse.move(house.x + house.width / 2, house.y + house.height / 2);
+	await page.mouse.down();
+	await page.mouse.move(bob.x + bob.width / 2, bob.y + bob.height / 2, { steps: 8 });
+	await page.mouse.up();
+	await expect(adjustCard('Bob')).toContainText('House');
+	await expect(adjustCard('Alice')).not.toContainText('House');
 	await page.getByRole('button', { name: 'Re-check' }).click();
 	await expect(groups.nth(0)).toContainText('Car');
 	await expect(groups.nth(1)).toContainText('House');
