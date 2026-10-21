@@ -13,8 +13,10 @@
 		canBeCategorical,
 		defaultModes,
 		inputChoices,
-		splitDataset
+		splitDataset,
+		validationIndices
 	} from '$lib/symbolic-regression/dataset';
+	import { predictionsCsv } from '$lib/symbolic-regression/export';
 	import { evaluate } from '$lib/symbolic-regression/expr';
 	import {
 		toJavaScript,
@@ -84,6 +86,8 @@
 		abs: '|x|'
 	};
 	const MAX_PLOT_POINTS = 1500;
+	/** Plot height in the side column, short enough for all three to fit a 1080p screen. */
+	const PLOT_H = 220;
 
 	// --- Data ---
 	let csvText = $state.raw<string | null>(null);
@@ -149,6 +153,7 @@
 	let selected = $state(-1);
 	/** The split the current front was scored on; rebuilt from settings after a reload. */
 	let runData = $state.raw<PreparedData | null>(null);
+	let runSplit = $state.raw<{ fraction: number; seed: number } | null>(null);
 
 	const recommended = $derived(recommendedIndex(front));
 	const selectedEntry = $derived(front[selected] ?? null);
@@ -224,7 +229,9 @@
 		pendingCategorical = columns?.categorical ?? ex.categorical ?? [];
 		if (ex.operators) operators = [...ex.operators];
 		loadCsv(ex.csv, ex.name, ex.id);
+		examplesOpen = false;
 	}
+	let examplesOpen = $state(false);
 
 	async function loadFile(file: File) {
 		const text = await file.text();
@@ -267,6 +274,7 @@
 		frontLevels = [];
 		selected = -1;
 		runData = null;
+		runSplit = null;
 		iterations = 0;
 		elapsedMs = 0;
 	}
@@ -289,6 +297,7 @@
 		const settings = settingsForRun();
 		const data = splitDataset(built, settings.validationFraction, settings.seed);
 		runData = data;
+		runSplit = { fraction: settings.validationFraction, seed: settings.seed };
 		frontNames = data.inputNames;
 		frontLevels = data.levels;
 		frontTarget = data.targetName;
@@ -343,29 +352,37 @@
 	onDestroy(() => engine?.dispose());
 
 	// --- Predictions for the plots ---
+	/** The equation hovered or focused in the list or on the Pareto plot; the plots preview it. */
+	let previewed = $state<number | null>(null);
+	const plotIndex = $derived(previewed !== null && front[previewed] ? previewed : selected);
+	const plotEntry = $derived(front[plotIndex] ?? null);
+
 	const plotData = $derived.by(() => {
 		const data = runData ?? (built ? splitDataset(built, validationPercent / 100, seed) : null);
-		if (!selectedEntry || !data) return null;
+		if (!plotEntry || !data) return null;
 		const val = data.validation;
-		const pred = evaluate(selectedEntry.expr, val.x);
+		const pred = evaluate(plotEntry.expr, val.x);
 		if (!pred) return null;
 		return { val, pred };
 	});
 
 	let plotInput = $state(0);
-	/** The equation hovered in the list, highlighted on the plot. */
-	let hoveredRow = $state<number | null>(null);
 
-	/** Sequential colour by complexity, shared by the list and the plot. */
-	const colors = $derived.by(() => {
-		const cs = front.map((f) => f.complexity);
-		const lo = Math.min(...cs);
-		const span = Math.max(...cs) - lo || 1;
-		return cs.map(
-			(c) =>
-				`color-mix(in oklab, var(--data-3), var(--data-9) ${Math.round(((c - lo) / span) * 100)}%)`
-		);
-	});
+	/**
+	 * Colour by validation R², shared by the chips and the plot: 0 at R² ≤ 0, 1 at R² = 1,
+	 * scaled as 1 − √(1 − R²), the share of the target's standard deviation explained
+	 * (1 − RMSE/σ). Mediocre fits separate clearly; 0.99 and 0.9999 look alike.
+	 */
+	const shades = $derived(
+		front.map((f) =>
+			Number.isFinite(f.valR2) ? 1 - Math.sqrt(1 - Math.min(1, Math.max(0, f.valR2))) : 0
+		)
+	);
+	/** Red, through orange and yellow, to green. */
+	const hue = (t: number) =>
+		`color-mix(in oklch, var(--success) ${Math.round(t * 100)}%, var(--danger))`;
+	const colors = $derived(shades.map(hue));
+	const tints = $derived(shades.map((t) => `color-mix(in oklab, ${hue(t)} 30%, var(--surface))`));
 	const equationsTex = $derived(
 		front.map((f) => renderTex(toLatex(f.expr, frontNames, frontLevels)))
 	);
@@ -392,20 +409,14 @@
 			MAX_PLOT_POINTS
 		);
 	});
-	const residualPoints = $derived.by<Point[]>(() => {
-		if (!plotData) return [];
-		const { val, pred } = plotData;
-		return thin(
-			Array.from(val.y, (y, i) => ({ x: pred[i], y: y - pred[i] })),
-			MAX_PLOT_POINTS
-		);
-	});
-	/** Every row, for the target-against-input plot, while the columns match the front. */
+	/** True while the loaded columns are the ones the front was found on. */
+	const columnsMatch = $derived(
+		!!built && columnsKey(built.inputNames, built.levels) === columnsKey(frontNames, frontLevels)
+	);
+	/** Every row, for the target-against-input plot. */
 	const allRows = $derived.by(() => {
-		if (!selectedEntry || !built) return null;
-		if (columnsKey(built.inputNames, built.levels) !== columnsKey(frontNames, frontLevels))
-			return null;
-		const pred = evaluate(selectedEntry.expr, built.data.x);
+		if (!plotEntry || !built || !columnsMatch) return null;
+		const pred = evaluate(plotEntry.expr, built.data.x);
 		return pred ? { data: built.data, pred } : null;
 	});
 	const inputPoints = $derived.by(() => {
@@ -423,6 +434,21 @@
 			)
 		};
 	});
+
+	// --- Download ---
+	function downloadCsv() {
+		if (!selectedEntry || !parsed || !built || !columnsMatch) return;
+		const pred = evaluate(selectedEntry.expr, built.data.x);
+		if (!pred) return;
+		const split = runSplit ?? { fraction: validationPercent / 100, seed };
+		const val = validationIndices(built.data.y.length, split.fraction, split.seed);
+		const blob = new Blob([predictionsCsv(parsed, built, pred, val)], { type: 'text/csv' });
+		const a = document.createElement('a');
+		a.href = URL.createObjectURL(blob);
+		a.download = `${sourceName.replace(/\.[^.]*$/, '') || 'data'}-predicted.csv`;
+		a.click();
+		URL.revokeObjectURL(a.href);
+	}
 
 	/** Equal for the same inputs coded the same way. */
 	function columnsKey(names: string[], levels: Levels): string {
@@ -577,6 +603,15 @@
 		return () => clearTimeout(timer);
 	});
 
+	const progressText = $derived(
+		[
+			running ? 'Searching…' : '',
+			iterations > 0 ? `${iterations} iterations, ${(elapsedMs / 1000).toFixed(1)} s` : ''
+		]
+			.filter(Boolean)
+			.join(' ')
+	);
+
 	/** Announced politely when a search starts or stops, not on every progress tick. */
 	const announcement = $derived(
 		running
@@ -591,7 +626,7 @@
 	}
 </script>
 
-<div class="container" data-hydrated={hydrated || undefined}>
+<div class="container sr-page" data-hydrated={hydrated || undefined}>
 	<PageHeader path="/symbolic-regression">
 		{#snippet actions()}<ShareActions
 				url={shareUrl}
@@ -601,7 +636,19 @@
 		Fit compact, interpretable equations to a CSV. Everything runs in your browser.</PageHeader
 	>
 
-	<div class="layout">
+	{#snippet metricsTip(i: number)}
+		{@const f = front[i]}
+		<div class="tip-eq"><Tex html={equationsTex[i]} /></div>
+		<dl class="tip-metrics">
+			<dt>Complexity</dt>
+			<dd>{f.complexity}</dd>
+			{#each METRICS as [key, label] (key)}<dt>{label}</dt>
+				<dd>{fmt(f[key])}</dd>{/each}
+		</dl>
+		{#if i === recommended}<p class="muted">Best: {GLOSSARY.best}</p>{/if}
+	{/snippet}
+
+	<div class="layout" class:has-plots={front.length > 0}>
 		<div class="stack inputs">
 			<Panel title="Data">
 				<div class="stack">
@@ -623,17 +670,21 @@
 							<input type="file" accept=".csv,.tsv,.txt,text/csv" onchange={onFileInput} />
 						</label>
 					</div>
-					<div class="cluster">
-						<span class="muted">Examples</span>
-						{#each EXAMPLES as ex (ex.id)}
-							<Button size="sm" onclick={() => loadExample(ex.id)} title={ex.description}
-								>{ex.name}</Button
-							>
-						{/each}
-					</div>
+					<details class="examples" bind:open={examplesOpen} data-testid="examples">
+						<summary>Example datasets</summary>
+						<ul>
+							{#each EXAMPLES as ex (ex.id)}
+								<li>
+									<Button size="sm" onclick={() => loadExample(ex.id)}>{ex.name}</Button>
+									<span class="muted">{ex.description}</span>
+								</li>
+							{/each}
+						</ul>
+					</details>
 					{#if loadError}<Alert tone="danger">{loadError}</Alert>{/if}
 					{#if parsed}
 						<p class="status" data-testid="data-status">
+							{#if exampleId}Example dataset{/if}
 							<strong>{sourceName}</strong>: {parsed.rows.length} rows, {parsed.header.length} columns.
 							{#if built}
 								<span data-testid="dropped">
@@ -670,23 +721,25 @@
 									>Inputs <InfoTip label="input modes">{GLOSSARY.inputs}</InfoTip></span
 								>
 							</legend>
-							{#each columns as c (c.index)}
-								{#if c.index !== targetIndex && modes[c.index] !== undefined}
-									<div class="column" data-column={c.name}>
-										<SegmentedControl
-											legend="{c.name} ({c.levels > 1000 ? '1000+' : c.levels} values)"
-											options={modeOptions(c)}
-											bind:value={modes[c.index]}
-										/>
-										{#if modes[c.index] === 'categorical' && c.levels > CATEGORY_WARN}
-											<p class="warn" data-testid="levels-warning">
-												{c.levels} categories: the search over subsets slows down and may overfit. Merge
-												rare values if you can.
-											</p>
-										{/if}
-									</div>
-								{/if}
-							{/each}
+							<div class="column-list">
+								{#each columns as c (c.index)}
+									{#if c.index !== targetIndex && modes[c.index] !== undefined}
+										<div class="column" data-column={c.name}>
+											<SegmentedControl
+												legend="{c.name} ({c.levels > 1000 ? '1000+' : c.levels} values)"
+												options={modeOptions(c)}
+												bind:value={modes[c.index]}
+											/>
+											{#if modes[c.index] === 'categorical' && c.levels > CATEGORY_WARN}
+												<p class="warn" data-testid="levels-warning">
+													{c.levels} categories: the search over subsets slows down and may overfit. Merge
+													rare values if you can.
+												</p>
+											{/if}
+										</div>
+									{/if}
+								{/each}
+							</div>
 						</fieldset>
 					{/if}
 				</div>
@@ -751,20 +804,6 @@
 							{/snippet}
 						</Field>
 					</div>
-					<div class="cluster">
-						<Button
-							variant="primary"
-							onclick={start}
-							disabled={!built || running || operators.length === 0}>Start</Button
-						>
-						<Button variant="danger" onclick={stop} disabled={!running}>Stop</Button>
-						<Button onclick={resume} disabled={!canContinue || running}>Continue</Button>
-						<span class="muted" data-testid="progress">
-							{#if running}Searching…
-							{/if}{#if iterations > 0}{iterations} iterations, {(elapsedMs / 1000).toFixed(1)} s{/if}
-						</span>
-					</div>
-					{#if runError}<Alert tone="danger">{runError}</Alert>{/if}
 				</div>
 			</Panel>
 		</div>
@@ -772,6 +811,20 @@
 		<div class="results">
 			<p class="sr-only" role="status">{announcement}</p>
 			<Panel title="Results">
+				{#snippet actions()}
+					<span class="muted" data-testid="progress">
+						{progressText}
+					</span>
+					<Button
+						size="sm"
+						variant="primary"
+						onclick={start}
+						disabled={!built || running || operators.length === 0}>Start</Button
+					>
+					<Button size="sm" variant="danger" onclick={stop} disabled={!running}>Stop</Button>
+					<Button size="sm" onclick={resume} disabled={!canContinue || running}>Continue</Button>
+				{/snippet}
+				{#if runError}<Alert tone="danger">{runError}</Alert>{/if}
 				{#if front.length === 0}
 					<p class="muted placeholder">
 						Load data, pick a target and press Start. The equations found appear here, from the
@@ -780,10 +833,13 @@
 				{:else}
 					<div class="stack">
 						{#if selectedEntry}
-							<div class="equation" data-testid="equation"><Tex html={selectedTex} /></div>
-							<p class="mono eq-text" data-testid="equation-text">
-								{toText(selectedEntry.expr, frontNames, frontLevels)}
-							</p>
+							<div
+								class="equation"
+								data-testid="equation"
+								data-equation={toText(selectedEntry.expr, frontNames, frontLevels)}
+							>
+								<Tex html={selectedTex} />
+							</div>
 							<dl class="metrics" data-testid="metrics">
 								<div>
 									<dt>Complexity <InfoTip label="complexity">{GLOSSARY.complexity}</InfoTip></dt>
@@ -804,6 +860,15 @@
 								<Button size="sm" onclick={() => copy('latex')}>LaTeX</Button>
 								<Button size="sm" onclick={() => copy('python')}>Python</Button>
 								<Button size="sm" onclick={() => copy('js')}>JavaScript</Button>
+								<Button
+									size="sm"
+									onclick={downloadCsv}
+									disabled={!columnsMatch}
+									title={columnsMatch
+										? `Every row, with ${frontTarget}_predicted from this equation and the split`
+										: 'The loaded columns differ from the ones these equations use'}
+									>Download CSV</Button
+								>
 								<span class="copied" role="status"
 									>{#if copied}<span data-testid="copied">Copied {copied}</span>{/if}</span
 								>
@@ -814,99 +879,112 @@
 							<h3>
 								Equations by complexity <InfoTip label="complexity">{GLOSSARY.complexity}</InfoTip>
 							</h3>
-							<span class="muted"
-								><span class="badge">best</span>
-								<InfoTip label="best">{GLOSSARY.best}</InfoTip></span
-							>
+							<span class="r2-legend">
+								<span aria-hidden="true">R² 0</span><span class="ramp"></span><span
+									aria-hidden="true">1</span
+								>
+								<InfoTip label="colour">{GLOSSARY.colour}</InfoTip>
+							</span>
 						</div>
-						<ol class="front-list" data-testid="front">
+						<ol class="chips" data-testid="front">
 							{#each front as f, i (f.complexity)}
 								<li>
 									<button
 										type="button"
-										class="front-row"
+										class="chip"
 										class:selected={i === selected}
+										style:background={tints[i]}
 										aria-pressed={i === selected}
 										aria-label="Select the equation of complexity {f.complexity}{i === recommended
 											? ' (best)'
 											: ''}"
+										aria-describedby={previewed === i ? 'chip-tip' : undefined}
 										data-complexity={f.complexity}
 										data-equation={toText(f.expr, frontNames, frontLevels)}
 										onclick={() => (selected = i)}
-										onmouseenter={() => (hoveredRow = i)}
-										onmouseleave={() => (hoveredRow = null)}
-										onfocus={() => (hoveredRow = i)}
-										onblur={() => (hoveredRow = null)}
+										onmouseenter={() => (previewed = i)}
+										onmouseleave={() => (previewed = null)}
+										onfocus={() => (previewed = i)}
+										onblur={() => (previewed = null)}
+										onkeydown={(e) => {
+											if (e.key === 'Escape') previewed = null;
+										}}
 									>
-										<span class="swatch" style:background={colors[i]} aria-hidden="true"></span>
 										<span class="complexity">{f.complexity}</span>
 										<span class="row-eq" data-testid="row-equation"
 											><Tex html={equationsTex[i]} /></span
 										>
 										{#if i === recommended}<span class="badge" data-testid="best">best</span>{/if}
 									</button>
+									{#if previewed === i}
+										<div
+											class="tip chip-tip"
+											id="chip-tip"
+											role="tooltip"
+											data-testid="chip-tooltip"
+										>
+											{@render metricsTip(i)}
+										</div>
+									{/if}
 								</li>
 							{/each}
 						</ol>
-
-						<div class="plots">
-							<FrontPlot
-								{front}
-								{colors}
-								{selected}
-								{recommended}
-								highlighted={hoveredRow}
-								onSelect={(i) => (selected = i)}
-							>
-								{#snippet tooltip(i)}
-									{@const f = front[i]}
-									<div class="tip-eq"><Tex html={equationsTex[i]} /></div>
-									<dl class="tip-metrics">
-										<dt>Complexity</dt>
-										<dd>{f.complexity}</dd>
-										{#each METRICS as [key, label] (key)}<dt>{label}</dt>
-											<dd>{fmt(f[key])}</dd>{/each}
-									</dl>
-									{#if i === recommended}<p class="muted">Best: {GLOSSARY.best}</p>{/if}
-								{/snippet}
-							</FrontPlot>
-							<ScatterPlot
-								title="Predicted vs actual (validation)"
-								points={predictedPoints}
-								xLabel="Actual {frontTarget}"
-								yLabel="Predicted"
-								identityLine
-							/>
-							<ScatterPlot
-								title="Residuals (validation)"
-								points={residualPoints}
-								xLabel="Predicted"
-								yLabel="Actual − predicted"
-								zeroLine
-							/>
-							<div class="stack input-plot">
-								<ScatterPlot
-									title="{frontTarget} against {frontNames[plotInput] ?? ''}"
-									points={inputPoints.actual}
-									overlay={inputPoints.predicted}
-									pointsLabel="Actual"
-									overlayLabel="Predicted"
-									xLabel={frontNames[plotInput] ?? ''}
-									yLabel={frontTarget}
-								/>
-								<Field label="Plot against input">
-									{#snippet children(props)}
-										<select class="control" {...props} bind:value={plotInput}>
-											{#each frontNames as name, i (i)}<option value={i}>{name}</option>{/each}
-										</select>
-									{/snippet}
-								</Field>
-							</div>
-						</div>
 					</div>
 				{/if}
 			</Panel>
 		</div>
+
+		{#if front.length > 0}
+			<aside class="plots" aria-label="Plots" data-testid="plots">
+				<p class="muted plots-for" data-testid="plots-for">
+					{#if plotEntry}Complexity {plotEntry.complexity}{previewed !== null
+							? ' (preview)'
+							: ''}{/if}
+				</p>
+				<FrontPlot
+					{front}
+					{colors}
+					{selected}
+					{recommended}
+					height={PLOT_H}
+					highlighted={previewed}
+					onSelect={(i) => (selected = i)}
+					onHover={(i) => (previewed = i)}
+					tooltip={metricsTip}
+				/>
+				<ScatterPlot
+					title="Predicted vs actual (validation)"
+					testId="predicted-plot"
+					height={PLOT_H}
+					points={predictedPoints}
+					xLabel="Actual {frontTarget}"
+					yLabel="Predicted"
+					identityLine
+				/>
+				<ScatterPlot
+					title="{frontTarget} against {frontNames[plotInput] ?? ''}"
+					testId="input-plot"
+					height={PLOT_H}
+					points={inputPoints.actual}
+					overlay={inputPoints.predicted}
+					pointsLabel="Actual"
+					overlayLabel="Predicted"
+					xLabel={frontNames[plotInput] ?? ''}
+					yLabel={frontTarget}
+				>
+					{#snippet caption()}
+						{frontTarget} against
+						<select
+							class="control input-select"
+							aria-label="Plot against input"
+							bind:value={plotInput}
+						>
+							{#each frontNames as name, i (i)}<option value={i}>{name}</option>{/each}
+						</select>
+					{/snippet}
+				</ScatterPlot>
+			</aside>
+		{/if}
 	</div>
 
 	<details class="how">
@@ -918,9 +996,11 @@
 		</p>
 		<p>
 			A genetic search runs on Web Workers for the time budget, combining the chosen operators. It
-			keeps a Pareto front: the most accurate equation at each complexity. The row marked
-			<strong>best</strong> balances accuracy against simplicity; select any row or point on the Pareto
-			plot to inspect it. Stop pauses the search and Continue resumes it.
+			keeps a Pareto front: the most accurate equation at each complexity. The equation marked
+			<strong>best</strong> balances accuracy against simplicity; select any equation or point on the
+			Pareto plot to inspect it, or hover one to preview it in the plots. Download CSV saves your data
+			with the selected equation's predictions and each row's split. Stop pauses the search and Continue
+			resumes it.
 		</p>
 		<p>
 			Your data never leaves the browser. Datasets under about 2 MB and the last results are saved
@@ -930,6 +1010,9 @@
 </div>
 
 <style>
+	.sr-page {
+		max-width: 1920px;
+	}
 	.layout {
 		display: grid;
 		gap: var(--sp-3);
@@ -937,12 +1020,63 @@
 	}
 	@media (min-width: 960px) {
 		.layout {
-			grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+			grid-template-columns: minmax(300px, 340px) minmax(0, 1fr);
+		}
+		.plots {
+			grid-column: 2;
+		}
+	}
+	/* Plots in a column of their own, kept in view while the equations scroll */
+	@media (min-width: 1400px) {
+		.layout.has-plots {
+			grid-template-columns: minmax(280px, 320px) minmax(0, 1fr) minmax(360px, 420px);
+		}
+		.plots {
+			grid-column: 3;
+			position: sticky;
+			top: calc(var(--topbar-h) + var(--sp-2));
+			max-height: calc(100vh - var(--topbar-h) - var(--sp-3));
+			overflow-y: auto;
 		}
 	}
 	.inputs,
-	.results {
+	.results,
+	.plots {
 		min-width: 0;
+	}
+	.plots {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-2);
+	}
+	.plots-for {
+		min-height: 1lh;
+	}
+	.input-select {
+		width: auto;
+		max-width: 12rem;
+		min-height: var(--control-h-sm);
+		padding-block: 0;
+		font-size: var(--text-sm);
+	}
+	.examples summary {
+		cursor: pointer;
+		font-size: var(--text-sm);
+		font-weight: 500;
+	}
+	.examples ul {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-2);
+		margin: var(--sp-2) 0 0;
+		padding: 0;
+		list-style: none;
+	}
+	.examples li {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--sp-0);
 	}
 	.muted {
 		color: var(--text-muted);
@@ -1031,10 +1165,6 @@
 		font-size: var(--text-xl);
 		overflow-x: auto;
 	}
-	.eq-text {
-		color: var(--text-muted);
-		overflow-wrap: anywhere;
-	}
 	.copy-row {
 		--gap: var(--sp-1);
 	}
@@ -1055,6 +1185,13 @@
 		padding: 0;
 		border: 0;
 		min-width: 0;
+	}
+	.column-list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-2);
+		max-height: 24rem;
+		overflow-y: auto;
 	}
 	.columns > legend {
 		padding: 0;
@@ -1113,61 +1250,88 @@
 		font-size: var(--text-sm);
 		font-weight: 600;
 	}
-	.front-list {
-		max-height: 22rem;
-		overflow: auto;
+	.r2-legend {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--sp-1);
+		color: var(--text-muted);
+		font-family: var(--font-mono);
+		font-size: var(--text-xs);
+	}
+	.ramp {
+		width: 4rem;
+		height: 10px;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-sm);
+		background: linear-gradient(
+			in oklch to right,
+			color-mix(in oklab, var(--danger) 30%, var(--surface)),
+			color-mix(in oklab, var(--success) 30%, var(--surface))
+		);
+	}
+	.chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--sp-1);
 		margin: 0;
 		padding: 0;
 		list-style: none;
+	}
+	.chips li {
+		position: relative;
+		min-width: 0;
+		max-width: 100%;
+	}
+	.chip {
+		font-size: var(--text-sm);
+		display: inline-flex;
+		align-items: center;
+		gap: var(--sp-1);
+		max-width: 100%;
+		min-height: 32px;
+		padding: var(--sp-0) var(--sp-2);
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
-	}
-	.front-list li + li {
-		border-top: 1px solid var(--border);
-	}
-	.front-row {
-		display: flex;
-		align-items: center;
-		gap: var(--sp-2);
-		width: 100%;
-		min-height: 36px;
-		padding: var(--sp-1) var(--sp-2);
-		border: 0;
-		background: transparent;
 		color: var(--text);
 		text-align: left;
 		cursor: pointer;
 	}
-	.front-row:hover {
-		background: var(--surface-2);
+	.chip:hover {
+		border-color: var(--border-strong);
 	}
-	.front-row.selected {
-		background: var(--accent-bg);
-		box-shadow: inset 3px 0 0 var(--accent);
+	.chip.selected {
+		border-color: var(--accent);
+		box-shadow: 0 0 0 1px var(--accent);
 	}
-	.front-row:focus-visible {
+	.chip:focus-visible {
 		outline: 2px solid var(--focus-ring);
-		outline-offset: -2px;
-	}
-	.swatch {
-		flex: none;
-		width: 12px;
-		height: 12px;
-		border-radius: 50%;
+		outline-offset: 2px;
 	}
 	.complexity {
 		flex: none;
-		min-width: 2ch;
 		font-family: var(--font-mono);
-		font-size: var(--text-sm);
+		font-size: var(--text-xs);
 		color: var(--text-muted);
-		text-align: right;
 	}
 	.row-eq {
-		flex: 1 1 auto;
 		min-width: 0;
-		padding: var(--sp-0) 0;
 		overflow: auto hidden;
+	}
+	.tip {
+		position: absolute;
+		top: calc(100% + 4px);
+		left: 0;
+		z-index: 10;
+		width: max-content;
+		max-width: min(22rem, 90vw);
+		padding: var(--sp-2);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-sm);
+		background: var(--surface);
+		color: var(--text);
+		box-shadow: 0 4px 12px rgb(0 0 0 / 0.15);
+		font-size: var(--text-xs);
+		pointer-events: none;
 	}
 	.tip-eq {
 		margin-bottom: var(--sp-1);
@@ -1187,7 +1351,7 @@
 		font-family: var(--font-mono);
 		text-align: right;
 	}
-	.tip-metrics + :global(p) {
+	.tip-metrics + p {
 		margin-top: var(--sp-1);
 		max-width: 18rem;
 	}
@@ -1200,13 +1364,5 @@
 		background: var(--warning-bg);
 		font-size: var(--text-xs);
 		font-weight: 600;
-	}
-	.plots {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
-		gap: var(--sp-3);
-	}
-	.input-plot {
-		--gap: var(--sp-2);
 	}
 </style>

@@ -7,6 +7,8 @@ export const GLOSSARY = {
 		'Mean squared error on the held-out validation rows, which the search never fits constants to.',
 	valR2:
 		"Share of the target's variance on the validation rows that the equation explains: 1 is a perfect fit, 0 is no better than predicting the mean, below 0 is worse than the mean.",
+	colour:
+		'Red at validation R² 0 or below, green at 1. The colour follows how much of the target’s spread the equation explains, so 0.99 and 0.9999 look alike.',
 	valRmse: "Square root of the validation MSE, in the target's own units.",
 	score:
 		'How fast the log validation MSE drops per extra node against the next simpler equation (PySR’s score). High means the added terms pay off.',
