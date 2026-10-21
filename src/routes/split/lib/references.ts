@@ -53,16 +53,15 @@ export const REFERENCES: readonly Reference[] = [
 		venue: 'Operations Research 67(2).',
 		href: 'https://doi.org/10.1287/opre.2018.1790',
 		impact:
-			'Each pick updates a Gaussian estimate of everyone’s values, replacing the old fixed 10% step.'
+			'Each pick updates a Gaussian estimate of everyone’s values, so steps shrink as the estimate firms up.'
 	},
 	{
-		cite: 'Huang, D. & Luo, L. (2016).',
-		title:
-			'Consumer preference elicitation of complex products using fuzzy support vector machine active learning.',
-		venue: 'Marketing Science 35(3).',
-		href: 'https://faculty.marshall.usc.edu/lan-Luo/ActiveLearningFinal.pdf',
+		cite: 'Saha, A. & Gopalan, A. (2019).',
+		title: 'Active ranking with subset-wise preferences.',
+		venue: 'AISTATS.',
+		href: 'https://arxiv.org/abs/1810.10321',
 		impact:
-			'A handful of well-chosen choice questions recovers preferences, and sharing information across people helps most early on.'
+			'Picking one winner from a bigger menu does not cut the rounds needed, so rounds show one group per person.'
 	},
 	{
 		cite: 'Boutilier, C., Regan, K. & Viappiani, P. (2009).',
@@ -85,7 +84,8 @@ export const REFERENCES: readonly Reference[] = [
 			'Procedural justice in algorithmic fairness: Leveraging transparency and outcome control for fair algorithmic mediation.',
 		venue: 'CSCW.',
 		href: 'https://minlee.ischool.utexas.edu/materials/Publication/2019-CSCW-Al_ProceduralFairness.pdf',
-		impact: 'The optional swap-or-adjust step, and plain wording instead of jargon.'
+		impact:
+			'Letting people move items on the final screen and re-check raised perceived fairness; plain wording instead of jargon.'
 	},
 	{
 		cite: 'Velez, R. A. (2019).',
@@ -96,10 +96,26 @@ export const REFERENCES: readonly Reference[] = [
 			'Even if people game their picks, the stable outcomes of a fair rule stay fair, so visible picks are acceptable.'
 	},
 	{
+		cite: 'Hosseini, H., Kavner, J., Sikdar, S., Vaish, R. & Xia, L. (2022).',
+		title: 'Epistemic vs. counterfactual fairness in allocation of resources.',
+		venue: 'arXiv:2212.04574.',
+		href: 'https://arxiv.org/abs/2212.04574',
+		impact:
+			'People judge a split by whether they would swap, so the result says “nobody would rather swap”.'
+	},
+	{
 		cite: 'W3C (2023).',
 		title: 'Web Content Accessibility Guidelines 2.2, SC 2.5.7 Dragging Movements.',
 		venue: '',
 		href: 'https://www.w3.org/WAI/WCAG22/Understanding/dragging-movements.html',
 		impact: 'Dragging also works without a drag: tap (or press Enter on) a chip, then a group.'
+	},
+	{
+		cite: 'This tool (2026).',
+		title: 'Simulation of the Start step, PR #39.',
+		venue: '',
+		href: 'https://github.com/migueltorrescosta/tools/pull/39',
+		impact:
+			'No paper covers group-agreed placements; in simulation they raised items with whoever values them most from 54% to 85–95% (2 people, 50 items).'
 	}
 ];

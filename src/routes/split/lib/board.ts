@@ -74,7 +74,7 @@ export function allocation(proposal: Proposal, holder: readonly number[]) {
 	return { items, owed };
 }
 
-/** itemOwner[k] = person holding item k, for the swap-or-adjust editor. */
+/** itemOwner[k] = person holding item k, for editing the final screen. */
 export function itemOwners(personItems: readonly (readonly number[])[], m: number): number[] {
 	const owner = Array<number>(m).fill(0);
 	personItems.forEach((list, person) => list.forEach((k) => (owner[k] = person)));
