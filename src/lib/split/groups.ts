@@ -18,18 +18,3 @@ export function lptGroups(items: readonly PricedItem[], n: number): number[][] {
 	}
 	return groups;
 }
-
-/** Sum of the prices of the items in a group. Unknown ids count as 0. */
-export function groupValue(group: readonly number[], items: readonly PricedItem[]): number {
-	return group.reduce((s, id) => s + (items.find((i) => i.id === id)?.price ?? 0), 0);
-}
-
-/** Group value minus the fair share (total / n). */
-export function groupDelta(
-	group: readonly number[],
-	items: readonly PricedItem[],
-	n: number
-): number {
-	const total = items.reduce((s, i) => s + i.price, 0);
-	return groupValue(group, items) - total / n;
-}

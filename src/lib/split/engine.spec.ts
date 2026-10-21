@@ -1,0 +1,148 @@
+import { describe, it, expect } from 'vitest';
+import {
+	DEFAULT_PARAMS,
+	bestFallback,
+	initState,
+	isCertified,
+	propose,
+	recordRound,
+	roundCap,
+	transfersFor
+} from './engine';
+import { lptGroups } from './groups';
+import { seededRng } from './rng';
+
+const sum = (xs: readonly number[]) => xs.reduce((a, b) => a + b, 0);
+
+describe('split engine: first proposal', () => {
+	it('equals LPT grouping, group b owned by person b, for random prices', () => {
+		const rng = seededRng(3);
+		for (let trial = 0; trial < 40; trial++) {
+			const n = 2 + Math.floor(rng() * 5);
+			const prices = Array.from({ length: 1 + Math.floor(rng() * 12) }, () =>
+				rng() < 0.3 ? 100 : Math.round(1 + rng() * 10000)
+			);
+			const p = propose(initState(prices, n));
+			expect(p.groups).toEqual(
+				lptGroups(
+					prices.map((price, id) => ({ id, price })),
+					n
+				)
+			);
+			expect(p.owners).toEqual(Array.from({ length: n }, (_, i) => i));
+			expect(Math.abs(sum(p.transfers))).toBeLessThan(1e-6 * sum(prices));
+		}
+	});
+
+	it('splits Car 10000 and House 50000 with transfers ±20000', () => {
+		const p = propose(initState([10000, 50000], 2));
+		expect(p.groups).toEqual([[1], [0]]);
+		expect(p.transfers[0]).toBeCloseTo(20000, 3);
+		expect(p.transfers[1]).toBeCloseTo(-20000, 3);
+		expect(p.margin).toBeCloseTo(0, 9);
+	});
+});
+
+describe('split engine: rules', () => {
+	it('certifies only permutations', () => {
+		expect(isCertified([1, 0, 2], 3)).toBe(true);
+		expect(isCertified([0, 0, 2], 3)).toBe(false);
+		expect(isCertified([0, 1], 3)).toBe(false);
+		expect(isCertified([0, 3, 1], 3)).toBe(false);
+	});
+
+	it('caps rounds at 2⌈m/n⌉ + 3', () => {
+		expect(roundCap(4, 2)).toBe(7);
+		expect(roundCap(20, 5)).toBe(11);
+		expect(roundCap(10, 4)).toBe(9);
+	});
+
+	it('uses the tuned defaults', () => {
+		expect(DEFAULT_PARAMS).toEqual({ sigmaMu: 0.3, tau: 0.4, lambda: 10 });
+	});
+
+	it('rejects bad input', () => {
+		expect(() => initState([], 2)).toThrow();
+		expect(() => initState([10, -1], 2)).toThrow();
+		const s = initState([10, 20, 30], 2);
+		const p = propose(s);
+		expect(() => recordRound(s, p, [0])).toThrow();
+		expect(() => recordRound(s, p, [0, 2])).toThrow();
+		expect(() => recordRound(s, { ...p, groups: [[0], [1]] }, [0, 1])).toThrow();
+		expect(() => transfersFor(s, p.groups, [0, 0])).toThrow();
+	});
+
+	it('does not mutate the state or the proposal it records', () => {
+		const s = initState([100, 200, 300], 2);
+		const p = propose(s);
+		const copy = JSON.parse(JSON.stringify(p));
+		const next = recordRound(s, p, [0, 0]);
+		expect(p).toEqual(copy);
+		expect(s.rounds).toHaveLength(0);
+		expect(next.rounds).toHaveLength(1);
+		expect(propose(s)).toBe(p);
+	});
+
+	it('is deterministic', () => {
+		const run = () => {
+			let s = initState([300, 200, 100, 50], 3);
+			for (let r = 0; r < 3; r++) s = recordRound(s, propose(s), [0, 0, 1]);
+			return { p: propose(s), fb: bestFallback(s) };
+		};
+		expect(run()).toEqual(run());
+	});
+});
+
+describe('split engine: learning', () => {
+	const prices = [200000, 15000, 5000, 1000];
+
+	it('gives the House to the person who keeps taking it at rising transfers', () => {
+		let s = initState(prices, 3);
+		for (let r = 0; r < 8; r++) {
+			const p = propose(s);
+			const house = p.groups.findIndex((g) => g.includes(0));
+			s = recordRound(s, p, [house, (house + 1) % 3, (house + 1) % 3]);
+		}
+		expect(propose(s).groups[0]).toContain(0);
+	});
+
+	it('raises the price of a group both people keep picking', () => {
+		let s = initState(prices, 2);
+		let last = 0;
+		for (let r = 0; r < 8; r++) {
+			const p = propose(s);
+			expect(p.transfers[0]).toBeGreaterThan(last);
+			last = p.transfers[0];
+			s = recordRound(s, p, [0, 0]);
+		}
+	});
+
+	it('gains margin while everyone keeps picking their own group', () => {
+		let s = initState(prices, 3);
+		let p = propose(s);
+		for (let r = 0; r < 4; r++) {
+			s = recordRound(s, p, [0, 1, 2]);
+			p = propose(s);
+		}
+		expect(p.margin).toBeGreaterThan(0.5);
+		const fb = bestFallback(s);
+		expect(fb.pFair).toBeGreaterThan(0.5);
+		expect(fb.residualEnvy).toBeGreaterThanOrEqual(0);
+	});
+});
+
+describe('split engine: transfersFor', () => {
+	it('keeps the groups in the order given, with transfers summing to 0', () => {
+		const s = initState([500, 300, 200, 100], 2);
+		const groups = [
+			[3, 0],
+			[1, 2]
+		];
+		const p = transfersFor(s, groups, [1, 0]);
+		expect(p.groups).toEqual(groups);
+		expect(p.owners).toEqual([1, 0]);
+		expect(Math.abs(sum(p.transfers))).toBeLessThan(1e-6);
+		// At the prior both groups are worth their prices: 600 vs 500, so ±50.
+		expect(p.transfers[0]).toBeCloseTo(50, 6);
+	});
+});

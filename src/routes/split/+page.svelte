@@ -1,23 +1,42 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { Alert, Button, DataTable, Field, PageHeader, Panel, type Column } from '$lib/ui';
+	import { onMount, tick } from 'svelte';
+	import { Alert, Button, Field, PageHeader, Panel } from '$lib/ui';
 	import {
-		STABLE_ROUNDS,
-		balances,
-		completeRound as runRound,
-		groupDelta,
-		groupValue,
-		initialValuations,
+		bestFallback,
+		initState,
+		isCertified,
 		itemError,
-		itemFavourites,
-		itemsOf,
-		lptGroups,
-		nextStableCount,
 		paymentLabel,
 		personError,
+		propose,
+		recordRound,
+		roundCap,
 		roundedBalances,
-		startError
+		startError,
+		transfersFor,
+		type Proposal,
+		type SplitState
 	} from '$lib/split';
+	import {
+		DEMAND_LABEL,
+		allPlaced,
+		allocation,
+		amountColour,
+		bundlesFromOwners,
+		chipsOn,
+		demand,
+		emptyPlacements,
+		fallbackText,
+		hitTest,
+		holdersFromPicks,
+		maxAbsRounded,
+		itemOwners,
+		moveAnnouncement,
+		personColour,
+		place,
+		toPicks
+	} from './lib/board';
+	import { REFERENCES } from './lib/references';
 
 	interface Item {
 		id: number;
@@ -45,17 +64,6 @@
 	let newPerson = $state<Person>({ id: 0, name: '' });
 	let itemMsg = $state<string | null>(null);
 	let personMsg = $state<string | null>(null);
-	let initialized = $state(false);
-	let individualPrices = $state<number[][]>([]);
-	let iterations = $state(0);
-	let groups = $state<number[][]>([]);
-	let personSelections = $state<(number | null)[]>([]);
-	/** Prices as entered before START; their sum is the estate value every round conserves. */
-	let enteredPrices = $state<number[]>([]);
-	/** Allocation after the previous completed round (null before the first). */
-	let lastFavs = $state<number[] | null>(null);
-	/** Consecutive completed rounds with an unchanged allocation. */
-	let stableFor = $state(0);
 
 	function addItem(e: Event) {
 		e.preventDefault();
@@ -82,106 +90,223 @@
 
 	const startMsg = $derived(startError(people.length, items.length));
 
-	function startAlgorithm() {
-		if (startMsg) return;
-		initialized = true;
-		enteredPrices = items.map((x) => x.price);
-		individualPrices = initialValuations(enteredPrices, people.length, Math.random);
-		personSelections = people.map(() => null);
-		lastFavs = null;
-		stableFor = 0;
-		setupExperiment();
+	// ---- Rounds -------------------------------------------------------------
+
+	type Phase = 'setup' | 'round' | 'final' | 'adjust';
+	let phase = $state<Phase>('setup');
+	/** Engine state and the proposal on the board; raw, since the engine owns their shape. */
+	let engine = $state.raw<SplitState | null>(null);
+	let proposal = $state.raw<Proposal | null>(null);
+	let placements = $state<(number | null)[]>([]);
+	/** Chip picked up by tap/click, waiting for a target. */
+	let selected = $state<number | null>(null);
+	let announcement = $state('');
+	let busy = $state(false);
+	/** Round count at which the fallback offer was dismissed. */
+	let dismissedAt = $state(-1);
+	/** The agreed split: holder[g] = person taking group g. */
+	let final = $state.raw<{ proposal: Proposal; holder: number[]; fallback: boolean } | null>(null);
+	/** Swap-or-adjust editor: owner per item. */
+	let adjustOwner = $state<number[]>([]);
+
+	const n = $derived(people.length);
+	const prices = $derived(items.map((i) => i.price));
+	const rounds = $derived(engine?.rounds ?? []);
+	/** Fair share of the total, the reference for the settlement colour scale. */
+	const fairShare = $derived(n > 0 ? prices.reduce((a, b) => a + b, 0) / n : 0);
+	const boardMax = $derived(proposal ? maxAbsRounded(proposal.transfers) : 0);
+	const onGroup = $derived(chipsOn(placements, n));
+	const unplaced = $derived(placements.flatMap((g, i) => (g === null ? [i] : [])));
+	const groupDemand = $derived(demand(placements, n));
+	const ready = $derived(allPlaced(placements));
+	const fallback = $derived(
+		engine &&
+			phase === 'round' &&
+			rounds.length >= roundCap(items.length, n) &&
+			dismissedAt !== rounds.length
+			? bestFallback(engine)
+			: null
+	);
+
+	/** Let the busy state paint before a heavy synchronous compute. */
+	async function yieldToPaint() {
+		await tick();
+		await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
 	}
 
-	/** Leave the round view, discarding round history and restoring the entered prices. */
+	function showProposal(next: Proposal) {
+		proposal = next;
+		placements = emptyPlacements(n);
+		selected = null;
+		announcement = '';
+		phase = 'round';
+	}
+
+	async function startAlgorithm() {
+		if (startMsg || busy) return;
+		busy = true;
+		await yieldToPaint();
+		engine = initState(prices, n);
+		dismissedAt = -1;
+		final = null;
+		showProposal(propose(engine));
+		busy = false;
+	}
+
+	/** Back to setup, keeping people, items and prices; discards rounds. */
 	function backToSetup() {
-		items = items.map((item, i) => ({ ...item, price: enteredPrices[i] ?? item.price }));
-		initialized = false;
-		iterations = 0;
-		individualPrices = [];
-		groups = [];
-		personSelections = [];
-		lastFavs = null;
-		stableFor = 0;
+		phase = 'setup';
+		engine = null;
+		proposal = null;
+		final = null;
+		placements = [];
+		selected = null;
 	}
 
-	function setupExperiment() {
-		groups = lptGroups(items, people.length);
+	async function completeRound() {
+		const picks = toPicks(placements);
+		if (!picks || !engine || !proposal || busy) return;
+		if (isCertified(picks, n)) {
+			finish(proposal, holdersFromPicks(picks), false);
+			return;
+		}
+		busy = true;
+		await yieldToPaint();
+		engine = recordRound(engine, proposal, picks);
+		showProposal(propose(engine));
+		busy = false;
 	}
 
-	function handleSelectionChange(idx: number, gIdx: number) {
-		personSelections = personSelections.map((s, i) => (i === idx ? gIdx : s));
+	function finish(p: Proposal, holder: number[], isFallback: boolean) {
+		final = { proposal: p, holder, fallback: isFallback };
+		selected = null;
+		phase = 'final';
 	}
 
-	function completeRound() {
-		const result = runRound(
-			individualPrices,
-			items.map((i) => i.id),
-			groups,
-			personSelections,
-			iterations,
-			enteredPrices.reduce((a, b) => a + b, 0)
-		);
-		items = items.map((item, i) => ({ ...item, price: result.prices[i] }));
-		iterations++;
-		individualPrices = result.valuations;
-		const favs = itemFavourites(result.valuations, items.length);
-		stableFor = nextStableCount(lastFavs, favs, stableFor);
-		lastFavs = favs;
-		personSelections = people.map(() => null);
-		setupExperiment();
+	function acceptFallback() {
+		if (fallback) finish(fallback.proposal, [...fallback.proposal.owners], true);
 	}
 
-	// Derived values
-	const itemFavs = $derived(
-		initialized && items.length > 0 ? itemFavourites(individualPrices, items.length) : []
-	);
+	function startAdjust() {
+		if (!final) return;
+		adjustOwner = itemOwners(allocation(final.proposal, final.holder).items, items.length);
+		phase = 'adjust';
+	}
 
-	const allSelected = $derived(
-		initialized && personSelections.length > 0 && personSelections.every((s) => s !== null)
-	);
-
-	const settled = $derived(stableFor >= STABLE_ROUNDS);
-
-	const suggestedAlloc = $derived.by(() => {
-		if (!initialized || items.length === 0 || people.length === 0) return [];
-		const owed = roundedBalances(
-			balances(
-				items.map((i) => i.price),
-				itemFavs,
-				people.length
+	async function recheck() {
+		if (!engine || busy) return;
+		busy = true;
+		await yieldToPaint();
+		const groups = bundlesFromOwners(adjustOwner, n);
+		showProposal(
+			transfersFor(
+				engine,
+				groups,
+				groups.map((_, i) => i)
 			)
 		);
-		return people.map((p, idx) => ({
-			idx,
+		busy = false;
+	}
+
+	// ---- Chip placement: drag, or the hidden tap/keyboard fallback ---------------
+
+	function move(person: number, group: number | null) {
+		placements = place(placements, person, group);
+		announcement = moveAnnouncement(people[person].name, group);
+		selected = null;
+	}
+
+	function onChipClick(person: number) {
+		if (suppressClick) {
+			suppressClick = false;
+			return;
+		}
+		selected = selected === person ? null : person;
+	}
+
+	function onKeydown(e: KeyboardEvent) {
+		if (e.key !== 'Escape') return;
+		if (drag) cancelDrag();
+		else if (selected !== null) selected = null;
+	}
+
+	// Hand-rolled pointer drag: starts after the pointer moves a few px, for
+	// mouse, pen and touch alike (chips have touch-action: none).
+	const DRAG_THRESHOLD = 5;
+	type Pending = { person: number; id: number; x0: number; y0: number; active: boolean };
+	let pending: Pending | null = null;
+	let suppressClick = false;
+	let colEls = $state<HTMLElement[]>([]);
+	/** The lifted chip, its offset and the group under the pointer (null: none, so unplace). */
+	let drag = $state<{ person: number; dx: number; dy: number; target: number | null } | null>(null);
+
+	function targetAt(x: number, y: number): number | null {
+		const hit = hitTest(
+			x,
+			y,
+			colEls.slice(0, n).map((el) => el.getBoundingClientRect())
+		);
+		return hit < 0 ? null : hit;
+	}
+
+	function onPointerDown(e: PointerEvent, person: number) {
+		if (busy || pending || (e.pointerType === 'mouse' && e.button !== 0)) return;
+		(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+		suppressClick = false;
+		pending = { person, id: e.pointerId, x0: e.clientX, y0: e.clientY, active: false };
+	}
+
+	function onPointerMove(e: PointerEvent) {
+		const p = pending;
+		if (!p || e.pointerId !== p.id) return;
+		if (!p.active) {
+			if (Math.hypot(e.clientX - p.x0, e.clientY - p.y0) < DRAG_THRESHOLD) return;
+			p.active = true;
+			selected = null;
+		}
+		drag = {
+			person: p.person,
+			dx: e.clientX - p.x0,
+			dy: e.clientY - p.y0,
+			target: targetAt(e.clientX, e.clientY)
+		};
+	}
+
+	function onPointerUp(e: PointerEvent) {
+		const p = pending;
+		if (!p || e.pointerId !== p.id) return;
+		if (p.active && drag) {
+			// Swallow the click that may follow this pointerup, but no later one.
+			suppressClick = true;
+			setTimeout(() => (suppressClick = false));
+			// Dropped outside every group card: the chip goes back to Unplaced.
+			move(p.person, drag.target);
+		}
+		cancelDrag();
+	}
+
+	function cancelDrag() {
+		pending = null;
+		drag = null;
+	}
+
+	// ---- Final table ----------------------------------------------------------
+
+	const finalRows = $derived.by(() => {
+		if (!final) return [];
+		const { items: mine, owed } = allocation(final.proposal, final.holder);
+		const rounded = roundedBalances(owed);
+		const max = maxAbsRounded(rounded);
+		return people.map((p, i) => ({
 			name: p.name,
-			items:
-				itemsOf(itemFavs, idx)
-					.map((i) => items[i].description)
-					.join(', ') || '(none)',
-			payment: paymentLabel(owed[idx], fmt)
+			items: mine[i].map((k) => items[k].description).join(', ') || '(none)',
+			payment: paymentLabel(rounded[i], fmt),
+			colour: amountColour(rounded[i], fairShare, max)
 		}));
 	});
-
-	type Alloc = (typeof suggestedAlloc)[number];
-	const allocColumns: Column<Alloc>[] = [
-		{ key: 'name', label: 'Person' },
-		{ key: 'items', label: 'Items' },
-		{ key: 'payment', label: 'Settlement', align: 'right' }
-	];
-
-	const priceRows = $derived(
-		items.map((item) => ({
-			id: item.id,
-			description: item.description,
-			price: fmt(Math.round(item.price))
-		}))
-	);
-	const priceColumns: Column<(typeof priceRows)[number]>[] = [
-		{ key: 'description', label: 'Description' },
-		{ key: 'price', label: 'Estimated price', align: 'right' }
-	];
 </script>
+
+<svelte:window onkeydown={onKeydown} />
 
 <div class="container" data-hydrated={hydrated || undefined}>
 	<PageHeader path="/split">
@@ -190,7 +315,7 @@
 		>
 	</PageHeader>
 
-	{#if !initialized}
+	{#if phase === 'setup'}
 		<div class="split-view">
 			<Panel title="People">
 				<div class="stack">
@@ -310,103 +435,191 @@
 		<div class="cluster start">
 			<Button
 				variant="primary"
-				disabled={startMsg !== null}
+				disabled={startMsg !== null || busy}
 				aria-describedby={startMsg ? 'start-error' : undefined}
 				onclick={startAlgorithm}>Start</Button
 			>
 			{#if startMsg}<p id="start-error" class="note">{startMsg}</p>{/if}
 		</div>
-	{:else}
-		<div class="split-view">
-			<Panel title="Round {iterations}">
-				<div class="stack">
-					<div class="groups">
-						{#each groups as g, gi (gi)}
-							<section class="group" data-testid="split-group">
-								<h3>Group {gi + 1}</h3>
-								<ul>
-									{#each g as itemId (itemId)}
-										{@const item = items.find((i) => i.id === itemId)}
-										{#if item}<li>{item.description}</li>{/if}
-									{/each}
-									{#if g.length === 0}<li class="note">(empty)</li>{/if}
-								</ul>
-								<p class="worth">Worth {fmt(Math.round(groupValue(g, items)))}</p>
-								<p class="note">
-									Taker: {paymentLabel(groupDelta(g, items, people.length), fmt)}
-								</p>
-							</section>
-						{/each}
-					</div>
-					<p class="note">Select your preferred group. Each person chooses independently.</p>
-					<div class="choices">
-						{#each people as p, pi (p.id)}
-							<Field label={p.name}>
-								{#snippet children(props)}
-									<select
-										class="control"
-										{...props}
-										aria-label="{p.name}'s group choice"
-										value={personSelections[pi] ?? ''}
-										onchange={(e) =>
-											handleSelectionChange(pi, parseInt((e.target as HTMLSelectElement).value))}
-									>
-										<option value="" disabled>Select group…</option>
-										{#each groups as _g, gi (gi)}<option value={gi}>Group {gi + 1}</option>{/each}
-									</select>
-								{/snippet}
-							</Field>
-						{/each}
-					</div>
-					<div class="cluster">
-						<Button variant="primary" disabled={!allSelected} onclick={completeRound}
-							>Complete round</Button
-						>
-						<Button onclick={backToSetup}>Back to setup</Button>
-					</div>
-					<p class="note">Going back discards all rounds and restores the entered prices.</p>
-				</div>
-			</Panel>
-
-			<div class="stack">
-				<Panel title="Suggested split">
-					{#if iterations === 0}
-						<p class="note">Complete a round to see a suggested split.</p>
-					{:else}
+	{:else if phase === 'round' && proposal}
+		<Panel title="Round {rounds.length + 1}">
+			<div class="stack" aria-busy={busy}>
+				{#if fallback}
+					<Alert tone="warning">
 						<div class="stack">
-							<div data-testid="split-stability">
-								{#if settled}
-									<Alert tone="success">Allocation stable for {stableFor} rounds.</Alert>
-								{:else}
-									<Alert tone="info"
-										>Provisional: allocation stable for {stableFor} of {STABLE_ROUNDS} rounds.</Alert
-									>
-								{/if}
+							<p class="alert-text">{fallbackText(fallback)}</p>
+							<div class="cluster">
+								<Button size="sm" variant="primary" onclick={acceptFallback}
+									>Accept this split</Button
+								>
+								<Button size="sm" onclick={() => (dismissedAt = rounds.length)}>Keep going</Button>
 							</div>
-							<DataTable
-								caption="Suggested split"
-								hideCaption
-								columns={allocColumns}
-								rows={suggestedAlloc}
-								rowKey={(a) => a.idx}
-							/>
 						</div>
-					{/if}
-				</Panel>
+					</Alert>
+				{/if}
 
-				<Panel title="Items">
-					<DataTable
-						caption="Items"
-						hideCaption
-						columns={priceColumns}
-						rows={priceRows}
-						rowKey={(r) => r.id}
-					/>
-				</Panel>
+				<div class="groups">
+					{#each proposal.groups as g, gi (gi)}
+						{@const tag = groupDemand[gi]}
+						<section
+							class="group"
+							class:over={tag === 'over'}
+							class:unclaimed={tag === 'unclaimed'}
+							class:targetable={selected !== null || drag !== null}
+							class:drop-over={drag?.target === gi}
+							data-testid="split-group"
+							aria-labelledby="group-{gi}-heading"
+							bind:this={colEls[gi]}
+						>
+							{#if selected !== null}
+								<!-- Tap/keyboard fallback for dragging (WCAG 2.5.7): an invisible button over the card. -->
+								<button
+									type="button"
+									class="card-target"
+									aria-label="Place {people[selected].name} in group {gi + 1}"
+									onclick={() => selected !== null && move(selected, gi)}
+								></button>
+							{/if}
+							<div class="group-head">
+								<h3 id="group-{gi}-heading">Group {gi + 1}</h3>
+								{#if tag}<span class="tag {tag}">{DEMAND_LABEL[tag]}</span>{/if}
+							</div>
+							<p class="taker">
+								Taker: <span style:color={amountColour(proposal.transfers[gi], fairShare, boardMax)}
+									>{paymentLabel(proposal.transfers[gi], fmt)}</span
+								>
+							</p>
+							<ul class="items">
+								{#each g as k (k)}<li>{items[k].description}</li>{/each}
+								{#if g.length === 0}<li class="note">(empty)</li>{/if}
+							</ul>
+							<div class="drop">
+								{#each onGroup[gi] ?? [] as i (people[i].id)}{@render personCard(i)}{/each}
+							</div>
+						</section>
+					{/each}
+				</div>
+
+				<div class="unplaced" data-testid="split-unplaced">
+					<p class="unplaced-label">Unplaced</p>
+					<div class="drop centred">
+						{#each unplaced as i (people[i].id)}{@render personCard(i)}{/each}
+						{#if unplaced.length === 0}<p class="note">Everyone has picked.</p>{/if}
+					</div>
+				</div>
+
+				<p class="note">
+					Drag your chip to the group you'd take at these amounts. When everyone picks a different
+					group, you're done.
+				</p>
+				<p class="sr-only" aria-live="polite" data-testid="split-announce">{announcement}</p>
+
+				<div class="cluster">
+					<Button variant="primary" disabled={!ready || busy} onclick={completeRound}
+						>{busy ? 'Updating…' : 'Complete round'}</Button
+					>
+					<Button onclick={backToSetup} disabled={busy}>Back to setup</Button>
+				</div>
+				<p class="note">Going back discards all rounds.</p>
 			</div>
-		</div>
+		</Panel>
+	{:else if phase === 'final' && final}
+		<Panel title="Everyone keeps their own group">
+			<div class="stack">
+				{#if final.fallback}
+					<p class="note">The best split found so far. It may not suit everyone.</p>
+				{:else}
+					<p class="note">At these amounts, nobody would rather swap.</p>
+				{/if}
+				<div class="table-wrap">
+					<table>
+						<caption class="sr-only">Final split</caption>
+						<thead>
+							<tr>
+								<th scope="col">Person</th>
+								<th scope="col">Items</th>
+								<th scope="col" class="num">Settlement</th>
+							</tr>
+						</thead>
+						<tbody>
+							{#each finalRows as row, i (i)}
+								<tr>
+									<td>{row.name}</td>
+									<td>{row.items}</td>
+									<td class="num" style:color={row.colour}>{row.payment}</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+				<div class="cluster">
+					<Button onclick={startAdjust}>Swap or adjust</Button>
+					<Button onclick={backToSetup}>Start over</Button>
+				</div>
+			</div>
+		</Panel>
+	{:else if phase === 'adjust'}
+		<Panel title="Swap or adjust">
+			<div class="stack">
+				<p class="note">Give items to someone else, then check the new split with everyone.</p>
+				<ul class="adjust">
+					{#each items as item, k (item.id)}
+						<li>
+							<span class="adjust-item">{item.description}</span>
+							<select
+								class="control"
+								aria-label="Give {item.description} to"
+								value={adjustOwner[k]}
+								onchange={(e) =>
+									(adjustOwner[k] = Number((e.currentTarget as HTMLSelectElement).value))}
+							>
+								{#each people as p, i (p.id)}<option value={i}>{p.name}</option>{/each}
+							</select>
+						</li>
+					{/each}
+				</ul>
+				<div class="cluster">
+					<Button variant="primary" disabled={busy} onclick={recheck}
+						>{busy ? 'Updating…' : 'Re-check'}</Button
+					>
+					<Button onclick={() => (phase = 'final')} disabled={busy}>Cancel</Button>
+				</div>
+			</div>
+		</Panel>
 	{/if}
+
+	<section class="references" aria-labelledby="references-heading">
+		<h2 id="references-heading">References</h2>
+		<ol class="refs">
+			{#each REFERENCES as ref (ref.href)}
+				<li>
+					{ref.cite} <a href={ref.href} target="_blank" rel="noreferrer">{ref.title}</a>
+					{ref.venue}
+					<span class="impact">{ref.impact}</span>
+				</li>
+			{/each}
+		</ol>
+	</section>
 </div>
+
+{#snippet personCard(i: number)}
+	{@const name = people[i].name}
+	<div class="person" style:--person={personColour(i)}>
+		<button
+			type="button"
+			class="chip-btn"
+			class:lifted={drag?.person === i}
+			style:transform={drag?.person === i ? `translate(${drag.dx}px, ${drag.dy}px)` : undefined}
+			aria-pressed={selected === i}
+			disabled={busy}
+			onclick={() => onChipClick(i)}
+			onpointerdown={(e) => onPointerDown(e, i)}
+			onpointermove={onPointerMove}
+			onpointerup={onPointerUp}
+			onpointercancel={cancelDrag}><span class="dot" aria-hidden="true"></span>{name}</button
+		>
+	</div>
+{/snippet}
 
 <style>
 	.note {
@@ -492,32 +705,273 @@
 		margin-top: var(--sp-3);
 	}
 
+	.alert-text {
+		margin: 0;
+	}
+
 	.groups {
-		display: grid;
+		display: flex;
+		flex-wrap: wrap;
 		gap: var(--sp-2);
-		grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
 	}
 
 	.group {
+		position: relative;
+		display: flex;
+		flex: 1 1 12rem;
+		flex-direction: column;
+		gap: var(--sp-1);
+		min-width: 0;
 		padding: var(--sp-2) var(--sp-3);
 		background: var(--surface-2);
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
+		outline: 2px solid transparent;
+		outline-offset: 1px;
+		transition:
+			outline-color 0.1s,
+			background 0.1s;
 	}
 
-	.group ul {
-		margin: var(--sp-1) 0;
-		padding-left: var(--sp-4);
-	}
-
-	.worth {
+	.group h3 {
 		margin: 0;
+		font-size: var(--text-md);
+	}
+
+	.group-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--sp-1);
+	}
+
+	.group.over {
+		border-color: var(--warning);
+		border-width: 2px;
+	}
+
+	.group.unclaimed {
+		border-style: dashed;
+		border-color: var(--border-strong);
+	}
+
+	.tag {
+		padding: 0 var(--sp-1);
+		border-radius: var(--radius-sm);
+		font-size: var(--text-xs);
 		font-weight: 600;
 	}
 
-	.choices {
+	.tag.over {
+		background: var(--warning-bg);
+		color: var(--warning-text);
+	}
+
+	.tag.unclaimed {
+		background: var(--surface);
+		color: var(--text-muted);
+		border: 1px dashed var(--border-strong);
+	}
+
+	.targetable {
+		outline-color: var(--accent);
+		outline-style: dashed;
+		cursor: pointer;
+	}
+
+	.drop-over {
+		outline-style: solid;
+		outline-width: 3px;
+		background: var(--accent-bg);
+	}
+
+	/* Invisible button over the whole card while a chip is selected (tap/keyboard placing). */
+	.card-target {
+		position: absolute;
+		inset: 0;
+		padding: 0;
+		background: transparent;
+		border: 0;
+		border-radius: var(--radius);
+		cursor: pointer;
+	}
+
+	.card-target:focus-visible {
+		outline: 3px solid var(--focus-ring);
+		outline-offset: 2px;
+	}
+
+	.person,
+	.group :global(.above) {
+		position: relative;
+		z-index: 1;
+	}
+
+	.person:has(.lifted) {
+		z-index: 20;
+	}
+
+	.taker {
+		margin: 0;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+	}
+
+	.taker span {
+		font-weight: 600;
+	}
+
+	.items {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--sp-1);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		font-size: var(--text-sm);
+	}
+
+	.items li {
+		padding: 0 var(--sp-2);
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		background: var(--surface);
+	}
+
+	.items li.note {
+		border: 0;
+		background: none;
+		padding: 0;
+	}
+
+	.drop {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		gap: var(--sp-2);
+		min-height: var(--control-h);
+		margin-top: var(--sp-1);
+	}
+
+	.drop.centred {
+		justify-content: center;
+		margin-top: 0;
+	}
+
+	.unplaced {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--sp-1);
+	}
+
+	.unplaced-label {
+		margin: 0;
+		font-size: var(--text-xs);
+		font-weight: 600;
+		color: var(--text-muted);
+	}
+
+	.person {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-0);
+		min-width: 0;
+	}
+
+	.chip-btn {
+		align-self: flex-start;
+		display: inline-flex;
+		align-items: center;
+		gap: var(--sp-1);
+		min-height: var(--control-h);
+		padding: 0 var(--sp-2);
+		background: var(--surface);
+		color: var(--text);
+		border: 2px solid var(--person);
+		border-radius: 999px;
+		font-weight: 600;
+		cursor: grab;
+		touch-action: none;
+		user-select: none;
+		position: relative;
+	}
+
+	.chip-btn[aria-pressed='true'] {
+		background: var(--accent-bg);
+		box-shadow: 0 0 0 2px var(--accent);
+	}
+
+	.chip-btn.lifted {
+		z-index: 10;
+		cursor: grabbing;
+		box-shadow: 0 6px 16px color-mix(in srgb, var(--text) 30%, transparent);
+		scale: 1.06;
+	}
+
+	.chip-btn:disabled {
+		opacity: 0.6;
+		cursor: progress;
+	}
+
+	.dot {
+		display: inline-block;
+		width: 0.7em;
+		height: 0.7em;
+		border-radius: 50%;
+		background: var(--person);
+	}
+
+	.adjust {
 		display: grid;
 		gap: var(--sp-2);
-		grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.adjust li {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--sp-2);
+	}
+
+	.adjust-item {
+		flex: 1 1 8rem;
+	}
+
+	.adjust select {
+		flex: 0 1 10rem;
+	}
+
+	.references {
+		margin-top: var(--sp-4);
+	}
+
+	.references h2 {
+		margin: 0 0 var(--sp-1);
+		font-size: var(--text-sm);
+		font-weight: 600;
+	}
+
+	.refs {
+		display: grid;
+		gap: var(--sp-2);
+		margin: 0;
+		padding-left: var(--sp-5);
+		font-size: var(--text-sm);
+	}
+
+	.impact {
+		display: block;
+		color: var(--text-muted);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.group {
+			transition: none;
+		}
 	}
 </style>

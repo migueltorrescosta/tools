@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 /** Load the page and wait until it has hydrated, so clicks are not lost. */
 async function open(page: Page) {
@@ -36,67 +37,215 @@ function signedAmount(text: string): number {
 	return 0;
 }
 
-test('Asset Splitting - full algorithm flow', async ({ page }) => {
-	const errors = trackErrors(page);
+/** Alice and Bob split a House and a Car; lands on the round 1 board. */
+async function startTwo(page: Page) {
 	await open(page);
-
 	await addPerson(page, 'Alice');
 	await addPerson(page, 'Bob');
-	await expect(page.getByRole('listitem').filter({ hasText: 'Alice' })).toBeVisible();
-	await expect(page.getByRole('listitem').filter({ hasText: 'Bob' })).toBeVisible();
-
 	await addItem(page, 'Car', '10000');
-	// Enter in the price field submits the add-item form.
-	await page.getByLabel('Item description').fill('House');
-	await page.getByLabel('Item price (€)').fill('50000');
-	await page.getByLabel('Item price (€)').press('Enter');
-	await expect(page.getByRole('cell', { name: 'Car', exact: true })).toBeVisible();
-	await expect(page.getByRole('cell', { name: 'House', exact: true })).toBeVisible();
-
+	await addItem(page, 'House', '50000');
 	await page.getByRole('button', { name: 'Start', exact: true }).click();
-	await expect(page.getByRole('heading', { name: 'Round 0', exact: true })).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Round 1', exact: true })).toBeVisible();
+}
 
-	// LPT puts the House in group 1 and the Car in group 2.
+const finalRows = (page: Page) =>
+	page
+		.getByRole('table', { name: 'Final split' })
+		.getByRole('row')
+		.filter({ has: page.getByRole('cell') });
+
+async function expectSettlementsSumToZero(page: Page) {
+	const rows = finalRows(page);
+	await expect(rows).toHaveCount(2);
+	const payments = await Promise.all(
+		(await rows.all()).map((row) => row.getByRole('cell').nth(2).innerText())
+	);
+	expect(payments.reduce((s, t) => s + signedAmount(t), 0)).toBe(0);
+}
+
+const chip = (scope: Page | Locator, name: string) =>
+	scope.getByRole('button', { name, exact: true });
+
+/** The hidden tap fallback: tap a chip, then tap a group card. */
+async function tapPlace(page: Page, name: string, group: number) {
+	await chip(page, name).click();
+	await expect(chip(page, name)).toHaveAttribute('aria-pressed', 'true');
+	await page
+		.getByTestId('split-group')
+		.nth(group)
+		.click({ position: { x: 12, y: 12 } });
+	await expect(chip(page.getByTestId('split-group').nth(group), name)).toBeVisible();
+}
+
+test('Asset Splitting - picks on different groups certify the split', async ({ page }) => {
+	const errors = trackErrors(page);
+	await startTwo(page);
+
+	// The first proposal is the price-balanced grouping: House alone, Car alone.
 	const groups = page.getByTestId('split-group');
 	await expect(groups).toHaveCount(2);
 	await expect(groups.nth(0)).toContainText('House');
 	await expect(groups.nth(0)).toContainText('Taker: Pay');
 	await expect(groups.nth(1)).toContainText('Car');
 	await expect(groups.nth(1)).toContainText('Taker: Receive');
+	await expect(groups.nth(0)).not.toContainText('Worth');
 	await expect(page.getByText('-0')).toHaveCount(0);
+	// Pay is red, Receive green.
+	await expect(groups.nth(0).getByText(/^Pay /)).toHaveAttribute('style', /--danger-text/);
+	await expect(groups.nth(1).getByText(/^Receive /)).toHaveAttribute('style', /--success-text/);
 
-	// No suggestion before the first round.
-	await expect(page.getByText('Complete a round to see a suggested split.')).toBeVisible();
+	// No visible placement controls besides the chips.
+	const unplaced = page.getByTestId('split-unplaced');
+	await expect(groups.getByRole('combobox')).toHaveCount(0);
+	await expect(unplaced.getByRole('combobox')).toHaveCount(0);
+	await expect(chip(unplaced, 'Alice')).toBeVisible();
+	await expect(chip(unplaced, 'Bob')).toBeVisible();
 
-	const alice = page.getByLabel("Alice's group choice");
-	const bob = page.getByLabel("Bob's group choice");
 	const complete = page.getByRole('button', { name: 'Complete round' });
-
 	await expect(complete).toBeDisabled();
-	await alice.selectOption('0');
+	await tapPlace(page, 'Alice', 0);
+	await expect(page.getByTestId('split-announce')).toHaveText('Alice chose group 1');
 	await expect(complete).toBeDisabled();
-	await bob.selectOption('1');
+	await tapPlace(page, 'Bob', 1);
 	await expect(complete).toBeEnabled();
 	await complete.click();
 
+	await expect(page.getByRole('heading', { name: 'Everyone keeps their own group' })).toBeVisible();
+	await expect(page.getByText('At these amounts, nobody would rather swap.')).toBeVisible();
+	const alice = finalRows(page).filter({ hasText: 'Alice' });
+	await expect(alice).toContainText('House');
+	await expect(alice).toContainText('Pay');
+	await expect(alice.getByRole('cell').nth(2)).toHaveAttribute('style', /--danger-text/);
+	await expectSettlementsSumToZero(page);
+
+	// Swap or adjust: trade the items, then re-check on the board.
+	await page.getByRole('button', { name: 'Swap or adjust' }).click();
+	await expect(page.getByText('€')).toHaveCount(0);
+	await page.getByLabel('Give Car to').selectOption({ label: 'Alice' });
+	await page.getByLabel('Give House to').selectOption({ label: 'Bob' });
+	await page.getByRole('button', { name: 'Re-check' }).click();
+	await expect(groups.nth(0)).toContainText('Car');
+	await expect(groups.nth(1)).toContainText('House');
+	await tapPlace(page, 'Alice', 0);
+	await tapPlace(page, 'Bob', 1);
+	await complete.click();
+	await expect(finalRows(page).filter({ hasText: 'Alice' })).toContainText('Car');
+	await expectSettlementsSumToZero(page);
+
+	// Start over keeps people and items.
+	await page.getByRole('button', { name: 'Start over' }).click();
+	await expect(page.getByRole('cell', { name: 'House', exact: true })).toBeVisible();
+	await expect(page.getByRole('listitem').filter({ hasText: 'Bob' })).toBeVisible();
+
+	expect(errors).toEqual([]);
+});
+
+test('Asset Splitting - chips can be dragged, tapped or placed by keyboard', async ({ page }) => {
+	const errors = trackErrors(page);
+	await startTwo(page);
+	const groups = page.getByTestId('split-group');
+	const unplaced = page.getByTestId('split-unplaced');
+
+	// Drag Alice's chip onto group 2 with the mouse.
+	const from = (await chip(page, 'Alice').boundingBox())!;
+	const to = (await groups.nth(1).boundingBox())!;
+	await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+	await page.mouse.down();
+	await page.mouse.move(from.x + from.width / 2 + 10, from.y + from.height / 2 - 10, { steps: 3 });
+	await expect(chip(page, 'Alice')).toHaveClass(/lifted/);
+	await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, { steps: 8 });
+	await expect(groups.nth(1)).toHaveClass(/drop-over/);
+	await page.mouse.up();
+	await expect(chip(groups.nth(1), 'Alice')).toBeVisible();
+	await expect(page.getByTestId('split-announce')).toHaveText('Alice chose group 2');
+	await expect(chip(page, 'Alice')).toHaveAttribute('aria-pressed', 'false');
+
+	// A drop outside every group card unplaces the chip.
+	const box = (await chip(page, 'Alice').boundingBox())!;
+	await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+	await page.mouse.down();
+	await page.mouse.move(box.x + 10, 5, { steps: 6 });
+	await page.mouse.up();
+	await expect(chip(unplaced, 'Alice')).toBeVisible();
+	await expect(page.getByTestId('split-announce')).toHaveText('Alice is unplaced');
+
+	// Tap to select, Escape to cancel; the cards only become targets while selected.
+	await expect(page.getByRole('button', { name: /^Place / })).toHaveCount(0);
+	await chip(page, 'Bob').click();
+	await expect(chip(page, 'Bob')).toHaveAttribute('aria-pressed', 'true');
+	await expect(groups.nth(0)).toHaveClass(/targetable/);
+	await page.keyboard.press('Escape');
+	await expect(chip(page, 'Bob')).toHaveAttribute('aria-pressed', 'false');
+	await expect(page.getByRole('button', { name: /^Place / })).toHaveCount(0);
+
+	// Tap a chip, then tap a card.
+	await tapPlace(page, 'Bob', 0);
+	await expect(page.getByTestId('split-announce')).toHaveText('Bob chose group 1');
+
+	// Keyboard: Enter on a chip, then Enter on a focused card.
+	await chip(page, 'Alice').focus();
+	await page.keyboard.press('Enter');
+	await expect(chip(page, 'Alice')).toHaveAttribute('aria-pressed', 'true');
+	await page.getByRole('button', { name: 'Place Alice in group 2' }).focus();
+	await page.keyboard.press('Enter');
+	await expect(chip(groups.nth(1), 'Alice')).toBeVisible();
+	await expect(page.getByTestId('split-announce')).toHaveText('Alice chose group 2');
+	await expect(page.getByRole('button', { name: 'Complete round' })).toBeEnabled();
+
+	expect(errors).toEqual([]);
+});
+
+test('Asset Splitting - a shared pick starts another round', async ({ page }) => {
+	const errors = trackErrors(page);
+	await startTwo(page);
+	const groups = page.getByTestId('split-group');
+	await tapPlace(page, 'Alice', 0);
+	await expect(groups.nth(1)).not.toContainText('Unclaimed');
+	await tapPlace(page, 'Bob', 0);
+	await expect(groups.nth(0)).toContainText('Over-demanded');
+	await expect(groups.nth(1)).toContainText('Unclaimed');
+
+	await page.getByRole('button', { name: 'Complete round' }).click();
+	await expect(page.getByRole('heading', { name: 'Round 2', exact: true })).toBeVisible();
+	await expect(chip(page.getByTestId('split-unplaced'), 'Alice')).toBeVisible();
+	await expect(groups.nth(0)).not.toContainText('Over-demanded');
+
+	// Back to setup discards the rounds and keeps the entered prices.
+	await page.getByRole('button', { name: 'Back to setup' }).click();
+	await expect(page.getByLabel('Person name')).toBeVisible();
+	await expect(page.getByRole('row').filter({ hasText: 'Car' })).toContainText(/10\s000\s€/);
+	await page.getByRole('button', { name: 'Start', exact: true }).click();
 	await expect(page.getByRole('heading', { name: 'Round 1', exact: true })).toBeVisible();
-	await expect(alice).toHaveValue('');
-	await expect(bob).toHaveValue('');
-	await expect(complete).toBeDisabled();
+	expect(errors).toEqual([]);
+});
 
-	// Suggested split: one row per person, provisional, payments net to zero.
-	await expect(page.getByTestId('split-stability')).toContainText('Provisional');
-	const rows = page
-		.getByRole('table', { name: 'Suggested split' })
-		.getByRole('row')
-		.filter({ has: page.getByRole('cell') });
-	await expect(rows).toHaveCount(2);
-	const payments = await Promise.all(
-		(await rows.all()).map((row) => row.getByRole('cell').nth(2).innerText())
+test('Asset Splitting - after the round cap the best split is offered', async ({ page }) => {
+	const errors = trackErrors(page);
+	await startTwo(page);
+	const offer = page.getByText('No split everyone agrees on yet.');
+	const sharePick = async (round: number) => {
+		await expect(page.getByRole('heading', { name: `Round ${round}`, exact: true })).toBeVisible();
+		await tapPlace(page, 'Alice', 0);
+		await tapPlace(page, 'Bob', 0);
+		await page.getByRole('button', { name: 'Complete round' }).click();
+	};
+	// Two items, two people: the cap is 2 * 1 + 3 = 5 rounds.
+	for (let round = 1; round <= 5; round++) {
+		await expect(offer).toHaveCount(0);
+		await sharePick(round);
+	}
+	await expect(page.getByRole('heading', { name: 'Round 6', exact: true })).toBeVisible();
+	await expect(offer).toBeVisible();
+	await expect(offer).toContainText(
+		/about \d+% likely fair, largest expected gap \d+% of a fair share/
 	);
-	expect(payments).toHaveLength(2);
-	expect(payments.reduce((s, t) => s + signedAmount(t), 0)).toBe(0);
-
+	await page.getByRole('button', { name: 'Keep going' }).click();
+	await expect(offer).toHaveCount(0);
+	await sharePick(6);
+	await expect(offer).toBeVisible();
+	await page.getByRole('button', { name: 'Accept this split' }).click();
+	await expect(page.getByRole('heading', { name: 'Everyone keeps their own group' })).toBeVisible();
+	await expectSettlementsSumToZero(page);
 	expect(errors).toEqual([]);
 });
 
@@ -115,6 +264,11 @@ test('Asset Splitting - Start is blocked with a reason until 2 people and 1 item
 	await expect(page.getByText('Add at least 1 item to start.')).toBeVisible();
 
 	await addItem(page, 'Car', '10000');
+	// Enter in the price field submits the add-item form.
+	await page.getByLabel('Item description').fill('House');
+	await page.getByLabel('Item price (€)').fill('50000');
+	await page.getByLabel('Item price (€)').press('Enter');
+	await expect(page.getByRole('cell', { name: 'House', exact: true })).toBeVisible();
 	await expect(start).toBeEnabled();
 	expect(errors).toEqual([]);
 });
@@ -132,30 +286,55 @@ test('Asset Splitting - invalid input shows a message', async ({ page }) => {
 	// Rejected input stays in the form for correction, and no item row is added.
 	await expect(page.getByLabel('Item description')).toHaveValue('Car');
 	await expect(page.getByRole('button', { name: 'Delete Car' })).toHaveCount(0);
-});
 
-test('Asset Splitting - items can be deleted and the round view can go back', async ({ page }) => {
-	await open(page);
-
-	await addPerson(page, 'Alice');
-	await addPerson(page, 'Bob');
-	await addItem(page, 'Car', '10000');
 	await addItem(page, 'Boat', '3000');
 	await page.getByRole('button', { name: 'Delete Boat' }).click();
 	await expect(page.getByRole('cell', { name: 'Boat', exact: true })).toHaveCount(0);
-	await addItem(page, 'House', '50000');
+});
 
-	await page.getByRole('button', { name: 'Start', exact: true }).click();
-	await page.getByLabel("Alice's group choice").selectOption('0');
-	await page.getByLabel("Bob's group choice").selectOption('0');
+const WCAG_22_AA = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
+
+for (const colorScheme of ['light', 'dark'] as const) {
+	test(`Asset Splitting - the board has no WCAG 2.2 AA violations in ${colorScheme}`, async ({
+		page
+	}) => {
+		await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+		await startTwo(page);
+		await tapPlace(page, 'Alice', 0);
+		await tapPlace(page, 'Bob', 0);
+		await page.getByRole('button', { name: 'Complete round' }).click();
+		await expect(page.getByRole('heading', { name: 'Round 2', exact: true })).toBeVisible();
+		await tapPlace(page, 'Alice', 1);
+		// A selected chip: the cards are targets.
+		await chip(page, 'Bob').click();
+		const { violations } = await new AxeBuilder({ page }).withTags(WCAG_22_AA).analyze();
+		expect(violations.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([]);
+
+		await page.keyboard.press('Escape');
+		await tapPlace(page, 'Bob', 0);
+		await page.getByRole('button', { name: 'Complete round' }).click();
+		await expect(
+			page.getByRole('heading', { name: 'Everyone keeps their own group' })
+		).toBeVisible();
+		const final = await new AxeBuilder({ page }).withTags(WCAG_22_AA).analyze();
+		expect(final.violations.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([]);
+	});
+}
+
+test('Asset Splitting - group cards fill the row and the page fits 390px', async ({ page }) => {
+	await page.setViewportSize({ width: 1280, height: 900 });
+	await startTwo(page);
+	const groups = page.getByTestId('split-group');
+	const row = (await page.locator('.groups').boundingBox())!;
+	const last = (await groups.nth(1).boundingBox())!;
+	expect(Math.abs(last.x + last.width - (row.x + row.width))).toBeLessThan(2);
+
+	await page.setViewportSize({ width: 390, height: 844 });
+	const width = () => page.evaluate(() => document.documentElement.scrollWidth);
+	expect(await width()).toBeLessThanOrEqual(390);
+	await tapPlace(page, 'Alice', 0);
+	await tapPlace(page, 'Bob', 1);
 	await page.getByRole('button', { name: 'Complete round' }).click();
-	await expect(page.getByRole('heading', { name: 'Round 1', exact: true })).toBeVisible();
-
-	await page.getByRole('button', { name: 'Back to setup' }).click();
-	await expect(page.getByLabel('Person name')).toBeVisible();
-	// Entered prices are restored, not the drifted consensus prices.
-	const carRow = page.getByRole('row').filter({ hasText: 'Car' });
-	await expect(carRow).toContainText(/10\s000\s€/);
-	await page.getByRole('button', { name: 'Start', exact: true }).click();
-	await expect(page.getByRole('heading', { name: 'Round 0', exact: true })).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Everyone keeps their own group' })).toBeVisible();
+	expect(await width()).toBeLessThanOrEqual(390);
 });
