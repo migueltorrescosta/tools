@@ -182,99 +182,103 @@
 	</dl>
 
 	<div class="columns">
-		<div class="column inputs-col" data-testid="inputs-box">
-			<Maximizable title="Inputs by value of information" plot={inputsPlot}>
-				{#snippet frame(button)}
-					<Panel title="Inputs by value of information" actions={button}>
-						{@render inputsPlot(false)}
-					</Panel>
-				{/snippet}
-			</Maximizable>
-		</div>
-		<div class="column tree-col" data-testid="tree-box">
-			<Maximizable title="Policy tree" plot={treePlot} disabled={!analysis.tree}>
-				{#snippet frame(button)}
-					<Panel title="Policy tree" actions={button}>
-						<div class="stack" style="--gap: var(--sp-2)">
-							<form
-								class="tree-settings"
-								onsubmit={(e) => {
-									e.preventDefault();
-									if (valid && treeChanged && !busy) onretree();
-								}}
-							>
-								<NumberInput
-									label="Max depth"
-									value={tree.maxDepth}
-									onchange={(v) => (tree.maxDepth = v)}
-									error={errors.maxDepth}
-								/>
-								<NumberInput
-									label="Min leaf (%)"
-									value={tree.minLeafPercent}
-									onchange={(v) => (tree.minLeafPercent = v)}
-									error={errors.minLeafPercent}
-								/>
-								<NumberInput
-									label="Min impurity decrease"
-									value={tree.minImpurityDecrease}
-									onchange={(v) => (tree.minImpurityDecrease = v)}
-									error={errors.minImpurityDecrease}
-								/>
-								<Button size="sm" type="submit" disabled={!valid || !treeChanged || busy}
-									>Update tree</Button
-								>
-							</form>
-							{@render treePlot(false)}
-						</div>
-					</Panel>
-				{/snippet}
-			</Maximizable>
-		</div>
-		<div class="column losses-col" data-testid="losses-box">
-			<Panel title="Loss distributions">
-				<div class="stack" style="--gap: var(--sp-3)">
-					{#each LOSS_PARTS as [part, title] (part)}
-						<Maximizable {title}>
-							{#snippet plot(maximized: boolean)}
-								<LossPlots
-									distributions={analysis.distributions}
-									{decisions}
-									{money}
-									{part}
-									{maximized}
-								/>
-							{/snippet}
-						</Maximizable>
-					{/each}
-				</div>
-			</Panel>
-		</div>
-		<div class="column voi-col" data-testid="voi-box">
-			<Panel title="Value of information">
-				{#if voi}
-					<div class="stack" style="--gap: var(--sp-3)" bind:clientHeight={voiH}>
-						<Maximizable title="Savings by number of bins">
-							{#snippet plot(maximized: boolean)}
-								<VoiChart
-									{voi}
-									inputs={names}
-									{money}
-									evpi={summary.expectedLoss[summary.best]}
-									{maximized}
-								/>
-							{/snippet}
-						</Maximizable>
-						<Maximizable title="Value of knowing first vs share of profit spread">
-							{#snippet plot(maximized: boolean)}
-								<VoiScatter {points} {money} {maximized} />
-							{/snippet}
-						</Maximizable>
+		<div class="column">
+			<div data-testid="inputs-box">
+				<Maximizable title="Inputs by value of information" plot={inputsPlot}>
+					{#snippet frame(button)}
+						<Panel title="Inputs by value of information" actions={button}>
+							{@render inputsPlot(false)}
+						</Panel>
+					{/snippet}
+				</Maximizable>
+			</div>
+			<div data-testid="losses-box">
+				<Panel title="Loss distributions">
+					<div class="stack" style="--gap: var(--sp-3)">
+						{#each LOSS_PARTS as [part, title] (part)}
+							<Maximizable {title}>
+								{#snippet plot(maximized: boolean)}
+									<LossPlots
+										distributions={analysis.distributions}
+										{decisions}
+										{money}
+										{part}
+										{maximized}
+									/>
+								{/snippet}
+							</Maximizable>
+						{/each}
 					</div>
-				{:else}
-					<Pending label="Computing the value of information…" height={voiH} />
-				{/if}
-			</Panel>
+				</Panel>
+			</div>
+		</div>
+		<div class="column">
+			<div data-testid="tree-box">
+				<Maximizable title="Policy tree" plot={treePlot} disabled={!analysis.tree}>
+					{#snippet frame(button)}
+						<Panel title="Policy tree" actions={button}>
+							<div class="stack" style="--gap: var(--sp-2)">
+								<form
+									class="tree-settings"
+									onsubmit={(e) => {
+										e.preventDefault();
+										if (valid && treeChanged && !busy) onretree();
+									}}
+								>
+									<NumberInput
+										label="Max depth"
+										value={tree.maxDepth}
+										onchange={(v) => (tree.maxDepth = v)}
+										error={errors.maxDepth}
+									/>
+									<NumberInput
+										label="Min leaf (%)"
+										value={tree.minLeafPercent}
+										onchange={(v) => (tree.minLeafPercent = v)}
+										error={errors.minLeafPercent}
+									/>
+									<NumberInput
+										label="Min impurity decrease"
+										value={tree.minImpurityDecrease}
+										onchange={(v) => (tree.minImpurityDecrease = v)}
+										error={errors.minImpurityDecrease}
+									/>
+									<Button size="sm" type="submit" disabled={!valid || !treeChanged || busy}
+										>Update tree</Button
+									>
+								</form>
+								{@render treePlot(false)}
+							</div>
+						</Panel>
+					{/snippet}
+				</Maximizable>
+			</div>
+			<div data-testid="voi-box">
+				<Panel title="Value of information">
+					{#if voi}
+						<div class="stack" style="--gap: var(--sp-3)" bind:clientHeight={voiH}>
+							<Maximizable title="Savings by number of bins">
+								{#snippet plot(maximized: boolean)}
+									<VoiChart
+										{voi}
+										inputs={names}
+										{money}
+										evpi={summary.expectedLoss[summary.best]}
+										{maximized}
+									/>
+								{/snippet}
+							</Maximizable>
+							<Maximizable title="Value of knowing first vs share of profit spread">
+								{#snippet plot(maximized: boolean)}
+									<VoiScatter {points} {money} {maximized} />
+								{/snippet}
+							</Maximizable>
+						</div>
+					{:else}
+						<Pending label="Computing the value of information…" height={voiH} />
+					{/if}
+				</Panel>
+			</div>
 		</div>
 	</div>
 </div>
@@ -508,45 +512,29 @@
 	}
 
 	/*
-	 * Four columns: inputs | tree | losses | value of information. Two
-	 * ([inputs | tree] over [losses | value of information]) where four would
-	 * squeeze the plots, one on phones.
+	 * Two columns: inputs over losses | tree over value of information, each
+	 * its own stack so a tall card leaves no gap beside it; one column (in
+	 * that order) on phones.
 	 */
 	.results {
 		container-type: inline-size;
 	}
 	.columns {
 		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		gap: var(--sp-3);
 		align-items: start;
-		grid-template-areas: 'inputs' 'tree' 'losses' 'voi';
-	}
-	.inputs-col {
-		grid-area: inputs;
-	}
-	.tree-col {
-		grid-area: tree;
-	}
-	.losses-col {
-		grid-area: losses;
-	}
-	.voi-col {
-		grid-area: voi;
-	}
-	@container (min-width: 48rem) {
-		.columns {
-			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-			grid-template-areas: 'inputs tree' 'losses voi';
-		}
-	}
-	@container (min-width: 108rem) {
-		.columns {
-			grid-template-columns: minmax(0, 1.2fr) repeat(3, minmax(0, 1fr));
-			grid-template-areas: 'inputs tree losses voi';
-		}
 	}
 	.column {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-3);
 		min-width: 0;
+	}
+	@container (min-width: 64rem) {
+		.columns {
+			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		}
 	}
 	/* Intermediates: their own heading under a divider, neutral rows. */
 	.intermediates {

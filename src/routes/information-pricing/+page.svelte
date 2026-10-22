@@ -530,34 +530,38 @@
 				<Alert tone="warning">{e.message}</Alert>
 			{/each}
 			<div class="tables" data-testid="setup-tables">
-				<div class="card">
-					<InputsEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
+				<div class="column">
+					<div class="card">
+						<InputsEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
+					</div>
+					<div class="card">
+						<DecisionsEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
+					</div>
 				</div>
-				<div class="card">
-					<IntermediatesEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
+				<div class="column">
+					<div class="card">
+						<IntermediatesEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
+					</div>
+					<Maximizable title="Dataflow" plot={flow}>
+						{#snippet frame(button)}
+							<section
+								class="card dataflow"
+								data-testid="dataflow-card"
+								aria-labelledby="dataflow-heading"
+							>
+								<div class="section-head">
+									<h3 id="dataflow-heading">Dataflow</h3>
+									<InfoTip label="the dataflow"
+										>How the numbers feed each other, from inputs down to the reward. Click a box to
+										find its row and light up what it uses and what uses it.</InfoTip
+									>
+									{@render button()}
+								</div>
+								{@render flow(false)}
+							</section>
+						{/snippet}
+					</Maximizable>
 				</div>
-				<div class="card">
-					<DecisionsEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
-				</div>
-				<Maximizable title="Dataflow" plot={flow}>
-					{#snippet frame(button)}
-						<section
-							class="card dataflow"
-							data-testid="dataflow-card"
-							aria-labelledby="dataflow-heading"
-						>
-							<div class="section-head">
-								<h3 id="dataflow-heading">Dataflow</h3>
-								<InfoTip label="the dataflow"
-									>How the numbers feed each other, from inputs down to the reward. Click a box to
-									find its row and light up what it uses and what uses it.</InfoTip
-								>
-								{@render button()}
-							</div>
-							{@render flow(false)}
-						</section>
-					{/snippet}
-				</Maximizable>
 			</div>
 		</div>
 	{:else if analysis && runModel}
@@ -655,9 +659,9 @@
 	}
 
 	/*
-	 * Setup: four columns, inputs | intermediates | decisions | dataflow; two
-	 * ([inputs | intermediates] over [decisions | dataflow]) where four don't
-	 * fit, one on phones. Rows wrap inside a narrow column, so no field clips.
+	 * Setup: two columns, inputs over decisions | intermediates over dataflow,
+	 * each its own stack so a tall card leaves no gap beside it; one column
+	 * (in that order) on phones.
 	 */
 	.setup {
 		display: flex;
@@ -677,18 +681,19 @@
 	}
 	.tables {
 		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		gap: var(--sp-3);
 		align-items: start;
 	}
-	@container (min-width: 48rem) {
+	.column {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-3);
+		min-width: 0;
+	}
+	@container (min-width: 64rem) {
 		.tables {
 			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-		}
-	}
-	@container (min-width: 108rem) {
-		.tables {
-			/* The dataflow is a picture: it gets the most room. */
-			grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr);
 		}
 	}
 	.setup :global(.card) {
@@ -729,7 +734,7 @@
 	}
 	/* Distribution, name, symbol, parameters, remove. */
 	.setup :global(.input-cols) {
-		grid-template-columns: 4.75rem minmax(6rem, 1fr) 2.75rem minmax(13.5rem, 1.6fr) 1.75rem;
+		grid-template-columns: 4.75rem minmax(6rem, 1fr) 2.75rem minmax(13.5rem, 1.4fr) 1.75rem;
 	}
 	/* Symbol, name, formula, remove. */
 	.setup :global(.intermediate-cols) {
@@ -748,7 +753,7 @@
 			display: none;
 		}
 	}
-	@container (max-width: 30rem) {
+	@container (max-width: 33rem) {
 		.setup :global(.intermediate-cols) {
 			grid-template-columns: 4rem minmax(0, 1fr) 1.75rem;
 		}

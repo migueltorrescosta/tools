@@ -1,6 +1,6 @@
 import { deflateRawSync, inflateRawSync } from 'node:zlib';
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { presetModel, type PresetId } from '../../../lib/information-pricing/presets';
 import type { Model } from '../../../lib/information-pricing/types';
 
@@ -303,104 +303,104 @@ test('Setup sections explain themselves; References list fifteen links', async (
 	await expect(refs.getByRole('link')).toHaveCount(15);
 });
 
-/** Results columns, in order. */
-const RESULT_BOXES = ['inputs-box', 'tree-box', 'losses-box', 'voi-box'];
-/** Setup columns, in order. */
-const SETUP_BOXES = ['inputs', 'intermediates', 'decisions', 'dataflow'].map(
-	(h) => `.card:has(#${h}-heading)`
-);
+/** Results: the first column's cards, then the second's; on phones they stack in this order. */
+const RESULT_BOXES = [
+	['inputs-box', 'losses-box'],
+	['tree-box', 'voi-box']
+];
+/** Setup: the first column's cards, then the second's. */
+const SETUP_BOXES = [
+	['inputs', 'decisions'],
+	['intermediates', 'dataflow']
+].map((col) => col.map((h) => `.card:has(#${h}-heading)`));
 type Box = { x: number; y: number; width: number; height: number };
 const noSideScroll = (page: Page) =>
 	page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+const below = (t: Box, u: Box) => {
+	expect(Math.abs(u.x - t.x)).toBeLessThan(2);
+	expect(u.y).toBeGreaterThanOrEqual(t.y + t.height);
+};
 
-/** Four columns in order sharing a top (1920), two rows of two (1440), or a stack (390). */
-function expectColumns(boxes: Box[], width: number) {
-	const [a, b, c, d] = boxes;
-	const sideBySide = (l: Box, r: Box) => {
-		expect(Math.abs(l.y - r.y)).toBeLessThan(2);
-		expect(r.x).toBeGreaterThanOrEqual(l.x + l.width);
-	};
-	if (width >= 1920) {
-		for (const [l, r] of [
-			[a, b],
-			[b, c],
-			[c, d]
-		])
-			sideBySide(l, r);
-	} else if (width >= 1024) {
-		sideBySide(a, b);
-		sideBySide(c, d);
-		expect(Math.abs(c.x - a.x)).toBeLessThan(2);
-		expect(c.y).toBeGreaterThanOrEqual(Math.max(a.y + a.height, b.y + b.height));
+/** Two columns, each its own stack (1920, 1440), or one stack in column order (390). */
+function expectColumns([[a, b], [c, d]]: Box[][], width: number) {
+	if (width >= 1024) {
+		below(a, b);
+		below(c, d);
+		expect(Math.abs(c.y - a.y)).toBeLessThan(2);
+		expect(c.x).toBeGreaterThanOrEqual(a.x + a.width);
+		// Independent stacks: the second card of each column follows its own column's first
+		expect(Math.min(b.y - (a.y + a.height), d.y - (c.y + c.height))).toBeLessThan(40);
 	} else {
-		for (const [t, u] of [
-			[a, b],
-			[b, c],
-			[c, d]
-		]) {
-			expect(Math.abs(u.x - t.x)).toBeLessThan(2);
-			expect(u.y).toBeGreaterThanOrEqual(t.y + t.height);
-		}
+		below(a, b);
+		below(b, c);
+		below(c, d);
 	}
 }
 
+const boxesOf = (page: Page, columns: string[][], locate: (page: Page, id: string) => Locator) =>
+	Promise.all(
+		columns.map((col) =>
+			Promise.all(col.map(async (id) => (await locate(page, id).boundingBox())!))
+		)
+	);
+
 for (const width of [1920, 1440, 390]) {
-	test(`results at ${width} px: inputs | tree | losses | value of information, in ${
-		width >= 1920 ? 'four columns' : width >= 1024 ? 'two rows of two' : 'one column'
+	test(`results at ${width} px: inputs over losses | tree over value of information${
+		width < 1024 ? ', stacked' : ''
 	}`, async ({ page }) => {
 		await page.setViewportSize({ width, height: 900 });
 		await open(page, link(small('airline-share-buyback')));
 		await press(page, 'Run', 1);
-		const boxes = await Promise.all(
-			RESULT_BOXES.map(async (id) => (await page.getByTestId(id).boundingBox())!)
-		);
+		const boxes = await boxesOf(page, RESULT_BOXES, (p, id) => p.getByTestId(id));
 		const headline = (await page.getByTestId('headline').boundingBox())!;
-		expect(boxes[0].y).toBeGreaterThanOrEqual(headline.y + headline.height);
+		expect(boxes[0][0].y).toBeGreaterThanOrEqual(headline.y + headline.height);
 		expectColumns(boxes, width);
 		// The tree scales down to fit its column
+		const tree = boxes[1][0];
 		const svg = (await page.getByTestId('policy-tree').boundingBox())!;
-		expect(svg.width).toBeLessThanOrEqual(boxes[1].width);
-		expect(svg.x).toBeGreaterThanOrEqual(boxes[1].x);
+		expect(svg.width).toBeLessThanOrEqual(tree.width);
+		expect(svg.x).toBeGreaterThanOrEqual(tree.x);
 		expect(await noSideScroll(page)).toBe(0);
 	});
 }
 
-for (const width of [1440, 390]) {
-	test(`setup at ${width} px: inputs | intermediates over decisions | dataflow, or a stack`, async ({
-		page
-	}) => {
+for (const width of [1920, 1440, 390]) {
+	test(`setup at ${width} px: inputs over decisions | intermediates over dataflow${
+		width < 1024 ? ', stacked' : ''
+	}`, async ({ page }) => {
 		await page.setViewportSize({ width, height: 900 });
 		await open(page, link(small('airline-share-buyback')));
-		const boxes = await Promise.all(
-			SETUP_BOXES.map(async (sel) => (await page.locator(sel).boundingBox())!)
-		);
-		expectColumns(boxes, width);
+		expectColumns(await boxesOf(page, SETUP_BOXES, (p, sel) => p.locator(sel)), width);
 		expect(await noSideScroll(page)).toBe(0);
 	});
 }
 
+/** CI's runner has DejaVu, wider than fugaku's Noto: a 4 px clip once failed only there. */
+const CI_FONT =
+	":root{--font-sans:'DejaVu Sans' !important; --font-mono:'DejaVu Sans Mono' !important}";
+
 for (const id of ['distribution-centre', 'airline-share-buyback'] as const) {
-	test(`setup at 1920 px on ${id}: inputs | intermediates | decisions | dataflow, nothing clipped`, async ({
-		page
-	}) => {
-		await page.setViewportSize({ width: 1920, height: 1000 });
-		await open(page, link(small(id)));
-		const setup = (await page.getByTestId('setup').boundingBox())!;
-		expect(setup.width).toBeGreaterThan(1800);
-		const boxes = await Promise.all(
-			SETUP_BOXES.map(async (sel) => (await page.locator(sel).boundingBox())!)
-		);
-		expectColumns(boxes, 1920);
-		const clipped = await page
-			.getByTestId('setup')
-			.locator('input')
-			.evaluateAll((els) =>
-				(els as HTMLInputElement[])
-					.filter((e) => e.scrollWidth > e.clientWidth + 1)
-					.map((e) => e.value)
-			);
-		expect(clipped).toEqual([]);
-	});
+	for (const width of [1920, 1440]) {
+		test(`setup at ${width} px on ${id}: no input clips, in the page font or CI's`, async ({
+			page
+		}) => {
+			await page.setViewportSize({ width, height: 1000 });
+			await open(page, link(small(id)));
+			const clipped = () =>
+				page
+					.getByTestId('setup')
+					.locator('input')
+					.evaluateAll((els) =>
+						(els as HTMLInputElement[])
+							.filter((e) => e.scrollWidth > e.clientWidth + 1)
+							.map((e) => e.value)
+					);
+			expect(await clipped()).toEqual([]);
+			await page.addStyleTag({ content: CI_FONT });
+			await expect.poll(clipped).toEqual([]);
+			expect(await noSideScroll(page)).toBe(0);
+		});
+	}
 }
 
 test('the dataflow graph has a node per row and an arrow per dependency', async ({ page }) => {
