@@ -33,10 +33,7 @@ function alive(pid: number): boolean {
 // `vite build` exits with the workerd its prerender starts still running. On exit, vite stops
 // any workerd child it has left, whichever thread started it (found through /proc, so on
 // Linux only).
-let stoppingWorkerd = false;
-function stopWorkerdOnExit() {
-	if (stoppingWorkerd) return;
-	stoppingWorkerd = true;
+if (!process.env.VITEST) {
 	process.once('exit', () => {
 		try {
 			for (const task of readdirSync('/proc/self/task')) {
@@ -51,13 +48,10 @@ function stopWorkerdOnExit() {
 	});
 }
 
-// Both, as one plugin.
-function noOrphans(): Plugin {
+function exitWithLauncher(): Plugin {
 	return {
-		name: 'no-orphans',
-		config() {
-			if (!process.env.VITEST) stopWorkerdOnExit();
-		},
+		name: 'exit-with-launcher',
+		apply: 'serve',
 		configureServer(server) {
 			if (process.env.VITEST) return;
 			const parent = process.ppid;
@@ -72,7 +66,7 @@ function noOrphans(): Plugin {
 }
 
 export default defineConfig({
-	plugins: [sveltekit(), noOrphans()],
+	plugins: [sveltekit(), exitWithLauncher()],
 	server: {
 		allowedHosts: ['aurora.seagull-dominant.ts.net']
 	},
