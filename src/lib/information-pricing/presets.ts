@@ -38,7 +38,7 @@ const distributionCentre: Model = {
 /** Buyback spend against liquidity, over a 5-year horizon, in millions of euros. */
 const airlineShareBuyback: Model = {
 	inputs: [
-		{ symbol: 'R', name: 'Share Return', family: 'lognormal', params: [1.35, 0.35] },
+		{ symbol: 'R', name: 'Share Return', family: 'lognormal', params: [1.35, 0.1] },
 		{ symbol: 'K', name: 'Kilometers Flown', family: 'lognormal', params: [2.5e8, 0.35] },
 		{ symbol: 'F', name: 'Fuel Cost per km', family: 'uniform', params: [1, 3.5] },
 		{ symbol: 'Lr', name: 'Loan Rate', family: 'uniform', params: [0.04, 0.18] },
