@@ -8,11 +8,14 @@
 	/** The model's dataflow as a top-to-bottom graph; picking a node lights its chain. */
 	let {
 		graph,
-		selected = $bindable()
+		selected = $bindable(),
+		maximized = false
 	}: {
 		graph: Dataflow;
 		/** The picked node's id, or null. */
 		selected: string | null;
+		/** In a full-window overlay: always at scale 1, centred, scrolling if still too big. */
+		maximized?: boolean;
 	} = $props();
 
 	const uid = $props.id();
@@ -49,7 +52,9 @@
 	/** Shrinks to fit, never grows past 1 (text stays its normal size); below MIN_SCALE the box scrolls. */
 	const MIN_SCALE = 0.65;
 	const scale = $derived(
-		layout && boxWidth > 0 ? Math.max(MIN_SCALE, Math.min(1, (boxWidth - 2) / layout.width)) : 1
+		layout && boxWidth > 0 && !maximized
+			? Math.max(MIN_SCALE, Math.min(1, (boxWidth - 2) / layout.width))
+			: 1
 	);
 
 	/** The picked node's whole chain: everything upstream and downstream. */
@@ -82,6 +87,7 @@
 
 <div
 	class="df-scroll"
+	class:maximized
 	role="group"
 	aria-label="Dataflow"
 	aria-describedby="df-summary-{uid}"
@@ -152,6 +158,8 @@
 					onkeydown={(e) => {
 						if (e.key === 'Escape' && selected) {
 							selected = null;
+							// Clear only: no closing an enclosing dialog on the same key.
+							e.preventDefault();
 							e.stopPropagation();
 						}
 					}}
@@ -181,6 +189,16 @@
 	}
 	.df-size {
 		margin: 0 auto;
+	}
+	/* Maximized: the whole overlay, the graph centred both ways (auto margins keep an
+	   overflowing graph scrollable from its top-left corner). */
+	.df-scroll.maximized {
+		display: flex;
+		max-height: none;
+	}
+	.df-scroll.maximized .df-size {
+		flex: none;
+		margin: auto;
 	}
 	.df-canvas {
 		position: relative;

@@ -7,23 +7,37 @@
 	let {
 		distributions,
 		decisions,
-		money
+		money,
+		part,
+		maximized = false
 	}: {
 		distributions: readonly LossDistribution[];
 		/** Decision labels, model order. */
 		decisions: readonly string[];
 		money: Money;
+		/** Box plots or histograms, one decision a row, on the same x range. */
+		part: 'box' | 'hist';
+		/** In a full-window overlay: the rows grow to fill the height given. */
+		maximized?: boolean;
 	} = $props();
 
 	let width = $state(560);
+	/** Height the overlay leaves for the plot (maximized only). */
+	let room = $state(0);
 	const W = $derived(Math.max(280, width));
 	const longest = $derived(Math.max(...decisions.map((d) => d.length), 4));
 	const M = $derived({ left: Math.min(120, 14 + longest * 7), right: 64 });
-	const ROW = 22;
-	const HIST = 30;
 	const AXIS = 40;
+	const n = $derived(Math.max(1, distributions.length));
+	/** Row heights: fixed inline, grown to fill when maximized. */
+	const ROW = $derived(maximized ? Math.max(22, (room - 8 - AXIS) / n) : 22);
+	const HIST = $derived(maximized ? Math.max(30, (room - AXIS) / n - 4) : 30);
+	/** Box, whisker and EOL marks thicken with the row, up to 2.5×. */
+	const k = $derived(Math.min(2.5, ROW / 22));
 	const boxH = $derived(distributions.length * ROW + 8 + AXIS);
 	const histH = $derived(distributions.length * (HIST + 4) + AXIS);
+	/** The inline height, the least the overlay gives. */
+	const minH = $derived(part === 'box' ? n * 22 + 8 + AXIS : n * 34 + AXIS);
 
 	/** Shared x range: zero to the widest whisker or expected loss, in display units. */
 	const xMax = $derived.by(() => {
@@ -59,102 +73,150 @@
 	}
 </script>
 
-<div class="stack" bind:clientWidth={width}>
-	<figure class="chart">
+{#if part === 'box'}
+	<figure class="chart" class:maximized bind:clientWidth={width}>
 		<figcaption>Box 25–75%, whiskers 5–95%, dashed line and number: expected loss</figcaption>
-		<svg
-			viewBox="0 0 {W} {boxH}"
-			width={W}
-			height={boxH}
-			role="img"
-			aria-label="Box plots of the opportunity loss per decision. {distributions
-				.map(
-					(d) =>
-						`${decisions[d.decision]}: median ${money.format(d.box.median)}, EOL ${money.format(d.expectedLoss)}`
-				)
-				.join('; ')}."
+		<div
+			class="area"
+			style:min-height={maximized ? `${minH}px` : undefined}
+			bind:clientHeight={room}
 		>
-			<Axis
-				side="bottom"
-				{ticks}
-				scale={sx}
-				at={boxH - AXIS}
-				from={M.left}
-				to={W - M.right}
-				format={formatTick}
-				grid={[4, boxH - AXIS]}
-				title={unitTitle}
-			/>
-			{#each distributions as d, i (d.decision)}
-				{@const y = 6 + i * ROW + ROW / 2}
-				{@const c = dataColour(d.decision)}
-				<text class="name" x={M.left - 8} y={y + 4} text-anchor="end">{decisions[d.decision]}</text>
-				<line x1={x(d.box.whiskerLow)} x2={x(d.box.whiskerHigh)} y1={y} y2={y} stroke={c} />
-				<line x1={x(d.box.whiskerLow)} x2={x(d.box.whiskerLow)} y1={y - 5} y2={y + 5} stroke={c} />
-				<line
-					x1={x(d.box.whiskerHigh)}
-					x2={x(d.box.whiskerHigh)}
-					y1={y - 5}
-					y2={y + 5}
-					stroke={c}
+			<svg
+				viewBox="0 0 {W} {boxH}"
+				width={W}
+				height={boxH}
+				role="img"
+				aria-label="Box plots of the opportunity loss per decision. {distributions
+					.map(
+						(d) =>
+							`${decisions[d.decision]}: median ${money.format(d.box.median)}, EOL ${money.format(d.expectedLoss)}`
+					)
+					.join('; ')}."
+			>
+				<Axis
+					side="bottom"
+					{ticks}
+					scale={sx}
+					at={boxH - AXIS}
+					from={M.left}
+					to={W - M.right}
+					format={formatTick}
+					grid={[4, boxH - AXIS]}
+					title={unitTitle}
 				/>
-				<rect
-					class="box"
-					x={x(d.box.q1)}
-					y={y - 7}
-					width={Math.max(1, x(d.box.q3) - x(d.box.q1))}
-					height={14}
-					stroke={c}
-					fill={c}
-				/>
-				<line
-					class="median"
-					x1={x(d.box.median)}
-					x2={x(d.box.median)}
-					y1={y - 7}
-					y2={y + 7}
-					stroke={c}
-				/>
-				<line class="eol" x1={x(d.expectedLoss)} x2={x(d.expectedLoss)} y1={y - 10} y2={y + 10} />
-				<text class="eol-label" x={W - M.right + 6} y={y + 4}>{money.format(d.expectedLoss)}</text>
-			{/each}
-		</svg>
+				{#each distributions as d, i (d.decision)}
+					{@const y = 6 + i * ROW + ROW / 2}
+					{@const c = dataColour(d.decision)}
+					<text class="name" x={M.left - 8} y={y + 4} text-anchor="end"
+						>{decisions[d.decision]}</text
+					>
+					<line x1={x(d.box.whiskerLow)} x2={x(d.box.whiskerHigh)} y1={y} y2={y} stroke={c} />
+					<line
+						x1={x(d.box.whiskerLow)}
+						x2={x(d.box.whiskerLow)}
+						y1={y - 5 * k}
+						y2={y + 5 * k}
+						stroke={c}
+					/>
+					<line
+						x1={x(d.box.whiskerHigh)}
+						x2={x(d.box.whiskerHigh)}
+						y1={y - 5 * k}
+						y2={y + 5 * k}
+						stroke={c}
+					/>
+					<rect
+						class="box"
+						x={x(d.box.q1)}
+						y={y - 7 * k}
+						width={Math.max(1, x(d.box.q3) - x(d.box.q1))}
+						height={14 * k}
+						stroke={c}
+						fill={c}
+					/>
+					<line
+						class="median"
+						x1={x(d.box.median)}
+						x2={x(d.box.median)}
+						y1={y - 7 * k}
+						y2={y + 7 * k}
+						stroke={c}
+					/>
+					<line
+						class="eol"
+						x1={x(d.expectedLoss)}
+						x2={x(d.expectedLoss)}
+						y1={y - 10 * k}
+						y2={y + 10 * k}
+					/>
+					<text class="eol-label" x={W - M.right + 6} y={y + 4}>{money.format(d.expectedLoss)}</text
+					>
+				{/each}
+			</svg>
+		</div>
 	</figure>
-	<figure class="chart">
-		<figcaption>Histograms</figcaption>
-		<svg
-			viewBox="0 0 {W} {histH}"
-			width={W}
-			height={histH}
-			role="img"
-			aria-label="Histogram of the opportunity loss for each decision, with its expected loss as a dashed line."
+{:else}
+	<figure class="chart" class:maximized bind:clientWidth={width}>
+		<figcaption>Dashed line: expected loss</figcaption>
+		<div
+			class="area"
+			style:min-height={maximized ? `${minH}px` : undefined}
+			bind:clientHeight={room}
 		>
-			<Axis
-				side="bottom"
-				{ticks}
-				scale={sx}
-				at={histH - AXIS}
-				from={M.left}
-				to={W - M.right}
-				format={formatTick}
-				grid={[2, histH - AXIS]}
-				title={unitTitle}
-			/>
-			{#each distributions as d, i (d.decision)}
-				{@const top = 4 + i * (HIST + 4)}
-				{@const c = dataColour(d.decision)}
-				<text class="name" x={M.left - 8} y={top + HIST / 2 + 4} text-anchor="end"
-					>{decisions[d.decision]}</text
-				>
-				<line class="row-base" x1={M.left} x2={W - M.right} y1={top + HIST} y2={top + HIST} />
-				<path class="hist" d={steps(d, top)} fill={c} stroke={c} />
-				<line class="eol" x1={x(d.expectedLoss)} x2={x(d.expectedLoss)} y1={top} y2={top + HIST} />
-			{/each}
-		</svg>
+			<svg
+				viewBox="0 0 {W} {histH}"
+				width={W}
+				height={histH}
+				role="img"
+				aria-label="Histogram of the opportunity loss for each decision, with its expected loss as a dashed line."
+			>
+				<Axis
+					side="bottom"
+					{ticks}
+					scale={sx}
+					at={histH - AXIS}
+					from={M.left}
+					to={W - M.right}
+					format={formatTick}
+					grid={[2, histH - AXIS]}
+					title={unitTitle}
+				/>
+				{#each distributions as d, i (d.decision)}
+					{@const top = 4 + i * (HIST + 4)}
+					{@const c = dataColour(d.decision)}
+					<text class="name" x={M.left - 8} y={top + HIST / 2 + 4} text-anchor="end"
+						>{decisions[d.decision]}</text
+					>
+					<line class="row-base" x1={M.left} x2={W - M.right} y1={top + HIST} y2={top + HIST} />
+					<path class="hist" d={steps(d, top)} fill={c} stroke={c} />
+					<line
+						class="eol"
+						x1={x(d.expectedLoss)}
+						x2={x(d.expectedLoss)}
+						y1={top}
+						y2={top + HIST}
+					/>
+				{/each}
+			</svg>
+		</div>
 	</figure>
-</div>
+{/if}
 
 <style>
+	/* Maximized: the plot fills the height left under the caption; absolutely placed, so
+	   its size never feeds back into the room measured for it. */
+	.maximized {
+		display: flex;
+		flex-direction: column;
+	}
+	.maximized .area {
+		position: relative;
+		flex: 1 1 0;
+	}
+	.maximized .area svg {
+		position: absolute;
+		inset: 0;
+	}
 	.name {
 		fill: var(--text);
 		font-size: 12px;

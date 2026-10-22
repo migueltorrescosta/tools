@@ -5,7 +5,7 @@
 		PartialAnalysis,
 		ValueOfInformation
 	} from '$lib/information-pricing/analysis';
-	import { Alert, Button, Panel } from '$lib/ui';
+	import { Alert, Button, Maximizable, Panel } from '$lib/ui';
 	import { dash, dataColour, inputColour, linear, linePath, money as makeMoney } from './format';
 	import InputRow from './InputRow.svelte';
 	import LossPlots from './LossPlots.svelte';
@@ -71,6 +71,11 @@
 				}))
 			: []
 	);
+
+	const LOSS_PARTS = [
+		['box', 'Loss box plots'],
+		['hist', 'Loss histograms']
+	] as const;
 
 	/** Last rendered heights, so a pending box takes the place of what it replaces. */
 	let treeH = $state(300);
@@ -177,133 +182,95 @@
 	</dl>
 
 	<div data-testid="tree-box">
-		<Panel title="Policy tree">
-			<div class="stack" style="--gap: var(--sp-2)">
-				<form
-					class="tree-settings"
-					onsubmit={(e) => {
-						e.preventDefault();
-						if (valid && treeChanged && !busy) onretree();
-					}}
-				>
-					<NumberInput
-						label="Max depth"
-						value={tree.maxDepth}
-						onchange={(v) => (tree.maxDepth = v)}
-						error={errors.maxDepth}
-					/>
-					<NumberInput
-						label="Min leaf (%)"
-						value={tree.minLeafPercent}
-						onchange={(v) => (tree.minLeafPercent = v)}
-						error={errors.minLeafPercent}
-					/>
-					<NumberInput
-						label="Min impurity decrease"
-						value={tree.minImpurityDecrease}
-						onchange={(v) => (tree.minImpurityDecrease = v)}
-						error={errors.minImpurityDecrease}
-					/>
-					<Button size="sm" type="submit" disabled={!valid || !treeChanged || busy}
-						>Update tree</Button
-					>
-				</form>
-				{#if !analysis.tree}
-					<Pending label="Computing the policy tree…" height={treeH} />
-				{:else}
-					<div bind:clientHeight={treeH} data-testid="tree-ready">
-						{#if 'error' in analysis.tree}
-							<Alert tone="info">No tree to show: {analysis.tree.error}</Alert>
-						{:else}
-							<PolicyTree view={analysis.tree.view} inputs={names} />
-						{/if}
+		<Maximizable title="Policy tree" plot={treePlot} disabled={!analysis.tree}>
+			{#snippet frame(button)}
+				<Panel title="Policy tree" actions={button}>
+					<div class="stack" style="--gap: var(--sp-2)">
+						<form
+							class="tree-settings"
+							onsubmit={(e) => {
+								e.preventDefault();
+								if (valid && treeChanged && !busy) onretree();
+							}}
+						>
+							<NumberInput
+								label="Max depth"
+								value={tree.maxDepth}
+								onchange={(v) => (tree.maxDepth = v)}
+								error={errors.maxDepth}
+							/>
+							<NumberInput
+								label="Min leaf (%)"
+								value={tree.minLeafPercent}
+								onchange={(v) => (tree.minLeafPercent = v)}
+								error={errors.minLeafPercent}
+							/>
+							<NumberInput
+								label="Min impurity decrease"
+								value={tree.minImpurityDecrease}
+								onchange={(v) => (tree.minImpurityDecrease = v)}
+								error={errors.minImpurityDecrease}
+							/>
+							<Button size="sm" type="submit" disabled={!valid || !treeChanged || busy}
+								>Update tree</Button
+							>
+						</form>
+						{@render treePlot(false)}
 					</div>
-				{/if}
-			</div>
-		</Panel>
+				</Panel>
+			{/snippet}
+		</Maximizable>
 	</div>
 
 	<div class="columns">
 		<div class="column inputs-col" data-testid="inputs-box">
-			<Panel title="Inputs by value of information">
-				<div class="stack" style="--gap: var(--sp-2)">
-					<ul class="key" aria-label="Decisions">
-						{#each decisions as label, d (d)}
-							<li><span class="swatch" style="background: {dataColour(d)}"></span>{label}</li>
-						{/each}
-					</ul>
-					<div class="inputs">
-						<div class="input-row head" aria-hidden="true">
-							<span>Input · saves with {binsShown} bins</span>
-							<span>Spread (dashed: deciles)</span>
-							<span>Mean loss per decile (log); band and ring: best</span>
-						</div>
-						{#each inputOrder as j (j)}
-							{@render row(
-								'input',
-								j,
-								inputs[j],
-								analysis.densities[j],
-								analysis.groups[j],
-								voi?.savings[j]
-							)}
-						{/each}
-					</div>
-					{#if intermediates.length > 0 || dependent.length > 0}
-						<section
-							class="intermediates"
-							aria-labelledby="intermediates-voi-heading"
-							data-testid="intermediates-box"
-						>
-							<h3 id="intermediates-voi-heading">Intermediates by value of information</h3>
-							<p class="note">
-								Worked out from the inputs, so their value overlaps with the inputs' and doesn't add
-								up with them.
-							</p>
-							{#if intermediates.length > 0}
-								<div class="inputs">
-									<div class="input-row head" aria-hidden="true">
-										<span>Saves with {binsShown} bins</span>
-										<span>Spread (dashed: deciles)</span>
-										<span>Mean loss per decile (log); band and ring: best</span>
-									</div>
-									{#each intermediateOrder as j (j)}
-										{@render row(
-											'intermediate',
-											j,
-											intermediates[j],
-											analysis.intermediates.densities[j],
-											analysis.intermediates.groups[j],
-											ivoi?.savings[j]
-										)}
-									{/each}
-								</div>
-							{/if}
-							{#if dependent.length > 0}
-								<ul class="dependent" aria-label="Intermediates that depend on the decision">
-									{#each dependent as label (label)}
-										<li data-testid="dependent-intermediate">
-											<span class="name">{label}</span> depends on the decision
-										</li>
-									{/each}
-								</ul>
-							{/if}
-						</section>
-					{/if}
-				</div>
-			</Panel>
+			<Maximizable title="Inputs by value of information" plot={inputsPlot}>
+				{#snippet frame(button)}
+					<Panel title="Inputs by value of information" actions={button}>
+						{@render inputsPlot(false)}
+					</Panel>
+				{/snippet}
+			</Maximizable>
 		</div>
 		<div class="column losses-col" data-testid="losses-box">
 			<Panel title="Loss distributions">
-				<LossPlots distributions={analysis.distributions} {decisions} {money} />
+				<div class="stack" style="--gap: var(--sp-3)">
+					{#each LOSS_PARTS as [part, title] (part)}
+						<Maximizable {title}>
+							{#snippet plot(maximized: boolean)}
+								<LossPlots
+									distributions={analysis.distributions}
+									{decisions}
+									{money}
+									{part}
+									{maximized}
+								/>
+							{/snippet}
+						</Maximizable>
+					{/each}
+				</div>
 			</Panel>
 		</div>
 		<div class="column voi-col" data-testid="voi-box">
 			<Panel title="Value of information">
 				{#if voi}
 					<div class="stack" style="--gap: var(--sp-3)" bind:clientHeight={voiH}>
-						<VoiChart {voi} inputs={names} {money} evpi={summary.expectedLoss[summary.best]} />
-						<VoiScatter {points} {money} />
+						<Maximizable title="Savings by number of bins">
+							{#snippet plot(maximized: boolean)}
+								<VoiChart
+									{voi}
+									inputs={names}
+									{money}
+									evpi={summary.expectedLoss[summary.best]}
+									{maximized}
+								/>
+							{/snippet}
+						</Maximizable>
+						<Maximizable title="Value of knowing first vs share of profit spread">
+							{#snippet plot(maximized: boolean)}
+								<VoiScatter {points} {money} {maximized} />
+							{/snippet}
+						</Maximizable>
 					</div>
 				{:else}
 					<Pending label="Computing the value of information…" height={voiH} />
@@ -312,6 +279,96 @@
 		</div>
 	</div>
 </div>
+
+{#snippet treePlot(maximized: boolean)}
+	{#if !analysis.tree}
+		<Pending label="Computing the policy tree…" height={treeH} />
+	{:else if maximized}
+		{#if 'error' in analysis.tree}
+			<Alert tone="info">No tree to show: {analysis.tree.error}</Alert>
+		{:else}
+			<PolicyTree view={analysis.tree.view} inputs={names} maximized />
+		{/if}
+	{:else}
+		<div bind:clientHeight={treeH} data-testid="tree-ready">
+			{#if 'error' in analysis.tree}
+				<Alert tone="info">No tree to show: {analysis.tree.error}</Alert>
+			{:else}
+				<PolicyTree view={analysis.tree.view} inputs={names} />
+			{/if}
+		</div>
+	{/if}
+{/snippet}
+
+{#snippet inputsPlot(maximized: boolean)}
+	<div class="stack" style="--gap: var(--sp-2)">
+		<ul class="key" aria-label="Decisions">
+			{#each decisions as label, d (d)}
+				<li><span class="swatch" style="background: {dataColour(d)}"></span>{label}</li>
+			{/each}
+		</ul>
+		<div class="inputs">
+			<div class="input-row head" aria-hidden="true">
+				<span>Input · saves with {binsShown} bins</span>
+				<span>Spread (dashed: deciles)</span>
+				<span>Mean loss per decile (log); band and ring: best</span>
+			</div>
+			{#each inputOrder as j (j)}
+				{@render row(
+					'input',
+					j,
+					inputs[j],
+					analysis.densities[j],
+					analysis.groups[j],
+					voi?.savings[j]
+				)}
+			{/each}
+		</div>
+		{#if intermediates.length > 0 || dependent.length > 0}
+			<section
+				class="intermediates"
+				aria-labelledby="intermediates-voi-heading{maximized ? '-max' : ''}"
+				data-testid="intermediates-box"
+			>
+				<h3 id="intermediates-voi-heading{maximized ? '-max' : ''}">
+					Intermediates by value of information
+				</h3>
+				<p class="note">
+					Worked out from the inputs, so their value overlaps with the inputs' and doesn't add up
+					with them.
+				</p>
+				{#if intermediates.length > 0}
+					<div class="inputs">
+						<div class="input-row head" aria-hidden="true">
+							<span>Saves with {binsShown} bins</span>
+							<span>Spread (dashed: deciles)</span>
+							<span>Mean loss per decile (log); band and ring: best</span>
+						</div>
+						{#each intermediateOrder as j (j)}
+							{@render row(
+								'intermediate',
+								j,
+								intermediates[j],
+								analysis.intermediates.densities[j],
+								analysis.intermediates.groups[j],
+								ivoi?.savings[j]
+							)}
+						{/each}
+					</div>
+				{/if}
+				{#if dependent.length > 0}
+					<ul class="dependent" aria-label="Intermediates that depend on the decision">
+						{#each dependent as label (label)}
+							<li data-testid="dependent-intermediate">
+								<span class="name">{label}</span> depends on the decision
+							</li>
+						{/each}
+					</ul>
+				{/if}
+			</section>
+		{/if}
+	</div>
+{/snippet}
 
 <style>
 	.results {

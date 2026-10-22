@@ -4,6 +4,7 @@ export { default as Button } from './Button.svelte';
 export { default as DataTable } from './DataTable.svelte';
 export { default as Field } from './Field.svelte';
 export { default as InfoTip } from './InfoTip.svelte';
+export { default as Maximizable } from './Maximizable.svelte';
 export { default as Output } from './Output.svelte';
 export { default as PageHeader } from './PageHeader.svelte';
 export { default as Panel } from './Panel.svelte';

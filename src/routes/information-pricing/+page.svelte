@@ -41,6 +41,7 @@
 		Button,
 		Field,
 		InfoTip,
+		Maximizable,
 		PageHeader,
 		References,
 		ShareActions,
@@ -122,6 +123,8 @@
 	);
 	/** The dataflow node picked in the graph; its table row is highlighted. */
 	let picked = $state<string | null>(null);
+	/** The node picked in the maximized graph: it lights up there only. */
+	let pickedMax = $state<string | null>(null);
 	$effect(() => {
 		if (!picked) return;
 		document
@@ -397,6 +400,14 @@
 	});
 </script>
 
+{#snippet flow(maximized: boolean)}
+	{#if maximized}
+		<DataflowGraph {graph} maximized bind:selected={pickedMax} />
+	{:else}
+		<DataflowGraph {graph} bind:selected={picked} />
+	{/if}
+{/snippet}
+
 <div class="container ip" data-hydrated={hydrated || undefined}>
 	<PageHeader path="/information-pricing">
 		{#snippet actions()}<ShareActions
@@ -518,16 +529,21 @@
 			{#each errors.filter((e) => e.where.kind === 'model') as e, i (i)}
 				<Alert tone="warning">{e.message}</Alert>
 			{/each}
-			<section class="card dataflow" aria-labelledby="dataflow-heading">
-				<div class="section-head">
-					<h3 id="dataflow-heading">Dataflow</h3>
-					<InfoTip label="the dataflow"
-						>How the numbers feed each other, from inputs down to the reward. Click a box to find
-						its row and light up what it uses and what uses it.</InfoTip
-					>
-				</div>
-				<DataflowGraph {graph} bind:selected={picked} />
-			</section>
+			<Maximizable title="Dataflow" plot={flow}>
+				{#snippet frame(button)}
+					<section class="card dataflow" aria-labelledby="dataflow-heading">
+						<div class="section-head">
+							<h3 id="dataflow-heading">Dataflow</h3>
+							<InfoTip label="the dataflow"
+								>How the numbers feed each other, from inputs down to the reward. Click a box to
+								find its row and light up what it uses and what uses it.</InfoTip
+							>
+							{@render button()}
+						</div>
+						{@render flow(false)}
+					</section>
+				{/snippet}
+			</Maximizable>
 			<div class="tables" data-testid="setup-tables">
 				<div class="card inputs-card">
 					<InputsEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />

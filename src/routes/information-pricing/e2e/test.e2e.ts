@@ -1,4 +1,5 @@
 import { deflateRawSync, inflateRawSync } from 'node:zlib';
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { presetModel, type PresetId } from '../../../lib/information-pricing/presets';
 import type { Model } from '../../../lib/information-pricing/types';
@@ -889,3 +890,122 @@ test('the policy tree fill is on a log scale: red at the largest savings × shar
 	});
 	expect(tenth).toBeGreaterThan(0);
 });
+
+/** Each maximizable plot: its title, and the element that must fill the window when maximized. */
+const MAXIMIZE: [string, string][] = [
+	['Policy tree', 'figure.tree'],
+	['Inputs by value of information', '.inputs'],
+	['Loss box plots', 'figure svg'],
+	['Loss histograms', 'figure svg'],
+	['Savings by number of bins', '[data-testid="voi-chart"] svg[role="img"]'],
+	['Value of knowing first vs share of profit spread', '[data-testid="voi-scatter"] svg']
+];
+
+/** Opens `title` maximized, checks the plot fills the window, closes it with `how`, checks focus. */
+async function maximize(page: Page, title: string, plot: string, how: 'Escape' | 'Close') {
+	const button = page.getByRole('button', { name: `Maximize ${title}` });
+	await button.click();
+	const dialog = page.getByRole('dialog', { name: title });
+	await expect(dialog).toBeVisible();
+	const view = page.viewportSize()!;
+	const box = (await dialog.locator(plot).first().boundingBox())!;
+	expect(box.width).toBeGreaterThan(0.8 * view.width);
+	if (how === 'Escape') await page.keyboard.press('Escape');
+	else await dialog.getByRole('button', { name: `Close ${title}` }).click();
+	await expect(dialog).toBeHidden();
+	await expect(button).toBeFocused();
+	return box;
+}
+
+test('each plot maximizes to fill the window; Esc and ✕ close it and focus returns', async ({
+	page
+}) => {
+	await page.setViewportSize({ width: 1440, height: 900 });
+	await open(page, link(small('airline-share-buyback')));
+	for (const how of ['Escape', 'Close'] as const)
+		await maximize(page, 'Dataflow', '[data-testid="dataflow"]', how);
+	// The maximized graph is at full size, centred; a pick there lights it up there only
+	await page.getByRole('button', { name: 'Maximize Dataflow' }).click();
+	const dialog = page.getByRole('dialog', { name: 'Dataflow' });
+	const node = dialog.getByTestId('dataflow-node').first();
+	await node.click();
+	await expect(node).toHaveAttribute('aria-pressed', 'true');
+	// Esc on a picked node clears the pick first, then closes
+	await node.press('Escape');
+	await expect(node).toHaveAttribute('aria-pressed', 'false');
+	await expect(dialog).toBeVisible();
+	await page.keyboard.press('Escape');
+	await expect(dialog).toBeHidden();
+	await expect(graph(page).getByTestId('dataflow-node').first()).toHaveAttribute(
+		'aria-pressed',
+		'false'
+	);
+
+	await press(page, 'Run', 1);
+	for (const [title, plot] of MAXIMIZE) {
+		const box = await maximize(page, title, plot, 'Escape');
+		// Charts grow in height too
+		if (/Loss|Savings|Value/.test(title)) expect(box.height).toBeGreaterThan(0.6 * 900);
+		await maximize(page, title, plot, 'Close');
+	}
+	// Nothing maximized stays in the page
+	await expect(page.getByTestId('maximized').locator('svg')).toHaveCount(0);
+});
+
+test('maximized interactions: scatter readout and VoI legend hover', async ({ page }) => {
+	await open(page, link(small('airline-share-buyback')));
+	await press(page, 'Run', 1);
+	await page.getByRole('button', { name: 'Maximize Value of knowing first' }).click();
+	const scatter = page.getByRole('dialog').getByTestId('voi-scatter');
+	await scatter.getByTestId('scatter-point').first().hover();
+	await expect(scatter.getByTestId('scatter-readout')).toContainText('knowing it first');
+	await page.keyboard.press('Escape');
+
+	await page.getByRole('button', { name: 'Maximize Savings by number of bins' }).click();
+	const chart = page.getByRole('dialog').getByTestId('voi-chart');
+	await chart.getByTestId('voi-key').first().hover();
+	await expect(chart.locator('.series.dim')).toHaveCount(
+		(await chart.getByTestId('voi-line').count()) - 1
+	);
+});
+
+test('the maximize buttons wait for their pending sections', async ({ page }) => {
+	await open(page, link(small('airline-share-buyback', 1_000_000)));
+	// Checked every frame: the tree may be pending only briefly
+	const pendingTree = page.waitForFunction(
+		() => {
+			const button = (name: string) =>
+				document.querySelector<HTMLButtonElement>(`button[aria-label="Maximize ${name}"]`);
+			return (
+				!!document.querySelector('[data-testid="tree-box"] [data-testid="pending"]') &&
+				button('Policy tree')?.disabled === true &&
+				button('Loss box plots')?.disabled === false
+			);
+		},
+		null,
+		{ polling: 'raf', timeout: 30_000 }
+	);
+	await runButton(page).click();
+	await pendingTree;
+	await expect(page.getByTestId('run-status')).toHaveAttribute('data-done', '1', {
+		timeout: 60_000
+	});
+	await expect(page.getByRole('button', { name: 'Maximize Policy tree' })).toBeEnabled();
+});
+
+for (const colorScheme of ['light', 'dark'] as const) {
+	test(`a maximized plot has no WCAG 2.2 AA violations in ${colorScheme}`, async ({ page }) => {
+		await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+		await open(page, link(small('airline-share-buyback')));
+		await press(page, 'Run', 1);
+		for (const [title] of MAXIMIZE) {
+			await page.getByRole('button', { name: `Maximize ${title}` }).click();
+			await expect(page.getByRole('dialog', { name: title })).toBeVisible();
+			const { violations } = await new AxeBuilder({ page })
+				.withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+				.analyze();
+			expect(violations.map((v) => `${title}: ${v.id}: ${v.nodes.length} node(s)`)).toEqual([]);
+			await page.keyboard.press('Escape');
+		}
+	});
+}

@@ -24,11 +24,23 @@
 		share: number;
 	}
 
-	let { points, money }: { points: readonly ScatterPoint[]; money: Money } = $props();
+	let {
+		points,
+		money,
+		maximized = false
+	}: {
+		points: readonly ScatterPoint[];
+		money: Money;
+		/** In a full-window overlay: the chart fills the height given. */
+		maximized?: boolean;
+	} = $props();
 
 	let width = $state(420);
+	/** Height the overlay leaves for the chart (maximized only). */
+	let room = $state(0);
 	const W = $derived(Math.max(260, width));
-	const H = 240;
+	const MIN_H = 240;
+	const H = $derived(maximized ? Math.max(MIN_H, room) : MIN_H);
 	const M = { top: 10, right: 14, bottom: 40, left: 52 };
 	/** About 6.5 px a character at 11 px. */
 	const textWidth = (s: string) => s.length * 6.5;
@@ -40,7 +52,7 @@
 	/** A share: linear, 0 to 100 %. */
 	const yb: [number, number] = [0, 100];
 	const sx = $derived(logScale(xb[0], xb[1], M.left, W - M.right));
-	const sy = linear(yb[0], yb[1], H - M.bottom, M.top);
+	const sy = $derived(linear(yb[0], yb[1], H - M.bottom, M.top));
 
 	/** Plotted points: values under the log floor (or not positive) sit on it, hollow. */
 	const plotted = $derived(
@@ -79,6 +91,7 @@
 
 <figure
 	class="chart scatter"
+	class:maximized
 	data-testid="voi-scatter"
 	data-x-bounds={xb.join(',')}
 	data-y-bounds={yb.join(',')}
@@ -99,7 +112,12 @@
 			>
 		</span>
 	</figcaption>
-	<div bind:clientWidth={width}>
+	<div
+		class="area"
+		style:min-height={maximized ? `${MIN_H}px` : undefined}
+		bind:clientWidth={width}
+		bind:clientHeight={room}
+	>
 		<svg
 			viewBox="0 0 {W} {H}"
 			width={W}
@@ -170,6 +188,20 @@
 </figure>
 
 <style>
+	/* Maximized: the plot fills the height left; absolutely placed, so its size never
+	   feeds back into the room measured for it. */
+	.maximized {
+		display: flex;
+		flex-direction: column;
+	}
+	.maximized .area {
+		position: relative;
+		flex: 1 1 0;
+	}
+	.maximized .area svg {
+		position: absolute;
+		inset: 0;
+	}
 	.point circle {
 		fill: var(--c);
 		stroke: var(--c);

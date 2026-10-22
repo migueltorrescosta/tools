@@ -20,7 +20,8 @@
 		voi,
 		inputs,
 		money,
-		evpi
+		evpi,
+		maximized = false
 	}: {
 		voi: ValueOfInformation;
 		/** Input labels, model order. */
@@ -28,11 +29,16 @@
 		money: Money;
 		/** Expected value of perfect information, native units: the ceiling. */
 		evpi: number;
+		/** In a full-window overlay: the chart fills the height given. */
+		maximized?: boolean;
 	} = $props();
 
 	let width = $state(480);
+	/** Height the overlay leaves for the chart (maximized only). */
+	let room = $state(0);
 	const W = $derived(Math.max(260, width));
-	const H = 220;
+	const MIN_H = 220;
+	const H = $derived(maximized ? Math.max(MIN_H, room) : MIN_H);
 	/** Longest end label (about 6.5 px a character, at most 40% of the width); longer names are cut. */
 	const maxChars = $derived(Math.min(24, Math.floor((W * 0.4 - 12) / 6.5)));
 	const cut = (s: string, n: number) => (s.length > n ? `${s.slice(0, Math.max(1, n - 1))}…` : s);
@@ -100,7 +106,7 @@
 	);
 </script>
 
-<figure class="chart voi" data-testid="voi-chart" data-bounds={bounds?.join(',')}>
+<figure class="chart voi" class:maximized data-testid="voi-chart" data-bounds={bounds?.join(',')}>
 	<figcaption>
 		Savings by number of bins, log scale. Dotted line: the EVPI, the most any information can save.
 	</figcaption>
@@ -136,7 +142,12 @@
 				</li>
 			{/each}
 		</ul>
-		<div bind:clientWidth={width}>
+		<div
+			class="area"
+			style:min-height={maximized ? `${MIN_H}px` : undefined}
+			bind:clientWidth={width}
+			bind:clientHeight={room}
+		>
 			<svg
 				viewBox="0 0 {W} {H}"
 				width={W}
@@ -212,6 +223,20 @@
 </figure>
 
 <style>
+	/* Maximized: the plot fills the height left; absolutely placed, so its size never
+	   feeds back into the room measured for it. */
+	.maximized {
+		display: flex;
+		flex-direction: column;
+	}
+	.maximized .area {
+		position: relative;
+		flex: 1 1 0;
+	}
+	.maximized .area svg {
+		position: absolute;
+		inset: 0;
+	}
 	.empty {
 		margin: 0;
 		font-size: var(--text-sm);

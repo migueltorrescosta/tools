@@ -7,12 +7,17 @@
 
 	let {
 		view,
-		inputs
+		inputs,
+		maximized = false
 	}: {
 		view: PolicyTreeView;
 		/** Input names, model order (the view's own labels are symbols). */
 		inputs: readonly string[];
+		/** In a full-window overlay: at scale 1, centred, scrolling if still too big. */
+		maximized?: boolean;
 	} = $props();
+
+	const uid = $props.id();
 
 	const layout = $derived(layoutTree(view, inputs));
 
@@ -20,7 +25,7 @@
 	const MIN_SCALE = 0.8;
 	let boxWidth = $state(0);
 	const scale = $derived(
-		boxWidth > 0 && layout.width > boxWidth && layout.width * MIN_SCALE <= boxWidth
+		!maximized && boxWidth > 0 && layout.width > boxWidth && layout.width * MIN_SCALE <= boxWidth
 			? boxWidth / layout.width
 			: 1
 	);
@@ -53,7 +58,7 @@
 	);
 </script>
 
-<figure class="chart tree">
+<figure class="chart tree" class:maximized>
 	<Legend
 		label="Decisions in the tree"
 		items={view.legend.map((l) => ({
@@ -79,7 +84,7 @@
 		>
 			<defs>
 				<marker
-					id="tree-arrow"
+					id="tree-arrow-{uid}"
 					viewBox="0 0 8 8"
 					refX="7"
 					refY="4"
@@ -91,7 +96,7 @@
 				</marker>
 			</defs>
 			{#each layout.edges as e (e.id)}
-				<path class="edge" d={edgePath(e.points)} marker-end="url(#tree-arrow)" />
+				<path class="edge" d={edgePath(e.points)} marker-end="url(#tree-arrow-{uid})" />
 			{/each}
 			{#each layout.edges as e (e.id)}
 				{#if e.label}
@@ -166,6 +171,21 @@
 		display: block;
 		margin: 0 auto;
 		max-width: none;
+	}
+	/* Maximized: legend, the tree centred in the space left, footer. */
+	.tree.maximized {
+		display: flex;
+		flex-direction: column;
+	}
+	.tree.maximized .scroll {
+		display: flex;
+		flex: 1 1 0;
+		min-height: 0;
+		overflow: auto;
+	}
+	.tree.maximized .scroll svg {
+		flex: none;
+		margin: auto;
 	}
 	.edge {
 		fill: none;
