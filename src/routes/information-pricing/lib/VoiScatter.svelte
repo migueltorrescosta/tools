@@ -5,6 +5,7 @@
 		decades,
 		formatLogTick,
 		inputColour,
+		linear,
 		logDecadeBounds,
 		logScale,
 		placeLabels,
@@ -36,25 +37,20 @@
 	const max = (vs: number[]) => Math.max(0, ...vs.filter(Number.isFinite));
 	/** Three decades under the next power of 10 above the largest value; a fallback with none. */
 	const xb = $derived(logDecadeBounds(max(scaled.map((p) => p.x))) ?? [0.001, 1]);
-	/** Percentages: capped at 100 %. */
-	const yb = $derived.by((): [number, number] => {
-		const b = logDecadeBounds(max(scaled.map((p) => p.y))) ?? [0.1, 100];
-		return b[1] > 100 ? [0.1, 100] : b;
-	});
+	/** A share: linear, 0 to 100 %. */
+	const yb: [number, number] = [0, 100];
 	const sx = $derived(logScale(xb[0], xb[1], M.left, W - M.right));
-	const sy = $derived(logScale(yb[0], yb[1], H - M.bottom, M.top));
+	const sy = linear(yb[0], yb[1], H - M.bottom, M.top);
 
-	/** Plotted points: values under the floor (or not positive) sit on it, hollow. */
+	/** Plotted points: values under the log floor (or not positive) sit on it, hollow. */
 	const plotted = $derived(
 		scaled.map((p) => {
-			const floorX = !(p.x >= xb[0]);
-			const floorY = !(p.y >= yb[0]);
+			const floor = !(p.x >= xb[0]);
 			return {
 				...p,
-				px: sx(floorX ? xb[0] : p.x),
-				py: sy(floorY ? yb[0] : p.y),
-				floorX,
-				floorY,
+				px: sx(floor ? xb[0] : p.x),
+				py: sy(Math.min(100, Math.max(0, p.y))),
+				floor,
 				text: describe(p)
 			};
 		})
@@ -109,7 +105,7 @@
 			width={W}
 			height={H}
 			role="group"
-			aria-label="Each input's value of knowing it first against the share of profit spread it explains, both on log scales."
+			aria-label="Each input's value of knowing it first, on a log scale, against the share of profit spread it explains, 0 to 100 %."
 		>
 			<Axis
 				side="bottom"
@@ -126,12 +122,12 @@
 			/>
 			<Axis
 				side="left"
-				ticks={decades(yb[0], yb[1])}
+				ticks={[0, 25, 50, 75, 100]}
 				scale={sy}
 				at={M.left}
 				from={M.top}
 				to={H - M.bottom}
-				format={formatLogTick}
+				format={String}
 				grid={[M.left, W - M.right]}
 				title="Share of profit spread (%)"
 			/>
@@ -142,7 +138,7 @@
 						cx={p.px}
 						cy={p.py}
 						r="5"
-						class:floor={p.floorX || p.floorY}
+						class:floor={p.floor}
 						tabindex="0"
 						role="img"
 						aria-label={p.text}
@@ -151,7 +147,7 @@
 						data-y={p.y}
 						data-px={p.px}
 						data-py={p.py}
-						data-floor={p.floorX || p.floorY || undefined}
+						data-floor={p.floor || undefined}
 						onmouseenter={() => (active = i)}
 						onmouseleave={() => (active = null)}
 						onfocus={() => (active = i)}

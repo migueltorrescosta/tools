@@ -831,24 +831,18 @@ for (const id of ['distribution-centre', 'airline-share-buyback'] as const) {
 				stroke: getComputedStyle(e).stroke
 			}))
 		);
-		// Each axis: three decades under the next power of 10 above its max (the % axis capped at 100)
+		// Across: three decades under the next power of 10 above the max; up: a linear 0–100 % share
 		const xmax = Math.max(...data.map((d) => d.x));
 		expect(xhi).toBeGreaterThan(xmax);
 		expect(xhi / 10).toBeLessThanOrEqual(xmax);
-		const ymax = Math.max(...data.map((d) => d.y));
-		expect(yhi).toBeGreaterThanOrEqual(ymax);
-		expect(yhi).toBeLessThanOrEqual(100);
-		expect(ymax).toBeLessThanOrEqual(100);
-		for (const [lo, hi] of [
-			[xlo, xhi],
-			[ylo, yhi]
-		])
-			expect(hi / lo).toBeCloseTo(1000, 6);
+		expect(xhi / xlo).toBeCloseTo(1000, 6);
+		expect([ylo, yhi]).toEqual([0, 100]);
 		for (const d of data) {
 			expect(d.x).toBeLessThan(xhi);
-			expect(d.y).toBeLessThanOrEqual(yhi);
-			// Under the floor (or not positive): on the floor, hollow
-			expect(d.floor).toBe(!(d.x >= xlo) || !(d.y >= ylo));
+			expect(d.y).toBeGreaterThanOrEqual(0);
+			expect(d.y).toBeLessThanOrEqual(100);
+			// Under the log floor (or not positive): on the floor, hollow
+			expect(d.floor).toBe(!(d.x >= xlo));
 			if (d.floor) expect(d.fill).not.toBe(d.stroke);
 			else expect(d.fill).toBe(d.stroke);
 		}
