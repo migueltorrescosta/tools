@@ -2,7 +2,14 @@
 	import { MAX_SYMBOLS, type ModelError } from '$lib/information-pricing/model';
 	import type { Model } from '$lib/information-pricing/types';
 	import { Button, Field, InfoTip } from '$lib/ui';
-	import { declaredSymbols, errorAt, freeSymbol, freshIds, type RowIds } from './editor';
+	import {
+		declaredSymbols,
+		errorAt,
+		freeSymbol,
+		freshIds,
+		intermediateNode,
+		type RowIds
+	} from './editor';
 	import FormulaInput from './FormulaInput.svelte';
 	import SymbolInput from './SymbolInput.svelte';
 
@@ -10,12 +17,15 @@
 		model = $bindable(),
 		ids = $bindable(),
 		errors,
-		onrename
+		onrename,
+		selected = null
 	}: {
 		model: Model;
 		ids: RowIds;
 		errors: readonly ModelError[];
 		onrename: (from: string, to: string) => void;
+		/** The dataflow node picked in the graph; its row is highlighted. */
+		selected?: string | null;
 	} = $props();
 
 	const declared = $derived(declaredSymbols(model));
@@ -43,11 +53,16 @@
 	</div>
 	{#if model.intermediates.length}
 		<div class="cols intermediate-cols" aria-hidden="true">
-			<span>Symbol</span><span>Name</span>
+			<span>Symbol</span><span>Name</span><span>Formula</span>
 		</div>
 	{/if}
 	{#each model.intermediates as m, i (ids.intermediates[i])}
-		<div class="row intermediate-cols" data-testid="intermediate-row">
+		<div
+			class="row intermediate-cols"
+			class:selected={selected === intermediateNode(ids.intermediates[i])}
+			data-node={intermediateNode(ids.intermediates[i])}
+			data-testid="intermediate-row"
+		>
 			<SymbolInput
 				hideLabel
 				name="Symbol of intermediate {who(i)}"
@@ -67,10 +82,6 @@
 					/>
 				{/snippet}
 			</Field>
-			<Button variant="ghost" size="sm" class="remove" onclick={() => remove(i)}
-				><span aria-hidden="true">✕</span><span class="sr-only">Remove intermediate {who(i)}</span
-				></Button
-			>
 			<div class="formula">
 				<FormulaInput
 					hideLabel
@@ -81,9 +92,21 @@
 					error={errorAt(errors, { kind: 'intermediate', index: i, field: 'formula' })}
 				/>
 			</div>
+			<Button variant="ghost" size="sm" class="remove" onclick={() => remove(i)}
+				><span aria-hidden="true">✕</span><span class="sr-only">Remove intermediate {who(i)}</span
+				></Button
+			>
 		</div>
 	{:else}
 		<p class="muted">None yet. Add one to name a step of the reward.</p>
 	{/each}
 	<div><Button size="sm" onclick={add} disabled={full}>Add intermediate</Button></div>
 </section>
+
+<style>
+	.muted {
+		margin: 0;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+	}
+</style>

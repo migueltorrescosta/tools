@@ -5,6 +5,7 @@
 	import { createAnalyser, type Analyser } from '$lib/information-pricing/analyser';
 	import type { Analysis } from '$lib/information-pricing/analysis';
 	import { scenariosCsv } from '$lib/information-pricing/csv';
+	import { dataflow } from '$lib/information-pricing/dataflow';
 	import { validateParams } from '$lib/information-pricing/distributions';
 	import {
 		compileModel,
@@ -41,17 +42,19 @@
 		Field,
 		InfoTip,
 		PageHeader,
-		Panel,
 		References,
 		ShareActions,
 		Stepper
 	} from '$lib/ui';
 	import { defaultWorkerCount } from '$lib/worker-pool';
+	import DataflowGraph from './lib/DataflowGraph.svelte';
 	import DecisionsEditor from './lib/DecisionsEditor.svelte';
 	import {
 		DEFAULT_TREE,
 		allFinite,
 		describeLocation,
+		inputNode,
+		intermediateNode,
 		rowIds,
 		samplesProblem,
 		seedProblem,
@@ -63,7 +66,6 @@
 	import InputsEditor from './lib/InputsEditor.svelte';
 	import IntermediatesEditor from './lib/IntermediatesEditor.svelte';
 	import NumberInput from './lib/NumberInput.svelte';
-	import ParametersEditor from './lib/ParametersEditor.svelte';
 	import { REFERENCES } from './lib/references';
 	import Results from './lib/Results.svelte';
 
@@ -99,8 +101,35 @@
 		model = renameSymbol($state.snapshot(model) as Model, from, to);
 	}
 
+	// --- Dataflow ---
+	const graph = $derived(
+		dataflow(
+			model,
+			{
+				input: (i) => inputNode(ids.inputs[i]),
+				intermediate: (i) => intermediateNode(ids.intermediates[i])
+			},
+			{
+				intermediates: new Set(
+					errors.flatMap((e) =>
+						e.where.kind === 'intermediate' && e.where.field === 'formula' ? [e.where.index] : []
+					)
+				),
+				reward: errors.some((e) => e.where.kind === 'reward')
+			}
+		)
+	);
+	/** The dataflow node picked in the graph; its table row is highlighted. */
+	let picked = $state<string | null>(null);
+	$effect(() => {
+		if (!picked) return;
+		document
+			.querySelector(`[data-testid="setup"] [data-node="${picked}"]`)
+			?.scrollIntoView({ block: 'nearest' });
+	});
+
 	// --- Steps ---
-	const STEPS = ['Setup', 'Parameters', 'Results'] as const;
+	const STEPS = ['Setup', 'Results'] as const;
 	/** Current step, page state only (never in the link or the saved model). */
 	let step = $state(0);
 
@@ -139,7 +168,7 @@
 					runModel = pending.model;
 					runKey = pending.key ?? null;
 					// A fresh run (not Add scenarios or a tree update) shows its results.
-					step = 2;
+					step = 1;
 				}
 				if (pending?.tree) appliedTree = pending.tree;
 				pending = null;
@@ -322,7 +351,7 @@
 	});
 </script>
 
-<div class="container" data-hydrated={hydrated || undefined}>
+<div class="container ip" data-hydrated={hydrated || undefined}>
 	<PageHeader path="/information-pricing">
 		{#snippet actions()}<ShareActions
 				url={shareUrl}
@@ -342,7 +371,7 @@
 	<Stepper
 		label="Steps"
 		current={step}
-		steps={STEPS.map((label, i) => ({ label, disabled: i === 2 && !analysis }))}
+		steps={STEPS.map((label, i) => ({ label, disabled: i === 1 && !analysis }))}
 		onselect={(i) => (step = i)}
 	/>
 
@@ -427,7 +456,7 @@
 		</div>{/if}
 
 	{#if step === 0}
-		<div class="model" data-testid="setup">
+		<div class="setup" data-testid="setup">
 			<div class="preset">
 				<Field label="Preset">
 					{#snippet children(props)}
@@ -444,20 +473,40 @@
 					{/snippet}
 				</Field>
 			</div>
-			<div class="setup-columns">
-				<div class="card"><InputsEditor bind:model bind:ids {errors} onrename={rename} /></div>
-				<div class="card">
-					<IntermediatesEditor bind:model bind:ids {errors} onrename={rename} />
-				</div>
-				<div class="card"><DecisionsEditor bind:model {errors} onrename={rename} /></div>
-			</div>
 			{#each errors.filter((e) => e.where.kind === 'model') as e, i (i)}
 				<Alert tone="warning">{e.message}</Alert>
 			{/each}
-		</div>
-	{:else if step === 1}
-		<div class="model" data-testid="parameters">
-			<ParametersEditor bind:model bind:ids {errors} />
+			<div class="setup-grid">
+				<div class="tables-wrap">
+					<div class="tables">
+						<div class="card inputs-card">
+							<InputsEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
+						</div>
+						<div class="card">
+							<IntermediatesEditor
+								bind:model
+								bind:ids
+								{errors}
+								onrename={rename}
+								selected={picked}
+							/>
+						</div>
+						<div class="card">
+							<DecisionsEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
+						</div>
+					</div>
+				</div>
+				<section class="card dataflow" aria-labelledby="dataflow-heading">
+					<div class="section-head">
+						<h3 id="dataflow-heading">Dataflow</h3>
+						<InfoTip label="the dataflow"
+							>How the numbers feed each other, from inputs down to the reward. Click a box to find
+							its row and light up what it uses and what uses it.</InfoTip
+						>
+					</div>
+					<DataflowGraph {graph} bind:selected={picked} />
+				</section>
+			</div>
 		</div>
 	{:else if analysis && runModel}
 		<Results
@@ -471,10 +520,6 @@
 			busy={running}
 			onretree={retree}
 		/>
-	{:else}
-		<Panel title="Results">
-			<p class="muted">Press Run to see results here.</p>
-		</Panel>
 	{/if}
 
 	<HowItWorks />
@@ -556,11 +601,16 @@
 		padding-left: var(--sp-4);
 	}
 
-	/* Setup and Parameters */
-	.model {
+	/* This page uses the full window width. */
+	.ip {
+		max-width: none;
+	}
+
+	/* Setup: the three tables on the left, the dataflow on the right; one column on phones. */
+	.setup {
 		display: flex;
 		flex-direction: column;
-		gap: var(--sp-3);
+		gap: var(--sp-2);
 	}
 	.preset :global(.ui-field) {
 		flex-direction: row;
@@ -572,73 +622,125 @@
 		min-width: 14rem;
 		max-width: 100%;
 	}
-	/* Setup: Inputs, Intermediates and Decisions side by side, wrapping when narrow. */
-	.setup-columns {
+	.setup-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
 		gap: var(--sp-3);
 		align-items: start;
 	}
-	.model :global(.card) {
+	@media (min-width: 1100px) {
+		.setup-grid {
+			grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+		}
+		.dataflow {
+			position: sticky;
+			top: calc(var(--topbar-h) + var(--sp-2));
+		}
+	}
+	/* Wide screens: the three tables side by side need about 1330 px; the dataflow gets the rest. */
+	@media (min-width: 1800px) {
+		.setup-grid {
+			grid-template-columns: minmax(0, 2.45fr) minmax(0, 1fr);
+		}
+	}
+	.tables-wrap {
 		container-type: inline-size;
 		min-width: 0;
-		padding: var(--sp-3);
+	}
+	.tables {
+		display: grid;
+		gap: var(--sp-3);
+		align-items: start;
+	}
+	@container (min-width: 100rem) {
+		.tables {
+			grid-template-columns: minmax(0, 1.75fr) minmax(0, 1.3fr) minmax(0, 1fr);
+		}
+		.inputs-card {
+			grid-column: auto;
+		}
+	}
+	.setup :global(.card) {
+		container-type: inline-size;
+		min-width: 0;
+		padding: var(--sp-2) var(--sp-3) var(--sp-3);
 		background: var(--surface);
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
 	}
-	.model :global(.section) {
+	.setup :global(.section) {
 		--gap: var(--sp-2);
 	}
-	.model :global(.section-head) {
+	.setup :global(.section-head) {
 		display: flex;
 		align-items: center;
 		gap: var(--sp-0);
 		margin-bottom: calc(-1 * var(--sp-1));
 	}
-	.model :global(.section h3) {
+	.dataflow .section-head {
+		margin-bottom: var(--sp-1);
+	}
+	.setup :global(.section-head h3) {
 		margin: 0;
 		font-size: var(--text-sm);
 		font-weight: 600;
 	}
-	.model :global(.cols) {
+	.setup :global(.cols) {
 		font-size: var(--text-xs);
 		color: var(--text-muted);
 		margin-bottom: calc(-1 * var(--sp-1));
 	}
-	.model :global(.input-cols),
-	.model :global(.intermediate-cols) {
+	.setup :global(.input-cols),
+	.setup :global(.intermediate-cols) {
 		display: grid;
 		gap: var(--sp-1) var(--sp-2);
 		align-items: start;
 	}
-	.model :global(.input-cols) {
-		grid-template-columns: 4.5rem minmax(0, 1fr) minmax(0, 8rem) 2rem;
+	/* Distribution, name, symbol, parameters, remove. */
+	.setup :global(.input-cols) {
+		grid-template-columns: 4.75rem minmax(6rem, 1fr) 2.75rem minmax(13.5rem, 1.6fr) 1.75rem;
 	}
-	.model :global(.intermediate-cols) {
-		grid-template-columns: 4.5rem minmax(0, 1fr) 2rem;
+	/* Symbol, name, formula, remove. */
+	.setup :global(.intermediate-cols) {
+		grid-template-columns: 4rem minmax(0, 1.1fr) minmax(0, 1.2fr) 1.75rem;
 	}
-	@container (max-width: 26rem) {
-		.model :global(.input-cols),
-		.model :global(.intermediate-cols) {
-			column-gap: var(--sp-1);
+	/* Narrow: parameters and formulas get their own line. */
+	@container (max-width: 30rem) {
+		.setup :global(.input-cols) {
+			grid-template-columns: 5rem minmax(0, 1fr) 2.75rem 1.75rem;
 		}
-		.model :global(.input-cols) {
-			grid-template-columns: 3.25rem minmax(0, 1fr) 7rem 1.75rem;
+		.setup :global(.input-cols .params) {
+			grid-column: 1 / -2;
+			grid-row: 2;
 		}
-		.model :global(.intermediate-cols) {
-			grid-template-columns: 4.25rem minmax(0, 1fr) 1.75rem;
+		.setup :global(.input-cols .params-head) {
+			display: none;
 		}
 	}
-	.model :global(.formula) {
-		grid-column: 1 / -1;
+	@container (max-width: 22rem) {
+		.setup :global(.intermediate-cols) {
+			grid-template-columns: 4rem minmax(0, 1fr) 1.75rem;
+		}
+		.setup :global(.intermediate-cols .formula) {
+			grid-column: 1 / -2;
+			grid-row: 2;
+		}
+		.setup :global(.cols.intermediate-cols span:nth-child(3)) {
+			display: none;
+		}
+	}
+	.setup :global(.formula) {
 		min-width: 0;
 	}
-	.model :global([data-testid='intermediate-row'] + [data-testid='intermediate-row']) {
-		padding-top: var(--sp-2);
-		border-top: 1px solid var(--border);
+	.setup :global(.row) {
+		border-radius: var(--radius-sm);
 	}
-	.model :global(.remove) {
+	.setup :global(.selected) {
+		background: var(--accent-bg);
+		box-shadow:
+			0 0 0 4px var(--accent-bg),
+			0 0 0 5px var(--accent);
+	}
+	.setup :global(.remove) {
 		margin-top: 2px;
 	}
 </style>

@@ -41,9 +41,16 @@ async function press(page: Page, name: 'Run' | 'Add scenarios', done: number) {
 const reward = (page: Page) => page.getByTestId('reward');
 const preset = (page: Page) => page.getByTestId('preset');
 const inputRows = (page: Page) => page.getByTestId('input-row');
+const graph = (page: Page) => page.getByTestId('dataflow');
+
+/** Add an input of `family` through the Add input menu. */
+async function addInput(page: Page, family: string) {
+	await page.getByRole('button', { name: 'Add input' }).click();
+	await page.getByRole('menuitem', { name: family, exact: true }).click();
+}
 const runButton = (page: Page) => page.getByRole('button', { name: 'Run', exact: true });
 const steps = (page: Page) => page.getByRole('list', { name: 'Steps' });
-const stepButton = (page: Page, name: 'Setup' | 'Parameters' | 'Results') =>
+const stepButton = (page: Page, name: 'Setup' | 'Results') =>
 	steps(page).getByRole('button', { name, exact: true });
 
 /** The seed of the autosaved model, or null. */
@@ -58,9 +65,7 @@ test('choosing a preset fills the editor; an edit shows Custom', async ({ page }
 	await open(page);
 	await expect(preset(page)).toHaveValue('distribution-centre');
 	await expect(inputRows(page)).toHaveCount(4);
-	await expect(page.getByRole('combobox', { name: 'Distribution of input T' })).toHaveValue(
-		'fixed'
-	);
+	await expect(inputRows(page).nth(3).getByTestId('family')).toHaveText('Fixed');
 	await expect(reward(page)).toHaveValue('min(N, t*T)*P - t*C');
 
 	await preset(page).selectOption('airline-share-buyback');
@@ -78,13 +83,32 @@ test('choosing a preset fills the editor; an edit shows Custom', async ({ page }
 
 test('add and remove an input', async ({ page }) => {
 	await open(page);
-	await page.getByRole('button', { name: 'Add input' }).click();
+	// No distribution select: a row's family is fixed once added
+	await expect(page.getByTestId('setup').locator('select')).toHaveCount(1);
+	await addInput(page, 'Triangular');
 	await expect(inputRows(page)).toHaveCount(5);
+	await expect(page.getByRole('menu')).toBeHidden();
 	await expect(page.getByRole('textbox', { name: 'Symbol of input X' })).toHaveValue('X');
-	await expect(page.getByRole('combobox', { name: 'Distribution of input X' })).toHaveValue(
-		'normal'
-	);
+	const added = inputRows(page).nth(4);
+	await expect(added.getByTestId('family')).toHaveText('Triangular');
+	for (const [p, v] of [
+		['low', '0'],
+		['mode', '0.5'],
+		['high', '1']
+	])
+		await expect(added.getByRole('textbox', { name: `${p} of input X` })).toHaveValue(v);
 	await expect(preset(page)).toHaveValue('custom');
+
+	// Keyboard: the menu opens with ArrowDown and Escape closes it
+	const menuButton = page.getByRole('button', { name: 'Add input' });
+	await menuButton.focus();
+	await menuButton.press('ArrowDown');
+	await expect(page.getByRole('menuitem', { name: 'Normal', exact: true })).toBeFocused();
+	await page.keyboard.press('End');
+	await expect(page.getByRole('menuitem', { name: 'Fixed' })).toBeFocused();
+	await page.keyboard.press('Escape');
+	await expect(page.getByRole('menu')).toBeHidden();
+	await expect(menuButton).toBeFocused();
 
 	await page.getByRole('button', { name: 'Remove input X' }).click();
 	await expect(inputRows(page)).toHaveCount(4);
@@ -172,7 +196,13 @@ for (const [id, best, inputs] of BEST) {
 		await expect(
 			page.getByTestId('input-voi-row').filter({ hasText: /Truck Capacity|Cash Balance/ })
 		).toHaveCount(0);
-		await expect(page.getByTestId('voi-table').locator('tbody tr')).toHaveCount(inputs);
+		await expect(page.getByTestId('voi-chart').getByTestId('voi-line')).toHaveCount(inputs);
+		// The best decision carries its colour swatch
+		await expect(page.getByTestId('best-swatch')).toBeVisible();
+		const swatch = await page
+			.getByTestId('best-swatch')
+			.evaluate((e) => getComputedStyle(e).backgroundColor);
+		expect(swatch).not.toBe('rgba(0, 0, 0, 0)');
 		await expect(page.getByTestId('policy-tree')).toBeVisible();
 		await expect(page.getByTestId('stale')).toHaveCount(0);
 	});
@@ -190,9 +220,9 @@ test('the same seed and samples reproduce the price; Add scenarios grows the set
 
 	await expect(page.locator('#add-hint')).toContainText('Appends 20,000 to the 20,000');
 	// Add scenarios stays on the current step
-	await stepButton(page, 'Parameters').click();
+	await stepButton(page, 'Setup').click();
 	await press(page, 'Add scenarios', 3);
-	await expect(stepButton(page, 'Parameters')).toHaveAttribute('aria-current', 'step');
+	await expect(stepButton(page, 'Setup')).toHaveAttribute('aria-current', 'step');
 	await expect(page.getByTestId('run-status')).toContainText('40,000 scenarios');
 	await expect(page.locator('#add-hint')).toContainText('to the 40,000');
 	await expect(page.getByTestId('stale')).toHaveCount(0);
@@ -207,7 +237,7 @@ test('any edit marks the results stale; Run clears the marker', async ({ page })
 	// Undoing the edit makes the results current again
 	await page.getByRole('textbox', { name: 'Seed' }).fill('2026');
 	await expect(page.getByTestId('stale')).toHaveCount(0);
-	await stepButton(page, 'Parameters').click();
+	await stepButton(page, 'Setup').click();
 	await page.getByRole('textbox', { name: 'mean of input P' }).fill('0.5');
 	await expect(page.getByTestId('stale')).toBeVisible();
 	await press(page, 'Run', 2);
@@ -260,15 +290,13 @@ test('a v1 link with constants still opens, the constant as a fixed input', asyn
 	await expect(page.getByTestId('link-error')).toHaveCount(0);
 	await expect(preset(page)).toHaveValue('distribution-centre');
 	await expect(inputRows(page)).toHaveCount(4);
-	await expect(page.getByRole('combobox', { name: 'Distribution of input T' })).toHaveValue(
-		'fixed'
-	);
+	await expect(inputRows(page).nth(3).getByTestId('family')).toHaveText('Fixed');
 });
 
 test('Setup sections explain themselves; References list ten links', async ({ page }) => {
 	await open(page);
 	const setup = page.getByTestId('setup');
-	for (const name of ['inputs', 'intermediates', 'decisions']) {
+	for (const name of ['inputs', 'intermediates', 'decisions', 'the dataflow']) {
 		const tip = setup.getByRole('button', { name: `About ${name}`, exact: true });
 		await expect(tip).toBeVisible();
 		await tip.focus();
@@ -279,22 +307,25 @@ test('Setup sections explain themselves; References list ten links', async ({ pa
 	await expect(refs.getByRole('link')).toHaveCount(10);
 });
 
-for (const [width, side] of [
-	[1440, 'right'],
-	[390, 'below']
-] as const) {
-	test(`results at ${width} px: the tree box sits ${side} the inputs box`, async ({ page }) => {
+for (const width of [1440, 390]) {
+	test(`results at ${width} px: the tree spans the width above the inputs and losses`, async ({
+		page
+	}) => {
 		await page.setViewportSize({ width, height: 900 });
 		await open(page, link(small('distribution-centre')));
 		await press(page, 'Run', 1);
-		const inputs = (await page.getByTestId('inputs-box').boundingBox())!;
 		const tree = (await page.getByTestId('tree-box').boundingBox())!;
-		if (side === 'right') {
-			expect(tree.x).toBeGreaterThanOrEqual(inputs.x + inputs.width);
-			expect(Math.abs(tree.y - inputs.y)).toBeLessThan(2);
+		const inputs = (await page.getByTestId('inputs-box').boundingBox())!;
+		const losses = (await page.getByTestId('losses-box').boundingBox())!;
+		expect(inputs.y).toBeGreaterThanOrEqual(tree.y + tree.height);
+		expect(Math.abs(inputs.x - tree.x)).toBeLessThan(2);
+		if (width === 1440) {
+			// Row 2: inputs on the left, losses on the right, together as wide as the tree
+			expect(losses.x).toBeGreaterThanOrEqual(inputs.x + inputs.width);
+			expect(Math.abs(losses.y - inputs.y)).toBeLessThan(2);
+			expect(Math.abs(losses.x + losses.width - (tree.x + tree.width))).toBeLessThan(2);
 		} else {
-			expect(tree.y).toBeGreaterThanOrEqual(inputs.y + inputs.height);
-			expect(Math.abs(tree.x - inputs.x)).toBeLessThan(2);
+			expect(losses.y).toBeGreaterThanOrEqual(inputs.y + inputs.height);
 		}
 		expect(
 			await page.evaluate(
@@ -303,6 +334,78 @@ for (const [width, side] of [
 		).toBe(0);
 	});
 }
+
+test('the page uses the full width of a wide window', async ({ page }) => {
+	await page.setViewportSize({ width: 1920, height: 1000 });
+	await open(page);
+	const setup = (await page.getByTestId('setup').boundingBox())!;
+	expect(setup.width).toBeGreaterThan(1400);
+	// Inputs, Intermediates, Decisions and Dataflow side by side
+	const tops = await Promise.all(
+		['inputs', 'intermediates', 'decisions', 'dataflow'].map(async (id) =>
+			Math.round((await page.locator(`#${id}-heading`).boundingBox())!.y)
+		)
+	);
+	expect(new Set(tops).size).toBe(1);
+});
+
+test('the dataflow graph has a node per row and an arrow per dependency', async ({ page }) => {
+	await open(page, link(presetModel('airline-share-buyback')));
+	await expect(graph(page)).toHaveAttribute('data-ready', '');
+	const nodes = graph(page).getByTestId('dataflow-node');
+	// 7 inputs, 4 intermediates, the decision and the reward
+	await expect(nodes).toHaveCount(13);
+	await expect(nodes.and(page.locator('[data-kind="input"]'))).toHaveCount(6);
+	await expect(nodes.and(page.locator('[data-kind="fixed"]'))).toHaveCount(1);
+	await expect(nodes.and(page.locator('[data-kind="intermediate"]'))).toHaveCount(4);
+	await expect(nodes.and(page.locator('[data-kind="decision"]'))).toHaveCount(1);
+	await expect(nodes.and(page.locator('[data-kind="reward"]'))).toHaveCount(1);
+	// Rev(K,p) Fuel(K,F) Delta(Rev,Fuel) L(C0,b,Delta) reward(b,R,L,i,Lr)
+	await expect(graph(page).getByTestId('dataflow-edge')).toHaveCount(14);
+	await expect(graph(page).locator('.katex').first()).toBeVisible();
+
+	// A removed input takes its node and arrows with it
+	await page.getByRole('button', { name: 'Remove input R' }).click();
+	await expect(nodes).toHaveCount(12);
+	await expect(graph(page).getByTestId('dataflow-edge')).toHaveCount(13);
+});
+
+test('clicking a dataflow node highlights its row; again or Escape clears it', async ({ page }) => {
+	await open(page, link(presetModel('airline-share-buyback')));
+	await expect(graph(page)).toHaveAttribute('data-ready', '');
+	const delta = page.getByTestId('intermediate-row').nth(2);
+	const node = graph(page).locator(`[data-node="${await delta.getAttribute('data-node')}"]`);
+	await node.click();
+	await expect(node).toHaveAttribute('aria-pressed', 'true');
+	await expect(delta).toHaveClass(/selected/);
+	await expect(page.locator('.setup .selected')).toHaveCount(1);
+	// Its chain lights up: Rev, Fuel, K, p, F upstream; L and the reward downstream
+	await expect(graph(page).locator('.df-edge.lit')).toHaveCount(6 + 2);
+	await node.click();
+	await expect(delta).not.toHaveClass(/selected/);
+	await expect(graph(page).locator('.df-edge.lit')).toHaveCount(0);
+
+	// Keyboard: Enter picks, Escape clears
+	const reward = graph(page).locator('[data-kind="reward"]');
+	await reward.focus();
+	await reward.press('Enter');
+	await expect(page.locator('[data-node="reward"].selected')).toHaveCount(1);
+	await reward.press('Escape');
+	await expect(page.locator('.setup .selected')).toHaveCount(0);
+});
+
+test('an invalid formula shows as an error node with the arrows it still names', async ({
+	page
+}) => {
+	await open(page, link(presetModel('airline-share-buyback')));
+	await page.getByRole('combobox', { name: 'Formula for Rev' }).fill('K * p +');
+	const bad = graph(page).locator('.df-node.error');
+	await expect(bad).toHaveCount(1);
+	await expect(bad).toContainText('K * p +');
+	await expect(graph(page).getByTestId('dataflow-edge')).toHaveCount(14);
+	await page.getByRole('combobox', { name: 'Formula for Rev' }).fill('K*p');
+	await expect(bad).toHaveCount(0);
+});
 
 test('a bad link shows an error and falls back to the default preset', async ({ page }) => {
 	await open(page, '#m=not*base64');
@@ -370,16 +473,14 @@ test('the stepper: Results waits for the first run, Run jumps there, every step 
 	await open(page, link(small('distribution-centre')));
 	await expect(stepButton(page, 'Setup')).toHaveAttribute('aria-current', 'step');
 	await expect(stepButton(page, 'Results')).toBeDisabled();
-	await stepButton(page, 'Parameters').click();
-	await expect(stepButton(page, 'Parameters')).toHaveAttribute('aria-current', 'step');
-	await expect(page.getByTestId('parameters')).toBeVisible();
-	await expect(page.getByTestId('setup')).toHaveCount(0);
-	// The run bar shows on every step
+	await expect(steps(page).getByRole('button')).toHaveCount(2);
 	await expect(runButton(page)).toBeVisible();
 
 	await press(page, 'Run', 1);
 	await expect(stepButton(page, 'Results')).toHaveAttribute('aria-current', 'step');
 	await expect(page.getByTestId('results')).toBeVisible();
+	// The run bar shows on every step
+	await expect(runButton(page)).toBeVisible();
 	await stepButton(page, 'Setup').click();
 	await expect(page.getByTestId('setup')).toBeVisible();
 	await expect(stepButton(page, 'Results')).toBeEnabled();
@@ -387,29 +488,31 @@ test('the stepper: Results waits for the first run, Run jumps there, every step 
 	await expect(page.getByTestId('results')).toBeVisible();
 });
 
-test('Parameters holds only number fields; Setup holds the shape', async ({ page }) => {
+test('Setup holds the parameters inline and the decision values as chips', async ({ page }) => {
 	await open(page, link(presetModel('airline-share-buyback')));
-	await expect(page.getByTestId('setup').locator('[inputmode="decimal"]')).toHaveCount(0);
-	await stepButton(page, 'Parameters').click();
-	const params = page.getByTestId('parameters');
-	await expect(params.getByRole('textbox', { name: 'median of input K' })).toHaveValue('350000000');
+	const setup = page.getByTestId('setup');
+	await expect(setup.getByRole('textbox', { name: 'median of input K' })).toHaveValue('350000000');
 	// A fixed input has a single value field
-	const cash = params.getByTestId('param-row').filter({ hasText: 'Cash Balance' });
-	await expect(cash.locator('input')).toHaveCount(1);
+	const cash = inputRows(page).nth(6);
+	await expect(cash.getByTestId('family')).toHaveText('Fixed');
+	await expect(cash.locator('[inputmode="decimal"]')).toHaveCount(1);
 	await expect(cash.getByRole('textbox', { name: 'value of input C0' })).toHaveValue('950');
-	await expect(params.getByTestId('decision-values').getByRole('listitem')).toHaveCount(5);
-	await expect(params.locator('select, [role="combobox"]')).toHaveCount(0);
-	await expect(params.getByRole('textbox', { name: /Symbol|Name|Formula/ })).toHaveCount(0);
-	const fields = params.locator('input');
-	const n = await fields.count();
-	expect(n).toBe(6 * 2 + 1 + 1);
-	for (let i = 0; i < n; i++) await expect(fields.nth(i)).toHaveAttribute('inputmode', 'decimal');
-	// No sliders
+	// No KaTeX under the formulas: TeX only in the dataflow
+	await expect(setup.locator('.katex')).toHaveCount(await graph(page).locator('.katex').count());
 	await expect(page.locator('input[type="range"]')).toHaveCount(0);
 
+	const values = page.getByTestId('decision-values');
+	await expect(values.locator('.chip')).toHaveCount(5);
+	await page.getByRole('textbox', { name: 'New decision value' }).fill('125');
+	await page.getByRole('button', { name: 'Add decision value' }).click();
+	await expect(values.locator('.chip')).toHaveCount(6);
+	await page.getByRole('button', { name: 'Remove decision value 125' }).click();
+	await expect(values.locator('.chip')).toHaveCount(5);
+	await expect(preset(page)).toHaveValue('airline-share-buyback');
+
 	// An invalid parameter shows inline and blocks Run
-	await params.getByRole('textbox', { name: 'σ of input K' }).fill('-1');
-	await expect(params.locator('.ui-error, .error').first()).toBeVisible();
+	await setup.getByRole('textbox', { name: 'σ of input K' }).fill('-1');
+	await expect(inputRows(page).nth(1).locator('.ui-error, .row-error').first()).toBeVisible();
 	await expect(runButton(page)).toBeDisabled();
 });
 

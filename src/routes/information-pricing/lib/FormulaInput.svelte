@@ -5,11 +5,7 @@
 		type Completion,
 		type Suggestion
 	} from '$lib/information-pricing/formula/complete';
-	import { parse } from '$lib/information-pricing/formula/parse';
-	import { tex } from '$lib/information-pricing/formula/tex';
-	import { renderTex } from '$lib/tex';
 	import { Field } from '$lib/ui';
-	import Tex from '$lib/ui/Tex.svelte';
 	import { scrollFocus } from './scroll-focus';
 
 	const uid = $props.id();
@@ -52,12 +48,6 @@
 		return list.slice(0, 12);
 	});
 	const open = $derived(options.length > 0);
-
-	const preview = $derived.by(() => {
-		if (value.trim() === '') return null;
-		const result = parse(value);
-		return result.ok ? renderTex(tex(result.ast)) : null;
-	});
 
 	/** Caret line under the formula: `^` at the error, `~` over the rest of its span. */
 	const caret = $derived.by(() => {
@@ -165,11 +155,6 @@
 		data-testid={testId ? `${testId}-caret` : undefined}>{value}
 <span class="mark">{caret}</span></pre>
 {/if}
-{#if preview}
-	<div class="preview" use:scrollFocus={`Preview of ${name ?? label}`}>
-		<Tex html={preview} />
-	</div>
-{/if}
 
 <style>
 	.combo {
@@ -228,12 +213,5 @@
 	.mark {
 		color: var(--danger-text);
 		font-weight: 700;
-	}
-	.preview {
-		margin-top: var(--sp-1);
-		overflow-x: auto;
-		overflow-y: hidden;
-		font-size: var(--text-sm);
-		color: var(--text);
 	}
 </style>

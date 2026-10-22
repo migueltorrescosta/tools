@@ -1,12 +1,12 @@
 <script lang="ts">
 	import type { Analysis } from '$lib/information-pricing/analysis';
 	import { Alert, Button, Panel } from '$lib/ui';
-	import { dataColour, formatNumber, linear, linePath, money as makeMoney } from './format';
+	import { dataColour, linear, linePath, money as makeMoney } from './format';
 	import InputRow from './InputRow.svelte';
 	import LossPlots from './LossPlots.svelte';
 	import NumberInput from './NumberInput.svelte';
 	import PolicyTree from './PolicyTree.svelte';
-	import { scrollFocus } from './scroll-focus';
+	import VoiChart from './VoiChart.svelte';
 	import type { TreeSettings } from './editor';
 
 	let {
@@ -83,7 +83,13 @@
 	<dl class="headline" data-testid="headline">
 		<div>
 			<dt>Best decision</dt>
-			<dd data-testid="best-decision">{decisions[summary.best]}</dd>
+			<dd>
+				<span
+					class="swatch"
+					style="background: {dataColour(summary.best)}"
+					data-testid="best-swatch"
+				></span><span data-testid="best-decision">{decisions[summary.best]}</span>
+			</dd>
 		</div>
 		<div>
 			<dt>Price of perfect information</dt>
@@ -94,6 +100,47 @@
 			<dd data-testid="worst">{money.format(summary.expectedLoss[summary.worst])}</dd>
 		</div>
 	</dl>
+
+	<div data-testid="tree-box">
+		<Panel title="Policy tree">
+			<div class="stack" style="--gap: var(--sp-2)">
+				<form
+					class="tree-settings"
+					onsubmit={(e) => {
+						e.preventDefault();
+						if (treeValid && treeChanged && !busy) onretree();
+					}}
+				>
+					<NumberInput
+						label="Max depth"
+						value={tree.maxDepth}
+						onchange={(v) => (tree.maxDepth = v)}
+						error={treeErrors.maxDepth}
+					/>
+					<NumberInput
+						label="Min leaf (%)"
+						value={tree.minLeafPercent}
+						onchange={(v) => (tree.minLeafPercent = v)}
+						error={treeErrors.minLeafPercent}
+					/>
+					<NumberInput
+						label="Min impurity decrease"
+						value={tree.minImpurityDecrease}
+						onchange={(v) => (tree.minImpurityDecrease = v)}
+						error={treeErrors.minImpurityDecrease}
+					/>
+					<Button size="sm" type="submit" disabled={!treeValid || !treeChanged || busy}
+						>Update tree</Button
+					>
+				</form>
+				{#if 'error' in analysis.tree}
+					<Alert tone="info">No tree to show: {analysis.tree.error}</Alert>
+				{:else}
+					<PolicyTree view={analysis.tree.view} inputs={names} />
+				{/if}
+			</div>
+		</Panel>
+	</div>
 
 	<div class="columns">
 		<div class="column" data-testid="inputs-box">
@@ -142,78 +189,13 @@
 			</Panel>
 		</div>
 		<div class="stack column side">
-			<div data-testid="tree-box">
-				<Panel title="Policy tree">
-					<div class="stack" style="--gap: var(--sp-2)">
-						<form
-							class="tree-settings"
-							onsubmit={(e) => {
-								e.preventDefault();
-								if (treeValid && treeChanged && !busy) onretree();
-							}}
-						>
-							<NumberInput
-								label="Max depth"
-								value={tree.maxDepth}
-								onchange={(v) => (tree.maxDepth = v)}
-								error={treeErrors.maxDepth}
-							/>
-							<NumberInput
-								label="Min leaf (%)"
-								value={tree.minLeafPercent}
-								onchange={(v) => (tree.minLeafPercent = v)}
-								error={treeErrors.minLeafPercent}
-							/>
-							<NumberInput
-								label="Min impurity decrease"
-								value={tree.minImpurityDecrease}
-								onchange={(v) => (tree.minImpurityDecrease = v)}
-								error={treeErrors.minImpurityDecrease}
-							/>
-							<Button size="sm" type="submit" disabled={!treeValid || !treeChanged || busy}
-								>Update tree</Button
-							>
-						</form>
-						{#if 'error' in analysis.tree}
-							<Alert tone="info">No tree to show: {analysis.tree.error}</Alert>
-						{:else}
-							<PolicyTree view={analysis.tree.view} inputs={names} />
-						{/if}
-					</div>
+			<div data-testid="losses-box">
+				<Panel title="Loss distributions">
+					<LossPlots distributions={analysis.distributions} {decisions} {money} />
 				</Panel>
 			</div>
-			<Panel title="Loss distributions">
-				<LossPlots distributions={analysis.distributions} {decisions} {money} />
-			</Panel>
 			<Panel title="Value of information">
-				<div class="stack" style="--gap: var(--sp-2)">
-					<p class="muted">What knowing roughly where an input lands saves, by number of bins.</p>
-					<div class="table-wrap" use:scrollFocus={'Value of information table'}>
-						<table data-testid="voi-table">
-							<caption class="sr-only"
-								>Savings per input and number of bins{money.unit
-									? `, in ${money.unit}`
-									: ''}</caption
-							>
-							<thead>
-								<tr>
-									<th scope="col">Input</th>
-									{#each voi.bins as b (b)}<th scope="col" class="num">{b}</th>{/each}
-								</tr>
-							</thead>
-							<tbody>
-								{#each voi.order as j (j)}
-									<tr>
-										<th scope="row">{names[j]}</th>
-										{#each voi.savings[j] as v, k (k)}
-											<td class="num">{formatNumber(money.scale(v))}</td>
-										{/each}
-									</tr>
-								{/each}
-							</tbody>
-						</table>
-					</div>
-				</div>
+				<VoiChart {voi} inputs={names} {money} />
 			</Panel>
 		</div>
 	</div>
@@ -259,11 +241,6 @@
 		font-weight: 400;
 		color: var(--text-muted);
 	}
-	.muted {
-		margin: 0;
-		font-size: var(--text-sm);
-		color: var(--text-muted);
-	}
 	.key {
 		display: flex;
 		flex-wrap: wrap;
@@ -280,9 +257,14 @@
 		gap: var(--sp-1);
 	}
 	.swatch {
+		display: inline-block;
+		flex: none;
 		width: 12px;
 		height: 12px;
 		border-radius: 2px;
+	}
+	dd .swatch {
+		margin-right: var(--sp-1);
 	}
 
 	/* Input rows: label, spread, best decision per decile. */
@@ -346,7 +328,7 @@
 		stroke-width: 1.5;
 	}
 
-	/* Inputs on the left; tree, losses and value of information stacked on the right. */
+	/* The tree across the top; inputs on the left, losses and value of information on the right. */
 	.columns {
 		display: grid;
 		gap: var(--sp-3);
@@ -359,37 +341,6 @@
 	}
 	.column {
 		min-width: 0;
-	}
-	.table-wrap {
-		overflow-x: auto;
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-	}
-	table {
-		width: 100%;
-		border-collapse: collapse;
-		font-size: var(--text-xs);
-	}
-	th,
-	td {
-		padding: var(--sp-1) 6px;
-		border-bottom: 1px solid var(--border);
-		text-align: left;
-		white-space: nowrap;
-	}
-	thead th {
-		background: var(--surface-2);
-		font-weight: 600;
-	}
-	tbody th {
-		font-weight: 500;
-	}
-	tbody tr:last-child > * {
-		border-bottom: 0;
-	}
-	.num {
-		text-align: right;
-		font-variant-numeric: tabular-nums;
 	}
 	.tree-settings {
 		display: flex;

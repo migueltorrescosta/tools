@@ -138,3 +138,7 @@ export function treeOptions(t: TreeSettings): TreeOptions {
 		minImpurityDecrease: t.minImpurityDecrease
 	};
 }
+
+/** Dataflow node ids for table rows, from the stable row ids. */
+export const inputNode = (id: number) => `input-${id}`;
+export const intermediateNode = (id: number) => `intermediate-${id}`;
