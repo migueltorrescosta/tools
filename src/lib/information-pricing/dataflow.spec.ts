@@ -9,9 +9,9 @@ describe('dataflow', () => {
 		const g = dataflow(presetModel('airline-share-buyback'), ids);
 		expect(g.nodes).toHaveLength(7 + 4 + 2);
 		const byId = new Map(g.nodes.map((n) => [n.id, n]));
-		expect(byId.get('in0')!.tex).toBe('R \\sim \\mathrm{LogNormal}(1.4,\\ 0.35)');
-		expect(byId.get('in1')!.tex).toBe('K \\sim \\mathrm{LogNormal}(3.5 \\times 10^{8},\\ 0.2)');
-		expect(byId.get('in6')).toMatchObject({ kind: 'fixed', tex: '\\mathrm{C0} = 950' });
+		expect(byId.get('in0')!.tex).toBe('R \\sim \\mathrm{LogNormal}(1.35,\\ 0.35)');
+		expect(byId.get('in1')!.tex).toBe('K \\sim \\mathrm{LogNormal}(2.5 \\times 10^{8},\\ 0.35)');
+		expect(byId.get('in6')).toMatchObject({ kind: 'fixed', tex: '\\mathrm{C0} = 600' });
 		expect(byId.get('m0')!.tex).toBe('\\mathrm{Rev} = K \\cdot p');
 		expect(byId.get(DECISION_NODE)!.tex).toBe('b \\in \\{0, 250, \\dots, 1000\\}');
 		expect(byId.get(REWARD_NODE)!.tex).toMatch(/^\\text\{Reward\} = /);

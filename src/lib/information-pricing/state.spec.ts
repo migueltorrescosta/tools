@@ -47,7 +47,7 @@ const v1Airline = () => {
 	return {
 		...rest,
 		inputs: inputs.filter((x) => x.family !== 'fixed'),
-		constants: [{ symbol: 'C0', value: 950, name: 'Cash Balance' }]
+		constants: [{ symbol: 'C0', value: 600, name: 'Cash Balance' }]
 	};
 };
 

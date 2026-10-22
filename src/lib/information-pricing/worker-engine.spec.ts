@@ -104,11 +104,11 @@ describe('simulation engine', () => {
 	it('samples only the random inputs; fixed ones get no column', async () => {
 		const model = presetModel('distribution-centre');
 		const spec = runSpec(model, compiled(model));
-		expect(spec.inputs.map((x) => x.family)).toEqual(['binomial', 'exponential', 'uniform']);
+		expect(spec.inputs.map((x) => x.family)).toEqual(['lognormal', 'exponential', 'uniform']);
 		expect(spec.shape.inputs).toEqual(['N', 'P', 'C']);
 		const s = await simulate(model, 100, 1);
 		expect(s.inputs.map((x) => x.symbol)).toEqual(['N', 'P', 'C']);
-		expect(csvHeader(s).slice(0, 4)).toEqual(['N', 'P', 'C', '8 trucks']);
+		expect(csvHeader(s).slice(0, 4)).toEqual(['N', 'P', 'C', '30 trucks']);
 	});
 
 	it('matches the reference evaluator row by row', async () => {

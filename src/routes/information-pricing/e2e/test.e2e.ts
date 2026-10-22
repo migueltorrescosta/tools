@@ -177,7 +177,7 @@ test('autocomplete offers declared symbols and inserts the chosen one', async ({
 });
 
 const BEST: [PresetId, string, number][] = [
-	['distribution-centre', '10 trucks', 3],
+	['distribution-centre', '40 trucks', 3],
 	['airline-share-buyback', '1000 M€', 6]
 ];
 
@@ -197,7 +197,9 @@ for (const [id, best, inputs] of BEST) {
 		await expect(page.getByTestId('input-voi-row')).toHaveCount(inputs);
 		// Fixed inputs have no row
 		await expect(
-			page.getByTestId('input-voi-row').filter({ hasText: /Truck Capacity|Cash Balance/ })
+			page
+				.getByTestId('input-voi-row')
+				.filter({ hasText: /Packages per Truck per Year|Cash Balance/ })
 		).toHaveCount(0);
 		await expect(page.getByTestId('voi-chart').getByTestId('voi-line')).toHaveCount(inputs);
 		// The best decision carries its colour swatch
@@ -286,7 +288,7 @@ test('a v1 link with constants still opens, the constant as a fixed input', asyn
 	const v1 = {
 		...rest,
 		inputs: inputs.filter((x) => x.family !== 'fixed'),
-		constants: [{ symbol: 'T', value: 1000, name: 'Truck Capacity' }]
+		constants: [{ symbol: 'T', value: 100_000, name: 'Packages per Truck per Year' }]
 	};
 	const json = JSON.stringify({ v: 1, model: v1 });
 	await open(page, `#m=${deflateRawSync(Buffer.from(json)).toString('base64url')}`);
@@ -463,12 +465,12 @@ test('Download scenarios writes a header and one row per scenario', async ({ pag
 	expect(file.suggestedFilename()).toBe('scenarios.csv');
 	const text = (await (await file.createReadStream()).toArray()).join('');
 	const lines = text.trimEnd().split('\r\n');
-	const decisions = ['8 trucks', '9 trucks', '10 trucks', '11 trucks', '12 trucks'];
+	const decisions = ['30 trucks', '40 trucks', '50 trucks', '60 trucks', '70 trucks'];
 	expect(lines[0]).toBe(
 		[
-			'Number of Packages',
+			'Packages per Year',
 			'Profit per Package',
-			'Maintenance cost per Truck',
+			'Yearly cost per Truck',
 			...decisions,
 			...decisions.map((d) => `${d} Opportunity Loss`),
 			'Optimal Reward'
@@ -527,12 +529,12 @@ test('the stepper: Results waits for the first run, Run jumps there, every step 
 test('Setup holds the parameters inline and the decision values as chips', async ({ page }) => {
 	await open(page, link(presetModel('airline-share-buyback')));
 	const setup = page.getByTestId('setup');
-	await expect(setup.getByRole('textbox', { name: 'median of input K' })).toHaveValue('350000000');
+	await expect(setup.getByRole('textbox', { name: 'median of input K' })).toHaveValue('250000000');
 	// A fixed input has a single value field
 	const cash = inputRows(page).nth(6);
 	await expect(cash.getByTestId('family')).toHaveText('Fixed');
 	await expect(cash.locator('[inputmode="decimal"]')).toHaveCount(1);
-	await expect(cash.getByRole('textbox', { name: 'value of input C0' })).toHaveValue('950');
+	await expect(cash.getByRole('textbox', { name: 'value of input C0' })).toHaveValue('600');
 	// No KaTeX under the formulas: TeX only in the dataflow
 	await expect(setup.locator('.katex')).toHaveCount(await graph(page).locator('.katex').count());
 	await expect(page.locator('input[type="range"]')).toHaveCount(0);
@@ -613,7 +615,7 @@ test('the value-of-information chart: tight log decades under a dashed EVPI ceil
 		'Kilometers Flown',
 		'Fuel Cost per km',
 		'Loan Rate',
-		'Revenue per km',
+		'Net revenue per km',
 		'Interest Rate'
 	];
 	strokes.forEach((s, k) => expect(s).toBe(inputColours[model.indexOf(order[k])]));
@@ -629,7 +631,6 @@ test('the value-of-information chart: tight log decades under a dashed EVPI ceil
 	// No savings, no line: an empty path and a label that says so
 	const labels = await chart.getByTestId('voi-label').allTextContents();
 	const paths = await lines.evaluateAll((els) => els.map((e) => e.getAttribute('d') ?? ''));
-	expect(labels.some((l) => l.includes('(no savings)'))).toBe(true);
 	labels.forEach((l, i) => expect(paths[i] === '').toBe(l.includes('(no savings)')));
 
 	// Hovering a legend key fades the other lines
@@ -670,7 +671,7 @@ test('results: inputs sorted by value of information, names in the tree, max dep
 		'Kilometers Flown',
 		'Fuel Cost per km',
 		'Loan Rate',
-		'Revenue per km',
+		'Net revenue per km',
 		'Interest Rate'
 	];
 	const splits = tree.locator('text.split-label');

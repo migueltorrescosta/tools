@@ -18,15 +18,15 @@ const SEED = 2026;
 /** Fleet size under uncertain demand, profit per package and maintenance cost. */
 const distributionCentre: Model = {
 	inputs: [
-		{ symbol: 'N', name: 'Number of Packages', family: 'binomial', params: [10_000_000, 0.001] },
-		{ symbol: 'P', name: 'Profit per Package', family: 'exponential', params: [3] },
-		{ symbol: 'C', name: 'Maintenance cost per Truck', family: 'uniform', params: [50, 500] },
-		{ symbol: 'T', name: 'Truck Capacity', family: 'fixed', params: [1000] }
+		{ symbol: 'N', name: 'Packages per Year', family: 'lognormal', params: [5_000_000, 0.4] },
+		{ symbol: 'P', name: 'Profit per Package', family: 'exponential', params: [2.5] },
+		{ symbol: 'C', name: 'Yearly cost per Truck', family: 'uniform', params: [80_000, 320_000] },
+		{ symbol: 'T', name: 'Packages per Truck per Year', family: 'fixed', params: [100_000] }
 	],
 	intermediates: [],
 	decisions: {
 		symbol: 't',
-		values: [8, 9, 10, 11, 12],
+		values: [30, 40, 50, 60, 70],
 		label: '{t} trucks',
 		reward: 'min(N, t*T)*P - t*C',
 		unit: '€'
@@ -38,13 +38,13 @@ const distributionCentre: Model = {
 /** Buyback spend against liquidity, over a 5-year horizon, in millions of euros. */
 const airlineShareBuyback: Model = {
 	inputs: [
-		{ symbol: 'R', name: 'Share Return', family: 'lognormal', params: [1.4, 0.35] },
-		{ symbol: 'K', name: 'Kilometers Flown', family: 'lognormal', params: [3.5e8, 0.2] },
-		{ symbol: 'F', name: 'Fuel Cost per km', family: 'uniform', params: [1.5, 2.5] },
-		{ symbol: 'Lr', name: 'Loan Rate', family: 'uniform', params: [0.08, 0.16] },
-		{ symbol: 'p', name: 'Revenue per km', family: 'uniform', params: [1.5, 3] },
-		{ symbol: 'i', name: 'Interest Rate', family: 'uniform', params: [0.01, 0.03] },
-		{ symbol: 'C0', name: 'Cash Balance', family: 'fixed', params: [950] }
+		{ symbol: 'R', name: 'Share Return', family: 'lognormal', params: [1.35, 0.35] },
+		{ symbol: 'K', name: 'Kilometers Flown', family: 'lognormal', params: [2.5e8, 0.35] },
+		{ symbol: 'F', name: 'Fuel Cost per km', family: 'uniform', params: [1, 3.5] },
+		{ symbol: 'Lr', name: 'Loan Rate', family: 'uniform', params: [0.04, 0.18] },
+		{ symbol: 'p', name: 'Net revenue per km', family: 'uniform', params: [1.5, 5.5] },
+		{ symbol: 'i', name: 'Interest Rate', family: 'uniform', params: [0, 0.06] },
+		{ symbol: 'C0', name: 'Cash Balance', family: 'fixed', params: [600] }
 	],
 	intermediates: [
 		{ symbol: 'Rev', name: 'Operating Revenue', formula: 'K*p' },

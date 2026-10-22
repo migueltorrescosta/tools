@@ -89,12 +89,26 @@ function readInputs(name: string): Map<string, Float64Array> {
 }
 
 /**
+ * The preset as it was when the fixtures were generated: the presets have
+ * since been retuned, but the fixtures keep the original fixed values and
+ * decisions (random inputs come from the CSV, so their families don't matter).
+ */
+function fixtureModel(preset: PresetId) {
+	const model = presetModel(preset);
+	const fixed = { 'distribution-centre': 1000, 'airline-share-buyback': 950 } as const;
+	for (const input of model.inputs)
+		if (input.family === 'fixed') input.params = [fixed[preset as keyof typeof fixed]];
+	if (preset === 'distribution-centre') model.decisions.values = [8, 9, 10, 11, 12];
+	return model;
+}
+
+/**
  * Scenarios from the fixture's random inputs, with the shared intermediates
  * and rewards computed by the preset's compiled kernel.
  */
 function scenarios(preset: PresetId): Scenarios {
 	const x = readInputs(preset);
-	const model = presetModel(preset);
+	const model = fixtureModel(preset);
 	const result = compileModel(model, validateParams);
 	if (!result.ok) throw new Error(result.errors[0].message);
 	const { compiled } = result;

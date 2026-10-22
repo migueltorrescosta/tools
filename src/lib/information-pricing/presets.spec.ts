@@ -35,9 +35,9 @@ describe('presets', () => {
 		expect(fixed('airline-share-buyback')).toEqual(['-', '-', '-', '-', '-', '-', 'C0']);
 		expect(presetModel('distribution-centre').inputs[3]).toEqual({
 			symbol: 'T',
-			name: 'Truck Capacity',
+			name: 'Packages per Truck per Year',
 			family: 'fixed',
-			params: [1000]
+			params: [100_000]
 		});
 	});
 
@@ -59,6 +59,6 @@ describe('presets', () => {
 	it('hands out independent copies', () => {
 		const a = presetModel('distribution-centre');
 		a.decisions.values.push(13);
-		expect(presetModel('distribution-centre').decisions.values).toEqual([8, 9, 10, 11, 12]);
+		expect(presetModel('distribution-centre').decisions.values).toEqual([30, 40, 50, 60, 70]);
 	});
 });
