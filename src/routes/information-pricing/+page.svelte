@@ -6,7 +6,12 @@
 	import type { Analysis } from '$lib/information-pricing/analysis';
 	import { scenariosCsv } from '$lib/information-pricing/csv';
 	import { validateParams } from '$lib/information-pricing/distributions';
-	import { compileModel, decisionLabels, renameSymbol } from '$lib/information-pricing/model';
+	import {
+		compileModel,
+		decisionLabels,
+		randomInputs,
+		renameSymbol
+	} from '$lib/information-pricing/model';
 	import {
 		DEFAULT_PRESET,
 		PRESETS,
@@ -30,9 +35,18 @@
 		type SimulationEngine
 	} from '$lib/information-pricing/worker-engine';
 	import { browserStorage, clearSaved, createPersistGate } from '$lib/persist-gate';
-	import { Alert, Button, Field, InfoTip, PageHeader, Panel, ShareActions, Stepper } from '$lib/ui';
+	import {
+		Alert,
+		Button,
+		Field,
+		InfoTip,
+		PageHeader,
+		Panel,
+		References,
+		ShareActions,
+		Stepper
+	} from '$lib/ui';
 	import { defaultWorkerCount } from '$lib/worker-pool';
-	import ConstantsEditor from './lib/ConstantsEditor.svelte';
 	import DecisionsEditor from './lib/DecisionsEditor.svelte';
 	import {
 		DEFAULT_TREE,
@@ -50,6 +64,7 @@
 	import IntermediatesEditor from './lib/IntermediatesEditor.svelte';
 	import NumberInput from './lib/NumberInput.svelte';
 	import ParametersEditor from './lib/ParametersEditor.svelte';
+	import { REFERENCES } from './lib/references';
 	import Results from './lib/Results.svelte';
 
 	// --- Model ---
@@ -227,12 +242,13 @@
 		setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 	}
 
-	// --- Labels for the results ---
+	// --- Labels for the results (random inputs only: fixed ones have no column) ---
+	const resultInputs = $derived(runModel ? randomInputs(runModel) : []);
 	const inputLabels = $derived(
-		runModel?.inputs.map((i) => (i.name ? `${i.name} (${i.symbol})` : i.symbol)) ?? []
+		resultInputs.map((i) => (i.name ? `${i.name} (${i.symbol})` : i.symbol))
 	);
 	/** Input names for the tree's splits; the symbol when the name is empty. */
-	const inputNames = $derived(runModel?.inputs.map((i) => i.name || i.symbol) ?? []);
+	const inputNames = $derived(resultInputs.map((i) => i.name || i.symbol));
 	const decisionNames = $derived(runModel ? decisionLabels(runModel.decisions) : []);
 	const count = (n: number) => n.toLocaleString('en');
 	const seconds = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
@@ -428,17 +444,12 @@
 					{/snippet}
 				</Field>
 			</div>
-			<div class="columns">
-				<div class="stack column">
-					<div class="card"><InputsEditor bind:model bind:ids {errors} onrename={rename} /></div>
-					<div class="card"><ConstantsEditor bind:model bind:ids {errors} onrename={rename} /></div>
+			<div class="setup-columns">
+				<div class="card"><InputsEditor bind:model bind:ids {errors} onrename={rename} /></div>
+				<div class="card">
+					<IntermediatesEditor bind:model bind:ids {errors} onrename={rename} />
 				</div>
-				<div class="stack column">
-					<div class="card">
-						<IntermediatesEditor bind:model bind:ids {errors} onrename={rename} />
-					</div>
-					<div class="card"><DecisionsEditor bind:model {errors} onrename={rename} /></div>
-				</div>
+				<div class="card"><DecisionsEditor bind:model {errors} onrename={rename} /></div>
 			</div>
 			{#each errors.filter((e) => e.where.kind === 'model') as e, i (i)}
 				<Alert tone="warning">{e.message}</Alert>
@@ -467,6 +478,7 @@
 	{/if}
 
 	<HowItWorks />
+	<References references={REFERENCES} />
 </div>
 
 <style>
@@ -560,19 +572,12 @@
 		min-width: 14rem;
 		max-width: 100%;
 	}
-	.model :global(.columns) {
+	/* Setup: Inputs, Intermediates and Decisions side by side, wrapping when narrow. */
+	.setup-columns {
 		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
 		gap: var(--sp-3);
 		align-items: start;
-	}
-	@media (min-width: 900px) {
-		.model :global(.columns) {
-			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-		}
-	}
-	.model :global(.column) {
-		--gap: var(--sp-3);
-		min-width: 0;
 	}
 	.model :global(.card) {
 		container-type: inline-size;
@@ -585,6 +590,12 @@
 	.model :global(.section) {
 		--gap: var(--sp-2);
 	}
+	.model :global(.section-head) {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-0);
+		margin-bottom: calc(-1 * var(--sp-1));
+	}
 	.model :global(.section h3) {
 		margin: 0;
 		font-size: var(--text-sm);
@@ -596,7 +607,7 @@
 		margin-bottom: calc(-1 * var(--sp-1));
 	}
 	.model :global(.input-cols),
-	.model :global(.constant-cols) {
+	.model :global(.intermediate-cols) {
 		display: grid;
 		gap: var(--sp-1) var(--sp-2);
 		align-items: start;
@@ -604,19 +615,19 @@
 	.model :global(.input-cols) {
 		grid-template-columns: 4.5rem minmax(0, 1fr) minmax(0, 8rem) 2rem;
 	}
-	.model :global(.constant-cols) {
+	.model :global(.intermediate-cols) {
 		grid-template-columns: 4.5rem minmax(0, 1fr) 2rem;
 	}
 	@container (max-width: 26rem) {
 		.model :global(.input-cols),
-		.model :global(.constant-cols) {
+		.model :global(.intermediate-cols) {
 			column-gap: var(--sp-1);
 		}
 		.model :global(.input-cols) {
 			grid-template-columns: 3.25rem minmax(0, 1fr) 7rem 1.75rem;
 		}
-		.model :global(.constant-cols) {
-			grid-template-columns: 3.25rem minmax(0, 1fr) 1.75rem;
+		.model :global(.intermediate-cols) {
+			grid-template-columns: 4.25rem minmax(0, 1fr) 1.75rem;
 		}
 	}
 	.model :global(.formula) {

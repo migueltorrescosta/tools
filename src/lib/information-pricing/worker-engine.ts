@@ -7,7 +7,7 @@ import type { Analysis, AnalysisOptions } from './analysis';
 import { AnalysisError, type Analyser } from './analyser';
 import { kernelSource } from './formula/codegen';
 import type { FromWorker, ToWorker } from './host';
-import type { CompiledModel } from './model';
+import { randomInputs, type CompiledModel } from './model';
 import { assemble, chunkPlan, type Chunk, type InputSpec, type ScenarioShape } from './simulate';
 import type { Model, Scenarios } from './types';
 
@@ -22,9 +22,10 @@ export interface RunSpec {
 	analysis: AnalysisOptions;
 }
 
+/** The run for `model`: only random inputs are sampled; fixed ones are inlined in the kernel. */
 export function runSpec(model: Model, compiled: CompiledModel): RunSpec {
 	return {
-		inputs: model.inputs.map((x) => ({ family: x.family, params: [...x.params] })),
+		inputs: randomInputs(model).map((x) => ({ family: x.family, params: [...x.params] })),
 		shape: {
 			inputs: [...compiled.slots.inputs],
 			shared: [...compiled.slots.shared],

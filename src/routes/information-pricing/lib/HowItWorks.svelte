@@ -2,9 +2,9 @@
 	<summary>How it works</summary>
 	<div class="body">
 		<p>
-			Describe what you don't know as random inputs, add constants and in-between formulas, then
-			list your options and a reward formula for them. Run draws many scenarios and scores every
-			option in each one.
+			Describe what you don't know as inputs with a distribution (Fixed for what you do know), add
+			in-between formulas, then list your options and a reward formula for them. Run draws many
+			scenarios and scores every option in each one.
 		</p>
 		<p>
 			In each scenario one option comes out on top. Any other option leaves money on the table: its

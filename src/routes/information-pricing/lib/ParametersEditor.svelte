@@ -2,11 +2,11 @@
 	import { familyInfo } from '$lib/information-pricing/distributions';
 	import { decisionLabels, type ModelError } from '$lib/information-pricing/model';
 	import type { Model } from '$lib/information-pricing/types';
-	import { Button } from '$lib/ui';
+	import { Button, InfoTip } from '$lib/ui';
 	import { errorAt, freshIds, type RowIds } from './editor';
 	import NumberInput from './NumberInput.svelte';
 
-	/** The model's numbers: distribution parameters, constant values and decision values. */
+	/** The model's numbers: distribution parameters (a fixed input's value) and decision values. */
 	let {
 		model = $bindable(),
 		ids = $bindable(),
@@ -20,7 +20,6 @@
 	const d = $derived(model.decisions);
 	const labels = $derived(decisionLabels(d));
 	const inputWho = (i: number) => model.inputs[i].symbol || String(i + 1);
-	const constantWho = (i: number) => model.constants[i].symbol || String(i + 1);
 
 	let draft = $state(NaN);
 	const draftProblem = $derived(
@@ -55,9 +54,14 @@
 	</span>
 {/snippet}
 
-<div class="columns params">
-	<section class="card stack section" aria-labelledby="params-inputs-heading">
-		<h3 id="params-inputs-heading">Random inputs</h3>
+<div class="params">
+	<section class="card stack section inputs" aria-labelledby="params-inputs-heading">
+		<div class="section-head">
+			<h3 id="params-inputs-heading">Inputs</h3>
+			<InfoTip label="input parameters"
+				>Tune each distribution here. A fixed input is just its value.</InfoTip
+			>
+		</div>
 		{#each model.inputs as input, i (ids.inputs[i])}
 			{@const family = familyInfo(input.family)}
 			{@const familyError = errorAt(errors, {
@@ -87,67 +91,61 @@
 		{/each}
 	</section>
 
-	<div class="stack column">
-		{#if model.constants.length}
-			<section class="card stack section" aria-labelledby="params-constants-heading">
-				<h3 id="params-constants-heading">Constants</h3>
-				{#each model.constants as c, i (ids.constants[i])}
-					<div class="param-row" data-testid="constant-value-row">
-						{@render who(c.name, c.symbol)}
-						<div class="nums">
-							<NumberInput
-								label="Value"
-								hideLabel
-								name="Value of constant {constantWho(i)}"
-								value={c.value}
-								onchange={(v) => (c.value = v)}
-								error={errorAt(errors, { kind: 'constant', index: i, field: 'value' })?.message}
-							/>
-						</div>
-					</div>
-				{/each}
-			</section>
-		{/if}
-
-		<section class="card stack section" aria-labelledby="values-heading">
+	<section class="card stack section values" aria-labelledby="values-heading">
+		<div class="section-head">
 			<h3 id="values-heading">Decision values</h3>
-			<ul class="chips" aria-labelledby="values-heading" data-testid="decision-values">
-				{#each d.values as v, i (ids.values[i])}
-					{@const bad = errorAt(errors, { kind: 'decisions', field: 'values', index: i })}
-					<li class="chip" class:bad title={labels[i]}>
-						<span class="mono">{v}</span>
-						<button
-							type="button"
-							class="chip-remove"
-							aria-label="Remove decision value {v}"
-							onclick={() => removeValue(i)}><span aria-hidden="true">✕</span></button
-						>
-					</li>
-				{/each}
-			</ul>
-			{#if valuesError}<p class="error" role="status">{valuesError.message}</p>{/if}
-			<form
-				class="add-value"
-				onsubmit={(e) => {
-					e.preventDefault();
-					addValue();
-				}}
+			<InfoTip label="decision values"
+				>The options you compare. Add or remove values to try others.</InfoTip
 			>
-				<NumberInput
-					label="New decision value"
-					hideLabel
-					optional
-					value={draft}
-					onchange={(v) => (draft = v)}
-					error={draftProblem}
-				/>
-				<Button size="sm" type="submit" disabled={!canAdd}>Add decision value</Button>
-			</form>
-		</section>
-	</div>
+		</div>
+		<ul class="chips" aria-labelledby="values-heading" data-testid="decision-values">
+			{#each d.values as v, i (ids.values[i])}
+				{@const bad = errorAt(errors, { kind: 'decisions', field: 'values', index: i })}
+				<li class="chip" class:bad title={labels[i]}>
+					<span class="mono">{v}</span>
+					<button
+						type="button"
+						class="chip-remove"
+						aria-label="Remove decision value {v}"
+						onclick={() => removeValue(i)}><span aria-hidden="true">✕</span></button
+					>
+				</li>
+			{/each}
+		</ul>
+		{#if valuesError}<p class="error" role="status">{valuesError.message}</p>{/if}
+		<form
+			class="add-value"
+			onsubmit={(e) => {
+				e.preventDefault();
+				addValue();
+			}}
+		>
+			<NumberInput
+				label="New decision value"
+				hideLabel
+				optional
+				value={draft}
+				onchange={(v) => (draft = v)}
+				error={draftProblem}
+			/>
+			<Button size="sm" type="submit" disabled={!canAdd}>Add decision value</Button>
+		</form>
+	</section>
 </div>
 
 <style>
+	.params {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		gap: var(--sp-3);
+	}
+	.params > .inputs {
+		flex: 2 1 min(100%, 34rem);
+	}
+	.params > .values {
+		flex: 1 1 min(100%, 18rem);
+	}
 	.param-row {
 		display: flex;
 		flex-wrap: wrap;
@@ -156,7 +154,7 @@
 		padding-top: var(--sp-2);
 		border-top: 1px solid var(--border);
 	}
-	h3 + .param-row {
+	.section-head + .param-row {
 		padding-top: 0;
 		border-top: 0;
 	}

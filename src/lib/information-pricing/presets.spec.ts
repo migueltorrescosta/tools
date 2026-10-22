@@ -18,7 +18,6 @@ describe('presets', () => {
 			}
 			const symbols = [
 				...model.inputs.map((x) => x.symbol),
-				...model.constants.map((x) => x.symbol),
 				...model.intermediates.map((x) => x.symbol),
 				model.decisions.symbol
 			];
@@ -27,6 +26,19 @@ describe('presets', () => {
 			expect(model.decisions.values.length).toBeGreaterThan(0);
 			expect(model.decisions.label).toContain(`{${model.decisions.symbol}}`);
 		}
+	});
+
+	it('lists the fixed inputs after the random ones', () => {
+		const fixed = (id: 'distribution-centre' | 'airline-share-buyback') =>
+			presetModel(id).inputs.map((x) => (x.family === 'fixed' ? x.symbol : '-'));
+		expect(fixed('distribution-centre')).toEqual(['-', '-', '-', 'T']);
+		expect(fixed('airline-share-buyback')).toEqual(['-', '-', '-', '-', '-', '-', 'C0']);
+		expect(presetModel('distribution-centre').inputs[3]).toEqual({
+			symbol: 'T',
+			name: 'Truck Capacity',
+			family: 'fixed',
+			params: [1000]
+		});
 	});
 
 	it('matches each preset and reports edits as custom', () => {

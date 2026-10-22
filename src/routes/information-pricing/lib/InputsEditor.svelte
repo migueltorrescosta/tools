@@ -2,7 +2,7 @@
 	import { FAMILIES, defaultParams } from '$lib/information-pricing/distributions';
 	import { MAX_SYMBOLS, type ModelError } from '$lib/information-pricing/model';
 	import type { Family, Model } from '$lib/information-pricing/types';
-	import { Button, Field } from '$lib/ui';
+	import { Button, Field, InfoTip } from '$lib/ui';
 	import { declaredSymbols, errorAt, freeSymbol, freshIds, type RowIds } from './editor';
 	import SymbolInput from './SymbolInput.svelte';
 
@@ -44,7 +44,13 @@
 </script>
 
 <section class="stack section" aria-labelledby="inputs-heading">
-	<h3 id="inputs-heading">Random inputs</h3>
+	<div class="section-head">
+		<h3 id="inputs-heading">Inputs</h3>
+		<InfoTip label="inputs"
+			>The things you're unsure about, each with a distribution. Pick Fixed for a number you already
+			know.</InfoTip
+		>
+	</div>
 	{#if model.inputs.length}
 		<div class="cols input-cols" aria-hidden="true">
 			<span>Symbol</span><span>Name</span><span>Distribution</span>

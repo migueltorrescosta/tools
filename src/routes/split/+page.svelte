@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { browserStorage, createPersistGate, readJson } from '$lib/persist-gate';
-	import { Alert, Button, Field, InfoTip, PageHeader, Panel, Stepper } from '$lib/ui';
+	import { Alert, Button, Field, InfoTip, PageHeader, Panel, References, Stepper } from '$lib/ui';
 	import {
 		bestFallback,
 		initState,
@@ -759,18 +759,7 @@
 		</Panel>
 	{/if}
 
-	<section class="references" aria-labelledby="references-heading">
-		<h2 id="references-heading">References</h2>
-		<ol class="refs">
-			{#each REFERENCES as ref (ref.href)}
-				<li>
-					{ref.cite} <a href={ref.href} target="_blank" rel="noreferrer">{ref.title}</a>
-					{ref.venue}
-					<span class="impact">{ref.impact}</span>
-				</li>
-			{/each}
-		</ol>
-	</section>
+	<References references={REFERENCES} />
 </div>
 
 {#snippet personCard(i: number)}
@@ -1179,29 +1168,6 @@
 
 	.group h3 .dot {
 		margin-right: var(--sp-1);
-	}
-
-	.references {
-		margin-top: var(--sp-4);
-	}
-
-	.references h2 {
-		margin: 0 0 var(--sp-1);
-		font-size: var(--text-sm);
-		font-weight: 600;
-	}
-
-	.refs {
-		display: grid;
-		gap: var(--sp-2);
-		margin: 0;
-		padding-left: var(--sp-5);
-		font-size: var(--text-sm);
-	}
-
-	.impact {
-		display: block;
-		color: var(--text-muted);
 	}
 
 	@media (prefers-reduced-motion: reduce) {

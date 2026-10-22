@@ -58,9 +58,9 @@ export const distributionCentre: Model = {
 	inputs: [
 		input('N', 'binomial', [1e7, 0.001]),
 		input('P', 'exponential', [3]),
-		input('C', 'uniform', [50, 500])
+		input('C', 'uniform', [50, 500]),
+		input('T', 'fixed', [1000])
 	],
-	constants: [{ symbol: 'T', value: 1000, name: '' }],
 	intermediates: [],
 	decisions: {
 		symbol: 't',
@@ -80,9 +80,9 @@ export const airline: Model = {
 		input('F', 'uniform', [1.5, 2.5]),
 		input('Lr', 'uniform', [0.08, 0.16]),
 		input('p', 'uniform', [1.5, 3]),
-		input('i', 'uniform', [0.01, 0.03])
+		input('i', 'uniform', [0.01, 0.03]),
+		input('C0', 'fixed', [950])
 	],
-	constants: [{ symbol: 'C0', value: 950, name: '' }],
 	// Deliberately out of dependency order.
 	intermediates: [
 		{ symbol: 'L', name: '', formula: 'C0 - b + Delta/1e6' },

@@ -20,9 +20,9 @@ const distributionCentre: Model = {
 	inputs: [
 		{ symbol: 'N', name: 'Number of Packages', family: 'binomial', params: [10_000_000, 0.001] },
 		{ symbol: 'P', name: 'Profit per Package', family: 'exponential', params: [3] },
-		{ symbol: 'C', name: 'Maintenance cost per Truck', family: 'uniform', params: [50, 500] }
+		{ symbol: 'C', name: 'Maintenance cost per Truck', family: 'uniform', params: [50, 500] },
+		{ symbol: 'T', name: 'Truck Capacity', family: 'fixed', params: [1000] }
 	],
-	constants: [{ symbol: 'T', value: 1000, name: 'Truck Capacity' }],
 	intermediates: [],
 	decisions: {
 		symbol: 't',
@@ -43,9 +43,9 @@ const airlineShareBuyback: Model = {
 		{ symbol: 'F', name: 'Fuel Cost per km', family: 'uniform', params: [1.5, 2.5] },
 		{ symbol: 'Lr', name: 'Loan Rate', family: 'uniform', params: [0.08, 0.16] },
 		{ symbol: 'p', name: 'Revenue per km', family: 'uniform', params: [1.5, 3] },
-		{ symbol: 'i', name: 'Interest Rate', family: 'uniform', params: [0.01, 0.03] }
+		{ symbol: 'i', name: 'Interest Rate', family: 'uniform', params: [0.01, 0.03] },
+		{ symbol: 'C0', name: 'Cash Balance', family: 'fixed', params: [950] }
 	],
-	constants: [{ symbol: 'C0', value: 950, name: 'Cash Balance' }],
 	intermediates: [
 		{ symbol: 'Rev', name: 'Operating Revenue', formula: 'K*p' },
 		{ symbol: 'Fuel', name: 'Fuel Bill', formula: 'K*F' },
@@ -66,7 +66,6 @@ const airlineShareBuyback: Model = {
 /** One input and two decisions with a trivial reward: a valid model to build on. */
 const blank: Model = {
 	inputs: [{ symbol: 'X', name: '', family: 'normal', params: [0, 1] }],
-	constants: [],
 	intermediates: [],
 	decisions: { symbol: 'd', values: [0, 1], label: 'd = {d}', reward: 'd*X', unit: '€' },
 	seed: SEED,

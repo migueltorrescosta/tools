@@ -12,12 +12,14 @@ export type Family =
 	| 'triangular'
 	| 'binomial'
 	| 'poisson'
-	| 'beta';
+	| 'beta'
+	| 'fixed';
 
 /**
+ * An input: random, or `fixed` (a known number, never sampled).
  * Raw parameters per family, in this order:
  * normal (μ, σ), lognormal (median, σ), uniform (low, high), exponential (mean),
- * triangular (low, mode, high), binomial (n, p), poisson (λ), beta (α, β).
+ * triangular (low, mode, high), binomial (n, p), poisson (λ), beta (α, β), fixed (value).
  */
 export interface RandomInput {
 	symbol: string;
@@ -27,14 +29,7 @@ export interface RandomInput {
 	params: number[];
 }
 
-export interface Constant {
-	symbol: string;
-	value: number;
-	/** Display name; may be empty. */
-	name: string;
-}
-
-/** A named formula over inputs, constants, other intermediates and the decision symbol. */
+/** A named formula over inputs, other intermediates and the decision symbol. */
 export interface Intermediate {
 	symbol: string;
 	/** Display name; may be empty. */
@@ -57,8 +52,8 @@ export interface Decisions {
 
 /** Everything the user edits; what the share link and autosave hold. */
 export interface Model {
+	/** Random and fixed inputs, in the user's order. */
 	inputs: RandomInput[];
-	constants: Constant[];
 	intermediates: Intermediate[];
 	decisions: Decisions;
 	seed: number;
@@ -76,7 +71,7 @@ export const MAX_SAMPLES = 1_000_000;
  */
 export interface Scenarios {
 	n: number;
-	/** Random inputs, in model order. */
+	/** Random (non-fixed) inputs, in model order. */
 	inputs: { symbol: string; column: Float64Array }[];
 	/** Decision-independent intermediates, in evaluation order. */
 	intermediates: { symbol: string; column: Float64Array }[];

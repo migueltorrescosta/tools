@@ -6,6 +6,7 @@ import {
 	familyInfo,
 	fill,
 	isFamily,
+	isFixed,
 	logGamma,
 	mean,
 	validateParams,
@@ -114,7 +115,8 @@ describe('family metadata', () => {
 			'triangular',
 			'binomial',
 			'poisson',
-			'beta'
+			'beta',
+			'fixed'
 		]);
 		for (const f of FAMILIES) {
 			expect(validateParams(f.family, defaultParams(f.family))).toEqual([]);
@@ -151,6 +153,8 @@ describe('validateParams', () => {
 		expect(errs('poisson', [2e9])[0].index).toBe(0);
 		expect(errs('beta', [1, 0]).map((e) => e.index)).toEqual([1]);
 		expect(errs('beta', [-1, -1]).map((e) => e.index)).toEqual([0, 1]);
+		expect(errs('fixed', [-1e300])).toEqual([]);
+		expect(errs('fixed', [NaN])).toEqual([{ index: 0, message: 'Enter a finite number.' }]);
 	});
 
 	it('rejects non-finite values and the wrong parameter count', () => {
@@ -240,8 +244,16 @@ describe('binomial and Poisson probability mass', () => {
 });
 
 describe('fill', () => {
+	it('fills a fixed input with its value: mean = value, variance 0', () => {
+		expect(draws('fixed', [950], 50).every((x) => x === 950)).toBe(true);
+		expect(mean('fixed', [950])).toBe(950);
+		expect(variance('fixed', [950])).toBe(0);
+		expect(isFixed({ family: 'fixed' })).toBe(true);
+		expect(isFixed({ family: 'normal' })).toBe(false);
+	});
+
 	it('reproduces a fixed seed and differs across seeds', () => {
-		for (const f of FAMILIES) {
+		for (const f of FAMILIES.filter((f) => f.family !== 'fixed')) {
 			const a = draws(f.family, defaultParams(f.family), 1000, 2026);
 			const b = draws(f.family, defaultParams(f.family), 1000, 2026);
 			const c = draws(f.family, defaultParams(f.family), 1000, 2027);

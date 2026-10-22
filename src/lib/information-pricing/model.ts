@@ -11,6 +11,7 @@ import {
 	type FnName,
 	type Node
 } from './formula/ast';
+import { isFixed } from './distributions';
 import { evaluate } from './formula/evaluate';
 import { parse } from './formula/parse';
 import { renameInFormula } from './formula/rename';
@@ -22,7 +23,6 @@ export const MAX_SYMBOLS = 200;
 export type ErrorLocation =
 	| { kind: 'model' }
 	| { kind: 'input'; index: number; field: 'symbol' | 'params'; param?: number }
-	| { kind: 'constant'; index: number; field: 'symbol' | 'value' }
 	| { kind: 'intermediate'; index: number; field: 'symbol' | 'formula' }
 	| { kind: 'reward' }
 	| { kind: 'decisions'; field: 'symbol' | 'values' | 'label'; index?: number };
@@ -41,7 +41,7 @@ export type ParamValidator = (
 	params: number[]
 ) => { index: number; message: string }[];
 
-/** What a symbol resolves to once compiled. */
+/** What a symbol resolves to once compiled; a fixed input is a `constant`, inlined by codegen. */
 export type SymbolRef =
 	| { kind: 'input'; slot: number }
 	| { kind: 'constant'; value: number }
@@ -58,7 +58,7 @@ export interface CompiledIntermediate {
 
 /**
  * Column slots the kernel reads and writes: `cols[k]` for `k < inputs.length`
- * is random input k (model order, filled by the sampler); `cols[inputs.length + j]`
+ * is random input k (model order, fixed inputs skipped, filled by the sampler); `cols[inputs.length + j]`
  * is shared intermediate j (evaluation order, filled by the kernel).
  */
 export interface SlotLayout {
@@ -104,10 +104,12 @@ export function decisionLabels(d: Decisions): string[] {
 }
 
 type Declared =
-	| { kind: 'input'; index: number }
-	| { kind: 'constant'; index: number }
-	| { kind: 'intermediate'; index: number }
-	| { kind: 'decision' };
+	{ kind: 'input'; index: number } | { kind: 'intermediate'; index: number } | { kind: 'decision' };
+
+/** The inputs the engine samples (every input but the fixed ones), in model order. */
+export function randomInputs<T extends { family: Family }>(model: { inputs: T[] }): T[] {
+	return model.inputs.filter((i) => !isFixed(i));
+}
 
 /** Validate and compile `model`; `validateParams` checks each input's family parameters. */
 export function compileModel(model: Model, validateParams?: ParamValidator): CompileResult {
@@ -137,14 +139,6 @@ export function compileModel(model: Model, validateParams?: ParamValidator): Com
 					message: e.message
 				});
 	});
-	model.constants.forEach((c, index) => {
-		declare(c.symbol, { kind: 'constant', index }, { kind: 'constant', index, field: 'symbol' });
-		if (!Number.isFinite(c.value))
-			errors.push({
-				where: { kind: 'constant', index, field: 'value' },
-				message: 'Must be a finite number'
-			});
-	});
 	model.intermediates.forEach((m, index) =>
 		declare(
 			m.symbol,
@@ -154,11 +148,11 @@ export function compileModel(model: Model, validateParams?: ParamValidator): Com
 	);
 	const d = model.decisions;
 	declare(d.symbol, { kind: 'decision' }, { kind: 'decisions', field: 'symbol' });
-	const count = model.inputs.length + model.constants.length + model.intermediates.length + 1;
+	const count = model.inputs.length + model.intermediates.length + 1;
 	if (count > MAX_SYMBOLS)
 		errors.push({
 			where: { kind: 'model' },
-			message: `At most ${MAX_SYMBOLS} symbols (inputs, constants, intermediates and the decision); this model has ${count}`
+			message: `At most ${MAX_SYMBOLS} symbols (inputs, intermediates and the decision); this model has ${count}`
 		});
 
 	// Formulas: parse, then resolve every symbol.
@@ -254,8 +248,14 @@ export function compileModel(model: Model, validateParams?: ParamValidator): Com
 			deps[i].some((j) => isPerDecision[j]);
 
 	const symbols = new Map<string, SymbolRef>();
-	model.inputs.forEach((input, slot) => symbols.set(input.symbol, { kind: 'input', slot }));
-	model.constants.forEach((c) => symbols.set(c.symbol, { kind: 'constant', value: c.value }));
+	const random = randomInputs(model);
+	for (const input of model.inputs)
+		symbols.set(
+			input.symbol,
+			isFixed(input)
+				? { kind: 'constant', value: input.params[0] }
+				: { kind: 'input', slot: random.indexOf(input) }
+		);
 	symbols.set(d.symbol, { kind: 'decision' });
 	const shared: CompiledIntermediate[] = [];
 	const perDecision: CompiledIntermediate[] = [];
@@ -265,7 +265,7 @@ export function compileModel(model: Model, validateParams?: ParamValidator): Com
 			symbols.set(item.symbol, { kind: 'perDecision', local: perDecision.length });
 			perDecision.push(item);
 		} else {
-			symbols.set(item.symbol, { kind: 'shared', slot: model.inputs.length + shared.length });
+			symbols.set(item.symbol, { kind: 'shared', slot: random.length + shared.length });
 			shared.push(item);
 		}
 	}
@@ -273,7 +273,7 @@ export function compileModel(model: Model, validateParams?: ParamValidator): Com
 		ok: true,
 		compiled: {
 			symbols,
-			slots: { inputs: model.inputs.map((i) => i.symbol), shared: shared.map((s) => s.symbol) },
+			slots: { inputs: random.map((i) => i.symbol), shared: shared.map((s) => s.symbol) },
 			shared,
 			perDecision,
 			reward: reward!,
@@ -319,7 +319,7 @@ function cycles(deps: number[][]): number[][] {
 
 /**
  * Reference evaluation of one scenario with the tree-walking evaluator:
- * `inputs` in model order; returns the shared intermediates (evaluation
+ * `inputs` are the random inputs in model order; returns the shared intermediates (evaluation
  * order) and each decision's reward. The test oracle for the generated kernel.
  */
 export function evaluateRow(
@@ -362,7 +362,6 @@ export function evaluateRow(
 export function renameSymbol(model: Model, from: string, to: string): Model {
 	const all = [
 		...model.inputs.map((i) => i.symbol),
-		...model.constants.map((c) => c.symbol),
 		...model.intermediates.map((m) => m.symbol),
 		model.decisions.symbol
 	];
@@ -373,7 +372,6 @@ export function renameSymbol(model: Model, from: string, to: string): Model {
 	return {
 		...model,
 		inputs: model.inputs.map((i) => ({ ...i, symbol: sym(i.symbol), params: [...i.params] })),
-		constants: model.constants.map((c) => ({ ...c, symbol: sym(c.symbol) })),
 		intermediates: model.intermediates.map((m) => ({
 			...m,
 			symbol: sym(m.symbol),

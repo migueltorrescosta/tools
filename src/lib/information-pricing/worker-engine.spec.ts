@@ -4,6 +4,7 @@ import { validateParams } from './distributions';
 import { createAnalyser, type AnalysisWorker } from './analyser';
 import { createAnalysisHost, type FromAnalysis, type ToAnalysis } from './analysis-host';
 import { createSimulationHost, type FromWorker, type ToWorker } from './host';
+import { csvHeader } from './csv';
 import { compileModel, evaluateRow } from './model';
 import { presetModel } from './presets';
 import type { Model, Scenarios } from './types';
@@ -98,6 +99,16 @@ describe('simulation engine', () => {
 		expect(b.inputs[3].column).toEqual(a.inputs[3].column);
 		expect(b.rewards[4]).toEqual(a.rewards[4]);
 		expect(b.optimal).toEqual(a.optimal);
+	});
+
+	it('samples only the random inputs; fixed ones get no column', async () => {
+		const model = presetModel('distribution-centre');
+		const spec = runSpec(model, compiled(model));
+		expect(spec.inputs.map((x) => x.family)).toEqual(['binomial', 'exponential', 'uniform']);
+		expect(spec.shape.inputs).toEqual(['N', 'P', 'C']);
+		const s = await simulate(model, 100, 1);
+		expect(s.inputs.map((x) => x.symbol)).toEqual(['N', 'P', 'C']);
+		expect(csvHeader(s).slice(0, 4)).toEqual(['N', 'P', 'C', '8 trucks']);
 	});
 
 	it('matches the reference evaluator row by row', async () => {

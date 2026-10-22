@@ -16,10 +16,20 @@
 
 	const layout = $derived(layoutTree(view, inputs));
 
-	/** On a narrow screen, open a wide tree at its root (the middle), not its left edge. */
+	/** A tree a little wider than its box shrinks to fit (down to MIN_SCALE); a wider one scrolls. */
+	const MIN_SCALE = 0.8;
+	let boxWidth = $state(0);
+	const scale = $derived(
+		boxWidth > 0 && layout.width > boxWidth && layout.width * MIN_SCALE <= boxWidth
+			? boxWidth / layout.width
+			: 1
+	);
+
+	/** A tree that still scrolls opens at its root (the middle), not its left edge. */
 	let scroller = $state<HTMLDivElement>();
 	$effect(() => {
 		if (!scroller || !layout.width) return;
+		void scale;
 		scroller.scrollLeft = (scroller.scrollWidth - scroller.clientWidth) / 2;
 	});
 	const byId = $derived(new Map(view.nodes.map((n) => [n.id, n])));
@@ -53,11 +63,16 @@
 			dashed: l.isStatusQuo
 		}))}
 	/>
-	<div class="scroll" bind:this={scroller} use:scrollFocus={'Policy tree diagram'}>
+	<div
+		class="scroll"
+		bind:this={scroller}
+		bind:clientWidth={boxWidth}
+		use:scrollFocus={'Policy tree diagram'}
+	>
 		<svg
 			viewBox="0 0 {layout.width} {layout.height}"
-			width={layout.width}
-			height={layout.height}
+			width={layout.width * scale}
+			height={layout.height * scale}
 			role="img"
 			aria-label="{view.title}. {description}."
 			data-testid="policy-tree"

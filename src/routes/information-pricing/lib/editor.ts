@@ -9,7 +9,6 @@ import type { Model } from '$lib/information-pricing/types';
 /** Row ids kept beside the model (never in it), so `{#each}` keys survive edits. */
 export interface RowIds {
 	inputs: number[];
-	constants: number[];
 	intermediates: number[];
 	values: number[];
 }
@@ -25,7 +24,6 @@ export function freshIds(n: number): number[] {
 export function rowIds(model: Model): RowIds {
 	return {
 		inputs: freshIds(model.inputs.length),
-		constants: freshIds(model.constants.length),
 		intermediates: freshIds(model.intermediates.length),
 		values: freshIds(model.decisions.values.length)
 	};
@@ -35,7 +33,6 @@ export function rowIds(model: Model): RowIds {
 export function declaredSymbols(model: Model): string[] {
 	return [
 		...model.inputs.map((i) => i.symbol),
-		...model.constants.map((c) => c.symbol),
 		...model.intermediates.map((m) => m.symbol),
 		model.decisions.symbol
 	];
@@ -59,7 +56,6 @@ function sameField(a: ErrorLocation, b: ErrorLocation): boolean {
 			const o = b as typeof a;
 			return a.index === o.index && a.field === o.field && (a.param ?? -1) === (o.param ?? -1);
 		}
-		case 'constant':
 		case 'intermediate': {
 			const o = b as typeof a;
 			return a.index === o.index && a.field === o.field;
@@ -88,8 +84,6 @@ export function describeLocation(model: Model, where: ErrorLocation): string {
 			return 'Model';
 		case 'input':
 			return sym(model.inputs[where.index]?.symbol, 'Input', where.index);
-		case 'constant':
-			return sym(model.constants[where.index]?.symbol, 'Constant', where.index);
 		case 'intermediate':
 			return sym(model.intermediates[where.index]?.symbol, 'Intermediate', where.index);
 		case 'reward':
@@ -103,7 +97,6 @@ export function describeLocation(model: Model, where: ErrorLocation): string {
 export function allFinite(model: Model): boolean {
 	return (
 		model.inputs.every((i) => i.params.every(Number.isFinite)) &&
-		model.constants.every((c) => Number.isFinite(c.value)) &&
 		model.decisions.values.every(Number.isFinite) &&
 		Number.isFinite(model.seed) &&
 		Number.isFinite(model.samples)

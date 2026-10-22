@@ -1,8 +1,12 @@
 /**
  * Share link and autosave for the Information Pricing page: a versioned JSON
- * envelope `{v: 1, model}`, deflated and base64url-encoded for `#m=`, and
+ * envelope `{v: 2, model}`, deflated and base64url-encoded for `#m=`, and
  * stored as plain JSON in localStorage. Decoding validates the shape strictly
  * but does not parse formulas (the page re-parses them). No DOM imports.
+ *
+ * Version 1 kept known numbers in `model.constants` (`{symbol, value, name}`);
+ * version 2 holds them as `fixed` inputs. A v1 envelope still loads: each
+ * constant becomes a fixed input appended after the inputs, in order.
  */
 import { readJson, type PersistGate } from '$lib/persist-gate';
 import { familyInfo, isFamily } from './distributions';
@@ -10,7 +14,6 @@ import { MAX_FORMULA_LENGTH } from './formula/ast';
 import { MAX_SYMBOLS } from './model';
 import {
 	MAX_SAMPLES,
-	type Constant,
 	type Decisions,
 	type Intermediate,
 	type Model,
@@ -19,12 +22,12 @@ import {
 
 /** Every localStorage key the tool writes starts with this. */
 export const STORAGE_PREFIX = 'information-pricing:';
-/** The last edited model, as `{v: 1, model}` JSON. */
+/** The last edited model, as `{v: 2, model}` JSON. */
 export const AUTOSAVE_KEY = `${STORAGE_PREFIX}model`;
 /** The share-link hash parameter, as in `#m=…`. */
 export const HASH_PARAM = 'm';
 
-export const VERSION = 1;
+export const VERSION = 2;
 export const MAX_DECISIONS = 100;
 export const MAX_SYMBOL_LENGTH = 64;
 export const MAX_NAME_LENGTH = 200;
@@ -87,12 +90,14 @@ function input(value: unknown, path: string): RandomInput {
 	};
 }
 
-function constant(value: unknown, path: string): Constant {
+/** A v1 constant `{symbol, value, name}` as the fixed input it became in v2. */
+function constant(value: unknown, path: string): RandomInput {
 	const o = record(value, path);
 	return {
 		symbol: symbol(o.symbol, `${path}.symbol`),
-		value: num(o.value, `${path}.value`),
-		name: str(o.name, `${path}.name`, MAX_NAME_LENGTH)
+		name: str(o.name, `${path}.name`, MAX_NAME_LENGTH),
+		family: 'fixed',
+		params: [num(o.value, `${path}.value`)]
 	};
 }
 
@@ -118,17 +123,20 @@ function decisions(value: unknown, path: string): Decisions {
 	};
 }
 
-/** A fresh `Model` holding only the known fields of `value`; throws ShapeError on any mismatch. */
-function model(value: unknown): Model {
+/**
+ * A fresh `Model` holding only the known fields of `value`; throws ShapeError on any mismatch.
+ * For a v1 model, its `constants` become fixed inputs after the inputs.
+ */
+function model(value: unknown, version: 1 | 2): Model {
 	const o = record(value, 'model');
 	const inputs = array(o.inputs, 'inputs', MAX_SYMBOLS).map((x, i) => input(x, `inputs[${i}]`));
-	const constants = array(o.constants, 'constants', MAX_SYMBOLS).map((x, i) =>
-		constant(x, `constants[${i}]`)
-	);
+	if (version === 1)
+		for (const [i, x] of array(o.constants, 'constants', MAX_SYMBOLS).entries())
+			inputs.push(constant(x, `constants[${i}]`));
 	const intermediates = array(o.intermediates, 'intermediates', MAX_SYMBOLS).map((x, i) =>
 		intermediate(x, `intermediates[${i}]`)
 	);
-	if (inputs.length + constants.length + intermediates.length + 1 > MAX_SYMBOLS) {
+	if (inputs.length + intermediates.length + 1 > MAX_SYMBOLS) {
 		fail(`The model declares more than ${MAX_SYMBOLS} symbols.`);
 	}
 	const seed = num(o.seed, 'seed');
@@ -139,7 +147,6 @@ function model(value: unknown): Model {
 	}
 	return {
 		inputs,
-		constants,
 		intermediates,
 		decisions: decisions(o.decisions, 'decisions'),
 		seed,
@@ -147,12 +154,12 @@ function model(value: unknown): Model {
 	};
 }
 
-/** Validate a parsed `{v: 1, model}` envelope (share link or autosave). */
+/** Validate a parsed `{v: 2, model}` envelope (share link or autosave), migrating v1. */
 export function parseEnvelope(value: unknown): DecodeResult {
 	try {
 		const o = record(value, 'The saved data');
-		if (o.v !== VERSION) fail(`Unsupported version ${JSON.stringify(o.v) ?? 'none'}.`);
-		return { ok: true, model: model(o.model) };
+		if (o.v !== 1 && o.v !== VERSION) fail(`Unsupported version ${JSON.stringify(o.v) ?? 'none'}.`);
+		return { ok: true, model: model(o.model, o.v) };
 	} catch (err) {
 		if (err instanceof ShapeError) return { ok: false, error: err.message };
 		throw err;

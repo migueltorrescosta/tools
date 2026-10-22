@@ -17,7 +17,7 @@ describe('editor helpers', () => {
 		const model = presetModel('airline-share-buyback');
 		const a = rowIds(model);
 		const b = rowIds(model);
-		expect(a.inputs).toHaveLength(6);
+		expect(a.inputs).toHaveLength(7);
 		expect(a.intermediates).toHaveLength(4);
 		const all = [...Object.values(a).flat(), ...Object.values(b).flat()];
 		expect(new Set(all).size).toBe(all.length);

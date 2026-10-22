@@ -90,6 +90,12 @@ export const FAMILIES: readonly FamilyInfo[] = [
 			{ label: 'α', default: 2 },
 			{ label: 'β', default: 2 }
 		]
+	},
+	{
+		family: 'fixed',
+		name: 'Fixed',
+		discrete: false,
+		params: [{ label: 'value', default: 1 }]
 	}
 ];
 
@@ -100,6 +106,11 @@ export function familyInfo(family: Family): FamilyInfo {
 	const info = INFO.get(family);
 	if (!info) throw new Error(`Unknown family: ${family}`);
 	return info;
+}
+
+/** True for a `fixed` input: a known number, not sampled. */
+export function isFixed(input: { family: Family }): boolean {
+	return input.family === 'fixed';
 }
 
 /** True for a known family name (for validating untrusted input). */
@@ -193,6 +204,8 @@ export function mean(family: Family, params: readonly number[]): number {
 			return a;
 		case 'beta':
 			return a / (a + b);
+		case 'fixed':
+			return a;
 	}
 }
 
@@ -216,6 +229,8 @@ export function variance(family: Family, params: readonly number[]): number {
 			return a;
 		case 'beta':
 			return (a * b) / ((a + b) * (a + b) * (a + b + 1));
+		case 'fixed':
+			return 0;
 	}
 }
 
@@ -393,6 +408,8 @@ export function sampler(family: Family, params: readonly number[]): (prng: Prng)
 				const ly = logGammaDraw(prng, b);
 				return 1 / (1 + Math.exp(ly - lx));
 			};
+		case 'fixed':
+			return () => a;
 	}
 }
 

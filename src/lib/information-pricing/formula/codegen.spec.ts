@@ -90,7 +90,7 @@ describe('kernelSource', () => {
 			expect(src).not.toMatch(new RegExp(`\\b${name}\\b`));
 		expect(src).toContain('Math.pow(');
 		expect(src).toContain('const c6 = cols[6];');
-		// Constants and decision values are inlined.
+		// Fixed inputs and decision values are inlined.
 		expect(src).toContain('950');
 		expect(src).toContain('750');
 		expect(() => assertGenerated(src)).not.toThrow();
@@ -166,8 +166,15 @@ describe('property: random formulas', () => {
 		for (let k = 0; k < 150; k++) {
 			const formula = (syms: string[]) => print(randomTree(prng, syms, 5));
 			const model: Model = {
-				inputs: inputs.map((symbol) => ({ symbol, name: '', family: 'normal', params: [0, 1] })),
-				constants: [{ symbol: 'K', value: 2.5, name: '' }],
+				inputs: [
+					...inputs.map((symbol) => ({
+						symbol,
+						name: '',
+						family: 'normal' as const,
+						params: [0, 1]
+					})),
+					{ symbol: 'K', name: '', family: 'fixed', params: [2.5] }
+				],
 				intermediates: [
 					{ symbol: 'S', name: '', formula: formula(['x', 'y', 'K']) },
 					{ symbol: 'P', name: '', formula: formula(['S', 'z', 't']) + ' + t' },
@@ -196,7 +203,6 @@ describe('property: random formulas', () => {
 			const text = print(randomTree(prng, inputs, 6));
 			const model: Model = {
 				inputs: inputs.map((symbol) => ({ symbol, name: '', family: 'normal', params: [0, 1] })),
-				constants: [],
 				intermediates: [],
 				decisions: { symbol: 't', values: [0], label: '{t}', reward: text, unit: '' },
 				seed: 1,

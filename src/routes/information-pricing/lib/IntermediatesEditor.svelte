@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { MAX_SYMBOLS, type ModelError } from '$lib/information-pricing/model';
 	import type { Model } from '$lib/information-pricing/types';
-	import { Button, Field } from '$lib/ui';
+	import { Button, Field, InfoTip } from '$lib/ui';
 	import { declaredSymbols, errorAt, freeSymbol, freshIds, type RowIds } from './editor';
 	import FormulaInput from './FormulaInput.svelte';
 	import SymbolInput from './SymbolInput.svelte';
@@ -34,12 +34,20 @@
 </script>
 
 <section class="stack section" aria-labelledby="intermediates-heading">
-	<h3 id="intermediates-heading">Intermediates</h3>
+	<div class="section-head">
+		<h3 id="intermediates-heading">Intermediates</h3>
+		<InfoTip label="intermediates"
+			>Named formulas that reuse inputs, other intermediates or the decision. Use them to break up a
+			long reward.</InfoTip
+		>
+	</div>
 	{#if model.intermediates.length}
-		<div class="cols constant-cols" aria-hidden="true"><span>Symbol</span><span>Name</span></div>
+		<div class="cols intermediate-cols" aria-hidden="true">
+			<span>Symbol</span><span>Name</span>
+		</div>
 	{/if}
 	{#each model.intermediates as m, i (ids.intermediates[i])}
-		<div class="row constant-cols" data-testid="intermediate-row">
+		<div class="row intermediate-cols" data-testid="intermediate-row">
 			<SymbolInput
 				hideLabel
 				name="Symbol of intermediate {who(i)}"

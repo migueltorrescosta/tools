@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { decisionLabels, type ModelError } from '$lib/information-pricing/model';
 	import type { Model } from '$lib/information-pricing/types';
-	import { Field } from '$lib/ui';
+	import { Field, InfoTip } from '$lib/ui';
 	import { declaredSymbols, errorAt } from './editor';
 	import FormulaInput from './FormulaInput.svelte';
 	import SymbolInput from './SymbolInput.svelte';
@@ -22,7 +22,12 @@
 </script>
 
 <section class="stack section" aria-labelledby="decisions-heading">
-	<h3 id="decisions-heading">Decisions</h3>
+	<div class="section-head">
+		<h3 id="decisions-heading">Decisions</h3>
+		<InfoTip label="decisions"
+			>The options you choose between, how each one is labelled, and the reward to maximise.</InfoTip
+		>
+	</div>
 	<div class="decision-fields">
 		<SymbolInput
 			label="Decision symbol"

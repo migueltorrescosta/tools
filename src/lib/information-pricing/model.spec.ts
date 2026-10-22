@@ -36,6 +36,20 @@ describe('compileModel: presets', () => {
 		expect(evaluateRow(c, [9800, 3, 100]).rewards).toEqual([23200, 26100, 28400, 28300, 28200]);
 	});
 
+	it('inlines fixed inputs as constants, outside the sampled slots', () => {
+		const m = edit(distributionCentre, (m) => {
+			// A fixed input between random ones: the random slots stay contiguous.
+			m.inputs.splice(1, 0, { symbol: 'Z', name: '', family: 'fixed', params: [2] });
+			m.decisions.reward = 'min(N, t*T)*P - t*C*Z';
+		});
+		const c = compiled(m);
+		expect(c.slots.inputs).toEqual(['N', 'P', 'C']);
+		expect(c.symbols.get('T')).toEqual({ kind: 'constant', value: 1000 });
+		expect(c.symbols.get('Z')).toEqual({ kind: 'constant', value: 2 });
+		expect(c.symbols.get('C')).toEqual({ kind: 'input', slot: 2 });
+		expect(evaluateRow(c, [9800, 3, 50]).rewards[0]).toBe(8000 * 3 - 8 * 100);
+	});
+
 	it('orders the airline intermediates and splits off the per-decision one', () => {
 		const c = compiled(airline);
 		expect(c.slots).toEqual({
@@ -62,9 +76,8 @@ describe('compileModel: errors', () => {
 			m.inputs[0].symbol = '1x';
 			m.inputs[1].symbol = 'min';
 			m.inputs[2].symbol = 'T';
-			m.constants.push({ symbol: '__proto__', value: 1, name: '' });
-			m.constants.push({ symbol: 'constructor', value: 1, name: '' });
-			m.constants.push({ symbol: 'and', value: 1, name: '' });
+			for (const symbol of ['__proto__', 'constructor', 'and'])
+				m.inputs.push({ symbol, name: '', family: 'fixed', params: [1] });
 		});
 		const es = errors(m);
 		expect(es.map((e) => [e.where, e.message])).toEqual(
@@ -74,14 +87,14 @@ describe('compileModel: errors', () => {
 					expect.stringContaining('start with a letter')
 				],
 				[{ kind: 'input', index: 1, field: 'symbol' }, '"min" is a function name'],
-				[{ kind: 'constant', index: 1, field: 'symbol' }, '"__proto__" is reserved'],
-				[{ kind: 'constant', index: 2, field: 'symbol' }, '"constructor" is reserved'],
-				[{ kind: 'constant', index: 3, field: 'symbol' }, '"and" is a keyword']
+				[{ kind: 'input', index: 4, field: 'symbol' }, '"__proto__" is reserved'],
+				[{ kind: 'input', index: 5, field: 'symbol' }, '"constructor" is reserved'],
+				[{ kind: 'input', index: 6, field: 'symbol' }, '"and" is a keyword']
 			])
 		);
-		// The input T comes before the constant T, so the constant is the duplicate.
+		// Input 2, renamed T, comes before the fixed input T, so the fixed one is the duplicate.
 		expect(es).toContainEqual({
-			where: { kind: 'constant', index: 0, field: 'symbol' },
+			where: { kind: 'input', index: 3, field: 'symbol' },
 			message: '"T" is already declared'
 		});
 	});
@@ -159,7 +172,7 @@ describe('compileModel: errors', () => {
 		const m = edit(distributionCentre, (m) => {
 			m.inputs[0].params[1] = Infinity;
 			m.inputs[2].params = [500, 50];
-			m.constants[0].value = NaN;
+			m.inputs[3].params[0] = NaN;
 		});
 		expect(compileModel(m, validator)).toEqual({
 			ok: false,
@@ -173,7 +186,7 @@ describe('compileModel: errors', () => {
 					message: 'high must exceed low'
 				},
 				{
-					where: { kind: 'constant', index: 0, field: 'value' },
+					where: { kind: 'input', index: 3, field: 'params', param: 0 },
 					message: 'Must be a finite number'
 				}
 			]
@@ -182,12 +195,13 @@ describe('compileModel: errors', () => {
 
 	it('caps the model at 200 symbols', () => {
 		const m = edit(distributionCentre, (m) => {
-			for (let k = 0; k < 196; k++) m.constants.push({ symbol: `k${k}`, value: k, name: '' });
+			for (let k = 0; k < 196; k++)
+				m.inputs.push({ symbol: `k${k}`, name: '', family: 'fixed', params: [k] });
 		});
 		expect(errors(m)).toEqual([
 			{ where: { kind: 'model' }, message: expect.stringContaining('this model has 201') }
 		]);
-		expect(compileModel(edit(m, (m) => m.constants.pop())).ok).toBe(true);
+		expect(compileModel(edit(m, (m) => m.inputs.pop())).ok).toBe(true);
 	});
 });
 
@@ -215,6 +229,10 @@ describe('helpers', () => {
 		expect(m.intermediates[0].formula).toBe('C0 - buy + Delta/1e6');
 		expect(airline.decisions.symbol).toBe('b');
 		expect(compiled(m).labels[1]).toBe('250 M€');
+
+		const cash = renameSymbol(airline, 'C0', 'Cash');
+		expect(cash.inputs[6]).toMatchObject({ symbol: 'Cash', family: 'fixed', params: [950] });
+		expect(cash.intermediates[0].formula).toBe('Cash - b + Delta/1e6');
 
 		const r = renameSymbol(airline, 'Rev', 'Revenue');
 		expect(r.intermediates[2].symbol).toBe('Revenue');

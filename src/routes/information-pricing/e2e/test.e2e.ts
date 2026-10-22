@@ -14,7 +14,7 @@ async function open(page: Page, hash = '') {
 
 /** A `#m=` share link for `model`, encoded like the page does (deflate-raw, base64url). */
 function link(model: Model): string {
-	const json = JSON.stringify({ v: 1, model });
+	const json = JSON.stringify({ v: 2, model });
 	return `#m=${deflateRawSync(Buffer.from(json)).toString('base64url')}`;
 }
 
@@ -57,11 +57,14 @@ async function savedSeed(page: Page): Promise<number | null> {
 test('choosing a preset fills the editor; an edit shows Custom', async ({ page }) => {
 	await open(page);
 	await expect(preset(page)).toHaveValue('distribution-centre');
-	await expect(inputRows(page)).toHaveCount(3);
+	await expect(inputRows(page)).toHaveCount(4);
+	await expect(page.getByRole('combobox', { name: 'Distribution of input T' })).toHaveValue(
+		'fixed'
+	);
 	await expect(reward(page)).toHaveValue('min(N, t*T)*P - t*C');
 
 	await preset(page).selectOption('airline-share-buyback');
-	await expect(inputRows(page)).toHaveCount(6);
+	await expect(inputRows(page)).toHaveCount(7);
 	await expect(page.getByTestId('intermediate-row')).toHaveCount(4);
 	await expect(page.getByRole('combobox', { name: 'Formula for L' })).toHaveValue(
 		'C0 - b + Delta/1e6'
@@ -76,7 +79,7 @@ test('choosing a preset fills the editor; an edit shows Custom', async ({ page }
 test('add and remove an input', async ({ page }) => {
 	await open(page);
 	await page.getByRole('button', { name: 'Add input' }).click();
-	await expect(inputRows(page)).toHaveCount(4);
+	await expect(inputRows(page)).toHaveCount(5);
 	await expect(page.getByRole('textbox', { name: 'Symbol of input X' })).toHaveValue('X');
 	await expect(page.getByRole('combobox', { name: 'Distribution of input X' })).toHaveValue(
 		'normal'
@@ -84,11 +87,11 @@ test('add and remove an input', async ({ page }) => {
 	await expect(preset(page)).toHaveValue('custom');
 
 	await page.getByRole('button', { name: 'Remove input X' }).click();
-	await expect(inputRows(page)).toHaveCount(3);
+	await expect(inputRows(page)).toHaveCount(4);
 	// Back to exactly the preset
 	await expect(preset(page)).toHaveValue('distribution-centre');
 	await page.getByRole('button', { name: 'Remove input C' }).click();
-	await expect(inputRows(page)).toHaveCount(2);
+	await expect(inputRows(page)).toHaveCount(3);
 	// The reward still uses C, so the model cannot run
 	await expect(runButton(page)).toBeDisabled();
 });
@@ -165,6 +168,10 @@ for (const [id, best, inputs] of BEST) {
 		await expect(page.getByTestId('price')).not.toBeEmpty();
 		await expect(page.getByTestId('worst')).not.toBeEmpty();
 		await expect(page.getByTestId('input-voi-row')).toHaveCount(inputs);
+		// Fixed inputs have no row
+		await expect(
+			page.getByTestId('input-voi-row').filter({ hasText: /Truck Capacity|Cash Balance/ })
+		).toHaveCount(0);
 		await expect(page.getByTestId('voi-table').locator('tbody tr')).toHaveCount(inputs);
 		await expect(page.getByTestId('policy-tree')).toBeVisible();
 		await expect(page.getByTestId('stale')).toHaveCount(0);
@@ -231,7 +238,7 @@ test('the copied share link restores the model in a fresh browser', async ({
 	await other.goto(url);
 	await expect(other.locator('div.container[data-hydrated]')).toBeVisible();
 	await expect(other.getByRole('textbox', { name: 'Seed' })).toHaveValue('99');
-	await expect(other.getByTestId('input-row')).toHaveCount(6);
+	await expect(other.getByTestId('input-row')).toHaveCount(7);
 	await expect(other.getByRole('combobox', { name: 'Formula for Rev' })).toHaveValue('Km*p');
 	await expect(other.getByTestId('preset')).toHaveValue('custom');
 	await expect(other.getByTestId('link-error')).toHaveCount(0);
@@ -240,6 +247,62 @@ test('the copied share link restores the model in a fresh browser', async ({
 	await expect(other).toHaveURL(/\/information-pricing$/);
 	await fresh.close();
 });
+
+test('a v1 link with constants still opens, the constant as a fixed input', async ({ page }) => {
+	const { inputs, ...rest } = presetModel('distribution-centre');
+	const v1 = {
+		...rest,
+		inputs: inputs.filter((x) => x.family !== 'fixed'),
+		constants: [{ symbol: 'T', value: 1000, name: 'Truck Capacity' }]
+	};
+	const json = JSON.stringify({ v: 1, model: v1 });
+	await open(page, `#m=${deflateRawSync(Buffer.from(json)).toString('base64url')}`);
+	await expect(page.getByTestId('link-error')).toHaveCount(0);
+	await expect(preset(page)).toHaveValue('distribution-centre');
+	await expect(inputRows(page)).toHaveCount(4);
+	await expect(page.getByRole('combobox', { name: 'Distribution of input T' })).toHaveValue(
+		'fixed'
+	);
+});
+
+test('Setup sections explain themselves; References list ten links', async ({ page }) => {
+	await open(page);
+	const setup = page.getByTestId('setup');
+	for (const name of ['inputs', 'intermediates', 'decisions']) {
+		const tip = setup.getByRole('button', { name: `About ${name}`, exact: true });
+		await expect(tip).toBeVisible();
+		await tip.focus();
+		await expect(page.getByRole('tooltip').filter({ visible: true })).not.toBeEmpty();
+		await tip.blur();
+	}
+	const refs = page.getByRole('region', { name: 'References' });
+	await expect(refs.getByRole('link')).toHaveCount(10);
+});
+
+for (const [width, side] of [
+	[1440, 'right'],
+	[390, 'below']
+] as const) {
+	test(`results at ${width} px: the tree box sits ${side} the inputs box`, async ({ page }) => {
+		await page.setViewportSize({ width, height: 900 });
+		await open(page, link(small('distribution-centre')));
+		await press(page, 'Run', 1);
+		const inputs = (await page.getByTestId('inputs-box').boundingBox())!;
+		const tree = (await page.getByTestId('tree-box').boundingBox())!;
+		if (side === 'right') {
+			expect(tree.x).toBeGreaterThanOrEqual(inputs.x + inputs.width);
+			expect(Math.abs(tree.y - inputs.y)).toBeLessThan(2);
+		} else {
+			expect(tree.y).toBeGreaterThanOrEqual(inputs.y + inputs.height);
+			expect(Math.abs(tree.x - inputs.x)).toBeLessThan(2);
+		}
+		expect(
+			await page.evaluate(
+				() => document.documentElement.scrollWidth - document.documentElement.clientWidth
+			)
+		).toBe(0);
+	});
+}
 
 test('a bad link shows an error and falls back to the default preset', async ({ page }) => {
 	await open(page, '#m=not*base64');
@@ -294,7 +357,7 @@ test('autosave restores the model after a reload; Clear saved data resets it', a
 	await expect(page.locator('div.container[data-hydrated]')).toBeVisible();
 	await expect(preset(page)).toHaveValue('distribution-centre');
 	await expect(page.getByRole('textbox', { name: 'Seed' })).toHaveValue('2026');
-	await expect(inputRows(page)).toHaveCount(3);
+	await expect(inputRows(page)).toHaveCount(4);
 	await expect.poll(() => savedSeed(page)).toBe(2026);
 	// A reload now opens the default too
 	await open(page);
@@ -330,7 +393,10 @@ test('Parameters holds only number fields; Setup holds the shape', async ({ page
 	await stepButton(page, 'Parameters').click();
 	const params = page.getByTestId('parameters');
 	await expect(params.getByRole('textbox', { name: 'median of input K' })).toHaveValue('350000000');
-	await expect(params.getByRole('textbox', { name: 'Value of constant C0' })).toHaveValue('950');
+	// A fixed input has a single value field
+	const cash = params.getByTestId('param-row').filter({ hasText: 'Cash Balance' });
+	await expect(cash.locator('input')).toHaveCount(1);
+	await expect(cash.getByRole('textbox', { name: 'value of input C0' })).toHaveValue('950');
 	await expect(params.getByTestId('decision-values').getByRole('listitem')).toHaveCount(5);
 	await expect(params.locator('select, [role="combobox"]')).toHaveCount(0);
 	await expect(params.getByRole('textbox', { name: /Symbol|Name|Formula/ })).toHaveCount(0);
