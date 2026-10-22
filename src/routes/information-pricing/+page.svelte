@@ -688,7 +688,7 @@
 	@container (min-width: 108rem) {
 		.tables {
 			/* The dataflow is a picture: it gets the most room. */
-			grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.5fr);
+			grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr);
 		}
 	}
 	.setup :global(.card) {
