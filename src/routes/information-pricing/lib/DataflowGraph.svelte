@@ -263,12 +263,9 @@
 		min-width: 100%;
 		text-align: center;
 		overflow-wrap: break-word;
-		font-size: 0.6875rem;
+		font-size: var(--text-sm);
 		color: var(--text-muted);
-		line-height: 1.2;
-	}
-	.df-node :global(.katex) {
-		font-size: 0.9em;
+		line-height: 1.25;
 	}
 	.df-raw {
 		font-family: var(--font-mono);
