@@ -24,11 +24,13 @@
 	});
 	const byId = $derived(new Map(view.nodes.map((n) => [n.id, n])));
 	const splitOf = $derived(new Map(view.splits.map((s) => [s.node, s])));
-	/** Savings × share fill: green at 0, red at the tree's largest. */
+	/** Savings × share fill: green at 0, yellow halfway, red at the tree's largest. */
 	const fill = (f: number | null) =>
 		f === null
 			? 'var(--surface-2)'
-			: `color-mix(in oklab, var(--danger-fill) ${Math.round(f * 100)}%, var(--success-fill))`;
+			: f <= 0.5
+				? `color-mix(in oklab, var(--warning-fill) ${Math.round(f * 200)}%, var(--success-fill))`
+				: `color-mix(in oklab, var(--danger-fill) ${Math.round(f * 200 - 100)}%, var(--warning-fill))`;
 
 	const description = $derived(
 		view.nodes

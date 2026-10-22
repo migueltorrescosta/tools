@@ -30,7 +30,7 @@
 		type SimulationEngine
 	} from '$lib/information-pricing/worker-engine';
 	import { browserStorage, clearSaved, createPersistGate } from '$lib/persist-gate';
-	import { Alert, Button, Field, PageHeader, Panel, ShareActions, Stepper } from '$lib/ui';
+	import { Alert, Button, Field, InfoTip, PageHeader, Panel, ShareActions, Stepper } from '$lib/ui';
 	import { defaultWorkerCount } from '$lib/worker-pool';
 	import ConstantsEditor from './lib/ConstantsEditor.svelte';
 	import DecisionsEditor from './lib/DecisionsEditor.svelte';
@@ -364,6 +364,10 @@
 				disabled={running || !analysis}
 				data-testid="download-csv"
 				><span aria-hidden="true">↓</span><span class="sr-only">Download</span> Scenarios (CSV)</Button
+			>
+			<InfoTip label="the scenarios CSV"
+				>Downloads every simulated scenario: inputs, intermediates, each decision's reward and
+				opportunity loss, and the optimal reward.</InfoTip
 			>
 		</div>
 		<div class="run-status">

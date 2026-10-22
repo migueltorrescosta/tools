@@ -41,6 +41,7 @@
 	/* Fills for a good → bad scale (mix them with color-mix in oklab);
 	   --text on either, and on any mix of the two, is at least 4.5:1. */
 	--success-fill: light-dark(#bfe9cb, #1b4a2b);
+	--warning-fill: light-dark(#f5df8a, #5c4a12);
 	--danger-fill: light-dark(#f6b0ac, #6e2427);
 	--info: var(--accent);
 	--info-text: var(--accent);
