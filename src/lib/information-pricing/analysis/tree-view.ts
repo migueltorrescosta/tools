@@ -36,8 +36,6 @@ export interface TreeSplitView {
 	node: number;
 	input: number;
 	inputLabel: string;
-	/** Palette slot of the input, by sorted input name among the split inputs. */
-	inputColour: number;
 	/** One edge per child: `≤t`, `∈(a,b]` or `>t`, thresholds to 5 significant digits. */
 	edges: { child: number; label: string }[];
 }
@@ -99,9 +97,6 @@ export function policyTreeView(
 	const scale = 10 ** (3 * exponent);
 	const unit = displayedUnit(exponent, labels.unit);
 	const decisionNames = [...new Set(nodes.map((n) => labels.decisions[n.decision]))].sort();
-	const splitNames = [
-		...new Set(nodes.flatMap((n) => (n.kind === 'internal' ? [labels.inputs[n.splitInput]] : [])))
-	].sort();
 	const rootDecision = nodes[0].decision;
 	const nodeViews: TreeNodeView[] = nodes.map((node) => {
 		const share = node.samples / rootSamples;
@@ -135,7 +130,6 @@ export function policyTreeView(
 			node: node.id,
 			input: node.splitInput,
 			inputLabel: labels.inputs[node.splitInput],
-			inputColour: splitNames.indexOf(labels.inputs[node.splitInput]),
 			edges: node.children.map((child, c) => ({
 				child,
 				label: c === 0 ? `≤${t[0]}` : c === last ? `>${t[last - 1]}` : `∈(${t[c - 1]},${t[c]}]`

@@ -105,3 +105,51 @@ export function compactTick(v: number): string {
 	if (v === 0) return '0';
 	return v.toLocaleString('en', { notation: 'compact', maximumSignificantDigits: 3 });
 }
+
+/** Exact power of ten, `pow10(-2)` → 0.01 (no `10 ** -2` rounding). */
+const pow10 = (k: number) => Number(`1e${k}`);
+
+/**
+ * Log y bounds for the value-of-information chart, from the EVPI (the ceiling,
+ * in display units): the next power of 10 above it on top (one up when the EVPI
+ * is itself a power of 10) and 3 decades below its decade at the bottom.
+ * `voiBounds(66.7)` → `[0.01, 100]`. Null when the EVPI isn't positive and finite.
+ */
+export function voiBounds(evpi: number): [number, number] | null {
+	if (!(evpi > 0) || !Number.isFinite(evpi)) return null;
+	let decade = Math.floor(Math.log10(evpi));
+	// log10 can land a hair off on exact powers; fix the decade against the real powers.
+	if (pow10(decade) > evpi) decade--;
+	else if (pow10(decade + 1) <= evpi) decade++;
+	return [pow10(decade - 3), pow10(decade + 1)];
+}
+
+/** Powers of ten from `lo` to `hi`, both powers of ten. */
+export function decades(lo: number, hi: number): number[] {
+	const a = Math.round(Math.log10(lo));
+	const b = Math.round(Math.log10(hi));
+	return Array.from({ length: b - a + 1 }, (_, k) => pow10(a + k));
+}
+
+/**
+ * Nudges label centres (pixels, any order) apart so neighbours sit at least `gap`
+ * apart, staying within [lo, hi] when there is room. Returns the new centres in
+ * the same order.
+ */
+export function spreadLabels(ys: readonly number[], gap: number, lo: number, hi: number): number[] {
+	const order = ys.map((y, i) => [y, i] as const).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+	const out = order.map(([y]) => Math.min(hi, Math.max(lo, y)));
+	for (let k = 1; k < out.length; k++) out[k] = Math.max(out[k], out[k - 1] + gap);
+	// Pushed past the bottom: shift the tail back up, keeping the gaps.
+	if (out.length && out[out.length - 1] > hi) {
+		out[out.length - 1] = Math.max(hi, lo + gap * (out.length - 1));
+		for (let k = out.length - 2; k >= 0; k--) out[k] = Math.min(out[k], out[k + 1] - gap);
+	}
+	const result = new Array<number>(ys.length);
+	order.forEach(([, i], k) => (result[i] = out[k]));
+	return result;
+}
+
+/** Dash patterns that tell the value-of-information lines apart (cycled). */
+export const DASHES = ['', '7 3', '2 2.5', '9 3 2 3', '4 4', '12 3 2 3 2 3'] as const;
+export const dash = (i: number) => DASHES[i % DASHES.length];

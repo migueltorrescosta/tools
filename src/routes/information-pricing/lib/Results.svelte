@@ -92,7 +92,7 @@
 			</dd>
 		</div>
 		<div>
-			<dt>Price of perfect information</dt>
+			<dt>Expected value of perfect information</dt>
 			<dd data-testid="price">{money.format(summary.expectedLoss[summary.best])}</dd>
 		</div>
 		<div class="small">
@@ -195,7 +195,7 @@
 				</Panel>
 			</div>
 			<Panel title="Value of information">
-				<VoiChart {voi} inputs={names} {money} />
+				<VoiChart {voi} inputs={names} {money} evpi={summary.expectedLoss[summary.best]} />
 			</Panel>
 		</div>
 	</div>

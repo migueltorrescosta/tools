@@ -476,36 +476,26 @@
 			{#each errors.filter((e) => e.where.kind === 'model') as e, i (i)}
 				<Alert tone="warning">{e.message}</Alert>
 			{/each}
-			<div class="setup-grid">
-				<div class="tables-wrap">
-					<div class="tables">
-						<div class="card inputs-card">
-							<InputsEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
-						</div>
-						<div class="card">
-							<IntermediatesEditor
-								bind:model
-								bind:ids
-								{errors}
-								onrename={rename}
-								selected={picked}
-							/>
-						</div>
-						<div class="card">
-							<DecisionsEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
-						</div>
-					</div>
+			<section class="card dataflow" aria-labelledby="dataflow-heading">
+				<div class="section-head">
+					<h3 id="dataflow-heading">Dataflow</h3>
+					<InfoTip label="the dataflow"
+						>How the numbers feed each other, from inputs down to the reward. Click a box to find
+						its row and light up what it uses and what uses it.</InfoTip
+					>
 				</div>
-				<section class="card dataflow" aria-labelledby="dataflow-heading">
-					<div class="section-head">
-						<h3 id="dataflow-heading">Dataflow</h3>
-						<InfoTip label="the dataflow"
-							>How the numbers feed each other, from inputs down to the reward. Click a box to find
-							its row and light up what it uses and what uses it.</InfoTip
-						>
-					</div>
-					<DataflowGraph {graph} bind:selected={picked} />
-				</section>
+				<DataflowGraph {graph} bind:selected={picked} />
+			</section>
+			<div class="tables" data-testid="setup-tables">
+				<div class="card inputs-card">
+					<InputsEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
+				</div>
+				<div class="card">
+					<IntermediatesEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
+				</div>
+				<div class="card">
+					<DecisionsEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
+				</div>
 			</div>
 		</div>
 	{:else if analysis && runModel}
@@ -606,7 +596,7 @@
 		max-width: none;
 	}
 
-	/* Setup: the three tables on the left, the dataflow on the right; one column on phones. */
+	/* Setup: the dataflow across the top, the three tables below; one column on phones. */
 	.setup {
 		display: flex;
 		flex-direction: column;
@@ -622,36 +612,24 @@
 		min-width: 14rem;
 		max-width: 100%;
 	}
-	.setup-grid {
-		display: grid;
-		gap: var(--sp-3);
-		align-items: start;
-	}
-	@media (min-width: 1100px) {
-		.setup-grid {
-			grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-		}
-		.dataflow {
-			position: sticky;
-			top: calc(var(--topbar-h) + var(--sp-2));
-		}
-	}
-	/* Wide screens: the three tables side by side need about 1330 px; the dataflow gets the rest. */
-	@media (min-width: 1800px) {
-		.setup-grid {
-			grid-template-columns: minmax(0, 2.45fr) minmax(0, 1fr);
-		}
-	}
-	.tables-wrap {
+	/* Two to three tables a row once each fits its fields without clipping. */
+	.setup {
 		container-type: inline-size;
-		min-width: 0;
 	}
 	.tables {
 		display: grid;
 		gap: var(--sp-3);
 		align-items: start;
 	}
-	@container (min-width: 100rem) {
+	@container (min-width: 66rem) {
+		.tables {
+			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		}
+		.inputs-card {
+			grid-column: 1 / -1;
+		}
+	}
+	@container (min-width: 106rem) {
 		.tables {
 			grid-template-columns: minmax(0, 1.75fr) minmax(0, 1.3fr) minmax(0, 1fr);
 		}
@@ -704,7 +682,7 @@
 		grid-template-columns: 4rem minmax(0, 1.1fr) minmax(0, 1.2fr) 1.75rem;
 	}
 	/* Narrow: parameters and formulas get their own line. */
-	@container (max-width: 30rem) {
+	@container (max-width: 44rem) {
 		.setup :global(.input-cols) {
 			grid-template-columns: 5rem minmax(0, 1fr) 2.75rem 1.75rem;
 		}
@@ -716,7 +694,7 @@
 			display: none;
 		}
 	}
-	@container (max-width: 22rem) {
+	@container (max-width: 30rem) {
 		.setup :global(.intermediate-cols) {
 			grid-template-columns: 4rem minmax(0, 1fr) 1.75rem;
 		}

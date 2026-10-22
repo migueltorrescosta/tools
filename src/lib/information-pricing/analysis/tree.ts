@@ -9,7 +9,7 @@
 import { argsortStable, pairwiseSum } from './numeric';
 
 export interface TreeOptions {
-	/** Maximum depth; the root is depth 0. Default 3. */
+	/** Maximum depth; the root is depth 0. Default 2. */
 	maxDepth?: number;
 	/**
 	 * Minimum risk reduction a split must beat. An integer ≥ 1 is absolute;
@@ -24,7 +24,7 @@ export interface TreeOptions {
 }
 
 export const DEFAULT_TREE_OPTIONS: Required<TreeOptions> = {
-	maxDepth: 3,
+	maxDepth: 2,
 	minImpurityDecrease: 0.001,
 	minSamplesLeaf: 0.01
 };

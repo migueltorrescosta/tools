@@ -132,7 +132,7 @@ describe.each(PRESETS)('parity: %s', (name, build, unit) => {
 		readFileSync(join(FIXTURES, `${name}.expected.json`), 'utf8')
 	) as Expected;
 	const s = build();
-	const result = analyse(s, { unit });
+	const result = analyse(s, { unit, tree: { maxDepth: 3 } });
 	const eolScale = Math.min(...expected.expectedLoss);
 
 	it('matches the expected loss per decision and the display unit', () => {

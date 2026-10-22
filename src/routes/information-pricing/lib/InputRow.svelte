@@ -172,9 +172,9 @@
 		font-size: 10px;
 	}
 	.density {
-		fill: var(--data-1);
-		fill-opacity: 0.25;
-		stroke: var(--data-1);
+		fill: var(--text-muted);
+		fill-opacity: 0.2;
+		stroke: var(--text-muted);
 		stroke-width: 1.2;
 	}
 	.decile {

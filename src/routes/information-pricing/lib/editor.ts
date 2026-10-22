@@ -125,7 +125,7 @@ export interface TreeSettings {
 }
 
 export const DEFAULT_TREE: TreeSettings = {
-	maxDepth: 3,
+	maxDepth: 2,
 	minLeafPercent: 1,
 	minImpurityDecrease: 0.001
 };

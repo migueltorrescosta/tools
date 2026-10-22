@@ -27,8 +27,8 @@
 	const NO_LABEL = { width: 0, height: 0 };
 
 	let boxWidth = $state(0);
-	/** Boxes per row before inputs move up a row: narrow columns grow the graph taller. */
-	const perRow = $derived(Math.min(6, Math.max(2, Math.floor(boxWidth / 220))));
+	/** Boxes per row before inputs move up a row: narrow boxes grow the graph taller. */
+	const perRow = $derived(Math.min(12, Math.max(2, Math.floor(boxWidth / 200))));
 
 	const layout = $derived.by(() => {
 		if (!nodes.every((n) => width[n.id] > 0 && height[n.id] > 0)) return null;
@@ -39,7 +39,7 @@
 		);
 	});
 
-	/** Below this the math gets too small to read; the box scrolls instead. */
+	/** Shrinks to fit, never grows past 1 (text stays its normal size); below MIN_SCALE the box scrolls. */
 	const MIN_SCALE = 0.65;
 	const scale = $derived(
 		layout && boxWidth > 0 ? Math.max(MIN_SCALE, Math.min(1, (boxWidth - 2) / layout.width)) : 1

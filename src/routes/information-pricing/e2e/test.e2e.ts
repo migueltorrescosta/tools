@@ -190,6 +190,9 @@ for (const [id, best, inputs] of BEST) {
 		await expect(page.getByTestId('headline')).toBeVisible();
 		await expect(page.getByTestId('best-decision')).toHaveText(best);
 		await expect(page.getByTestId('price')).not.toBeEmpty();
+		await expect(page.getByTestId('headline')).toContainText(
+			'Expected value of perfect information'
+		);
 		await expect(page.getByTestId('worst')).not.toBeEmpty();
 		await expect(page.getByTestId('input-voi-row')).toHaveCount(inputs);
 		// Fixed inputs have no row
@@ -335,23 +338,35 @@ for (const width of [1440, 390]) {
 	});
 }
 
-test('the page uses the full width of a wide window', async ({ page }) => {
-	const tops = () =>
-		Promise.all(
-			['inputs', 'intermediates', 'decisions', 'dataflow'].map(async (id) =>
-				Math.round((await page.locator(`#${id}-heading`).boundingBox())!.y)
+for (const id of ['distribution-centre', 'airline-share-buyback'] as const) {
+	test(`setup at 1920 px on ${id}: dataflow across the top, three tables below, nothing clipped`, async ({
+		page
+	}) => {
+		await page.setViewportSize({ width: 1920, height: 1000 });
+		await open(page, link(small(id)));
+		const setup = (await page.getByTestId('setup').boundingBox())!;
+		expect(setup.width).toBeGreaterThan(1800);
+		const dataflow = (await page.locator('section.dataflow').boundingBox())!;
+		const tables = (await page.getByTestId('setup-tables').boundingBox())!;
+		expect(Math.abs(dataflow.width - setup.width)).toBeLessThan(2);
+		expect(tables.y).toBeGreaterThanOrEqual(dataflow.y + dataflow.height);
+		const tops = await Promise.all(
+			['inputs', 'intermediates', 'decisions'].map(async (h) =>
+				Math.round((await page.locator(`#${h}-heading`).boundingBox())!.y)
 			)
 		);
-	await page.setViewportSize({ width: 1920, height: 1000 });
-	await open(page);
-	expect((await page.getByTestId('setup').boundingBox())!.width).toBeGreaterThan(1400);
-	// Dataflow stays beside Inputs; the tables stack to its left so no field clips
-	const [inputs, , , dataflow] = await tops();
-	expect(inputs).toBe(dataflow);
-	// With room for all four, they sit side by side
-	await page.setViewportSize({ width: 2560, height: 1000 });
-	await expect.poll(async () => new Set(await tops()).size).toBe(1);
-});
+		expect(new Set(tops).size).toBe(1);
+		const clipped = await page
+			.getByTestId('setup')
+			.locator('input')
+			.evaluateAll((els) =>
+				(els as HTMLInputElement[])
+					.filter((e) => e.scrollWidth > e.clientWidth + 1)
+					.map((e) => e.value)
+			);
+		expect(clipped).toEqual([]);
+	});
+}
 
 test('the dataflow graph has a node per row and an arrow per dependency', async ({ page }) => {
 	await open(page, link(presetModel('airline-share-buyback')));
@@ -518,6 +533,70 @@ test('Setup holds the parameters inline and the decision values as chips', async
 	await setup.getByRole('textbox', { name: 'σ of input K' }).fill('-1');
 	await expect(inputRows(page).nth(1).locator('.ui-error, .row-error').first()).toBeVisible();
 	await expect(runButton(page)).toBeDisabled();
+});
+
+test('the value-of-information chart: log decades under a dashed EVPI ceiling, grey dashed lines, gaps', async ({
+	page
+}) => {
+	await open(page, link(small('airline-share-buyback')));
+	await press(page, 'Run', 1);
+	const chart = page.getByTestId('voi-chart');
+	const evpi = Number((await page.getByTestId('price').textContent())!.replace(/[^\d.]/g, ''));
+	const decade = Math.floor(Math.log10(evpi));
+	const [lo, hi] = (await chart.getAttribute('data-bounds'))!.split(',').map(Number);
+	expect(hi).toBeCloseTo(10 ** (decade + 1));
+	expect(lo).toBeCloseTo(10 ** (decade - 3));
+	expect(hi).toBeGreaterThan(evpi);
+	// Ticks on the five powers of 10 between the bounds
+	const ticks = await chart.locator('.axis').nth(1).locator('text:not(.title)').allTextContents();
+	expect(ticks).toHaveLength(5);
+	// The ceiling: a dashed line labelled with the EVPI
+	const ceiling = chart.getByTestId('voi-ceiling');
+	await expect(ceiling).toContainText('EVPI');
+	expect(
+		await ceiling.locator('line').evaluate((e) => getComputedStyle(e).strokeDasharray)
+	).not.toBe('none');
+
+	// Inputs are neutral lines, never a decision colour, told apart by dashes
+	const lines = chart.getByTestId('voi-line');
+	const strokes = await lines.evaluateAll((els) => els.map((e) => getComputedStyle(e).stroke));
+	const palette = await page.evaluate(() => {
+		const probe = document.createElement('div');
+		document.body.append(probe);
+		const out = Array.from({ length: 12 }, (_, i) => {
+			probe.style.color = `var(--data-${i + 1})`;
+			return getComputedStyle(probe).color;
+		});
+		probe.remove();
+		return out;
+	});
+	for (const s of strokes) expect(palette).not.toContain(s);
+	const dashes = await lines.evaluateAll((els) =>
+		els.map((e) => e.getAttribute('stroke-dasharray'))
+	);
+	expect(new Set(dashes).size).toBe(dashes.length);
+
+	// No savings, no line: an empty path and a label that says so
+	const labels = await chart.getByTestId('voi-label').allTextContents();
+	const paths = await lines.evaluateAll((els) => els.map((e) => e.getAttribute('d') ?? ''));
+	expect(labels.some((l) => l.includes('(no savings)'))).toBe(true);
+	labels.forEach((l, i) => expect(paths[i] === '').toBe(l.includes('(no savings)')));
+
+	// Hovering a legend key fades the other lines
+	await chart.getByTestId('voi-key').first().hover();
+	await expect(chart.locator('g.series.dim')).toHaveCount(labels.length - 1);
+});
+
+test('the policy tree defaults to max depth 2', async ({ page }) => {
+	await open(page, link(small('airline-share-buyback')));
+	await press(page, 'Run', 1);
+	await expect(page.getByRole('textbox', { name: 'Max depth' })).toHaveValue('2');
+	const levels = await page
+		.getByTestId('policy-tree')
+		.locator('text.split-label')
+		.evaluateAll((els) => new Set(els.map((e) => e.getAttribute('y'))).size);
+	expect(levels).toBeGreaterThan(0);
+	expect(levels).toBeLessThanOrEqual(2);
 });
 
 test('results: inputs sorted by value of information, names in the tree, max depth 1', async ({

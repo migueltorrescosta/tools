@@ -12,8 +12,8 @@
 			(EOL).
 		</p>
 		<p>
-			The best option's EOL is the price of perfect information: if someone could tell you the
-			future, that's the most their tip is worth.
+			The best option's EOL is the expected value of perfect information (EVPI): if someone could
+			tell you the future, that's the most their tip is worth.
 		</p>
 		<p>
 			The value of information asks the same for one input at a time: how much would you save if you
