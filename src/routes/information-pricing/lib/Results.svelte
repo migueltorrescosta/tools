@@ -63,11 +63,11 @@
 	/** Scatter: value of knowing each input first against the share of profit spread it explains. */
 	const points = $derived(
 		voi
-			? analysis.profitSwing.map((p, j) => ({
+			? analysis.profitShare.map((share, j) => ({
 					j,
 					name: names[j],
 					saves: voi.savings[j].at(-1) ?? NaN,
-					share: p.epsilon2
+					share
 				}))
 			: []
 	);
@@ -293,7 +293,7 @@
 			<PolicyTree view={analysis.tree.view} inputs={names} maximized />
 		{/if}
 	{:else}
-		<div bind:clientHeight={treeH} data-testid="tree-ready">
+		<div bind:clientHeight={treeH}>
 			{#if 'error' in analysis.tree}
 				<Alert tone="info">No tree to show: {analysis.tree.error}</Alert>
 			{:else}
@@ -377,6 +377,7 @@
 	.results {
 		min-width: 0;
 		--gap: var(--sp-3);
+		container-type: inline-size;
 	}
 	.headline {
 		display: flex;
@@ -516,9 +517,6 @@
 	 * its own stack so a tall card leaves no gap beside it; one column (in
 	 * that order) on phones.
 	 */
-	.results {
-		container-type: inline-size;
-	}
 	.columns {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr);

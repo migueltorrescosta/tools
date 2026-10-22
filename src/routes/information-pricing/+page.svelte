@@ -432,7 +432,7 @@
 		onselect={(i) => (step = i)}
 	/>
 
-	<div class="runbar" data-testid="run-bar">
+	<div class="runbar">
 		<div class="run-fields">
 			<NumberInput
 				label="Samples"
@@ -477,7 +477,7 @@
 				<span class="progress" data-testid="progress">
 					<label for="run-progress" data-testid="progress-label">{stage}</label>
 					<progress id="run-progress" max="1" value={progress.fraction}></progress>
-					<span data-testid="elapsed">{seconds(progress.elapsedMs)}</span>
+					<span>{seconds(progress.elapsedMs)}</span>
 				</span>
 			{/if}
 			<span role="status" data-testid="run-status" data-done={completed}
@@ -529,7 +529,7 @@
 			{#each errors.filter((e) => e.where.kind === 'model') as e, i (i)}
 				<Alert tone="warning">{e.message}</Alert>
 			{/each}
-			<div class="tables" data-testid="setup-tables">
+			<div class="tables">
 				<div class="column">
 					<div class="card">
 						<InputsEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
@@ -544,11 +544,7 @@
 					</div>
 					<Maximizable title="Dataflow" plot={flow}>
 						{#snippet frame(button)}
-							<section
-								class="card dataflow"
-								data-testid="dataflow-card"
-								aria-labelledby="dataflow-heading"
-							>
+							<section class="card dataflow" aria-labelledby="dataflow-heading">
 								<div class="section-head">
 									<h3 id="dataflow-heading">Dataflow</h3>
 									<InfoTip label="the dataflow"

@@ -114,9 +114,7 @@
 		Savings by number of bins, log scale. Dotted line: the EVPI, the most any information can save.
 	</figcaption>
 	{#if !bounds}
-		<p class="empty" data-testid="voi-empty">
-			Perfect information is worth nothing here, so there's nothing to chart.
-		</p>
+		<p class="empty">Perfect information is worth nothing here, so there's nothing to chart.</p>
 	{:else}
 		<ul class="legend" aria-label="Inputs">
 			{#each labels as { j, text } (j)}
@@ -317,8 +315,6 @@
 	}
 	.series.hot .end {
 		fill: var(--text);
-	}
-	.series.hot .end {
 		font-weight: 600;
 	}
 </style>

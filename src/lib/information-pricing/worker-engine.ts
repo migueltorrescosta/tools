@@ -51,7 +51,7 @@ export type ProgressStep = (typeof PROGRESS_STEPS)[number];
  * runs in parallel with the other analysis steps, so the overall fraction is
  * the completed weight over the job's total weight.
  */
-export const STEP_WEIGHTS: Readonly<Record<ProgressStep, number>> = {
+const STEP_WEIGHTS: Readonly<Record<ProgressStep, number>> = {
 	Simulating: 0.15,
 	'Summary and inputs': 0.25,
 	'Value of information': 0.2,
@@ -216,6 +216,13 @@ export function createSimulationEngine(
 		}
 	});
 
+	/** Ends the job with token `mine` on an analysis error (the simulation workers stay). */
+	const failedAnalysis = (mine: number) => (err: Error) => {
+		if (job?.token !== mine) return;
+		endJob();
+		emit({ type: 'error', message: err.message });
+	};
+
 	const dispatch = (w: WorkerLike) => {
 		const next = job?.queue.shift();
 		if (next && spec) w.postMessage({ type: 'chunk', seed: spec.seed, ...next });
@@ -241,21 +248,14 @@ export function createSimulationEngine(
 		emitProgress();
 		const mine = job.token;
 		const startedAt = job.startedAt;
-		analyser.analyse(drawn, drawnWith.analysis, listenerFor(mine, startedAt)).then(
-			(result) => {
-				if (job?.token !== mine) return;
-				current = drawnWith;
-				nextChunk = chunkEnd;
-				scenarios = result.scenarios;
-				analysis = result.analysis;
-				finish(startedAt);
-			},
-			(err: Error) => {
-				if (job?.token !== mine) return;
-				endJob();
-				emit({ type: 'error', message: err.message });
-			}
-		);
+		analyser.analyse(drawn, drawnWith.analysis, listenerFor(mine, startedAt)).then((result) => {
+			if (job?.token !== mine) return;
+			current = drawnWith;
+			nextChunk = chunkEnd;
+			scenarios = result.scenarios;
+			analysis = result.analysis;
+			finish(startedAt);
+		}, failedAnalysis(mine));
 	};
 
 	const spawn = () => {
@@ -345,19 +345,12 @@ export function createSimulationEngine(
 			const previous = analysis;
 			const { token: mine, startedAt } = newJob('analysing', { 'Policy tree': 0 }, 0, null, 0);
 			emit({ type: 'partial', analysis: { ...previous, tree: undefined }, elapsedMs: 0 });
-			analyser.retree(s, options, listenerFor(mine, startedAt)).then(
-				(tree) => {
-					if (job?.token !== mine) return;
-					current = { ...current!, analysis: options };
-					analysis = { ...previous, tree };
-					finish(startedAt);
-				},
-				(err: Error) => {
-					if (job?.token !== mine) return;
-					endJob();
-					emit({ type: 'error', message: err.message });
-				}
-			);
+			analyser.retree(s, options, listenerFor(mine, startedAt)).then((tree) => {
+				if (job?.token !== mine) return;
+				current = { ...current!, analysis: options };
+				analysis = { ...previous, tree };
+				finish(startedAt);
+			}, failedAnalysis(mine));
 		},
 		cancel() {
 			if (!job) return;

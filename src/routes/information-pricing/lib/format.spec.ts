@@ -102,7 +102,6 @@ describe('format', () => {
 		// A max on a power of 10 moves the top up, off the frame.
 		expect(logDecadeBounds(100)).toEqual([1, 1000]);
 		expect(logDecadeBounds(0.034)).toEqual([0.0001, 0.1]);
-		expect(logDecadeBounds(7, 2)).toEqual([0.1, 10]);
 		expect(logDecadeBounds(0)).toBeNull();
 		expect(logDecadeBounds(-3)).toBeNull();
 		expect(logDecadeBounds(NaN)).toBeNull();

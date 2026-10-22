@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Scenarios } from '../types';
 import { analyse } from './index';
 import { qcut } from './groups';
-import { profitSwing } from './swing';
+import { profitShare } from './share';
 
 /** Deterministic uniform [0, 1) (mulberry32). */
 function rng(seed: number) {
@@ -26,12 +26,15 @@ const sd = (x: Float64Array) => {
 	return Math.sqrt(x.reduce((a, b) => a + (b - m) ** 2, 0) / (x.length - 1));
 };
 
-function swingOf(x: Float64Array, r: Float64Array) {
+function shareOf(x: Float64Array, r: Float64Array) {
 	const g = qcut(x, 10);
-	return profitSwing(g.codes, g.count, r);
+	return profitShare(g.codes, g.count, r);
 }
 
-describe('profit swing', () => {
+/** √(ε² · Var(R)), native units: one standard deviation of E[R | X]. */
+const swingSd = (x: Float64Array, r: Float64Array) => Math.sqrt(shareOf(x, r)) * sd(r);
+
+describe('profit share', () => {
 	it('is about zero for an input with no effect', () => {
 		const u = rng(1);
 		const z = normal(rng(2));
@@ -39,11 +42,10 @@ describe('profit swing', () => {
 		const x = Float64Array.from({ length: n }, u);
 		const y = Float64Array.from({ length: n }, u);
 		const r = y.map((v) => 3 * v + 0.5 * z());
-		const s = swingOf(x, r);
-		expect(s.sd).toBeLessThan(0.02 * sd(r));
-		expect(s.epsilon2).toBeLessThan(5e-4);
+		expect(swingSd(x, r)).toBeLessThan(0.02 * sd(r));
+		expect(shareOf(x, r)).toBeLessThan(5e-4);
 		// The input the reward depends on swings it by about 3·SD(Y).
-		expect(swingOf(y, r).sd).toBeGreaterThan(0.8);
+		expect(swingSd(y, r)).toBeGreaterThan(0.8);
 	});
 
 	it('matches √Var(E[R | decile]) of a linear effect on a uniform input', () => {
@@ -56,37 +58,27 @@ describe('profit swing', () => {
 		// Decile k of U(0, 1) has mean (k + ½)/10, so Var(E[R | decile]) = a²(K² − 1)/(12K²).
 		const K = 10;
 		const exact = Math.abs(a) * Math.sqrt((K * K - 1) / (12 * K * K));
-		const s = swingOf(x, r);
-		expect(s.sd).toBeCloseTo(exact, 1);
-		expect(Math.abs(s.sd / exact - 1)).toBeLessThan(0.03);
-		expect(s.epsilon2).toBeLessThan(s.eta2);
-		expect(s.epsilon2).toBeCloseTo(s.sd ** 2 / sd(r) ** 2, 9);
+		const s = swingSd(x, r);
+		expect(s).toBeCloseTo(exact, 1);
+		expect(Math.abs(s / exact - 1)).toBeLessThan(0.03);
 	});
 
 	it('bias-corrects a pure-noise estimate down to about zero', () => {
 		const n = 2_000;
-		let raw = 0;
 		let corrected = 0;
 		for (let seed = 0; seed < 20; seed++) {
 			const u = rng(100 + seed);
 			const x = Float64Array.from({ length: n }, u);
 			const r = Float64Array.from({ length: n }, u);
-			const s = swingOf(x, r);
-			raw += Math.sqrt(s.eta2) * sd(r);
-			corrected += s.sd;
+			corrected += Math.sqrt(shareOf(x, r));
 		}
-		// Without correction the group means' noise looks like a swing of √((K−1)/N)·SD ≈ 0.067·SD.
-		expect(raw / 20).toBeGreaterThan(0.05 * Math.sqrt(1 / 12));
-		expect(corrected / 20).toBeLessThan(0.4 * (raw / 20));
+		// Without correction the group means' noise gives η̂² ≈ (K−1)/(N−1), a swing of ≈ 0.067·SD.
+		expect(corrected / 20).toBeLessThan(0.4 * Math.sqrt(9 / (n - 1)));
 	});
 
 	it('is zero for a constant reward or a single group', () => {
-		expect(profitSwing(new Uint8Array(4), 1, Float64Array.of(1, 2, 3, 4))).toEqual({
-			sd: 0,
-			eta2: 0,
-			epsilon2: 0
-		});
-		expect(profitSwing(Uint8Array.of(0, 1, 0, 1), 2, Float64Array.of(5, 5, 5, 5)).sd).toBe(0);
+		expect(profitShare(new Uint8Array(4), 1, Float64Array.of(1, 2, 3, 4))).toBe(0);
+		expect(profitShare(Uint8Array.of(0, 1, 0, 1), 2, Float64Array.of(5, 5, 5, 5))).toBe(0);
 	});
 });
 
@@ -112,11 +104,11 @@ describe('intermediates', () => {
 	};
 	const result = analyse(s, { unit: '€' });
 
-	it('get groups, densities, profit swing and value of information like the inputs', () => {
+	it('get groups, densities, profit share and value of information like the inputs', () => {
 		const m = result.intermediates;
 		expect(m.groups).toHaveLength(3);
 		expect(m.densities).toHaveLength(3);
-		expect(m.profitSwing).toHaveLength(3);
+		expect(m.profitShare).toHaveLength(3);
 		expect(m.valueOfInformation.savings).toHaveLength(3);
 		expect(m.valueOfInformation.bins).toEqual(result.valueOfInformation.bins);
 		expect(m.valueOfInformation.baseline).toBe(result.valueOfInformation.baseline);
@@ -128,14 +120,15 @@ describe('intermediates', () => {
 		expect(m.groups[0].groups[0].optimal).toBe(0);
 		// A constant intermediate is one group, worth nothing.
 		expect(m.groups[1].groups).toHaveLength(1);
-		expect(m.profitSwing[1].sd).toBe(0);
+		expect(m.profitShare[1]).toBe(0);
 		expect(m.valueOfInformation.savings[1].every((v) => Math.abs(v) < 1e-12)).toBe(true);
 	});
 
-	it('profit swing uses the recommended decision', () => {
+	it('profit share uses the recommended decision', () => {
 		expect(result.summary.best).toBe(1);
 		// E[ab − 0.2 | a] = a/2 − 0.2: about half the swing of a uniform input, 0.5 · 0.287.
-		for (const p of result.profitSwing) expect(Math.abs(p.sd / 0.1436 - 1)).toBeLessThan(0.1);
-		expect(result.profitSwing[0]).toEqual(swingOf(a, s.rewards[1]));
+		for (const p of result.profitShare)
+			expect(Math.abs((Math.sqrt(p) * sd(s.rewards[1])) / 0.1436 - 1)).toBeLessThan(0.1);
+		expect(result.profitShare[0]).toEqual(shareOf(a, s.rewards[1]));
 	});
 });

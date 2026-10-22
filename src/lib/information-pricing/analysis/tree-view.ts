@@ -66,7 +66,7 @@ const SUPERSCRIPT: Record<string, string> = {
 };
 
 /** Decades of savings × share the fill spans, from red (the largest) down to green. */
-export const FILL_DECADES = 2;
+const FILL_DECADES = 2;
 
 /** Fill of a share `r` of the largest savings × share: log10 over `FILL_DECADES`, clamped to [0, 1]. */
 export function logFill(r: number): number {

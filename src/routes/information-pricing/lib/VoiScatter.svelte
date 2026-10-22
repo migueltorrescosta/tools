@@ -163,8 +163,6 @@
 						data-testid="scatter-point"
 						data-x={p.x}
 						data-y={p.y}
-						data-px={p.px}
-						data-py={p.py}
 						data-floor={p.floor || undefined}
 						onmouseenter={() => (active = i)}
 						onmouseleave={() => (active = null)}

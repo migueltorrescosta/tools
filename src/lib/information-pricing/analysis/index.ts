@@ -1,9 +1,9 @@
 /**
  * Full analysis of a scenario set: loss summary, value of information,
- * optimal decision per quantile group, densities and profit swing of the
+ * optimal decision per quantile group, densities and profit share of the
  * inputs and of the decision-independent intermediates, loss distributions
  * and the policy tree. It comes in three parts, so workers can deliver them
- * as they complete: `analyseMain` (summary, groups, densities, profit swing,
+ * as they complete: `analyseMain` (summary, groups, densities, profit share,
  * loss distributions), `analyseVoi` (value of information) and `analyseTree`
  * (the policy tree, which needs only the inputs and the loss matrix).
  */
@@ -19,7 +19,7 @@ import {
 } from './groups';
 import { lossSummary, type LossSummary } from './losses';
 import { lossMatrix, sortedCopy } from './numeric';
-import { profitSwing, type ProfitSwing } from './swing';
+import { profitShare } from './share';
 import { buildPolicyTree, PolicyTreeError, type PolicyTree, type TreeOptions } from './tree';
 import { policyTreeView, type PolicyTreeView } from './tree-view';
 import { DEFAULT_BINS, valueOfInformation, type ValueOfInformation } from './voi';
@@ -29,7 +29,7 @@ export * from './format';
 export * from './groups';
 export * from './losses';
 export * from './numeric';
-export * from './swing';
+export * from './share';
 export * from './tree';
 export * from './tree-view';
 export * from './voi';
@@ -48,8 +48,8 @@ export interface ColumnAnalysis {
 	/** Optimal decision per decile group. */
 	groups: GroupTable[];
 	densities: InputDensity[];
-	/** √Var(E[R_{d*} | column]) under the recommended decision `summary.best`. */
-	profitSwing: ProfitSwing[];
+	/** Share of the recommended decision's (`summary.best`) reward variance each column explains. */
+	profitShare: number[];
 }
 
 /** The policy tree, or the reason none can be grown (e.g. zero held-out risk). */
@@ -83,15 +83,6 @@ export type PartialAnalysis = Omit<Analysis, 'valueOfInformation' | 'tree' | 'in
 	intermediates: ColumnAnalysis & { valueOfInformation?: ValueOfInformation };
 	tree?: TreeResult;
 };
-
-/** The partial analysis with every part in. */
-export function isComplete(a: PartialAnalysis): a is Analysis {
-	return (
-		a.valueOfInformation !== undefined &&
-		a.intermediates.valueOfInformation !== undefined &&
-		a.tree !== undefined
-	);
-}
 
 /** Merge the parts received so far; null until the main part is in. */
 export function mergeParts(
@@ -140,17 +131,17 @@ function columnAnalysis(
 	ctx: AnalysisContext,
 	reward: Float64Array
 ): ColumnAnalysis {
-	const out: ColumnAnalysis = { groups: [], densities: [], profitSwing: [] };
+	const out: ColumnAnalysis = { groups: [], densities: [], profitShare: [] };
 	columns.forEach((c, j) => {
 		const g = qcut(c, GROUP_BINS, sorted[j]);
 		out.groups.push(optimalDecisionPerGroup(c, ctx.loss, ctx.D, GROUP_BINS, sorted[j], g));
 		out.densities.push(inputDensity(c, sorted[j]));
-		out.profitSwing.push(profitSwing(g.codes, g.count, reward));
+		out.profitShare.push(profitShare(g.codes, g.count, reward));
 	});
 	return out;
 }
 
-/** Part 1: summary, loss distributions, and groups, densities and profit swing per column. */
+/** Part 1: summary, loss distributions, and groups, densities and profit share per column. */
 export function analyseMain(s: Scenarios, unit: string, ctx: AnalysisContext): MainPart {
 	const summary = lossSummary(s, unit, ctx.loss);
 	const reward = s.rewards[summary.best];

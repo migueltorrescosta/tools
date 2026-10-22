@@ -147,14 +147,14 @@ export function voiBounds(evpi: number, savings: Iterable<number>): [number, num
 }
 
 /**
- * Log bounds spanning `span` decades below the smallest power of 10 above
+ * Log bounds spanning three decades below the smallest power of 10 above
  * `max` (one up when `max` is itself a power of 10), as `voiBounds` tops out.
  * `logDecadeBounds(42)` → `[0.1, 100]`. Null when `max` isn't positive and finite.
  */
-export function logDecadeBounds(max: number, span = 3): [number, number] | null {
+export function logDecadeBounds(max: number): [number, number] | null {
 	if (!(max > 0) || !Number.isFinite(max)) return null;
 	const top = decadeOf(max) + 1;
-	return [pow10(top - span), pow10(top)];
+	return [pow10(top - 3), pow10(top)];
 }
 
 /** Powers of ten from `lo` to `hi`, both powers of ten. */
@@ -184,7 +184,7 @@ export function spreadLabels(ys: readonly number[], gap: number, lo: number, hi:
 }
 
 /** Dash patterns that tell the value-of-information lines apart (cycled). */
-export const DASHES = ['', '7 3', '2 2.5', '9 3 2 3', '4 4', '12 3 2 3 2 3'] as const;
+const DASHES = ['', '7 3', '2 2.5', '9 3 2 3', '4 4', '12 3 2 3 2 3'] as const;
 /** Input `i`'s dash pattern, its lengths times `scale` (to keep step with a thicker stroke). */
 export const dash = (i: number, scale = 1) =>
 	DASHES[i % DASHES.length]
@@ -194,14 +194,14 @@ export const dash = (i: number, scale = 1) =>
 		.join(' ');
 
 /** A point label: text anchor position and alignment, in pixels. */
-export interface PlacedLabel {
+interface PlacedLabel {
 	x: number;
 	y: number;
 	anchor: 'start' | 'middle' | 'end';
 }
 
 /**
- * Places a label of `width` × `height` pixels next to each point (pixels),
+ * Places an 11 px high label of `width` pixels next to each point (pixels, radius 5),
  * trying right, left, above, below and then further out, and keeping the
  * first spot that clears the other points, the labels placed so far and the
  * frame `[x0, x1] × [y0, y1]`. A label with no free spot takes the right.
@@ -209,10 +209,10 @@ export interface PlacedLabel {
  */
 export function placeLabels(
 	points: readonly { x: number; y: number; width: number }[],
-	frame: { x0: number; x1: number; y0: number; y1: number },
-	height = 11,
-	radius = 5
+	frame: { x0: number; x1: number; y0: number; y1: number }
 ): PlacedLabel[] {
+	const height = 11;
+	const radius = 5;
 	type Box = [number, number, number, number];
 	const overlaps = (a: Box, b: Box) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
 	const taken: Box[] = points.map((p) => [p.x - radius, p.y - radius, p.x + radius, p.y + radius]);

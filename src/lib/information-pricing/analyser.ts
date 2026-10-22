@@ -82,6 +82,8 @@ interface Job {
 	scenarios: Scenarios | null;
 }
 
+const EMPTY_PARTS = { main: null, voi: null, tree: null, scenarios: null } as const;
+
 export function createAnalyser(
 	createWorker: () => AnalysisWorker,
 	createTreeWorker: () => TreeWorker
@@ -185,15 +187,7 @@ export function createAnalyser(
 			const t = ensureTreeWorker();
 			const id = nextId++;
 			return new Promise((resolve, reject) => {
-				jobs.set(id, {
-					listener,
-					resolve,
-					reject,
-					main: null,
-					voi: null,
-					tree: null,
-					scenarios: null
-				});
+				jobs.set(id, { listener, resolve, reject, ...EMPTY_PARTS });
 				kept = null;
 				// Copy to the tree worker first: the transfer below detaches the columns.
 				t.postMessage({ type: 'tree', id, data: treeData(scenarios), options });
@@ -207,15 +201,7 @@ export function createAnalyser(
 			const t = ensureTreeWorker();
 			const id = nextId++;
 			return new Promise((resolveTree, reject) => {
-				jobs.set(id, {
-					listener,
-					resolveTree,
-					reject,
-					main: null,
-					voi: null,
-					tree: null,
-					scenarios: null
-				});
+				jobs.set(id, { listener, resolveTree, reject, ...EMPTY_PARTS });
 				const data = kept === scenarios ? undefined : treeData(scenarios);
 				kept = scenarios;
 				t.postMessage({ type: 'tree', id, data, options });

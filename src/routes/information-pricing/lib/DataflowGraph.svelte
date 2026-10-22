@@ -101,7 +101,6 @@
 	aria-describedby="df-summary-{uid}"
 	data-testid="dataflow"
 	data-ready={layout ? '' : undefined}
-	data-edges={graph.edges.length}
 	bind:this={scroller}
 	bind:clientWidth={boxWidth}
 >

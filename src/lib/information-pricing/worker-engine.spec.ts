@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { WorkerLike } from '$lib/worker-pool';
 import { validateParams } from './distributions';
-import { isComplete } from './analysis';
+import type { PartialAnalysis } from './analysis';
 import { createAnalyser, type AnalysisWorker, type TreeWorker } from './analyser';
 import {
 	createAnalysisHost,
@@ -23,6 +23,10 @@ import {
 	type EngineEvent,
 	type SimulationEngine
 } from './worker-engine';
+
+/** Every part is in: the value of information (inputs and intermediates) and the tree. */
+const isComplete = (a: PartialAnalysis) =>
+	!!a.valueOfInformation && !!a.intermediates.valueOfInformation && !!a.tree;
 
 /** Runs the real host in-process, with structured cloning and async delivery like a worker. */
 class FakeWorker implements WorkerLike<ToWorker, FromWorker> {
@@ -246,7 +250,7 @@ describe('simulation engine', () => {
 		// The main part comes first; the value of information only later.
 		expect(partials[0].summary.expectedLoss).toHaveLength(5);
 		expect(partials[0].groups).toHaveLength(6);
-		expect(partials[0].profitSwing).toHaveLength(6);
+		expect(partials[0].profitShare).toHaveLength(6);
 		expect(partials[0].intermediates.groups).toHaveLength(3);
 		expect(partials[0].distributions).toHaveLength(5);
 		expect(partials[0].valueOfInformation).toBeUndefined();
