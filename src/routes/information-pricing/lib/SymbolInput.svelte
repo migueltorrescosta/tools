@@ -9,7 +9,8 @@
 		symbol,
 		declared,
 		onrename,
-		error
+		error,
+		hideLabel = false
 	}: {
 		label?: string;
 		/** Accessible name, e.g. "Symbol of input X". */
@@ -21,6 +22,8 @@
 		/** Rename the symbol (and the formulas that use it). */
 		onrename: (from: string, to: string) => void;
 		error?: string;
+		/** Keep the label for screen readers only (a column header names the field). */
+		hideLabel?: boolean;
 	} = $props();
 
 	let text = $state(untrack(() => symbol));
@@ -46,7 +49,7 @@
 	}
 </script>
 
-<Field {label} error={local ?? error}>
+<Field {label} {hideLabel} error={local ?? error}>
 	{#snippet children(props)}
 		<input
 			class="control mono"

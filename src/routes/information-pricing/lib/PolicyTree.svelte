@@ -3,31 +3,38 @@
 	import { dataColour } from './format';
 	import Legend from './Legend.svelte';
 	import { scrollFocus } from './scroll-focus';
-	import { LINE_HEIGHT, edgePath, layoutTree, nodeLines } from './tree-layout';
+	import { LINE_HEIGHT, edgePath, layoutTree, nodeLines, splitText } from './tree-layout';
 
 	let {
 		view,
 		inputs
 	}: {
 		view: PolicyTreeView;
-		/** Input labels, model order (the view's own labels are symbols). */
+		/** Input names, model order (the view's own labels are symbols). */
 		inputs: readonly string[];
 	} = $props();
 
-	const layout = $derived(layoutTree(view));
+	const layout = $derived(layoutTree(view, inputs));
+
+	/** On a narrow screen, open a wide tree at its root (the middle), not its left edge. */
+	let scroller = $state<HTMLDivElement>();
+	$effect(() => {
+		if (!scroller || !layout.width) return;
+		scroller.scrollLeft = (scroller.scrollWidth - scroller.clientWidth) / 2;
+	});
 	const byId = $derived(new Map(view.nodes.map((n) => [n.id, n])));
 	const splitOf = $derived(new Map(view.splits.map((s) => [s.node, s])));
-	/** Savings fill: the surface tinted toward the data colour by weighted savings. */
+	/** Savings × share fill: green at 0, red at the tree's largest. */
 	const fill = (f: number | null) =>
 		f === null
 			? 'var(--surface-2)'
-			: `color-mix(in oklab, var(--data-3) ${Math.round(f * 40)}%, var(--surface))`;
+			: `color-mix(in oklab, var(--danger-fill) ${Math.round(f * 100)}%, var(--success-fill))`;
 
 	const description = $derived(
 		view.nodes
 			.map((n) => {
 				const split = splitOf.get(n.id);
-				const rule = split ? `, then splits on ${inputs[split.input]}` : '';
+				const rule = split ? `, then splits on ${splitText(split, inputs)}` : '';
 				return `Node ${n.id}: ${n.decisionLabel}, saves ${n.savingsLabel}, ${n.shareLabel} of scenarios${rule}`;
 			})
 			.join('. ')
@@ -44,7 +51,7 @@
 			dashed: l.isStatusQuo
 		}))}
 	/>
-	<div class="scroll" use:scrollFocus={'Policy tree diagram'}>
+	<div class="scroll" bind:this={scroller} use:scrollFocus={'Policy tree diagram'}>
 		<svg
 			viewBox="0 0 {layout.width} {layout.height}"
 			width={layout.width}
@@ -86,12 +93,17 @@
 			{/each}
 			{#each layout.splits as s (s.node)}
 				{@const split = splitOf.get(s.node)!}
-				<polygon
+				<rect
 					class="split"
-					points="{s.x},{s.y - s.height / 2} {s.x + s.width / 2},{s.y} {s.x},{s.y +
-						s.height / 2} {s.x - s.width / 2},{s.y}"
+					x={s.x - s.width / 2}
+					y={s.y - s.height / 2}
+					width={s.width}
+					height={s.height}
+					rx={s.height / 2}
 				/>
-				<text class="split-label" x={s.x} y={s.y + 4} text-anchor="middle">{split.inputLabel}</text>
+				<text class="split-label" x={s.x} y={s.y + 4} text-anchor="middle"
+					>{splitText(split, inputs)}</text
+				>
 			{/each}
 			{#each layout.nodes as box (box.id)}
 				{@const n = byId.get(box.id)!}
@@ -120,7 +132,7 @@
 	</div>
 	<figcaption class="footer">
 		{#each view.footer as line (line)}<span>{line}</span>{/each}
-		<span>Greener boxes save more, weighted by their share of scenarios.</span>
+		<span>Redder boxes save more, weighted by their share of scenarios.</span>
 	</figcaption>
 </figure>
 

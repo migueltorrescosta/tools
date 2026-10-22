@@ -8,6 +8,7 @@
 		value,
 		onchange,
 		error,
+		hideLabel = false,
 		hint,
 		optional = false,
 		testId
@@ -20,6 +21,8 @@
 		/** Called on every edit; NaN while the text is not a number. */
 		onchange: (value: number) => void;
 		error?: string;
+		/** Keep the label for screen readers only (a column header names the field). */
+		hideLabel?: boolean;
 		hint?: string;
 		/** An empty field is not an error (e.g. a "new value" box). */
 		optional?: boolean;
@@ -44,7 +47,7 @@
 	);
 </script>
 
-<Field {label} {hint} error={own ?? error}>
+<Field {label} {hint} {hideLabel} error={own ?? error}>
 	{#snippet children(props)}
 		<input
 			class="control num"

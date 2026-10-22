@@ -35,44 +35,47 @@
 
 <section class="stack section" aria-labelledby="intermediates-heading">
 	<h3 id="intermediates-heading">Intermediates</h3>
+	{#if model.intermediates.length}
+		<div class="cols constant-cols" aria-hidden="true"><span>Symbol</span><span>Name</span></div>
+	{/if}
 	{#each model.intermediates as m, i (ids.intermediates[i])}
-		<div class="row" data-testid="intermediate-row">
-			<div class="fields">
-				<SymbolInput
-					name="Symbol of intermediate {who(i)}"
-					symbol={m.symbol}
-					{declared}
-					{onrename}
-					error={errorAt(errors, { kind: 'intermediate', index: i, field: 'symbol' })?.message}
-				/>
-				<Field label="Name">
-					{#snippet children(props)}
-						<input
-							class="control"
-							type="text"
-							aria-label="Name of intermediate {who(i)}"
-							bind:value={m.name}
-							{...props}
-						/>
-					{/snippet}
-				</Field>
-				<div class="wide">
-					<FormulaInput
-						name="Formula for {who(i)}"
-						value={m.formula}
-						onchange={(v) => (m.formula = v)}
-						symbols={declared.filter((s) => s !== m.symbol)}
-						error={errorAt(errors, { kind: 'intermediate', index: i, field: 'formula' })}
+		<div class="row constant-cols" data-testid="intermediate-row">
+			<SymbolInput
+				hideLabel
+				name="Symbol of intermediate {who(i)}"
+				symbol={m.symbol}
+				{declared}
+				{onrename}
+				error={errorAt(errors, { kind: 'intermediate', index: i, field: 'symbol' })?.message}
+			/>
+			<Field label="Name" hideLabel>
+				{#snippet children(props)}
+					<input
+						class="control"
+						type="text"
+						aria-label="Name of intermediate {who(i)}"
+						bind:value={m.name}
+						{...props}
 					/>
-				</div>
-			</div>
+				{/snippet}
+			</Field>
 			<Button variant="ghost" size="sm" class="remove" onclick={() => remove(i)}
 				><span aria-hidden="true">✕</span><span class="sr-only">Remove intermediate {who(i)}</span
 				></Button
 			>
+			<div class="formula">
+				<FormulaInput
+					hideLabel
+					name="Formula for {who(i)}"
+					value={m.formula}
+					onchange={(v) => (m.formula = v)}
+					symbols={declared.filter((s) => s !== m.symbol)}
+					error={errorAt(errors, { kind: 'intermediate', index: i, field: 'formula' })}
+				/>
+			</div>
 		</div>
 	{:else}
-		<p class="muted">No intermediates yet. Add one to name a step of the reward.</p>
+		<p class="muted">None yet. Add one to name a step of the reward.</p>
 	{/each}
 	<div><Button size="sm" onclick={add} disabled={full}>Add intermediate</Button></div>
 </section>

@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { FAMILIES, defaultParams, familyInfo } from '$lib/information-pricing/distributions';
+	import { FAMILIES, defaultParams } from '$lib/information-pricing/distributions';
 	import { MAX_SYMBOLS, type ModelError } from '$lib/information-pricing/model';
 	import type { Family, Model } from '$lib/information-pricing/types';
 	import { Button, Field } from '$lib/ui';
 	import { declaredSymbols, errorAt, freeSymbol, freshIds, type RowIds } from './editor';
-	import NumberInput from './NumberInput.svelte';
 	import SymbolInput from './SymbolInput.svelte';
 
 	let {
@@ -46,54 +45,47 @@
 
 <section class="stack section" aria-labelledby="inputs-heading">
 	<h3 id="inputs-heading">Random inputs</h3>
+	{#if model.inputs.length}
+		<div class="cols input-cols" aria-hidden="true">
+			<span>Symbol</span><span>Name</span><span>Distribution</span>
+		</div>
+	{/if}
 	{#each model.inputs as input, i (ids.inputs[i])}
-		{@const family = familyInfo(input.family)}
-		{@const familyError = errorAt(errors, { kind: 'input', index: i, field: 'params', param: -1 })}
-		<div class="row" data-testid="input-row">
-			<div class="fields">
-				<SymbolInput
-					name="Symbol of input {who(i)}"
-					symbol={input.symbol}
-					{declared}
-					{onrename}
-					error={errorAt(errors, { kind: 'input', index: i, field: 'symbol' })?.message}
-				/>
-				<Field label="Name">
-					{#snippet children(props)}
-						<input
-							class="control"
-							type="text"
-							aria-label="Name of input {who(i)}"
-							bind:value={input.name}
-							{...props}
-						/>
-					{/snippet}
-				</Field>
-				<Field label="Distribution" error={familyError?.message}>
-					{#snippet children(props)}
-						<select
-							class="control"
-							aria-label="Distribution of input {who(i)}"
-							value={input.family}
-							onchange={(e) => setFamily(i, e.currentTarget.value as Family)}
-							{...props}
-						>
-							{#each FAMILIES as f (f.family)}
-								<option value={f.family}>{f.name}</option>
-							{/each}
-						</select>
-					{/snippet}
-				</Field>
-				{#each family.params as p, k (`${input.family}-${k}`)}
-					<NumberInput
-						label={p.label}
-						name="{p.label} of input {who(i)}"
-						value={input.params[k]}
-						onchange={(v) => (input.params[k] = v)}
-						error={errorAt(errors, { kind: 'input', index: i, field: 'params', param: k })?.message}
+		<div class="row input-cols" data-testid="input-row">
+			<SymbolInput
+				hideLabel
+				name="Symbol of input {who(i)}"
+				symbol={input.symbol}
+				{declared}
+				{onrename}
+				error={errorAt(errors, { kind: 'input', index: i, field: 'symbol' })?.message}
+			/>
+			<Field label="Name" hideLabel>
+				{#snippet children(props)}
+					<input
+						class="control"
+						type="text"
+						aria-label="Name of input {who(i)}"
+						bind:value={input.name}
+						{...props}
 					/>
-				{/each}
-			</div>
+				{/snippet}
+			</Field>
+			<Field label="Distribution" hideLabel>
+				{#snippet children(props)}
+					<select
+						class="control"
+						aria-label="Distribution of input {who(i)}"
+						value={input.family}
+						onchange={(e) => setFamily(i, e.currentTarget.value as Family)}
+						{...props}
+					>
+						{#each FAMILIES as f (f.family)}
+							<option value={f.family}>{f.name}</option>
+						{/each}
+					</select>
+				{/snippet}
+			</Field>
 			<Button variant="ghost" size="sm" class="remove" onclick={() => remove(i)}
 				><span aria-hidden="true">✕</span><span class="sr-only">Remove input {who(i)}</span></Button
 			>

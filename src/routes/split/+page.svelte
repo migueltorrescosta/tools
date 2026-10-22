@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { browserStorage, createPersistGate, readJson } from '$lib/persist-gate';
-	import { Alert, Button, Field, InfoTip, PageHeader, Panel } from '$lib/ui';
+	import { Alert, Button, Field, InfoTip, PageHeader, Panel, Stepper } from '$lib/ui';
 	import {
 		bestFallback,
 		initState,
@@ -380,22 +380,13 @@
 		>
 	</PageHeader>
 
-	<ol class="stepper" aria-label="Progress">
-		{#each ['Setup', 'Start', 'Rounds', 'Result'] as name, i (i)}
-			{@const label = i === 2 && step === 2 ? `${name} · ${rounds.length + 1}` : name}
-			<li
-				class="step"
-				class:done={i < step}
-				class:now={i === step}
-				aria-current={i === step ? 'step' : undefined}
-			>
-				<span class="step-dot" aria-hidden="true">{i < step ? '✓' : i + 1}</span>
-				<span
-					>{label}{#if i < step}<span class="sr-only">&nbsp;(done)</span>{/if}</span
-				>
-			</li>
-		{/each}
-	</ol>
+	<Stepper
+		current={step}
+		steps={['Setup', 'Start', 'Rounds', 'Result'].map((name, i) => ({
+			label: i === 2 && step === 2 ? `${name} · ${rounds.length + 1}` : name,
+			done: i < step
+		}))}
+	/>
 
 	{#if phase === 'setup'}
 		<div class="split-view">
@@ -1188,76 +1179,6 @@
 
 	.group h3 .dot {
 		margin-right: var(--sp-1);
-	}
-
-	/* Progress stepper: numbered circles joined by a line. */
-	.stepper {
-		display: flex;
-		align-items: flex-start;
-		margin: 0 0 var(--sp-3);
-		padding: 0;
-		list-style: none;
-	}
-
-	.step {
-		position: relative;
-		display: flex;
-		flex: 1 1 0;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--sp-1);
-		min-width: 0;
-		font-size: var(--text-xs);
-		color: var(--text-muted);
-		text-align: center;
-	}
-
-	.step + .step::before {
-		content: '';
-		position: absolute;
-		top: 12px;
-		left: -50%;
-		right: 50%;
-		height: 2px;
-		background: var(--border);
-	}
-
-	.step.done::before,
-	.step.now::before {
-		background: var(--success);
-	}
-
-	.step-dot {
-		position: relative;
-		z-index: 1;
-		display: grid;
-		place-items: center;
-		width: 26px;
-		height: 26px;
-		border: 2px solid var(--border);
-		border-radius: 50%;
-		background: var(--surface);
-		font-weight: 700;
-	}
-
-	.step.done {
-		color: var(--text);
-	}
-
-	.step.done .step-dot {
-		background: var(--success);
-		border-color: var(--success);
-		color: var(--surface);
-	}
-
-	.step.now {
-		color: var(--accent);
-		font-weight: 600;
-	}
-
-	.step.now .step-dot {
-		border-color: var(--accent);
-		background: var(--accent-bg);
 	}
 
 	.references {

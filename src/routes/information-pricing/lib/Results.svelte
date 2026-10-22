@@ -1,19 +1,19 @@
 <script lang="ts">
 	import type { Analysis } from '$lib/information-pricing/analysis';
 	import { Alert, Button, Panel } from '$lib/ui';
-	import { formatNumber, money as makeMoney } from './format';
-	import InputPlot from './InputPlot.svelte';
+	import { dataColour, formatNumber, linear, linePath, money as makeMoney } from './format';
+	import InputRow from './InputRow.svelte';
 	import LossPlots from './LossPlots.svelte';
 	import NumberInput from './NumberInput.svelte';
 	import PolicyTree from './PolicyTree.svelte';
 	import { scrollFocus } from './scroll-focus';
 	import type { TreeSettings } from './editor';
-	import VoiChart from './VoiChart.svelte';
 
 	let {
 		analysis,
 		decisions,
 		inputs,
+		names,
 		unit,
 		tree = $bindable(),
 		applied,
@@ -23,8 +23,10 @@
 		analysis: Analysis;
 		/** Decision labels, model order. */
 		decisions: readonly string[];
-		/** Input labels, model order. */
+		/** Input labels, model order, e.g. "Number of Packages (N)". */
 		inputs: readonly string[];
+		/** Input names (the symbol when unnamed), model order, for the tree. */
+		names: readonly string[];
 		/** Native monetary unit of the run. */
 		unit: string;
 		tree: TreeSettings;
@@ -38,6 +40,22 @@
 	const summary = $derived(analysis.summary);
 	const money = $derived(makeMoney(summary.displayExponent, unit ? summary.displayedUnit : ''));
 	const voi = $derived(analysis.valueOfInformation);
+	/** The largest bin count, whose savings rank the inputs. */
+	const lastBin = $derived(voi.bins.length - 1);
+
+	/** A tiny line of the savings against the bin count. */
+	const SPARK = { w: 56, h: 16 };
+	function spark(savings: Float64Array): string {
+		let lo = 0;
+		let hi = 0;
+		for (const v of savings) if (Number.isFinite(v)) [lo, hi] = [Math.min(lo, v), Math.max(hi, v)];
+		const sx = linear(0, Math.max(1, savings.length - 1), 1, SPARK.w - 1);
+		const sy = linear(lo, hi > lo ? hi : lo + 1, SPARK.h - 1, 1);
+		return linePath(
+			Array.from(savings, (_, k) => sx(k)),
+			Array.from(savings, sy)
+		);
+	}
 
 	const treeErrors = $derived({
 		maxDepth:
@@ -62,174 +80,168 @@
 </script>
 
 <div class="stack results" data-testid="results">
-	<Panel title="Headline">
-		<dl class="headline" data-testid="headline">
-			<div>
-				<dt>Best decision</dt>
-				<dd data-testid="best-decision">{decisions[summary.best]}</dd>
-			</div>
-			<div>
-				<dt>Price of perfect information</dt>
-				<dd data-testid="price">{money.format(summary.expectedLoss[summary.best])}</dd>
-				<dd class="note">The best decision's expected loss</dd>
-			</div>
-			<div>
-				<dt>Worst decision's expected loss</dt>
-				<dd data-testid="worst">{money.format(summary.expectedLoss[summary.worst])}</dd>
-				<dd class="note">{decisions[summary.worst]}</dd>
-			</div>
-		</dl>
-	</Panel>
-
-	<Panel title="Expected loss">
-		<div class="table-wrap" use:scrollFocus={'Expected loss table'}>
-			<table data-testid="loss-table">
-				<caption class="sr-only">Expected opportunity loss per decision, worst first</caption>
-				<thead>
-					<tr>
-						<th scope="col">Decision</th>
-						<th scope="col" class="num">Expected loss{money.unit ? ` (${money.unit})` : ''}</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each summary.worstFirst as d (d)}
-						<tr class:best={d === summary.best}>
-							<th scope="row"
-								>{decisions[d]}{#if d === summary.best}<span class="tag">best</span>{/if}</th
-							>
-							<td class="num">{formatNumber(money.scale(summary.expectedLoss[d]))}</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
+	<dl class="headline" data-testid="headline">
+		<div>
+			<dt>Best decision</dt>
+			<dd data-testid="best-decision">{decisions[summary.best]}</dd>
 		</div>
-	</Panel>
-
-	<Panel title="Value of information">
-		<div class="stack">
-			<p class="muted">
-				What knowing one input saves, if you could sort scenarios into that many bins of it and pick
-				the best decision per bin. Out of sample, 5-fold.
-			</p>
-			<div class="table-wrap" use:scrollFocus={'Value of information table'}>
-				<table data-testid="voi-table">
-					<caption class="sr-only"
-						>Savings per input and number of bins{money.unit ? `, in ${money.unit}` : ''}</caption
-					>
-					<thead>
-						<tr>
-							<th scope="col">Input</th>
-							{#each voi.bins as b (b)}<th scope="col" class="num">{b}</th>{/each}
-						</tr>
-					</thead>
-					<tbody>
-						{#each voi.order as j (j)}
-							<tr>
-								<th scope="row">{inputs[j]}</th>
-								{#each voi.savings[j] as v, k (k)}
-									<td class="num">{formatNumber(money.scale(v))}</td>
-								{/each}
-							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
-			<VoiChart {voi} {inputs} {money} />
+		<div>
+			<dt>Price of perfect information</dt>
+			<dd data-testid="price">{money.format(summary.expectedLoss[summary.best])}</dd>
 		</div>
-	</Panel>
+		<div class="small">
+			<dt>Worst ({decisions[summary.worst]}) loses</dt>
+			<dd data-testid="worst">{money.format(summary.expectedLoss[summary.worst])}</dd>
+		</div>
+	</dl>
 
-	<Panel title="Inputs and optimal decision">
-		<div class="stack">
-			<p class="muted">
-				Each input's spread (dashed lines at the deciles), then the mean loss of every decision
-				across its quantile groups. The ring and the coloured band show the best decision per group.
-			</p>
+	<Panel title="Inputs by value of information">
+		<div class="stack" style="--gap: var(--sp-2)">
 			<ul class="key" aria-label="Decisions">
 				{#each decisions as label, d (d)}
-					<li>
-						<span class="swatch" style="background: var(--data-{(d % 12) + 1})"></span>{label}
-					</li>
+					<li><span class="swatch" style="background: {dataColour(d)}"></span>{label}</li>
 				{/each}
 			</ul>
-			<div class="grid">
-				{#each inputs as label, j (j)}
-					<InputPlot
-						{label}
-						density={analysis.densities[j]}
-						groups={analysis.groups[j]}
-						{decisions}
-						{money}
-					/>
+			<div class="inputs">
+				<div class="input-row head" aria-hidden="true">
+					<span>Input · saves with {voi.bins[lastBin]} bins</span>
+					<span>Spread (dashed: deciles)</span>
+					<span>Mean loss per decile (log); band and ring: best</span>
+				</div>
+				{#each voi.order as j (j)}
+					{@const saves = voi.savings[j][lastBin]}
+					<div class="input-row" data-testid="input-voi-row" data-savings={saves}>
+						<div class="row-label">
+							<span class="name">{inputs[j]}</span>
+							<span class="saves">
+								<span class="sr-only">saves</span>
+								<strong>{money.format(saves)}</strong>
+								<svg
+									class="spark"
+									viewBox="0 0 {SPARK.w} {SPARK.h}"
+									width={SPARK.w}
+									height={SPARK.h}
+									aria-hidden="true"><path d={spark(voi.savings[j])} /></svg
+								>
+								<span class="sr-only">with {voi.bins[lastBin]} bins</span>
+							</span>
+						</div>
+						<InputRow
+							label={inputs[j]}
+							density={analysis.densities[j]}
+							groups={analysis.groups[j]}
+							{decisions}
+							{money}
+						/>
+					</div>
 				{/each}
 			</div>
 		</div>
 	</Panel>
 
-	<Panel title="Loss distributions">
-		<LossPlots distributions={analysis.distributions} {decisions} {money} />
-	</Panel>
-
-	<Panel title="Policy tree">
-		<div class="stack">
-			<p class="muted">
-				A shallow rule for when to pick which decision, grown on 80% of the scenarios and scored on
-				the other 20%.
-			</p>
-			<form
-				class="tree-settings"
-				onsubmit={(e) => {
-					e.preventDefault();
-					if (treeValid && treeChanged && !busy) onretree();
-				}}
-			>
-				<NumberInput
-					label="Max depth"
-					value={tree.maxDepth}
-					onchange={(v) => (tree.maxDepth = v)}
-					error={treeErrors.maxDepth}
-				/>
-				<NumberInput
-					label="Min leaf (%)"
-					value={tree.minLeafPercent}
-					onchange={(v) => (tree.minLeafPercent = v)}
-					error={treeErrors.minLeafPercent}
-				/>
-				<NumberInput
-					label="Min impurity decrease"
-					value={tree.minImpurityDecrease}
-					onchange={(v) => (tree.minImpurityDecrease = v)}
-					error={treeErrors.minImpurityDecrease}
-				/>
-				<Button size="sm" type="submit" disabled={!treeValid || !treeChanged || busy}
-					>Update tree</Button
-				>
-			</form>
-			{#if 'error' in analysis.tree}
-				<Alert tone="info">No tree to show: {analysis.tree.error}</Alert>
-			{:else}
-				<PolicyTree view={analysis.tree.view} {inputs} />
-			{/if}
+	<div class="boxes">
+		<div class="box loss">
+			<Panel title="Loss distributions">
+				<LossPlots distributions={analysis.distributions} {decisions} {money} />
+			</Panel>
 		</div>
-	</Panel>
+
+		<div class="box voi">
+			<Panel title="Value of information">
+				<div class="stack" style="--gap: var(--sp-2)">
+					<p class="muted">What knowing roughly where an input lands saves, by number of bins.</p>
+					<div class="table-wrap" use:scrollFocus={'Value of information table'}>
+						<table data-testid="voi-table">
+							<caption class="sr-only"
+								>Savings per input and number of bins{money.unit
+									? `, in ${money.unit}`
+									: ''}</caption
+							>
+							<thead>
+								<tr>
+									<th scope="col">Input</th>
+									{#each voi.bins as b (b)}<th scope="col" class="num">{b}</th>{/each}
+								</tr>
+							</thead>
+							<tbody>
+								{#each voi.order as j (j)}
+									<tr>
+										<th scope="row">{names[j]}</th>
+										{#each voi.savings[j] as v, k (k)}
+											<td class="num">{formatNumber(money.scale(v))}</td>
+										{/each}
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</Panel>
+		</div>
+
+		<div class="box tree">
+			<Panel title="Policy tree">
+				<div class="stack" style="--gap: var(--sp-2)">
+					<form
+						class="tree-settings"
+						onsubmit={(e) => {
+							e.preventDefault();
+							if (treeValid && treeChanged && !busy) onretree();
+						}}
+					>
+						<NumberInput
+							label="Max depth"
+							value={tree.maxDepth}
+							onchange={(v) => (tree.maxDepth = v)}
+							error={treeErrors.maxDepth}
+						/>
+						<NumberInput
+							label="Min leaf (%)"
+							value={tree.minLeafPercent}
+							onchange={(v) => (tree.minLeafPercent = v)}
+							error={treeErrors.minLeafPercent}
+						/>
+						<NumberInput
+							label="Min impurity decrease"
+							value={tree.minImpurityDecrease}
+							onchange={(v) => (tree.minImpurityDecrease = v)}
+							error={treeErrors.minImpurityDecrease}
+						/>
+						<Button size="sm" type="submit" disabled={!treeValid || !treeChanged || busy}
+							>Update tree</Button
+						>
+					</form>
+					{#if 'error' in analysis.tree}
+						<Alert tone="info">No tree to show: {analysis.tree.error}</Alert>
+					{:else}
+						<PolicyTree view={analysis.tree.view} inputs={names} />
+					{/if}
+				</div>
+			</Panel>
+		</div>
+	</div>
 </div>
 
 <style>
 	.results {
 		min-width: 0;
+		--gap: var(--sp-3);
 	}
 	.headline {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
-		gap: var(--sp-3);
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: var(--sp-1) var(--sp-5);
 		margin: 0;
+		padding: var(--sp-2) var(--sp-3);
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
 	}
 	.headline div {
 		display: flex;
-		flex-direction: column;
-		gap: var(--sp-0);
-		padding: var(--sp-2) var(--sp-3);
-		background: var(--surface-2);
-		border-radius: var(--radius);
+		align-items: baseline;
+		gap: var(--sp-2);
 	}
 	dt {
 		font-size: var(--text-sm);
@@ -237,11 +249,15 @@
 	}
 	dd {
 		margin: 0;
-		font-size: var(--text-xl);
+		font-size: var(--text-lg);
 		font-weight: 600;
 		font-variant-numeric: tabular-nums;
 	}
-	dd.note {
+	.headline .small {
+		margin-left: auto;
+	}
+	.headline .small dt,
+	.headline .small dd {
 		font-size: var(--text-xs);
 		font-weight: 400;
 		color: var(--text-muted);
@@ -250,48 +266,6 @@
 		margin: 0;
 		font-size: var(--text-sm);
 		color: var(--text-muted);
-	}
-	.table-wrap {
-		overflow-x: auto;
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-	}
-	table {
-		width: 100%;
-		border-collapse: collapse;
-		font-size: var(--text-sm);
-	}
-	th,
-	td {
-		padding: var(--sp-1) var(--sp-2);
-		border-bottom: 1px solid var(--border);
-		text-align: left;
-		white-space: nowrap;
-	}
-	thead th {
-		background: var(--surface-2);
-		font-weight: 600;
-	}
-	tbody th {
-		font-weight: 500;
-	}
-	tbody tr:last-child > * {
-		border-bottom: 0;
-	}
-	.num {
-		text-align: right;
-		font-variant-numeric: tabular-nums;
-	}
-	tr.best > * {
-		background: var(--success-bg);
-	}
-	.tag {
-		margin-left: var(--sp-2);
-		padding: 0 var(--sp-1);
-		border-radius: var(--radius-sm);
-		font-size: var(--text-xs);
-		color: var(--success-text);
-		border: 1px solid var(--success);
 	}
 	.key {
 		display: flex;
@@ -313,30 +287,139 @@
 		height: 12px;
 		border-radius: 2px;
 	}
-	.grid {
+
+	/* Input rows: label, spread, best decision per decile. */
+	.inputs {
+		container-type: inline-size;
+	}
+	.input-row {
 		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		gap: 0 var(--sp-3);
+		padding: var(--sp-1) 0;
+		border-top: 1px solid var(--border);
+	}
+	.input-row .row-label {
+		grid-column: 1 / -1;
+	}
+	.input-row.head {
+		display: none;
+	}
+	@container (min-width: 720px) {
+		.input-row {
+			grid-template-columns: 12rem minmax(0, 1fr) minmax(0, 1.2fr);
+			align-items: center;
+		}
+		.input-row .row-label {
+			grid-column: auto;
+		}
+		.input-row.head {
+			display: grid;
+			border-top: 0;
+			font-size: var(--text-xs);
+			color: var(--text-muted);
+		}
+	}
+	.row-label {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0 var(--sp-2);
+		min-width: 0;
+		font-size: var(--text-sm);
+	}
+	.row-label .name {
+		font-weight: 500;
+	}
+	.saves {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--sp-1);
+		font-variant-numeric: tabular-nums;
+	}
+	.saves strong {
+		font-weight: 600;
+	}
+	.spark {
+		flex: none;
+	}
+	.spark path {
+		fill: none;
+		stroke: var(--accent);
+		stroke-width: 1.5;
+	}
+
+	/* Boxes sit side by side when there is room. */
+	.boxes {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
 		gap: var(--sp-3);
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+	}
+	.box {
+		min-width: 0;
+		max-width: 100%;
+	}
+	.box.loss {
+		flex: 1 1 min(100%, 26rem);
+	}
+	.box.voi {
+		flex: 1 1 min(100%, 24rem);
+	}
+	.box.tree {
+		flex: 2 1 min(100%, 36rem);
+	}
+	.table-wrap {
+		overflow-x: auto;
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+	}
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: var(--text-xs);
+	}
+	th,
+	td {
+		padding: var(--sp-1) 6px;
+		border-bottom: 1px solid var(--border);
+		text-align: left;
+		white-space: nowrap;
+	}
+	thead th {
+		background: var(--surface-2);
+		font-weight: 600;
+	}
+	tbody th {
+		font-weight: 500;
+	}
+	tbody tr:last-child > * {
+		border-bottom: 0;
+	}
+	.num {
+		text-align: right;
+		font-variant-numeric: tabular-nums;
 	}
 	.tree-settings {
 		display: flex;
 		flex-wrap: wrap;
-		align-items: flex-start;
-		gap: var(--sp-2) var(--sp-3);
+		align-items: flex-end;
+		gap: var(--sp-2);
 	}
 	.tree-settings :global(.ui-field) {
-		flex: 1 1 8rem;
+		flex: 0 1 9rem;
 	}
-	.tree-settings :global(button) {
-		margin-top: 22px;
+	.tree-settings :global(.ui-field label) {
+		font-size: var(--text-xs);
+		white-space: nowrap;
 	}
 	.results :global(.chart) {
 		margin: 0;
 		min-width: 0;
 	}
 	.results :global(.chart figcaption) {
-		font-size: var(--text-sm);
-		font-weight: 500;
+		font-size: var(--text-xs);
+		color: var(--text-muted);
 		margin-bottom: var(--sp-1);
 	}
 	.results :global(.chart:not(.tree) svg) {

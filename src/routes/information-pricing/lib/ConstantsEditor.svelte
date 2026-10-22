@@ -3,7 +3,6 @@
 	import type { Model } from '$lib/information-pricing/types';
 	import { Button, Field } from '$lib/ui';
 	import { declaredSymbols, errorAt, freeSymbol, freshIds, type RowIds } from './editor';
-	import NumberInput from './NumberInput.svelte';
 	import SymbolInput from './SymbolInput.svelte';
 
 	let {
@@ -35,35 +34,30 @@
 
 <section class="stack section" aria-labelledby="constants-heading">
 	<h3 id="constants-heading">Constants</h3>
+	{#if model.constants.length}
+		<div class="cols constant-cols" aria-hidden="true"><span>Symbol</span><span>Name</span></div>
+	{/if}
 	{#each model.constants as c, i (ids.constants[i])}
-		<div class="row" data-testid="constant-row">
-			<div class="fields">
-				<SymbolInput
-					name="Symbol of constant {who(i)}"
-					symbol={c.symbol}
-					{declared}
-					{onrename}
-					error={errorAt(errors, { kind: 'constant', index: i, field: 'symbol' })?.message}
-				/>
-				<NumberInput
-					label="Value"
-					name="Value of constant {who(i)}"
-					value={c.value}
-					onchange={(v) => (c.value = v)}
-					error={errorAt(errors, { kind: 'constant', index: i, field: 'value' })?.message}
-				/>
-				<Field label="Name">
-					{#snippet children(props)}
-						<input
-							class="control"
-							type="text"
-							aria-label="Name of constant {who(i)}"
-							bind:value={c.name}
-							{...props}
-						/>
-					{/snippet}
-				</Field>
-			</div>
+		<div class="row constant-cols" data-testid="constant-row">
+			<SymbolInput
+				hideLabel
+				name="Symbol of constant {who(i)}"
+				symbol={c.symbol}
+				{declared}
+				{onrename}
+				error={errorAt(errors, { kind: 'constant', index: i, field: 'symbol' })?.message}
+			/>
+			<Field label="Name" hideLabel>
+				{#snippet children(props)}
+					<input
+						class="control"
+						type="text"
+						aria-label="Name of constant {who(i)}"
+						bind:value={c.name}
+						{...props}
+					/>
+				{/snippet}
+			</Field>
 			<Button variant="ghost" size="sm" class="remove" onclick={() => remove(i)}
 				><span aria-hidden="true">✕</span><span class="sr-only">Remove constant {who(i)}</span
 				></Button

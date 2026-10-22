@@ -21,6 +21,7 @@
 		onchange,
 		symbols,
 		error,
+		hideLabel = false,
 		testId
 	}: {
 		label?: string;
@@ -32,6 +33,8 @@
 		symbols: readonly string[];
 		/** The formula's first error; `start`/`end` place the caret. */
 		error?: { message: string; start?: number; end?: number };
+		/** Keep the label for screen readers only (a column header names the field). */
+		hideLabel?: boolean;
 		testId?: string;
 	} = $props();
 
@@ -110,7 +113,7 @@
 	}
 </script>
 
-<Field {label} error={error?.message}>
+<Field {label} {hideLabel} error={error?.message}>
 	{#snippet children(props)}
 		<div class="combo">
 			<input

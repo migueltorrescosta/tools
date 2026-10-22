@@ -38,6 +38,10 @@
 	--danger: light-dark(#cf222e, #f85149);
 	--danger-text: light-dark(#a40e26, #f85149);
 	--danger-bg: light-dark(#ffebe9, #2d1517);
+	/* Fills for a good → bad scale (mix them with color-mix in oklab);
+	   --text on either, and on any mix of the two, is at least 4.5:1. */
+	--success-fill: light-dark(#bfe9cb, #1b4a2b);
+	--danger-fill: light-dark(#f6b0ac, #6e2427);
 	--info: var(--accent);
 	--info-text: var(--accent);
 	--info-bg: var(--accent-bg);

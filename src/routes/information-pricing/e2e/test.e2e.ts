@@ -42,6 +42,9 @@ const reward = (page: Page) => page.getByTestId('reward');
 const preset = (page: Page) => page.getByTestId('preset');
 const inputRows = (page: Page) => page.getByTestId('input-row');
 const runButton = (page: Page) => page.getByRole('button', { name: 'Run', exact: true });
+const steps = (page: Page) => page.getByRole('list', { name: 'Steps' });
+const stepButton = (page: Page, name: 'Setup' | 'Parameters' | 'Results') =>
+	steps(page).getByRole('button', { name, exact: true });
 
 /** The seed of the autosaved model, or null. */
 async function savedSeed(page: Page): Promise<number | null> {
@@ -161,8 +164,7 @@ for (const [id, best, inputs] of BEST) {
 		await expect(page.getByTestId('best-decision')).toHaveText(best);
 		await expect(page.getByTestId('price')).not.toBeEmpty();
 		await expect(page.getByTestId('worst')).not.toBeEmpty();
-		await expect(page.getByTestId('loss-table').locator('tbody tr')).toHaveCount(5);
-		await expect(page.getByTestId('loss-table').locator('tr.best th')).toContainText(best);
+		await expect(page.getByTestId('input-voi-row')).toHaveCount(inputs);
 		await expect(page.getByTestId('voi-table').locator('tbody tr')).toHaveCount(inputs);
 		await expect(page.getByTestId('policy-tree')).toBeVisible();
 		await expect(page.getByTestId('stale')).toHaveCount(0);
@@ -179,8 +181,11 @@ test('the same seed and samples reproduce the price; Add scenarios grows the set
 	await press(page, 'Run', 2);
 	await expect(page.getByTestId('price')).toHaveText(price!);
 
-	await expect(page.locator('#add-hint')).toContainText('appends 20,000 to the 20,000');
+	await expect(page.locator('#add-hint')).toContainText('Appends 20,000 to the 20,000');
+	// Add scenarios stays on the current step
+	await stepButton(page, 'Parameters').click();
 	await press(page, 'Add scenarios', 3);
+	await expect(stepButton(page, 'Parameters')).toHaveAttribute('aria-current', 'step');
 	await expect(page.getByTestId('run-status')).toContainText('40,000 scenarios');
 	await expect(page.locator('#add-hint')).toContainText('to the 40,000');
 	await expect(page.getByTestId('stale')).toHaveCount(0);
@@ -195,6 +200,7 @@ test('any edit marks the results stale; Run clears the marker', async ({ page })
 	// Undoing the edit makes the results current again
 	await page.getByRole('textbox', { name: 'Seed' }).fill('2026');
 	await expect(page.getByTestId('stale')).toHaveCount(0);
+	await stepButton(page, 'Parameters').click();
 	await page.getByRole('textbox', { name: 'mean of input P' }).fill('0.5');
 	await expect(page.getByTestId('stale')).toBeVisible();
 	await press(page, 'Run', 2);
@@ -293,4 +299,89 @@ test('autosave restores the model after a reload; Clear saved data resets it', a
 	// A reload now opens the default too
 	await open(page);
 	await expect(preset(page)).toHaveValue('distribution-centre');
+});
+
+test('the stepper: Results waits for the first run, Run jumps there, every step is clickable', async ({
+	page
+}) => {
+	await open(page, link(small('distribution-centre')));
+	await expect(stepButton(page, 'Setup')).toHaveAttribute('aria-current', 'step');
+	await expect(stepButton(page, 'Results')).toBeDisabled();
+	await stepButton(page, 'Parameters').click();
+	await expect(stepButton(page, 'Parameters')).toHaveAttribute('aria-current', 'step');
+	await expect(page.getByTestId('parameters')).toBeVisible();
+	await expect(page.getByTestId('setup')).toHaveCount(0);
+	// The run bar shows on every step
+	await expect(runButton(page)).toBeVisible();
+
+	await press(page, 'Run', 1);
+	await expect(stepButton(page, 'Results')).toHaveAttribute('aria-current', 'step');
+	await expect(page.getByTestId('results')).toBeVisible();
+	await stepButton(page, 'Setup').click();
+	await expect(page.getByTestId('setup')).toBeVisible();
+	await expect(stepButton(page, 'Results')).toBeEnabled();
+	await stepButton(page, 'Results').click();
+	await expect(page.getByTestId('results')).toBeVisible();
+});
+
+test('Parameters holds only number fields; Setup holds the shape', async ({ page }) => {
+	await open(page, link(presetModel('airline-share-buyback')));
+	await expect(page.getByTestId('setup').locator('[inputmode="decimal"]')).toHaveCount(0);
+	await stepButton(page, 'Parameters').click();
+	const params = page.getByTestId('parameters');
+	await expect(params.getByRole('textbox', { name: 'median of input K' })).toHaveValue('350000000');
+	await expect(params.getByRole('textbox', { name: 'Value of constant C0' })).toHaveValue('950');
+	await expect(params.getByTestId('decision-values').getByRole('listitem')).toHaveCount(5);
+	await expect(params.locator('select, [role="combobox"]')).toHaveCount(0);
+	await expect(params.getByRole('textbox', { name: /Symbol|Name|Formula/ })).toHaveCount(0);
+	const fields = params.locator('input');
+	const n = await fields.count();
+	expect(n).toBe(6 * 2 + 1 + 1);
+	for (let i = 0; i < n; i++) await expect(fields.nth(i)).toHaveAttribute('inputmode', 'decimal');
+	// No sliders
+	await expect(page.locator('input[type="range"]')).toHaveCount(0);
+
+	// An invalid parameter shows inline and blocks Run
+	await params.getByRole('textbox', { name: 'σ of input K' }).fill('-1');
+	await expect(params.locator('.ui-error, .error').first()).toBeVisible();
+	await expect(runButton(page)).toBeDisabled();
+});
+
+test('results: inputs sorted by value of information, names in the tree, max depth 1', async ({
+	page
+}) => {
+	await open(page, link(small('airline-share-buyback')));
+	await press(page, 'Run', 1);
+	const rows = page.getByTestId('input-voi-row');
+	await expect(rows).toHaveCount(6);
+	const savings = (await rows.evaluateAll((els) =>
+		els.map((e) => Number(e.getAttribute('data-savings')))
+	)) as number[];
+	const finite = savings.filter(Number.isFinite);
+	expect(finite).toEqual([...finite].sort((a, b) => b - a));
+	expect(savings.slice(0, finite.length)).toEqual(finite);
+	await expect(rows.first()).toContainText('Share Return (R)');
+
+	const tree = page.getByTestId('policy-tree');
+	const names = [
+		'Share Return',
+		'Kilometers Flown',
+		'Fuel Cost per km',
+		'Loan Rate',
+		'Revenue per km',
+		'Interest Rate'
+	];
+	const splits = tree.locator('text.split-label');
+	expect(await splits.count()).toBeGreaterThan(1);
+	for (const label of await splits.allTextContents()) expect(names).toContain(label);
+	await expect(splits.first()).toHaveText('Share Return');
+
+	await page.getByRole('textbox', { name: 'Max depth' }).fill('1');
+	await page.getByRole('button', { name: 'Update tree' }).click();
+	await expect(page.getByTestId('run-status')).toHaveAttribute('data-done', '2', {
+		timeout: 20_000
+	});
+	// One split level: the root's split only, and the run stays on Results
+	await expect(splits).toHaveCount(1);
+	await expect(stepButton(page, 'Results')).toHaveAttribute('aria-current', 'step');
 });

@@ -99,3 +99,9 @@ export function formatLogTick(v: number): string {
 	if (v >= 1000) return v.toLocaleString('en', { notation: 'compact' });
 	return String(Number(v.toPrecision(3)));
 }
+
+/** Short tick label for small plots: 0.25, 1,200, 35k, 350M. */
+export function compactTick(v: number): string {
+	if (v === 0) return '0';
+	return v.toLocaleString('en', { notation: 'compact', maximumSignificantDigits: 3 });
+}

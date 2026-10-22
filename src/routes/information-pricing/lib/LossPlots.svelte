@@ -18,12 +18,12 @@
 	let width = $state(560);
 	const W = $derived(Math.max(280, width));
 	const longest = $derived(Math.max(...decisions.map((d) => d.length), 4));
-	const M = $derived({ left: Math.min(120, 14 + longest * 7), right: 14 });
-	const ROW = 26;
-	const HIST = 54;
-	const AXIS = 44;
+	const M = $derived({ left: Math.min(120, 14 + longest * 7), right: 64 });
+	const ROW = 22;
+	const HIST = 30;
+	const AXIS = 40;
 	const boxH = $derived(distributions.length * ROW + 8 + AXIS);
-	const histH = $derived(distributions.length * (HIST + 8) + AXIS);
+	const histH = $derived(distributions.length * (HIST + 4) + AXIS);
 
 	/** Shared x range: zero to the widest whisker or expected loss, in display units. */
 	const xMax = $derived.by(() => {
@@ -61,7 +61,7 @@
 
 <div class="stack" bind:clientWidth={width}>
 	<figure class="chart">
-		<figcaption>Loss per decision (box 25–75%, whiskers 5–95%, dashed line the EOL)</figcaption>
+		<figcaption>Box 25–75%, whiskers 5–95%, dashed line and number: expected loss</figcaption>
 		<svg
 			viewBox="0 0 {W} {boxH}"
 			width={W}
@@ -101,9 +101,9 @@
 				<rect
 					class="box"
 					x={x(d.box.q1)}
-					y={y - 8}
+					y={y - 7}
 					width={Math.max(1, x(d.box.q3) - x(d.box.q1))}
-					height={16}
+					height={14}
 					stroke={c}
 					fill={c}
 				/>
@@ -111,16 +111,17 @@
 					class="median"
 					x1={x(d.box.median)}
 					x2={x(d.box.median)}
-					y1={y - 8}
-					y2={y + 8}
+					y1={y - 7}
+					y2={y + 7}
 					stroke={c}
 				/>
-				<line class="eol" x1={x(d.expectedLoss)} x2={x(d.expectedLoss)} y1={y - 11} y2={y + 11} />
+				<line class="eol" x1={x(d.expectedLoss)} x2={x(d.expectedLoss)} y1={y - 10} y2={y + 10} />
+				<text class="eol-label" x={W - M.right + 6} y={y + 4}>{money.format(d.expectedLoss)}</text>
 			{/each}
 		</svg>
 	</figure>
 	<figure class="chart">
-		<figcaption>Loss histograms (dashed line the EOL)</figcaption>
+		<figcaption>Histograms</figcaption>
 		<svg
 			viewBox="0 0 {W} {histH}"
 			width={W}
@@ -140,7 +141,7 @@
 				title={unitTitle}
 			/>
 			{#each distributions as d, i (d.decision)}
-				{@const top = 4 + i * (HIST + 8)}
+				{@const top = 4 + i * (HIST + 4)}
 				{@const c = dataColour(d.decision)}
 				<text class="name" x={M.left - 8} y={top + HIST / 2 + 4} text-anchor="end"
 					>{decisions[d.decision]}</text
@@ -169,6 +170,11 @@
 		stroke: var(--text);
 		stroke-width: 1.5;
 		stroke-dasharray: 4 3;
+	}
+	.eol-label {
+		fill: var(--text);
+		font-size: 11px;
+		font-variant-numeric: tabular-nums;
 	}
 	.hist {
 		fill-opacity: 0.3;

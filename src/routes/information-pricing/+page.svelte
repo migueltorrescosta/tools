@@ -30,7 +30,7 @@
 		type SimulationEngine
 	} from '$lib/information-pricing/worker-engine';
 	import { browserStorage, clearSaved, createPersistGate } from '$lib/persist-gate';
-	import { Alert, Button, Field, PageHeader, Panel, ShareActions } from '$lib/ui';
+	import { Alert, Button, Field, PageHeader, Panel, ShareActions, Stepper } from '$lib/ui';
 	import { defaultWorkerCount } from '$lib/worker-pool';
 	import ConstantsEditor from './lib/ConstantsEditor.svelte';
 	import DecisionsEditor from './lib/DecisionsEditor.svelte';
@@ -49,6 +49,7 @@
 	import InputsEditor from './lib/InputsEditor.svelte';
 	import IntermediatesEditor from './lib/IntermediatesEditor.svelte';
 	import NumberInput from './lib/NumberInput.svelte';
+	import ParametersEditor from './lib/ParametersEditor.svelte';
 	import Results from './lib/Results.svelte';
 
 	// --- Model ---
@@ -82,6 +83,11 @@
 	function rename(from: string, to: string) {
 		model = renameSymbol($state.snapshot(model) as Model, from, to);
 	}
+
+	// --- Steps ---
+	const STEPS = ['Setup', 'Parameters', 'Results'] as const;
+	/** Current step, page state only (never in the link or the saved model). */
+	let step = $state(0);
 
 	// --- Engine ---
 	let engine: SimulationEngine | null = null;
@@ -117,6 +123,8 @@
 				if (pending?.model) {
 					runModel = pending.model;
 					runKey = pending.key ?? null;
+					// A fresh run (not Add scenarios or a tree update) shows its results.
+					step = 2;
 				}
 				if (pending?.tree) appliedTree = pending.tree;
 				pending = null;
@@ -223,6 +231,8 @@
 	const inputLabels = $derived(
 		runModel?.inputs.map((i) => (i.name ? `${i.name} (${i.symbol})` : i.symbol)) ?? []
 	);
+	/** Input names for the tree's splits; the symbol when the name is empty. */
+	const inputNames = $derived(runModel?.inputs.map((i) => i.name || i.symbol) ?? []);
 	const decisionNames = $derived(runModel ? decisionLabels(runModel.decisions) : []);
 	const count = (n: number) => n.toLocaleString('en');
 	const seconds = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
@@ -313,156 +323,151 @@
 		</div>
 	{/if}
 
-	<div class="layout">
-		<div class="stack editor">
-			<Panel title="Run">
-				<div class="stack">
-					<div class="grid-2">
-						<NumberInput
-							label="Samples"
-							value={model.samples}
-							onchange={(v) => (model.samples = v)}
-							error={samplesError}
-							hint="Up to {count(MAX_SAMPLES)}."
-						/>
-						<NumberInput
-							label="Seed"
-							value={model.seed}
-							onchange={(v) => (model.seed = v)}
-							error={seedError}
-						/>
-					</div>
-					<div class="cluster">
-						<Button
-							variant="primary"
-							onclick={run}
-							disabled={running || problems.length > 0}
-							aria-describedby={problems.length > 0 ? 'run-reason' : undefined}>Run</Button
-						>
-						<Button
-							onclick={addScenarios}
-							disabled={running || !analysis || !!samplesError}
-							aria-describedby="add-hint">Add scenarios</Button
-						>
-						{#if running}<Button variant="danger" onclick={cancel}>Cancel</Button>{/if}
-					</div>
-					<p id="add-hint" class="muted">
-						{#if analysis}Add scenarios appends {count(model.samples || 0)} to the {count(
-								scenarioCount
-							)} you have.{:else}Run first, then add more scenarios to the same set.{/if}
-					</p>
-					{#if running && progress}
-						<div class="progress" data-testid="progress">
-							<label for="run-progress">{stage}</label>
-							<progress
-								id="run-progress"
-								max={progress.total || 1}
-								value={progress.stage === 'analysing' ? undefined : progress.done}
-							></progress>
-							<span class="muted" data-testid="elapsed">{seconds(progress.elapsedMs)}</span>
-						</div>
-					{/if}
-					<p class="muted" role="status" data-testid="run-status" data-done={completed}>
-						{#if !running && analysis && doneMs !== null}{count(scenarioCount)} scenarios · done in {seconds(
-								doneMs
-							)}{/if}
-					</p>
-					{#if problems.length > 0}
-						<div id="run-reason" data-testid="run-reason">
-							<Alert tone="warning">
-								Fix the model to run:
-								<ul class="problems">
-									{#each problems.slice(0, 8) as p, i (i)}<li>{p}</li>{/each}
-									{#if problems.length > 8}<li>…and {problems.length - 8} more.</li>{/if}
-								</ul>
-							</Alert>
-						</div>
-					{/if}
-					{#if runError}<Alert tone="danger">The run failed: {runError}</Alert>{/if}
-					<div>
-						<Button
-							size="sm"
-							onclick={downloadCsv}
-							disabled={running || !analysis}
-							data-testid="download-csv">Download scenarios (CSV)</Button
-						>
-					</div>
-				</div>
-			</Panel>
+	<Stepper
+		label="Steps"
+		current={step}
+		steps={STEPS.map((label, i) => ({ label, disabled: i === 2 && !analysis }))}
+		onselect={(i) => (step = i)}
+	/>
 
-			<Panel title="Model">
-				<div class="stack model">
-					<Field label="Preset" hint={preset ? undefined : 'Your own model.'}>
-						{#snippet children(props)}
-							<select
-								class="control"
-								value={preset ?? 'custom'}
-								onchange={(e) => choosePreset(e.currentTarget.value)}
-								data-testid="preset"
-								{...props}
-							>
-								{#each PRESETS as p (p.id)}<option value={p.id}>{p.name}</option>{/each}
-								<option value="custom" disabled>Custom</option>
-							</select>
-						{/snippet}
-					</Field>
-					<InputsEditor bind:model bind:ids {errors} onrename={rename} />
-					<ConstantsEditor bind:model bind:ids {errors} onrename={rename} />
-					<IntermediatesEditor bind:model bind:ids {errors} onrename={rename} />
-					<DecisionsEditor bind:model bind:ids {errors} onrename={rename} />
-					{#each errors.filter((e) => e.where.kind === 'model') as e, i (i)}
-						<Alert tone="warning">{e.message}</Alert>
-					{/each}
-				</div>
-			</Panel>
+	<div class="runbar" data-testid="run-bar">
+		<div class="run-fields">
+			<NumberInput
+				label="Samples"
+				value={model.samples}
+				onchange={(v) => (model.samples = v)}
+				error={samplesError}
+			/>
+			<NumberInput
+				label="Seed"
+				value={model.seed}
+				onchange={(v) => (model.seed = v)}
+				error={seedError}
+			/>
 		</div>
-
-		<div class="stack output">
-			{#if stale}
-				<div data-testid="stale">
-					<Alert tone="warning">Results are out of date, run again.</Alert>
-				</div>
-			{/if}
-			{#if analysis && runModel}
-				<Results
-					{analysis}
-					decisions={decisionNames}
-					inputs={inputLabels}
-					unit={runModel.decisions.unit}
-					bind:tree
-					applied={appliedTree}
-					busy={running}
-					onretree={retree}
-				/>
-			{:else}
-				<Panel title="Results">
-					<p class="muted placeholder">
-						Pick a preset or build your own model, then press Run. Results show up here.
-					</p>
-				</Panel>
-			{/if}
+		<div class="run-actions">
+			<Button
+				variant="primary"
+				onclick={run}
+				disabled={running || problems.length > 0}
+				aria-describedby={problems.length > 0 ? 'run-reason' : undefined}>Run</Button
+			>
+			<Button
+				onclick={addScenarios}
+				disabled={running || !analysis || !!samplesError}
+				aria-describedby="add-hint">Add scenarios</Button
+			>
+			{#if running}<Button variant="danger" onclick={cancel}>Cancel</Button>{/if}
+			<Button
+				variant="ghost"
+				onclick={downloadCsv}
+				disabled={running || !analysis}
+				data-testid="download-csv"
+				><span aria-hidden="true">↓</span><span class="sr-only">Download</span> Scenarios (CSV)</Button
+			>
 		</div>
+		<div class="run-status">
+			{#if running && progress}
+				<span class="progress" data-testid="progress">
+					<label for="run-progress">{stage}</label>
+					<progress
+						id="run-progress"
+						max={progress.total || 1}
+						value={progress.stage === 'analysing' ? undefined : progress.done}
+					></progress>
+					<span data-testid="elapsed">{seconds(progress.elapsedMs)}</span>
+				</span>
+			{/if}
+			<span role="status" data-testid="run-status" data-done={completed}
+				>{#if !running && analysis && doneMs !== null}{count(scenarioCount)} scenarios · {seconds(
+						doneMs
+					)}{/if}</span
+			>
+			{#if stale}<span class="stale" data-testid="stale">Out of date, run again</span>{/if}
+		</div>
+		<p id="add-hint" class="sr-only">
+			{#if analysis}Appends {count(model.samples || 0)} to the {count(scenarioCount)} scenarios you have.{:else}Run
+				first.{/if}
+		</p>
 	</div>
+
+	{#if problems.length > 0}
+		<div id="run-reason" class="notice" data-testid="run-reason">
+			<Alert tone="warning">
+				Fix the model to run:
+				<ul class="problems">
+					{#each problems.slice(0, 8) as p, i (i)}<li>{p}</li>{/each}
+					{#if problems.length > 8}<li>…and {problems.length - 8} more.</li>{/if}
+				</ul>
+			</Alert>
+		</div>
+	{/if}
+	{#if runError}<div class="notice">
+			<Alert tone="danger">The run failed: {runError}</Alert>
+		</div>{/if}
+
+	{#if step === 0}
+		<div class="model" data-testid="setup">
+			<div class="preset">
+				<Field label="Preset">
+					{#snippet children(props)}
+						<select
+							class="control"
+							value={preset ?? 'custom'}
+							onchange={(e) => choosePreset(e.currentTarget.value)}
+							data-testid="preset"
+							{...props}
+						>
+							{#each PRESETS as p (p.id)}<option value={p.id}>{p.name}</option>{/each}
+							<option value="custom" disabled>Custom</option>
+						</select>
+					{/snippet}
+				</Field>
+			</div>
+			<div class="columns">
+				<div class="stack column">
+					<div class="card"><InputsEditor bind:model bind:ids {errors} onrename={rename} /></div>
+					<div class="card"><ConstantsEditor bind:model bind:ids {errors} onrename={rename} /></div>
+				</div>
+				<div class="stack column">
+					<div class="card">
+						<IntermediatesEditor bind:model bind:ids {errors} onrename={rename} />
+					</div>
+					<div class="card"><DecisionsEditor bind:model {errors} onrename={rename} /></div>
+				</div>
+			</div>
+			{#each errors.filter((e) => e.where.kind === 'model') as e, i (i)}
+				<Alert tone="warning">{e.message}</Alert>
+			{/each}
+		</div>
+	{:else if step === 1}
+		<div class="model" data-testid="parameters">
+			<ParametersEditor bind:model bind:ids {errors} />
+		</div>
+	{:else if analysis && runModel}
+		<Results
+			{analysis}
+			decisions={decisionNames}
+			inputs={inputLabels}
+			names={inputNames}
+			unit={runModel.decisions.unit}
+			bind:tree
+			applied={appliedTree}
+			busy={running}
+			onretree={retree}
+		/>
+	{:else}
+		<Panel title="Results">
+			<p class="muted">Press Run to see results here.</p>
+		</Panel>
+	{/if}
 
 	<HowItWorks />
 </div>
 
 <style>
-	.layout {
-		display: grid;
-		gap: var(--sp-3);
-		align-items: start;
-	}
-	@media (min-width: 1000px) {
-		.layout {
-			grid-template-columns: minmax(360px, 440px) minmax(0, 1fr);
-		}
-	}
-	.editor,
-	.output {
-		min-width: 0;
-	}
-	.link-error {
+	.link-error,
+	.notice {
 		margin-bottom: var(--sp-3);
 	}
 	.muted {
@@ -470,71 +475,155 @@
 		font-size: var(--text-sm);
 		color: var(--text-muted);
 	}
-	.muted:empty {
-		display: none;
-	}
-	.placeholder {
-		padding: var(--sp-4) 0;
-	}
-	.grid-2 {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+
+	/* Run bar: one wrapping row under the stepper. */
+	.runbar {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
 		gap: var(--sp-2) var(--sp-3);
+		margin-bottom: var(--sp-3);
+		padding: var(--sp-2) var(--sp-3);
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+	}
+	.run-fields {
+		display: flex;
+		gap: var(--sp-2) var(--sp-3);
+		flex-wrap: wrap;
+	}
+	.run-fields :global(.ui-field) {
+		display: grid;
+		grid-template-columns: auto 6.5rem;
+		align-items: center;
+		gap: var(--sp-0) var(--sp-1);
+	}
+	.run-fields :global(.ui-field > .ui-error) {
+		grid-column: 1 / -1;
+		max-width: 12rem;
+	}
+	.run-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--sp-1);
+	}
+	.run-status {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--sp-1) var(--sp-3);
+		min-height: var(--control-h);
+		font-size: var(--text-sm);
+		color: var(--text-muted);
 	}
 	.progress {
-		display: grid;
-		grid-template-columns: 1fr auto;
+		display: inline-flex;
 		align-items: center;
-		gap: var(--sp-1) var(--sp-2);
-		font-size: var(--text-sm);
-	}
-	.progress label {
-		grid-column: 1 / -1;
+		gap: var(--sp-2);
+		font-variant-numeric: tabular-nums;
 	}
 	progress {
-		width: 100%;
+		width: 8rem;
 		accent-color: var(--accent);
+	}
+	.stale {
+		padding: var(--sp-0) var(--sp-2);
+		border: 1px solid var(--warning);
+		border-radius: 999px;
+		background: var(--warning-bg);
+		color: var(--warning-text);
+		font-size: var(--text-xs);
 	}
 	.problems {
 		margin: var(--sp-1) 0 0;
 		padding-left: var(--sp-4);
 	}
+
+	/* Setup and Parameters */
+	.model {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-3);
+	}
+	.preset :global(.ui-field) {
+		flex-direction: row;
+		align-items: center;
+		gap: var(--sp-2);
+	}
+	.preset select {
+		width: auto;
+		min-width: 14rem;
+		max-width: 100%;
+	}
+	.model :global(.columns) {
+		display: grid;
+		gap: var(--sp-3);
+		align-items: start;
+	}
+	@media (min-width: 900px) {
+		.model :global(.columns) {
+			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		}
+	}
+	.model :global(.column) {
+		--gap: var(--sp-3);
+		min-width: 0;
+	}
+	.model :global(.card) {
+		container-type: inline-size;
+		min-width: 0;
+		padding: var(--sp-3);
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+	}
 	.model :global(.section) {
-		padding-top: var(--sp-3);
-		border-top: 1px solid var(--border);
 		--gap: var(--sp-2);
 	}
 	.model :global(.section h3) {
 		margin: 0;
-		font-size: var(--text-md);
+		font-size: var(--text-sm);
+		font-weight: 600;
 	}
-	.model :global(.row) {
-		display: flex;
-		align-items: flex-start;
-		gap: var(--sp-1);
-		padding: var(--sp-2);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		background: var(--surface-2);
+	.model :global(.cols) {
+		font-size: var(--text-xs);
+		color: var(--text-muted);
+		margin-bottom: calc(-1 * var(--sp-1));
 	}
-	.model :global(.fields) {
-		flex: 1;
-		min-width: 0;
+	.model :global(.input-cols),
+	.model :global(.constant-cols) {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
-		gap: var(--sp-2);
+		gap: var(--sp-1) var(--sp-2);
+		align-items: start;
 	}
-	.model :global(.wide) {
+	.model :global(.input-cols) {
+		grid-template-columns: 4.5rem minmax(0, 1fr) minmax(0, 8rem) 2rem;
+	}
+	.model :global(.constant-cols) {
+		grid-template-columns: 4.5rem minmax(0, 1fr) 2rem;
+	}
+	@container (max-width: 26rem) {
+		.model :global(.input-cols),
+		.model :global(.constant-cols) {
+			column-gap: var(--sp-1);
+		}
+		.model :global(.input-cols) {
+			grid-template-columns: 3.25rem minmax(0, 1fr) 7rem 1.75rem;
+		}
+		.model :global(.constant-cols) {
+			grid-template-columns: 3.25rem minmax(0, 1fr) 1.75rem;
+		}
+	}
+	.model :global(.formula) {
 		grid-column: 1 / -1;
 		min-width: 0;
 	}
-	.model :global(.remove) {
-		flex: none;
-		margin-top: 20px;
+	.model :global([data-testid='intermediate-row'] + [data-testid='intermediate-row']) {
+		padding-top: var(--sp-2);
+		border-top: 1px solid var(--border);
 	}
-	.model :global(.muted) {
-		margin: 0;
-		font-size: var(--text-sm);
-		color: var(--text-muted);
+	.model :global(.remove) {
+		margin-top: 2px;
 	}
 </style>

@@ -55,7 +55,14 @@ export function nodeLines(n: PolicyTreeView['nodes'][number]): string[] {
 export const LINE_HEIGHT = 16;
 const PAD = 8;
 
-export function layoutTree(view: PolicyTreeView): TreeLayout {
+/** Text of a split pill: the input's name from `names` (model order), else the view's label. */
+export function splitText(s: PolicyTreeView['splits'][number], names?: readonly string[]): string {
+	return names?.[s.input] || s.inputLabel;
+}
+
+export const SPLIT_HEIGHT = 26;
+
+export function layoutTree(view: PolicyTreeView, names?: readonly string[]): TreeLayout {
 	const g = new dagre.graphlib.Graph();
 	g.setGraph({ rankdir: 'TB', nodesep: 10, ranksep: 26, edgesep: 8, marginx: 6, marginy: 6 });
 	g.setDefaultEdgeLabel(() => ({}));
@@ -67,7 +74,10 @@ export function layoutTree(view: PolicyTreeView): TreeLayout {
 		});
 	}
 	for (const s of view.splits) {
-		g.setNode(`s${s.node}`, { width: textWidth(s.inputLabel) + 44, height: 36 });
+		g.setNode(`s${s.node}`, {
+			width: textWidth(splitText(s, names)) + 24,
+			height: SPLIT_HEIGHT
+		});
 		g.setEdge(`n${s.node}`, `s${s.node}`, {});
 		for (const e of s.edges)
 			g.setEdge(`s${s.node}`, `n${e.child}`, {
