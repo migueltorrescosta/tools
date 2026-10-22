@@ -10,8 +10,10 @@ import {
 	linear,
 	logDomain,
 	logScale,
+	logDecadeBounds,
 	logTicks,
 	money,
+	placeLabels,
 	spreadLabels,
 	voiBounds
 } from './format';
@@ -92,6 +94,39 @@ describe('format', () => {
 		// Crowded at the bottom: the stack moves up.
 		expect(spreadLabels([200, 200, 199], 12, 0, 200)).toEqual([188, 200, 176]);
 		expect(spreadLabels([-5], 12, 0, 200)).toEqual([0]);
+	});
+
+	it('bounds a log axis three decades under the next power of 10 above the max', () => {
+		expect(logDecadeBounds(42)).toEqual([0.1, 100]);
+		expect(logDecadeBounds(15.6)).toEqual([0.1, 100]);
+		// A max on a power of 10 moves the top up, off the frame.
+		expect(logDecadeBounds(100)).toEqual([1, 1000]);
+		expect(logDecadeBounds(0.034)).toEqual([0.0001, 0.1]);
+		expect(logDecadeBounds(7, 2)).toEqual([0.1, 10]);
+		expect(logDecadeBounds(0)).toBeNull();
+		expect(logDecadeBounds(-3)).toBeNull();
+		expect(logDecadeBounds(NaN)).toBeNull();
+		expect(logDecadeBounds(Infinity)).toBeNull();
+	});
+
+	it('places point labels clear of the points, each other and the frame', () => {
+		const frame = { x0: 0, x1: 200, y0: 0, y1: 100 };
+		// Alone: to the right of the point.
+		expect(placeLabels([{ x: 50, y: 50, width: 20 }], frame)).toEqual([
+			{ x: 57, y: 54.5, anchor: 'start' }
+		]);
+		// At the right edge: to the left.
+		expect(placeLabels([{ x: 195, y: 50, width: 20 }], frame)[0].anchor).toBe('end');
+		// Two points side by side: the labels go outwards, clear of the other point.
+		const [a, b] = placeLabels(
+			[
+				{ x: 50, y: 50, width: 30 },
+				{ x: 70, y: 50, width: 30 }
+			],
+			frame
+		);
+		expect(a).toEqual({ x: 43, y: 54.5, anchor: 'end' });
+		expect(b).toEqual({ x: 77, y: 54.5, anchor: 'start' });
 	});
 
 	it('cycles dash patterns, solid first', () => {

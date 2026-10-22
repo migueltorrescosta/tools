@@ -19,8 +19,9 @@ export interface TreeNodeView {
 	/** True for the status-quo (root) decision, drawn without a border. */
 	isStatusQuo: boolean;
 	/**
-	 * Savings fill on the green (0) to red (1) scale: savings × share over the
-	 * tree's largest weighted savings, clamped to [0, 1]; null when missing.
+	 * Savings fill on the green (0) to red (1) scale, log over two decades:
+	 * 1 at the tree's largest savings × share, 0.5 at a tenth of it, 0 at a
+	 * hundredth or less (and for zero or negative savings); null when missing.
 	 */
 	fill: number | null;
 }
@@ -64,6 +65,15 @@ const SUPERSCRIPT: Record<string, string> = {
 	'-': '⁻'
 };
 
+/** Decades of savings × share the fill spans, from red (the largest) down to green. */
+export const FILL_DECADES = 2;
+
+/** Fill of a share `r` of the largest savings × share: log10 over `FILL_DECADES`, clamped to [0, 1]. */
+export function logFill(r: number): number {
+	if (!(r > 0)) return 0;
+	return Math.min(1, Math.max(0, 1 + Math.log10(r) / FILL_DECADES));
+}
+
 /** A threshold to five significant digits, as the reference labels it. */
 export function formatThreshold(threshold: number): string {
 	return pyGeneral(threshold, 5);
@@ -89,7 +99,7 @@ export function policyTreeView(
 		let fill: number | null;
 		if (!Number.isFinite(weighted)) fill = null;
 		else if (!Number.isFinite(maxWeighted) || maxWeighted <= 0) fill = 0;
-		else fill = Math.min(1, Math.max(0, weighted / maxWeighted));
+		else fill = logFill(weighted / maxWeighted);
 		const decisionLabel = labels.decisions[node.decision];
 		const savings = pyRoundString(node.savings / scale);
 		return {

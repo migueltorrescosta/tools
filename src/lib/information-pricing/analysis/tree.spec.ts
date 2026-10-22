@@ -4,7 +4,7 @@ import { lossDistributions } from './distributions';
 import { lossSummary } from './losses';
 import { lossMatrix } from './numeric';
 import { buildPolicyTree, PolicyTreeError, type InternalNode } from './tree';
-import { policyTreeView } from './tree-view';
+import { logFill, policyTreeView } from './tree-view';
 import { crossValidated, valueOfInformation } from './voi';
 
 function scenarios(inputs: Record<string, Float64Array>, rewards: Float64Array[]): Scenarios {
@@ -108,8 +108,25 @@ describe('buildPolicyTree', () => {
 				]
 			}
 		]);
+		// Log fill: red at the largest savings × share, green for none.
 		expect(view.nodes[3].fill).toBe(1);
+		expect(view.nodes[0].fill).toBe(0);
+		expect(view.nodes[2].fill).toBe(0);
+		// 7516 × 30.6% against 9346 × 29.4%: within a decade, so past yellow.
+		expect(view.nodes[1].fill).toBeGreaterThan(0.5);
+		expect(view.nodes[1].fill).toBeLessThan(1);
 		expect(view.footer).toEqual(['savings versus the status quo: B']);
+	});
+
+	it('fills on a log scale over two decades', () => {
+		expect(logFill(1)).toBe(1);
+		expect(logFill(0.1)).toBeCloseTo(0.5, 12);
+		expect(logFill(0.01)).toBe(0);
+		expect(logFill(0.001)).toBe(0);
+		expect(logFill(0)).toBe(0);
+		expect(logFill(-1)).toBe(0);
+		expect(logFill(NaN)).toBe(0);
+		expect(logFill(2)).toBe(1);
 	});
 
 	it('grows nothing at depth 0 and rejects degenerate data', () => {

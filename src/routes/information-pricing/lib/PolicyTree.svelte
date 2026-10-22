@@ -34,7 +34,7 @@
 	});
 	const byId = $derived(new Map(view.nodes.map((n) => [n.id, n])));
 	const splitOf = $derived(new Map(view.splits.map((s) => [s.node, s])));
-	/** Savings × share fill: green at 0, yellow halfway, red at the tree's largest. */
+	/** Savings × share fill (log, from the view): green at 0, yellow halfway, red at the tree's largest. */
 	const fill = (f: number | null) =>
 		f === null
 			? 'var(--surface-2)'
@@ -133,6 +133,8 @@
 					height={box.height}
 					rx="5"
 					fill={fill(n.fill)}
+					data-fill={n.fill}
+					data-testid="tree-node"
 					stroke={n.isStatusQuo ? undefined : dataColour(n.decision)}
 				/>
 				{#each nodeLines(n) as line, k (k)}
@@ -149,8 +151,8 @@
 	<figcaption class="footer">
 		{#each view.footer as line (line)}<span>{line}</span>{/each}
 		<span
-			>Each box: what its scenarios save, and their share. Its border is the decision; redder boxes
-			save more overall.</span
+			>Each box: what its scenarios save, and their share. Its border is the decision. Red boxes
+			save the most overall; a box saving a tenth as much is yellow, a hundredth or less green.</span
 		>
 	</figcaption>
 </figure>

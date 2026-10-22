@@ -146,6 +146,17 @@ export function voiBounds(evpi: number, savings: Iterable<number>): [number, num
 	return [pow10(bottom), pow10(top)];
 }
 
+/**
+ * Log bounds spanning `span` decades below the smallest power of 10 above
+ * `max` (one up when `max` is itself a power of 10), as `voiBounds` tops out.
+ * `logDecadeBounds(42)` → `[0.1, 100]`. Null when `max` isn't positive and finite.
+ */
+export function logDecadeBounds(max: number, span = 3): [number, number] | null {
+	if (!(max > 0) || !Number.isFinite(max)) return null;
+	const top = decadeOf(max) + 1;
+	return [pow10(top - span), pow10(top)];
+}
+
 /** Powers of ten from `lo` to `hi`, both powers of ten. */
 export function decades(lo: number, hi: number): number[] {
 	const a = Math.round(Math.log10(lo));
@@ -175,3 +186,55 @@ export function spreadLabels(ys: readonly number[], gap: number, lo: number, hi:
 /** Dash patterns that tell the value-of-information lines apart (cycled). */
 export const DASHES = ['', '7 3', '2 2.5', '9 3 2 3', '4 4', '12 3 2 3 2 3'] as const;
 export const dash = (i: number) => DASHES[i % DASHES.length];
+
+/** A point label: text anchor position and alignment, in pixels. */
+export interface PlacedLabel {
+	x: number;
+	y: number;
+	anchor: 'start' | 'middle' | 'end';
+}
+
+/**
+ * Places a label of `width` × `height` pixels next to each point (pixels),
+ * trying right, left, above, below and then further out, and keeping the
+ * first spot that clears the other points, the labels placed so far and the
+ * frame `[x0, x1] × [y0, y1]`. A label with no free spot takes the right.
+ * `y` is the text baseline. Returns one placement per point, in order.
+ */
+export function placeLabels(
+	points: readonly { x: number; y: number; width: number }[],
+	frame: { x0: number; x1: number; y0: number; y1: number },
+	height = 11,
+	radius = 5
+): PlacedLabel[] {
+	type Box = [number, number, number, number];
+	const overlaps = (a: Box, b: Box) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
+	const taken: Box[] = points.map((p) => [p.x - radius, p.y - radius, p.x + radius, p.y + radius]);
+	return points.map((p, i) => {
+		const g = radius + 2;
+		const candidates: PlacedLabel[] = [
+			{ x: p.x + g, y: p.y + height / 2 - 1, anchor: 'start' },
+			{ x: p.x - g, y: p.y + height / 2 - 1, anchor: 'end' },
+			{ x: p.x, y: p.y - g, anchor: 'middle' },
+			{ x: p.x, y: p.y + g + height - 1, anchor: 'middle' },
+			...[-1, 1].flatMap((s) => [
+				{ x: p.x + g, y: p.y + s * height + height / 2 - 1, anchor: 'start' as const },
+				{ x: p.x - g, y: p.y + s * height + height / 2 - 1, anchor: 'end' as const }
+			])
+		];
+		const box = (c: PlacedLabel): Box => {
+			const left =
+				c.anchor === 'start' ? c.x : c.anchor === 'end' ? c.x - p.width : c.x - p.width / 2;
+			return [left, c.y - height + 1, left + p.width, c.y + 1];
+		};
+		const fits = (b: Box) =>
+			b[0] >= frame.x0 &&
+			b[2] <= frame.x1 &&
+			b[1] >= frame.y0 &&
+			b[3] <= frame.y1 &&
+			taken.every((t, k) => k === i || !overlaps(b, t));
+		const pick = candidates.find((c) => fits(box(c))) ?? candidates[0];
+		taken.push(box(pick));
+		return pick;
+	});
+}

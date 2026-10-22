@@ -1,12 +1,19 @@
 <script lang="ts">
-	import type { Analysis } from '$lib/information-pricing/analysis';
+	import type {
+		GroupTable,
+		InputDensity,
+		PartialAnalysis,
+		ValueOfInformation
+	} from '$lib/information-pricing/analysis';
 	import { Alert, Button, Panel } from '$lib/ui';
 	import { dash, dataColour, inputColour, linear, linePath, money as makeMoney } from './format';
 	import InputRow from './InputRow.svelte';
 	import LossPlots from './LossPlots.svelte';
 	import NumberInput from './NumberInput.svelte';
+	import Pending from './Pending.svelte';
 	import PolicyTree from './PolicyTree.svelte';
 	import VoiChart from './VoiChart.svelte';
+	import VoiScatter from './VoiScatter.svelte';
 	import { treeErrors, treeValid, type TreeSettings } from './editor';
 
 	let {
@@ -14,18 +21,28 @@
 		decisions,
 		inputs,
 		names,
+		symbols,
+		intermediates,
+		dependent,
 		tree = $bindable(),
 		applied,
 		busy,
 		onretree
 	}: {
-		analysis: Analysis;
+		/** The analysis so far: the value of information and the tree may still be computing. */
+		analysis: PartialAnalysis;
 		/** Decision labels, model order. */
 		decisions: readonly string[];
 		/** Input labels, model order, e.g. "Number of Packages (N)". */
 		inputs: readonly string[];
 		/** Input names (the symbol when unnamed), model order, for the tree. */
 		names: readonly string[];
+		/** Input symbols, model order, to label the scatter. */
+		symbols: readonly string[];
+		/** Labels of the decision-independent intermediates, `analysis.intermediates` order. */
+		intermediates: readonly string[];
+		/** Labels of the intermediates that use the decision (no analysis). */
+		dependent: readonly string[];
 		tree: TreeSettings;
 		/** The settings the shown tree was grown with. */
 		applied: TreeSettings;
@@ -37,8 +54,32 @@
 	const summary = $derived(analysis.summary);
 	const money = $derived(makeMoney(summary.displayExponent, summary.displayedUnit));
 	const voi = $derived(analysis.valueOfInformation);
-	/** The largest bin count, whose savings rank the inputs. */
-	const lastBin = $derived(voi.bins.length - 1);
+	const ivoi = $derived(analysis.intermediates.valueOfInformation);
+	/** The largest bin count, whose savings rank the rows. */
+	const binsShown = $derived(voi?.bins.at(-1) ?? 10);
+	/** Rows by value of information once it's in; model order until then. */
+	const orderOf = (v: ValueOfInformation | undefined, n: number) =>
+		v?.order ?? Array.from({ length: n }, (_, j) => j);
+	const inputOrder = $derived(orderOf(voi, analysis.densities.length));
+	const intermediateOrder = $derived(orderOf(ivoi, analysis.intermediates.densities.length));
+
+	/** Scatter: value of knowing each input first against its profit swing. */
+	const points = $derived(
+		voi
+			? analysis.profitSwing.map((p, j) => ({
+					j,
+					label: symbols[j],
+					name: names[j],
+					saves: voi.savings[j].at(-1) ?? NaN,
+					swing: p.sd,
+					share: p.epsilon2
+				}))
+			: []
+	);
+
+	/** Last rendered heights, so a pending box takes the place of what it replaces. */
+	let treeH = $state(300);
+	let voiH = $state(640);
 
 	/** A tiny line of the savings against the bin count. */
 	const SPARK = { w: 56, h: 16 };
@@ -62,6 +103,61 @@
 			tree.minImpurityDecrease !== applied.minImpurityDecrease
 	);
 </script>
+
+{#snippet row(
+	kind: 'input' | 'intermediate',
+	j: number,
+	label: string,
+	density: InputDensity,
+	groups: GroupTable,
+	savings: Float64Array | undefined
+)}
+	{@const saves = savings?.at(-1)}
+	<div
+		class="input-row {kind}"
+		data-testid="{kind}-voi-row"
+		data-savings={saves}
+		aria-busy={savings ? undefined : 'true'}
+	>
+		<div class="row-label">
+			<span class="name"
+				>{#if kind === 'input'}<svg
+						class="input-key"
+						viewBox="0 0 16 10"
+						width="16"
+						height="10"
+						aria-hidden="true"
+						data-testid="input-swatch"
+						><line
+							x1="1"
+							y1="5"
+							x2="15"
+							y2="5"
+							stroke={inputColour(j)}
+							stroke-dasharray={dash(j) || undefined}
+						/></svg
+					>{/if}{label}</span
+			>
+			{#if savings && saves !== undefined}
+				<span class="saves">
+					<span class="sr-only">saves</span>
+					<strong>{money.format(saves)}</strong>
+					<svg
+						class="spark"
+						viewBox="0 0 {SPARK.w} {SPARK.h}"
+						width={SPARK.w}
+						height={SPARK.h}
+						aria-hidden="true"><path d={spark(savings)} /></svg
+					>
+					<span class="sr-only">with {binsShown} bins</span>
+				</span>
+			{:else}
+				<Pending inline label="Computing the value of information…" />
+			{/if}
+		</div>
+		<InputRow {label} {density} {groups} {decisions} {money} />
+	</div>
+{/snippet}
 
 <div class="stack results" data-testid="results">
 	<dl class="headline" data-testid="headline">
@@ -117,17 +213,23 @@
 						>Update tree</Button
 					>
 				</form>
-				{#if 'error' in analysis.tree}
-					<Alert tone="info">No tree to show: {analysis.tree.error}</Alert>
+				{#if !analysis.tree}
+					<Pending label="Computing the policy tree…" height={treeH} />
 				{:else}
-					<PolicyTree view={analysis.tree.view} inputs={names} />
+					<div bind:clientHeight={treeH} data-testid="tree-ready">
+						{#if 'error' in analysis.tree}
+							<Alert tone="info">No tree to show: {analysis.tree.error}</Alert>
+						{:else}
+							<PolicyTree view={analysis.tree.view} inputs={names} />
+						{/if}
+					</div>
 				{/if}
 			</div>
 		</Panel>
 	</div>
 
 	<div class="columns">
-		<div class="column" data-testid="inputs-box">
+		<div class="column inputs-col" data-testid="inputs-box">
 			<Panel title="Inputs by value of information">
 				<div class="stack" style="--gap: var(--sp-2)">
 					<ul class="key" aria-label="Decisions">
@@ -137,66 +239,80 @@
 					</ul>
 					<div class="inputs">
 						<div class="input-row head" aria-hidden="true">
-							<span>Input · saves with {voi.bins[lastBin]} bins</span>
+							<span>Input · saves with {binsShown} bins</span>
 							<span>Spread (dashed: deciles)</span>
 							<span>Mean loss per decile (log); band and ring: best</span>
 						</div>
-						{#each voi.order as j (j)}
-							{@const saves = voi.savings[j][lastBin]}
-							<div class="input-row" data-testid="input-voi-row" data-savings={saves}>
-								<div class="row-label">
-									<span class="name"
-										><svg
-											class="input-key"
-											viewBox="0 0 16 10"
-											width="16"
-											height="10"
-											aria-hidden="true"
-											data-testid="input-swatch"
-											><line
-												x1="1"
-												y1="5"
-												x2="15"
-												y2="5"
-												stroke={inputColour(j)}
-												stroke-dasharray={dash(j) || undefined}
-											/></svg
-										>{inputs[j]}</span
-									>
-									<span class="saves">
-										<span class="sr-only">saves</span>
-										<strong>{money.format(saves)}</strong>
-										<svg
-											class="spark"
-											viewBox="0 0 {SPARK.w} {SPARK.h}"
-											width={SPARK.w}
-											height={SPARK.h}
-											aria-hidden="true"><path d={spark(voi.savings[j])} /></svg
-										>
-										<span class="sr-only">with {voi.bins[lastBin]} bins</span>
-									</span>
-								</div>
-								<InputRow
-									label={inputs[j]}
-									density={analysis.densities[j]}
-									groups={analysis.groups[j]}
-									{decisions}
-									{money}
-								/>
-							</div>
+						{#each inputOrder as j (j)}
+							{@render row(
+								'input',
+								j,
+								inputs[j],
+								analysis.densities[j],
+								analysis.groups[j],
+								voi?.savings[j]
+							)}
 						{/each}
 					</div>
+					{#if intermediates.length > 0 || dependent.length > 0}
+						<section
+							class="intermediates"
+							aria-labelledby="intermediates-voi-heading"
+							data-testid="intermediates-box"
+						>
+							<h3 id="intermediates-voi-heading">Intermediates by value of information</h3>
+							<p class="note">
+								Worked out from the inputs, so their value overlaps with the inputs' and doesn't add
+								up with them.
+							</p>
+							{#if intermediates.length > 0}
+								<div class="inputs">
+									<div class="input-row head" aria-hidden="true">
+										<span>Saves with {binsShown} bins</span>
+										<span>Spread (dashed: deciles)</span>
+										<span>Mean loss per decile (log); band and ring: best</span>
+									</div>
+									{#each intermediateOrder as j (j)}
+										{@render row(
+											'intermediate',
+											j,
+											intermediates[j],
+											analysis.intermediates.densities[j],
+											analysis.intermediates.groups[j],
+											ivoi?.savings[j]
+										)}
+									{/each}
+								</div>
+							{/if}
+							{#if dependent.length > 0}
+								<ul class="dependent" aria-label="Intermediates that depend on the decision">
+									{#each dependent as label (label)}
+										<li data-testid="dependent-intermediate">
+											<span class="name">{label}</span> depends on the decision
+										</li>
+									{/each}
+								</ul>
+							{/if}
+						</section>
+					{/if}
 				</div>
 			</Panel>
 		</div>
-		<div class="stack column side">
-			<div data-testid="losses-box">
-				<Panel title="Loss distributions">
-					<LossPlots distributions={analysis.distributions} {decisions} {money} />
-				</Panel>
-			</div>
+		<div class="column losses-col" data-testid="losses-box">
+			<Panel title="Loss distributions">
+				<LossPlots distributions={analysis.distributions} {decisions} {money} />
+			</Panel>
+		</div>
+		<div class="column voi-col" data-testid="voi-box">
 			<Panel title="Value of information">
-				<VoiChart {voi} inputs={names} {money} evpi={summary.expectedLoss[summary.best]} />
+				{#if voi}
+					<div class="stack" style="--gap: var(--sp-3)" bind:clientHeight={voiH}>
+						<VoiChart {voi} inputs={names} {money} evpi={summary.expectedLoss[summary.best]} />
+						<VoiScatter {points} {money} />
+					</div>
+				{:else}
+					<Pending label="Computing the value of information…" height={voiH} />
+				{/if}
 			</Panel>
 		</div>
 	</div>
@@ -340,19 +456,79 @@
 		stroke-width: 1.5;
 	}
 
-	/* The tree across the top; inputs on the left, losses and value of information on the right. */
+	/*
+	 * The tree across the top, then three columns: inputs | losses | value of
+	 * information. Two columns (losses over value of information on the right)
+	 * where three don't fit, one on phones.
+	 */
+	.results {
+		container-type: inline-size;
+	}
 	.columns {
 		display: grid;
 		gap: var(--sp-3);
 		align-items: start;
+		grid-template-areas: 'inputs' 'losses' 'voi';
 	}
-	@media (min-width: 1100px) {
+	.inputs-col {
+		grid-area: inputs;
+	}
+	.losses-col {
+		grid-area: losses;
+	}
+	.voi-col {
+		grid-area: voi;
+	}
+	@container (min-width: 60rem) {
 		.columns {
 			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+			grid-template-rows: auto 1fr;
+			grid-template-areas: 'inputs losses' 'inputs voi';
+		}
+	}
+	@container (min-width: 100rem) {
+		.columns {
+			grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
+			grid-template-rows: auto;
+			grid-template-areas: 'inputs losses voi';
 		}
 	}
 	.column {
 		min-width: 0;
+	}
+	/* Intermediates: their own heading under a divider, neutral rows. */
+	.intermediates {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-1);
+		margin-top: var(--sp-2);
+		padding-top: var(--sp-3);
+		border-top: 2px solid var(--border-strong);
+	}
+	.intermediates h3 {
+		margin: 0;
+		font-size: var(--text-sm);
+		font-weight: 600;
+	}
+	.intermediates .note {
+		margin: 0;
+		font-size: var(--text-xs);
+		color: var(--text-muted);
+	}
+	.input-row.intermediate .spark path {
+		stroke: var(--text-muted);
+	}
+	.dependent {
+		margin: 0;
+		padding: var(--sp-1) 0 0;
+		list-style: none;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+		border-top: 1px solid var(--border);
+	}
+	.dependent .name {
+		font-weight: 500;
+		color: var(--text);
 	}
 	.tree-settings {
 		display: flex;

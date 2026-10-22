@@ -288,7 +288,7 @@ test('the copied share link restores the model in a fresh browser', async ({
 	await fresh.close();
 });
 
-test('Setup sections explain themselves; References list ten links', async ({ page }) => {
+test('Setup sections explain themselves; References list fifteen links', async ({ page }) => {
 	await open(page);
 	const setup = page.getByTestId('setup');
 	for (const name of ['inputs', 'intermediates', 'decisions', 'the dataflow']) {
@@ -299,7 +299,7 @@ test('Setup sections explain themselves; References list ten links', async ({ pa
 		await tip.blur();
 	}
 	const refs = page.getByRole('region', { name: 'References' });
-	await expect(refs.getByRole('link')).toHaveCount(10);
+	await expect(refs.getByRole('link')).toHaveCount(15);
 });
 
 for (const width of [1440, 390]) {
@@ -677,4 +677,209 @@ test('results: inputs sorted by value of information, names in the tree, max dep
 	// One split level: the root's split only, and the run stays on Results
 	await expect(splits).toHaveCount(1);
 	await expect(stepButton(page, 'Results')).toHaveAttribute('aria-current', 'step');
+});
+
+const PROGRESS = /^(Simulating|Summary and inputs|Value of information|Policy tree) · \d+ %$/;
+
+test('a big run shows results as they come: spinners, then the full analysis; Update tree spins only the tree', async ({
+	page
+}) => {
+	test.setTimeout(120_000);
+	await page.setViewportSize({ width: 1920, height: 1000 });
+	await open(page, link(small('airline-share-buyback', 1_000_000)));
+	await runButton(page).click();
+	// One progress bar with the step and a percentage
+	await expect(page.getByTestId('progress-label')).toHaveText(PROGRESS);
+	await expect(page.getByRole('progressbar', { name: PROGRESS })).toBeVisible();
+	// The first partial opens Results while the run is still going
+	await expect(page.getByTestId('results')).toBeVisible({ timeout: 30_000 });
+	await expect(page.getByTestId('run-status')).toHaveAttribute('data-done', '0');
+	await expect(stepButton(page, 'Results')).toHaveAttribute('aria-current', 'step');
+	await expect(page.getByTestId('headline')).toBeVisible();
+	await expect(page.getByTestId('losses-box').locator('svg').first()).toBeVisible();
+	const pending = page.getByTestId('results').getByTestId('pending');
+	await expect(pending.first()).toBeVisible();
+	await expect(pending.first()).toHaveAttribute('aria-busy', 'true');
+	// CSV and Add scenarios wait for the complete run
+	await expect(page.getByTestId('download-csv')).toBeDisabled();
+	await expect(page.getByRole('button', { name: 'Add scenarios' })).toBeDisabled();
+
+	await expect(page.getByTestId('run-status')).toHaveAttribute('data-done', '1', {
+		timeout: 60_000
+	});
+	await expect(pending).toHaveCount(0);
+	await expect(page.getByTestId('policy-tree')).toBeVisible();
+	await expect(page.getByTestId('voi-chart')).toBeVisible();
+	await expect(page.getByTestId('voi-scatter')).toBeVisible();
+	await expect(page.getByTestId('input-voi-row').first()).toHaveAttribute('data-savings', /\d/);
+	await expect(page.getByTestId('download-csv')).toBeEnabled();
+
+	// Update tree: only the tree box is pending
+	await page.getByRole('textbox', { name: 'Max depth' }).fill('3');
+	const onlyTree = page.waitForFunction(() => {
+		const all = document.querySelectorAll('[data-testid="results"] [data-testid="pending"]');
+		const tree = document.querySelectorAll('[data-testid="tree-box"] [data-testid="pending"]');
+		return all.length === 1 && tree.length === 1;
+	});
+	await page.getByRole('button', { name: 'Update tree' }).click();
+	await onlyTree;
+	await expect(page.getByTestId('run-status')).toHaveAttribute('data-done', '2', {
+		timeout: 60_000
+	});
+	await expect(pending).toHaveCount(0);
+	await expect(page.getByTestId('policy-tree')).toBeVisible();
+});
+
+test('intermediates get their own rows under the inputs; decision-dependent ones are listed', async ({
+	page
+}) => {
+	await open(page, link(small('airline-share-buyback')));
+	await press(page, 'Run', 1);
+	const box = page.getByTestId('intermediates-box');
+	await expect(
+		box.getByRole('heading', { name: 'Intermediates by value of information' })
+	).toBeVisible();
+	await expect(box).toContainText("doesn't add up with them");
+	const rows = box.getByTestId('intermediate-voi-row');
+	await expect(rows).toHaveCount(3);
+	// Neutral rows: no input colour key
+	await expect(box.getByTestId('input-swatch')).toHaveCount(0);
+	// Below the last input row, after a divider
+	const lastInput = (await page.getByTestId('input-voi-row').last().boundingBox())!;
+	const section = (await box.boundingBox())!;
+	expect(section.y).toBeGreaterThanOrEqual(lastInput.y + lastInput.height);
+	expect(await box.evaluate((e) => getComputedStyle(e).borderTopStyle)).toBe('solid');
+	// Sorted by value of information
+	const savings = await rows.evaluateAll((els) =>
+		els.map((e) => Number(e.getAttribute('data-savings')))
+	);
+	expect(savings).toEqual([...savings].sort((a, b) => b - a));
+	for (const name of [
+		'Operating Revenue (Rev)',
+		'Fuel Bill (Fuel)',
+		'Net Operating Cash Flow (Delta)'
+	])
+		await expect(rows.filter({ hasText: name })).toHaveCount(1);
+	// L uses the decision: listed, no plot
+	const dependent = box.getByTestId('dependent-intermediate');
+	await expect(dependent).toHaveCount(1);
+	await expect(dependent).toHaveText(/Liquidity \(L\)\s+depends on the decision/);
+	await expect(dependent.locator('svg')).toHaveCount(0);
+
+	// A model without intermediates has no such section
+	await open(page, link(small('distribution-centre')));
+	await press(page, 'Run', 1);
+	await expect(page.getByTestId('intermediates-box')).toHaveCount(0);
+});
+
+test('results at 1920 px: the tree, then inputs | losses | value of information side by side', async ({
+	page
+}) => {
+	await page.setViewportSize({ width: 1920, height: 1000 });
+	await open(page, link(small('airline-share-buyback')));
+	await press(page, 'Run', 1);
+	const box = async (id: string) => (await page.getByTestId(id).boundingBox())!;
+	const tree = await box('tree-box');
+	const [inputs, losses, voi] = [
+		await box('inputs-box'),
+		await box('losses-box'),
+		await box('voi-box')
+	];
+	expect(inputs.y).toBeGreaterThanOrEqual(tree.y + tree.height);
+	for (const b of [losses, voi]) expect(Math.abs(b.y - inputs.y)).toBeLessThan(2);
+	expect(losses.x).toBeGreaterThanOrEqual(inputs.x + inputs.width);
+	expect(voi.x).toBeGreaterThanOrEqual(losses.x + losses.width);
+	expect(Math.abs(inputs.x - tree.x)).toBeLessThan(2);
+	expect(Math.abs(voi.x + voi.width - (tree.x + tree.width))).toBeLessThan(2);
+	expect(
+		await page.evaluate(
+			() => document.documentElement.scrollWidth - document.documentElement.clientWidth
+		)
+	).toBe(0);
+});
+
+for (const id of ['distribution-centre', 'airline-share-buyback'] as const) {
+	test(`the scatter on ${id}: one point per input on log decades, floor points hollow, tooltips`, async ({
+		page
+	}) => {
+		await open(page, link(small(id)));
+		await press(page, 'Run', 1);
+		const scatter = page.getByTestId('voi-scatter');
+		await expect(scatter).toContainText('Right: matters for the decision. Up: moves your profit.');
+		const points = scatter.getByTestId('scatter-point');
+		await expect(points).toHaveCount(BEST.find(([p]) => p === id)![2]);
+		await expect(scatter.getByTestId('scatter-label')).toHaveCount(await points.count());
+		const bounds = async (axis: 'x' | 'y') =>
+			(await scatter.getAttribute(`data-${axis}-bounds`))!.split(',').map(Number);
+		const [xlo, xhi] = await bounds('x');
+		const [ylo, yhi] = await bounds('y');
+		const data = await points.evaluateAll((els) =>
+			els.map((e) => ({
+				x: Number(e.getAttribute('data-x')),
+				y: Number(e.getAttribute('data-y')),
+				floor: e.hasAttribute('data-floor'),
+				fill: getComputedStyle(e).fill,
+				stroke: getComputedStyle(e).stroke
+			}))
+		);
+		// Each axis: three decades under the next power of 10 above its max
+		for (const [lo, hi, vs] of [
+			[xlo, xhi, data.map((d) => d.x)],
+			[ylo, yhi, data.map((d) => d.y)]
+		] as const) {
+			const max = Math.max(...vs);
+			expect(hi).toBeGreaterThan(max);
+			expect(hi / 10).toBeLessThanOrEqual(max);
+			expect(hi / lo).toBeCloseTo(1000, 6);
+		}
+		for (const d of data) {
+			expect(d.x).toBeLessThan(xhi);
+			expect(d.y).toBeLessThan(yhi);
+			// Under the floor (or not positive): on the floor, hollow
+			expect(d.floor).toBe(!(d.x >= xlo) || !(d.y >= ylo));
+			if (d.floor) expect(d.fill).not.toBe(d.stroke);
+			else expect(d.fill).toBe(d.stroke);
+		}
+		// Every point has a title; focus shows the numbers in the readout
+		await expect(points.locator('title')).toHaveCount(data.length);
+		await points.first().focus();
+		await expect(scatter.getByTestId('scatter-readout')).toHaveText(
+			/: knowing it first (saves .+|saves nothing); profit swings ±.+ \([\d.]+ % of its spread\)$/
+		);
+	});
+}
+
+test('the policy tree fill is on a log scale: red at the largest savings × share', async ({
+	page
+}) => {
+	await open(page, link(small('airline-share-buyback')));
+	await press(page, 'Run', 1);
+	const nodes = page.getByTestId('tree-node');
+	const boxes = await page.getByTestId('policy-tree').locator('text.node-text').allTextContents();
+	const fills = await nodes.evaluateAll((els) =>
+		els.map((e) => ({ fill: Number(e.getAttribute('data-fill')), css: e.getAttribute('fill')! }))
+	);
+	expect(fills.length * 2).toBe(boxes.length);
+	const weighted = fills.map((_, k) => {
+		const savings = Math.max(0, Number(boxes[2 * k].split(' ')[0]));
+		return savings * Number(boxes[2 * k + 1].replace('%', ''));
+	});
+	const top = Math.max(...weighted);
+	const k = weighted.indexOf(top);
+	expect(fills[k].fill).toBe(1);
+	expect(fills[k].css).toContain('--danger-fill) 100%');
+	let tenth = 0;
+	weighted.forEach((w, i) => {
+		const r = w / top;
+		// Two decades: a hundredth or less is green, a tenth yellow (labels are rounded)
+		const want = r > 0 ? Math.min(1, Math.max(0, 1 + Math.log10(r) / 2)) : 0;
+		expect(fills[i].fill).toBeCloseTo(want, 1);
+		if (r > 0.05 && r < 0.2) {
+			tenth++;
+			expect(fills[i].fill).toBeGreaterThan(0.3);
+			expect(fills[i].css).toContain('--warning-fill)');
+			expect(fills[i].css).not.toMatch(/--warning-fill\) 0%/);
+		}
+	});
+	expect(tenth).toBeGreaterThan(0);
 });

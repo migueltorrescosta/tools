@@ -77,6 +77,46 @@ export const REFERENCES: readonly Reference[] = [
 		impact: 'Shallow trees that choose among many decisions, checked on scenarios they never saw.'
 	},
 	{
+		cite: 'Felli, J. C. & Hazen, G. B. (1998).',
+		title: 'Sensitivity analysis and the expected value of perfect information.',
+		venue: 'Medical Decision Making 18(1).',
+		href: 'https://doi.org/10.1177/0272989X9801800117',
+		impact:
+			'An input can swing the outcome a lot and still not change the decision; the scatter shows both sides.'
+	},
+	{
+		cite: 'Oakley, J. E. (2009).',
+		title: 'Decision-theoretic sensitivity analysis for complex computer models.',
+		venue: 'Technometrics 51(2).',
+		href: 'https://doi.org/10.1198/TECH.2009.0014',
+		impact:
+			'Ask which inputs matter for the decision, not just for the output: the right-hand axis of the scatter.'
+	},
+	{
+		cite: 'Saltelli, A., Ratto, M., Andres, T., Campolongo, F., Cariboni, J., Gatelli, D., Saisana, M. & Tarantola, S. (2008).',
+		title: 'Global sensitivity analysis: The primer.',
+		venue: 'Wiley.',
+		href: 'https://doi.org/10.1002/9780470725184',
+		impact:
+			"How much an input moves the output is the spread of the output's average given that input."
+	},
+	{
+		cite: 'Plischke, E., Borgonovo, E. & Smith, C. L. (2013).',
+		title: 'Global sensitivity measures from given data.',
+		venue: 'European Journal of Operational Research 226(3).',
+		href: 'https://doi.org/10.1016/j.ejor.2012.11.047',
+		impact:
+			'That spread can be read straight off the simulated scenarios by grouping them, with no extra runs.'
+	},
+	{
+		cite: 'Kelley, T. L. (1935).',
+		title: 'An unbiased correlation ratio measure.',
+		venue: 'Proceedings of the National Academy of Sciences 21(9).',
+		href: 'https://doi.org/10.1073/pnas.21.9.554',
+		impact:
+			"A correction so an input that doesn't matter scores about zero instead of picking up noise."
+	},
+	{
 		cite: 'Hörmann, W. (1993).',
 		title: 'The generation of binomial random variates.',
 		venue: 'Journal of Statistical Computation and Simulation 46(1–2).',
