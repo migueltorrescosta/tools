@@ -5,6 +5,7 @@ import {
 	decades,
 	formatLogTick,
 	formatNumber,
+	inputColour,
 	linePath,
 	linear,
 	logDomain,
@@ -47,20 +48,36 @@ describe('format', () => {
 	it('cycles the data colours and breaks paths at gaps', () => {
 		expect(dataColour(0)).toBe('var(--data-1)');
 		expect(dataColour(12)).toBe('var(--data-1)');
+		expect(inputColour(0)).toBe('var(--input-1)');
+		expect(inputColour(8)).toBe('var(--input-9)');
+		expect(inputColour(9)).toBe('var(--input-1)');
 		expect(linePath([0, 1, 2, 3], [0, NaN, 2, 3])).toBe('M0.0,0.0M2.0,2.0L3.0,3.0');
 	});
 
-	it('bounds the value-of-information chart from the EVPI', () => {
-		expect(voiBounds(66.7)).toEqual([0.01, 100]);
+	it('bounds the value-of-information chart tightly around the data', () => {
+		// The presets at 100,000 samples: distribution centre (EVPI 85.8 €, least
+		// savings 3.88 €; the ties sum to ±1e-14, which is noise) and airline share
+		// buyback (EVPI 66.7 M€, least savings 0.401 M€).
+		expect(voiBounds(85.8, [1e-14, -2e-14, 0, 3.88, 36.9, 29.9, 5.17])).toEqual([1, 100]);
+		expect(voiBounds(66.7, [31, 59.6, 0.401, 2.1, 0, -0.2, NaN])).toEqual([0.1, 100]);
+		// Tiny savings reach down; the top stays the next power above the EVPI.
+		expect(voiBounds(66.7, [0.003, 12])).toEqual([0.001, 100]);
+		// A savings on a power of 10 is its own floor.
+		expect(voiBounds(66.7, [1, 50])).toEqual([1, 100]);
 		// An EVPI on a power of 10 moves the top up, off the frame.
-		expect(voiBounds(100)).toEqual([0.1, 1000]);
-		expect(voiBounds(1)).toEqual([0.001, 10]);
-		expect(voiBounds(0.034)).toEqual([1e-5, 0.1]);
-		expect(voiBounds(999.9)).toEqual([0.1, 1000]);
-		expect(voiBounds(0)).toBeNull();
-		expect(voiBounds(-3)).toBeNull();
-		expect(voiBounds(NaN)).toBeNull();
-		expect(voiBounds(Infinity)).toBeNull();
+		expect(voiBounds(100, [5])).toEqual([1, 1000]);
+		expect(voiBounds(1, [0.25])).toEqual([0.1, 10]);
+		// At least one decade: savings in the EVPI's decade.
+		expect(voiBounds(66.7, [40, 60])).toEqual([10, 100]);
+		expect(voiBounds(0.034, [0.034])).toEqual([0.01, 0.1]);
+		// No positive savings: one decade below the EVPI's, so the ceiling still shows.
+		expect(voiBounds(66.7, [0, -1, NaN])).toEqual([1, 100]);
+		expect(voiBounds(66.7, [])).toEqual([1, 100]);
+		expect(voiBounds(100, [1e-12])).toEqual([10, 1000]);
+		expect(voiBounds(0, [1])).toBeNull();
+		expect(voiBounds(-3, [1])).toBeNull();
+		expect(voiBounds(NaN, [1])).toBeNull();
+		expect(voiBounds(Infinity, [1])).toBeNull();
 	});
 
 	it('lists the decades between two powers of 10', () => {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Analysis } from '$lib/information-pricing/analysis';
 	import { Alert, Button, Panel } from '$lib/ui';
-	import { dataColour, linear, linePath, money as makeMoney } from './format';
+	import { dash, dataColour, inputColour, linear, linePath, money as makeMoney } from './format';
 	import InputRow from './InputRow.svelte';
 	import LossPlots from './LossPlots.svelte';
 	import NumberInput from './NumberInput.svelte';
@@ -161,7 +161,24 @@
 							{@const saves = voi.savings[j][lastBin]}
 							<div class="input-row" data-testid="input-voi-row" data-savings={saves}>
 								<div class="row-label">
-									<span class="name">{inputs[j]}</span>
+									<span class="name"
+										><svg
+											class="input-key"
+											viewBox="0 0 16 10"
+											width="16"
+											height="10"
+											aria-hidden="true"
+											data-testid="input-swatch"
+											><line
+												x1="1"
+												y1="5"
+												x2="15"
+												y2="5"
+												stroke={inputColour(j)}
+												stroke-dasharray={dash(j) || undefined}
+											/></svg
+										>{inputs[j]}</span
+									>
 									<span class="saves">
 										<span class="sr-only">saves</span>
 										<strong>{money.format(saves)}</strong>
@@ -309,6 +326,19 @@
 	}
 	.row-label .name {
 		font-weight: 500;
+	}
+	/* The input's line in the value-of-information chart: its colour and dashes. */
+	.row-label .name {
+		display: inline-flex;
+		align-items: baseline;
+		gap: var(--sp-1);
+	}
+	.input-key {
+		flex: none;
+		align-self: center;
+	}
+	.input-key line {
+		stroke-width: 2.5;
 	}
 	.saves {
 		display: inline-flex;

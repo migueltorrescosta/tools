@@ -3,6 +3,7 @@
 	import { edgePath, layoutGraph } from '$lib/scientific-derivations/layout';
 	import { renderTex } from '$lib/tex';
 	import Tex from '$lib/ui/Tex.svelte';
+	import { inputColour } from './format';
 
 	/** The model's dataflow as a top-to-bottom graph; picking a node lights its chain. */
 	let {
@@ -16,9 +17,15 @@
 
 	const uid = $props.id();
 
-	const nodes = $derived(
-		graph.nodes.map((n) => ({ ...n, html: n.tex === null ? null : renderTex(n.tex) }))
-	);
+	/** Random inputs take their input colour, by position among random inputs in model order. */
+	const nodes = $derived.by(() => {
+		let k = 0;
+		return graph.nodes.map((n) => ({
+			...n,
+			html: n.tex === null ? null : renderTex(n.tex),
+			colour: n.kind === 'input' ? inputColour(k++) : undefined
+		}));
+	});
 	const labels = $derived(new Map(graph.nodes.map((n) => [n.id, n.label])));
 
 	// Rendered sizes, measured in the browser; the layout waits until every node has one.
@@ -138,6 +145,7 @@
 					data-node={node.id}
 					data-kind={node.kind}
 					style={position(node.id)}
+					style:--c={node.colour}
 					bind:offsetWidth={width[node.id]}
 					bind:offsetHeight={height[node.id]}
 					onclick={() => (selected = selected === node.id ? null : node.id)}
@@ -229,6 +237,10 @@
 	.df-node.input,
 	.df-node.fixed {
 		background: var(--surface-2);
+	}
+	/* A random input wears its colour (as its value-of-information line) on the left. */
+	.df-node.input {
+		border-left: 5px solid var(--c);
 	}
 	.df-node.decision,
 	.df-node.reward {

@@ -379,6 +379,23 @@ test('the dataflow graph has a node per row and an arrow per dependency', async 
 	await expect(nodes.and(page.locator('[data-kind="intermediate"]'))).toHaveCount(4);
 	await expect(nodes.and(page.locator('[data-kind="decision"]'))).toHaveCount(1);
 	await expect(nodes.and(page.locator('[data-kind="reward"]'))).toHaveCount(1);
+	// Random inputs wear their input colour in model order; the fixed one stays neutral.
+	const inputColours = await page.evaluate(() => {
+		const probe = document.createElement('div');
+		document.body.append(probe);
+		const out = Array.from({ length: 6 }, (_, i) => {
+			probe.style.color = `var(--input-${i + 1})`;
+			return getComputedStyle(probe).color;
+		});
+		probe.remove();
+		return out;
+	});
+	const left = (kind: string) =>
+		nodes
+			.and(page.locator(`[data-kind="${kind}"]`))
+			.evaluateAll((els) => els.map((e) => getComputedStyle(e).borderLeftColor));
+	expect(await left('input')).toEqual(inputColours);
+	for (const c of await left('fixed')) expect(inputColours).not.toContain(c);
 	// Rev(K,p) Fuel(K,F) Delta(Rev,Fuel) L(C0,b,Delta) reward(b,R,L,i,Lr)
 	await expect(graph(page).getByTestId('dataflow-edge')).toHaveCount(14);
 	await expect(graph(page).locator('.katex').first()).toBeVisible();
@@ -535,21 +552,27 @@ test('Setup holds the parameters inline and the decision values as chips', async
 	await expect(runButton(page)).toBeDisabled();
 });
 
-test('the value-of-information chart: log decades under a dashed EVPI ceiling, grey dashed lines, gaps', async ({
+test('the value-of-information chart: tight log decades under a dashed EVPI ceiling, input-coloured dashed lines, gaps', async ({
 	page
 }) => {
 	await open(page, link(small('airline-share-buyback')));
 	await press(page, 'Run', 1);
 	const chart = page.getByTestId('voi-chart');
 	const evpi = Number((await page.getByTestId('price').textContent())!.replace(/[^\d.]/g, ''));
-	const decade = Math.floor(Math.log10(evpi));
 	const [lo, hi] = (await chart.getAttribute('data-bounds'))!.split(',').map(Number);
-	expect(hi).toBeCloseTo(10 ** (decade + 1));
-	expect(lo).toBeCloseTo(10 ** (decade - 3));
+	// Top: the smallest power of 10 above the EVPI
+	expect(hi).toBeCloseTo(10 ** (Math.floor(Math.log10(evpi)) + 1));
 	expect(hi).toBeGreaterThan(evpi);
-	// Ticks on the five powers of 10 between the bounds
+	// Bottom: the decade of the smallest plotted savings
+	const plotted = await chart
+		.getByTestId('voi-point')
+		.evaluateAll((els) => els.map((e) => Number(e.getAttribute('data-value'))));
+	const least = Math.min(...plotted);
+	expect(lo).toBeLessThanOrEqual(least);
+	expect(least).toBeLessThan(10 * lo);
+	// Ticks on every power of 10 between the bounds
 	const ticks = await chart.locator('.axis').nth(1).locator('text:not(.title)').allTextContents();
-	expect(ticks).toHaveLength(5);
+	expect(ticks).toHaveLength(Math.round(Math.log10(hi / lo)) + 1);
 	// The ceiling: a dashed line labelled with the EVPI
 	const ceiling = chart.getByTestId('voi-ceiling');
 	await expect(ceiling).toContainText('EVPI');
@@ -557,20 +580,47 @@ test('the value-of-information chart: log decades under a dashed EVPI ceiling, g
 		await ceiling.locator('line').evaluate((e) => getComputedStyle(e).strokeDasharray)
 	).not.toBe('none');
 
-	// Inputs are neutral lines, never a decision colour, told apart by dashes
+	// Inputs wear the input colours, by model order and never a decision colour,
+	// and are told apart by dashes too; the Results rows show the same key.
 	const lines = chart.getByTestId('voi-line');
 	const strokes = await lines.evaluateAll((els) => els.map((e) => getComputedStyle(e).stroke));
-	const palette = await page.evaluate(() => {
-		const probe = document.createElement('div');
-		document.body.append(probe);
-		const out = Array.from({ length: 12 }, (_, i) => {
-			probe.style.color = `var(--data-${i + 1})`;
-			return getComputedStyle(probe).color;
-		});
-		probe.remove();
-		return out;
-	});
-	for (const s of strokes) expect(palette).not.toContain(s);
+	const palette = (name: string, n: number) =>
+		page.evaluate(
+			([name, n]) => {
+				const probe = document.createElement('div');
+				document.body.append(probe);
+				const out = Array.from({ length: n }, (_, i) => {
+					probe.style.color = `var(--${name}-${i + 1})`;
+					return getComputedStyle(probe).color;
+				});
+				probe.remove();
+				return out;
+			},
+			[name, n] as const
+		);
+	// None is an Okabe–Ito decision colour (--data-1..8). --data-9..12 borrow Tol
+	// muted colours, so only a model with nine or more decisions could share one.
+	const decisionColours = await palette('data', 8);
+	const inputColours = await palette('input', 9);
+	expect(new Set(inputColours).size).toBe(9);
+	for (const c of inputColours) expect(decisionColours).not.toContain(c);
+	// Lines come in value-of-information order; their colours, in model order, are 1..6.
+	const order = await chart
+		.getByTestId('voi-key')
+		.evaluateAll((els) => els.map((e) => e.textContent!.replace(' (no savings)', '').trim()));
+	const model = [
+		'Share Return',
+		'Kilometers Flown',
+		'Fuel Cost per km',
+		'Loan Rate',
+		'Revenue per km',
+		'Interest Rate'
+	];
+	strokes.forEach((s, k) => expect(s).toBe(inputColours[model.indexOf(order[k])]));
+	const swatches = await page
+		.getByTestId('input-swatch')
+		.evaluateAll((els) => els.map((e) => getComputedStyle(e.querySelector('line')!).stroke));
+	expect(swatches).toEqual(strokes);
 	const dashes = await lines.evaluateAll((els) =>
 		els.map((e) => e.getAttribute('stroke-dasharray'))
 	);

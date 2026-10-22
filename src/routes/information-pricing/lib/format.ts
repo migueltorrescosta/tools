@@ -77,6 +77,11 @@ export function dataColour(i: number): string {
 	return `var(--data-${(((i % 12) + 12) % 12) + 1})`;
 }
 
+/** CSS colour of random input `i` (0-based, model order), cycling through the 9 input colours. */
+export function inputColour(i: number): string {
+	return `var(--input-${(((i % 9) + 9) % 9) + 1})`;
+}
+
 /** SVG path through points, skipping non-finite ones (a gap starts a new segment). */
 export function linePath(xs: ArrayLike<number>, ys: ArrayLike<number>): string {
 	let d = '';
@@ -109,19 +114,36 @@ export function compactTick(v: number): string {
 /** Exact power of ten, `pow10(-2)` → 0.01 (no `10 ** -2` rounding). */
 const pow10 = (k: number) => Number(`1e${k}`);
 
-/**
- * Log y bounds for the value-of-information chart, from the EVPI (the ceiling,
- * in display units): the next power of 10 above it on top (one up when the EVPI
- * is itself a power of 10) and 3 decades below its decade at the bottom.
- * `voiBounds(66.7)` → `[0.01, 100]`. Null when the EVPI isn't positive and finite.
- */
-export function voiBounds(evpi: number): [number, number] | null {
-	if (!(evpi > 0) || !Number.isFinite(evpi)) return null;
-	let decade = Math.floor(Math.log10(evpi));
+/** The decade of a positive finite `v`: the k with 10^k ≤ v < 10^(k+1), exact on powers of 10. */
+function decadeOf(v: number): number {
+	let k = Math.floor(Math.log10(v));
 	// log10 can land a hair off on exact powers; fix the decade against the real powers.
-	if (pow10(decade) > evpi) decade--;
-	else if (pow10(decade + 1) <= evpi) decade++;
-	return [pow10(decade - 3), pow10(decade + 1)];
+	if (pow10(k) > v) k--;
+	else if (pow10(k + 1) <= v) k++;
+	return k;
+}
+
+/** Savings at or below this share of the EVPI are rounding noise, not savings. */
+export const NOISE = 1e-6;
+
+/**
+ * Log y bounds for the value-of-information chart, tight around the data (all
+ * in display units): the top is the next power of 10 above the EVPI (one up
+ * when the EVPI is itself a power of 10), the bottom the largest power of 10
+ * at or below the smallest positive savings, and at least one decade between
+ * them. Savings under a millionth of the EVPI are rounding noise (a tie
+ * between decisions sums to ±1e-14, not 0) and count as zero. With no positive
+ * savings the bottom is one decade below the EVPI's.
+ * `voiBounds(66.7, [3.2, 41])` → `[1, 100]`. Null when the EVPI isn't positive and finite.
+ */
+export function voiBounds(evpi: number, savings: Iterable<number>): [number, number] | null {
+	if (!(evpi > 0) || !Number.isFinite(evpi)) return null;
+	const top = decadeOf(evpi) + 1;
+	const noise = evpi * NOISE;
+	let least = Infinity;
+	for (const v of savings) if (v > noise && v < least) least = v;
+	const bottom = Number.isFinite(least) ? Math.min(decadeOf(least), top - 1) : top - 2;
+	return [pow10(bottom), pow10(top)];
 }
 
 /** Powers of ten from `lo` to `hi`, both powers of ten. */

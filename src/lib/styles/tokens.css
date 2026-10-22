@@ -62,6 +62,21 @@
 	--data-11: light-dark(#117733, #298547);
 	--data-12: light-dark(#aa4499, #af4f9f);
 
+	/* Input palette: Paul Tol's "muted" scheme (colour-blind safe), for model
+	   inputs so they never look like a decision. Light variants darkened and
+	   dark variants lightened in OKLCH (hue kept) to at least 3:1 against bg,
+	   surface and surface-2 in their theme; olive, cyan, purple and dark rose go further
+	   to stay apart from sand, teal and wine. Ordered so neighbours differ. */
+	--input-1: light-dark(#cc6677, #e57d8d); /* rose */
+	--input-2: light-dark(#332288, #6763cd); /* indigo */
+	--input-3: light-dark(#9a8932, #ddcc77); /* sand */
+	--input-4: light-dark(#117733, #21813c); /* green */
+	--input-5: light-dark(#3e81a1, #88ccee); /* cyan */
+	--input-6: light-dark(#882255, #b44b7b); /* wine */
+	--input-7: light-dark(#777600, #999933); /* olive */
+	--input-8: light-dark(#aa4499, #d76ec4); /* purple */
+	--input-9: light-dark(#309989, #44aa99); /* teal */
+
 	/* Wordle feedback tiles: the game's own colours, same in both themes.
 	   Text on each is at least 4.5:1; the tiles also carry a mark, not colour alone. */
 	--tile-absent: #3a3a3c;

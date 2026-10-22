@@ -6,9 +6,11 @@
 		decades,
 		formatLogTick,
 		formatNumber,
+		inputColour,
 		linear,
 		linePath,
 		logScale,
+		NOISE,
 		spreadLabels,
 		voiBounds,
 		type Money
@@ -36,13 +38,15 @@
 	const cut = (s: string, n: number) => (s.length > n ? `${s.slice(0, Math.max(1, n - 1))}…` : s);
 
 	const ceiling = $derived(money.scale(evpi));
-	const bounds = $derived(voiBounds(ceiling));
 	const scaled = $derived(voi.savings.map((row) => Array.from(row, money.scale)));
-	/** Savings that sit on the log axis; the rest (≤ 0, below the floor) are gaps. */
+	const bounds = $derived(voiBounds(ceiling, scaled.flat()));
+	/** Savings that sit on the log axis; the rest (≤ 0, rounding noise, below the floor) are gaps. */
 	const shown = $derived(
 		scaled.map((row) =>
 			row.map((v) =>
-				bounds && Number.isFinite(v) && v >= bounds[0] ? Math.min(v, bounds[1]) : NaN
+				bounds && Number.isFinite(v) && v > ceiling * NOISE && v >= bounds[0]
+					? Math.min(v, bounds[1])
+					: NaN
 			)
 		)
 	);
@@ -119,7 +123,14 @@
 						onblur={() => (hot = null)}
 						onclick={() => (pinned = pinned === j ? null : j)}
 						><svg viewBox="0 0 24 10" aria-hidden="true"
-							><line x1="1" y1="5" x2="23" y2="5" stroke-dasharray={dash(j) || undefined} /></svg
+							><line
+								x1="1"
+								y1="5"
+								x2="23"
+								y2="5"
+								stroke={inputColour(j)}
+								stroke-dasharray={dash(j) || undefined}
+							/></svg
 						>{text}</button
 					>
 				</li>
@@ -166,6 +177,7 @@
 						class:dim={active !== null && active !== j}
 						class:hot={active === j}
 						role="presentation"
+						style:--c={inputColour(j)}
 						onmouseenter={() => (hot = j)}
 						onmouseleave={() => (hot = null)}
 					>
@@ -178,7 +190,13 @@
 						/>
 						{#each voi.bins as b, k (b)}
 							{#if Number.isFinite(shown[j][k])}
-								<circle cx={sx(b)} cy={sy(shown[j][k])} r="2" data-testid="voi-point">
+								<circle
+									cx={sx(b)}
+									cy={sy(shown[j][k])}
+									r="2"
+									data-testid="voi-point"
+									data-value={shown[j][k]}
+								>
 									<title>{inputs[j]}, {b} bins: {formatNumber(scaled[j][k])} {money.unit}</title>
 								</circle>
 							{/if}
@@ -231,8 +249,7 @@
 		flex: none;
 	}
 	.legend line {
-		stroke: currentColor;
-		stroke-width: 2;
+		stroke-width: 2.5;
 	}
 	.dim {
 		opacity: 0.3;
@@ -249,7 +266,7 @@
 	}
 	.series .line {
 		fill: none;
-		stroke: var(--text-muted);
+		stroke: var(--c);
 		stroke-width: 1.75;
 	}
 	.series .hit {
@@ -258,17 +275,18 @@
 		stroke-width: 10;
 	}
 	.series circle {
-		fill: var(--text-muted);
+		fill: var(--c);
 	}
 	.series .end {
 		fill: var(--text-muted);
 		font-size: 11px;
 	}
 	.series.hot .line {
-		stroke: var(--text);
-		stroke-width: 2.5;
+		stroke-width: 3;
 	}
-	.series.hot circle,
+	.series.hot circle {
+		r: 3px;
+	}
 	.series.hot .end {
 		fill: var(--text);
 	}
