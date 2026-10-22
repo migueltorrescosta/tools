@@ -336,17 +336,21 @@ for (const width of [1440, 390]) {
 }
 
 test('the page uses the full width of a wide window', async ({ page }) => {
+	const tops = () =>
+		Promise.all(
+			['inputs', 'intermediates', 'decisions', 'dataflow'].map(async (id) =>
+				Math.round((await page.locator(`#${id}-heading`).boundingBox())!.y)
+			)
+		);
 	await page.setViewportSize({ width: 1920, height: 1000 });
 	await open(page);
-	const setup = (await page.getByTestId('setup').boundingBox())!;
-	expect(setup.width).toBeGreaterThan(1400);
-	// Inputs, Intermediates, Decisions and Dataflow side by side
-	const tops = await Promise.all(
-		['inputs', 'intermediates', 'decisions', 'dataflow'].map(async (id) =>
-			Math.round((await page.locator(`#${id}-heading`).boundingBox())!.y)
-		)
-	);
-	expect(new Set(tops).size).toBe(1);
+	expect((await page.getByTestId('setup').boundingBox())!.width).toBeGreaterThan(1400);
+	// Dataflow stays beside Inputs; the tables stack to its left so no field clips
+	const [inputs, , , dataflow] = await tops();
+	expect(inputs).toBe(dataflow);
+	// With room for all four, they sit side by side
+	await page.setViewportSize({ width: 2560, height: 1000 });
+	await expect.poll(async () => new Set(await tops()).size).toBe(1);
 });
 
 test('the dataflow graph has a node per row and an arrow per dependency', async ({ page }) => {
