@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { InfoTip } from '$lib/ui';
 	import Axis from './Axis.svelte';
 	import {
 		decades,
@@ -10,18 +11,15 @@
 		type Money
 	} from './format';
 
-	/** One random input: what knowing it first saves, and how far it moves the profit. */
+	/** One random input: what knowing it first saves, and how much of the profit's spread it explains. */
 	export interface ScatterPoint {
 		/** Model order, for the input colour. */
 		j: number;
-		/** Short label on the chart, e.g. the symbol. */
-		label: string;
+		/** The input's display name, shown next to its point. */
 		name: string;
 		/** Value of information at the largest bin count, native units. */
 		saves: number;
-		/** Profit swing (one SD of the expected reward under the best decision), native units. */
-		swing: number;
-		/** Share of the reward's variance the input explains (Kelley's ε²). */
+		/** Share of the best decision's reward variance the input explains (Kelley's ε², 0–1). */
 		share: number;
 	}
 
@@ -34,13 +32,15 @@
 	/** About 6.5 px a character at 11 px. */
 	const textWidth = (s: string) => s.length * 6.5;
 
-	const scaled = $derived(
-		points.map((p) => ({ ...p, x: money.scale(p.saves), y: money.scale(p.swing) }))
-	);
+	const scaled = $derived(points.map((p) => ({ ...p, x: money.scale(p.saves), y: p.share * 100 })));
 	const max = (vs: number[]) => Math.max(0, ...vs.filter(Number.isFinite));
 	/** Three decades under the next power of 10 above the largest value; a fallback with none. */
 	const xb = $derived(logDecadeBounds(max(scaled.map((p) => p.x))) ?? [0.001, 1]);
-	const yb = $derived(logDecadeBounds(max(scaled.map((p) => p.y))) ?? [0.001, 1]);
+	/** Percentages: capped at 100 %. */
+	const yb = $derived.by((): [number, number] => {
+		const b = logDecadeBounds(max(scaled.map((p) => p.y))) ?? [0.1, 100];
+		return b[1] > 100 ? [0.1, 100] : b;
+	});
 	const sx = $derived(logScale(xb[0], xb[1], M.left, W - M.right));
 	const sy = $derived(logScale(yb[0], yb[1], H - M.bottom, M.top));
 
@@ -61,7 +61,7 @@
 	);
 	const labels = $derived(
 		placeLabels(
-			plotted.map((p) => ({ x: p.px, y: p.py, width: textWidth(p.label) })),
+			plotted.map((p) => ({ x: p.px, y: p.py, width: textWidth(p.name) })),
 			{ x0: M.left, x1: W, y0: 0, y1: H - M.bottom }
 		)
 	);
@@ -74,7 +74,7 @@
 
 	function describe(p: ScatterPoint): string {
 		const saves = p.saves > 0 ? `saves ${money.format(p.saves)}` : 'saves nothing';
-		return `${p.name}: knowing it first ${saves}; profit swings ±${money.format(p.swing)} (${percent(p.share)} of its spread)`;
+		return `${p.name}: knowing it first ${saves}; it explains ${percent(p.share)} of your profit's spread`;
 	}
 
 	/** The point in focus (hover or keyboard), shown in the readout under the chart. */
@@ -87,14 +87,29 @@
 	data-x-bounds={xb.join(',')}
 	data-y-bounds={yb.join(',')}
 >
-	<figcaption>Right: matters for the decision. Up: moves your profit.</figcaption>
+	<figcaption>
+		Right: matters for the decision. Up: moves your profit.
+		<span class="axes">
+			<span
+				>Across: value of knowing it first <InfoTip label="value of knowing it first"
+					>How much better your decision gets, on average, if you learn this input before choosing.</InfoTip
+				></span
+			>
+			<span
+				>Up: share of profit spread <InfoTip label="share of profit spread"
+					>How much of the ups and downs in your profit, under the recommended decision, come from
+					this input alone. 100 % means it explains all of them.</InfoTip
+				></span
+			>
+		</span>
+	</figcaption>
 	<div bind:clientWidth={width}>
 		<svg
 			viewBox="0 0 {W} {H}"
 			width={W}
 			height={H}
 			role="group"
-			aria-label="Each input's value of knowing it first against its profit swing, both on log scales."
+			aria-label="Each input's value of knowing it first against the share of profit spread it explains, both on log scales."
 		>
 			<Axis
 				side="bottom"
@@ -118,7 +133,7 @@
 				to={H - M.bottom}
 				format={formatLogTick}
 				grid={[M.left, W - M.right]}
-				title={money.unit ? `Profit swing (${money.unit}, ±1 SD)` : 'Profit swing (±1 SD)'}
+				title="Share of profit spread (%)"
 			/>
 			{#each plotted as p, i (p.j)}
 				<g class="point" class:hot={active === i} style:--c={inputColour(p.j)}>
@@ -147,7 +162,7 @@
 						y={labels[i].y}
 						text-anchor={labels[i].anchor}
 						aria-hidden="true"
-						data-testid="scatter-label">{p.label}</text
+						data-testid="scatter-label">{p.name}</text
 					>
 				</g>
 			{/each}
@@ -183,6 +198,11 @@
 		font-size: 11px;
 		font-weight: 600;
 		pointer-events: none;
+	}
+	.axes {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0 var(--sp-3);
 	}
 	.readout {
 		min-height: 2.6em;

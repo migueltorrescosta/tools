@@ -318,7 +318,6 @@
 	const inputLabels = $derived(resultInputs.map(label));
 	/** Input names for the tree's splits; the symbol when the name is empty. */
 	const inputNames = $derived(resultInputs.map((i) => i.name || i.symbol));
-	const inputSymbols = $derived(resultInputs.map((i) => i.symbol));
 	const decisionNames = $derived(runModel ? decisionLabels(runModel.decisions) : []);
 	/** Decision-independent intermediates (analysis order) and the ones that use the decision. */
 	const sharedLabels = $derived(
@@ -547,7 +546,6 @@
 			decisions={decisionNames}
 			inputs={inputLabels}
 			names={inputNames}
-			symbols={inputSymbols}
 			intermediates={sharedLabels}
 			dependent={dependentLabels}
 			bind:tree

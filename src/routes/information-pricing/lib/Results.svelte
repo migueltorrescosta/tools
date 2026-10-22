@@ -21,7 +21,6 @@
 		decisions,
 		inputs,
 		names,
-		symbols,
 		intermediates,
 		dependent,
 		tree = $bindable(),
@@ -37,8 +36,6 @@
 		inputs: readonly string[];
 		/** Input names (the symbol when unnamed), model order, for the tree. */
 		names: readonly string[];
-		/** Input symbols, model order, to label the scatter. */
-		symbols: readonly string[];
 		/** Labels of the decision-independent intermediates, `analysis.intermediates` order. */
 		intermediates: readonly string[];
 		/** Labels of the intermediates that use the decision (no analysis). */
@@ -63,15 +60,13 @@
 	const inputOrder = $derived(orderOf(voi, analysis.densities.length));
 	const intermediateOrder = $derived(orderOf(ivoi, analysis.intermediates.densities.length));
 
-	/** Scatter: value of knowing each input first against its profit swing. */
+	/** Scatter: value of knowing each input first against the share of profit spread it explains. */
 	const points = $derived(
 		voi
 			? analysis.profitSwing.map((p, j) => ({
 					j,
-					label: symbols[j],
 					name: names[j],
 					saves: voi.savings[j].at(-1) ?? NaN,
-					swing: p.sd,
 					share: p.epsilon2
 				}))
 			: []

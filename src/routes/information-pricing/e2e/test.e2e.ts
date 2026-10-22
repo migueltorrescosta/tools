@@ -808,7 +808,16 @@ for (const id of ['distribution-centre', 'airline-share-buyback'] as const) {
 		await expect(scatter).toContainText('Right: matters for the decision. Up: moves your profit.');
 		const points = scatter.getByTestId('scatter-point');
 		await expect(points).toHaveCount(BEST.find(([p]) => p === id)![2]);
-		await expect(scatter.getByTestId('scatter-label')).toHaveCount(await points.count());
+		// Points are labelled with input names; each axis explains itself in an info tip
+		const labels = await scatter.getByTestId('scatter-label').allTextContents();
+		expect(labels).toHaveLength(await points.count());
+		for (const l of labels) expect(l.length).toBeGreaterThan(2);
+		await expect(
+			scatter.getByRole('button', { name: 'About value of knowing it first' })
+		).toBeVisible();
+		await expect(
+			scatter.getByRole('button', { name: 'About share of profit spread' })
+		).toBeVisible();
 		const bounds = async (axis: 'x' | 'y') =>
 			(await scatter.getAttribute(`data-${axis}-bounds`))!.split(',').map(Number);
 		const [xlo, xhi] = await bounds('x');
@@ -822,19 +831,22 @@ for (const id of ['distribution-centre', 'airline-share-buyback'] as const) {
 				stroke: getComputedStyle(e).stroke
 			}))
 		);
-		// Each axis: three decades under the next power of 10 above its max
-		for (const [lo, hi, vs] of [
-			[xlo, xhi, data.map((d) => d.x)],
-			[ylo, yhi, data.map((d) => d.y)]
-		] as const) {
-			const max = Math.max(...vs);
-			expect(hi).toBeGreaterThan(max);
-			expect(hi / 10).toBeLessThanOrEqual(max);
+		// Each axis: three decades under the next power of 10 above its max (the % axis capped at 100)
+		const xmax = Math.max(...data.map((d) => d.x));
+		expect(xhi).toBeGreaterThan(xmax);
+		expect(xhi / 10).toBeLessThanOrEqual(xmax);
+		const ymax = Math.max(...data.map((d) => d.y));
+		expect(yhi).toBeGreaterThanOrEqual(ymax);
+		expect(yhi).toBeLessThanOrEqual(100);
+		expect(ymax).toBeLessThanOrEqual(100);
+		for (const [lo, hi] of [
+			[xlo, xhi],
+			[ylo, yhi]
+		])
 			expect(hi / lo).toBeCloseTo(1000, 6);
-		}
 		for (const d of data) {
 			expect(d.x).toBeLessThan(xhi);
-			expect(d.y).toBeLessThan(yhi);
+			expect(d.y).toBeLessThanOrEqual(yhi);
 			// Under the floor (or not positive): on the floor, hollow
 			expect(d.floor).toBe(!(d.x >= xlo) || !(d.y >= ylo));
 			if (d.floor) expect(d.fill).not.toBe(d.stroke);
@@ -844,7 +856,7 @@ for (const id of ['distribution-centre', 'airline-share-buyback'] as const) {
 		await expect(points.locator('title')).toHaveCount(data.length);
 		await points.first().focus();
 		await expect(scatter.getByTestId('scatter-readout')).toHaveText(
-			/: knowing it first (saves .+|saves nothing); profit swings ±.+ \([\d.]+ % of its spread\)$/
+			/: knowing it first (saves .+|saves nothing); it explains [\d.]+ % of your profit's spread$/
 		);
 	});
 }
