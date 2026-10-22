@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
-	import { browser } from '$app/environment';
-	import { createPersistGate, readJson } from '$lib/persist-gate';
+	import { browserStorage, createPersistGate, readJson } from '$lib/persist-gate';
 	import { Alert, Button, Field, InfoTip, PageHeader, Panel } from '$lib/ui';
 	import {
 		bestFallback,
@@ -62,15 +61,7 @@
 	const fmt = (n: number) => formatter.format(n);
 
 	let hydrated = $state(false);
-	function getStorage(): Storage | null {
-		if (!browser) return null;
-		try {
-			return localStorage;
-		} catch {
-			return null;
-		}
-	}
-	const storage = getStorage();
+	const storage = browserStorage();
 	const persist = createPersistGate(storage);
 	onMount(() => {
 		const saved = parseSetup(readJson(storage, SETUP_KEY));

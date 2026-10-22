@@ -1,7 +1,14 @@
-import { describe, it, expect } from 'vitest';
-import { clearSaved, createPersistGate, readJson } from '$lib/persist-gate';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { browserStorage, clearSaved, createPersistGate, readJson } from '$lib/persist-gate';
 import { createFreshSession, type SessionState } from '$lib/verbs';
 import { languageStorageKeys, loadLanguageState } from '$lib/verbs-storage';
+
+const env = vi.hoisted(() => ({ browser: true }));
+vi.mock('$app/environment', () => ({
+	get browser() {
+		return env.browser;
+	}
+}));
 
 function memoryStorage(entries: Record<string, string> = {}) {
 	const data = new Map(Object.entries(entries));
@@ -83,5 +90,38 @@ describe('clearSaved and readJson', () => {
 		expect(readJson(storage, 'b')).toBeNull();
 		expect(readJson(storage, 'c')).toBeNull();
 		expect(readJson(null, 'a')).toBeNull();
+	});
+});
+
+describe('browserStorage', () => {
+	const original = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+	function setLocalStorage(descriptor: PropertyDescriptor) {
+		Object.defineProperty(globalThis, 'localStorage', { configurable: true, ...descriptor });
+	}
+	afterEach(() => {
+		env.browser = true;
+		if (original) Object.defineProperty(globalThis, 'localStorage', original);
+		else delete (globalThis as { localStorage?: Storage }).localStorage;
+	});
+
+	it('returns localStorage in the browser', () => {
+		const storage = memoryStorage();
+		setLocalStorage({ value: storage });
+		expect(browserStorage()).toBe(storage);
+	});
+
+	it('returns null where reading localStorage throws (blocked storage)', () => {
+		setLocalStorage({
+			get() {
+				throw new DOMException('denied', 'SecurityError');
+			}
+		});
+		expect(browserStorage()).toBeNull();
+	});
+
+	it('returns null outside the browser', () => {
+		env.browser = false;
+		setLocalStorage({ value: memoryStorage() });
+		expect(browserStorage()).toBeNull();
 	});
 });

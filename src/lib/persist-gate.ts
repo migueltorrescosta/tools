@@ -1,3 +1,15 @@
+import { browser } from '$app/environment';
+
+/** localStorage, or null outside the browser or where reading it throws (blocked storage). */
+export function browserStorage(): Storage | null {
+	if (!browser) return null;
+	try {
+		return localStorage;
+	} catch {
+		return null;
+	}
+}
+
 /** Remove every key that starts with `prefix` (one tool's saved data). */
 export function clearSaved(
 	storage: Pick<Storage, 'length' | 'key' | 'removeItem'>,

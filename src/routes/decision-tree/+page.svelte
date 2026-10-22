@@ -2,8 +2,7 @@
 	import { onMount, untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { replaceState } from '$app/navigation';
-	import { browser } from '$app/environment';
-	import { createPersistGate } from '$lib/persist-gate';
+	import { browserStorage, createPersistGate } from '$lib/persist-gate';
 	import { buildGraph, encodePath, restorePath } from '$lib/decision-tree/graph';
 	import DecisionTree from '$lib/decision-tree/DecisionTree.svelte';
 	import { PageHeader } from '$lib/ui';
@@ -43,21 +42,11 @@
 		replaceState(url, {});
 	}
 
-	/** localStorage, or null where reading the property itself throws (blocked storage). */
-	function getStorage(): Storage | null {
-		if (!browser) return null;
-		try {
-			return localStorage;
-		} catch {
-			return null;
-		}
-	}
-
 	// --- Autosave & URL sync ---
 	const STORAGE_KEY = 'decision-tree-path';
 	// Closed until onMount has restored the saved path: this effect runs before
 	// onMount and would otherwise overwrite the saved path and ?p with [].
-	const persist = createPersistGate(getStorage());
+	const persist = createPersistGate(browserStorage());
 
 	$effect(() => {
 		const path = traversalPath;
