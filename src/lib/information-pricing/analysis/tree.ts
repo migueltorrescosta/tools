@@ -106,13 +106,16 @@ function resolveCount(value: number, name: string, reference: number, round: boo
 /**
  * Learn the policy tree from the inputs and the row-major loss matrix
  * (`n × D`). Throws `PolicyTreeError` with fewer than two rows, non-finite
- * inputs, or a zero held-out root risk (nothing to improve on).
+ * inputs, or a zero held-out root risk (nothing to improve on). `progress`
+ * hears a rough fraction done (below 1) after each input searched in a node:
+ * rows searched over the training rows × inputs × depth.
  */
 export function buildPolicyTree(
 	inputs: Float64Array[],
 	loss: Float64Array,
 	D: number,
-	options: TreeOptions = {}
+	options: TreeOptions = {},
+	progress?: (fraction: number) => void
 ): PolicyTree {
 	const { maxDepth, minImpurityDecrease, minSamplesLeaf } = { ...DEFAULT_TREE_OPTIONS, ...options };
 	if (!Number.isInteger(maxDepth) || maxDepth < 0) {
@@ -210,6 +213,8 @@ export function buildPolicyTree(
 	// The search is deterministic in the rows, and merge-up asks again for the
 	// same row sets the reference re-evaluates, so results are cached.
 	const cache = new WeakMap<Uint32Array, Split | null>();
+	const work = trainCount * inputs.length * Math.max(1, maxDepth);
+	let searched = 0;
 	const findBestSplit = (rows: Uint32Array): Split | null => {
 		const cached = cache.get(rows);
 		if (cached !== undefined) return cached;
@@ -267,6 +272,7 @@ export function buildPolicyTree(
 					inputK = k;
 				}
 			}
+			if (progress) progress(Math.min(0.99, (searched += nr) / work));
 			if (inputK < 0) continue;
 			if (inputBest > bestReduction) {
 				bestReduction = inputBest;

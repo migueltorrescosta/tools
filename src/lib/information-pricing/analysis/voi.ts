@@ -161,7 +161,8 @@ function inputLosses(
 /**
  * Savings matrix of every input for every bin count
  * (`evaluate_value_of_information(bins=[2, …, 10])`). Inputs are
- * independent, so callers may split them across workers.
+ * independent, so callers may split them across workers. `progress` hears
+ * the number of inputs done after each one.
  */
 export function valueOfInformation(
 	inputs: Float64Array[],
@@ -169,10 +170,12 @@ export function valueOfInformation(
 	D: number,
 	baseline: number,
 	bins: number[] = DEFAULT_BINS,
-	sorted?: Float64Array[]
+	sorted?: Float64Array[],
+	progress?: (done: number) => void
 ): ValueOfInformation {
 	const savings = inputs.map((column, j) => {
 		const losses = inputLosses(column, sorted?.[j] ?? sortedCopy(column), loss, D, bins);
+		progress?.(j + 1);
 		return losses.map((v) => baseline - v);
 	});
 	const last = bins.indexOf(Math.max(...bins));

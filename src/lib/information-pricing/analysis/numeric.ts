@@ -10,7 +10,7 @@ import type { Scenarios } from '../types';
  * Row-major opportunity-loss matrix, `n × D`: entry `i * D + d` is
  * `optimal[i] - rewards[d][i]`. One allocation shared by the analyses.
  */
-export function lossMatrix(s: Scenarios): Float64Array {
+export function lossMatrix(s: Pick<Scenarios, 'n' | 'rewards' | 'optimal'>): Float64Array {
 	const n = s.n;
 	const D = s.rewards.length;
 	const out = new Float64Array(n * D);

@@ -196,6 +196,10 @@
 			() =>
 				new Worker(new URL('$lib/information-pricing/analysis.worker.ts', import.meta.url), {
 					type: 'module'
+				}),
+			() =>
+				new Worker(new URL('$lib/information-pricing/tree.worker.ts', import.meta.url), {
+					type: 'module'
 				})
 		);
 		engine = createSimulationEngine(
@@ -274,11 +278,7 @@
 	const count = (n: number) => n.toLocaleString('en');
 	const seconds = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
 	const stage = $derived(
-		progress?.stage === 'analysing'
-			? 'Analysing'
-			: progress
-				? `Simulating ${count(progress.done)} of ${count(progress.total)}`
-				: ''
+		progress ? `${progress.step} · ${Math.floor(progress.fraction * 100)} %` : ''
 	);
 
 	// --- Saving and the share link ---
@@ -411,11 +411,7 @@
 			{#if running && progress}
 				<span class="progress" data-testid="progress">
 					<label for="run-progress">{stage}</label>
-					<progress
-						id="run-progress"
-						max={progress.total || 1}
-						value={progress.stage === 'analysing' ? undefined : progress.done}
-					></progress>
+					<progress id="run-progress" max="1" value={progress.fraction}></progress>
 					<span data-testid="elapsed">{seconds(progress.elapsedMs)}</span>
 				</span>
 			{/if}

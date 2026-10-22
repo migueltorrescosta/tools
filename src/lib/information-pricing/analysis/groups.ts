@@ -121,15 +121,16 @@ export interface GroupTable {
  * Mean loss of every decision per quantile group of an input, and the
  * group's optimal decision (`optimal_decision_per_group(..., detailed=True)`).
  * Means use Kahan summation in row order, as pandas' groupby mean does.
+ * Pass `g` to reuse a `qcut` of the column with `bins` groups.
  */
 export function optimalDecisionPerGroup(
 	column: Float64Array,
 	loss: Float64Array,
 	D: number,
 	bins: number,
-	sorted?: Float64Array
+	sorted?: Float64Array,
+	g: QuantileGroups = qcut(column, bins, sorted)
 ): GroupTable {
-	const g = qcut(column, bins, sorted);
 	const G = g.count;
 	const sums = new Float64Array(G * D);
 	const comp = new Float64Array(G * D);
