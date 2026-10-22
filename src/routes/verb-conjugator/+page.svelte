@@ -3,7 +3,7 @@
 	import { browser } from '$app/environment';
 	import { Button, PageHeader, Panel, SegmentedControl } from '$lib/ui';
 	import { LANGUAGE_REGISTRY, getLanguage, type LanguageModule } from '$lib/data/language-registry';
-	import { createPersistGate } from '$lib/persist-gate';
+	import { browserStorage, createPersistGate } from '$lib/persist-gate';
 	import {
 		LANGUAGE_STORAGE_KEY,
 		languageStorageKeys,
@@ -53,7 +53,7 @@
 
 		// Load state SYNCHRONOUSLY BEFORE updating selectedLanguageId
 		// This prevents the race condition where activePool derives with wrong state
-		const state = loadLanguageState(langId, browser ? localStorage : null);
+		const state = loadLanguageState(langId, browserStorage());
 
 		// Now update everything atomically
 		selectedLanguageId = langId;
@@ -221,7 +221,7 @@
 
 	// Closed until onMount has restored saved state, so the initial defaults
 	// never overwrite it.
-	const persist = createPersistGate(browser ? localStorage : null);
+	const persist = createPersistGate(browserStorage());
 
 	/** Persist through the gate; a full or blocked storage must not break the page. */
 	function save(key: string, value: string) {
@@ -256,7 +256,7 @@
 
 	onMount(() => {
 		// Restore the last language, then its state, before opening the gate
-		const storage = browser ? localStorage : null;
+		const storage = browserStorage();
 		selectedLanguageId = loadSelectedLanguage(storage, selectedLanguageId);
 		const state = loadLanguageState(selectedLanguageId, storage);
 		selectedVerbs = state.verbs;

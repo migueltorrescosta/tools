@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import { replaceState } from '$app/navigation';
 	import { browser } from '$app/environment';
-	import { clearSaved, createPersistGate, readJson } from '$lib/persist-gate';
+	import { browserStorage, clearSaved, createPersistGate, readJson } from '$lib/persist-gate';
 	import { copyToClipboard } from '$lib/clipboard';
 	import { EXAMPLES } from '$lib/data/symbolic-regression-examples';
 	import { parseCsv, type ParsedCsv } from '$lib/symbolic-regression/csv';
@@ -166,15 +166,7 @@
 	let hydrated = $state(false);
 	let routerReady = $state(false);
 
-	function getStorage(): Storage | null {
-		if (!browser) return null;
-		try {
-			return localStorage;
-		} catch {
-			return null;
-		}
-	}
-	const storage = getStorage();
+	const storage = browserStorage();
 	const persist = createPersistGate(storage);
 
 	// --- Loading data ---

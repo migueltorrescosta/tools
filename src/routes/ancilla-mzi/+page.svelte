@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import { replaceState } from '$app/navigation';
 	import { browser } from '$app/environment';
-	import { clearSaved, createPersistGate } from '$lib/persist-gate';
+	import { browserStorage, clearSaved, createPersistGate } from '$lib/persist-gate';
 	import {
 		MAX_HOLD,
 		MAX_PULSES,
@@ -238,15 +238,7 @@
 	const controlEntries = $derived(runSetup ? activeControls(runSetup) : []);
 
 	// --- Persistence and URL ---
-	function getStorage(): Storage | null {
-		if (!browser) return null;
-		try {
-			return localStorage;
-		} catch {
-			return null;
-		}
-	}
-	const storage = getStorage();
+	const storage = browserStorage();
 	const persist = createPersistGate(storage);
 	let hydrated = $state(false);
 	let routerReady = $state(false);
