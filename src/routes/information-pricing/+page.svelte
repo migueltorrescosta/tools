@@ -529,23 +529,8 @@
 			{#each errors.filter((e) => e.where.kind === 'model') as e, i (i)}
 				<Alert tone="warning">{e.message}</Alert>
 			{/each}
-			<Maximizable title="Dataflow" plot={flow}>
-				{#snippet frame(button)}
-					<section class="card dataflow" aria-labelledby="dataflow-heading">
-						<div class="section-head">
-							<h3 id="dataflow-heading">Dataflow</h3>
-							<InfoTip label="the dataflow"
-								>How the numbers feed each other, from inputs down to the reward. Click a box to
-								find its row and light up what it uses and what uses it.</InfoTip
-							>
-							{@render button()}
-						</div>
-						{@render flow(false)}
-					</section>
-				{/snippet}
-			</Maximizable>
 			<div class="tables" data-testid="setup-tables">
-				<div class="card inputs-card">
+				<div class="card">
 					<InputsEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
 				</div>
 				<div class="card">
@@ -554,6 +539,25 @@
 				<div class="card">
 					<DecisionsEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
 				</div>
+				<Maximizable title="Dataflow" plot={flow}>
+					{#snippet frame(button)}
+						<section
+							class="card dataflow"
+							data-testid="dataflow-card"
+							aria-labelledby="dataflow-heading"
+						>
+							<div class="section-head">
+								<h3 id="dataflow-heading">Dataflow</h3>
+								<InfoTip label="the dataflow"
+									>How the numbers feed each other, from inputs down to the reward. Click a box to
+									find its row and light up what it uses and what uses it.</InfoTip
+								>
+								{@render button()}
+							</div>
+							{@render flow(false)}
+						</section>
+					{/snippet}
+				</Maximizable>
 			</div>
 		</div>
 	{:else if analysis && runModel}
@@ -650,11 +654,16 @@
 		max-width: none;
 	}
 
-	/* Setup: the dataflow across the top, the three tables below; one column on phones. */
+	/*
+	 * Setup: four columns, inputs | intermediates | decisions | dataflow; two
+	 * ([inputs | intermediates] over [decisions | dataflow]) where four don't
+	 * fit, one on phones. Rows wrap inside a narrow column, so no field clips.
+	 */
 	.setup {
 		display: flex;
 		flex-direction: column;
 		gap: var(--sp-2);
+		container-type: inline-size;
 	}
 	.preset :global(.ui-field) {
 		flex-direction: row;
@@ -666,29 +675,20 @@
 		min-width: 14rem;
 		max-width: 100%;
 	}
-	/* Two to three tables a row once each fits its fields without clipping. */
-	.setup {
-		container-type: inline-size;
-	}
 	.tables {
 		display: grid;
 		gap: var(--sp-3);
 		align-items: start;
 	}
-	@container (min-width: 66rem) {
+	@container (min-width: 48rem) {
 		.tables {
 			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 		}
-		.inputs-card {
-			grid-column: 1 / -1;
-		}
 	}
-	@container (min-width: 106rem) {
+	@container (min-width: 108rem) {
 		.tables {
-			grid-template-columns: minmax(0, 1.75fr) minmax(0, 1.3fr) minmax(0, 1fr);
-		}
-		.inputs-card {
-			grid-column: auto;
+			/* The dataflow is a picture: it gets the most room. */
+			grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.5fr);
 		}
 	}
 	.setup :global(.card) {

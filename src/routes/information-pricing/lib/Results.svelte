@@ -181,53 +181,52 @@
 		</div>
 	</dl>
 
-	<div data-testid="tree-box">
-		<Maximizable title="Policy tree" plot={treePlot} disabled={!analysis.tree}>
-			{#snippet frame(button)}
-				<Panel title="Policy tree" actions={button}>
-					<div class="stack" style="--gap: var(--sp-2)">
-						<form
-							class="tree-settings"
-							onsubmit={(e) => {
-								e.preventDefault();
-								if (valid && treeChanged && !busy) onretree();
-							}}
-						>
-							<NumberInput
-								label="Max depth"
-								value={tree.maxDepth}
-								onchange={(v) => (tree.maxDepth = v)}
-								error={errors.maxDepth}
-							/>
-							<NumberInput
-								label="Min leaf (%)"
-								value={tree.minLeafPercent}
-								onchange={(v) => (tree.minLeafPercent = v)}
-								error={errors.minLeafPercent}
-							/>
-							<NumberInput
-								label="Min impurity decrease"
-								value={tree.minImpurityDecrease}
-								onchange={(v) => (tree.minImpurityDecrease = v)}
-								error={errors.minImpurityDecrease}
-							/>
-							<Button size="sm" type="submit" disabled={!valid || !treeChanged || busy}
-								>Update tree</Button
-							>
-						</form>
-						{@render treePlot(false)}
-					</div>
-				</Panel>
-			{/snippet}
-		</Maximizable>
-	</div>
-
 	<div class="columns">
 		<div class="column inputs-col" data-testid="inputs-box">
 			<Maximizable title="Inputs by value of information" plot={inputsPlot}>
 				{#snippet frame(button)}
 					<Panel title="Inputs by value of information" actions={button}>
 						{@render inputsPlot(false)}
+					</Panel>
+				{/snippet}
+			</Maximizable>
+		</div>
+		<div class="column tree-col" data-testid="tree-box">
+			<Maximizable title="Policy tree" plot={treePlot} disabled={!analysis.tree}>
+				{#snippet frame(button)}
+					<Panel title="Policy tree" actions={button}>
+						<div class="stack" style="--gap: var(--sp-2)">
+							<form
+								class="tree-settings"
+								onsubmit={(e) => {
+									e.preventDefault();
+									if (valid && treeChanged && !busy) onretree();
+								}}
+							>
+								<NumberInput
+									label="Max depth"
+									value={tree.maxDepth}
+									onchange={(v) => (tree.maxDepth = v)}
+									error={errors.maxDepth}
+								/>
+								<NumberInput
+									label="Min leaf (%)"
+									value={tree.minLeafPercent}
+									onchange={(v) => (tree.minLeafPercent = v)}
+									error={errors.minLeafPercent}
+								/>
+								<NumberInput
+									label="Min impurity decrease"
+									value={tree.minImpurityDecrease}
+									onchange={(v) => (tree.minImpurityDecrease = v)}
+									error={errors.minImpurityDecrease}
+								/>
+								<Button size="sm" type="submit" disabled={!valid || !treeChanged || busy}
+									>Update tree</Button
+								>
+							</form>
+							{@render treePlot(false)}
+						</div>
 					</Panel>
 				{/snippet}
 			</Maximizable>
@@ -509,9 +508,9 @@
 	}
 
 	/*
-	 * The tree across the top, then three columns: inputs | losses | value of
-	 * information. Two columns (losses over value of information on the right)
-	 * where three don't fit, one on phones.
+	 * Four columns: inputs | tree | losses | value of information. Two
+	 * ([inputs | tree] over [losses | value of information]) where four would
+	 * squeeze the plots, one on phones.
 	 */
 	.results {
 		container-type: inline-size;
@@ -520,10 +519,13 @@
 		display: grid;
 		gap: var(--sp-3);
 		align-items: start;
-		grid-template-areas: 'inputs' 'losses' 'voi';
+		grid-template-areas: 'inputs' 'tree' 'losses' 'voi';
 	}
 	.inputs-col {
 		grid-area: inputs;
+	}
+	.tree-col {
+		grid-area: tree;
 	}
 	.losses-col {
 		grid-area: losses;
@@ -531,18 +533,16 @@
 	.voi-col {
 		grid-area: voi;
 	}
-	@container (min-width: 60rem) {
+	@container (min-width: 48rem) {
 		.columns {
 			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-			grid-template-rows: auto 1fr;
-			grid-template-areas: 'inputs losses' 'inputs voi';
+			grid-template-areas: 'inputs tree' 'losses voi';
 		}
 	}
-	@container (min-width: 100rem) {
+	@container (min-width: 108rem) {
 		.columns {
-			grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
-			grid-template-rows: auto;
-			grid-template-areas: 'inputs losses voi';
+			grid-template-columns: minmax(0, 1.2fr) repeat(3, minmax(0, 1fr));
+			grid-template-areas: 'inputs tree losses voi';
 		}
 	}
 	.column {
@@ -588,8 +588,11 @@
 		align-items: flex-end;
 		gap: var(--sp-2);
 	}
+	/* Each field as wide as its label, growing to share the row; they wrap in a narrow column. */
 	.tree-settings :global(.ui-field) {
-		flex: 0 1 9rem;
+		flex: 1 1 auto;
+		min-width: 4.5rem;
+		max-width: 10rem;
 	}
 	.tree-settings :global(.ui-field label) {
 		font-size: var(--text-xs);

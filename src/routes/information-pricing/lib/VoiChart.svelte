@@ -98,6 +98,9 @@
 	let pinned = $state<number | null>(null);
 	const active = $derived(hot ?? pinned);
 
+	/** Dash lengths grow with the lines (1.75 → 2.5 px stroke), so the patterns stay apart. */
+	const DASH_SCALE = 1.4;
+
 	const summary = $derived(
 		voi.order
 			.slice(0, 3)
@@ -196,7 +199,7 @@
 						<path
 							class="line"
 							d={paths[j]}
-							stroke-dasharray={dash(j) || undefined}
+							stroke-dasharray={dash(j, DASH_SCALE) || undefined}
 							data-testid="voi-line"
 						/>
 						{#each voi.bins as b, k (b)}
@@ -204,7 +207,7 @@
 								<circle
 									cx={sx(b)}
 									cy={sy(shown[j][k])}
-									r="2"
+									r="3"
 									data-testid="voi-point"
 									data-value={shown[j][k]}
 								>
@@ -292,7 +295,7 @@
 	.series .line {
 		fill: none;
 		stroke: var(--c);
-		stroke-width: 1.75;
+		stroke-width: 2.5;
 	}
 	.series .hit {
 		fill: none;
@@ -307,10 +310,10 @@
 		font-size: 11px;
 	}
 	.series.hot .line {
-		stroke-width: 3;
+		stroke-width: 3.5;
 	}
 	.series.hot circle {
-		r: 3px;
+		r: 4px;
 	}
 	.series.hot .end {
 		fill: var(--text);

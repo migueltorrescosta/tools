@@ -21,13 +21,11 @@
 
 	const layout = $derived(layoutTree(view, inputs));
 
-	/** A tree a little wider than its box shrinks to fit (down to MIN_SCALE); a wider one scrolls. */
-	const MIN_SCALE = 0.8;
+	/** A tree wider than its box shrinks to fit, down to MIN_SCALE; past that it scrolls. */
+	const MIN_SCALE = 0.6;
 	let boxWidth = $state(0);
 	const scale = $derived(
-		!maximized && boxWidth > 0 && layout.width > boxWidth && layout.width * MIN_SCALE <= boxWidth
-			? boxWidth / layout.width
-			: 1
+		!maximized && boxWidth > 0 ? Math.max(MIN_SCALE, Math.min(1, boxWidth / layout.width)) : 1
 	);
 
 	/** A tree that still scrolls opens at its root (the middle), not its left edge. */

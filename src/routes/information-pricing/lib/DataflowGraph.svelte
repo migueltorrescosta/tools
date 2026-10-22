@@ -57,6 +57,14 @@
 			: 1
 	);
 
+	/** A graph that still scrolls opens at its middle, where the reward sits, not its left edge. */
+	let scroller = $state<HTMLDivElement>();
+	$effect(() => {
+		if (!scroller || !layout || maximized) return;
+		void scale;
+		scroller.scrollLeft = (scroller.scrollWidth - scroller.clientWidth) / 2;
+	});
+
 	/** The picked node's whole chain: everything upstream and downstream. */
 	const lit = $derived.by(() => {
 		if (!selected || !labels.has(selected)) return { nodes: new Set<string>(), edges: new Set() };
@@ -94,6 +102,7 @@
 	data-testid="dataflow"
 	data-ready={layout ? '' : undefined}
 	data-edges={graph.edges.length}
+	bind:this={scroller}
 	bind:clientWidth={boxWidth}
 >
 	<p id="df-summary-{uid}" class="sr-only">{summary}</p>

@@ -303,52 +303,94 @@ test('Setup sections explain themselves; References list fifteen links', async (
 	await expect(refs.getByRole('link')).toHaveCount(15);
 });
 
+/** Results columns, in order. */
+const RESULT_BOXES = ['inputs-box', 'tree-box', 'losses-box', 'voi-box'];
+/** Setup columns, in order. */
+const SETUP_BOXES = ['inputs', 'intermediates', 'decisions', 'dataflow'].map(
+	(h) => `.card:has(#${h}-heading)`
+);
+type Box = { x: number; y: number; width: number; height: number };
+const noSideScroll = (page: Page) =>
+	page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+
+/** Four columns in order sharing a top (1920), two rows of two (1440), or a stack (390). */
+function expectColumns(boxes: Box[], width: number) {
+	const [a, b, c, d] = boxes;
+	const sideBySide = (l: Box, r: Box) => {
+		expect(Math.abs(l.y - r.y)).toBeLessThan(2);
+		expect(r.x).toBeGreaterThanOrEqual(l.x + l.width);
+	};
+	if (width >= 1920) {
+		for (const [l, r] of [
+			[a, b],
+			[b, c],
+			[c, d]
+		])
+			sideBySide(l, r);
+	} else if (width >= 1024) {
+		sideBySide(a, b);
+		sideBySide(c, d);
+		expect(Math.abs(c.x - a.x)).toBeLessThan(2);
+		expect(c.y).toBeGreaterThanOrEqual(Math.max(a.y + a.height, b.y + b.height));
+	} else {
+		for (const [t, u] of [
+			[a, b],
+			[b, c],
+			[c, d]
+		]) {
+			expect(Math.abs(u.x - t.x)).toBeLessThan(2);
+			expect(u.y).toBeGreaterThanOrEqual(t.y + t.height);
+		}
+	}
+}
+
+for (const width of [1920, 1440, 390]) {
+	test(`results at ${width} px: inputs | tree | losses | value of information, in ${
+		width >= 1920 ? 'four columns' : width >= 1024 ? 'two rows of two' : 'one column'
+	}`, async ({ page }) => {
+		await page.setViewportSize({ width, height: 900 });
+		await open(page, link(small('airline-share-buyback')));
+		await press(page, 'Run', 1);
+		const boxes = await Promise.all(
+			RESULT_BOXES.map(async (id) => (await page.getByTestId(id).boundingBox())!)
+		);
+		const headline = (await page.getByTestId('headline').boundingBox())!;
+		expect(boxes[0].y).toBeGreaterThanOrEqual(headline.y + headline.height);
+		expectColumns(boxes, width);
+		// The tree scales down to fit its column
+		const svg = (await page.getByTestId('policy-tree').boundingBox())!;
+		expect(svg.width).toBeLessThanOrEqual(boxes[1].width);
+		expect(svg.x).toBeGreaterThanOrEqual(boxes[1].x);
+		expect(await noSideScroll(page)).toBe(0);
+	});
+}
+
 for (const width of [1440, 390]) {
-	test(`results at ${width} px: the tree spans the width above the inputs and losses`, async ({
+	test(`setup at ${width} px: inputs | intermediates over decisions | dataflow, or a stack`, async ({
 		page
 	}) => {
 		await page.setViewportSize({ width, height: 900 });
-		await open(page, link(small('distribution-centre')));
-		await press(page, 'Run', 1);
-		const tree = (await page.getByTestId('tree-box').boundingBox())!;
-		const inputs = (await page.getByTestId('inputs-box').boundingBox())!;
-		const losses = (await page.getByTestId('losses-box').boundingBox())!;
-		expect(inputs.y).toBeGreaterThanOrEqual(tree.y + tree.height);
-		expect(Math.abs(inputs.x - tree.x)).toBeLessThan(2);
-		if (width === 1440) {
-			// Row 2: inputs on the left, losses on the right, together as wide as the tree
-			expect(losses.x).toBeGreaterThanOrEqual(inputs.x + inputs.width);
-			expect(Math.abs(losses.y - inputs.y)).toBeLessThan(2);
-			expect(Math.abs(losses.x + losses.width - (tree.x + tree.width))).toBeLessThan(2);
-		} else {
-			expect(losses.y).toBeGreaterThanOrEqual(inputs.y + inputs.height);
-		}
-		expect(
-			await page.evaluate(
-				() => document.documentElement.scrollWidth - document.documentElement.clientWidth
-			)
-		).toBe(0);
+		await open(page, link(small('airline-share-buyback')));
+		const boxes = await Promise.all(
+			SETUP_BOXES.map(async (sel) => (await page.locator(sel).boundingBox())!)
+		);
+		expectColumns(boxes, width);
+		expect(await noSideScroll(page)).toBe(0);
 	});
 }
 
 for (const id of ['distribution-centre', 'airline-share-buyback'] as const) {
-	test(`setup at 1920 px on ${id}: dataflow across the top, three tables below, nothing clipped`, async ({
+	test(`setup at 1920 px on ${id}: inputs | intermediates | decisions | dataflow, nothing clipped`, async ({
 		page
 	}) => {
 		await page.setViewportSize({ width: 1920, height: 1000 });
 		await open(page, link(small(id)));
 		const setup = (await page.getByTestId('setup').boundingBox())!;
 		expect(setup.width).toBeGreaterThan(1800);
-		const dataflow = (await page.locator('section.dataflow').boundingBox())!;
-		const tables = (await page.getByTestId('setup-tables').boundingBox())!;
-		expect(Math.abs(dataflow.width - setup.width)).toBeLessThan(2);
-		expect(tables.y).toBeGreaterThanOrEqual(dataflow.y + dataflow.height);
-		const tops = await Promise.all(
-			['inputs', 'intermediates', 'decisions'].map(async (h) =>
-				Math.round((await page.locator(`#${h}-heading`).boundingBox())!.y)
-			)
+		const boxes = await Promise.all(
+			SETUP_BOXES.map(async (sel) => (await page.locator(sel).boundingBox())!)
 		);
-		expect(new Set(tops).size).toBe(1);
+		expectColumns(boxes, 1920);
 		const clipped = await page
 			.getByTestId('setup')
 			.locator('input')
@@ -773,32 +815,6 @@ test('intermediates get their own rows under the inputs; decision-dependent ones
 	await expect(page.getByTestId('intermediates-box')).toHaveCount(0);
 });
 
-test('results at 1920 px: the tree, then inputs | losses | value of information side by side', async ({
-	page
-}) => {
-	await page.setViewportSize({ width: 1920, height: 1000 });
-	await open(page, link(small('airline-share-buyback')));
-	await press(page, 'Run', 1);
-	const box = async (id: string) => (await page.getByTestId(id).boundingBox())!;
-	const tree = await box('tree-box');
-	const [inputs, losses, voi] = [
-		await box('inputs-box'),
-		await box('losses-box'),
-		await box('voi-box')
-	];
-	expect(inputs.y).toBeGreaterThanOrEqual(tree.y + tree.height);
-	for (const b of [losses, voi]) expect(Math.abs(b.y - inputs.y)).toBeLessThan(2);
-	expect(losses.x).toBeGreaterThanOrEqual(inputs.x + inputs.width);
-	expect(voi.x).toBeGreaterThanOrEqual(losses.x + losses.width);
-	expect(Math.abs(inputs.x - tree.x)).toBeLessThan(2);
-	expect(Math.abs(voi.x + voi.width - (tree.x + tree.width))).toBeLessThan(2);
-	expect(
-		await page.evaluate(
-			() => document.documentElement.scrollWidth - document.documentElement.clientWidth
-		)
-	).toBe(0);
-});
-
 for (const id of ['distribution-centre', 'airline-share-buyback'] as const) {
 	test(`the scatter on ${id}: one point per input on log decades, floor points hollow, tooltips`, async ({
 		page
@@ -904,6 +920,8 @@ const MAXIMIZE: [string, string][] = [
 /** Opens `title` maximized, checks the plot fills the window, closes it with `how`, checks focus. */
 async function maximize(page: Page, title: string, plot: string, how: 'Escape' | 'Close') {
 	const button = page.getByRole('button', { name: `Maximize ${title}` });
+	// An icon (corner brackets), not a glyph
+	await expect(button.locator('svg[aria-hidden="true"]')).toHaveCount(1);
 	await button.click();
 	const dialog = page.getByRole('dialog', { name: title });
 	await expect(dialog).toBeVisible();
@@ -917,7 +935,7 @@ async function maximize(page: Page, title: string, plot: string, how: 'Escape' |
 	return box;
 }
 
-test('each plot maximizes to fill the window; Esc and ✕ close it and focus returns', async ({
+test('each plot maximizes to fill the window; Esc and Close close it and focus returns', async ({
 	page
 }) => {
 	await page.setViewportSize({ width: 1440, height: 900 });
@@ -948,8 +966,8 @@ test('each plot maximizes to fill the window; Esc and ✕ close it and focus ret
 		if (/Loss|Savings|Value/.test(title)) expect(box.height).toBeGreaterThan(0.6 * 900);
 		await maximize(page, title, plot, 'Close');
 	}
-	// Nothing maximized stays in the page
-	await expect(page.getByTestId('maximized').locator('svg')).toHaveCount(0);
+	// Nothing maximized stays in the page (only the dialogs' close icons)
+	await expect(page.getByTestId('maximized').locator('[role="region"] svg')).toHaveCount(0);
 });
 
 test('maximized interactions: scatter readout and VoI legend hover', async ({ page }) => {

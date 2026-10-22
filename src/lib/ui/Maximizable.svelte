@@ -3,7 +3,7 @@
 	import Button from './Button.svelte';
 
 	/**
-	 * A plot with a ⤢ button that opens it again in a full-window `<dialog>`.
+	 * A plot with a maximize button (corner brackets) that opens it again in a full-window `<dialog>`.
 	 * The dialog's copy renders only while open; `plot(true)` should fill the
 	 * dialog body (a flex column), `plot(false)` is the inline plot.
 	 */
@@ -20,7 +20,7 @@
 		/** E.g. while the plot is still computing. */
 		disabled?: boolean;
 		/**
-		 * Custom inline layout: render the ⤢ `button` where it belongs (a panel
+		 * Custom inline layout: render the maximize `button` where it belongs (a panel
 		 * header) and the inline plot yourself. Without it the button sits in a
 		 * bar above the plot, beside the title.
 		 */
@@ -30,7 +30,7 @@
 	const uid = $props.id();
 	let dialog = $state<HTMLDialogElement>();
 	let open = $state(false);
-	// The browser moves focus into the dialog and, on close, back to the ⤢ button.
+	// The browser moves focus into the dialog and, on close, back to the maximize button.
 	function show() {
 		open = true;
 		dialog?.showModal();
@@ -45,7 +45,12 @@
 		aria-label="Maximize {title}"
 		title="Maximize"
 		{disabled}
-		onclick={show}><span aria-hidden="true">⤢</span></Button
+		onclick={show}
+		><svg class="ui-max-icon" viewBox="0 0 24 24" aria-hidden="true"
+			><path
+				d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"
+			/></svg
+		></Button
 	>
 {/snippet}
 
@@ -75,7 +80,9 @@
 	<div class="ui-max-head">
 		<h2 id="max-title-{uid}">{title}</h2>
 		<Button variant="ghost" size="sm" aria-label="Close {title}" onclick={() => dialog?.close()}
-			><span aria-hidden="true">✕</span></Button
+			><svg class="ui-max-icon" viewBox="0 0 24 24" aria-hidden="true"
+				><path d="M18 6 6 18M6 6l12 12" /></svg
+			></Button
 		>
 	</div>
 	<!-- Focusable, so keyboard users can scroll a plot taller or wider than the window. -->
@@ -107,8 +114,17 @@
 		flex: none;
 		min-width: var(--control-h-sm);
 		margin-left: auto;
-		font-size: var(--text-lg);
-		line-height: 1;
+	}
+	/* Stroke icons as in ShareActions: corner brackets to open, an x to close. */
+	.ui-max-icon {
+		flex: none;
+		width: 16px;
+		height: 16px;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
 	}
 	.ui-max-dialog {
 		position: fixed;

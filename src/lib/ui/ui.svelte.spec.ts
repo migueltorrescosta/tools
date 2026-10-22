@@ -107,11 +107,13 @@ describe('Maximizable', () => {
 		render: () => `<p data-testid="plot">${maximized() ? 'big' : 'small'}</p>`
 	}));
 
-	it('opens the plot in a modal dialog; Esc and ✕ close it and focus returns', async () => {
+	it('opens the plot in a modal dialog; Esc and Close close it and focus returns', async () => {
 		render(Maximizable, { title: 'Chart', plot });
 		const open = page.getByRole('button', { name: 'Maximize Chart' });
 		const dialog = page.getByRole('dialog', { name: 'Chart' });
 		await expect.element(page.getByTestId('plot')).toHaveTextContent('small');
+		// Icons, not glyphs: corner brackets to open, an x to close
+		expect(open.element().querySelector('svg[aria-hidden="true"]')).not.toBeNull();
 		// The dialog's copy renders only while open
 		expect(document.querySelectorAll('[data-testid="plot"]')).toHaveLength(1);
 
@@ -125,6 +127,9 @@ describe('Maximizable', () => {
 		expect(document.querySelectorAll('[data-testid="plot"]')).toHaveLength(1);
 
 		await open.click();
+		expect(
+			page.getByRole('button', { name: 'Close Chart' }).element().querySelector('svg')
+		).not.toBeNull();
 		await page.getByRole('button', { name: 'Close Chart' }).click();
 		await expect.element(dialog).not.toBeInTheDocument();
 		await expect.element(open).toHaveFocus();

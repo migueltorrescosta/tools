@@ -185,7 +185,13 @@ export function spreadLabels(ys: readonly number[], gap: number, lo: number, hi:
 
 /** Dash patterns that tell the value-of-information lines apart (cycled). */
 export const DASHES = ['', '7 3', '2 2.5', '9 3 2 3', '4 4', '12 3 2 3 2 3'] as const;
-export const dash = (i: number) => DASHES[i % DASHES.length];
+/** Input `i`'s dash pattern, its lengths times `scale` (to keep step with a thicker stroke). */
+export const dash = (i: number, scale = 1) =>
+	DASHES[i % DASHES.length]
+		.split(' ')
+		.filter(Boolean)
+		.map((n) => +(Number(n) * scale).toFixed(2))
+		.join(' ');
 
 /** A point label: text anchor position and alignment, in pixels. */
 export interface PlacedLabel {

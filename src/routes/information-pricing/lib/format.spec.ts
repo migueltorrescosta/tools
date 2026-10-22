@@ -133,5 +133,7 @@ describe('format', () => {
 		expect(dash(0)).toBe('');
 		expect(dash(1)).not.toBe('');
 		expect(dash(6)).toBe(dash(0));
+		expect(dash(1, 1.5)).toBe('10.5 4.5');
+		expect(dash(0, 1.5)).toBe('');
 	});
 });
