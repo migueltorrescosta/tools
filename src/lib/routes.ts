@@ -90,6 +90,12 @@ export const routes: ToolRoute[] = [
 			'Compare a noisy ancilla-assisted interferometer against a fairly counted Mach-Zehnder interferometer. Optimised live on Web Workers, with a panel of fair-accounting rules.'
 	},
 	{
+		path: '/information-pricing',
+		name: 'Information Pricing',
+		description:
+			'Price what it is worth to know before you decide: simulate a model of your uncertainty on Web Workers and get the expected opportunity loss, the value of information per input and a policy tree.'
+	},
+	{
 		path: '/scientific-derivations',
 		name: 'Scientific Derivations',
 		description:

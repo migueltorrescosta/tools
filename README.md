@@ -20,6 +20,7 @@ A collection of small browser tools built with SvelteKit 2, Svelte 5 and TypeScr
 | `/warhammer-simulator` | Warhammer Simulator | Monte Carlo duel odds for Warhammer: The Old World.                               |
 | `/symbolic-regression` | Symbolic Regression | Fit interpretable equations to a CSV, with a Pareto front of accuracy vs size.    |
 | `/ancilla-mzi`         | Ancilla vs MZI      | Noisy ancilla-assisted interferometry against a fairly counted MZI.               |
+| `/information-pricing` | Information Pricing | Expected opportunity loss and the value of information for a simulated decision.  |
 
 The index page is generated from `src/lib/routes.ts`. Add new tools there.
 
