@@ -10,8 +10,8 @@ describe('layoutTree', () => {
 		const loss = new Float64Array(n * 2);
 		for (let i = 0; i < n; i++) loss[i * 2 + (x[i] < 0.5 ? 1 : 0)] = 1;
 		const tree = buildPolicyTree([x], loss, 2);
-		const view = policyTreeView(tree, { decisions: ['a', 'b'], inputs: ['x'], unit: '€' });
-		const layout = layoutTree(view);
+		const view = policyTreeView(tree, { decisions: ['a', 'b'], unit: '€' });
+		const layout = layoutTree(view, ['x']);
 		expect(layout.nodes).toHaveLength(view.nodes.length);
 		expect(layout.splits).toHaveLength(view.splits.length);
 		expect(view.splits.length).toBeGreaterThan(0);
@@ -39,7 +39,6 @@ describe('layoutTree', () => {
 		for (let i = 0; i < n; i++) loss[i * 2 + (x[i] < 0.5 ? 1 : 0)] = 1;
 		const view = policyTreeView(buildPolicyTree([x], loss, 2), {
 			decisions: ['first', 'second'],
-			inputs: ['x'],
 			unit: '€'
 		});
 		for (const node of view.nodes) {
@@ -47,7 +46,9 @@ describe('layoutTree', () => {
 			expect(lines).toEqual([node.savingsLabel, node.shareLabel]);
 			expect(lines.join(' ')).not.toMatch(/first|second|saves|scenarios/);
 		}
-		const leaf = view.nodes.find((v) => v.kind === 'leaf' && !v.isStatusQuo)!;
+		const leaf = view.nodes.find(
+			(v) => !view.splits.some((s) => s.node === v.id) && !v.isStatusQuo
+		)!;
 		expect(leaf.savingsLabel).toMatch(/^[\d.]+ \S*€$/);
 		expect(leaf.shareLabel).toMatch(/^\d+(\.\d)?%$/);
 	});

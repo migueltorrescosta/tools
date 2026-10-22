@@ -1,12 +1,6 @@
-/** The work behind the information pricing tool: a short reference, its link, and what it changed here. */
-export interface Reference {
-	cite: string;
-	title: string;
-	venue: string;
-	href: string;
-	impact: string;
-}
+import type { Reference } from '$lib/ui';
 
+/** The work behind the information pricing tool: a short reference, its link, and what it changed here. */
 export const REFERENCES: readonly Reference[] = [
 	{
 		cite: 'Raiffa, H. & Schlaifer, R. (1961).',

@@ -10,11 +10,7 @@ import type { PolicyTree } from './tree';
 
 export interface TreeNodeView {
 	id: number;
-	depth: number;
-	kind: 'internal' | 'leaf';
-	/** Share of the root's training rows, 0–1; the node width grows with it. */
-	share: number;
-	/** E.g. `80.5%`. */
+	/** Share of the root's training rows, e.g. `80.5%`. */
 	shareLabel: string;
 	/** Savings scaled and rounded, with the displayed unit, e.g. `125 €`; `–` when missing. */
 	savingsLabel: string;
@@ -22,8 +18,6 @@ export interface TreeNodeView {
 	decisionLabel: string;
 	/** True for the status-quo (root) decision, drawn without a border. */
 	isStatusQuo: boolean;
-	/** Palette slot of the decision, by sorted decision name. */
-	decisionColour: number;
 	/**
 	 * Savings fill on the green (0) to red (1) scale: savings × share over the
 	 * tree's largest weighted savings, clamped to [0, 1]; null when missing.
@@ -35,26 +29,17 @@ export interface TreeSplitView {
 	/** The internal node the split diamond hangs from. */
 	node: number;
 	input: number;
-	inputLabel: string;
 	/** One edge per child: `≤t`, `∈(a,b]` or `>t`, thresholds to 5 significant digits. */
 	edges: { child: number; label: string }[];
 }
 
 export interface PolicyTreeView {
-	title: string;
 	nodes: TreeNodeView[];
 	splits: TreeSplitView[];
-	/** Exponent of the savings scale, from the largest savings in the tree. */
-	exponent: number;
-	/** Unit the savings labels use, e.g. `k€`; empty without a native unit. */
-	displayedUnit: string;
 	/** Decisions in the legend, sorted by name. */
-	legend: { decision: number; label: string; colour: number; isStatusQuo: boolean }[];
+	legend: { decision: number; label: string; isStatusQuo: boolean }[];
 	/** Footer lines, e.g. `savings versus the status quo: 10 trucks`. */
 	footer: string[];
-	expectedLoss: number;
-	rootExpectedLoss: number;
-	valueOfInformation: number;
 }
 
 /** Python's `max()` over a sequence: NaN after the first element is skipped. */
@@ -87,7 +72,7 @@ export function formatThreshold(threshold: number): string {
 /** Display data for the policy tree. */
 export function policyTreeView(
 	tree: PolicyTree,
-	labels: { decisions: string[]; inputs: string[]; unit: string }
+	labels: { decisions: string[]; unit: string }
 ): PolicyTreeView {
 	const { nodes } = tree;
 	const rootSamples = nodes[0].samples;
@@ -109,15 +94,11 @@ export function policyTreeView(
 		const savings = pyRoundString(node.savings / scale);
 		return {
 			id: node.id,
-			depth: node.depth,
-			kind: node.kind,
-			share,
 			shareLabel: `${pyFixed(share * 100, 1)}%`,
 			savingsLabel: unit ? `${savings} ${unit}` : savings,
 			decision: node.decision,
 			decisionLabel,
 			isStatusQuo: node.decision === rootDecision,
-			decisionColour: decisionNames.indexOf(decisionLabel),
 			fill
 		};
 	});
@@ -129,7 +110,6 @@ export function policyTreeView(
 		splits.push({
 			node: node.id,
 			input: node.splitInput,
-			inputLabel: labels.inputs[node.splitInput],
 			edges: node.children.map((child, c) => ({
 				child,
 				label: c === 0 ? `≤${t[0]}` : c === last ? `>${t[last - 1]}` : `∈(${t[c - 1]},${t[c]}]`
@@ -143,18 +123,12 @@ export function policyTreeView(
 	}
 	footer.push(`savings versus the status quo: ${labels.decisions[tree.statusQuo]}`);
 	return {
-		title: 'Optimal Policy Tree',
 		nodes: nodeViews,
 		splits,
-		exponent,
-		displayedUnit: unit,
-		legend: decisionNames.map((label, colour) => {
+		legend: decisionNames.map((label) => {
 			const decision = labels.decisions.indexOf(label);
-			return { decision, label, colour, isStatusQuo: decision === rootDecision };
+			return { decision, label, isStatusQuo: decision === rootDecision };
 		}),
-		footer,
-		expectedLoss: tree.expectedLoss,
-		rootExpectedLoss: tree.rootExpectedLoss,
-		valueOfInformation: tree.valueOfInformation
+		footer
 	};
 }

@@ -134,19 +134,6 @@ export function quantileSorted(sorted: ArrayLike<number>, q: number): number {
 	return t >= 0.5 ? b - diff * (1 - t) : a + diff * t;
 }
 
-/** Index of the first minimum (`np.argmin`, NaN-free input). */
-export function argmin(a: ArrayLike<number>, offset = 0, n = a.length - offset): number {
-	let best = 0;
-	let value = a[offset];
-	for (let i = 1; i < n; i++) {
-		if (a[offset + i] < value) {
-			value = a[offset + i];
-			best = i;
-		}
-	}
-	return best;
-}
-
 const SMALL_SORT = 1024;
 
 /** Sortable unsigned keys of float64 bits (-0 folded into +0). */

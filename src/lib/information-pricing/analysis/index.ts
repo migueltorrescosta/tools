@@ -5,11 +5,7 @@
  */
 
 import type { Scenarios } from '../types';
-import {
-	lossDistributions,
-	type DistributionOptions,
-	type LossDistribution
-} from './distributions';
+import { lossDistributions, type LossDistribution } from './distributions';
 import {
 	inputDensity,
 	optimalDecisionPerGroup,
@@ -34,12 +30,7 @@ export * from './voi';
 export interface AnalysisOptions {
 	/** Native monetary unit, e.g. `€`. */
 	unit: string;
-	/** Bin counts for the value of information. Default 2–10. */
-	bins?: number[];
-	/** Quantile groups per input for the optimal-decision plot. Default 10. */
-	groupBins?: number;
 	tree?: TreeOptions;
-	distributions?: DistributionOptions;
 }
 
 export interface Analysis {
@@ -53,42 +44,26 @@ export interface Analysis {
 	distributions: LossDistribution[];
 	/** Null with the reason when no tree can be grown (e.g. zero held-out risk). */
 	tree: { tree: PolicyTree; view: PolicyTreeView } | { error: string };
-	/** Milliseconds per stage. */
-	timings: Record<string, number>;
 }
 
 /** Run every analysis on the scenarios. */
 export function analyse(s: Scenarios, options: AnalysisOptions): Analysis {
-	const timings: Record<string, number> = {};
-	let mark = performance.now();
-	const lap = (name: string) => {
-		const now = performance.now();
-		timings[name] = now - mark;
-		mark = now;
-	};
 	const D = s.rewards.length;
 	const loss = lossMatrix(s);
 	const columns = s.inputs.map((input) => input.column);
 	const sorted = columns.map(sortedCopy);
-	lap('prepare');
 	const summary = lossSummary(s, options.unit, loss);
-	lap('summary');
 	const voi = valueOfInformation(
 		columns,
 		loss,
 		D,
 		summary.expectedLoss[summary.best],
-		options.bins ?? DEFAULT_BINS,
+		DEFAULT_BINS,
 		sorted
 	);
-	lap('valueOfInformation');
-	const groupBins = options.groupBins ?? 10;
-	const groups = columns.map((c, j) => optimalDecisionPerGroup(c, loss, D, groupBins, sorted[j]));
-	lap('groups');
+	const groups = columns.map((c, j) => optimalDecisionPerGroup(c, loss, D, 10, sorted[j]));
 	const densities = columns.map((c, j) => inputDensity(c, sorted[j]));
-	lap('densities');
-	const distributions = lossDistributions(loss, D, options.distributions);
-	lap('distributions');
+	const distributions = lossDistributions(loss, D);
 	let tree: Analysis['tree'];
 	try {
 		const t = buildPolicyTree(columns, loss, D, options.tree);
@@ -96,7 +71,6 @@ export function analyse(s: Scenarios, options: AnalysisOptions): Analysis {
 			tree: t,
 			view: policyTreeView(t, {
 				decisions: s.decisions,
-				inputs: s.inputs.map((i) => i.symbol),
 				unit: options.unit
 			})
 		};
@@ -104,6 +78,5 @@ export function analyse(s: Scenarios, options: AnalysisOptions): Analysis {
 		if (!(err instanceof PolicyTreeError)) throw err;
 		tree = { error: err.message };
 	}
-	lap('tree');
-	return { summary, valueOfInformation: voi, groups, densities, distributions, tree, timings };
+	return { summary, valueOfInformation: voi, groups, densities, distributions, tree };
 }

@@ -4,7 +4,6 @@
  */
 
 import type { Scenarios } from '../types';
-import { pyFixed, pyFixedTrimmed } from './format';
 import { lossMatrix, pairwiseSum } from './numeric';
 
 /** SI prefixes per display exponent (values divide by 10^(3k)). */
@@ -65,27 +64,6 @@ export function scaledValue(value: number, exponent: number): number {
 	return value / 10 ** (3 * exponent);
 }
 
-/** Up to three decimals, trailing zeros dropped (the loss-table format). */
-export function formatLoss(value: number): string {
-	return pyFixedTrimmed(value, 3);
-}
-
-/** Rounded to an integer (the value-of-information table format). */
-export function formatSavings(value: number): string {
-	return pyFixed(value, 0);
-}
-
-/** A native value scaled into the display unit and formatted, with the unit. */
-export function formatMoney(
-	value: number,
-	exponent: number,
-	unit: string,
-	format: (v: number) => string = formatLoss
-): string {
-	if (!unit) return format(value);
-	return `${format(scaledValue(value, exponent))} ${displayedUnit(exponent, unit)}`;
-}
-
 /** Mean opportunity loss per decision, in model order (NumPy pairwise sums). */
 export function expectedLosses(s: Scenarios, loss: Float64Array = lossMatrix(s)): Float64Array {
 	const D = s.rewards.length;
@@ -101,11 +79,7 @@ export interface LossSummary {
 	best: number;
 	/** Index of the worst decision (largest expected loss, first on ties). */
 	worst: number;
-	/** Decision indices, worst first (stable). */
-	worstFirst: number[];
-	/** Exponent derived from the best expected loss. */
-	exponent: number;
-	/** Exponent the display uses: `exponent` with a unit, 0 without one. */
+	/** Exponent the display uses: from the best expected loss with a unit, 0 without one. */
 	displayExponent: number;
 	/** E.g. `k€`; empty without a native unit. */
 	displayedUnit: string;
@@ -125,16 +99,11 @@ export function lossSummary(
 		if (expectedLoss[d] < expectedLoss[best]) best = d;
 		if (expectedLoss[d] > expectedLoss[worst]) worst = d;
 	}
-	const worstFirst = Array.from({ length: D }, (_, d) => d).sort(
-		(a, b) => expectedLoss[b] - expectedLoss[a] || a - b
-	);
 	const exponent = unitExponent(expectedLoss[best]);
 	return {
 		expectedLoss,
 		best,
 		worst,
-		worstFirst,
-		exponent,
 		displayExponent: unit ? exponent : 0,
 		displayedUnit: displayedUnit(exponent, unit)
 	};

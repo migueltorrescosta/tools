@@ -3,10 +3,6 @@
  * envelope `{v: 2, model}`, deflated and base64url-encoded for `#m=`, and
  * stored as plain JSON in localStorage. Decoding validates the shape strictly
  * but does not parse formulas (the page re-parses them). No DOM imports.
- *
- * Version 1 kept known numbers in `model.constants` (`{symbol, value, name}`);
- * version 2 holds them as `fixed` inputs. A v1 envelope still loads: each
- * constant becomes a fixed input appended after the inputs, in order.
  */
 import { readJson, type PersistGate } from '$lib/persist-gate';
 import { familyInfo, isFamily } from './distributions';
@@ -90,17 +86,6 @@ function input(value: unknown, path: string): RandomInput {
 	};
 }
 
-/** A v1 constant `{symbol, value, name}` as the fixed input it became in v2. */
-function constant(value: unknown, path: string): RandomInput {
-	const o = record(value, path);
-	return {
-		symbol: symbol(o.symbol, `${path}.symbol`),
-		name: str(o.name, `${path}.name`, MAX_NAME_LENGTH),
-		family: 'fixed',
-		params: [num(o.value, `${path}.value`)]
-	};
-}
-
 function intermediate(value: unknown, path: string): Intermediate {
 	const o = record(value, path);
 	return {
@@ -123,16 +108,10 @@ function decisions(value: unknown, path: string): Decisions {
 	};
 }
 
-/**
- * A fresh `Model` holding only the known fields of `value`; throws ShapeError on any mismatch.
- * For a v1 model, its `constants` become fixed inputs after the inputs.
- */
-function model(value: unknown, version: 1 | 2): Model {
+/** A fresh `Model` holding only the known fields of `value`; throws ShapeError on any mismatch. */
+function model(value: unknown): Model {
 	const o = record(value, 'model');
 	const inputs = array(o.inputs, 'inputs', MAX_SYMBOLS).map((x, i) => input(x, `inputs[${i}]`));
-	if (version === 1)
-		for (const [i, x] of array(o.constants, 'constants', MAX_SYMBOLS).entries())
-			inputs.push(constant(x, `constants[${i}]`));
 	const intermediates = array(o.intermediates, 'intermediates', MAX_SYMBOLS).map((x, i) =>
 		intermediate(x, `intermediates[${i}]`)
 	);
@@ -154,12 +133,12 @@ function model(value: unknown, version: 1 | 2): Model {
 	};
 }
 
-/** Validate a parsed `{v: 2, model}` envelope (share link or autosave), migrating v1. */
+/** Validate a parsed `{v: 2, model}` envelope (share link or autosave). */
 export function parseEnvelope(value: unknown): DecodeResult {
 	try {
 		const o = record(value, 'The saved data');
-		if (o.v !== 1 && o.v !== VERSION) fail(`Unsupported version ${JSON.stringify(o.v) ?? 'none'}.`);
-		return { ok: true, model: model(o.model, o.v) };
+		if (o.v !== VERSION) fail(`Unsupported version ${JSON.stringify(o.v) ?? 'none'}.`);
+		return { ok: true, model: model(o.model) };
 	} catch (err) {
 		if (err instanceof ShapeError) return { ok: false, error: err.message };
 		throw err;

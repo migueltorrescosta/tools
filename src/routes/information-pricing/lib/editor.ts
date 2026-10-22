@@ -4,6 +4,7 @@
  */
 import type { ErrorLocation, ModelError } from '$lib/information-pricing/model';
 import type { TreeOptions } from '$lib/information-pricing/analysis';
+import { DEFAULT_TREE_OPTIONS } from '$lib/information-pricing/analysis/tree';
 import type { Model } from '$lib/information-pricing/types';
 
 /** Row ids kept beside the model (never in it), so `{#each}` keys survive edits. */
@@ -125,10 +126,32 @@ export interface TreeSettings {
 }
 
 export const DEFAULT_TREE: TreeSettings = {
-	maxDepth: 2,
-	minLeafPercent: 1,
-	minImpurityDecrease: 0.001
+	maxDepth: DEFAULT_TREE_OPTIONS.maxDepth,
+	minLeafPercent: DEFAULT_TREE_OPTIONS.minSamplesLeaf * 100,
+	minImpurityDecrease: DEFAULT_TREE_OPTIONS.minImpurityDecrease
 };
+
+/** Why each tree setting cannot be used; undefined for a usable one. */
+export function treeErrors(t: TreeSettings): Record<keyof TreeSettings, string | undefined> {
+	return {
+		maxDepth:
+			Number.isInteger(t.maxDepth) && t.maxDepth >= 1 && t.maxDepth <= 6
+				? undefined
+				: 'Use a whole number from 1 to 6.',
+		minLeafPercent:
+			t.minLeafPercent > 0 && t.minLeafPercent < 50
+				? undefined
+				: 'Use more than 0 and less than 50.',
+		minImpurityDecrease:
+			t.minImpurityDecrease >= 0 && t.minImpurityDecrease < 1
+				? undefined
+				: 'Use 0 or more and less than 1.'
+	};
+}
+
+/** Whether every tree setting is usable. */
+export const treeValid = (t: TreeSettings) =>
+	Object.values(treeErrors(t)).every((e) => e === undefined);
 
 /** The analysis' tree options for the page's settings. */
 export function treeOptions(t: TreeSettings): TreeOptions {

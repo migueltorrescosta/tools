@@ -288,21 +288,6 @@ test('the copied share link restores the model in a fresh browser', async ({
 	await fresh.close();
 });
 
-test('a v1 link with constants still opens, the constant as a fixed input', async ({ page }) => {
-	const { inputs, ...rest } = presetModel('distribution-centre');
-	const v1 = {
-		...rest,
-		inputs: inputs.filter((x) => x.family !== 'fixed'),
-		constants: [{ symbol: 'T', value: 100_000, name: 'Packages per Truck per Year' }]
-	};
-	const json = JSON.stringify({ v: 1, model: v1 });
-	await open(page, `#m=${deflateRawSync(Buffer.from(json)).toString('base64url')}`);
-	await expect(page.getByTestId('link-error')).toHaveCount(0);
-	await expect(preset(page)).toHaveValue('distribution-centre');
-	await expect(inputRows(page)).toHaveCount(4);
-	await expect(inputRows(page).nth(3).getByTestId('family')).toHaveText('Fixed');
-});
-
 test('Setup sections explain themselves; References list ten links', async ({ page }) => {
 	await open(page);
 	const setup = page.getByTestId('setup');

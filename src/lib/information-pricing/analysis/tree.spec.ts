@@ -5,7 +5,7 @@ import { lossSummary } from './losses';
 import { lossMatrix } from './numeric';
 import { buildPolicyTree, PolicyTreeError, type InternalNode } from './tree';
 import { policyTreeView } from './tree-view';
-import { crossValidatedLoss, valueOfInformation } from './voi';
+import { crossValidated, valueOfInformation } from './voi';
 
 function scenarios(inputs: Record<string, Float64Array>, rewards: Float64Array[]): Scenarios {
 	const n = rewards[0].length;
@@ -92,17 +92,15 @@ describe('buildPolicyTree', () => {
 			3,
 			{ minSamplesLeaf: 5 }
 		);
-		const view = policyTreeView(tree, { decisions: s.decisions, inputs: ['x', 'y'], unit: '€' });
+		const view = policyTreeView(tree, { decisions: s.decisions, unit: '€' });
 		expect(view.nodes.map((n) => n.shareLabel)).toEqual(['100.0%', '30.6%', '40.0%', '29.4%']);
 		// The largest savings, about 9.3, scales into milli-units as the reference does.
-		expect(view.exponent).toBe(-1);
 		expect(view.nodes.map((n) => n.savingsLabel)).toEqual(['0 m€', '7516 m€', '0 m€', '9346 m€']);
 		expect(view.nodes.map((n) => n.isStatusQuo)).toEqual([true, false, true, false]);
 		expect(view.splits).toEqual([
 			{
 				node: 0,
 				input: 0,
-				inputLabel: 'x',
 				edges: [
 					{ child: 1, label: '≤60' },
 					{ child: 2, label: '∈(60,139.5]' },
@@ -141,8 +139,10 @@ describe('value of information', () => {
 			Float64Array.from([0, 2, 0, 1, 0, 4, 1])
 		]);
 		const loss = lossMatrix(s);
-		expect(crossValidatedLoss(loss, 2, Uint8Array.from([0, 1, 2, 3, 4, 5, 6]), 7)).toBe(0.8);
-		expect(crossValidatedLoss(loss, 2, Uint8Array.from([0, 0, 0, 0, 1, 1, 1]), 2)).toBe(1.8);
+		const seven = Uint8Array.from([0, 1, 2, 3, 4, 5, 6]);
+		expect(crossValidated(loss, 2, seven, 7, [seven], [7])[0]).toBe(0.8);
+		const two = Uint8Array.from([0, 0, 0, 0, 1, 1, 1]);
+		expect(crossValidated(loss, 2, two, 2, [Uint8Array.from([0, 1])], [2])[0]).toBe(1.8);
 		const summary = lossSummary(s, '');
 		expect(summary.expectedLoss[0]).toBe(1);
 		const voi = valueOfInformation([s.inputs[0].column], loss, 2, 1, [2, 7]);
@@ -157,7 +157,7 @@ describe('value of information', () => {
 			[7.01205, 5.51155, 6.86405].map((v) => expect.closeTo(v, 12))
 		);
 		expect(summary.best).toBe(1);
-		expect(summary.worstFirst).toEqual([0, 2, 1]);
+		expect(summary.worst).toBe(0);
 		const voi = valueOfInformation(
 			s.inputs.map((i) => i.column),
 			loss,
@@ -178,7 +178,7 @@ describe('lossDistributions', () => {
 		const n = 101;
 		const r = Float64Array.from({ length: n }, (_, i) => i);
 		const s = scenarios({ x: r }, [r, new Float64Array(n)]);
-		const [first, second] = lossDistributions(lossMatrix(s), 2, { bins: 10 });
+		const [first, second] = lossDistributions(lossMatrix(s), 2, 10);
 		expect(first.expectedLoss).toBe(0);
 		expect(second.box.q1).toBe(25);
 		expect(second.box.median).toBe(50);

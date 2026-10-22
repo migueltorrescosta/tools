@@ -9,9 +9,7 @@
 		onchange,
 		error,
 		hideLabel = false,
-		hint,
-		optional = false,
-		testId
+		optional = false
 	}: {
 		/** Visible label. */
 		label: string;
@@ -23,10 +21,8 @@
 		error?: string;
 		/** Keep the label for screen readers only (a column header names the field). */
 		hideLabel?: boolean;
-		hint?: string;
 		/** An empty field is not an error (e.g. a "new value" box). */
 		optional?: boolean;
-		testId?: string;
 	} = $props();
 
 	const show = (v: number) => (Number.isFinite(v) ? String(v) : '');
@@ -47,7 +43,7 @@
 	);
 </script>
 
-<Field {label} {hint} {hideLabel} error={own ?? error}>
+<Field {label} {hideLabel} error={own ?? error}>
 	{#snippet children(props)}
 		<input
 			class="control num"
@@ -56,7 +52,6 @@
 			autocomplete="off"
 			spellcheck="false"
 			aria-label={name}
-			data-testid={testId}
 			value={text}
 			oninput={(e) => {
 				text = e.currentTarget.value;

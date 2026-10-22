@@ -7,14 +7,13 @@
 	import NumberInput from './NumberInput.svelte';
 	import PolicyTree from './PolicyTree.svelte';
 	import VoiChart from './VoiChart.svelte';
-	import type { TreeSettings } from './editor';
+	import { treeErrors, treeValid, type TreeSettings } from './editor';
 
 	let {
 		analysis,
 		decisions,
 		inputs,
 		names,
-		unit,
 		tree = $bindable(),
 		applied,
 		busy,
@@ -27,8 +26,6 @@
 		inputs: readonly string[];
 		/** Input names (the symbol when unnamed), model order, for the tree. */
 		names: readonly string[];
-		/** Native monetary unit of the run. */
-		unit: string;
 		tree: TreeSettings;
 		/** The settings the shown tree was grown with. */
 		applied: TreeSettings;
@@ -38,7 +35,7 @@
 	} = $props();
 
 	const summary = $derived(analysis.summary);
-	const money = $derived(makeMoney(summary.displayExponent, unit ? summary.displayedUnit : ''));
+	const money = $derived(makeMoney(summary.displayExponent, summary.displayedUnit));
 	const voi = $derived(analysis.valueOfInformation);
 	/** The largest bin count, whose savings rank the inputs. */
 	const lastBin = $derived(voi.bins.length - 1);
@@ -57,21 +54,8 @@
 		);
 	}
 
-	const treeErrors = $derived({
-		maxDepth:
-			Number.isInteger(tree.maxDepth) && tree.maxDepth >= 1 && tree.maxDepth <= 6
-				? undefined
-				: 'Use a whole number from 1 to 6.',
-		minLeafPercent:
-			tree.minLeafPercent > 0 && tree.minLeafPercent < 50
-				? undefined
-				: 'Use more than 0 and less than 50.',
-		minImpurityDecrease:
-			tree.minImpurityDecrease >= 0 && tree.minImpurityDecrease < 1
-				? undefined
-				: 'Use 0 or more and less than 1.'
-	});
-	const treeValid = $derived(Object.values(treeErrors).every((e) => e === undefined));
+	const errors = $derived(treeErrors(tree));
+	const valid = $derived(treeValid(tree));
 	const treeChanged = $derived(
 		tree.maxDepth !== applied.maxDepth ||
 			tree.minLeafPercent !== applied.minLeafPercent ||
@@ -108,28 +92,28 @@
 					class="tree-settings"
 					onsubmit={(e) => {
 						e.preventDefault();
-						if (treeValid && treeChanged && !busy) onretree();
+						if (valid && treeChanged && !busy) onretree();
 					}}
 				>
 					<NumberInput
 						label="Max depth"
 						value={tree.maxDepth}
 						onchange={(v) => (tree.maxDepth = v)}
-						error={treeErrors.maxDepth}
+						error={errors.maxDepth}
 					/>
 					<NumberInput
 						label="Min leaf (%)"
 						value={tree.minLeafPercent}
 						onchange={(v) => (tree.minLeafPercent = v)}
-						error={treeErrors.minLeafPercent}
+						error={errors.minLeafPercent}
 					/>
 					<NumberInput
 						label="Min impurity decrease"
 						value={tree.minImpurityDecrease}
 						onchange={(v) => (tree.minImpurityDecrease = v)}
-						error={treeErrors.minImpurityDecrease}
+						error={errors.minImpurityDecrease}
 					/>
-					<Button size="sm" type="submit" disabled={!treeValid || !treeChanged || busy}
+					<Button size="sm" type="submit" disabled={!valid || !treeChanged || busy}
 						>Update tree</Button
 					>
 				</form>
@@ -325,14 +309,12 @@
 		font-size: var(--text-sm);
 	}
 	.row-label .name {
-		font-weight: 500;
-	}
-	/* The input's line in the value-of-information chart: its colour and dashes. */
-	.row-label .name {
 		display: inline-flex;
 		align-items: baseline;
 		gap: var(--sp-1);
+		font-weight: 500;
 	}
+	/* The input's line in the value-of-information chart: its colour and dashes. */
 	.input-key {
 		flex: none;
 		align-self: center;

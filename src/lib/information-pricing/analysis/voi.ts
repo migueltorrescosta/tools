@@ -33,7 +33,7 @@ function trainingMean(loss: Float64Array, D: number, n: number, fold: number): F
  * Training sums add per-fold, per-segment sums rather than every training
  * row in order, so they can differ from NumPy's `np.add.at` in the last bit.
  */
-function crossValidated(
+export function crossValidated(
 	loss: Float64Array,
 	D: number,
 	segments: Uint8Array | Uint16Array,
@@ -96,20 +96,6 @@ function crossValidated(
 		evaluated++;
 	}
 	return total.map((t) => t / evaluated);
-}
-
-/**
- * Cross-validated expected loss when each group (`codes`, `0…G-1`) picks its
- * own decision; `loss` is the row-major `n × D` loss matrix.
- */
-export function crossValidatedLoss(
-	loss: Float64Array,
-	D: number,
-	codes: Uint8Array,
-	groupCount: number
-): number {
-	const identity = Uint8Array.from({ length: groupCount }, (_, g) => g);
-	return crossValidated(loss, D, codes, groupCount, [identity], [groupCount])[0];
 }
 
 export interface ValueOfInformation {

@@ -27,8 +27,6 @@ export interface Histogram {
 	/** `bins + 1` evenly spaced edges from min to max (±0.5 when constant). */
 	edges: Float64Array;
 	counts: Uint32Array;
-	/** Bin centres, for the frequency polygon. */
-	centres: Float64Array;
 }
 
 export interface LossDistribution {
@@ -36,13 +34,6 @@ export interface LossDistribution {
 	expectedLoss: number;
 	box: BoxStats;
 	histogram: Histogram;
-}
-
-export interface DistributionOptions {
-	/** Histogram bins. Default 100. */
-	bins?: number;
-	/** Whisker percentiles. Default [5, 95]. */
-	whiskers?: [number, number];
 }
 
 function upperBound(sorted: Float64Array, x: number): number {
@@ -68,17 +59,13 @@ function lowerBound(sorted: Float64Array, x: number): number {
 }
 
 /** Box statistics of one column; `sorted` is the column sorted ascending. */
-export function boxStats(
-	column: Float64Array,
-	sorted: Float64Array,
-	whiskers: [number, number] = [5, 95]
-): BoxStats {
+export function boxStats(column: Float64Array, sorted: Float64Array): BoxStats {
 	const n = sorted.length;
 	const q1 = quantileSorted(sorted, 25 / 100);
 	const median = quantileSorted(sorted, 50 / 100);
 	const q3 = quantileSorted(sorted, 75 / 100);
-	const loVal = quantileSorted(sorted, whiskers[0] / 100);
-	const hiVal = quantileSorted(sorted, whiskers[1] / 100);
+	const loVal = quantileSorted(sorted, 5 / 100);
+	const hiVal = quantileSorted(sorted, 95 / 100);
 	const below = upperBound(sorted, hiVal);
 	const whiskerHigh = below === 0 || sorted[below - 1] < q3 ? q3 : sorted[below - 1];
 	const above = lowerBound(sorted, loVal);
@@ -97,16 +84,10 @@ export function boxStats(
 	};
 }
 
-/** `np.histogram(column, bins)` over the column's own range. */
-export function histogram(column: Float64Array, bins = 100, min?: number, max?: number): Histogram {
-	let first = min ?? Infinity;
-	let last = max ?? -Infinity;
-	if (min === undefined || max === undefined) {
-		for (let i = 0; i < column.length; i++) {
-			if (column[i] < first) first = column[i];
-			if (column[i] > last) last = column[i];
-		}
-	}
+/** `np.histogram(column, bins)` over [min, max], the column's own range. */
+export function histogram(column: Float64Array, bins: number, min: number, max: number): Histogram {
+	let first = min;
+	let last = max;
 	if (first === last) {
 		first -= 0.5;
 		last += 0.5;
@@ -123,28 +104,20 @@ export function histogram(column: Float64Array, bins = 100, min?: number, max?: 
 		if (x >= edges[k + 1] && k !== bins - 1) k++;
 		counts[k]++;
 	}
-	const centres = new Float64Array(bins);
-	for (let k = 0; k < bins; k++) centres[k] = (edges[k] + edges[k + 1]) / 2;
-	return { edges, counts, centres };
+	return { edges, counts };
 }
 
 /**
  * Box statistics and histogram of every decision's loss, model order.
  * `loss` is the row-major `n × D` loss matrix.
  */
-export function lossDistributions(
-	loss: Float64Array,
-	D: number,
-	options: DistributionOptions = {}
-): LossDistribution[] {
-	const bins = options.bins ?? 100;
-	const whiskers = options.whiskers ?? [5, 95];
+export function lossDistributions(loss: Float64Array, D: number, bins = 100): LossDistribution[] {
 	const n = loss.length / D;
 	const column = new Float64Array(n);
 	return Array.from({ length: D }, (_, d) => {
 		for (let i = 0; i < n; i++) column[i] = loss[i * D + d];
 		const sorted = sortedCopy(column);
-		const box = boxStats(column, sorted, whiskers);
+		const box = boxStats(column, sorted);
 		return {
 			decision: d,
 			expectedLoss: box.mean,

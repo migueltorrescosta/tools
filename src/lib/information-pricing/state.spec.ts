@@ -41,16 +41,6 @@ const envelope = (patch: (m: Record<string, unknown>) => void) => {
 	return { v: 2, model };
 };
 
-/** A v1 model: the airline preset as v1 saved it, its fixed input as a constant. */
-const v1Airline = () => {
-	const { inputs, ...rest } = presetModel('airline-share-buyback');
-	return {
-		...rest,
-		inputs: inputs.filter((x) => x.family !== 'fixed'),
-		constants: [{ symbol: 'C0', value: 600, name: 'Cash Balance' }]
-	};
-};
-
 const errorOf = (value: unknown) => {
 	const r = parseEnvelope(value);
 	return r.ok ? null : r.error;
@@ -88,17 +78,7 @@ describe('share link', () => {
 		const model = presetModel('blank');
 		const text = await deflate(JSON.stringify({ v: 3, model }));
 		expect(await decodeModel(text)).toEqual({ ok: false, error: 'Unsupported version 3.' });
-	});
-
-	it('opens a v1 link, its constants becoming fixed inputs after the inputs', async () => {
-		const text = await deflate(JSON.stringify({ v: 1, model: v1Airline() }));
-		expect(await decodeModel(text)).toEqual({
-			ok: true,
-			model: presetModel('airline-share-buyback')
-		});
-		const encoded = JSON.parse(serialiseModel(presetModel('airline-share-buyback')));
-		expect(encoded.v).toBe(2);
-		expect(encoded.model).not.toHaveProperty('constants');
+		expect(errorOf({ v: 1, model })).toBe('Unsupported version 1.');
 	});
 
 	it('rejects oversized payloads before and after inflating', async () => {
@@ -120,13 +100,7 @@ describe('parseEnvelope', () => {
 	it('rejects wrong shapes with a path', () => {
 		expect(errorOf(null)).toBe('The saved data must be an object.');
 		expect(errorOf({ model: {} })).toBe('Unsupported version none.');
-		expect(errorOf({ v: 1, model: [] })).toBe('model must be an object.');
-		const { constants: _c, ...noConstants } = v1Airline();
-		void _c;
-		expect(errorOf({ v: 1, model: noConstants })).toBe('constants must be a list.');
-		expect(
-			errorOf({ v: 1, model: { ...v1Airline(), constants: [{ symbol: 'C0', name: '' }] } })
-		).toBe('constants[0].value must be a finite number.');
+		expect(errorOf({ v: 2, model: [] })).toBe('model must be an object.');
 		expect(
 			errorOf(envelope((m) => ((m.inputs as { params: number[] }[])[6].params = [1, 2])))
 		).toBe('inputs[6].params has more than 1 entries.');
@@ -173,11 +147,6 @@ describe('parseEnvelope', () => {
 		expect(errorOf(envelope((m) => (m.inputs = fixed)))).toBe(
 			'The model declares more than 200 symbols.'
 		);
-		// A v1 model's constants count towards the cap too.
-		const constants = fixed.map((c) => ({ symbol: c.symbol, value: c.params[0], name: '' }));
-		expect(errorOf({ v: 1, model: { ...v1Airline(), constants } })).toBe(
-			'The model declares more than 200 symbols.'
-		);
 	});
 
 	it('keeps only known fields', () => {
@@ -205,13 +174,6 @@ describe('autosave', () => {
 		expect(AUTOSAVE_KEY.startsWith(STORAGE_PREFIX)).toBe(true);
 		expect(storage.map.get(AUTOSAVE_KEY)).toBe(serialiseModel(model));
 		expect(loadSaved(storage)).toEqual(model);
-	});
-
-	it('loads a v1 autosave', () => {
-		const storage = memoryStorage({
-			[AUTOSAVE_KEY]: JSON.stringify({ v: 1, model: v1Airline() })
-		});
-		expect(loadSaved(storage)).toEqual(presetModel('airline-share-buyback'));
 	});
 
 	it('returns null when absent, corrupt or invalid', () => {

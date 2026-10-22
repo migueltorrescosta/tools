@@ -12,6 +12,7 @@ import {
 	formatThreshold,
 	lossMatrix,
 	optimalDecisionPerGroup,
+	unitExponent,
 	type InternalNode
 } from './index';
 
@@ -152,7 +153,9 @@ describe.each(PRESETS)('parity: %s', (name, build, unit) => {
 	it('matches the expected loss per decision and the display unit', () => {
 		expect(s.n).toBe(expected.n);
 		result.summary.expectedLoss.forEach((v, d) => close(v, expected.expectedLoss[d], 1e-12));
-		expect(result.summary.exponent).toBe(expected.unitExponent);
+		expect(unitExponent(result.summary.expectedLoss[result.summary.best])).toBe(
+			expected.unitExponent
+		);
 		expect(result.summary.displayedUnit).toBe(expected.displayedUnit);
 		expect(s.decisions[result.summary.best]).toBe(
 			expected.decisions[expected.expectedLoss.indexOf(eolScale)]

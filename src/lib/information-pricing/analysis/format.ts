@@ -62,13 +62,6 @@ export function pyFixed(x: number, digits: number): string {
 	return s;
 }
 
-/** `f"{x:.{digits}f}".rstrip("0").rstrip(".")`, the loss table format. */
-export function pyFixedTrimmed(x: number, digits: number): string {
-	const s = pyFixed(x, digits);
-	if (!s.includes('.')) return s;
-	return s.replace(/0+$/, '').replace(/\.$/, '');
-}
-
 function exponential(x: number, digits: number): string {
 	const exponent = Number(x.toExponential().split('e')[1]);
 	let s = x.toExponential(digits);

@@ -65,9 +65,6 @@ export const MAX_DEPTH = 64;
 /** True if `name` is a whitelisted function (own entries only). */
 export const isFunction = (name: string): name is FnName => FUNCTIONS.has(name as FnName);
 
-/** Every symbol name the formula references, in first-use order. */
-export const symbolsOf = (node: Node): Set<string> => new Set(symbolNodes(node).map((s) => s.name));
-
 /** Every `sym` node, for locating unknown names. */
 export function symbolNodes(node: Node, out: (Node & { kind: 'sym' })[] = []) {
 	switch (node.kind) {

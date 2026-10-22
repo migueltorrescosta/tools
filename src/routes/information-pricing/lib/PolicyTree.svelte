@@ -74,7 +74,7 @@
 			width={layout.width * scale}
 			height={layout.height * scale}
 			role="img"
-			aria-label="{view.title}. {description}."
+			aria-label="Optimal Policy Tree. {description}."
 			data-testid="policy-tree"
 		>
 			<defs>

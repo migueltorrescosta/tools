@@ -59,6 +59,7 @@
 		samplesProblem,
 		seedProblem,
 		treeOptions,
+		treeValid,
 		type RowIds,
 		type TreeSettings
 	} from './lib/editor';
@@ -207,15 +208,6 @@
 		engine.subscribe(onEvent);
 		return engine;
 	}
-
-	const treeValid = (t: TreeSettings) =>
-		Number.isInteger(t.maxDepth) &&
-		t.maxDepth >= 1 &&
-		t.maxDepth <= 6 &&
-		t.minLeafPercent > 0 &&
-		t.minLeafPercent < 50 &&
-		t.minImpurityDecrease >= 0 &&
-		t.minImpurityDecrease < 1;
 
 	function run() {
 		if (running || problems.length > 0) return;
@@ -504,7 +496,6 @@
 			decisions={decisionNames}
 			inputs={inputLabels}
 			names={inputNames}
-			unit={runModel.decisions.unit}
 			bind:tree
 			applied={appliedTree}
 			busy={running}
@@ -520,11 +511,6 @@
 	.link-error,
 	.notice {
 		margin-bottom: var(--sp-3);
-	}
-	.muted {
-		margin: 0;
-		font-size: var(--text-sm);
-		color: var(--text-muted);
 	}
 
 	/* Run bar: one wrapping row under the stepper. */
