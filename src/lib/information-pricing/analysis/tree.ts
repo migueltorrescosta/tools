@@ -311,7 +311,8 @@ export function buildPolicyTree(
 			for (const child of parent.children) {
 				if (absorbed.has(child)) continue;
 				const rows = nodeRows.get(child);
-				if (rows === undefined || rows.length < 2 * leafMin) continue;
+				// A child at maxDepth cannot split, so there is nothing to absorb.
+				if (depth + 1 >= maxDepth || rows === undefined || rows.length < 2 * leafMin) continue;
 				const split = findBestSplit(rows);
 				if (split !== null && split.input === splitInput) toAbsorb.push({ child, rows, split });
 			}
@@ -336,7 +337,8 @@ export function buildPolicyTree(
 			const created: Draft[] = [];
 			const internals: { id: number; input: number }[] = [];
 			for (const rows of intervals) {
-				const split = rows.length >= 2 * leafMin ? findBestSplit(rows) : null;
+				const split =
+					depth + 1 < maxDepth && rows.length >= 2 * leafMin ? findBestSplit(rows) : null;
 				const id = nextId++;
 				children.push(id);
 				if (split !== null && split.input !== splitInput) {

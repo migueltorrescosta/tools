@@ -67,6 +67,23 @@ describe('buildPolicyTree', () => {
 		expect(tree.nodes[0].savings).toBe(0);
 	});
 
+	it('never grows past maxDepth, merge-up included', () => {
+		const s = regimes();
+		const grow = (maxDepth: number) =>
+			buildPolicyTree(
+				s.inputs.map((i) => i.column),
+				lossMatrix(s),
+				3,
+				{ minSamplesLeaf: 5, maxDepth }
+			);
+		// At depth 1 the children are leaves, so the repeated split on x cannot merge up.
+		const shallow = grow(1);
+		expect((shallow.nodes[0] as InternalNode).thresholds).toHaveLength(1);
+		for (const maxDepth of [1, 2, 3]) {
+			expect(Math.max(...grow(maxDepth).nodes.map((n) => n.depth))).toBeLessThanOrEqual(maxDepth);
+		}
+	});
+
 	it('describes the nodes for the diagram', () => {
 		const s = regimes();
 		const tree = buildPolicyTree(
