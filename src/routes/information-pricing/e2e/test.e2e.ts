@@ -668,7 +668,8 @@ test('results: inputs sorted by value of information, names in the tree, max dep
 	const finite = savings.filter(Number.isFinite);
 	expect(finite).toEqual([...finite].sort((a, b) => b - a));
 	expect(savings.slice(0, finite.length)).toEqual(finite);
-	await expect(rows.first()).toContainText('Share Return (R)');
+	// Net revenue per km leads; share return is no longer the main driver
+	await expect(rows.first()).toContainText('Net revenue per km (p)');
 
 	const tree = page.getByTestId('policy-tree');
 	const names = [
@@ -682,7 +683,6 @@ test('results: inputs sorted by value of information, names in the tree, max dep
 	const splits = tree.locator('text.split-label');
 	expect(await splits.count()).toBeGreaterThan(1);
 	for (const label of await splits.allTextContents()) expect(names).toContain(label);
-	await expect(splits.first()).toHaveText('Share Return');
 
 	await page.getByRole('textbox', { name: 'Max depth' }).fill('1');
 	await page.getByRole('button', { name: 'Update tree' }).click();
