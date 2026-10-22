@@ -209,6 +209,11 @@ for (const [id, best, inputs] of BEST) {
 			.evaluate((e) => getComputedStyle(e).backgroundColor);
 		expect(swatch).not.toBe('rgba(0, 0, 0, 0)');
 		await expect(page.getByTestId('policy-tree')).toBeVisible();
+		// Boxes read "savings" then "share", without naming the decision
+		const boxes = await page.getByTestId('policy-tree').locator('text.node-text').allTextContents();
+		expect(boxes.length % 2).toBe(0);
+		boxes.forEach((t, k) => expect(t).toMatch(k % 2 ? /^\d+(\.\d)?%$/ : /^-?[\d.]+ \S+$/));
+		expect(boxes.join(' ')).not.toMatch(/saves|scenarios|trucks/);
 		await expect(page.getByTestId('stale')).toHaveCount(0);
 	});
 }

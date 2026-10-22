@@ -47,9 +47,9 @@ export interface TreeLayout {
 /** Approximate text width in px at the diagram's 12px font. */
 export const textWidth = (text: string) => Math.ceil(text.length * 7);
 
-/** Lines of text a node box shows. */
+/** Lines of text a node box shows: its savings and its share. The decision is the border colour. */
 export function nodeLines(n: PolicyTreeView['nodes'][number]): string[] {
-	return [n.decisionLabel, `saves ${n.savingsLabel}`, `${n.shareLabel} of scenarios`];
+	return [n.savingsLabel, n.shareLabel];
 }
 
 export const LINE_HEIGHT = 16;

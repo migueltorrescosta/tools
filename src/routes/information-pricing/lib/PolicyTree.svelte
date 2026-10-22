@@ -138,7 +138,6 @@
 				{#each nodeLines(n) as line, k (k)}
 					<text
 						class="node-text"
-						class:strong={k === 0}
 						x={box.x}
 						y={box.y - box.height / 2 + 8 + (k + 0.75) * LINE_HEIGHT}
 						text-anchor="middle">{line}</text
@@ -149,7 +148,10 @@
 	</div>
 	<figcaption class="footer">
 		{#each view.footer as line (line)}<span>{line}</span>{/each}
-		<span>Redder boxes save more, weighted by their share of scenarios.</span>
+		<span
+			>Each box: what its scenarios save, and their share. Its border is the decision; redder boxes
+			save more overall.</span
+		>
 	</figcaption>
 </figure>
 
@@ -198,9 +200,6 @@
 		stroke: var(--border-strong);
 		stroke-width: 1;
 		stroke-dasharray: 4 3;
-	}
-	.strong {
-		font-weight: 600;
 	}
 	.footer {
 		display: flex;
