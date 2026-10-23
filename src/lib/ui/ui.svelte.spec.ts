@@ -1,10 +1,11 @@
-import { page } from 'vitest/browser';
+import { page, userEvent } from 'vitest/browser';
 import { createRawSnippet } from 'svelte';
 import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import Alert from './Alert.svelte';
 import Button from './Button.svelte';
 import DataTable from './DataTable.svelte';
+import Maximizable from './Maximizable.svelte';
 import Output from './Output.svelte';
 import Panel from './Panel.svelte';
 import SegmentedControl from './SegmentedControl.svelte';
@@ -98,5 +99,44 @@ describe('Alert', () => {
 		await expect.element(page.getByRole('alert')).toHaveTextContent('Bad token');
 		render(Alert, { tone: 'success', children: text('Valid') });
 		await expect.element(page.getByRole('status')).toHaveTextContent('Valid');
+	});
+});
+
+describe('Maximizable', () => {
+	const plot = createRawSnippet((maximized: () => boolean) => ({
+		render: () => `<p data-testid="plot">${maximized() ? 'big' : 'small'}</p>`
+	}));
+
+	it('opens the plot in a modal dialog; Esc and Close close it and focus returns', async () => {
+		render(Maximizable, { title: 'Chart', plot });
+		const open = page.getByRole('button', { name: 'Maximize Chart' });
+		const dialog = page.getByRole('dialog', { name: 'Chart' });
+		await expect.element(page.getByTestId('plot')).toHaveTextContent('small');
+		// Icons, not glyphs: corner brackets to open, an x to close
+		expect(open.element().querySelector('svg[aria-hidden="true"]')).not.toBeNull();
+		// The dialog's copy renders only while open
+		expect(document.querySelectorAll('[data-testid="plot"]')).toHaveLength(1);
+
+		await open.click();
+		await expect.element(dialog).toBeVisible();
+		await expect.element(dialog.getByTestId('plot')).toHaveTextContent('big');
+		expect(dialog.element().contains(document.activeElement)).toBe(true);
+		await userEvent.keyboard('{Escape}');
+		await expect.element(dialog).not.toBeInTheDocument();
+		await expect.element(open).toHaveFocus();
+		expect(document.querySelectorAll('[data-testid="plot"]')).toHaveLength(1);
+
+		await open.click();
+		expect(
+			page.getByRole('button', { name: 'Close Chart' }).element().querySelector('svg')
+		).not.toBeNull();
+		await page.getByRole('button', { name: 'Close Chart' }).click();
+		await expect.element(dialog).not.toBeInTheDocument();
+		await expect.element(open).toHaveFocus();
+	});
+
+	it('disables the button while the plot is pending', async () => {
+		render(Maximizable, { title: 'Tree', plot, disabled: true });
+		await expect.element(page.getByRole('button', { name: 'Maximize Tree' })).toBeDisabled();
 	});
 });
