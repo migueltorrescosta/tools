@@ -179,7 +179,7 @@ test('autocomplete offers declared symbols and inserts the chosen one', async ({
 
 const BEST: [PresetId, string, number][] = [
 	['distribution-centre', '40 trucks', 3],
-	['airline-share-buyback', '750 M€', 6]
+	['airline-share-buyback', '800 M€', 6]
 ];
 
 for (const [id, best, inputs] of BEST) {
@@ -573,12 +573,12 @@ test('Setup holds the parameters inline and the decision values as chips', async
 	await expect(page.locator('input[type="range"]')).toHaveCount(0);
 
 	const values = page.getByTestId('decision-values');
-	await expect(values.locator('.chip')).toHaveCount(5);
+	await expect(values.locator('.chip')).toHaveCount(6);
 	await page.getByRole('textbox', { name: 'New decision value' }).fill('125');
 	await page.getByRole('button', { name: 'Add decision value' }).click();
-	await expect(values.locator('.chip')).toHaveCount(6);
+	await expect(values.locator('.chip')).toHaveCount(7);
 	await page.getByRole('button', { name: 'Remove decision value 125' }).click();
-	await expect(values.locator('.chip')).toHaveCount(5);
+	await expect(values.locator('.chip')).toHaveCount(6);
 	await expect(preset(page)).toHaveValue('airline-share-buyback');
 
 	// An invalid parameter shows inline and blocks Run
@@ -891,20 +891,18 @@ test('the policy tree fill is on a log scale: red at the largest savings × shar
 	const k = weighted.indexOf(top);
 	expect(fills[k].fill).toBe(1);
 	expect(fills[k].css).toContain('--danger-fill) 100%');
-	let tenth = 0;
+	// Every box follows the two-decade log mapping; the yellow midpoint (a tenth) is unit-tested in tree.spec.
 	weighted.forEach((w, i) => {
 		const r = w / top;
 		// Two decades: a hundredth or less is green, a tenth yellow (labels are rounded)
 		const want = r > 0 ? Math.min(1, Math.max(0, 1 + Math.log10(r) / 2)) : 0;
 		expect(fills[i].fill).toBeCloseTo(want, 1);
 		if (r > 0.05 && r < 0.2) {
-			tenth++;
 			expect(fills[i].fill).toBeGreaterThan(0.3);
 			expect(fills[i].css).toContain('--warning-fill)');
 			expect(fills[i].css).not.toMatch(/--warning-fill\) 0%/);
 		}
 	});
-	expect(tenth).toBeGreaterThan(0);
 });
 
 /** Each maximizable plot: its title, and the element that must fill the window when maximized. */

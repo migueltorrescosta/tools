@@ -54,7 +54,7 @@ const airlineShareBuyback: Model = {
 	],
 	decisions: {
 		symbol: 'b',
-		values: [0, 250, 500, 750, 1000],
+		values: [500, 600, 700, 800, 900, 1000],
 		label: '{b} M€',
 		reward: 'b*R + (L >= 0 ? L*(1+i)^5 : L*(1+Lr)^5)',
 		unit: 'M€'

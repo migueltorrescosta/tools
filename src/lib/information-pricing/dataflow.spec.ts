@@ -13,7 +13,7 @@ describe('dataflow', () => {
 		expect(byId.get('in1')!.tex).toBe('K \\sim \\mathrm{LogNormal}(2.5 \\times 10^{8},\\ 0.35)');
 		expect(byId.get('in6')).toMatchObject({ kind: 'fixed', tex: '\\mathrm{C0} = 600' });
 		expect(byId.get('m0')!.tex).toBe('\\mathrm{Rev} = K \\cdot p');
-		expect(byId.get(DECISION_NODE)!.tex).toBe('b \\in \\{0, 250, \\dots, 1000\\}');
+		expect(byId.get(DECISION_NODE)!.tex).toBe('b \\in \\{500, 600, \\dots, 1000\\}');
 		expect(byId.get(REWARD_NODE)!.tex).toMatch(/^\\text\{Reward\} = /);
 		// Rev(K,p) Fuel(K,F) Delta(Rev,Fuel) L(C0,b,Delta) reward(b,R,L,i,Lr)
 		expect(g.edges).toHaveLength(14);

@@ -151,7 +151,7 @@ describe('simulation engine', () => {
 		expect(a.n).toBe(60_000);
 		expect(a.inputs.map((x) => x.symbol)).toEqual(['R', 'K', 'F', 'Lr', 'p', 'i']);
 		expect(a.intermediates.map((x) => x.symbol)).toEqual(['Rev', 'Fuel', 'Delta']);
-		expect(a.decisions).toEqual(['0 M€', '250 M€', '500 M€', '750 M€', '1000 M€']);
+		expect(a.decisions).toEqual(['500 M€', '600 M€', '700 M€', '800 M€', '900 M€', '1000 M€']);
 		expect(b.inputs[3].column).toEqual(a.inputs[3].column);
 		expect(b.rewards[4]).toEqual(a.rewards[4]);
 		expect(b.optimal).toEqual(a.optimal);
@@ -248,11 +248,11 @@ describe('simulation engine', () => {
 		const partials = events.flatMap((e) => (e.type === 'partial' ? [e.analysis] : []));
 		expect(partials.length).toBeGreaterThanOrEqual(2);
 		// The main part comes first; the value of information only later.
-		expect(partials[0].summary.expectedLoss).toHaveLength(5);
+		expect(partials[0].summary.expectedLoss).toHaveLength(6);
 		expect(partials[0].groups).toHaveLength(6);
 		expect(partials[0].profitShare).toHaveLength(6);
 		expect(partials[0].intermediates.groups).toHaveLength(3);
-		expect(partials[0].distributions).toHaveLength(5);
+		expect(partials[0].distributions).toHaveLength(6);
 		expect(partials[0].valueOfInformation).toBeUndefined();
 		const voiAt = partials.findIndex((p) => p.valueOfInformation !== undefined);
 		expect(voiAt).toBeGreaterThan(0);

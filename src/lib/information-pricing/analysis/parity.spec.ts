@@ -100,6 +100,7 @@ function fixtureModel(preset: PresetId) {
 	for (const input of model.inputs)
 		if (input.family === 'fixed') input.params = [fixed[preset as keyof typeof fixed]];
 	if (preset === 'distribution-centre') model.decisions.values = [8, 9, 10, 11, 12];
+	else model.decisions.values = [0, 250, 500, 750, 1000];
 	return model;
 }
 
