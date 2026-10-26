@@ -17,3 +17,10 @@ export function defaultWorkerCount(
 	if (!hc || !Number.isFinite(hc)) return 1;
 	return Math.max(1, Math.min(Math.floor(hc) - 1, 4));
 }
+
+/** Most workers any tool starts, whatever a share link or input asks for (the inputs' max). */
+export const MAX_WORKERS = 16;
+
+/** `n` floored into `[1, MAX_WORKERS]`; 1 when it isn't a finite number. */
+export const clampWorkers = (n: number): number =>
+	Number.isFinite(n) ? Math.min(MAX_WORKERS, Math.max(1, Math.floor(n))) : 1;

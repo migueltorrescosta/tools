@@ -300,10 +300,8 @@ test('clicking a Pareto point selects that equation; copy buttons copy each form
 	await expect.poll(clip).toMatch(/a_AU/);
 	// The copied JS evaluates to the predictions' scale at a = 1 AU, T ≈ 1 year
 	const js = await clip();
-	const atEarth = await page.evaluate(
-		(code) => new Function('a_AU', `return ${code};`)(1) as number,
-		js
-	);
+	// Evaluated here, not in the page: the page's CSP has no 'unsafe-eval'
+	const atEarth = new Function('a_AU', `return ${js};`)(1) as number;
 	expect(atEarth).toBeGreaterThan(0);
 });
 
@@ -383,10 +381,7 @@ test('Download CSV adds the selected equation and the split to every row', async
 	const text = await selectedText(page);
 	for (const line of lines.slice(1, 21)) {
 		const [x, , pred] = line.split(',').map(Number);
-		const expected = await page.evaluate(
-			([code, x]) => new Function('x', `return ${code};`)(x) as number,
-			[text.replaceAll('^', '**'), x] as const
-		);
+		const expected = new Function('x', `return ${text.replaceAll('^', '**')};`)(x) as number;
 		expect(pred).toBeCloseTo(expected, 3);
 	}
 });

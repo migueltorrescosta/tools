@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { MAX_WORKERS } from '$lib/worker-pool';
 import {
 	canSaveCsv,
 	decodeShareParams,
@@ -29,7 +30,14 @@ describe('share params', () => {
 
 	it('drops unknown operators and invalid numbers', () => {
 		const params = new URLSearchParams('ops=add,eval,cos&budget=-1&split=2&seed=1.5&workers=0');
-		expect(decodeShareParams(params)).toEqual({ operators: ['add', 'cos'] });
+		expect(decodeShareParams(params)).toEqual({ operators: ['add', 'cos'], workers: 1 });
+	});
+
+	it('clamps the worker count from a share link', () => {
+		const decode = (q: string) => decodeShareParams(new URLSearchParams(q)).workers;
+		expect(decode('workers=10000')).toBe(MAX_WORKERS);
+		expect(decode('workers=3')).toBe(3);
+		expect(decode('workers=x')).toBeUndefined();
 	});
 
 	it('reports no share params on a bare URL', () => {

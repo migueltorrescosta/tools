@@ -1,0 +1,16 @@
+# Cloudflare static-asset headers. The page CSP itself is a <meta> tag from kit.csp (svelte.config.js).
+/*
+  Content-Security-Policy: frame-ancestors 'none'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# Workers take their policy from their own response, not the page. Only the Information Pricing
+# simulation worker compiles its formula kernel with new Function, so only it gets 'unsafe-eval'.
+/_app/immutable/workers/*
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'self'
+
+/_app/immutable/workers/simulate.worker-*
+  ! Content-Security-Policy
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-eval'

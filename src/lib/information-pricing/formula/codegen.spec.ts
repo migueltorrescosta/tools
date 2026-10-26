@@ -116,6 +116,30 @@ describe('kernelSource', () => {
 		expect(() => buildKernel('return 1;')).toThrow(/preamble/);
 	});
 
+	it('refuses word-free JSFuck that reaches Function (tools#50 probe)', () => {
+		const SRC: Record<string, string> = {
+			false: '(![]+[])',
+			true: '(!![]+[])',
+			undefined: '([][[]]+[])',
+			object: '([]+{})' // "[object Object]"
+		};
+		const num = (n: number) =>
+			n === 0 ? '+[]' : n === 1 ? '+!+[]' : Array(n).fill('!+[]').join('+');
+		const ch = (c: string): string => {
+			for (const [word, expr] of Object.entries(SRC)) {
+				const k = (word === 'object' ? '[object Object]' : word).indexOf(c);
+				if (k >= 0) return `${expr}[${num(k)}]`;
+			}
+			throw new Error(`no source for ${c}`);
+		};
+		const str = (s: string) => [...s].map(ch).join('+');
+		const body = `rewards[+[]]=[][${str('filter')}][${str('constructor')}];`;
+		expect(() => buildKernel('"use strict";\n' + body)).toThrow(/codegen/);
+		// Each JSFuck building block is refused on its own too.
+		for (const bad of ['c0[i] = +[];', 'c0[i] = ![];', 'c0[i] = c0[c0[i]];', 'c0[i] = [0];'])
+			expect(() => buildKernel(`"use strict";\n${bad}`)).toThrow(/codegen/);
+	});
+
 	it('exposes the slot layout', () => {
 		const c = compiled(airline);
 		expect(slotCount(c.slots)).toBe(9);

@@ -12,6 +12,7 @@
 		PM_LEVELS,
 		lorentzianErrors,
 		needsPseudomodes,
+		validateBudget,
 		validateSetup
 	} from '$lib/ancilla-mzi/limits';
 	import {
@@ -84,7 +85,7 @@
 	const N = $derived(setup.nS + setup.nA);
 	/** Without an ancilla the engine ignores the A-only controls; the page greys them out. */
 	const noAncilla = $derived(setup.nA === 0);
-	const errors = $derived(validateSetup(effective));
+	const errors = $derived([...validateSetup(effective), ...validateBudget(budget)]);
 	const rules = $derived(checkRules(effective));
 	const preset = $derived(detectPreset(effective));
 	const pseudomodes = $derived(needsPseudomodes(effective));
@@ -389,7 +390,7 @@
 					<details class="budget" data-testid="budget">
 						<summary>Budget</summary>
 						<div class="grid-2">
-							<Field label="Strang steps M">
+							<Field label="Strang steps M" error={errorFor('budget.steps')}>
 								{#snippet children(props)}
 									<input
 										class="control"
@@ -401,7 +402,7 @@
 									/>
 								{/snippet}
 							</Field>
-							<Field label="Rounds per seed">
+							<Field label="Rounds per seed" error={errorFor('budget.rounds')}>
 								{#snippet children(props)}
 									<input
 										class="control"
@@ -413,7 +414,7 @@
 									/>
 								{/snippet}
 							</Field>
-							<Field label="Iterations per round">
+							<Field label="Iterations per round" error={errorFor('budget.maxIter')}>
 								{#snippet children(props)}
 									<input
 										class="control"
@@ -425,7 +426,7 @@
 									/>
 								{/snippet}
 							</Field>
-							<Field label="See-saw iterations">
+							<Field label="See-saw iterations" error={errorFor('budget.seesawIter')}>
 								{#snippet children(props)}
 									<input
 										class="control"
@@ -437,7 +438,11 @@
 									/>
 								{/snippet}
 							</Field>
-							<Field label="Workers" hint="0 picks one per spare core, up to 4.">
+							<Field
+								label="Workers"
+								hint="0 picks one per spare core, up to 4."
+								error={errorFor('budget.workers')}
+							>
 								{#snippet children(props)}
 									<input
 										class="control"
@@ -450,7 +455,7 @@
 									/>
 								{/snippet}
 							</Field>
-							<Field label="Seed">
+							<Field label="Seed" error={errorFor('budget.seed')}>
 								{#snippet children(props)}
 									<input
 										class="control"

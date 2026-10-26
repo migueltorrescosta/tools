@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { validateBudget } from './limits';
 import { DEFAULT_BUDGET, applyPreset, defaultSetup, detectPreset, noiseless } from './presets';
 import {
 	RESULT_KEY,
@@ -95,6 +96,14 @@ describe('share params', () => {
 		const d = defaultSetup();
 		expect(garbage.setup).toEqual({ ...d, noise: { system: noiseless(), ancilla: noiseless() } });
 		expect(garbage.budget).toEqual(DEFAULT_BUDGET);
+	});
+
+	it('drops budget values outside the limits', () => {
+		const over = decodeShareParams(new URLSearchParams('b=401_51_1001_1001_17_4294967296'));
+		expect(over.budget).toEqual(DEFAULT_BUDGET);
+		const edge = decodeShareParams(new URLSearchParams('b=400_50_1000_1000_16_4294967295'));
+		expect(validateBudget(edge.budget)).toEqual([]);
+		expect(edge.budget.workers).toBe(16);
 	});
 
 	it('defaults the MZI to all N particles', () => {

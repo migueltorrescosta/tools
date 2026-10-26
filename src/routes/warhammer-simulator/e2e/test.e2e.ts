@@ -101,6 +101,25 @@ test('Warhammer Simulator - validation prevents >50 gift points', async ({ page 
 	await expect(winnerHeading(page)).toHaveCount(0);
 });
 
+test('Warhammer Simulator - empty or out-of-range stats block the run', async ({ page }) => {
+	await open(page);
+
+	const panelB = page.getByTestId('builder-B');
+	const attacks = panelB.getByLabel('A', { exact: true });
+	await attacks.fill('');
+	await expect(attacks).toHaveAttribute('aria-invalid', 'true');
+	await runButton(page).click();
+	await expect(page.getByRole('alert')).toHaveText(
+		/^\W*Character B: A must be a whole number from 1 to 10$/
+	);
+	await expect(winnerHeading(page)).toHaveCount(0);
+
+	await attacks.fill('3');
+	await panelB.getByLabel('WS', { exact: true }).fill('11');
+	await runButton(page).click();
+	await expect(page.getByRole('alert')).toContainText('Character B: WS must be');
+});
+
 test('Warhammer Simulator - item limit disables a third item', async ({ page }) => {
 	await open(page);
 

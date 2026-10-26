@@ -37,12 +37,19 @@ for (const colorScheme of ['light', 'dark'] as const) {
 }
 
 // WCAG 1.4.10 Reflow: no page scrolls sideways on a 390px phone (wide charts scroll inside their own box).
+// The same load checks the page breaks none of its Content-Security-Policy (svelte.config.js).
 for (const path of ROUTES) {
 	test(`a11y - ${path} fits a 390px screen without horizontal scrolling`, async ({ page }) => {
+		const refused: string[] = [];
+		page.on('console', (m) => {
+			if (m.type() === 'error' && m.text().includes('Content Security Policy'))
+				refused.push(m.text());
+		});
 		await page.setViewportSize({ width: 390, height: 844 });
 		await page.goto(path, { waitUntil: 'networkidle' });
 		const width = await page.evaluate(() => document.documentElement.scrollWidth);
 		expect(width).toBeLessThanOrEqual(390);
+		expect(refused).toEqual([]);
 	});
 }
 

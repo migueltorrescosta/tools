@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createAncillaHost, taskSeed, type FromWorker, type ToWorker } from './host';
 import { applyPreset, defaultSetup, noiseless } from './presets';
 import type { Budget, RunEvent, RunSnapshot, SeedResult, Setup } from './types';
-import type { WorkerLike } from '$lib/worker-pool';
+import { MAX_WORKERS, type WorkerLike } from '$lib/worker-pool';
 import { createAncillaEngine } from './worker-engine';
 
 /** Runs the real host in-process, with structured cloning and async delivery like a worker. */
@@ -207,5 +207,40 @@ describe('createAncillaEngine', () => {
 		const err = waitFor(broken, () => false);
 		broken.start(smallSetup(), budget);
 		expect(await err).toEqual({ type: 'error', message: 'boom' });
+	});
+});
+
+describe('worker count', () => {
+	it('starts up to MAX_WORKERS workers and refuses more', () => {
+		let created = 0;
+		const engine = createAncillaEngine(() => {
+			created++;
+			return new FakeWorker();
+		});
+		const events: RunEvent[] = [];
+		engine.subscribe((e) => events.push(e));
+		engine.start(smallSetup(), { ...budget, workers: 10_000 });
+		expect(created).toBe(0);
+		expect(events[0]).toMatchObject({ type: 'error', message: expect.stringMatching(/^Workers/) });
+		engine.start(smallSetup(), { ...budget, workers: MAX_WORKERS });
+		expect(created).toBe(MAX_WORKERS);
+		engine.dispose();
+	});
+});
+
+describe('budget checks', () => {
+	it('refuses a budget outside the limits without starting workers', async () => {
+		let created = 0;
+		const engine = createAncillaEngine(() => {
+			created++;
+			return new FakeWorker();
+		});
+		const events: RunEvent[] = [];
+		engine.subscribe((e) => events.push(e));
+		engine.start(smallSetup(), { ...budget, steps: 1 });
+		expect(events).toEqual([
+			{ type: 'error', message: 'Strang steps M must be a whole number from 2 to 400.' }
+		]);
+		expect(created).toBe(0);
 	});
 });

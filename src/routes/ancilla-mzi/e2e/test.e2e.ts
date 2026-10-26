@@ -74,6 +74,23 @@ test('custom edits: coupling toggle, pulse count, time and target', async ({ pag
 	await expect(page.getByTestId('run')).toBeDisabled();
 });
 
+test('out-of-range budget values disable Run and say why', async ({ page }) => {
+	await open(page);
+	await page.getByTestId('budget').locator('summary').click();
+	const steps = page.getByLabel('Strang steps M');
+	await steps.fill('1');
+	const message = 'Strang steps M must be a whole number from 2 to 400.';
+	await expect(page.getByTestId('validation-errors')).toContainText(message);
+	await expect(page.getByTestId('budget').getByText(message)).toBeVisible();
+	await expect(steps).toHaveAttribute('aria-invalid', 'true');
+	await expect(page.getByTestId('run')).toBeDisabled();
+	await page.getByLabel('Workers').fill('');
+	await expect(page.getByTestId('validation-errors')).toContainText('Workers must be');
+	await steps.fill('8');
+	await page.getByLabel('Workers').fill('0');
+	await expect(page.getByTestId('run')).toBeEnabled();
+});
+
 test('noise combination limits disable Run and say why', async ({ page }) => {
 	await open(page);
 	// Controlled Lorentzian dephasing runs pseudomodes, allowed only at (1, 1)
