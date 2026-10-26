@@ -92,7 +92,7 @@ test('fit to width fits the widest graph on a phone, with fact labels at least 2
 	// At 100% the graph scrolls, and the label targets keep their full size
 	await page.getByText('100%').click();
 	expect(await graph.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
-	await expect(page.locator('.dg-frame')).toHaveClass(/more-right/);
+	await expect(page.locator('.ui-scroll-edges')).toHaveClass(/more-right/);
 	const heights = await page
 		.locator('.dg-label')
 		.evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height));

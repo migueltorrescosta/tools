@@ -111,6 +111,17 @@ table {
 	}
 }
 
+/* A chart drawn at its measured width: bind:clientWidth on .fit-chart, viewBox and width set to it, so text keeps its CSS px size. */
+.fit-chart {
+	min-width: 0;
+}
+
+.fit-chart > svg {
+	display: block;
+	max-width: none;
+	overflow: visible;
+}
+
 /* Collapsible help: <details class="how"><summary>How it works</summary>…</details> */
 details.how {
 	margin-top: var(--sp-4);

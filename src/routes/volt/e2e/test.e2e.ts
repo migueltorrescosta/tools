@@ -144,8 +144,9 @@ test('Volt - at phone width the location gutter stays visible while the timeline
 }) => {
 	await page.setViewportSize({ width: 390, height: 844 });
 	await open(page);
-	const scroll = page.locator('.volt-scroll');
-	await expect(scroll).toHaveClass(/more-right/);
+	const scroll = page.getByTestId('volt-scroll');
+	const edges = page.locator('.ui-scroll-edges');
+	await expect(edges).toHaveClass(/more-right/);
 	const location = page.locator('.volt-location').first();
 	const before = await location.boundingBox();
 	await scroll.evaluate((el) => el.scrollTo({ left: 200 }));
@@ -153,5 +154,5 @@ test('Volt - at phone width the location gutter stays visible while the timeline
 		.poll(async () => Math.abs(((await location.boundingBox())?.x ?? 0) - (before?.x ?? 0)))
 		.toBeLessThanOrEqual(1);
 	await scroll.evaluate((el) => el.scrollTo({ left: el.scrollWidth }));
-	await expect(scroll).not.toHaveClass(/more-right/);
+	await expect(edges).not.toHaveClass(/more-right/);
 });

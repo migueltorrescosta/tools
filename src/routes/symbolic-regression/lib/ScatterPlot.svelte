@@ -102,7 +102,7 @@
 			</span>
 		{/if}
 	</figcaption>
-	<div class="chart-box" bind:clientWidth={width}>
+	<div class="fit-chart" bind:clientWidth={width}>
 		<svg
 			viewBox="0 0 {W} {H}"
 			width={W}
@@ -190,14 +190,6 @@
 	.plot-legend svg {
 		width: 12px;
 		height: 12px;
-	}
-	.chart-box {
-		min-width: 0;
-	}
-	.chart-box > svg {
-		display: block;
-		max-width: none;
-		overflow: visible;
 	}
 	.grid line {
 		stroke: var(--border);

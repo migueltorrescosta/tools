@@ -8,6 +8,7 @@
 	import { renderProse, stackTex } from '$lib/scientific-derivations/prose';
 	import { renderTex } from '$lib/tex';
 	import Tex from '$lib/ui/Tex.svelte';
+	import ScrollEdges from '$lib/ui/ScrollEdges.svelte';
 
 	let {
 		derivation,
@@ -50,20 +51,6 @@
 		layout && fit && boxWidth > 0 ? Math.min(1, (boxWidth - 2) / layout.width) : 1
 	);
 
-	// Edge shadows on each side that has more graph to scroll to.
-	let scroller = $state<HTMLDivElement>();
-	let more = $state({ left: false, right: false });
-	function measureScroll() {
-		if (!scroller) return;
-		const max = scroller.scrollWidth - scroller.clientWidth;
-		more = { left: scroller.scrollLeft > 1, right: scroller.scrollLeft < max - 1 };
-	}
-	$effect(() => {
-		void scale;
-		void layout;
-		measureScroll();
-	});
-
 	/** The selection and everything it touches, to highlight. */
 	const lit = $derived.by(() => {
 		const ids = new Set<string>();
@@ -93,147 +80,104 @@
 	}
 </script>
 
-<div class="dg-frame" class:more-left={more.left} class:more-right={more.right}>
+<ScrollEdges
+	class="dg-scroll"
+	data-testid="graph"
+	data-ready={layout ? '' : undefined}
+	bind:width={boxWidth}
+>
+	{#if !layout}
+		<p class="dg-loading" role="status">
+			<span class="dg-spinner" aria-hidden="true"></span>
+			Drawing the derivation…
+		</p>
+	{/if}
 	<div
-		class="dg-scroll"
-		data-testid="graph"
-		data-ready={layout ? '' : undefined}
-		bind:clientWidth={boxWidth}
-		bind:this={scroller}
-		onscroll={measureScroll}
+		class="dg-size"
+		style:width={layout ? `${layout.width * scale}px` : '100%'}
+		style:height={layout ? `${layout.height * scale}px` : '24rem'}
 	>
-		{#if !layout}
-			<p class="dg-loading" role="status">
-				<span class="dg-spinner" aria-hidden="true"></span>
-				Drawing the derivation…
-			</p>
-		{/if}
 		<div
-			class="dg-size"
-			style:width={layout ? `${layout.width * scale}px` : '100%'}
-			style:height={layout ? `${layout.height * scale}px` : '24rem'}
+			class="dg-canvas"
+			class:ready={!!layout}
+			style:width={layout ? `${layout.width}px` : '100%'}
+			style:height={layout ? `${layout.height}px` : '24rem'}
+			style:transform={scale < 1 ? `scale(${scale})` : undefined}
 		>
-			<div
-				class="dg-canvas"
-				class:ready={!!layout}
-				style:width={layout ? `${layout.width}px` : '100%'}
-				style:height={layout ? `${layout.height}px` : '24rem'}
-				style:transform={scale < 1 ? `scale(${scale})` : undefined}
-			>
-				{#if layout}
-					<svg class="dg-edges" width={layout.width} height={layout.height} aria-hidden="true">
-						<defs>
-							{#each ['plain', 'lit'] as tone (tone)}
-								<marker
-									id="{uid}-{tone}"
-									viewBox="0 0 10 10"
-									refX="9"
-									refY="5"
-									markerWidth="7"
-									markerHeight="7"
-									orient="auto-start-reverse"
-								>
-									<path d="M0,0 L10,5 L0,10 z" class="dg-head {tone}" />
-								</marker>
-							{/each}
-						</defs>
-						{#each edges as edge (edge.id)}
-							{@const on = lit.has(edge.id)}
-							<path
-								d={edgePath(layout.edges[edge.id].points)}
-								class="dg-edge"
-								class:lit={on}
-								marker-end="url(#{uid}-{on ? 'lit' : 'plain'})"
-							/>
+			{#if layout}
+				<svg class="dg-edges" width={layout.width} height={layout.height} aria-hidden="true">
+					<defs>
+						{#each ['plain', 'lit'] as tone (tone)}
+							<marker
+								id="{uid}-{tone}"
+								viewBox="0 0 10 10"
+								refX="9"
+								refY="5"
+								markerWidth="7"
+								markerHeight="7"
+								orient="auto-start-reverse"
+							>
+								<path d="M0,0 L10,5 L0,10 z" class="dg-head {tone}" />
+							</marker>
 						{/each}
-					</svg>
-				{/if}
+					</defs>
+					{#each edges as edge (edge.id)}
+						{@const on = lit.has(edge.id)}
+						<path
+							d={edgePath(layout.edges[edge.id].points)}
+							class="dg-edge"
+							class:lit={on}
+							marker-end="url(#{uid}-{on ? 'lit' : 'plain'})"
+						/>
+					{/each}
+				</svg>
+			{/if}
 
-				{#each nodes as node (node.id)}
-					<button
-						type="button"
-						class="dg-node {node.kind}"
-						class:lit={lit.has(node.id)}
-						aria-pressed={selected?.id === node.id}
-						data-testid="node-{node.id}"
-						style={position(node.id, 'node')}
-						bind:offsetWidth={width[node.id]}
-						bind:offsetHeight={height[node.id]}
-						onclick={() => select('node', node.id)}
-					>
-						<span class="dg-title">
-							{node.title}
-							{#if node.correction}<span class="dg-flag" title="Corrected">corrected</span>{/if}
-							{#if node.added}<span class="dg-flag added" title="Not in the paper">added</span>{/if}
-						</span>
-						<Tex html={node.html} />
-					</button>
-				{/each}
+			{#each nodes as node (node.id)}
+				<button
+					type="button"
+					class="dg-node {node.kind}"
+					class:lit={lit.has(node.id)}
+					aria-pressed={selected?.id === node.id}
+					data-testid="node-{node.id}"
+					style={position(node.id, 'node')}
+					bind:offsetWidth={width[node.id]}
+					bind:offsetHeight={height[node.id]}
+					onclick={() => select('node', node.id)}
+				>
+					<span class="dg-title">
+						{node.title}
+						{#if node.correction}<span class="dg-flag" title="Corrected">corrected</span>{/if}
+						{#if node.added}<span class="dg-flag added" title="Not in the paper">added</span>{/if}
+					</span>
+					<Tex html={node.html} />
+				</button>
+			{/each}
 
-				{#each edges as edge (edge.id)}
-					<button
-						type="button"
-						class="dg-label"
-						class:lit={lit.has(edge.id)}
-						class:corrected={!!edge.correction}
-						aria-pressed={selected?.id === edge.id}
-						data-testid="edge-{edge.id}"
-						style={position(edge.id, 'edge')}
-						bind:offsetWidth={width[edge.id]}
-						bind:offsetHeight={height[edge.id]}
-						onclick={() => select('edge', edge.id)}
-					>
-						<Tex html={edge.html} />
-						<span class="sr-only">: from {titles[edge.from]} to {titles[edge.to]}</span>
-					</button>
-				{/each}
-			</div>
+			{#each edges as edge (edge.id)}
+				<button
+					type="button"
+					class="dg-label"
+					class:lit={lit.has(edge.id)}
+					class:corrected={!!edge.correction}
+					aria-pressed={selected?.id === edge.id}
+					data-testid="edge-{edge.id}"
+					style={position(edge.id, 'edge')}
+					bind:offsetWidth={width[edge.id]}
+					bind:offsetHeight={height[edge.id]}
+					onclick={() => select('edge', edge.id)}
+				>
+					<Tex html={edge.html} />
+					<span class="sr-only">: from {titles[edge.from]} to {titles[edge.to]}</span>
+				</button>
+			{/each}
 		</div>
 	</div>
-</div>
+</ScrollEdges>
 
 <style>
-	.dg-frame {
-		position: relative;
-	}
-
-	.dg-frame::before,
-	.dg-frame::after {
-		content: '';
-		position: absolute;
-		top: 1px;
-		bottom: 1px;
-		z-index: 2;
-		width: var(--sp-4);
-		pointer-events: none;
-		opacity: 0;
-		transition: opacity 0.15s;
-	}
-
-	.dg-frame::before {
-		left: 1px;
-		background: linear-gradient(
-			to right,
-			color-mix(in srgb, var(--text) 22%, transparent),
-			transparent
-		);
-	}
-
-	.dg-frame::after {
-		right: 1px;
-		background: linear-gradient(
-			to left,
-			color-mix(in srgb, var(--text) 22%, transparent),
-			transparent
-		);
-	}
-
-	.dg-frame.more-left::before,
-	.dg-frame.more-right::after {
-		opacity: 1;
-	}
-
-	.dg-scroll {
+	/* The scroller lives in ScrollEdges, so its class is global. */
+	:global(.dg-scroll) {
 		position: relative;
 		overflow: auto;
 		max-width: 100%;

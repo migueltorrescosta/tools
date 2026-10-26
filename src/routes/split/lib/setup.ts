@@ -86,17 +86,19 @@ export function claimedValues(
 }
 
 /**
- * Short ring labels for the Start step: the shortest common prefix length
- * (1 to 3 characters) that tells every name apart, falling back to 3.
+ * Short ring labels for the Start step: each name's first letter, upper-cased.
+ * Names that share it get their second letter too, or a number when that
+ * still collides: Ana, Alex, Ben → An, Al, B; Anna, Anne → A1, A2.
  */
 export function ringLabels(names: readonly string[]): string[] {
-	const clean = names.map((n) => [...n.trim()]);
-	const label = (chars: string[], len: number) =>
-		chars.slice(0, len).join('').toLocaleUpperCase().slice(0, 1) +
-		chars.slice(1, len).join('').toLocaleLowerCase();
-	for (const len of [1, 2, 3]) {
-		const labels = clean.map((c) => label(c, len));
-		if (new Set(labels.map((l) => l.toLocaleLowerCase())).size === labels.length) return labels;
-	}
-	return clean.map((c) => label(c, 3));
+	const graphemes = (n: string) =>
+		[...new Intl.Segmenter().segment(n.trim())].map((g) => g.segment);
+	const firsts = names.map((n) => (graphemes(n)[0] ?? '?').toLocaleUpperCase());
+	const count = (list: string[], x: string) => list.filter((y) => y === x).length;
+	const seconds = names.map((n, i) => firsts[i] + (graphemes(n)[1] ?? '').toLocaleLowerCase());
+	return firsts.map((f, i) => {
+		if (count(firsts, f) === 1) return f;
+		if (count(seconds, seconds[i]) === 1) return seconds[i];
+		return f + (firsts.slice(0, i).filter((x) => x === f).length + 1);
+	});
 }

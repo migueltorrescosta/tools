@@ -718,92 +718,88 @@
 				</div>
 			</Panel>
 
-			<details class="fold" data-testid="noise-fold">
-				<summary><h2>Noise</h2></summary>
-				<div class="fold-body">
-					<div class="stack">
-						<p class="muted">Rates in units of 1/t. The MZI's particles get the same noise.</p>
-						<label class="toggle wide">
-							<input
-								type="checkbox"
-								checked={ancillaSame}
-								onchange={(e) => setAncillaSame(e.currentTarget.checked)}
-								data-testid="ancilla-same"
-							/>
-							Ancilla same as system
-						</label>
-						<div class="noise-grid">
-							<NoiseColumn
-								bind:noise={setup.noise.system}
-								register="system"
-								title="System"
-								{errorFor}
-								kindReasons={systemKindReasons}
-							/>
-							{#if ancillaSame}
-								<div class="same">
-									<p class="legend-like">Ancilla</p>
-									<p class="muted">Same noise as the system.</p>
-								</div>
-							{:else}
-								<NoiseColumn
-									bind:noise={setup.noise.ancilla}
-									register="ancilla"
-									title="Ancilla"
-									{errorFor}
-									kindReasons={ancillaKindReasons}
-								/>
-							{/if}
-						</div>
-						{#if !ancillaSame}
-							<div class="cluster">
-								<Button size="sm" onclick={() => (setup.noise.ancilla = noiseless())}
-									>Make the ancilla noiseless</Button
-								>
+			<details class="how" data-testid="noise-fold">
+				<summary>Noise</summary>
+				<div class="stack">
+					<p class="muted">Rates in units of 1/t. The MZI's particles get the same noise.</p>
+					<label class="toggle wide">
+						<input
+							type="checkbox"
+							checked={ancillaSame}
+							onchange={(e) => setAncillaSame(e.currentTarget.checked)}
+							data-testid="ancilla-same"
+						/>
+						Ancilla same as system
+					</label>
+					<div class="noise-grid">
+						<NoiseColumn
+							bind:noise={setup.noise.system}
+							register="system"
+							title="System"
+							{errorFor}
+							kindReasons={systemKindReasons}
+						/>
+						{#if ancillaSame}
+							<div class="same">
+								<p class="legend-like">Ancilla</p>
+								<p class="muted">Same noise as the system.</p>
 							</div>
+						{:else}
+							<NoiseColumn
+								bind:noise={setup.noise.ancilla}
+								register="ancilla"
+								title="Ancilla"
+								{errorFor}
+								kindReasons={ancillaKindReasons}
+							/>
 						{/if}
 					</div>
+					{#if !ancillaSame}
+						<div class="cluster">
+							<Button size="sm" onclick={() => (setup.noise.ancilla = noiseless())}
+								>Make the ancilla noiseless</Button
+							>
+						</div>
+					{/if}
 				</div>
 			</details>
 
-			<details class="fold" data-testid="accounting-fold">
-				<summary><h2>Accounting overrides</h2></summary>
-				<div class="fold-body">
-					<div class="stack">
-						<p class="muted">
-							Each override breaks one rule; leave them at their defaults for a fair test.
-						</p>
-						<div class="grid-2">
-							<Field label="MZI particles" hint="Default N = {N}." error={errorFor('mziParticles')}>
-								{#snippet children(props)}
-									<input
-										class="control"
-										type="number"
-										min="1"
-										max={N}
-										step="1"
-										bind:value={setup.mziParticles}
-										data-testid="mzi-particles"
-										{...props}
-									/>
-								{/snippet}
-							</Field>
-							<Field label="Ancilla hold (t)" hint="Default 1." error={errorFor('ancillaHold')}>
-								{#snippet children(props)}
-									<input
-										class="control"
-										type="number"
-										min={MIN_HOLD}
-										max={MAX_HOLD}
-										step="0.1"
-										value={setup.ancillaHold}
-										oninput={(e) => setHold(e.currentTarget.valueAsNumber)}
-										data-testid="ancilla-hold"
-										{...props}
-									/>
-								{/snippet}
-							</Field>
-						</div>
+			<details class="how" data-testid="accounting-fold">
+				<summary>Accounting overrides</summary>
+				<div class="stack">
+					<p class="muted">
+						Each override breaks one rule; leave them at their defaults for a fair test.
+					</p>
+					<div class="grid-2">
+						<Field label="MZI particles" hint="Default N = {N}." error={errorFor('mziParticles')}>
+							{#snippet children(props)}
+								<input
+									class="control"
+									type="number"
+									min="1"
+									max={N}
+									step="1"
+									bind:value={setup.mziParticles}
+									data-testid="mzi-particles"
+									{...props}
+								/>
+							{/snippet}
+						</Field>
+						<Field label="Ancilla hold (t)" hint="Default 1." error={errorFor('ancillaHold')}>
+							{#snippet children(props)}
+								<input
+									class="control"
+									type="number"
+									min={MIN_HOLD}
+									max={MAX_HOLD}
+									step="0.1"
+									value={setup.ancillaHold}
+									oninput={(e) => setHold(e.currentTarget.valueAsNumber)}
+									data-testid="ancilla-hold"
+									{...props}
+								/>
+							{/snippet}
+						</Field>
 					</div>
 				</div>
 			</details>
@@ -1038,28 +1034,12 @@
 			order: 1;
 		}
 	}
-	/* Noise and Accounting overrides: panels that start collapsed. */
-	.fold {
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		min-width: 0;
+	/* Noise and Accounting overrides: collapsed disclosures in the How it works style. */
+	.inputs > details.how {
+		margin-top: 0;
 	}
-	.fold > summary {
-		min-height: 36px;
-		padding: var(--sp-1) var(--sp-3);
-		cursor: pointer;
-	}
-	.fold[open] > summary {
-		border-bottom: 1px solid var(--border);
-	}
-	.fold h2 {
-		display: inline;
-		font-size: var(--text-sm);
-		font-weight: 600;
-	}
-	.fold-body {
-		padding: var(--sp-3);
+	.inputs > details.how > .stack {
+		color: var(--text);
 	}
 	.inputs,
 	.results {

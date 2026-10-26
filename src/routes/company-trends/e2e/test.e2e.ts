@@ -203,6 +203,6 @@ test('Company trends - on a phone the chart opens at the large companies, with a
 	await expect
 		.poll(() => scroller.evaluate((el) => el.scrollWidth - el.clientWidth - el.scrollLeft))
 		.toBeLessThanOrEqual(1);
-	await expect(page.locator('.ct-chart-frame')).toHaveClass(/more-left/);
-	await expect(page.locator('.ct-chart-frame')).not.toHaveClass(/more-right/);
+	await expect(page.locator('.ui-scroll-edges')).toHaveClass(/more-left/);
+	await expect(page.locator('.ui-scroll-edges')).not.toHaveClass(/more-right/);
 });

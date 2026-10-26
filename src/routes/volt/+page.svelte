@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { PageHeader } from '$lib/ui';
+	import { PageHeader, ScrollEdges } from '$lib/ui';
 	import electedOfficials from '$lib/data/elected_officials.json';
 	import {
 		barGeometry,
@@ -34,17 +34,6 @@
 	});
 	const todayPct = $derived(timelinePercent(now, timeline));
 
-	// Fade the right edge while the timeline scrolls further right (phones)
-	let scroller = $state<HTMLDivElement>();
-	let moreRight = $state(false);
-	function updateFade() {
-		if (scroller) moreRight = scroller.scrollLeft + scroller.clientWidth < scroller.scrollWidth - 1;
-	}
-	$effect(() => {
-		void filterCountry;
-		updateFade();
-	});
-
 	// 'all', the EU flag (MEPs) or a country flag present in the data
 	let filterCountry = $state('all');
 
@@ -58,8 +47,6 @@
 	const BAR_H = 24;
 	const BAR_STRIDE = BAR_H + 2;
 </script>
-
-<svelte:window onresize={updateFade} />
 
 <div class="container" data-hydrated={hydrated || undefined}>
 	<PageHeader path="/volt">
@@ -92,7 +79,8 @@
 		</p>
 	{/if}
 
-	<div class="volt-scroll" class:more-right={moreRight} bind:this={scroller} onscroll={updateFade}>
+	<!-- On phones the right edge fades while the timeline scrolls further right -->
+	<ScrollEdges fade data-testid="volt-scroll">
 		<div class="volt-inner">
 			<div class="volt-axis">
 				<div class="volt-axis-gutter"></div>
@@ -158,7 +146,7 @@
 				{/each}
 			</div>
 		</div>
-	</div>
+	</ScrollEdges>
 </div>
 
 <style>
@@ -224,14 +212,6 @@
 		margin: var(--sp-1) 0 var(--sp-3);
 		font-size: var(--text-xs);
 		color: var(--text-muted);
-	}
-
-	.volt-scroll {
-		overflow-x: auto;
-	}
-
-	.volt-scroll.more-right {
-		mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
 	}
 
 	/* Axis and rows share one min-width and one location gutter, so years sit over the tracks */

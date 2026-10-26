@@ -41,7 +41,7 @@
 	{#if entries.length === 0}
 		<p class="note">This setup has no controls.</p>
 	{:else}
-		<div class="chart-box" bind:clientWidth={width}>
+		<div class="fit-chart" bind:clientWidth={width}>
 			<svg
 				viewBox="0 0 {W} {H}"
 				width={W}
@@ -142,14 +142,6 @@
 	}
 	.swatch.pulse {
 		background: var(--data-3);
-	}
-	.chart-box {
-		min-width: 0;
-	}
-	.chart-box svg {
-		display: block;
-		max-width: none;
-		overflow: visible;
 	}
 	.axis,
 	.name,

@@ -130,7 +130,7 @@
 			>
 		</span>
 	</figcaption>
-	<div class="canvas chart-box" bind:clientWidth={width}>
+	<div class="canvas fit-chart" bind:clientWidth={width}>
 		<svg
 			viewBox="0 0 {W} {H}"
 			width={W}
@@ -251,14 +251,6 @@
 	}
 	.canvas {
 		position: relative;
-	}
-	.chart-box {
-		min-width: 0;
-	}
-	.chart-box > svg {
-		display: block;
-		max-width: none;
-		overflow: visible;
 	}
 	.grid line {
 		stroke: var(--border);

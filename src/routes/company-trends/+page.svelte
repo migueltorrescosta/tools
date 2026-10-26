@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import datasetJson from './data/companies.json';
 	import TrendsChart from './TrendsChart.svelte';
-	import { Alert, Button, PageHeader, SegmentedControl } from '$lib/ui';
+	import { Alert, Button, PageHeader, ScrollEdges, SegmentedControl } from '$lib/ui';
 	import { loadDataset } from '$lib/company-trends/schema';
 	import { companyTypes, DEFAULT_COMPANY_IDS, filterCompanies } from '$lib/company-trends/filter';
 	import {
@@ -86,25 +86,6 @@
 		if (!playing && qi >= lastQi) qi = 0;
 		playing = !playing;
 	}
-
-	// On a narrow screen the 820 px chart scrolls sideways. It opens at the right end, where the
-	// large companies sit, with a shadow on each side that has more to show.
-	let scroller = $state<HTMLDivElement>();
-	let more = $state({ left: false, right: false });
-	function measureScroll() {
-		if (!scroller) return;
-		const max = scroller.scrollWidth - scroller.clientWidth;
-		more = { left: scroller.scrollLeft > 1, right: scroller.scrollLeft < max - 1 };
-	}
-	$effect(() => {
-		const el = scroller;
-		if (!el) return;
-		el.scrollLeft = el.scrollWidth;
-		measureScroll();
-		const observer = new ResizeObserver(measureScroll);
-		observer.observe(el);
-		return () => observer.disconnect();
-	});
 
 	function toggle(list: string[], value: string): string[] {
 		return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
@@ -207,19 +188,13 @@
 
 		<div class="ct-layout">
 			<div class="ct-chart-col">
-				{#if more.left || more.right}<p class="ct-note ct-scroll-hint" data-testid="scroll-hint">
-						Scroll sideways for smaller revenues.
-					</p>{/if}
-				<div class="ct-chart-frame" class:more-left={more.left} class:more-right={more.right}>
-					<div
-						class="ct-chart-scroll"
-						bind:this={scroller}
-						onscroll={measureScroll}
-						data-testid="chart-scroll"
-					>
-						<TrendsChart trails={visibleTrails} {qi} {quarter} {currency} {colors} {domain} />
-					</div>
-				</div>
+				<!-- On a narrow screen the 820 px chart scrolls sideways, opening at the large companies -->
+				<ScrollEdges startAtEnd data-testid="chart-scroll">
+					{#snippet hint()}<p class="ct-note ct-scroll-hint" data-testid="scroll-hint">
+							Scroll sideways for smaller revenues.
+						</p>{/snippet}
+					<TrendsChart trails={visibleTrails} {qi} {quarter} {currency} {colors} {domain} />
+				</ScrollEdges>
 				<ul class="ct-marks" aria-label="Chart marks">
 					<li>
 						<svg width="14" height="14" aria-hidden="true"
@@ -476,50 +451,6 @@
 
 	.ct-chart-col {
 		min-width: 0;
-	}
-
-	.ct-chart-frame {
-		position: relative;
-	}
-
-	.ct-chart-scroll {
-		overflow-x: auto;
-	}
-
-	/* Edge shadows on the side that has more chart to scroll to. */
-	.ct-chart-frame::before,
-	.ct-chart-frame::after {
-		content: '';
-		position: absolute;
-		top: 0;
-		bottom: 0;
-		width: var(--sp-4);
-		pointer-events: none;
-		opacity: 0;
-		transition: opacity 0.15s;
-	}
-
-	.ct-chart-frame::before {
-		left: 0;
-		background: linear-gradient(
-			to right,
-			color-mix(in srgb, var(--text) 22%, transparent),
-			transparent
-		);
-	}
-
-	.ct-chart-frame::after {
-		right: 0;
-		background: linear-gradient(
-			to left,
-			color-mix(in srgb, var(--text) 22%, transparent),
-			transparent
-		);
-	}
-
-	.ct-chart-frame.more-left::before,
-	.ct-chart-frame.more-right::after {
-		opacity: 1;
 	}
 
 	.ct-scroll-hint {

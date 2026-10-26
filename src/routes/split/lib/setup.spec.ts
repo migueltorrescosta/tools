@@ -71,10 +71,12 @@ describe('claimedValues', () => {
 });
 
 describe('ringLabels', () => {
-	it('uses initials, longer only when two names share them', () => {
+	it('uses upper-cased initials, a second letter or a number only where they collide', () => {
 		expect(ringLabels(['Ana', 'ben', 'Carla'])).toEqual(['A', 'B', 'C']);
-		expect(ringLabels(['Ana', 'Alex', 'Ben'])).toEqual(['An', 'Al', 'Be']);
-		expect(ringLabels(['Anna', 'Anne'])).toEqual(['Ann', 'Ann']);
-		expect(ringLabels([' zoë '])).toEqual(['Z']);
+		expect(ringLabels(['Ana', 'Alex', 'Ben'])).toEqual(['An', 'Al', 'B']);
+		expect(ringLabels(['Anna', 'Anne', 'Bo'])).toEqual(['A1', 'A2', 'B']);
+		expect(ringLabels(['Ana', 'Ana', 'Al'])).toEqual(['A1', 'A2', 'Al']);
+		expect(ringLabels([' zoë ', 'éva'])).toEqual(['Z', 'É']);
+		expect(ringLabels(['👩🏽‍🚀 Mo', '👩🏽‍🚀 Li'])).toEqual(['👩🏽‍🚀1', '👩🏽‍🚀2']);
 	});
 });
