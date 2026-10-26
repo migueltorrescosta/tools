@@ -519,10 +519,18 @@
 
 	/* Phones: the translation gets its own line above the person and answer */
 	@media (max-width: 480px) {
+		/* Rows share the columns (subgrid), so the person column fits the longest label */
+		.vc-card tbody,
+		.vc-history tbody {
+			display: grid;
+			grid-template-columns: 1.2rem max-content 1fr;
+		}
+
 		.vc-card tr,
 		.vc-history tr {
 			display: grid;
-			grid-template-columns: 1.2rem 5.5rem 1fr;
+			grid-column: 1 / -1;
+			grid-template-columns: subgrid;
 			align-items: baseline;
 			border-bottom: 1px solid var(--border);
 		}
