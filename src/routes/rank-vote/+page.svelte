@@ -684,21 +684,13 @@
 
 	<details class="how">
 		<summary>How it works</summary>
-		<ol>
-			<li>Create a ballot with a title and its choices.</li>
-			<li>
-				Share the vote link. Each voter ranks the choices and sends you the short vote code it gives
-				them.
-			</li>
-			<li>
-				Enter each name and code on the tally page to see the results under four counting methods:
-				First Past The Post, Instant Runoff, Borda count and Copeland.
-			</li>
-		</ol>
 		<p>
-			The ballot lives in the link itself; entered votes are saved in this browser only. Score is
-			first-choice votes for First Past The Post, votes in the final round for Instant Runoff, Borda
-			points, and pairwise wins for Copeland.
+			Create a ballot and share the vote link. Each voter ranks the choices and sends you their vote
+			code. Enter each name and code on the tally page to see the results counted four ways.
+		</p>
+		<p>
+			How each count works is in the
+			<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/rank-vote.md">docs</a>.
 		</p>
 	</details>
 

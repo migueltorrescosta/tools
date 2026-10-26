@@ -13,14 +13,34 @@ export interface ConjugationEntry {
 
 export type ConjugationMap = Map<string, ConjugationEntry>;
 
-/** UI labels for the interface */
+/**
+ * Every piece of interface text, in the practised language: the page's
+ * chrome follows the language being practised (owner decision, tools#54).
+ */
 export interface UILabels {
+	/** BCP 47 code for the `lang` attribute, e.g. "it" */
+	locale: string;
+	language: string;
 	coverage: string;
 	accuracy: string;
 	conjugation: string;
 	history: string;
 	verb: string;
 	tense: string;
+	/** Accessible name of the answer box; the person label follows it */
+	answer: string;
+	/** Screen-reader text for the blank on the card */
+	toAnswer: string;
+	submit: string;
+	correct: string;
+	wrong: string;
+	notQuite: string;
+	yourAnswer: string;
+	noAttempts: string;
+	selectToBegin: string;
+	noForms: string;
+	complete: string;
+	restart: string;
 }
 
 export interface LanguageModule {

@@ -61,6 +61,7 @@
 		InfoTip,
 		PageHeader,
 		Panel,
+		RunControls,
 		SegmentedControl,
 		ShareActions
 	} from '$lib/ui';
@@ -642,6 +643,41 @@
 
 	<div class="layout" class:has-plots={front.length > 0}>
 		<div class="stack inputs">
+			<RunControls
+				onrun={start}
+				{running}
+				disabled={!built || operators.length === 0}
+				onstop={stop}
+				oncontinue={resume}
+				{canContinue}
+			>
+				{#snippet fields()}
+					<Field label="Time budget (s)">
+						{#snippet children(props)}
+							<input class="control" type="number" min="1" bind:value={timeBudgetSec} {...props} />
+						{/snippet}
+					</Field>
+					<Field label="Seed">
+						{#snippet children(props)}
+							<input class="control" type="number" step="1" bind:value={seed} {...props} />
+						{/snippet}
+					</Field>
+					<Field label="Workers">
+						{#snippet children(props)}
+							<input
+								class="control"
+								type="number"
+								min="1"
+								max="16"
+								bind:value={workers}
+								{...props}
+							/>
+						{/snippet}
+					</Field>
+				{/snippet}
+				<p class="muted" data-testid="progress">{progressText}</p>
+				{#if runError}<Alert tone="danger">{runError}</Alert>{/if}
+			</RunControls>
 			<Panel title="Data">
 				<div class="stack">
 					<div
@@ -754,17 +790,6 @@
 						{/each}
 					</fieldset>
 					<div class="settings-grid">
-						<Field label="Time budget (s)">
-							{#snippet children(props)}
-								<input
-									class="control"
-									type="number"
-									min="1"
-									bind:value={timeBudgetSec}
-									{...props}
-								/>
-							{/snippet}
-						</Field>
 						<Field label="Validation (%)">
 							{#snippet info()}<InfoTip label="validation">{GLOSSARY.validation}</InfoTip>{/snippet}
 							{#snippet children(props)}
@@ -778,23 +803,6 @@
 								/>
 							{/snippet}
 						</Field>
-						<Field label="Seed">
-							{#snippet children(props)}
-								<input class="control" type="number" step="1" bind:value={seed} {...props} />
-							{/snippet}
-						</Field>
-						<Field label="Workers">
-							{#snippet children(props)}
-								<input
-									class="control"
-									type="number"
-									min="1"
-									max="16"
-									bind:value={workers}
-									{...props}
-								/>
-							{/snippet}
-						</Field>
 					</div>
 				</div>
 			</Panel>
@@ -803,23 +811,9 @@
 		<div class="results">
 			<p class="sr-only" role="status">{announcement}</p>
 			<Panel title="Results">
-				{#snippet actions()}
-					<span class="muted" data-testid="progress">
-						{progressText}
-					</span>
-					<Button
-						size="sm"
-						variant="primary"
-						onclick={start}
-						disabled={!built || running || operators.length === 0}>Start</Button
-					>
-					<Button size="sm" variant="danger" onclick={stop} disabled={!running}>Stop</Button>
-					<Button size="sm" onclick={resume} disabled={!canContinue || running}>Continue</Button>
-				{/snippet}
-				{#if runError}<Alert tone="danger">{runError}</Alert>{/if}
 				{#if front.length === 0}
 					<p class="muted placeholder">
-						Load data, pick a target and press Start. The equations found appear here, from the
+						Load data, pick a target and press Run. The equations found appear here, from the
 						simplest to the most accurate.
 					</p>
 				{:else}
@@ -982,21 +976,15 @@
 	<details class="how">
 		<summary>How it works</summary>
 		<p>
-			Load a CSV (comma, semicolon and tab delimiters are detected), pick the column to predict and
-			the inputs to use. Rows with missing or non-numeric values are dropped. A random share of the
-			rows, set by Validation (%), is held back to score each equation.
+			Load a CSV or pick an example, choose the column to predict and the inputs, then press Run.
+			The search keeps the most accurate equation at each size. The one marked best balances
+			accuracy against size. Select an equation or a point on the plot to inspect it.
 		</p>
 		<p>
-			A genetic search runs on Web Workers for the time budget, combining the chosen operators. It
-			keeps a Pareto front: the most accurate equation at each complexity. The equation marked
-			<strong>best</strong> balances accuracy against simplicity; select any equation or point on the
-			Pareto plot to inspect it, or hover one to preview it in the plots. Download CSV saves your data
-			with the selected equation's predictions and each row's split. Stop pauses the search and Continue
-			resumes it.
-		</p>
-		<p>
-			Your data never leaves the browser. Datasets under about 2 MB and the last results are saved
-			in local storage; the share link carries only the settings and, for an example, its name.
+			Your data stays in your browser. The details are in the
+			<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/symbolic-regression.md"
+				>docs</a
+			>.
 		</p>
 	</details>
 </div>

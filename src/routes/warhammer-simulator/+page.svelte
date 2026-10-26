@@ -13,7 +13,7 @@
 		parseSeed,
 		parseSimCount
 	} from '$lib/warhammer-simulator/simulation';
-	import { Alert, Button, Field, PageHeader, Panel } from '$lib/ui';
+	import { Alert, Field, PageHeader, Panel, RunControls } from '$lib/ui';
 	import CharacterBuilder from './lib/CharacterBuilder.svelte';
 	import BarChart from './lib/BarChart.svelte';
 	import WinnerBar from './lib/WinnerBar.svelte';
@@ -195,51 +195,44 @@
 		>Monte Carlo duels for Warhammer: The Old World, 100 000 simulations by default.</PageHeader
 	>
 
-	<div class="wh-builders">
-		<CharacterBuilder side="A" bind:char={charA} opponent={charB} />
-		<CharacterBuilder side="B" bind:char={charB} opponent={charA} />
-	</div>
-
-	<section class="wh-bar" aria-labelledby="wh-sim-heading">
-		<h2 id="wh-sim-heading" class="sr-only">Simulation</h2>
-		<div class="wh-bar-row">
-			<Field label="Simulations" id="sim-count">
-				{#snippet children(props)}
-					<input
-						class="control wh-num"
-						type="number"
-						min={MIN_SIMULATIONS}
-						max={MAX_SIMULATIONS}
-						step="1"
-						{...props}
-						bind:value={simCount}
-					/>
-				{/snippet}
-			</Field>
-			<Field label="Seed (optional)" id="sim-seed">
-				{#snippet children(props)}
-					<input
-						class="control wh-num"
-						type="text"
-						inputmode="numeric"
-						placeholder="random"
-						{...props}
-						bind:value={seedInput}
-					/>
-				{/snippet}
-			</Field>
-			<Field label="Charger" id="charger">
-				{#snippet children(props)}
-					<select class="control" {...props} bind:value={charger}>
-						<option value="none">No charge</option>
-						<option value="A">{charA.name}</option>
-						<option value="B">{charB.name}</option>
-					</select>
-				{/snippet}
-			</Field>
-			<Button variant="primary" onclick={startSimulation} disabled={isRunning}
-				>{isRunning ? 'Running…' : 'Run simulation'}</Button
-			>
+	<div class="wh-run">
+		<RunControls onrun={startSimulation} running={isRunning}>
+			{#snippet fields()}
+				<Field label="Simulations" id="sim-count">
+					{#snippet children(props)}
+						<input
+							class="control wh-num"
+							type="number"
+							min={MIN_SIMULATIONS}
+							max={MAX_SIMULATIONS}
+							step="1"
+							{...props}
+							bind:value={simCount}
+						/>
+					{/snippet}
+				</Field>
+				<Field label="Seed (optional)" id="sim-seed">
+					{#snippet children(props)}
+						<input
+							class="control wh-num"
+							type="text"
+							inputmode="numeric"
+							placeholder="random"
+							{...props}
+							bind:value={seedInput}
+						/>
+					{/snippet}
+				</Field>
+				<Field label="Charger" id="charger">
+					{#snippet children(props)}
+						<select class="control" {...props} bind:value={charger}>
+							<option value="none">No charge</option>
+							<option value="A">{charA.name}</option>
+							<option value="B">{charB.name}</option>
+						</select>
+					{/snippet}
+				</Field>
+			{/snippet}
 			{#if isRunning || results}
 				<div class="wh-progress">
 					<progress max="1" value={isRunning ? progress : 1} aria-label="Simulation progress"
@@ -250,31 +243,36 @@
 					>
 				</div>
 			{/if}
-		</div>
-		<p class="wh-hint">
-			The charger strikes first in round 1 regardless of Initiative (a great weapon still Strikes
-			Last); later rounds use Initiative order. Faction matters only for Hatred.
-		</p>
-		<p class="wh-meta" aria-live="polite">
-			{#if results}
-				<span class="sr-only">Simulation finished. {winnerSummary}</span>
-				Seed <span data-testid="seed-used">{results.seedUsed}</span> · {results.totalRuns.toLocaleString(
-					'en-US'
-				)} runs
+			<p class="wh-hint">
+				The charger strikes first in round 1, unless it carries a great weapon. Later rounds go by
+				Initiative. Faction matters only for Hatred.
+			</p>
+			<p class="wh-meta" aria-live="polite">
+				{#if results}
+					<span class="sr-only">Simulation finished. {winnerSummary}</span>
+					Seed <span data-testid="seed-used">{results.seedUsed}</span> · {results.totalRuns.toLocaleString(
+						'en-US'
+					)} runs
+				{/if}
+			</p>
+			{#if errorMessage}
+				<Alert tone="danger">{errorMessage}</Alert>
 			{/if}
-		</p>
-		{#if errorMessage}
-			<Alert tone="danger">{errorMessage}</Alert>
-		{/if}
-		{#if resultsStale}
-			<div data-testid="stale-warning">
-				<Alert tone="warning"
-					>Inputs changed since this run: the results below are for the previous setup. Run again to
-					update.</Alert
-				>
-			</div>
-		{/if}
-	</section>
+			{#if resultsStale}
+				<div data-testid="stale-warning">
+					<Alert tone="warning"
+						>Inputs changed since this run: the results below are for the previous setup. Run again
+						to update.</Alert
+					>
+				</div>
+			{/if}
+		</RunControls>
+	</div>
+
+	<div class="wh-builders">
+		<CharacterBuilder side="A" bind:char={charA} opponent={charB} />
+		<CharacterBuilder side="B" bind:char={charB} opponent={charA} />
+	</div>
 
 	{#if results && rounds && damage}
 		<div class="wh-results" data-testid="results">
@@ -309,24 +307,8 @@
 		gap: var(--sp-3);
 		grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
 	}
-	.wh-bar {
-		margin-top: var(--sp-3);
-		padding: var(--sp-3);
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-	}
-	.wh-bar-row {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: flex-end;
-		gap: var(--sp-2) var(--sp-3);
-	}
-	.wh-bar-row > :global(.ui-field) {
-		width: 9rem;
-	}
-	.wh-bar-row > :global(.ui-field:nth-child(3)) {
-		width: 12rem;
+	.wh-run {
+		margin-bottom: var(--sp-3);
 	}
 	.wh-num {
 		font-family: var(--font-mono);
@@ -351,16 +333,13 @@
 		white-space: nowrap;
 	}
 	.wh-hint {
-		margin: var(--sp-2) 0 0;
+		margin: 0;
 		font-size: var(--text-xs);
 		color: var(--text-muted);
 	}
 	.wh-meta {
-		margin: var(--sp-1) 0 0;
+		margin: 0;
 		white-space: normal;
-	}
-	.wh-bar :global(.ui-alert) {
-		margin-top: var(--sp-2);
 	}
 	.wh-results {
 		display: grid;

@@ -84,3 +84,21 @@ export function claimedValues(
 	});
 	return value;
 }
+
+/**
+ * Short ring labels for the Start step: each name's first letter, upper-cased.
+ * Names that share it get their second letter too, or a number when that
+ * still collides: Ana, Alex, Ben → An, Al, B; Anna, Anne → A1, A2.
+ */
+export function ringLabels(names: readonly string[]): string[] {
+	const graphemes = (n: string) =>
+		[...new Intl.Segmenter().segment(n.trim())].map((g) => g.segment);
+	const firsts = names.map((n) => (graphemes(n)[0] ?? '?').toLocaleUpperCase());
+	const count = (list: string[], x: string) => list.filter((y) => y === x).length;
+	const seconds = names.map((n, i) => firsts[i] + (graphemes(n)[1] ?? '').toLocaleLowerCase());
+	return firsts.map((f, i) => {
+		if (count(firsts, f) === 1) return f;
+		if (count(seconds, seconds[i]) === 1) return seconds[i];
+		return f + (firsts.slice(0, i).filter((x) => x === f).length + 1);
+	});
+}

@@ -72,9 +72,16 @@ export function logDomain(values: Iterable<number>): [number, number] {
 	return [10 ** Math.floor(Math.log10(lo)), 10 ** Math.ceil(Math.log10(hi))];
 }
 
-/** CSS colour of categorical slot `i` (0-based), cycling through the 12 data colours. */
+/**
+ * Order of the data tokens for decisions. Light --data-1 and --data-5 are both blue, so the sky
+ * blue (--data-5) moves to slot 8 and pink (--data-6) takes slot 5: up to seven decisions never
+ * show both blues.
+ */
+const DATA_ORDER = [1, 2, 3, 4, 6, 7, 8, 5, 9, 10, 11, 12];
+
+/** CSS colour of decision `i` (0-based), cycling through the 12 data colours. */
 export function dataColour(i: number): string {
-	return `var(--data-${(((i % 12) + 12) % 12) + 1})`;
+	return `var(--data-${DATA_ORDER[((i % 12) + 12) % 12]})`;
 }
 
 /** CSS colour of random input `i` (0-based, model order), cycling through the 9 input colours. */
@@ -106,9 +113,23 @@ export function formatLogTick(v: number): string {
 }
 
 /** Short tick label for small plots: 0.25, 1,200, 35k, 350M. */
-export function compactTick(v: number): string {
+export function compactTick(v: number, digits = 3): string {
 	if (v === 0) return '0';
-	return v.toLocaleString('en', { notation: 'compact', maximumSignificantDigits: 3 });
+	return v.toLocaleString('en', { notation: 'compact', maximumSignificantDigits: digits });
+}
+
+/**
+ * Policy-tree edge labels for a split's ascending thresholds, in the axes' compact
+ * format: `≤ 5.06M`, `2.37 to 3.37`, `> 3.37`. Adds digits until neighbours differ.
+ */
+export function thresholdLabels(thresholds: readonly number[]): string[] {
+	let t = thresholds.map((v) => compactTick(v));
+	for (let d = 4; d <= 8 && new Set(t).size < t.length; d++)
+		t = thresholds.map((v) => compactTick(v, d));
+	const last = t.length;
+	return Array.from({ length: last + 1 }, (_, c) =>
+		c === 0 ? `≤ ${t[0]}` : c === last ? `> ${t[last - 1]}` : `${t[c - 1]} to ${t[c]}`
+	);
 }
 
 /** Exact power of ten, `pow10(-2)` → 0.01 (no `10 ** -2` rounding). */

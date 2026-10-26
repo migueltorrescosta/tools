@@ -7,7 +7,7 @@
 	import { base } from '$app/paths';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
-	import { routes } from '$lib/routes';
+	import { routes, TOOL_GROUPS } from '$lib/routes';
 	import ThemeToggle from '$lib/ui/ThemeToggle.svelte';
 
 	let { children } = $props();
@@ -40,8 +40,12 @@
 		<label class="sr-only" for="tool-switcher">Jump to tool</label>
 		<select id="tool-switcher" class="control switcher" value={current} onchange={jumpTo}>
 			<option value="" disabled>Jump to tool…</option>
-			{#each routes as route (route.path)}
-				<option value={route.path}>{route.name}</option>
+			{#each TOOL_GROUPS as group (group)}
+				<optgroup label={group}>
+					{#each routes.filter((route) => route.group === group) as route (route.path)}
+						<option value={route.path}>{route.name}</option>
+					{/each}
+				</optgroup>
 			{/each}
 		</select>
 		<span class="spacer"></span>

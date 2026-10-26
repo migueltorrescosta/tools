@@ -9,11 +9,11 @@ async function open(page: Page) {
 }
 
 function filters(page: Page) {
-	return page.getByRole('group', { name: 'Filter by country' }).getByRole('button');
+	return page.getByRole('radiogroup', { name: 'Filter by country' }).getByRole('radio');
 }
 
 function filterButton(page: Page, label: string) {
-	return page.getByRole('button', { name: new RegExp(`^${label}, \\d+ representatives$`) });
+	return page.getByRole('radio', { name: new RegExp(`^${label}, \\d+ representatives$`) });
 }
 
 async function buttonCount(page: Page, label: string): Promise<number> {
@@ -47,8 +47,8 @@ test('Volt - every filter shows exactly as many people as its button says', asyn
 		const expected = await buttonCount(page, label);
 		expect(expected, `${label} button count`).toBe(dataBars.find((b) => b.label === label)?.count);
 
-		await button.click();
-		await expect(button).toHaveAttribute('aria-pressed', 'true');
+		await button.check();
+		await expect(button).toBeChecked();
 		if (label !== 'All') await expect(countries(page)).toHaveCount(1);
 		await expect(personBars(page), `${label} bar count`).toHaveCount(expected);
 	}
@@ -62,14 +62,14 @@ test('Volt - filtering keeps the other buttons at their unfiltered counts', asyn
 	expect(countriesBefore).toBeGreaterThan(1);
 
 	const germanyButton = filterButton(page, 'Germany');
-	await germanyButton.click();
-	await expect(germanyButton).toHaveAttribute('aria-pressed', 'true');
+	await germanyButton.check();
+	await expect(germanyButton).toBeChecked();
 	await expect(countries(page)).toHaveCount(1);
 	await expect(personBars(page)).toHaveCount(germany);
 	expect(await buttonCount(page, 'Netherlands')).toBe(netherlands);
-	await expect(filterButton(page, 'All')).toHaveAttribute('aria-pressed', 'false');
+	await expect(filterButton(page, 'All')).not.toBeChecked();
 
-	await filterButton(page, 'All').click();
+	await filterButton(page, 'All').check();
 	await expect(countries(page)).toHaveCount(countriesBefore);
 });
 
@@ -116,7 +116,7 @@ for (const width of [375, 1280]) {
 	test(`Volt - year markers line up with bars at ${width}px`, async ({ page }) => {
 		await page.setViewportSize({ width, height: 900 });
 		await open(page);
-		await filterButton(page, 'Germany').click();
+		await filterButton(page, 'Germany').check();
 		// Köln mandates start on 1 January 2025
 		const bar = bars(page).filter({ hasText: 'Jennifer Glashagen' });
 		const marker = page.getByText('2025', { exact: true });
@@ -127,3 +127,32 @@ for (const width of [375, 1280]) {
 		expect(Math.abs(barBox!.x - markerBox!.x)).toBeLessThanOrEqual(2);
 	});
 }
+
+test('Volt - filters are one radio group that arrow keys move through', async ({ page }) => {
+	await open(page);
+	const all = filterButton(page, 'All');
+	await expect(all).toBeChecked();
+	await all.focus();
+	await page.keyboard.press('ArrowRight');
+	await expect(all).not.toBeChecked();
+	await expect(filters(page).nth(1)).toBeChecked();
+	await expect(filters(page).nth(1)).toBeFocused();
+});
+
+test('Volt - at phone width the location gutter stays visible while the timeline scrolls', async ({
+	page
+}) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await open(page);
+	const scroll = page.getByTestId('volt-scroll');
+	const edges = page.locator('.ui-scroll-edges');
+	await expect(edges).toHaveClass(/more-right/);
+	const location = page.locator('.volt-location').first();
+	const before = await location.boundingBox();
+	await scroll.evaluate((el) => el.scrollTo({ left: 200 }));
+	await expect
+		.poll(async () => Math.abs(((await location.boundingBox())?.x ?? 0) - (before?.x ?? 0)))
+		.toBeLessThanOrEqual(1);
+	await scroll.evaluate((el) => el.scrollTo({ left: el.scrollWidth }));
+	await expect(edges).not.toHaveClass(/more-right/);
+});

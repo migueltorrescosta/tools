@@ -285,9 +285,9 @@
 <div class="container" data-hydrated={hydrated || undefined}>
 	<PageHeader path="/verb-conjugator" />
 
-	<div class="vc-toolbar">
+	<div class="vc-toolbar" lang={lang.ui.locale}>
 		<SegmentedControl
-			legend="Language"
+			legend={lang.ui.language}
 			hideLegend
 			options={LANGUAGE_OPTIONS}
 			bind:value={() => selectedLanguageId, switchLanguage}
@@ -299,16 +299,34 @@
 		</p>
 	</div>
 
-	<div class="vc-grid">
+	<div class="vc-grid" lang={lang.ui.locale}>
 		<Panel title={lang.ui.conjugation}>
-			{#if hasNoForms}
-				<p class="vc-empty">
-					These tenses have no forms for the selected verbs. Select another verb or tense.
-				</p>
+			{#if !hydrated}
+				<!-- Same-size placeholder until the saved state is restored, so nothing shifts (CLS) -->
+				<div class="vc-skeleton" aria-hidden="true">
+					<table class="vc-card">
+						<tbody>
+							{#each lang.PERSON_LABELS as person (person)}
+								<tr>
+									<td class="vc-marker"></td>
+									<td class="vc-translation">&nbsp;</td>
+									<td class="vc-person">{person}</td>
+									<td class="vc-answer">&nbsp;</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+					<div class="vc-input-row">
+						<input class="control verb-input" type="text" disabled />
+						<Button variant="primary" disabled><span>↵</span></Button>
+					</div>
+				</div>
+			{:else if hasNoForms}
+				<p class="vc-empty">{lang.ui.noForms}</p>
 			{:else if isComplete}
 				<div class="vc-complete">
-					<p>Congratulations. Restart?</p>
-					<Button variant="primary" onclick={restart}>Restart</Button>
+					<p>{lang.ui.complete}</p>
+					<Button variant="primary" onclick={restart}>{lang.ui.restart}</Button>
 				</div>
 			{:else if currentCard}
 				<table class="vc-card">
@@ -320,7 +338,9 @@
 								<td class="vc-translation">{line.translation}</td>
 								{#if current}
 									<td class="vc-answer" colspan="2"
-										><span class="vc-blank">______</span><span class="sr-only">to answer</span></td
+										><span class="vc-blank">______</span><span class="sr-only"
+											>{lang.ui.toAnswer}</span
+										></td
 									>
 								{:else}
 									<td class="vc-person">{line.person}</td>
@@ -337,31 +357,33 @@
 						type="text"
 						bind:value={userInput}
 						placeholder={blankTranslation}
-						aria-label="Answer: {lang.PERSON_LABELS[currentCard.personIndex]} form"
+						aria-label="{lang.ui.answer}: {lang.PERSON_LABELS[currentCard.personIndex]}"
 						onkeydown={handleKeydown}
 						spellcheck="false"
 						autocomplete="off"
 					/>
 					<Button
 						variant="primary"
-						aria-label="Submit"
+						aria-label={lang.ui.submit}
 						onclick={handleSubmit}
 						disabled={!userInput.trim()}><span aria-hidden="true">↵</span></Button
 					>
 				</div>
 			{:else}
-				<p class="vc-empty">Select at least one verb and one tense to begin.</p>
+				<p class="vc-empty">{lang.ui.selectToBegin}</p>
 			{/if}
 
 			<p class="vc-feedback" role="status" data-state={feedback?.isCorrect ? 'correct' : 'wrong'}>
 				{#if feedback}
 					{#if feedback.isCorrect}
-						<span aria-hidden="true">✓</span> Correct: {feedback.person}
+						<span aria-hidden="true">✓</span>
+						{lang.ui.correct}: {feedback.person}
 						{feedback.correctAnswer}
 					{:else}
-						<span aria-hidden="true">✗</span> Not quite: {feedback.person}
+						<span aria-hidden="true">✗</span>
+						{lang.ui.notQuite}: {feedback.person}
 						{feedback.correctAnswer}
-						<span class="vc-muted">(your answer: {feedback.userAnswer})</span>
+						<span class="vc-muted">({lang.ui.yourAnswer}: {feedback.userAnswer})</span>
 					{/if}
 				{/if}
 			</p>
@@ -369,7 +391,7 @@
 
 		<Panel title={lang.ui.history}>
 			{#if session.history.length === 0}
-				<p class="vc-empty">No attempts yet.</p>
+				<p class="vc-empty">{lang.ui.noAttempts}</p>
 			{:else}
 				<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 				<div class="vc-history" tabindex="0" role="region" aria-label={lang.ui.history}>
@@ -379,7 +401,7 @@
 								<tr data-state={entry.isCorrect ? 'correct' : 'wrong'}>
 									<td class="vc-mark"
 										><span aria-hidden="true">{entry.isCorrect ? '✓' : '✗'}</span><span
-											class="sr-only">{entry.isCorrect ? 'Correct' : 'Wrong'}</span
+											class="sr-only">{entry.isCorrect ? lang.ui.correct : lang.ui.wrong}</span
 										></td
 									>
 									<td class="vc-translation">{entry.translation}</td>
@@ -473,10 +495,13 @@
 		border-bottom: 0;
 	}
 
+	/* Wrap long translations and compound tenses at word boundaries */
 	.vc-translation {
-		width: 1%;
+		min-width: 9ch;
 		text-align: right;
 		color: var(--text-muted);
+		white-space: normal;
+		overflow-wrap: break-word;
 	}
 
 	.vc-person {
@@ -488,14 +513,73 @@
 	.vc-answer {
 		font-family: var(--font-mono);
 		font-weight: 500;
+		white-space: normal;
+		overflow-wrap: break-word;
 	}
 
-	/* Compound tenses ("you all have been able") would overflow a phone screen. */
+	/* Phones: the translation gets its own line above the person and answer */
 	@media (max-width: 480px) {
-		.vc-translation,
-		.vc-answer {
-			white-space: normal;
-			overflow-wrap: anywhere;
+		/* Rows share the columns (subgrid), so the person column fits the longest label */
+		.vc-card tbody,
+		.vc-history tbody {
+			display: grid;
+			grid-template-columns: 1.2rem max-content 1fr;
+		}
+
+		.vc-card tr,
+		.vc-history tr {
+			display: grid;
+			grid-column: 1 / -1;
+			grid-template-columns: subgrid;
+			align-items: baseline;
+			border-bottom: 1px solid var(--border);
+		}
+
+		.vc-card tr:last-child,
+		.vc-history tr:last-child {
+			border-bottom: 0;
+		}
+
+		.vc-card td,
+		.vc-history td {
+			border-bottom: 0;
+		}
+
+		.vc-card .vc-translation,
+		.vc-history .vc-translation {
+			grid-column: 2 / -1;
+			grid-row: 1;
+			min-width: 0;
+			text-align: left;
+			font-size: var(--text-sm);
+		}
+
+		.vc-marker,
+		.vc-mark {
+			grid-column: 1;
+			grid-row: 1 / 3;
+			align-self: stretch;
+		}
+
+		.vc-card .vc-person {
+			grid-column: 2;
+			grid-row: 2;
+			width: auto;
+		}
+
+		.vc-card .vc-answer {
+			grid-column: 3;
+			grid-row: 2;
+		}
+
+		.vc-card tr[data-state='current'] .vc-answer,
+		.vc-history .vc-answer {
+			grid-column: 2 / -1;
+			grid-row: 2;
+		}
+
+		.vc-card tr[data-state='current'] {
+			background: var(--accent-bg);
 		}
 	}
 
@@ -519,6 +603,10 @@
 	.vc-blank {
 		color: var(--text-muted);
 		letter-spacing: 0.1em;
+	}
+
+	.vc-skeleton .vc-person {
+		visibility: hidden;
 	}
 
 	.vc-input-row {

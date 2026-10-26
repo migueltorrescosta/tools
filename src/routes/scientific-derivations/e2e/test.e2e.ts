@@ -79,6 +79,37 @@ test('fit to width shrinks a wide graph; 100% restores it', async ({ page }) => 
 	await expect(canvas).not.toHaveAttribute('style', /scale\(/);
 });
 
+test('fit to width fits the widest graph on a phone, with fact labels at least 24 px tall', async ({
+	page
+}) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await open(page, '?derivation=dark-state');
+	const graph = page.getByTestId('graph');
+	const box = (await graph.boundingBox())!;
+	const canvas = (await page.locator('.dg-size').boundingBox())!;
+	expect(canvas.width).toBeLessThanOrEqual(box.width);
+	expect(await graph.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0);
+	// At 100% the graph scrolls, and the label targets keep their full size
+	await page.getByText('100%').click();
+	expect(await graph.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
+	await expect(page.locator('.ui-scroll-edges')).toHaveClass(/more-right/);
+	const heights = await page
+		.locator('.dg-label')
+		.evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height));
+	expect(Math.min(...heights)).toBeGreaterThanOrEqual(24);
+});
+
+test('the details drawer takes focus and returns it to its opener', async ({ page }) => {
+	await open(page);
+	const node = page.getByTestId('node-gksl');
+	await node.focus();
+	await page.keyboard.press('Enter');
+	await expect(page.getByRole('complementary', { name: 'Details' })).toBeFocused();
+	await page.keyboard.press('Escape');
+	await expect(page.getByTestId('detail')).toHaveCount(0);
+	await expect(node).toBeFocused();
+});
+
 test('the details drawer closes with its button and with Escape', async ({ page }) => {
 	await open(page);
 	await page.getByTestId('node-gksl').click();

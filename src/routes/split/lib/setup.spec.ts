@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { byPriceDesc, parseSetup, personNameError, priceTint, claimedValues } from './setup';
+import {
+	byPriceDesc,
+	parseSetup,
+	personNameError,
+	priceTint,
+	claimedValues,
+	ringLabels
+} from './setup';
 
 describe('personNameError', () => {
 	it('rejects empty and duplicate names, ignoring case and spaces', () => {
@@ -60,5 +67,16 @@ describe('claimedValues', () => {
 		expect(values).toEqual([100, 130, 10]);
 		// The estimate is the value minus a fair share (T / n = 145 / 3).
 		expect(values.map((v) => Math.round(v - 145 / 3))).toEqual([52, 82, -38]);
+	});
+});
+
+describe('ringLabels', () => {
+	it('uses upper-cased initials, a second letter or a number only where they collide', () => {
+		expect(ringLabels(['Ana', 'ben', 'Carla'])).toEqual(['A', 'B', 'C']);
+		expect(ringLabels(['Ana', 'Alex', 'Ben'])).toEqual(['An', 'Al', 'B']);
+		expect(ringLabels(['Anna', 'Anne', 'Bo'])).toEqual(['A1', 'A2', 'B']);
+		expect(ringLabels(['Ana', 'Ana', 'Al'])).toEqual(['A1', 'A2', 'Al']);
+		expect(ringLabels([' zoë ', 'éva'])).toEqual(['Z', 'É']);
+		expect(ringLabels(['👩🏽‍🚀 Mo', '👩🏽‍🚀 Li'])).toEqual(['👩🏽‍🚀1', '👩🏽‍🚀2']);
 	});
 });

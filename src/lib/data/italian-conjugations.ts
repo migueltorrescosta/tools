@@ -2453,12 +2453,26 @@ export const italianModule: LanguageModule = {
 	DEFAULT_VERBS: DEFAULT_VERBS_IT,
 	DEFAULT_TENSES: DEFAULT_TENSES_IT,
 	ui: {
+		locale: 'it',
+		language: 'Lingua',
 		coverage: 'Copertura',
 		accuracy: 'Precisione',
 		conjugation: 'Coniugazione',
 		history: 'Storico',
 		verb: 'Verbi',
-		tense: 'Tempi'
+		tense: 'Tempi',
+		answer: 'Risposta',
+		toAnswer: 'da completare',
+		submit: 'Invia',
+		correct: 'Giusto',
+		wrong: 'Sbagliato',
+		notQuite: 'Non proprio',
+		yourAnswer: 'la tua risposta',
+		noAttempts: 'Ancora nessun tentativo.',
+		selectToBegin: 'Scegli almeno un verbo e un tempo per iniziare.',
+		noForms: 'Questi tempi non hanno forme per i verbi scelti. Scegli un altro verbo o tempo.',
+		complete: 'Complimenti, hai finito. Ricominciare?',
+		restart: 'Ricomincia'
 	},
 	extractConjugation: italianExtractConjugation
 };
