@@ -679,14 +679,25 @@ describe('stale results and failures', () => {
 		await tick();
 		const before = engine.scenarios;
 
+		// A tree that arrives when no job is left must not read the job either.
+		const failures: unknown[] = [];
+		const onUnhandled = (e: unknown) => failures.push(e);
+		process.on('unhandledRejection', onUnhandled);
 		engine.reanalyse({ ...spec(1).analysis });
-		expect(m.trees).toHaveLength(1);
+		engine.cancel();
+		m.trees[0]!.resolve({ error: 'late' });
+		await tick();
+		process.off('unhandledRejection', onUnhandled);
+		expect(failures).toEqual([]);
+
+		engine.reanalyse({ ...spec(1).analysis });
+		expect(m.trees).toHaveLength(2);
 		engine.cancel();
 		engine.run(spec(2), 200);
 		await tick();
 		events.length = 0;
-		m.trees[0]!.resolve({ error: 'late' });
-		m.trees[0]!.listener.partial?.({} as PartialAnalysis);
+		m.trees[1]!.resolve({ error: 'late' });
+		m.trees[1]!.listener.partial?.({} as PartialAnalysis);
 		await tick();
 		expect(events.filter((e) => e.type === 'done')).toEqual([]);
 		expect(engine.scenarios).toBe(before);
