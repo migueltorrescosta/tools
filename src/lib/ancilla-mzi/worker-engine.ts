@@ -8,7 +8,7 @@
  * are re-run first on Continue, so the seed set stays the same as in an
  * uninterrupted run.
  */
-import { defaultWorkerCount, type WorkerLike as PoolWorker } from '$lib/worker-pool';
+import { clampWorkers, defaultWorkerCount, type WorkerLike as PoolWorker } from '$lib/worker-pool';
 import type { FromWorker, ToWorker } from './host';
 import { hasCompanion } from './build';
 import { validateSetup } from './limits';
@@ -151,7 +151,7 @@ class WorkerAncillaEngine implements AncillaEngine {
 	private launch(): void {
 		const setup = this.setup as Setup;
 		const budget = this.budget as Budget;
-		const n = budget.workers > 0 ? Math.floor(budget.workers) : defaultWorkerCount();
+		const n = budget.workers > 0 ? clampWorkers(budget.workers) : defaultWorkerCount();
 		this.running = true;
 		this.startedAt = now();
 		for (let i = 0; i < n; i++) {

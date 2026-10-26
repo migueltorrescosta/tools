@@ -1,6 +1,7 @@
 /** Saved state and share URLs for the symbolic regression page. No DOM imports. */
 
 import { ALL_OPERATORS, type OperatorName } from './types';
+import { clampWorkers } from '$lib/worker-pool';
 
 /** Every localStorage key the tool writes starts with this. */
 export const STORAGE_PREFIX = 'symbolic-regression:';
@@ -75,7 +76,7 @@ export function decodeShareParams(params: URLSearchParams): Partial<ShareState> 
 	const seed = finiteParam(params, 'seed');
 	if (seed !== undefined && Number.isInteger(seed)) out.seed = seed;
 	const workers = finiteParam(params, 'workers');
-	if (workers !== undefined && Number.isInteger(workers) && workers >= 1) out.workers = workers;
+	if (workers !== undefined) out.workers = clampWorkers(workers);
 	return out;
 }
 

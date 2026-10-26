@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createAncillaHost, taskSeed, type FromWorker, type ToWorker } from './host';
 import { applyPreset, defaultSetup, noiseless } from './presets';
 import type { Budget, RunEvent, RunSnapshot, SeedResult, Setup } from './types';
-import type { WorkerLike } from '$lib/worker-pool';
+import { MAX_WORKERS, type WorkerLike } from '$lib/worker-pool';
 import { createAncillaEngine } from './worker-engine';
 
 /** Runs the real host in-process, with structured cloning and async delivery like a worker. */
@@ -207,5 +207,18 @@ describe('createAncillaEngine', () => {
 		const err = waitFor(broken, () => false);
 		broken.start(smallSetup(), budget);
 		expect(await err).toEqual({ type: 'error', message: 'boom' });
+	});
+});
+
+describe('worker count', () => {
+	it('caps the workers whatever the budget asks for', () => {
+		let created = 0;
+		const engine = createAncillaEngine(() => {
+			created++;
+			return new FakeWorker();
+		});
+		engine.start(smallSetup(), { ...budget, workers: 10_000 });
+		expect(created).toBe(MAX_WORKERS);
+		engine.dispose();
 	});
 });

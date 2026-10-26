@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createIslandHost, type FromWorker, type ToWorker } from './host';
 import { syntheticData } from './synthetic';
 import { DEFAULT_SETTINGS, type SearchEvent } from './types';
-import type { WorkerLike } from '$lib/worker-pool';
+import { MAX_WORKERS, type WorkerLike } from '$lib/worker-pool';
 import { WorkerSearchEngine, islandSeed } from './worker-engine';
 
 /** Runs the real island host in-process, with structured cloning and async delivery like a worker. */
@@ -130,5 +130,16 @@ describe('WorkerSearchEngine', () => {
 		engine.start(data, { ...settings, workers: 1 });
 		expect(await done).toEqual({ type: 'error', message: 'boom' });
 		expect(engine.running).toBe(false);
+	});
+
+	it('caps the worker count', () => {
+		let created = 0;
+		const engine = new WorkerSearchEngine(() => {
+			created++;
+			return new FakeWorker();
+		});
+		engine.start(data, { ...settings, workers: 10_000 });
+		expect(created).toBe(MAX_WORKERS);
+		engine.dispose();
 	});
 });

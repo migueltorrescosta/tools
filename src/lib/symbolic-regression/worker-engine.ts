@@ -3,7 +3,7 @@
  * through this (main) thread; each worker refits and scores its own hall of
  * fame, so the main thread only merges fronts.
  */
-import type { WorkerLike as PoolWorker } from '$lib/worker-pool';
+import { clampWorkers, type WorkerLike as PoolWorker } from '$lib/worker-pool';
 import type { FromWorker, ToWorker } from './host';
 import { mergeFront, type Candidate } from './rescore';
 import type { FrontEntry, PreparedData, SearchEngine, SearchEvent, SearchSettings } from './types';
@@ -58,7 +58,7 @@ export class WorkerSearchEngine implements SearchEngine {
 	start(data: PreparedData, settings: SearchSettings): void {
 		this.terminate();
 		this.settings = settings;
-		const n = Math.max(1, Math.floor(settings.workers) || 1);
+		const n = clampWorkers(settings.workers);
 		this.latest = Array.from({ length: n }, () => []);
 		this.iterations = new Array(n).fill(0);
 		this.front = [];
