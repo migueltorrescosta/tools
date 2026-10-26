@@ -1108,12 +1108,26 @@ export const spanishModule: LanguageModule = {
 	DEFAULT_VERBS: DEFAULT_VERBS_ES,
 	DEFAULT_TENSES: DEFAULT_TENSES_ES,
 	ui: {
+		locale: 'es',
+		language: 'Idioma',
 		coverage: 'Cobertura',
 		accuracy: 'Precisión',
 		conjugation: 'Conjugación',
 		history: 'Historial',
 		verb: 'Verbos',
-		tense: 'Tiempos'
+		tense: 'Tiempos',
+		answer: 'Respuesta',
+		toAnswer: 'por responder',
+		submit: 'Enviar',
+		correct: 'Correcto',
+		wrong: 'Incorrecto',
+		notQuite: 'No exactamente',
+		yourAnswer: 'tu respuesta',
+		noAttempts: 'Aún no hay intentos.',
+		selectToBegin: 'Elige al menos un verbo y un tiempo para empezar.',
+		noForms: 'Estos tiempos no tienen formas para los verbos elegidos. Elige otro verbo o tiempo.',
+		complete: 'Enhorabuena, has terminado. ¿Empezar de nuevo?',
+		restart: 'Empezar de nuevo'
 	},
 	extractConjugation: spanishExtractConjugation
 };
