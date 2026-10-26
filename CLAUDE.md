@@ -32,4 +32,5 @@ pnpm test:e2e
 - Node version pinned in `.nvmrc`.
 - No D3 for new visualizations: hand-rolled SVG with Svelte 5 declarative rendering.
 - UI: build pages from `src/lib/ui` (`PageHeader`, `Panel`, `Button`, `Field`, …) and the tokens in `src/lib/styles/tokens.css`; no hard-coded colours (charts use `--data-1..12`). Every route is listed in `ROUTES` in `src/routes/e2e/a11y.e2e.ts` (axe in light and dark, 390px reflow).
+- Security headers: `kit.csp` (hash mode) in `svelte.config.js` ships as a `<meta>` tag on the prerendered pages; `_headers` (project root, as adapter-cloudflare requires) adds frame-ancestors, nosniff and Referrer-Policy, and gives each worker its own policy. Pages get no `'unsafe-eval'` and no external origins; only the Information Pricing simulation worker may `new Function`. A new inline script in `app.html` is hashed there automatically; a new worker that evals needs its own `_headers` entry.
 - No commits on main. Branch or worktree only.

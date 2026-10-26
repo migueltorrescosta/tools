@@ -3,11 +3,13 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { relative, sep } from 'node:path';
 
-// SvelteKit hashes the scripts it emits itself; the theme script in app.html needs its own hash.
+// SvelteKit hashes the scripts it emits itself; inline scripts in app.html (the theme script)
+// need their own hashes.
 const appHtml = readFileSync(new URL('./src/app.html', import.meta.url), 'utf8');
-const themeScript = /<script>([\s\S]*?)<\/script>/.exec(appHtml)?.[1];
-if (themeScript === undefined) throw new Error('svelte.config.js: no inline script in app.html');
-const themeHash = `sha256-${createHash('sha256').update(themeScript).digest('base64')}`;
+const appHtmlHashes = [...appHtml.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(
+	([, body]) =>
+		/** @type {const} */ (`sha256-${createHash('sha256').update(body).digest('base64')}`)
+);
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -30,7 +32,7 @@ const config = {
 			mode: 'hash',
 			directives: {
 				'default-src': ['self'],
-				'script-src': ['self', themeHash],
+				'script-src': ['self', ...appHtmlHashes],
 				// Svelte and KaTeX write style attributes, which hashes can't cover.
 				'style-src': ['self', 'unsafe-inline'],
 				// QR codes (rank-vote) are data: URLs.
