@@ -189,7 +189,7 @@ test('Asset Splitting - picks on different groups certify the split', async ({ p
 	expect(errors).toEqual([]);
 });
 
-test('Asset Splitting - Start: claim items by colour, then continue', async ({ page }) => {
+test('Asset Splitting - Start: claim items by initials, then continue', async ({ page }) => {
 	const errors = trackErrors(page);
 	await open(page);
 	await addPerson(page, 'Alice');
@@ -211,7 +211,15 @@ test('Asset Splitting - Start: claim items by colour, then continue', async ({ p
 	// Fair share 30 010 €. Nothing claimed: everyone would roughly receive it.
 	const bar = (name: string) => page.getByTestId('start-bar').filter({ hasText: name });
 	await expect(bar('Alice')).toContainText(/≈ Receive 30\s010\s€/);
+	// Rings carry the person's initials; the hint says nothing is picked yet
+	await expect(aliceHouse).toHaveText('A');
+	await expect(page.getByTestId('claim-hint')).toHaveText(
+		'Tap your initials on each item you want. Nothing is picked yet.'
+	);
 	await aliceHouse.click();
+	await expect(page.getByTestId('claim-hint')).toHaveText(
+		'Tap your initials on each item you want.'
+	);
 	await expect(aliceHouse).toHaveAttribute('aria-pressed', 'true');
 	await expect(bar('Alice')).toContainText(/≈ Pay 19\s990\s€/);
 	await expect(bar('Alice').getByRole('img')).toHaveAccessibleName(
@@ -519,4 +527,15 @@ test('Asset Splitting - group cards fill the row and the page fits 390px', async
 	await page.getByRole('button', { name: 'Complete round' }).click();
 	await expect(page.getByRole('heading', { name: 'Everyone keeps their own group' })).toBeVisible();
 	expect(await width()).toBeLessThanOrEqual(390);
+});
+
+test('Asset Splitting - first screen leads with the task, references in How it works', async ({
+	page
+}) => {
+	await open(page);
+	const how = page.locator('details.how');
+	await expect(how).not.toHaveAttribute('open');
+	await expect(page.getByRole('heading', { name: 'References' })).toBeHidden();
+	await how.locator('summary').click();
+	await expect(page.getByRole('heading', { name: 'References' })).toBeVisible();
 });

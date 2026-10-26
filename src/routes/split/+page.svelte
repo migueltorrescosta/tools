@@ -39,7 +39,8 @@
 		parseSetup,
 		personNameError,
 		priceTint,
-		claimedValues
+		claimedValues,
+		ringLabels
 	} from './lib/setup';
 	import { REFERENCES } from './lib/references';
 
@@ -191,6 +192,8 @@
 	/** Start bars: value of items only that person claimed, and value minus a fair share. */
 	const claimedTotals = $derived(claimedValues(prices, claims, n));
 	const estimates = $derived(claimedTotals.map((v) => v - fairShare));
+	const anyClaim = $derived(claims.some((c) => c.length > 0));
+	const rings = $derived(ringLabels(people.map((p) => p.name)));
 	const estimateMax = $derived(maxAbsRounded(estimates));
 
 	async function startAlgorithm() {
@@ -514,7 +517,7 @@
 	{:else if phase === 'start'}
 		<Panel title="Start">
 			{#snippet actions()}<InfoTip label="the start"
-					>Tap your colour on each item you'd like. Several people can want the same item. The
+					>Tap your initials on each item you'd like. Several people can want the same item. The
 					amounts compare what you picked with a fair share; shared items count for everyone who
 					picked them. The rounds settle the real split.</InfoTip
 				>{/snippet}
@@ -538,13 +541,18 @@
 							</span>
 							<span
 								class="estimate"
-								style:color={amountColour(estimates[i], fairShare, estimateMax)}
+								style:color={anyClaim
+									? amountColour(estimates[i], fairShare, estimateMax)
+									: 'var(--text-muted)'}
 								>≈ {paymentLabel(estimates[i], fmt)}</span
 							>
 						</li>
 					{/each}
 				</ul>
 
+				<p class="note" data-testid="claim-hint">
+					Tap your initials on each item you want.{anyClaim ? '' : ' Nothing is picked yet.'}
+				</p>
 				<ul class="pills" aria-label="Items to claim">
 					{#each itemOrder as k (items[k].id)}
 						<li class="pill claim" class:shared={claims[k].length >= 2} data-testid="claim-item">
@@ -560,7 +568,8 @@
 										aria-label="{p.name} wants {items[k].description}"
 										title="{p.name} wants {items[k].description}"
 										onclick={() => (claimed[k][i] = !claimed[k][i])}
-									></button>
+										><span aria-hidden="true">{rings[i]}</span></button
+									>
 								{/each}
 							</span>
 						</li>
@@ -759,7 +768,15 @@
 		</Panel>
 	{/if}
 
-	<References references={REFERENCES} />
+	<details class="how">
+		<summary>How it works</summary>
+		<p>
+			Add the people and the items with their prices. Everyone taps the items they want. Each round
+			then proposes groups of items with payments; pick the group you'd take. When everyone picks a
+			different group, the split is fair.
+		</p>
+		<References references={REFERENCES} />
+	</details>
 </div>
 
 {#snippet personCard(i: number)}
@@ -1075,6 +1092,19 @@
 		text-align: right;
 	}
 
+	/* Phones: name and amount on one line, the meter on its own full-width row */
+	@media (max-width: 600px) {
+		.bar {
+			grid-template-columns: 1fr auto;
+			row-gap: var(--sp-0);
+		}
+
+		.bar .track {
+			grid-column: 1 / -1;
+			grid-row: 2;
+		}
+	}
+
 	/* Claim pills wrap their circles inside, so 10 people still fit a phone. */
 	.claim {
 		flex-wrap: wrap;
@@ -1095,20 +1125,27 @@
 		align-self: center;
 	}
 
-	/* A claim toggle: 24px target (WCAG 2.5.8), filled in the person's colour when on. */
+	/* A claim toggle with the person's initials: 24px target (WCAG 2.5.8), tinted in their colour when on. */
 	.ring {
-		width: 24px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 24px;
 		height: 24px;
-		padding: 0;
+		padding: 0 var(--sp-0);
 		border: 2px solid var(--person);
-		border-radius: 50%;
+		border-radius: 12px;
 		background: var(--surface);
+		color: var(--text);
+		font-size: var(--text-xs);
+		font-weight: 600;
+		line-height: 1;
 		cursor: pointer;
 	}
 
 	.ring[aria-pressed='true'] {
-		background: var(--person);
-		box-shadow: inset 0 0 0 2px var(--surface);
+		background: color-mix(in srgb, var(--person) 45%, var(--surface));
+		box-shadow: inset 0 0 0 1px var(--surface);
 	}
 
 	.unplaced-label {
