@@ -192,3 +192,17 @@ test('Company trends - off-scale margins are pinned with a true-value tooltip', 
 	await expect(tooltip).toContainText('off-scale');
 	await expect(tooltip).toContainText(/−\d{1,3}(,\d{3})*\.\d%/);
 });
+
+test('Company trends - on a phone the chart opens at the large companies, with a scroll hint', async ({
+	page
+}) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await open(page);
+	const scroller = page.getByTestId('chart-scroll');
+	await expect(page.getByTestId('scroll-hint')).toBeVisible();
+	await expect
+		.poll(() => scroller.evaluate((el) => el.scrollWidth - el.clientWidth - el.scrollLeft))
+		.toBeLessThanOrEqual(1);
+	await expect(page.locator('.ct-chart-frame')).toHaveClass(/more-left/);
+	await expect(page.locator('.ct-chart-frame')).not.toHaveClass(/more-right/);
+});

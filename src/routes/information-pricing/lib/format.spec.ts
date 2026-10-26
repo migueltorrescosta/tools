@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	dash,
 	dataColour,
+	thresholdLabels,
 	decades,
 	formatLogTick,
 	formatNumber,
@@ -47,9 +48,20 @@ describe('format', () => {
 		expect(formatLogTick(0.01)).toBe('0.01');
 	});
 
+	it('labels policy-tree edges like the axes, with digits enough to tell neighbours apart', () => {
+		expect(thresholdLabels([5060600])).toEqual(['≤ 5.06M', '> 5.06M']);
+		expect(thresholdLabels([2.3749, 3.3722])).toEqual(['≤ 2.37', '2.37 to 3.37', '> 3.37']);
+		expect(thresholdLabels([1.1164, 1.1171])).toEqual(['≤ 1.116', '1.116 to 1.117', '> 1.117']);
+		expect(thresholdLabels([10104])).toEqual(['≤ 10.1K', '> 10.1K']);
+	});
+
 	it('cycles the data colours and breaks paths at gaps', () => {
 		expect(dataColour(0)).toBe('var(--data-1)');
 		expect(dataColour(12)).toBe('var(--data-1)');
+		// The two light-mode blues (--data-1, --data-5) never share the first seven slots
+		expect(Array.from({ length: 7 }, (_, i) => dataColour(i))).not.toContain('var(--data-5)');
+		expect(dataColour(4)).toBe('var(--data-6)');
+		expect(dataColour(7)).toBe('var(--data-5)');
 		expect(inputColour(0)).toBe('var(--input-1)');
 		expect(inputColour(8)).toBe('var(--input-9)');
 		expect(inputColour(9)).toBe('var(--input-1)');

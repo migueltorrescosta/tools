@@ -87,6 +87,25 @@
 		playing = !playing;
 	}
 
+	// On a narrow screen the 820 px chart scrolls sideways. It opens at the right end, where the
+	// large companies sit, with a shadow on each side that has more to show.
+	let scroller = $state<HTMLDivElement>();
+	let more = $state({ left: false, right: false });
+	function measureScroll() {
+		if (!scroller) return;
+		const max = scroller.scrollWidth - scroller.clientWidth;
+		more = { left: scroller.scrollLeft > 1, right: scroller.scrollLeft < max - 1 };
+	}
+	$effect(() => {
+		const el = scroller;
+		if (!el) return;
+		el.scrollLeft = el.scrollWidth;
+		measureScroll();
+		const observer = new ResizeObserver(measureScroll);
+		observer.observe(el);
+		return () => observer.disconnect();
+	});
+
 	function toggle(list: string[], value: string): string[] {
 		return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
 	}
@@ -188,8 +207,18 @@
 
 		<div class="ct-layout">
 			<div class="ct-chart-col">
-				<div class="ct-chart-scroll">
-					<TrendsChart trails={visibleTrails} {qi} {quarter} {currency} {colors} {domain} />
+				{#if more.left || more.right}<p class="ct-note ct-scroll-hint" data-testid="scroll-hint">
+						Scroll sideways for smaller revenues.
+					</p>{/if}
+				<div class="ct-chart-frame" class:more-left={more.left} class:more-right={more.right}>
+					<div
+						class="ct-chart-scroll"
+						bind:this={scroller}
+						onscroll={measureScroll}
+						data-testid="chart-scroll"
+					>
+						<TrendsChart trails={visibleTrails} {qi} {quarter} {currency} {colors} {domain} />
+					</div>
 				</div>
 				<ul class="ct-marks" aria-label="Chart marks">
 					<li>
@@ -313,19 +342,27 @@
 			</div>
 		</details>
 
-		<p class="ct-note">
-			Units: {dataset.meta.units}. Operating margin = operating income / revenue, on a fixed −200%
-			to +100% axis; expenses = revenue − operating income. Values are fiscal-year figures placed at
-			each fiscal year's closing quarter; quarters in between are log-interpolated.
+		<p class="ct-note ct-closing">
+			Figures are fiscal-year totals in {currency}; quarters in between are estimated. Method and
+			sources are in How it works.
 		</p>
 	{/if}
 
-	{#if errors.length === 0}
-		<p class="ct-note">
-			{dataset.meta.fxMethodology}
-			(<a href={dataset.meta.fxSource} target="_blank" rel="noreferrer">FX source</a>)
+	<details class="how" data-testid="how">
+		<summary>How it works</summary>
+		<p>
+			Pick industries and companies, then press Play or drag the quarter slider. Each dot is a
+			company: revenue across, operating margin up. Figures are fiscal-year totals; quarters in
+			between are estimated. USD and GBP use the
+			<a href={dataset.meta.fxSource} target="_blank" rel="noreferrer">ECB</a> average rate of each fiscal
+			year.
 		</p>
-	{/if}
+		<p>
+			The exact method is in the
+			<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/company-trends.md">docs</a
+			>.
+		</p>
+	</details>
 </div>
 
 <style>
@@ -441,8 +478,57 @@
 		min-width: 0;
 	}
 
+	.ct-chart-frame {
+		position: relative;
+	}
+
 	.ct-chart-scroll {
 		overflow-x: auto;
+	}
+
+	/* Edge shadows on the side that has more chart to scroll to. */
+	.ct-chart-frame::before,
+	.ct-chart-frame::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		width: var(--sp-4);
+		pointer-events: none;
+		opacity: 0;
+		transition: opacity 0.15s;
+	}
+
+	.ct-chart-frame::before {
+		left: 0;
+		background: linear-gradient(
+			to right,
+			color-mix(in srgb, var(--text) 22%, transparent),
+			transparent
+		);
+	}
+
+	.ct-chart-frame::after {
+		right: 0;
+		background: linear-gradient(
+			to left,
+			color-mix(in srgb, var(--text) 22%, transparent),
+			transparent
+		);
+	}
+
+	.ct-chart-frame.more-left::before,
+	.ct-chart-frame.more-right::after {
+		opacity: 1;
+	}
+
+	.ct-scroll-hint {
+		margin: 0 0 var(--sp-1);
+		font-size: var(--text-xs);
+	}
+
+	.ct-closing {
+		margin-top: var(--sp-3);
 	}
 
 	.ct-marks {
