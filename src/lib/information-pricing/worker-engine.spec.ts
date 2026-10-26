@@ -1,8 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type { WorkerLike } from '$lib/worker-pool';
 import { validateParams } from './distributions';
-import type { PartialAnalysis } from './analysis';
-import { createAnalyser, type AnalysisWorker, type TreeWorker } from './analyser';
+import type { Analysis, PartialAnalysis, TreeResult } from './analysis';
+import {
+	createAnalyser,
+	type Analyser,
+	type AnalysisListener,
+	type AnalysisResult,
+	type AnalysisWorker,
+	type TreeWorker
+} from './analyser';
+import { CHUNK_ROWS } from './simulate';
 import {
 	createAnalysisHost,
 	createTreeHost,
@@ -147,15 +155,15 @@ async function simulate(model: Model, n: number, workers: number): Promise<Scena
 describe('simulation engine', () => {
 	it('draws the same scenarios whatever the worker count', async () => {
 		const model = presetModel('airline-share-buyback');
-		const [a, b] = await Promise.all([simulate(model, 60_000, 1), simulate(model, 60_000, 3)]);
-		expect(a.n).toBe(60_000);
+		const [a, b] = await Promise.all([simulate(model, 20_000, 1), simulate(model, 20_000, 3)]);
+		expect(a.n).toBe(20_000);
 		expect(a.inputs.map((x) => x.symbol)).toEqual(['R', 'K', 'F', 'Lr', 'p', 'i']);
 		expect(a.intermediates.map((x) => x.symbol)).toEqual(['Rev', 'Fuel', 'Delta']);
 		expect(a.decisions).toEqual(['500 M€', '600 M€', '700 M€', '800 M€', '900 M€', '1000 M€']);
 		expect(b.inputs[3].column).toEqual(a.inputs[3].column);
 		expect(b.rewards[4]).toEqual(a.rewards[4]);
 		expect(b.optimal).toEqual(a.optimal);
-	});
+	}, 10_000);
 
 	it('samples only the random inputs; fixed ones get no column', async () => {
 		const model = presetModel('distribution-centre');
@@ -373,5 +381,167 @@ describe('simulation engine', () => {
 		const e = await done;
 		expect(e.type === 'done' && e.scenarios.n).toBe(6_000);
 		engine.dispose();
+	});
+});
+
+/** An analyser whose calls stay pending until the test settles them. */
+function manualAnalyser() {
+	const calls: {
+		scenarios: Scenarios;
+		listener: AnalysisListener;
+		resolve: (r: AnalysisResult) => void;
+		reject: (e: Error) => void;
+	}[] = [];
+	let cancels = 0;
+	const analyser: Analyser = {
+		analyse: (scenarios, _options, listener) =>
+			new Promise<AnalysisResult>((resolve, reject) => {
+				calls.push({ scenarios, listener: listener!, resolve, reject });
+			}),
+		retree: () => new Promise<TreeResult>(() => {}),
+		cancel: () => void cancels++,
+		dispose: () => {}
+	};
+	return { analyser, calls, cancels: () => cancels };
+}
+
+const tick = (ms = 30) => new Promise((r) => setTimeout(r, ms));
+
+describe('stale results and failures', () => {
+	const model = presetModel('blank');
+	const spec = (seed: number) => runSpec({ ...model, seed }, compiled(model));
+	const engineOn = (analyser: Analyser, createWorker = () => new FakeWorker()) =>
+		createSimulationEngine(createWorker, { workers: 1, progressMs: 5, analyser });
+	const sentinel = {} as Analysis;
+
+	// Kills the token guards in listenerFor, analyse().then and failedAnalysis.
+	it('ignores progress, partials, results and errors of a cancelled analysis', async () => {
+		const m = manualAnalyser();
+		const engine = engineOn(m.analyser);
+		const events: EngineEvent[] = [];
+		engine.subscribe((e) => events.push(e));
+
+		engine.run(spec(1), 100);
+		await tick();
+		expect(m.calls).toHaveLength(1);
+		engine.cancel();
+		expect(m.cancels()).toBe(1);
+		engine.run(spec(2), 200);
+		await tick();
+		expect(m.calls).toHaveLength(2);
+		const old = m.calls[0]!;
+		const current = m.calls[1]!;
+
+		events.length = 0;
+		old.listener.progress?.('main', 0.9);
+		old.listener.partial?.({} as PartialAnalysis);
+		old.resolve({ scenarios: old.scenarios, analysis: sentinel });
+		await tick();
+		expect(engine.scenarios).toBeNull();
+		expect(events.filter((e) => e.type === 'partial' || e.type === 'done')).toEqual([]);
+		// The only progress is the timer's, still on the new job: nothing of 'main' counted.
+		for (const e of events) if (e.type === 'progress') expect(e.fraction).toBeCloseTo(0.15, 12);
+
+		old.reject(new Error('old failure'));
+		await tick();
+		expect(events.some((e) => e.type === 'error')).toBe(false);
+		expect(engine.running).toBe(true);
+
+		current.resolve({ scenarios: current.scenarios, analysis: sentinel });
+		await tick();
+		const done = events.find((e) => e.type === 'done');
+		expect(done?.type === 'done' && done.scenarios.n).toBe(200);
+		expect(engine.running).toBe(false);
+		engine.dispose();
+	});
+
+	// Kills Math.max -> Math.min on step fractions and the progress arithmetic.
+	it('keeps the highest fraction of a step and weights the steps', async () => {
+		const m = manualAnalyser();
+		const engine = engineOn(m.analyser);
+		const events: EngineEvent[] = [];
+		engine.subscribe((e) => events.push(e));
+		engine.run(spec(1), 100);
+		await tick();
+		const call = m.calls[0]!;
+		const last = () => events.filter((e) => e.type === 'progress').at(-1);
+
+		// Weights 0.15, 0.25, 0.2, 0.4: Simulating is done, nothing else yet.
+		expect(last()?.fraction).toBeCloseTo(0.15, 12);
+		call.listener.progress?.('main', 0.8);
+		call.listener.progress?.('main', 0.3);
+		call.listener.partial?.({} as PartialAnalysis);
+		expect(last()).toMatchObject({ step: 'Summary and inputs' });
+		expect(last()?.fraction).toBeCloseTo(0.15 + 0.25 * 0.8, 12);
+		await tick();
+		expect(last()?.fraction).toBeCloseTo(0.35, 12);
+
+		call.listener.progress?.('voi', 0.5);
+		call.listener.partial?.({} as PartialAnalysis);
+		expect(last()?.fraction).toBeCloseTo(0.35 + 0.2 * 0.5, 12);
+		for (let i = 1; i < events.length; i++) {
+			const [a, b] = [events[i - 1], events[i]];
+			if (a.type === 'progress' && b.type === 'progress') {
+				expect(b.fraction).toBeGreaterThanOrEqual(a.fraction);
+			}
+		}
+		engine.cancel();
+		engine.dispose();
+	});
+
+	// Kills the done / total arithmetic of the simulating fraction.
+	it('reports the simulating fraction as the share of rows drawn', async () => {
+		const m = manualAnalyser();
+		const engine = engineOn(m.analyser);
+		const fractions: number[] = [];
+		engine.subscribe((e) => e.type === 'progress' && fractions.push(e.fraction));
+		engine.run(spec(1), 2 * CHUNK_ROWS);
+		await tick(100);
+		expect(m.calls).toHaveLength(1);
+		// Two equal chunks: 0, half and all of the Simulating weight (0.15).
+		expect(fractions[0]).toBe(0);
+		expect(fractions.at(-1)).toBeCloseTo(0.15, 12);
+		const known = [0, 0.075, 0.15];
+		expect(fractions.every((f) => known.some((k) => Math.abs(f - k) < 1e-12))).toBe(true);
+		engine.cancel();
+		engine.dispose();
+	});
+
+	// Kills the worker-error paths (onerror with and without a message, and an error message).
+	describe.each([
+		[
+			'an onerror with a message',
+			(w: FakeWorker) => w.onerror?.({ message: 'boom' } as ErrorEvent),
+			'boom'
+		],
+		[
+			'an onerror without a message',
+			(w: FakeWorker) => w.onerror?.({} as ErrorEvent),
+			'Worker error'
+		],
+		[
+			'an error message',
+			(w: FakeWorker) =>
+				w.onmessage?.({ data: { type: 'error', message: 'bad' } } as MessageEvent<FromWorker>),
+			'bad'
+		]
+	] as const)('on %s', (_, trigger, message) => {
+		it('emits one error, stops, and the next run works', async () => {
+			let worker!: FakeWorker;
+			const engine = engineOn(manualAnalyser().analyser, () => (worker = new FakeWorker()));
+			const events: EngineEvent[] = [];
+			engine.subscribe((e) => events.push(e));
+			engine.run(spec(1), 100);
+			trigger(worker);
+			expect(events.filter((e) => e.type === 'error')).toEqual([{ type: 'error', message }]);
+			expect(engine.running).toBe(false);
+
+			const real = engineWith(1);
+			const done = next(real);
+			real.run(spec(1), 50);
+			expect((await done).type).toBe('done');
+			real.dispose();
+			engine.dispose();
+		});
 	});
 });

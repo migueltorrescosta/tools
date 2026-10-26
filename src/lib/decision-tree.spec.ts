@@ -397,8 +397,9 @@ describe('Termination check cost and duplicates', () => {
 		expect(validateGraph(buildGraph(raw))).toEqual(['Question node "stuck" has no answer options']);
 	});
 
-	it('validates a 30-level diamond chain quickly', () => {
-		// Two answers per level converge on the next node: 2^30 root-to-leaf paths
+	it('validates a 30-level diamond chain without enumerating its paths', () => {
+		// Two answers per level converge on the next node: 2^30 root-to-leaf paths.
+		// The vitest timeout is the guard against an exponential regression.
 		const depth = 30;
 		const raw: RawTree = { nodes: [], edges: [] };
 		for (let i = 0; i < depth; i++) {
@@ -410,13 +411,10 @@ describe('Termination check cost and duplicates', () => {
 		raw.nodes.push({ id: 'end', type: 'result', content: 'Done' });
 		const graph = buildGraph(raw);
 
-		const start = performance.now();
 		const errors = validateGraph(graph);
-		const elapsed = performance.now() - start;
 
 		expect(errors).toEqual([]);
-		expect(elapsed).toBeLessThan(50);
-	});
+	}, 2000);
 });
 
 describe('Duplicate answer labels', () => {

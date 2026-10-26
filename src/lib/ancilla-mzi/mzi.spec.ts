@@ -79,3 +79,58 @@ describe('computeMzi', () => {
 		);
 	});
 });
+
+describe('oatState popcount and phases', () => {
+	// Kills a popcount that returns a constant or miscounts bits.
+	it('n=3, theta=0, mu=0.7: amplitude matches independent bit count for all 8 basis states', () => {
+		const n = 3;
+		const mu = 0.7;
+		const theta = 0;
+		const state = oatState(n, mu, theta);
+		const dim = 2 ** n;
+		const a = 1 / Math.sqrt(dim);
+		for (let i = 0; i < dim; i++) {
+			const pop = i.toString(2).replace(/0/g, '').length; // independent bit count
+			const jz = n / 2 - pop;
+			const phi = -0.5 * mu * jz * jz;
+			expect(state.re[i]).toBeCloseTo(a * Math.cos(phi), 12);
+			expect(state.im[i]).toBeCloseTo(a * Math.sin(phi), 12);
+		}
+	});
+
+	// Kills a popcount that returns a constant or miscounts bits.
+	it('n=4, mu=1.3, theta=0: amplitude matches independent bit count for all 16 basis states', () => {
+		const n = 4;
+		const mu = 1.3;
+		const theta = 0;
+		const state = oatState(n, mu, theta);
+		const dim = 2 ** n;
+		const a = 1 / Math.sqrt(dim);
+		for (let i = 0; i < dim; i++) {
+			const pop = i.toString(2).replace(/0/g, '').length;
+			const jz = n / 2 - pop;
+			const phi = -0.5 * mu * jz * jz;
+			expect(state.re[i]).toBeCloseTo(a * Math.cos(phi), 12);
+			expect(state.im[i]).toBeCloseTo(a * Math.sin(phi), 12);
+		}
+	});
+
+	// Kills a mutant that drops the theta rotation or applies it wrongly.
+	it('n=2, mu=π, theta=π/2: state differs from product (overlap < 1 - 1e-3)', () => {
+		const n = 2;
+		const mu = Math.PI;
+		const theta = Math.PI / 2;
+		const state = oatState(n, mu, theta);
+		const prod = standardStates(n).product;
+		// Overlap |<product|oat>|^2. prod.re = 1/2, prod.im = 0.
+		const dim = 2 ** n;
+		let re = 0;
+		let im = 0;
+		for (let i = 0; i < dim; i++) {
+			re += prod.re[i] * state.re[i];
+			im += prod.re[i] * state.im[i];
+		}
+		const overlapSq = re * re + im * im;
+		expect(overlapSq).toBeLessThan(1 - 1e-3);
+	});
+});
