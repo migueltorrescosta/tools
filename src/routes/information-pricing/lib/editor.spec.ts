@@ -31,6 +31,9 @@ describe('editor helpers', () => {
 		const model = presetModel('blank');
 		expect(freeSymbol(model, 'X')).toBe('X1');
 		expect(freeSymbol(model, 'Y')).toBe('Y');
+		// Kills the suffix template and the counter of the loop.
+		model.inputs.push({ ...model.inputs[0], symbol: 'X1' });
+		expect(freeSymbol(model, 'X')).toBe('X2');
 	});
 
 	it('finds errors by field and names their place', () => {
@@ -122,6 +125,28 @@ describe('errorAt / sameField', () => {
 		expect(
 			errorAt([err], { kind: 'decisions', field: 'values', index: undefined })
 		).toBeUndefined(); // explicit undefined vs 1
+	});
+});
+
+describe('errorAt with missing optional parts', () => {
+	// Kills the `?? -1` defaults of sameField: a missing part is not the part 1.
+	it('tells param 1 from no param, and index 1 from no index, in both directions', () => {
+		const withParam = {
+			where: { kind: 'input', index: 0, field: 'params', param: 1 },
+			message: 'a'
+		} as const;
+		const noParam = { where: { kind: 'input', index: 0, field: 'params' }, message: 'b' } as const;
+		expect(errorAt([withParam], noParam.where)).toBeUndefined();
+		expect(errorAt([noParam], withParam.where)).toBeUndefined();
+		const withIndex = {
+			where: { kind: 'decisions', field: 'values', index: 1 },
+			message: 'c'
+		} as const;
+		const noIndex = { where: { kind: 'decisions', field: 'values' }, message: 'd' } as const;
+		expect(errorAt([withIndex], noIndex.where)).toBeUndefined();
+		expect(errorAt([noIndex], withIndex.where)).toBeUndefined();
+		expect(errorAt([noParam], noParam.where)).toBe(noParam);
+		expect(errorAt([noIndex], noIndex.where)).toBe(noIndex);
 	});
 });
 

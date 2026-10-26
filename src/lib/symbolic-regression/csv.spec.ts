@@ -43,6 +43,11 @@ describe('detectDelimiter consistency preference', () => {
 		expect(detectDelimiter('a,b;c\n1,2;3\n4,5;6\n')).toBe(',');
 	});
 
+	// Kills the "consistent beats the current best" branch taking over from an equally consistent one.
+	it('keeps an earlier consistent delimiter with the higher total over a later one', () => {
+		expect(detectDelimiter('a,b,c;d\n1,2,3;4\n')).toBe(',');
+	});
+
 	it('takes the higher total among consistent delimiters', () => {
 		expect(detectDelimiter('a\tb\tc,d\n1\t2\t3,4\n')).toBe('\t');
 	});
@@ -52,7 +57,7 @@ describe('detectDelimiter consistency preference', () => {
 	});
 
 	it('does not let a later uneven delimiter with a higher total beat a consistent one', () => {
-		expect(detectDelimiter('a,b\n1,2\n3,4\n5;6;7;8;9\n')).toBe(';');
+		expect(detectDelimiter('a,b;c;d;e\n1,2;3\n4,5\n')).toBe(',');
 	});
 
 	it('replaces an earlier uneven delimiter by a later consistent one', () => {

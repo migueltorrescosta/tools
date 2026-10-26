@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { WorkerLike } from '$lib/worker-pool';
 import { validateParams } from './distributions';
 import type { Analysis, PartialAnalysis, TreeResult } from './analysis';
@@ -384,6 +384,31 @@ describe('simulation engine', () => {
 	});
 });
 
+/** A simulation worker that records what it is sent and answers only when the test says so. */
+class ManualWorker implements WorkerLike<ToWorker, FromWorker> {
+	onmessage: ((e: MessageEvent<FromWorker>) => void) | null = null;
+	onerror: ((e: ErrorEvent) => void) | null = null;
+	posted: ToWorker[] = [];
+	postMessage(msg: ToWorker): void {
+		this.posted.push(msg);
+	}
+	terminate(): void {}
+	/** Delivers a chunk of `rows` rewards in one decision column. */
+	reply(k: number, rows: number): void {
+		const chunk = { rewards: [new Float64Array(rows)] };
+		this.onmessage?.({ data: { type: 'chunk', k, chunk } } as unknown as MessageEvent<FromWorker>);
+	}
+}
+
+/** A real simulation worker that also records what it is sent. */
+class RecordingWorker extends FakeWorker {
+	posted: ToWorker[] = [];
+	override postMessage(msg: ToWorker): void {
+		this.posted.push(msg);
+		super.postMessage(msg);
+	}
+}
+
 /** An analyser whose calls stay pending until the test settles them. */
 function manualAnalyser() {
 	const calls: {
@@ -418,8 +443,11 @@ const tick = (ms = 30) => new Promise((r) => setTimeout(r, ms));
 describe('stale results and failures', () => {
 	const model = presetModel('blank');
 	const spec = (seed: number) => runSpec({ ...model, seed }, compiled(model));
-	const engineOn = (analyser: Analyser, createWorker = () => new FakeWorker()) =>
-		createSimulationEngine(createWorker, { workers: 1, progressMs: 5, analyser });
+	const engineOn = (
+		analyser: Analyser,
+		createWorker: () => WorkerLike<ToWorker, FromWorker> = () => new FakeWorker(),
+		progressMs = 5
+	) => createSimulationEngine(createWorker, { workers: 1, progressMs, analyser });
 	const sentinel = {} as Analysis;
 
 	// Kills the token guards in listenerFor, analyse().then and failedAnalysis.
@@ -474,6 +502,159 @@ describe('stale results and failures', () => {
 		await tick();
 		expect(events.some((e) => e.type === 'error')).toBe(false);
 		expect(engine.running).toBe(true);
+		engine.cancel();
+		engine.dispose();
+	});
+
+	// Kills the arithmetic of the partial's elapsed time.
+	it('stamps a partial with the time since the job started', async () => {
+		let t = 1000;
+		const clock = vi.spyOn(performance, 'now').mockImplementation(() => t);
+		try {
+			const m = manualAnalyser();
+			const engine = engineOn(m.analyser);
+			const events: EngineEvent[] = [];
+			engine.subscribe((e) => events.push(e));
+			engine.run(spec(1), 100);
+			await tick();
+			t = 1500;
+			m.calls[0]!.listener.partial?.({} as PartialAnalysis);
+			expect(events.filter((e) => e.type === 'partial')).toMatchObject([{ elapsedMs: 500 }]);
+			engine.cancel();
+			engine.dispose();
+		} finally {
+			clock.mockRestore();
+		}
+	});
+
+	// Kills the explicit progress event when the analysis starts (no timer tick can help: it is off).
+	it('emits progress as soon as the analysis starts', async () => {
+		const m = manualAnalyser();
+		const engine = engineOn(m.analyser, () => new FakeWorker(), 1e9);
+		const fractions: number[] = [];
+		engine.subscribe((e) => e.type === 'progress' && fractions.push(e.fraction));
+		engine.run(spec(1), 100);
+		await tick();
+		expect(m.calls).toHaveLength(1);
+		expect(fractions.at(-1)).toBeCloseTo(0.15, 12);
+		engine.cancel();
+		engine.dispose();
+	});
+
+	// Kills the chunk message, the rows counted per chunk and their share of the total.
+	it('counts the rows of each chunk drawn into the simulating fraction', async () => {
+		const m = manualAnalyser();
+		let w!: ManualWorker;
+		const engine = engineOn(m.analyser, () => (w = new ManualWorker()));
+		const fractions: number[] = [];
+		engine.subscribe((e) => e.type === 'progress' && fractions.push(e.fraction));
+		engine.run(spec(1), 2 * CHUNK_ROWS);
+		expect(
+			w.posted.filter((p) => p.type === 'chunk').map((p) => p.type === 'chunk' && p.k)
+		).toEqual([0, 1]);
+		w.reply(0, CHUNK_ROWS);
+		await tick();
+		// Half of the rows are drawn: half of the Simulating weight (0.15).
+		expect(fractions.at(-1)).toBeCloseTo(0.075, 12);
+		engine.cancel();
+		engine.dispose();
+	});
+
+	// Kills the optional chaining on a chunk without a reward column.
+	it('counts no rows for a chunk without rewards', async () => {
+		let w!: ManualWorker;
+		const engine = engineOn(manualAnalyser().analyser, () => (w = new ManualWorker()));
+		const fractions: number[] = [];
+		engine.subscribe((e) => e.type === 'progress' && fractions.push(e.fraction));
+		engine.run(spec(1), 2 * CHUNK_ROWS);
+		const chunk = { rewards: [] };
+		expect(() =>
+			w.onmessage?.({ data: { type: 'chunk', k: 0, chunk } } as unknown as MessageEvent<FromWorker>)
+		).not.toThrow();
+		await tick();
+		expect(fractions.at(-1)).toBe(0);
+		engine.cancel();
+		engine.dispose();
+	});
+
+	// Kills the guard on the sender: a worker of an abandoned run, or a late reply with no job.
+	it('ignores chunks from workers of an abandoned run', async () => {
+		const workers: ManualWorker[] = [];
+		const engine = engineOn(manualAnalyser().analyser, () => {
+			const w = new ManualWorker();
+			workers.push(w);
+			return w;
+		});
+		const fractions: number[] = [];
+		engine.subscribe((e) => e.type === 'progress' && fractions.push(e.fraction));
+		engine.run(spec(1), 2 * CHUNK_ROWS);
+		// Cancelling detaches the handler; keep it to play a reply that was already in flight.
+		const late = workers[0]!.onmessage!;
+		const reply = () =>
+			late({
+				data: { type: 'chunk', k: 0, chunk: { rewards: [new Float64Array(CHUNK_ROWS)] } }
+			} as unknown as MessageEvent<FromWorker>);
+		engine.cancel();
+		expect(reply).not.toThrow(); // no job at all
+		engine.run(spec(2), 2 * CHUNK_ROWS);
+		expect(workers).toHaveLength(2);
+		reply(); // a job, but not this worker's
+		await tick();
+		expect(Math.max(...fractions)).toBe(0);
+		engine.cancel();
+		engine.dispose();
+	});
+
+	// Kills the token guards when no job is left at all (they must not read `job.token`).
+	it('ignores late analysis calls after a cancel that left no job', async () => {
+		const m = manualAnalyser();
+		const engine = engineOn(m.analyser);
+		engine.run(spec(1), 100);
+		await tick();
+		const [first] = m.calls;
+		engine.cancel();
+		expect(() => first!.listener.progress?.('main', 0.5)).not.toThrow();
+		expect(() => first!.listener.partial?.({} as PartialAnalysis)).not.toThrow();
+		const failures: unknown[] = [];
+		const onUnhandled = (e: unknown) => failures.push(e);
+		process.on('unhandledRejection', onUnhandled);
+		first!.resolve({ scenarios: first!.scenarios, analysis: sentinel });
+		await tick();
+		engine.run(spec(2), 100);
+		await tick();
+		m.calls[1]!.reject(new Error('later'));
+		engine.cancel();
+		await tick();
+		process.off('unhandledRejection', onUnhandled);
+		expect(failures).toEqual([]);
+		expect(engine.scenarios).toBeNull();
+		engine.dispose();
+	});
+
+	// Kills the error of a missing chunk.
+	it('fails loudly when the chunks do not cover the plan', () => {
+		let w!: ManualWorker;
+		const engine = engineOn(manualAnalyser().analyser, () => (w = new ManualWorker()));
+		engine.run(spec(1), 100);
+		expect(() => w.reply(7, 100)).toThrow('missing chunk');
+		engine.cancel();
+		engine.dispose();
+	});
+
+	// Kills the arithmetic of the next chunk index: an add continues after the chunks drawn.
+	it('continues an add at the chunk after the last one drawn', async () => {
+		const m = manualAnalyser();
+		let w!: RecordingWorker;
+		const engine = engineOn(m.analyser, () => (w = new RecordingWorker()));
+		engine.run(spec(1), 2 * CHUNK_ROWS);
+		for (let i = 0; i < 100 && m.calls.length === 0; i++) await tick(50);
+		expect(m.calls).toHaveLength(1);
+		m.calls[0]!.resolve({ scenarios: m.calls[0]!.scenarios, analysis: sentinel });
+		await tick();
+		w.posted.length = 0;
+		engine.add(10);
+		const ks = w.posted.flatMap((p) => (p.type === 'chunk' ? [p.k] : []));
+		expect(ks).toEqual([2]);
 		engine.cancel();
 		engine.dispose();
 	});
