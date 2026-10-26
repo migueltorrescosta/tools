@@ -21,6 +21,7 @@ Method:
   - GSK FY2003 operating income 6445 -> 6050 (statutory total per Form 20-F 2005 five-year record; 6445 was business performance).
   - Unilever FY2000 revenue 46518 -> 47582, operating income 3140 -> 3302 (Form 20-F 2001 Financial Review).
 - Anchors removed as unverifiable: none.
+- Operating income redefined for BP, Shell, TotalEnergies, Ford, General Motors, Eli Lilly, Johnson & Johnson, ExxonMobil, Chevron, Nike and Pfizer (tools#55): these eleven stored pre-tax income; they now store reported operating income, or an operating income derived from reported lines (quality `estimated`, method in each company's `notes` and section below). Revenue unchanged.
 - Source and notes fixes: Costco FY2008 source moved to 10-K FY2010 Item 6 (no XBRL fact); Chevron FY2007/FY2009 accession numbers; Nike FY2003-2005 source label; notes corrected for Alphabet, Microsoft, Johnson & Johnson, NVIDIA, Shell, Walmart, Volkswagen, Novartis, GSK and Inditex.
 
 ## Alphabet (`alphabet`)
@@ -107,19 +108,20 @@ Method:
 ## BP (`bp`)
 
 - Anchors checked: 26 (revenue + operating income each)
-- Sources: SEC XBRL companyconcept CIK0000313807 (ifrs-full Revenue, ProfitLossBeforeTax) FY2015-2025; BP Q4 results 6-Ks (bp6k4q01, bp200402106k, bp200602076k, bp200702066k, bp200802056k, bp200902036k2, bp201002026k2, bp201202076k, d669396d6k, bp201502036k) group income statements FY2000-2014
+- Sources: operating income = reported 'Profit (loss) before interest and taxation' (UK GAAP 'historical cost profit before interest and tax' FY2000-2003): BP Q4 results 6-Ks (bp6k4q01, bp200402106k, bp200602076k, bp200702066k, bp200802056k, bp200902036k2, bp201002026k2, bp201202076k, d669396d6k, bp201502036k) group income statements FY2000-2014; Form 20-F group income statements FY2015-2025 (own year's filing)
 - Corrected:
-  - none
+  - operating income FY2000-2025: was profit before taxation, now PBIT as reported (tools#55); revenue unchanged
 - Removed / unverifiable:
   - none
-- sourceUrl fixes: none
+- sourceUrl fixes: FY2015-2025 now point at the 20-F documents instead of the XBRL companyconcept API (PBIT is not an XBRL fact)
 
 ## Chevron (`chevron`)
 
 - Anchors checked: 26 (revenue + operating income each)
 - Sources: SEC XBRL companyconcept CIK0000093410 (Revenues, IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments) FY2007-2025; ChevronTexaco 10-K FY2002 (FY2000), 10-K FY2003 (FY2001-2003; FY2002 revenue 98913 is the FY2003-10-K restated figure, FY2002 10-K showed 99049), Chevron 10-K FY2006 (FY2004-2006) Consolidated Statement of Income
 - Corrected:
-  - none (values). Source text only: FY2007 accession 0000950123-10-048910 -> 0000950123-10-016846 (FY2009 10-K, the filing that carries the FY2007 facts); FY2009 accession 0000093410-12-002976 -> 0000950123-12-002976 (typo)
+  - operating income FY2000-2025: was income before income tax expense, now operating income derived (estimated) as income before income tax expense plus 'Interest and debt expense' (10-K FY2002 and FY2003 income statements for FY2000-2003, FY2006 for FY2004-2006, SEC XBRL InterestExpenseDebt for FY2007-2025) (tools#55); revenue unchanged
+  - Source text only: FY2007 accession 0000950123-10-048910 -> 0000950123-10-016846 (FY2009 10-K, the filing that carries the FY2007 facts); FY2009 accession 0000093410-12-002976 -> 0000950123-12-002976 (typo)
 - Removed / unverifiable:
   - none
 - sourceUrl fixes: none
@@ -148,12 +150,13 @@ Method:
 ## Eli Lilly (`eli-lilly`)
 
 - Anchors checked: 26 (revenue + operating income each)
-- Sources: 10-K FY2004 Exhibit 13 Selected Financial Data (Net sales / Income before income taxes) FY2000-2004; 10-K FY2009 Selected Financial Data and Consolidated Statements of Operations FY2005-2009; SEC XBRL companyconcept CIK0000059478 (Revenues, IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest) FY2007-2025 by accn
+- Sources: Lilly reports no operating income line, so all years are derived (estimated) from the consolidated statements of income/operations: revenue less cost of sales, R&D, marketing/selling/administrative, acquired IPR&D and asset impairment/restructuring/special charges (10-K FY2002 Exhibit 13, FY2004 Exhibit 13, FY2006, FY2009, FY2012, FY2015-FY2019, FY2022-FY2025). Each result equals income before income taxes plus 'Other-net' (and interest expense before 2005)
 - Corrected:
-  - none (all 52 values match; FY2018 24,555.7 / 3,795.7 as first reported, FY2019 10-K restatement 3,680.1 noted in file)
+  - operating income FY2000-2025: was income before income taxes (tools#55); revenue unchanged
+  - note: the earlier FY2010-2012 pre-tax values (6767.2, 6138.9, 4901.5) did not match the FY2012 10-K statements (6525.2, 5349.5, 5408.2); the new values use the statements
 - Removed / unverifiable:
   - none
-- sourceUrl fixes: none
+- sourceUrl fixes: FY2010-2025 now point at the 10-K documents instead of the XBRL companyconcept API
 
 ## Eni (`eni`)
 
@@ -170,7 +173,7 @@ Method:
 - Anchors checked: 26 (revenue + operating income each)
 - Sources: SEC XBRL companyconcept CIK0000034088 (Revenues, IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest) FY2009-2025, stored values match the cited later-10-K (restated) facts (e.g. FY2015 239854, FY2016 200628, FY2017 244363, FY2018 290212); 10-K FY2002/FY2005/FY2008 Consolidated Statement of Income FY2000-2008 ('Total revenue' / 'Total revenues and other income', 'Income before income taxes')
 - Corrected:
-  - none
+  - operating income FY2000-2025: was income before income taxes, now operating income derived (estimated) as income before income taxes plus 'Interest expense' (10-K FY2002, FY2005, FY2008 income statements for FY2000-2008; SEC XBRL InterestExpense for FY2009-2025) (tools#55); revenue unchanged
 - Removed / unverifiable:
   - none
 - sourceUrl fixes: none
@@ -188,24 +191,23 @@ Method:
 ## Ford (`ford`)
 
 - Anchors checked: 26 (revenue + operating income each)
-- Sources: 10-K FY2004 Item 6 (FY2000-2004), 10-K FY2005 Item 6 (FY2005), 10-K FY2010 Item 6 (FY2006-2010); XBRL R pages of 10-K FY2013 R2 (FY2011-2013), FY2016 R2 (FY2014-2016), FY2019 R3 (FY2017-2019), FY2022 R4 (FY2020-2022), FY2025 R3 (FY2023-2025); cross-checked SEC XBRL companyconcept CIK0000037996 Revenues FY2008-2024
+- Sources: operating income reported FY2017-2025 ('Operating income' / 'Operating income/(loss)' on the consolidated income statement: 10-K FY2019 FY2017-2019, FY2022 FY2020-2022, FY2025 FY2023-2025; matches XBRL OperatingIncomeLoss). Derived (estimated) FY2000-2016, no consolidated line: FY2011-2016 total revenues less total costs and expenses (10-K FY2013, FY2016); FY2000-2010 Automotive sector operating income plus Financial Services revenues less costs (10-K FY2004 Item 6, FY2005 and FY2010 sector statements)
 - Corrected:
-  - none
+  - operating income FY2000-2025: was income before income taxes (tools#55); revenue unchanged
 - Removed / unverifiable:
   - none
 - sourceUrl fixes: none
-- Note: XBRL concept IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments for FY2009-2013 excludes equity in affiliates (e.g. FY2013 5932); stored values follow the statement line 'Income before income taxes' (incl. equity income), consistent with notes.
 
 ## General Motors (`general-motors`)
 
 - Anchors checked: 25 (revenue + operating income each)
-- Sources: Old GM (CIK 40730) 10-K FY2002 Consolidated Statements of Income (FY2000-2001), 10-K FY2004 (FY2002-2004), 10-K FY2007 MD&A Consolidated Results (FY2005), 10-K FY2008 MD&A Consolidated Results (FY2006-2008); SEC XBRL companyconcept CIK0001467858 (Revenues; IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments for FY2010; IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest for FY2011-2025)
+- Sources: reported 'Operating income (loss)' FY2005-2008 (old GM, CIK 40730: 10-K FY2007, FY2008 consolidated statements of operations) and FY2010-2025 (New GM, CIK 1467858: 10-K R2/R3 income statements, matches XBRL OperatingIncomeLoss). Derived (estimated) FY2000-2004: supplemental sector statements of income, Automotive and Other Operations plus Financing and Insurance Operations net sales/revenues less total costs and expenses (10-K FY2002, FY2004)
 - Corrected:
-  - none
+  - operating income FY2000-2025: was income before income taxes (tools#55); revenue unchanged
 - Removed / unverifiable:
   - none
-- sourceUrl fixes: none
-- Note: FY2015/FY2016 values (152356/7718, 166380/11684) are as reported in the cited FY2016 10-K (pre-Opel restatement; FY2017 10-K restated FY2016 to 149184/12008), consistent with notes "2017+ restated excl. Opel/Vauxhall".
+- sourceUrl fixes: FY2005 source moved from MD&A to the consolidated statement (10-K FY2007)
+- Note: FY2015/FY2016 values (152356/4897, 166380/9545) are as reported in the cited FY2016 10-K (pre-Opel restatement), consistent with notes "2017+ restated excl. Opel/Vauxhall".
 
 ## GSK (`gsk`)
 
@@ -240,12 +242,12 @@ Method:
 ## Johnson & Johnson (`johnson-johnson`)
 
 - Anchors checked: 26 (revenue + operating income each)
-- Sources: SEC XBRL companyconcept CIK0000200406 (SalesRevenueGoodsNet FY2007-2017, RevenueFromContractWithCustomerExcludingAssessedTax FY2016-2025, IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments FY2007-2019, IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest FY2019-2025), matched to each year's own 10-K accn; 10-K FY2009 Exhibit 13 ten-year Summary of Operations (Sales to customers / Earnings before provision for taxes on income) FY2000-2009
+- Sources: J&J reports no operating income line, so all years are derived (estimated): sales to customers less cost of products sold, SM&A, R&D, in-process R&D and restructuring (interest and 'Other (income) expense, net' excluded). 10-K FY2009 Exhibit 13 ten-year Summary of Operations FY2000-2009; Exhibit 13 of the 10-K FY2010-FY2014; consolidated statements of earnings in the 10-K FY2015-FY2025 (own year's filing)
 - Corrected:
-  - none (all 52 values match). Notes: removed false claim that the FY2015 revenue XBRL context ends 2015-12-27 (XBRL context is 2014-12-29 to 2016-01-03); replaced with 53-week-year statement.
+  - operating income FY2000-2025: was earnings before provision for taxes (tools#55); revenue unchanged
 - Removed / unverifiable:
   - none
-- sourceUrl fixes: none
+- sourceUrl fixes: FY2010-2025 now point at the 10-K documents instead of the XBRL companyconcept API
 
 ## LVMH (`lvmh`)
 
@@ -313,7 +315,8 @@ Method:
 - Anchors checked: 27 (revenue + operating income each)
 - Sources: SEC XBRL companyconcept CIK0000320187 (SalesRevenueNet FY2009-2018, RevenueFromContractWithCustomerExcludingAssessedTax FY2018-2026, IncomeLossFromContinuingOperationsBeforeIncomeTaxes... FY2020-2026); R2/R3 Consolidated Statements of Income in FY2011, FY2014, FY2017, FY2020, FY2023, FY2026 10-Ks (FY2009-2026; FY2012 restated 23,331 in FY2014 10-K vs 24,128 original, stored matches cited filing); 10-K FY2002 Consolidated Statements of Income FY2000-2002; 10-K FY2005 Consolidated Statements of Income FY2003-2005; 10-K FY2008 Item 6 FY2006-2008.
 - Corrected:
-  - none (values). Source label for FY2003-2005 changed from "Item 6 Selected Financial Data" to "Consolidated Statements of Income" (Item 6 in that 10-K shows no pretax income row). Notes updated: the "before cumulative effect of accounting change" pretax label applies to FY2000-2005, not only FY2000-2002.
+  - operating income FY2000-2025: was income before income taxes, now operating income derived (estimated) as revenues less cost of sales and selling and administrative expense, equal to income before income taxes plus net interest and other (income) expense (10-K FY2002, FY2005, FY2008 statements of income; XBRL R pages of 10-K FY2011, FY2014, FY2017, FY2020, FY2023, FY2026) (tools#55); revenue unchanged
+  - Source label for FY2003-2005 changed from "Item 6 Selected Financial Data" to "Consolidated Statements of Income" (Item 6 in that 10-K shows no pretax income row). Notes updated: the "before cumulative effect of accounting change" pretax label applies to FY2000-2005, not only FY2000-2002.
 - Removed / unverifiable:
   - none
 - sourceUrl fixes: none
@@ -363,7 +366,8 @@ Method:
 - Anchors checked: 26 (revenue + operating income each)
 - Sources: 10-K FY2002/FY2004/FY2007 Exhibit 13 income statements (Revenues; Income from continuing operations before provision for taxes on income, minority interests...) FY2000-2007; XBRL R2/R3 statements of income in 10-K FY2010, FY2013, FY2016, FY2019, FY2022, FY2025 FY2008-2025; cross-checked against SEC XBRL companyconcept CIK0000078003 (SalesRevenueNet, Revenues, IncomeLossFromContinuingOperationsBeforeIncomeTaxes...)
 - Corrected:
-  - none (all 52 values match the cited filing presentation; FY2023 revenue 59,553 is the FY2024/FY2025 10-K restatement, first-reported 58,496, consistent with notes)
+  - operating income FY2000-2025: was income from continuing operations before taxes, now operating income derived (estimated) as income from continuing operations before taxes plus 'Other (income)/deductions-net' (Exhibit 13 of 10-K FY2002, FY2004, FY2007; XBRL R2/R3 of 10-K FY2010, FY2013, FY2016, FY2019, FY2022, FY2025); recomputed from the cost lines for FY2000-2002, FY2005, FY2007 and FY2010 (tools#55); revenue unchanged
+  - All 52 values match the cited filing presentation; FY2023 revenue 59,553 is the FY2024/FY2025 10-K restatement (first reported 58,496), as the notes say
 - Removed / unverifiable:
   - none
 - sourceUrl fixes: none
@@ -391,12 +395,13 @@ Method:
 ## Shell (`shell`)
 
 - Anchors checked: 25 (revenue + operating income each)
-- Sources: SEC XBRL companyconcept CIK0001306965 (ifrs-full Revenue, ProfitLossBeforeTax) FY2015-2025; Royal Dutch Petroleum 6-K Q4 2002/Q4 2003/Q4 2004 Group statements of income FY2001-2003; RDS 20-F FY2005 selected financial data FY2004-2005; RDS Q4 6-Ks FY2007-FY2014 consolidated statements of income FY2006-2014
+- Sources: reported 'Operating profit' (US GAAP) FY2001-2003 from Royal Dutch Petroleum Q4 2002/2003/2004 6-Ks. Derived (estimated) FY2004-2025 under IFRS: income before taxation plus interest expense less interest and other income (FY2006-2008 plus net finance costs and other (income)/expense): 20-F FY2005 (FY2004-2005), Q4 6-Ks FY2007-FY2014 (FY2006-2014), 20-F FY2015-FY2025
 - Corrected:
-  - none (values all match). `notes` corrected: 2002 and 2003 stored values are the restated figures from the following year's Q4 release (2002 first reported 179,431 net proceeds; 2003 first reported 201,932 / 23,188), not "as first reported"
+  - operating income FY2001-2025: was income before taxation (tools#55); revenue unchanged
+  - notes: 2002 and 2003 stored values are the restated figures from the following year's Q4 release (2002 first reported 179,431 net proceeds; 2003 first reported 201,932 / 23,188), not "as first reported"
 - Removed / unverifiable:
   - none
-- sourceUrl fixes: none
+- sourceUrl fixes: FY2015-2025 now point at the 20-F documents instead of the XBRL companyconcept API
 
 ## Tesco (`tesco`)
 
@@ -421,10 +426,10 @@ Method:
 
 ## TotalEnergies (`totalenergies`)
 
-- Anchors checked: 25 (revenue + operating income each; operating income re-derived as consolidated net income + income taxes)
-- Sources: SEC XBRL R2 consolidated statements of income from 20-F FY2017/FY2019/FY2022/FY2025 FY2015-2025; TotalFinaElf/Total results 6-Ks (2003-03-07, 2004-03-08 Ex.99.5, 2006-02-22, 2007-02-20, 2009-02-20, 2011-02-18, 2013-02-19, 2015-02-12) consolidated statements of income FY2001-2014
+- Anchors checked: 25 (revenue + operating income each)
+- Sources: reported 'Total operating income' FY2001-2006 (results 6-Ks of 2003-03-07, 2004-03-08 Ex.99.5, 2006-02-22, 2007-02-20); derived (estimated) FY2007-2025 as revenues from sales less purchases, other operating expenses, exploration costs and DD&A (the same scope): results 6-Ks of 2009-02-20, 2011-02-18, 2013-02-19, 2015-02-12 and XBRL R2 consolidated statements of income from 20-F FY2017/FY2018/FY2019/FY2020/FY2021/FY2022/FY2023/FY2024/FY2025
 - Corrected:
-  - none
+  - operating income FY2001-2025: was consolidated net income plus income taxes (tools#55); revenue unchanged
 - Removed / unverifiable:
   - none
 - sourceUrl fixes: none

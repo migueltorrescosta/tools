@@ -4,241 +4,241 @@
 	"type": "energy",
 	"country": "GB",
 	"reportingCurrency": "USD",
-	"notes": "operatingIncome = 'Profit (loss) before taxation' throughout (PBIT not available in XBRL for 2015+, so pre-tax used consistently). Revenue: 2000-2003 UK GAAP 'Group turnover' (excl. joint ventures); 2004+ IFRS 'Total revenues and other income' (2004-2006 continuing operations, ex-Innovene). Visible discontinuity 2003->2004 from UK GAAP->IFRS and restatement. Figures from Q4/full-year results 6-Ks filed with SEC (as first reported, some later restated); 2015+ from SEC XBRL company concept (ifrs-full Revenue = total revenues and other income; ProfitLossBeforeTax). FY ends Dec 31.",
+	"notes": "operatingIncome = BP's reported 'Profit (loss) before interest and taxation' (PBIT): income before finance costs, pension finance items and tax, including BP's share of equity-accounted earnings (joint ventures, associates, Rosneft 2013-2021), disposal gains and impairments. 2000-2003 UK GAAP 'historical cost profit before interest and tax' (includes inventory holding gains and losses); 2004+ IFRS. Revenue: 2000-2003 UK GAAP 'Group turnover' (excl. joint ventures); 2004+ IFRS 'Total revenues and other income' (2004-2006 continuing operations, ex-Innovene). Visible discontinuity 2003->2004 from UK GAAP->IFRS and restatement. Figures as first reported in the Q4/full-year results 6-Ks (2000-2014; 2012-2013 as restated in the FY2013 6-K, 2004-2007 from continuing operations) and in the 20-F for 2015+. FY ends Dec 31.",
 	"anchors": [
 		{
 			"periodEnd": "2000-12-31",
 			"currency": "USD",
 			"revenue": 148062,
-			"operatingIncome": 16934,
+			"operatingIncome": 18704,
 			"quality": "reported",
-			"source": "BP 6-K Q4/FY2001 results (UK GAAP), consolidated statement of income",
+			"source": "BP 6-K Q4/FY2001 results (UK GAAP), group profit and loss account, historical cost profit before interest and tax",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000031380702000012/bp6k4q01.txt"
 		},
 		{
 			"periodEnd": "2001-12-31",
 			"currency": "USD",
 			"revenue": 174218,
-			"operatingIncome": 13100,
+			"operatingIncome": 14770,
 			"quality": "reported",
-			"source": "BP 6-K Q4/FY2001 results (UK GAAP), consolidated statement of income",
+			"source": "BP 6-K Q4/FY2001 results (UK GAAP), group profit and loss account, historical cost profit before interest and tax",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000031380702000012/bp6k4q01.txt"
 		},
 		{
 			"periodEnd": "2002-12-31",
 			"currency": "USD",
 			"revenue": 178721,
-			"operatingIncome": 11264,
+			"operatingIncome": 12543,
 			"quality": "reported",
-			"source": "BP 6-K Q4/FY2003 results (UK GAAP), group turnover and HC profit before taxation",
+			"source": "BP 6-K Q4/FY2003 results (UK GAAP), group profit and loss account, historical cost profit before interest and tax",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119163804000237/bp200402106k.txt"
 		},
 		{
 			"periodEnd": "2003-12-31",
 			"currency": "USD",
 			"revenue": 232571,
-			"operatingIncome": 16409,
+			"operatingIncome": 17260,
 			"quality": "reported",
-			"source": "BP 6-K Q4/FY2003 results (UK GAAP), group turnover and HC profit before taxation",
+			"source": "BP 6-K Q4/FY2003 results (UK GAAP), group profit and loss account, historical cost profit before interest and tax",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119163804000237/bp200402106k.txt"
 		},
 		{
 			"periodEnd": "2004-12-31",
 			"currency": "USD",
 			"revenue": 204456,
-			"operatingIncome": 24966,
+			"operatingIncome": 25746,
 			"quality": "reported",
-			"source": "BP 6-K Q4/FY2005 results (IFRS), summarized group income statement",
+			"source": "BP 6-K Q4/FY2005 results (IFRS), group income statement, profit before interest and taxation from continuing operations",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119163806000259/bp200602076k.txt"
 		},
 		{
 			"periodEnd": "2005-12-31",
 			"currency": "USD",
 			"revenue": 245486,
-			"operatingIncome": 31921,
+			"operatingIncome": 32682,
 			"quality": "reported",
-			"source": "BP 6-K Q4/FY2006 results (IFRS), summarized group income statement (continuing operations)",
+			"source": "BP 6-K Q4/FY2006 results (IFRS), group income statement, profit before interest and taxation from continuing operations",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119163807000340/bp200702066k.txt"
 		},
 		{
 			"periodEnd": "2006-12-31",
 			"currency": "USD",
 			"revenue": 274316,
-			"operatingIncome": 34642,
+			"operatingIncome": 35158,
 			"quality": "reported",
-			"source": "BP 6-K Q4/FY2006 results (IFRS), summarized group income statement (continuing operations)",
+			"source": "BP 6-K Q4/FY2006 results (IFRS), group income statement, profit before interest and taxation from continuing operations",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119163807000340/bp200702066k.txt"
 		},
 		{
 			"periodEnd": "2007-12-31",
 			"currency": "USD",
 			"revenue": 291438,
-			"operatingIncome": 31611,
+			"operatingIncome": 32352,
 			"quality": "reported",
-			"source": "BP 6-K Q4/FY2007 results, group income statement",
+			"source": "BP 6-K Q4/FY2007 results (IFRS), group income statement, profit before interest and taxation from continuing operations",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119163808000181/bp200802056k.txt"
 		},
 		{
 			"periodEnd": "2008-12-31",
 			"currency": "USD",
 			"revenue": 367053,
-			"operatingIncome": 34283,
+			"operatingIncome": 35239,
 			"quality": "reported",
-			"source": "BP 6-K Q4/FY2008 results, group income statement",
+			"source": "BP 6-K Q4/FY2008 results (IFRS), group income statement, profit before interest and taxation",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119163809000123/bp200902036k2.htm"
 		},
 		{
 			"periodEnd": "2009-12-31",
 			"currency": "USD",
 			"revenue": 246138,
-			"operatingIncome": 25124,
+			"operatingIncome": 26426,
 			"quality": "reported",
-			"source": "BP 6-K Q4/FY2009 results, group income statement",
+			"source": "BP 6-K Q4/FY2009 results (IFRS), group income statement, profit before interest and taxation",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119163810000100/bp201002026k2.htm"
 		},
 		{
 			"periodEnd": "2010-12-31",
 			"currency": "USD",
 			"revenue": 308928,
-			"operatingIncome": -4825,
+			"operatingIncome": -3702,
 			"quality": "reported",
-			"source": "BP 6-K Q4/FY2011 results, group income statement",
+			"source": "BP 6-K Q4/FY2011 results (IFRS), group income statement, profit before interest and taxation",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119163812000123/bp201202076k.htm"
 		},
 		{
 			"periodEnd": "2011-12-31",
 			"currency": "USD",
 			"revenue": 386463,
-			"operatingIncome": 38834,
+			"operatingIncome": 39817,
 			"quality": "reported",
-			"source": "BP 6-K Q4/FY2011 results, group income statement",
+			"source": "BP 6-K Q4/FY2011 results (IFRS), group income statement, profit before interest and taxation",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119163812000123/bp201202076k.htm"
 		},
 		{
 			"periodEnd": "2012-12-31",
 			"currency": "USD",
 			"revenue": 388074,
-			"operatingIncome": 18131,
+			"operatingIncome": 19769,
 			"quality": "reported",
-			"source": "BP 6-K Q4/FY2013 results, group income statement",
+			"source": "BP 6-K Q4/FY2013 results (IFRS), group income statement, profit before interest and taxation",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119312514034432/d669396d6k.htm"
 		},
 		{
 			"periodEnd": "2013-12-31",
 			"currency": "USD",
 			"revenue": 396217,
-			"operatingIncome": 30221,
+			"operatingIncome": 31769,
 			"quality": "reported",
-			"source": "BP 6-K Q4/FY2013 results, group income statement",
+			"source": "BP 6-K Q4/FY2013 results (IFRS), group income statement, profit before interest and taxation",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119312514034432/d669396d6k.htm"
 		},
 		{
 			"periodEnd": "2014-12-31",
 			"currency": "USD",
 			"revenue": 358678,
-			"operatingIncome": 4950,
+			"operatingIncome": 6412,
 			"quality": "reported",
-			"source": "BP 6-K Q4/FY2014 results, group income statement",
+			"source": "BP 6-K Q4/FY2014 results (IFRS), group income statement, profit before interest and taxation",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119163815000127/bp201502036k.htm"
 		},
 		{
 			"periodEnd": "2015-12-31",
 			"currency": "USD",
 			"revenue": 225982,
-			"operatingIncome": -9571,
+			"operatingIncome": -7918,
 			"quality": "reported",
-			"source": "BP Form 20-F (acc. 0001628280-18-003778) via SEC XBRL company concept",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+			"source": "BP Form 20-F FY2015, group income statement, profit (loss) before interest and taxation",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119312516492156/d80942d20f.htm"
 		},
 		{
 			"periodEnd": "2016-12-31",
 			"currency": "USD",
 			"revenue": 186606,
-			"operatingIncome": -2295,
+			"operatingIncome": -430,
 			"quality": "reported",
-			"source": "BP Form 20-F (acc. 0001628280-19-003618) via SEC XBRL company concept",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+			"source": "BP Form 20-F FY2016, group income statement, profit (loss) before interest and taxation",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000119312517112384/d248481d20f.htm"
 		},
 		{
 			"periodEnd": "2017-12-31",
 			"currency": "USD",
 			"revenue": 244582,
-			"operatingIncome": 7180,
+			"operatingIncome": 9474,
 			"quality": "reported",
-			"source": "BP Form 20-F (acc. 0001628280-20-003753) via SEC XBRL company concept",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+			"source": "BP Form 20-F FY2017, group income statement, profit (loss) before interest and taxation",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000162828018003778/bp20f31122017.htm"
 		},
 		{
 			"periodEnd": "2018-12-31",
 			"currency": "USD",
 			"revenue": 303738,
-			"operatingIncome": 16723,
+			"operatingIncome": 19378,
 			"quality": "reported",
-			"source": "BP Form 20-F (acc. 0001628280-21-005241) via SEC XBRL company concept",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+			"source": "BP Form 20-F FY2018, group income statement, profit (loss) before interest and taxation",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000162828019003618/a31122018bp20fcomb.htm"
 		},
 		{
 			"periodEnd": "2019-12-31",
 			"currency": "USD",
 			"revenue": 282616,
-			"operatingIncome": 8154,
+			"operatingIncome": 11706,
 			"quality": "reported",
-			"source": "BP Form 20-F (acc. 0001628280-21-005241 / 0000313807-22-000012) via SEC XBRL company concept",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+			"source": "BP Form 20-F FY2019, group income statement, profit (loss) before interest and taxation",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000162828020003753/a31122019bp20fdoc.htm"
 		},
 		{
 			"periodEnd": "2020-12-31",
 			"currency": "USD",
 			"revenue": 183500,
-			"operatingIncome": -24888,
+			"operatingIncome": -21740,
 			"quality": "reported",
-			"source": "BP Form 20-F (acc. 0001628280-21-005241 / 0000313807-23-000009) via SEC XBRL company concept",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+			"source": "BP Form 20-F FY2020, group income statement, profit (loss) before interest and taxation",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000162828021005241/bp-20201231.htm"
 		},
 		{
 			"periodEnd": "2021-12-31",
 			"currency": "USD",
 			"revenue": 164195,
-			"operatingIncome": 15227,
+			"operatingIncome": 18082,
 			"quality": "reported",
-			"source": "BP Form 20-F FY2023 (acc. 0000313807-24-000008) via SEC XBRL company concept",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+			"source": "BP Form 20-F FY2021, group income statement, profit (loss) before interest and taxation",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000031380722000012/bp-20211231.htm"
 		},
 		{
 			"periodEnd": "2022-12-31",
 			"currency": "USD",
 			"revenue": 248891,
-			"operatingIncome": 15405,
+			"operatingIncome": 18039,
 			"quality": "reported",
-			"source": "BP Form 20-F FY2024 (acc. 0000313807-25-000007) via SEC XBRL company concept",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+			"source": "BP Form 20-F FY2022, group income statement, profit (loss) before interest and taxation",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000031380723000009/bp-20221231.htm"
 		},
 		{
 			"periodEnd": "2023-12-31",
 			"currency": "USD",
 			"revenue": 213032,
-			"operatingIncome": 23749,
+			"operatingIncome": 27348,
 			"quality": "reported",
-			"source": "BP Form 20-F FY2025 (acc. 0000313807-26-000006) via SEC XBRL company concept",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+			"source": "BP Form 20-F FY2023, group income statement, profit (loss) before interest and taxation",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000031380724000008/bp-20231231.htm"
 		},
 		{
 			"periodEnd": "2024-12-31",
 			"currency": "USD",
 			"revenue": 194629,
-			"operatingIncome": 6782,
+			"operatingIncome": 11297,
 			"quality": "reported",
-			"source": "BP Form 20-F FY2025 (acc. 0000313807-26-000006) via SEC XBRL company concept",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+			"source": "BP Form 20-F FY2024, group income statement, profit (loss) before interest and taxation",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000031380725000007/bp-20241231.htm"
 		},
 		{
 			"periodEnd": "2025-12-31",
 			"currency": "USD",
 			"revenue": 192549,
-			"operatingIncome": 7746,
+			"operatingIncome": 12642,
 			"quality": "reported",
-			"source": "BP Form 20-F FY2025 (acc. 0000313807-26-000006) via SEC XBRL company concept",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000313807/ifrs-full/Revenue.json"
+			"source": "BP Form 20-F FY2025, group income statement, profit (loss) before interest and taxation",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/313807/000031380726000006/bp-20251231.htm"
 		}
 	]
 }
