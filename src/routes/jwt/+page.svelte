@@ -71,8 +71,8 @@
 			headerError = '';
 			payloadError = '';
 		}
-		signatureResult = view.signature;
-		signatureError = view.signatureError;
+		signatureResult = bad ? '' : view.signature;
+		signatureError = bad ? '' : view.signatureError;
 		decodeWarnings = view.warnings;
 		decodedPayload = view.payload;
 		unsignedBanner = view.unsigned;
