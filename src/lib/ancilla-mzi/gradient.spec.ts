@@ -20,26 +20,29 @@ function setupWith(
 }
 
 describe('adjoint gradient', () => {
-	const cases: [string, Setup][] = [
-		['(1,1) active AD', setupWith(1, 1, 'active', (n) => void (n.markov.amplitudeDamping = 1))],
+	// [label, setup, Strang steps]; the pseudomode case has the largest space, so it uses fewer steps.
+	const cases: [string, Setup, number][] = [
+		['(1,1) active AD', setupWith(1, 1, 'active', (n) => void (n.markov.amplitudeDamping = 1)), 12],
 		[
 			'(2,1) active, mixed Markov noise, pulses on both',
 			setupWith(2, 1, 'active+S', (n) => {
 				n.markov.dephasing = 0.3;
 				n.markov.transverse = 0.4;
 				n.markov.depolarizing = 0.2;
-			})
+			}),
+			12
 		],
 		[
 			'(1,1) Lorentzian dephasing d=3',
 			setupWith(1, 1, 'active', (n) => {
 				n.lorentzian = { kind: 'dephasing', gamma: 1, lambda: 5 };
-			})
+			}),
+			4
 		]
 	];
-	for (const [label, s] of cases) {
+	for (const [label, s, steps] of cases) {
 		it(`${label}: matches the hold and central differences`, () => {
-			const p = buildAncilla(s, 12);
+			const p = buildAncilla(s, steps);
 			const prng = new Prng(11);
 			for (const seed of [0, 1]) {
 				const params = seedParams(p, seed, prng);
