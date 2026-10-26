@@ -134,18 +134,33 @@ export function kernelSource(compiled: CompiledModel): string {
 	return lines.join('\n');
 }
 
-const ALLOWED_WORDS =
-	/^(?:[cspr]\d+|i|cols|rewards|start|end|const|let|for|Math|min|max|abs|exp|log|sqrt|floor|ceil|pow|NaN|Infinity)$/;
+const ALLOWED_WORDS = /^(?:[cspr]\d+|i|cols|rewards|start|end|const|let|for|NaN|Infinity)$/;
 
-/** Throws unless every word and character in `source` is one the generator emits. */
+/**
+ * The generator's tokens. `[` only opens an index by a slot number or `i`, `!` only starts `!==`
+ * and `.` only follows `Math` or sits inside a number, so `[]`, `![]` and computed property
+ * names (what JSFuck builds strings and reaches `Function` from) never tokenise.
+ */
+const TOKEN =
+	/\s+|(?<math>Math\.(?:min|max|abs|exp|log|sqrt|floor|ceil|pow)\b)|(?<word>[A-Za-z_]\w*)|\d+(?:\.\d*)?(?:e[+-]?\d+)?|(?<index>\[(?:\d+|i)\])|!==|===|&&|\|\||[-+*/<>=?:;,(){}]/y;
+
+/** Throws unless `source` is made only of the tokens the generator emits. */
 export function assertGenerated(source: string): void {
 	if (!source.startsWith(PREAMBLE)) throw new Error('codegen: missing preamble');
 	const body = source.slice(PREAMBLE.length);
-	if (!/^[\w\s.;=+\-*/<>!?:&|(),[\]{}]*$/.test(body))
-		throw new Error('codegen: unexpected character');
-	const words = body.replace(/(?<![\w$])\d+(?:\.\d*)?(?:e[+-]?\d+)?/g, '0').match(/[A-Za-z_]\w*/g);
-	for (const word of words ?? [])
-		if (!ALLOWED_WORDS.test(word)) throw new Error(`codegen: unexpected word "${word}"`);
+	TOKEN.lastIndex = 0;
+	let afterWord = false;
+	while (TOKEN.lastIndex < body.length) {
+		const at = TOKEN.lastIndex;
+		const m = TOKEN.exec(body);
+		if (!m) throw new Error(`codegen: unexpected character "${body[at]}"`);
+		const { word, index } = m.groups ?? {};
+		if (word !== undefined && !ALLOWED_WORDS.test(word))
+			throw new Error(`codegen: unexpected word "${word}"`);
+		// Only `c0[i]`, `cols[0]`, `rewards[0]`: an index follows a name directly.
+		if (index !== undefined && !afterWord) throw new Error('codegen: unexpected "["');
+		afterWord = word !== undefined;
+	}
 }
 
 /** Compile kernel source (from `kernelSource`) to a function. */
