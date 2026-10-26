@@ -24,8 +24,13 @@
 	let payloadJson = $state(
 		'{\n  "sub": "1234567890",\n  "name": "John Doe",\n  "iat": 1516239022\n}'
 	);
+	// The Encode editors' own JSON errors; a bad token never touches them
 	let headerError = $state('');
 	let payloadError = $state('');
+	// What the token decodes to, shown in the Header and Payload panels
+	let decodedHeaderJson = $state('');
+	let decodedPayloadJson = $state('');
+	let tokenError = $state('');
 	let encodeError = $state('');
 	let encodeNote = $state('');
 	let verification = $state<VerifyResult | null>(null);
@@ -51,12 +56,21 @@
 		...jsonWarnings(payloadJson).map((w) => `Payload: ${w}`)
 	]);
 
+	const NOT_A_JWT = 'Not a JWT. A JWT has three parts separated by dots.';
+
 	function decodeToken(t: string) {
 		const view = tokenView(t);
-		headerJson = view.headerJson;
-		payloadJson = view.payloadJson;
-		headerError = view.headerError;
-		payloadError = view.payloadError;
+		const bad = !!(view.headerError || view.payloadError);
+		tokenError = bad ? NOT_A_JWT : '';
+		decodedHeaderJson = bad || !t.trim() ? '' : view.headerJson;
+		decodedPayloadJson = bad ? '' : view.payloadJson;
+		// Only a good token replaces the Encode editors, so a bad paste keeps the last good JSON
+		if (!bad && t.trim()) {
+			headerJson = view.headerJson;
+			payloadJson = view.payloadJson;
+			headerError = '';
+			payloadError = '';
+		}
 		signatureResult = view.signature;
 		signatureError = view.signatureError;
 		decodeWarnings = view.warnings;
@@ -151,6 +165,7 @@
 							></textarea>
 						{/snippet}
 					</Field>
+					{#if tokenError}<Alert tone="danger">{tokenError}</Alert>{/if}
 					{#if unsignedBanner}<Alert tone="danger">{unsignedBanner}</Alert>{/if}
 					{#if decodeWarnings.length}
 						<Alert tone="warning">
@@ -224,15 +239,15 @@
 						size="sm"
 						variant="ghost"
 						aria-label="Copy header JSON"
-						disabled={!!headerError || !headerJson}
-						onclick={() => copy('Header', headerJson)}>Copy</Button
+						disabled={!decodedHeaderJson}
+						onclick={() => copy('Header', decodedHeaderJson)}>Copy</Button
 					>
 				{/snippet}
 				<div data-testid="decoded-header">
-					{#if headerError}
-						<p class="error-text">{headerError}</p>
+					{#if decodedHeaderJson}
+						<pre>{decodedHeaderJson}</pre>
 					{:else}
-						<pre>{headerJson}</pre>
+						<p class="muted">No token to decode</p>
 					{/if}
 				</div>
 			</Panel>
@@ -243,15 +258,15 @@
 						size="sm"
 						variant="ghost"
 						aria-label="Copy payload JSON"
-						disabled={!!payloadError || !payloadJson}
-						onclick={() => copy('Payload', payloadJson)}>Copy</Button
+						disabled={!decodedPayloadJson}
+						onclick={() => copy('Payload', decodedPayloadJson)}>Copy</Button
 					>
 				{/snippet}
 				<div class="stack" data-testid="decoded-payload">
-					{#if payloadError}
-						<p class="error-text">{payloadError}</p>
+					{#if decodedPayloadJson}
+						<pre>{decodedPayloadJson}</pre>
 					{:else}
-						<pre>{payloadJson}</pre>
+						<p class="muted">No token to decode</p>
 					{/if}
 					{#if claims.expired}
 						<Alert tone="danger">Expired</Alert>
