@@ -35,8 +35,9 @@ const config = {
 				'script-src': ['self', ...appHtmlHashes],
 				// Svelte and KaTeX write style attributes, which hashes can't cover.
 				'style-src': ['self', 'unsafe-inline'],
-				// QR codes (rank-vote) are data: URLs.
+				// QR codes (rank-vote) and Vite's inlined small KaTeX fonts are data: URLs.
 				'img-src': ['self', 'data:'],
+				'font-src': ['self', 'data:'],
 				'object-src': ['none'],
 				'base-uri': ['self'],
 				'form-action': ['self'],
