@@ -24,7 +24,10 @@ import {
 	addToHistogram,
 	parseSimCount,
 	parseSeed,
-	MAX_SEED
+	MAX_SEED,
+	characterError,
+	isValidStat,
+	STAT_KEYS
 } from './warhammer-simulator/simulation';
 import { PRESET_CHARACTERS } from './warhammer-simulator/presets';
 import type { Character, CombatResult } from './warhammer-simulator/types';
@@ -232,7 +235,8 @@ describe('CombatEngine', () => {
 
 	it('round distribution puts guaranteed round-1 kills in the first bin', () => {
 		const killer = makeChar({ ws: 10, s: 10, a: 10 });
-		const victim = makeChar({ ws: 1, t: 1, a: 0, wounds: 1 });
+		// Strikes last (I 1), so it dies before it attacks.
+		const victim = makeChar({ ws: 1, t: 1, a: 1, i: 1, wounds: 1 });
 		const results = new MonteCarloController(killer, victim, 7).run(200);
 		expect(results.avgRounds).toBe(1);
 		expect(results.roundDistribution).toEqual([200]);
@@ -882,5 +886,26 @@ describe('Input validation', () => {
 		for (const bad of ['-1', '1.5', 'abc', '1e3', String(MAX_SEED + 1)]) {
 			expect(parseSeed(bad).ok, bad).toBe(false);
 		}
+	});
+
+	it('characterError names the first stat out of range, fractional or cleared', () => {
+		const char = { ...makeChar(), ws: 4 };
+		expect(characterError(char, 'A')).toBeNull();
+		for (const key of STAT_KEYS) {
+			for (const bad of [0, 11, 2.5, NaN, null]) {
+				const c = { ...char, [key]: bad } as Character;
+				expect(isValidStat(c, key), `${key}=${bad}`).toBe(false);
+				expect(characterError(c, 'B'), `${key}=${bad}`).toMatch(/^Character B: \w+ must be/);
+			}
+		}
+		expect(characterError({ ...char, wounds: 0 }, 'A')).toBe(
+			'Character A: W must be a whole number from 1 to 10'
+		);
+	});
+
+	it('MonteCarloController refuses a character with a bad stat', () => {
+		const good = makeChar();
+		expect(() => new MonteCarloController(good, { ...good, a: 0 }, 1)).toThrow(/Character B: A/);
+		expect(() => new MonteCarloController({ ...good, s: 99 }, good, 1)).toThrow(/Character A: S/);
 	});
 });

@@ -2,6 +2,7 @@
 	import { PRESET_CHARACTERS } from '$lib/warhammer-simulator/presets';
 	import type { Character } from '$lib/warhammer-simulator/types';
 	import { computeEffectiveStats, isModelledSpecialRule } from '$lib/warhammer-simulator/rules';
+	import { MAX_STAT, MIN_STAT, isValidStat } from '$lib/warhammer-simulator/simulation';
 	import armouryData from '$lib/warhammer-simulator/data/armoury.json';
 	import factionsData from '$lib/warhammer-simulator/data/factions.json';
 	import { Button, Field, Panel } from '$lib/ui';
@@ -137,13 +138,17 @@
 			</div>
 			<div class="wh-row wh-stats">
 				{#each STATS as stat (stat.key)}
-					<Field label={stat.label} id="{prefix}-{stat.key === 'wounds' ? 'w' : stat.key}">
+					<Field
+						label={stat.label}
+						id="{prefix}-{stat.key === 'wounds' ? 'w' : stat.key}"
+						error={isValidStat(char, stat.key) ? undefined : `${MIN_STAT}–${MAX_STAT}`}
+					>
 						{#snippet children(props)}
 							<input
 								class="control wh-num"
 								type="number"
-								min="1"
-								max="10"
+								min={MIN_STAT}
+								max={MAX_STAT}
 								title={stat.title}
 								{...props}
 								bind:value={char[stat.key]}

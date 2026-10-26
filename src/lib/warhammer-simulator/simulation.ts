@@ -2,6 +2,26 @@ import type { Character, Charger, CombatResult, SimulationResults } from './type
 import { SeededRNG } from './rng';
 import { CombatEngine } from './combat';
 
+/** The profile stats a character builder edits, each a whole number in [MIN_STAT, MAX_STAT]. */
+export const STAT_KEYS = ['ws', 's', 't', 'a', 'i', 'wounds'] as const;
+export type StatKey = (typeof STAT_KEYS)[number];
+export const MIN_STAT = 1;
+export const MAX_STAT = 10;
+
+/** True when `char[key]` is a whole number in range; a cleared input binds null. */
+export const isValidStat = (char: Character, key: StatKey): boolean => {
+	const v: unknown = char[key];
+	return typeof v === 'number' && Number.isInteger(v) && v >= MIN_STAT && v <= MAX_STAT;
+};
+
+/** Why `char` can't fight, naming the first bad stat; null when every stat is in range. */
+export function characterError(char: Character, label: string): string | null {
+	const bad = STAT_KEYS.find((key) => !isValidStat(char, key));
+	if (bad === undefined) return null;
+	const name = bad === 'wounds' ? 'W' : bad.toUpperCase();
+	return `Character ${label}: ${name} must be a whole number from ${MIN_STAT} to ${MAX_STAT}`;
+}
+
 /**
  * MonteCarloController runs N simulations of the same matchup
  * and aggregates the results into statistical summaries.
@@ -13,6 +33,8 @@ export class MonteCarloController {
 	private charger: Charger;
 
 	constructor(charA: Character, charB: Character, baseSeed: number, charger: Charger = 'none') {
+		const error = characterError(charA, 'A') ?? characterError(charB, 'B');
+		if (error) throw new RangeError(error);
 		this.charA = charA;
 		this.charB = charB;
 		this.baseSeed = baseSeed;

@@ -10,6 +10,7 @@
 	import {
 		MAX_SIMULATIONS,
 		MIN_SIMULATIONS,
+		characterError,
 		parseSeed,
 		parseSimCount
 	} from '$lib/warhammer-simulator/simulation';
@@ -69,6 +70,11 @@
 			['A', charA],
 			['B', charB]
 		] as const) {
+			const statError = characterError(char, label);
+			if (statError) {
+				errorMessage = statError;
+				return;
+			}
 			const points = totalGiftPoints(char.traits);
 			if (points > GIFT_POINT_LIMIT) {
 				errorMessage = `Character ${label} exceeds ${GIFT_POINT_LIMIT} gift points (${points})`;

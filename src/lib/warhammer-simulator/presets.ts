@@ -104,10 +104,11 @@ export const PRESET_CHARACTERS: CharacterPreset[] = [
 		i: 6,
 		wounds: 3,
 		armourType: 'heavy',
-		wardSave: 5,
+		// An innate 4+ ward, so Immortal Fury (25 pts) fits the 50-point gift limit.
+		wardSave: 4,
 		weapon: 'hand-weapon',
 		shield: 'shield',
-		traits: ['immortal-fury', 'ward-4'],
+		traits: ['immortal-fury'],
 		specialRules: [],
 		description: 'A fast, deadly Vampire Lord with Hatred and a 4+ Ward save.'
 	},
