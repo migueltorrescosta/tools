@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { base } from '$app/paths';
-	import { routes } from '$lib/routes';
+	import { routes, TOOL_GROUPS } from '$lib/routes';
+
+	const groups = TOOL_GROUPS.map((group) => ({
+		group,
+		id: `group-${group.toLowerCase().replaceAll(' ', '-')}`,
+		tools: routes.filter((route) => route.group === group)
+	}));
 </script>
 
 <svelte:head>
@@ -13,16 +19,21 @@
 		<p class="intro-subtitle">Small utilities that run entirely in your browser.</p>
 	</header>
 
-	<ul class="grid">
-		{#each routes as route (route.path)}
-			<li>
-				<a class="tool-card" href={`${base}${route.path}`}>
-					<h2>{route.name}</h2>
-					<p>{route.description}</p>
-				</a>
-			</li>
-		{/each}
-	</ul>
+	{#each groups as { group, id, tools } (group)}
+		<section aria-labelledby={id}>
+			<h2 {id}>{group}</h2>
+			<ul class="grid">
+				{#each tools as route (route.path)}
+					<li>
+						<a class="tool-card" href={`${base}${route.path}`}>
+							<h3>{route.name}</h3>
+							<p>{route.description}</p>
+						</a>
+					</li>
+				{/each}
+			</ul>
+		</section>
+	{/each}
 </div>
 
 <style>
@@ -33,6 +44,17 @@
 	.intro-subtitle {
 		margin: var(--sp-1) 0 0;
 		font-size: var(--text-sm);
+		color: var(--text-muted);
+	}
+
+	section + section {
+		margin-top: var(--sp-4);
+	}
+
+	h2 {
+		margin: 0 0 var(--sp-1);
+		font-size: var(--text-sm);
+		font-weight: 600;
 		color: var(--text-muted);
 	}
 
@@ -61,7 +83,8 @@
 		background: var(--surface-2);
 	}
 
-	h2 {
+	h3 {
+		margin: 0;
 		font-size: var(--text-md);
 		color: var(--accent);
 	}
@@ -70,10 +93,33 @@
 		margin: var(--sp-1) 0 0;
 		font-size: var(--text-sm);
 		color: var(--text-muted);
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		line-clamp: 2;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
+	}
+
+	/* Phones: one list per group, a row per tool with its name beside the sentence */
+	@media (max-width: 600px) {
+		.grid {
+			display: block;
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: var(--radius);
+		}
+
+		li + li {
+			border-top: 1px solid var(--border);
+		}
+
+		.tool-card {
+			display: grid;
+			grid-template-columns: 9.5rem 1fr;
+			gap: var(--sp-2);
+			align-items: baseline;
+			background: transparent;
+			border: 0;
+			border-radius: 0;
+		}
+
+		p {
+			margin: 0;
+		}
 	}
 </style>
