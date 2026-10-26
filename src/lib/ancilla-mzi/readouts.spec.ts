@@ -85,24 +85,3 @@ describe('joint readouts beat the system alone', () => {
 		expect(r.best).toBe(Math.max(r.epSystem, r.epJoint, r.parity));
 	});
 });
-
-describe('readouts best is max of the three entries', () => {
-	// Kills a mutant that uses Math.min or drops one term.
-	it('nA=0: best equals max(epSystem, epJoint, parity) exactly', () => {
-		const { rho, drho } = mziState(3, 0.2, 'noon');
-		const r = readouts(rho, drho, 3, 0, new Prng(1));
-		expect(r.best).toBe(Math.max(r.epSystem, r.epJoint, r.parity));
-	});
-
-	// Kills a mutant that uses Math.min or drops one term.
-	it('nA>0 (nS=1,nA=1): best equals max(epSystem, epJoint, parity) exactly and > min when they differ', () => {
-		const { rho, drho } = mziState(2, 0.5, 'product');
-		const r = readouts(rho, drho, 1, 1, new Prng(3));
-		expect(r.best).toBe(Math.max(r.epSystem, r.epJoint, r.parity));
-		const minVal = Math.min(r.epSystem, r.epJoint, r.parity);
-		const maxVal = Math.max(r.epSystem, r.epJoint, r.parity);
-		if (maxVal - minVal > 1e-6) {
-			expect(r.best).toBeGreaterThan(minVal);
-		}
-	});
-});

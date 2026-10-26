@@ -462,11 +462,15 @@ describe('stale results and failures', () => {
 		expect(m.calls).toHaveLength(1);
 		engine.cancel();
 		expect(m.cancels()).toBe(1);
+		engine.run(spec(3), 300);
+		await tick();
+		engine.cancel();
 		engine.run(spec(2), 200);
 		await tick();
-		expect(m.calls).toHaveLength(2);
+		expect(m.calls).toHaveLength(3);
 		const old = m.calls[0]!;
-		const current = m.calls[1]!;
+		const failed = m.calls[1]!;
+		const current = m.calls[2]!;
 
 		events.length = 0;
 		old.listener.progress?.('main', 0.9);
@@ -478,31 +482,16 @@ describe('stale results and failures', () => {
 		// The only progress is the timer's, still on the new job: nothing of 'main' counted.
 		for (const e of events) if (e.type === 'progress') expect(e.fraction).toBeCloseTo(0.15, 12);
 
+		failed.reject(new Error('old failure'));
+		await tick();
+		expect(events.some((e) => e.type === 'error')).toBe(false);
+		expect(engine.running).toBe(true);
+
 		current.resolve({ scenarios: current.scenarios, analysis: sentinel });
 		await tick();
 		const done = events.find((e) => e.type === 'done');
 		expect(done?.type === 'done' && done.scenarios.n).toBe(200);
 		expect(engine.running).toBe(false);
-		engine.dispose();
-	});
-
-	// Kills the token guard in failedAnalysis.
-	it('ignores the error of a cancelled analysis', async () => {
-		const m = manualAnalyser();
-		const engine = engineOn(m.analyser);
-		const events: EngineEvent[] = [];
-		engine.subscribe((e) => events.push(e));
-		engine.run(spec(1), 100);
-		await tick();
-		engine.cancel();
-		engine.run(spec(2), 200);
-		await tick();
-		events.length = 0;
-		m.calls[0]!.reject(new Error('old failure'));
-		await tick();
-		expect(events.some((e) => e.type === 'error')).toBe(false);
-		expect(engine.running).toBe(true);
-		engine.cancel();
 		engine.dispose();
 	});
 
@@ -541,7 +530,7 @@ describe('stale results and failures', () => {
 		engine.dispose();
 	});
 
-	// Kills the chunk message, the rows counted per chunk and their share of the total.
+	// Kills the chunk message, the rows counted per chunk and their share of the total (0.15 for Simulating).
 	it('counts the rows of each chunk drawn into the simulating fraction', async () => {
 		const m = manualAnalyser();
 		let w!: ManualWorker;
@@ -555,7 +544,9 @@ describe('stale results and failures', () => {
 		w.reply(0, CHUNK_ROWS);
 		await tick();
 		// Half of the rows are drawn: half of the Simulating weight (0.15).
+		expect(fractions[0]).toBe(0);
 		expect(fractions.at(-1)).toBeCloseTo(0.075, 12);
+		expect(fractions.every((f) => [0, 0.075].some((k) => Math.abs(f - k) < 1e-12))).toBe(true);
 		engine.cancel();
 		engine.dispose();
 	});
@@ -734,24 +725,6 @@ describe('stale results and failures', () => {
 				expect(b.fraction).toBeGreaterThanOrEqual(a.fraction);
 			}
 		}
-		engine.cancel();
-		engine.dispose();
-	});
-
-	// Kills the done / total arithmetic of the simulating fraction.
-	it('reports the simulating fraction as the share of rows drawn', async () => {
-		const m = manualAnalyser();
-		const engine = engineOn(m.analyser);
-		const fractions: number[] = [];
-		engine.subscribe((e) => e.type === 'progress' && fractions.push(e.fraction));
-		engine.run(spec(1), 2 * CHUNK_ROWS);
-		await tick(100);
-		expect(m.calls).toHaveLength(1);
-		// Two equal chunks: 0, half and all of the Simulating weight (0.15).
-		expect(fractions[0]).toBe(0);
-		expect(fractions.at(-1)).toBeCloseTo(0.15, 12);
-		const known = [0, 0.075, 0.15];
-		expect(fractions.every((f) => known.some((k) => Math.abs(f - k) < 1e-12))).toBe(true);
 		engine.cancel();
 		engine.dispose();
 	});

@@ -72,81 +72,61 @@ describe('editor helpers', () => {
 });
 
 describe('errorAt / sameField', () => {
-	function makeError(where: Parameters<typeof errorAt>[1], message: string) {
-		return { where, message } as const;
-	}
-
-	// Kills a mutant that drops the kind check.
-	it('model kind: matches same kind, rejects different kind', () => {
-		const err = makeError({ kind: 'model' }, 'model error');
-		expect(errorAt([err], { kind: 'model' })).toBe(err);
-		expect(errorAt([err], { kind: 'reward' })).toBeUndefined();
-		expect(errorAt([err], { kind: 'input', index: 0, field: 'symbol' })).toBeUndefined();
-	});
-
-	// Kills a mutant that drops the kind check.
-	it('reward kind: matches same kind, rejects different kind', () => {
-		const err = makeError({ kind: 'reward' }, 'reward error');
-		expect(errorAt([err], { kind: 'reward' })).toBe(err);
-		expect(errorAt([err], { kind: 'model' })).toBeUndefined();
-	});
-
-	// Kills a mutant that ignores index/field/param for input.
-	it('input kind: matches equal index, field, param; rejects different index, field, param, or undefined vs 0', () => {
-		const err = makeError({ kind: 'input', index: 1, field: 'params', param: 0 }, 'input error');
-		expect(errorAt([err], { kind: 'input', index: 1, field: 'params', param: 0 })).toBe(err);
-		expect(errorAt([err], { kind: 'input', index: 0, field: 'params', param: 0 })).toBeUndefined(); // different index
-		expect(errorAt([err], { kind: 'input', index: 1, field: 'symbol', param: 0 })).toBeUndefined(); // different field
-		expect(errorAt([err], { kind: 'input', index: 1, field: 'params', param: 1 })).toBeUndefined(); // different param
-		expect(errorAt([err], { kind: 'input', index: 1, field: 'params' })).toBeUndefined(); // param undefined vs 0
-		expect(
-			errorAt([err], { kind: 'input', index: 1, field: 'params', param: undefined })
-		).toBeUndefined(); // explicit undefined vs 0
-	});
-
-	// Kills a mutant that ignores index/field for intermediate.
-	it('intermediate kind: matches equal index, field; rejects different index or field', () => {
-		const err = makeError(
+	type Where = Parameters<typeof errorAt>[1];
+	// Each location, and others that must not match it, in both directions: a different kind,
+	// index, field or part, and a missing part (the default of a missing part is not part 0 or 1).
+	const cases: [string, Where, Where[]][] = [
+		[
+			'model',
+			{ kind: 'model' },
+			[{ kind: 'reward' }, { kind: 'input', index: 0, field: 'symbol' }]
+		],
+		['reward', { kind: 'reward' }, [{ kind: 'model' }]],
+		[
+			'input',
+			{ kind: 'input', index: 1, field: 'params', param: 0 },
+			[
+				{ kind: 'input', index: 0, field: 'params', param: 0 },
+				{ kind: 'input', index: 1, field: 'symbol', param: 0 },
+				{ kind: 'input', index: 1, field: 'params', param: 1 },
+				{ kind: 'input', index: 1, field: 'params' },
+				{ kind: 'input', index: 1, field: 'params', param: undefined }
+			]
+		],
+		[
+			'input with param 1',
+			{ kind: 'input', index: 0, field: 'params', param: 1 },
+			[{ kind: 'input', index: 0, field: 'params' }]
+		],
+		[
+			'intermediate',
 			{ kind: 'intermediate', index: 0, field: 'formula' },
-			'intermediate error'
-		);
-		expect(errorAt([err], { kind: 'intermediate', index: 0, field: 'formula' })).toBe(err);
-		expect(errorAt([err], { kind: 'intermediate', index: 1, field: 'formula' })).toBeUndefined(); // different index
-		expect(errorAt([err], { kind: 'intermediate', index: 0, field: 'symbol' })).toBeUndefined(); // different field
-	});
+			[
+				{ kind: 'intermediate', index: 1, field: 'formula' },
+				{ kind: 'intermediate', index: 0, field: 'symbol' }
+			]
+		],
+		[
+			'decisions',
+			{ kind: 'decisions', field: 'values', index: 1 },
+			[
+				{ kind: 'decisions', field: 'values', index: 0 },
+				{ kind: 'decisions', field: 'label', index: 1 },
+				{ kind: 'decisions', field: 'values' },
+				{ kind: 'decisions', field: 'values', index: undefined }
+			]
+		],
+		['decisions without index', { kind: 'decisions', field: 'values' }, []]
+	];
 
-	// Kills a mutant that ignores index for decisions or treats undefined as 0.
-	it('decisions kind: matches equal field, index; rejects different field, different index, or undefined vs 0', () => {
-		const err = makeError({ kind: 'decisions', field: 'values', index: 1 }, 'decisions error');
-		expect(errorAt([err], { kind: 'decisions', field: 'values', index: 1 })).toBe(err);
-		expect(errorAt([err], { kind: 'decisions', field: 'values', index: 0 })).toBeUndefined(); // different index
-		expect(errorAt([err], { kind: 'decisions', field: 'label', index: 1 })).toBeUndefined(); // different field
-		expect(errorAt([err], { kind: 'decisions', field: 'values' })).toBeUndefined(); // index undefined vs 1
-		expect(
-			errorAt([err], { kind: 'decisions', field: 'values', index: undefined })
-		).toBeUndefined(); // explicit undefined vs 1
-	});
-});
-
-describe('errorAt with missing optional parts', () => {
-	// Kills the `?? -1` defaults of sameField: a missing part is not the part 1.
-	it('tells param 1 from no param, and index 1 from no index, in both directions', () => {
-		const withParam = {
-			where: { kind: 'input', index: 0, field: 'params', param: 1 },
-			message: 'a'
-		} as const;
-		const noParam = { where: { kind: 'input', index: 0, field: 'params' }, message: 'b' } as const;
-		expect(errorAt([withParam], noParam.where)).toBeUndefined();
-		expect(errorAt([noParam], withParam.where)).toBeUndefined();
-		const withIndex = {
-			where: { kind: 'decisions', field: 'values', index: 1 },
-			message: 'c'
-		} as const;
-		const noIndex = { where: { kind: 'decisions', field: 'values' }, message: 'd' } as const;
-		expect(errorAt([withIndex], noIndex.where)).toBeUndefined();
-		expect(errorAt([noIndex], withIndex.where)).toBeUndefined();
-		expect(errorAt([noParam], noParam.where)).toBe(noParam);
-		expect(errorAt([noIndex], noIndex.where)).toBe(noIndex);
+	// Kills the kind, index, field and part checks, and the defaults of a missing part.
+	it.each(cases)('%s: finds its own error and no other', (_, where, others) => {
+		const own = { where, message: 'own' };
+		expect(errorAt([own], where)).toBe(own);
+		for (const other of others) {
+			expect(errorAt([own], other)).toBeUndefined();
+			expect(errorAt([{ where: other, message: 'other' }], where)).toBeUndefined();
+		}
 	});
 });
 

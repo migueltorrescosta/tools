@@ -82,32 +82,15 @@ describe('computeMzi', () => {
 
 describe('oatState popcount and phases', () => {
 	// Kills a popcount that returns a constant or miscounts bits.
-	it('n=3, theta=0, mu=0.7: amplitude matches independent bit count for all 8 basis states', () => {
-		const n = 3;
-		const mu = 0.7;
-		const theta = 0;
-		const state = oatState(n, mu, theta);
+	it.each([
+		[3, 0.7],
+		[4, 1.3]
+	])('n=%i, theta=0, mu=%f: amplitudes match an independent bit count', (n, mu) => {
+		const state = oatState(n, mu, 0);
 		const dim = 2 ** n;
 		const a = 1 / Math.sqrt(dim);
 		for (let i = 0; i < dim; i++) {
 			const pop = i.toString(2).replace(/0/g, '').length; // independent bit count
-			const jz = n / 2 - pop;
-			const phi = -0.5 * mu * jz * jz;
-			expect(state.re[i]).toBeCloseTo(a * Math.cos(phi), 12);
-			expect(state.im[i]).toBeCloseTo(a * Math.sin(phi), 12);
-		}
-	});
-
-	// Kills a popcount that returns a constant or miscounts bits.
-	it('n=4, mu=1.3, theta=0: amplitude matches independent bit count for all 16 basis states', () => {
-		const n = 4;
-		const mu = 1.3;
-		const theta = 0;
-		const state = oatState(n, mu, theta);
-		const dim = 2 ** n;
-		const a = 1 / Math.sqrt(dim);
-		for (let i = 0; i < dim; i++) {
-			const pop = i.toString(2).replace(/0/g, '').length;
 			const jz = n / 2 - pop;
 			const phi = -0.5 * mu * jz * jz;
 			expect(state.re[i]).toBeCloseTo(a * Math.cos(phi), 12);
