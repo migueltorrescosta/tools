@@ -12,6 +12,7 @@ import {
 	type Role,
 	type Setup
 } from './types';
+import { BUDGET_LIMITS } from './limits';
 import { type CMat, type CRect, axpy, identity, kron, matmul, zeros } from './linalg';
 import { HoldMap } from './hold';
 import { GradientHold } from './gradient';
@@ -56,6 +57,10 @@ export function kronAll(ops: readonly CMat[]): CMat {
 function hasBath(noise: RegisterNoise): boolean {
 	return noise.lorentzian.kind !== 'none' && noise.lorentzian.gamma > 0;
 }
+
+/** Strang steps M for a budget's `steps`: rounded, at least 2 so pulses fall between steps. */
+export const strangSteps = (steps: number): number =>
+	Math.max(BUDGET_LIMITS.steps.min, Math.round(steps));
 
 /** Step boundary of a pulse at `time` in a hold of length t with M steps: round(time / t · M), clamped to [1, M − 1]. */
 export function pulseBoundary(time: number, t: number, steps: number): number {
@@ -118,7 +123,7 @@ export function buildAncilla(setup: Setup, steps: number, role: Role = 'setup'):
 		: s.pmLevels;
 	const reg = makeRegister(s.nS, s.nA, modeQubits, modeQubits.length ? levels : 0);
 	const T = s.ancillaHold;
-	const M = exact ? 1 : Math.max(2, Math.round(steps));
+	const M = exact ? 1 : strangSteps(steps);
 	const generator = collectiveSpin(reg, 'z', 'S');
 	if (s.nA > 0) axpy(s.ancillaWeight, 0, collectiveSpin(reg, 'z', 'A'), generator);
 	const js = AXES.map((a) => collectiveSpin(reg, a, 'S'));
@@ -270,7 +275,7 @@ export function buildMzi(setup: Setup, steps: number): MziProblem {
 				perQubit.map((q) => q.lorentzian)
 			)
 		: zeros(reg.dim);
-	const M = exact ? 1 : Math.max(1, Math.round(steps));
+	const M = exact ? 1 : strangSteps(steps);
 	const hold = (window: number, bias = 0, m = M): HoldMap => {
 		const nSteps = exact ? 1 : m;
 		const h = zeros(reg.dim);

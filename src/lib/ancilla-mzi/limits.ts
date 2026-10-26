@@ -1,5 +1,12 @@
 /** Which setups the engine runs, and why it refuses the rest. No DOM imports. */
-import { freeControls, type LorentzianKind, type RegisterNoise, type Setup } from './types';
+import { MAX_WORKERS } from '$lib/worker-pool';
+import {
+	freeControls,
+	type Budget,
+	type LorentzianKind,
+	type RegisterNoise,
+	type Setup
+} from './types';
 
 const MAX_PARTICLES = 4;
 export const MAX_PULSES = 4;
@@ -23,6 +30,33 @@ interface SetupError {
 }
 
 const isInt = (v: number) => Number.isInteger(v);
+
+/**
+ * Whole-number range of each budget field. The share-link parser drops values outside it and
+ * `validateBudget` reports them; the ancilla hold needs M ≥ 2 so pulses fall between steps.
+ */
+export const BUDGET_LIMITS: Record<keyof Budget, { min: number; max: number; label: string }> = {
+	steps: { min: 2, max: 400, label: 'Strang steps M' },
+	rounds: { min: 1, max: 50, label: 'Rounds per seed' },
+	maxIter: { min: 1, max: 1000, label: 'Iterations per round' },
+	seesawIter: { min: 1, max: 1000, label: 'See-saw iterations' },
+	workers: { min: 0, max: MAX_WORKERS, label: 'Workers' },
+	seed: { min: 0, max: 2 ** 32 - 1, label: 'Seed' }
+};
+
+/** Every reason the budget can't run, with fields `budget.<key>`; empty when it can. */
+export function validateBudget(budget: Budget): SetupError[] {
+	const errors: SetupError[] = [];
+	for (const [key, { min, max, label }] of Object.entries(BUDGET_LIMITS)) {
+		const v = budget[key as keyof Budget];
+		if (typeof v !== 'number' || !isInt(v) || v < min || v > max)
+			errors.push({
+				field: `budget.${key}`,
+				message: `${label} must be a whole number from ${min} to ${max}.`
+			});
+	}
+	return errors;
+}
 
 /** The registers whose noise acts: the ancilla's only when there is an ancilla. */
 function activeRegisters(setup: Setup): Register[] {

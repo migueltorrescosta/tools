@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { lorentzianErrors, needsPseudomodes, validateSetup } from './limits';
+import { lorentzianErrors, needsPseudomodes, validateBudget, validateSetup } from './limits';
+import { DEFAULT_BUDGET } from './presets';
 import { applyPreset, defaultSetup, noiseless } from './presets';
-import type { Setup } from './types';
+import type { Budget, Setup } from './types';
 
 const fields = (s: Setup) => validateSetup(s).map((e) => e.field);
 
@@ -122,5 +123,30 @@ describe('Lorentzian limits', () => {
 		expect(validateSetup(s)).toEqual([]);
 		s.noise.system.lorentzian.kind = 'dephasing';
 		expect(fields(s)).toContain('noise.system.lorentzian.lambda');
+	});
+});
+
+describe('validateBudget', () => {
+	const fieldsOf = (b: Partial<Budget>) =>
+		validateBudget({ ...DEFAULT_BUDGET, ...b }).map((e) => e.field);
+
+	it('accepts the default budget', () => {
+		expect(validateBudget(DEFAULT_BUDGET)).toEqual([]);
+	});
+
+	it('flags each field out of range, fractional or cleared', () => {
+		expect(fieldsOf({ steps: 1 })).toEqual(['budget.steps']);
+		expect(fieldsOf({ steps: 401 })).toEqual(['budget.steps']);
+		expect(fieldsOf({ rounds: 0 })).toEqual(['budget.rounds']);
+		expect(fieldsOf({ maxIter: 2.5 })).toEqual(['budget.maxIter']);
+		expect(fieldsOf({ seesawIter: NaN })).toEqual(['budget.seesawIter']);
+		expect(fieldsOf({ workers: 17 })).toEqual(['budget.workers']);
+		expect(fieldsOf({ workers: -1 })).toEqual(['budget.workers']);
+		expect(fieldsOf({ seed: -1 })).toEqual(['budget.seed']);
+		// A cleared number input binds null.
+		expect(fieldsOf({ steps: null as unknown as number })).toEqual(['budget.steps']);
+		expect(validateBudget({ ...DEFAULT_BUDGET, steps: 1 })[0].message).toBe(
+			'Strang steps M must be a whole number from 2 to 400.'
+		);
 	});
 });

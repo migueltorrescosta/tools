@@ -1,5 +1,6 @@
 /** Share URLs and saved state for the Ancilla vs MZI page. No DOM imports. */
 import { readJson } from '$lib/persist-gate';
+import { BUDGET_LIMITS } from './limits';
 import { DEFAULT_BUDGET, cloneNoise, defaultSetup, noiseless, sameNoise } from './presets';
 import type {
 	Budget,
@@ -210,12 +211,11 @@ export function decodeShareParams(params: URLSearchParams): ShareState {
 	setup.noise = { system, ancilla };
 
 	const b = params.get('b')?.split(SEP) ?? [];
-	budget.steps = int(b[0], 2, 400) ?? budget.steps;
-	budget.rounds = int(b[1], 1, 50) ?? budget.rounds;
-	budget.maxIter = int(b[2], 1, 1000) ?? budget.maxIter;
-	budget.seesawIter = int(b[3], 1, 1000) ?? budget.seesawIter;
-	budget.workers = int(b[4], 0, 16) ?? budget.workers;
-	budget.seed = int(b[5], 0, 2 ** 32 - 1) ?? budget.seed;
+	const keys = ['steps', 'rounds', 'maxIter', 'seesawIter', 'workers', 'seed'] as const;
+	keys.forEach((key, k) => {
+		const { min, max } = BUDGET_LIMITS[key];
+		budget[key] = int(b[k], min, max) ?? budget[key];
+	});
 	return { setup, budget };
 }
 

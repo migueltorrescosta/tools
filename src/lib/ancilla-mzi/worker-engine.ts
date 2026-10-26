@@ -8,10 +8,10 @@
  * are re-run first on Continue, so the seed set stays the same as in an
  * uninterrupted run.
  */
-import { clampWorkers, defaultWorkerCount, type WorkerLike as PoolWorker } from '$lib/worker-pool';
+import { defaultWorkerCount, type WorkerLike as PoolWorker } from '$lib/worker-pool';
 import type { FromWorker, ToWorker } from './host';
 import { hasCompanion } from './build';
-import { validateSetup } from './limits';
+import { validateBudget, validateSetup } from './limits';
 import { computeMetrics } from './metrics';
 import type {
 	AncillaEngine,
@@ -82,7 +82,7 @@ class WorkerAncillaEngine implements AncillaEngine {
 
 	start(setup: Setup, budget: Budget): void {
 		this.halt();
-		const errors = validateSetup(setup);
+		const errors = [...validateSetup(setup), ...validateBudget(budget)];
 		if (errors.length) {
 			this.emit({ type: 'error', message: errors[0].message });
 			return;
@@ -151,7 +151,8 @@ class WorkerAncillaEngine implements AncillaEngine {
 	private launch(): void {
 		const setup = this.setup as Setup;
 		const budget = this.budget as Budget;
-		const n = budget.workers > 0 ? clampWorkers(budget.workers) : defaultWorkerCount();
+		// start() refused budgets outside BUDGET_LIMITS, so this is at most MAX_WORKERS.
+		const n = budget.workers > 0 ? budget.workers : defaultWorkerCount();
 		this.running = true;
 		this.startedAt = now();
 		for (let i = 0; i < n; i++) {
