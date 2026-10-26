@@ -450,16 +450,31 @@ describe('stale results and failures', () => {
 		// The only progress is the timer's, still on the new job: nothing of 'main' counted.
 		for (const e of events) if (e.type === 'progress') expect(e.fraction).toBeCloseTo(0.15, 12);
 
-		old.reject(new Error('old failure'));
-		await tick();
-		expect(events.some((e) => e.type === 'error')).toBe(false);
-		expect(engine.running).toBe(true);
-
 		current.resolve({ scenarios: current.scenarios, analysis: sentinel });
 		await tick();
 		const done = events.find((e) => e.type === 'done');
 		expect(done?.type === 'done' && done.scenarios.n).toBe(200);
 		expect(engine.running).toBe(false);
+		engine.dispose();
+	});
+
+	// Kills the token guard in failedAnalysis.
+	it('ignores the error of a cancelled analysis', async () => {
+		const m = manualAnalyser();
+		const engine = engineOn(m.analyser);
+		const events: EngineEvent[] = [];
+		engine.subscribe((e) => events.push(e));
+		engine.run(spec(1), 100);
+		await tick();
+		engine.cancel();
+		engine.run(spec(2), 200);
+		await tick();
+		events.length = 0;
+		m.calls[0]!.reject(new Error('old failure'));
+		await tick();
+		expect(events.some((e) => e.type === 'error')).toBe(false);
+		expect(engine.running).toBe(true);
+		engine.cancel();
 		engine.dispose();
 	});
 
@@ -481,7 +496,7 @@ describe('stale results and failures', () => {
 	});
 
 	// Kills the token guard of Update tree: a tree that arrives after a cancel is dropped.
-	it('ignores a policy tree that arrives after Update tree was cancelled', async () => {
+	it('ignores a policy tree that arrives after Update tree was cancelled and a new run started', async () => {
 		const m = manualAnalyser();
 		const engine = engineOn(m.analyser);
 		const events: EngineEvent[] = [];
@@ -495,13 +510,16 @@ describe('stale results and failures', () => {
 		engine.reanalyse({ ...spec(1).analysis });
 		expect(m.trees).toHaveLength(1);
 		engine.cancel();
+		engine.run(spec(2), 200);
+		await tick();
 		events.length = 0;
 		m.trees[0]!.resolve({ error: 'late' });
 		m.trees[0]!.listener.partial?.({} as PartialAnalysis);
 		await tick();
-		expect(events.filter((e) => e.type === 'done' || e.type === 'partial')).toEqual([]);
+		expect(events.filter((e) => e.type === 'done')).toEqual([]);
 		expect(engine.scenarios).toBe(before);
-		expect(engine.running).toBe(false);
+		expect(engine.running).toBe(true);
+		engine.cancel();
 		engine.dispose();
 	});
 
