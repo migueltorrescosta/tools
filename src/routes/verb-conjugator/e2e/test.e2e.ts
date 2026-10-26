@@ -24,7 +24,8 @@ async function seedSingleCardSet(page: Page) {
 
 const stats = (page: Page) => page.getByTestId('stats');
 const historyRows = (page: Page) => page.getByTestId('history').getByRole('row');
-const answerBox = (page: Page) => page.getByRole('textbox', { name: /^(Risposta|Respuesta|Resposta): .+$/ });
+const answerBox = (page: Page) =>
+	page.getByRole('textbox', { name: /^(Risposta|Respuesta|Resposta): .+$/ });
 
 async function blankIndex(page: Page) {
 	const rows = page.getByTestId('card-row');

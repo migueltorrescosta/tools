@@ -338,7 +338,9 @@
 								<td class="vc-translation">{line.translation}</td>
 								{#if current}
 									<td class="vc-answer" colspan="2"
-										><span class="vc-blank">______</span><span class="sr-only">{lang.ui.toAnswer}</span></td
+										><span class="vc-blank">______</span><span class="sr-only"
+											>{lang.ui.toAnswer}</span
+										></td
 									>
 								{:else}
 									<td class="vc-person">{line.person}</td>
@@ -374,10 +376,12 @@
 			<p class="vc-feedback" role="status" data-state={feedback?.isCorrect ? 'correct' : 'wrong'}>
 				{#if feedback}
 					{#if feedback.isCorrect}
-						<span aria-hidden="true">✓</span> {lang.ui.correct}: {feedback.person}
+						<span aria-hidden="true">✓</span>
+						{lang.ui.correct}: {feedback.person}
 						{feedback.correctAnswer}
 					{:else}
-						<span aria-hidden="true">✗</span> {lang.ui.notQuite}: {feedback.person}
+						<span aria-hidden="true">✗</span>
+						{lang.ui.notQuite}: {feedback.person}
 						{feedback.correctAnswer}
 						<span class="vc-muted">({lang.ui.yourAnswer}: {feedback.userAnswer})</span>
 					{/if}

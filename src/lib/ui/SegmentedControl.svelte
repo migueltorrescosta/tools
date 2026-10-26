@@ -1,3 +1,9 @@
+<!--
+	The single-choice picker for a few short options (Format, language, view mode).
+	Pickers: SegmentedControl for one of a few; a Select for one of many long options;
+	pressed Buttons (aria-pressed) only for independent toggles, many of many (verb chips).
+	One of many short chips (Volt's country filter) is a radio group styled as chips.
+-->
 <script lang="ts" generics="T extends string">
 	const uid = $props.id();
 

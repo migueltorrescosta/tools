@@ -34,16 +34,16 @@ test('decodes the default sample token into the panels', async ({ page }) => {
 	await expect(u.payload).toContainText('iat: 2018-01-18T01:30:22.000Z');
 });
 
-test('a malformed paste shows one plain message and keeps the Encode editors', async ({
-	page
-}) => {
+test('a malformed paste shows one plain message and keeps the Encode editors', async ({ page }) => {
 	const u = ui(page);
 	await expect(u.payload).toContainText('John Doe');
 	const header = await u.headerJson.inputValue();
 	const payload = await u.payloadJson.inputValue();
 	for (const bad of ['part1.part2', 'a.b.c', '!!!.###.$$$']) {
 		await u.token.fill(bad);
-		await expect(page.getByText('Not a JWT. A JWT has three parts separated by dots.')).toBeVisible();
+		await expect(
+			page.getByText('Not a JWT. A JWT has three parts separated by dots.')
+		).toBeVisible();
 		await expect(u.payload).not.toContainText('John Doe');
 		await expect(page.getByTestId('signature-value')).toHaveText('Not available');
 		// The Encode editors keep their last good JSON and show no decode errors

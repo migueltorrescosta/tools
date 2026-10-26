@@ -543,8 +543,7 @@
 								class="estimate"
 								style:color={anyClaim
 									? amountColour(estimates[i], fairShare, estimateMax)
-									: 'var(--text-muted)'}
-								>≈ {paymentLabel(estimates[i], fmt)}</span
+									: 'var(--text-muted)'}>≈ {paymentLabel(estimates[i], fmt)}</span
 							>
 						</li>
 					{/each}
