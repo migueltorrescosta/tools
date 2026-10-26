@@ -4,241 +4,241 @@
 	"type": "pharma",
 	"country": "US",
 	"reportingCurrency": "USD",
-	"notes": "revenue = 'Revenue' (pre-2005 'Net sales'). operatingIncome = 'Income before income taxes' (continuing operations) for all years, since Lilly reports no consistent operating income line 2000-2025. Figures as originally reported in the 10-K for that year (2010-2012 from FY2012 10-K, 2013-2015 from FY2015 10-K). 2018 and earlier include Elanco animal health; 2019+ exclude it (Elanco treated as discontinued ops from 2019; FY2019 10-K restates 2018 revenue to 21,493.3 and pre-tax to 3,680.1). 2008 pre-tax loss reflects $4.69B ImClone acquired IPR&D charge. 2010-2025 figures read from SEC XBRL companyconcept API filtered by 10-K accession; pre-tax sourceUrl is the IncomeLoss...BeforeIncomeTaxes concept endpoint named in source.",
+	"notes": "revenue = 'Revenue' (pre-2005 'Net sales'). Lilly reports no operating income line in any year, so operatingIncome is derived for all years (quality estimated) from the income statement as revenue less cost of sales, research and development, marketing/selling and administrative, acquired in-process R&D (and development milestones) and asset impairment, restructuring and other special charges. Interest expense and 'Other income/expense, net' (interest, investment gains and losses, other) are excluded. Acquired IPR&D and special charges stay in, so 2008 (4.8bn ImClone and other IPR&D charges, 2.0bn special charges) is a loss. Each year as first reported in its 10-K (2000-2001 from the FY2002 Exhibit 13, 2010-2012 from FY2012, 2013-2015 from FY2015, 2020-2022 from FY2022). 2018 and earlier include Elanco animal health; 2019+ exclude it (FY2019 10-K restates 2018 to 3,534.5 and 2017 to 2,003.3). From 2018 non-service pension cost moved out of operating costs (ASU 2017-07): 2017 on the new basis would be 1,896.9 instead of 2,145.0.",
 	"anchors": [
 		{
 			"periodEnd": "2000-12-31",
 			"currency": "USD",
 			"revenue": 10862.2,
-			"operatingIncome": 3858.7,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2004, Exhibit 13 Selected Financial Data",
-			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000095013405004385/c92539exv13.htm"
+			"operatingIncome": 3559.7,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2002 Exhibit 13, Consolidated Statements of Income (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000095013703001575/c75275exv13.htm"
 		},
 		{
 			"periodEnd": "2001-12-31",
 			"currency": "USD",
 			"revenue": 11542.5,
-			"operatingIncome": 3506.9,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2004, Exhibit 13 Selected Financial Data",
-			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000095013405004385/c92539exv13.htm"
+			"operatingIncome": 3417.9,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2002 Exhibit 13, Consolidated Statements of Income (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000095013703001575/c75275exv13.htm"
 		},
 		{
 			"periodEnd": "2002-12-31",
 			"currency": "USD",
 			"revenue": 11077.5,
-			"operatingIncome": 3457.7,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2004, Exhibit 13 Selected Financial Data",
+			"operatingIncome": 3243.7,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2004 Exhibit 13, Consolidated Statements of Income (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000095013405004385/c92539exv13.htm"
 		},
 		{
 			"periodEnd": "2003-12-31",
 			"currency": "USD",
 			"revenue": 12582.5,
-			"operatingIncome": 3261.7,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2004, Exhibit 13 Selected Financial Data",
+			"operatingIncome": 3119.6,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2004 Exhibit 13, Consolidated Statements of Income (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000095013405004385/c92539exv13.htm"
 		},
 		{
 			"periodEnd": "2004-12-31",
 			"currency": "USD",
 			"revenue": 13857.9,
-			"operatingIncome": 2941.9,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2004, Exhibit 13 Selected Financial Data",
+			"operatingIncome": 2663.5,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2004 Exhibit 13, Consolidated Statements of Income (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000095013405004385/c92539exv13.htm"
 		},
 		{
 			"periodEnd": "2005-12-31",
 			"currency": "USD",
 			"revenue": 14645.3,
-			"operatingIncome": 2717.5,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2009, Selected Financial Data (unaudited)",
-			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000095012310014958/c55339ke10vk.htm"
+			"operatingIncome": 2403.3,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2006, Consolidated Statements of Income (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000095013707003013/c12621e10vk.htm"
 		},
 		{
 			"periodEnd": "2006-12-31",
 			"currency": "USD",
 			"revenue": 15691.0,
-			"operatingIncome": 3418.0,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2009, Selected Financial Data (unaudited)",
-			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000095012310014958/c55339ke10vk.htm"
+			"operatingIncome": 3180.2,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2006, Consolidated Statements of Income (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000095013707003013/c12621e10vk.htm"
 		},
 		{
 			"periodEnd": "2007-12-31",
 			"currency": "USD",
 			"revenue": 18633.5,
-			"operatingIncome": 3876.8,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2009, Selected Financial Data (unaudited)",
+			"operatingIncome": 3754.8,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2009, Consolidated Statements of Income (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000095012310014958/c55339ke10vk.htm"
 		},
 		{
 			"periodEnd": "2008-12-31",
 			"currency": "USD",
 			"revenue": 20371.9,
-			"operatingIncome": -1307.6,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2009, Selected Financial Data (unaudited)",
+			"operatingIncome": -1281.5,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2009, Consolidated Statements of Income (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000095012310014958/c55339ke10vk.htm"
 		},
 		{
 			"periodEnd": "2009-12-31",
 			"currency": "USD",
 			"revenue": 21836.0,
-			"operatingIncome": 5357.8,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2009, Selected Financial Data (unaudited)",
+			"operatingIncome": 5587.3,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2009, Consolidated Statements of Income (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
 			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000095012310014958/c55339ke10vk.htm"
 		},
 		{
 			"periodEnd": "2010-12-31",
 			"currency": "USD",
 			"revenue": 23076.0,
-			"operatingIncome": 6767.2,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2012 (accn 0000059478-13-000007), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+			"operatingIncome": 6530.2,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2012, Consolidated Statements of Operations (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000005947813000007/lly-20121231x10k.htm"
 		},
 		{
 			"periodEnd": "2011-12-31",
 			"currency": "USD",
 			"revenue": 24286.5,
-			"operatingIncome": 6138.9,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2012 (accn 0000059478-13-000007), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+			"operatingIncome": 5528.5,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2012, Consolidated Statements of Operations (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000005947813000007/lly-20121231x10k.htm"
 		},
 		{
 			"periodEnd": "2012-12-31",
 			"currency": "USD",
 			"revenue": 22603.4,
-			"operatingIncome": 4901.5,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2012 (accn 0000059478-13-000007), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+			"operatingIncome": 4734.2,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2012, Consolidated Statements of Operations (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000005947813000007/lly-20121231x10k.htm"
 		},
 		{
 			"periodEnd": "2013-12-31",
 			"currency": "USD",
 			"revenue": 23113.1,
-			"operatingIncome": 5889.3,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2015 (accn 0000059478-16-000321), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+			"operatingIncome": 5370.4,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2015, Consolidated Statements of Operations (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000005947816000321/lly-20151231x10k.htm"
 		},
 		{
 			"periodEnd": "2014-12-31",
 			"currency": "USD",
 			"revenue": 19615.6,
-			"operatingIncome": 3000.3,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2015 (accn 0000059478-16-000321), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+			"operatingIncome": 2659.8,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2015, Consolidated Statements of Operations (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000005947816000321/lly-20151231x10k.htm"
 		},
 		{
 			"periodEnd": "2015-12-31",
 			"currency": "USD",
 			"revenue": 19958.7,
-			"operatingIncome": 2790.0,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2015 (accn 0000059478-16-000321), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+			"operatingIncome": 2689.4,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2015, Consolidated Statements of Operations (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000005947816000321/lly-20151231x10k.htm"
 		},
 		{
 			"periodEnd": "2016-12-31",
 			"currency": "USD",
 			"revenue": 21222.1,
-			"operatingIncome": 3374.0,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2016 (accn 0000059478-17-000098), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+			"operatingIncome": 3458.8,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2016, Consolidated Statements of Operations (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000005947817000098/lly-20161231x10xk.htm"
 		},
 		{
 			"periodEnd": "2017-12-31",
 			"currency": "USD",
 			"revenue": 22871.3,
-			"operatingIncome": 2197.4,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2017 (accn 0000059478-18-000089), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+			"operatingIncome": 2145.0,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2017, Consolidated Statements of Operations (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000005947818000089/lly-20171231x10xk.htm"
 		},
 		{
 			"periodEnd": "2018-12-31",
 			"currency": "USD",
 			"revenue": 24555.7,
-			"operatingIncome": 3795.7,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2018 (accn 0000059478-19-000082), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+			"operatingIncome": 3720.9,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2018, Consolidated Statements of Operations (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000005947819000082/lly-20181231x10xk.htm"
 		},
 		{
 			"periodEnd": "2019-12-31",
 			"currency": "USD",
 			"revenue": 22319.5,
-			"operatingIncome": 5265.9,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2019 (accn 0000059478-20-000057), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+			"operatingIncome": 4974.3,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2019, Consolidated Statements of Operations (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000005947820000057/lly-20191231x10xk.htm"
 		},
 		{
 			"periodEnd": "2020-12-31",
 			"currency": "USD",
 			"revenue": 24539.8,
-			"operatingIncome": 7229.9,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2020 (accn 0000059478-21-000083), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+			"operatingIncome": 6058.0,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2022, Consolidated Statements of Operations (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000005947823000082/lly-20221231.htm"
 		},
 		{
 			"periodEnd": "2021-12-31",
 			"currency": "USD",
 			"revenue": 28318.4,
-			"operatingIncome": 6155.5,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2021 (accn 0000059478-22-000068), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+			"operatingIncome": 6357.1,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2022, Consolidated Statements of Operations (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000005947823000082/lly-20221231.htm"
 		},
 		{
 			"periodEnd": "2022-12-31",
 			"currency": "USD",
 			"revenue": 28541.4,
-			"operatingIncome": 6806.4,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2022 (accn 0000059478-23-000082), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+			"operatingIncome": 7127.3,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2022, Consolidated Statements of Operations (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000005947823000082/lly-20221231.htm"
 		},
 		{
 			"periodEnd": "2023-12-31",
 			"currency": "USD",
 			"revenue": 34124.1,
-			"operatingIncome": 6554.6,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2023 (accn 0000059478-24-000065), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+			"operatingIncome": 6457.9,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2023, Consolidated Statements of Operations (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000005947824000065/lly-20231231.htm"
 		},
 		{
 			"periodEnd": "2024-12-31",
 			"currency": "USD",
 			"revenue": 45042.7,
-			"operatingIncome": 12680.4,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2024 (accn 0000059478-25-000067), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+			"operatingIncome": 12899.0,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2024, Consolidated Statements of Operations (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000005947825000067/lly-20241231.htm"
 		},
 		{
 			"periodEnd": "2025-12-31",
 			"currency": "USD",
 			"revenue": 65179.0,
-			"operatingIncome": 25731.0,
-			"quality": "reported",
-			"source": "Eli Lilly Form 10-K FY2025 (accn 0000059478-26-000013), XBRL facts us-gaap:Revenues and IncomeLossFromContinuingOperationsBeforeIncomeTaxes... (pre-tax via https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest.json)",
-			"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000059478/us-gaap/Revenues.json"
+			"operatingIncome": 26302.0,
+			"quality": "estimated",
+			"source": "Eli Lilly Form 10-K FY2025, Consolidated Statements of Operations (derived: revenue less cost of sales, research and development, marketing and administrative, acquired in-process R&D and asset impairment, restructuring and other special charges; excludes interest expense and other income/expense)",
+			"sourceUrl": "https://www.sec.gov/Archives/edgar/data/59478/000005947826000013/lly-20251231.htm"
 		}
 	]
 }
