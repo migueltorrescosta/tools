@@ -84,3 +84,19 @@ export function claimedValues(
 	});
 	return value;
 }
+
+/**
+ * Short ring labels for the Start step: the shortest common prefix length
+ * (1 to 3 characters) that tells every name apart, falling back to 3.
+ */
+export function ringLabels(names: readonly string[]): string[] {
+	const clean = names.map((n) => [...n.trim()]);
+	const label = (chars: string[], len: number) =>
+		chars.slice(0, len).join('').toLocaleUpperCase().slice(0, 1) +
+		chars.slice(1, len).join('').toLocaleLowerCase();
+	for (const len of [1, 2, 3]) {
+		const labels = clean.map((c) => label(c, len));
+		if (new Set(labels.map((l) => l.toLocaleLowerCase())).size === labels.length) return labels;
+	}
+	return clean.map((c) => label(c, 3));
+}

@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 function ui(page: Page) {
 	return {
 		content: page.getByRole('textbox', { name: /content/i }),
-		format: (label: string) => page.getByRole('button', { name: label, exact: true }),
+		format: (label: string) => page.getByRole('radio', { name: label, exact: true }),
 		status: page.getByRole('status', { name: 'Validation result' }),
 		result: page.getByTestId('result-message'),
 		placeholder: page.getByTestId('result-placeholder')
@@ -70,12 +70,13 @@ test('whitespace-only content shows the placeholder, not an error', async ({ pag
 	await expect(u.result).toHaveCount(0);
 });
 
-test('format buttons expose their pressed state and results are announced', async ({ page }) => {
+test('the format picker is a radio group and results are announced', async ({ page }) => {
 	const u = ui(page);
-	await expect(page.getByRole('button', { name: 'JSON', pressed: true })).toBeVisible();
+	await expect(page.getByRole('group', { name: 'Format' })).toBeVisible();
+	await expect(u.format('JSON')).toBeChecked();
 	await u.format('YAML').click();
-	await expect(page.getByRole('button', { name: 'YAML', pressed: true })).toBeVisible();
-	await expect(page.getByRole('button', { name: 'JSON', pressed: false })).toBeVisible();
+	await expect(u.format('YAML')).toBeChecked();
+	await expect(u.format('JSON')).not.toBeChecked();
 	await expect(u.status).toHaveAttribute('aria-live', 'polite');
 	await expect(u.status).toContainText('Valid YAML');
 });

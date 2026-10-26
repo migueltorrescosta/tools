@@ -1252,12 +1252,26 @@ export const portugueseModule: LanguageModule = {
 	DEFAULT_VERBS: DEFAULT_VERBS_PT,
 	DEFAULT_TENSES: DEFAULT_TENSES_PT,
 	ui: {
+		locale: 'pt',
+		language: 'Idioma',
 		coverage: 'Cobertura',
 		accuracy: 'Precisão',
 		conjugation: 'Conjugação',
 		history: 'Histórico',
 		verb: 'Verbos',
-		tense: 'Tempos'
+		tense: 'Tempos',
+		answer: 'Resposta',
+		toAnswer: 'por responder',
+		submit: 'Enviar',
+		correct: 'Certo',
+		wrong: 'Errado',
+		notQuite: 'Não exatamente',
+		yourAnswer: 'a sua resposta',
+		noAttempts: 'Ainda sem tentativas.',
+		selectToBegin: 'Escolha pelo menos um verbo e um tempo para começar.',
+		noForms: 'Estes tempos não têm formas para os verbos escolhidos. Escolha outro verbo ou tempo.',
+		complete: 'Parabéns, terminou. Recomeçar?',
+		restart: 'Recomeçar'
 	},
 	extractConjugation: portugueseExtractConjugation
 };

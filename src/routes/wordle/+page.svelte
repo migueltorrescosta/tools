@@ -192,28 +192,16 @@
 
 	<details class="how">
 		<summary>How it works</summary>
-		<div>
-			<p>
-				After entering your guess in the actual Wordle game, look at the colored tiles to see which
-				letters are in the correct position (green), which letters are in the word but the wrong
-				position (yellow), and which letters are not in the word at all (black). Click on the
-				colored tiles in this tool to match what you saw, then click Submit, and the tool shows the
-				next word to play.
-			</p>
-			<p>
-				The suggestions follow a fixed, precomputed decision tree: open with RAISE and play every
-				suggested word exactly as shown. If you opened with a different word or played anything
-				else, the remaining suggestions no longer apply. Some suggestions are probe words that can
-				never be the answer: they are chosen because their colours split the remaining candidates
-				best. When only one candidate is left the tool says so; play it and mark every tile green to
-				finish.
-			</p>
-			<p>
-				Normal mode only: some suggestions ignore letters you already found, so Wordle's Hard Mode
-				will reject them. Keyboard: 1/B, 2/Y and 3/G set the focused tile; the arrow keys move
-				between tiles.
-			</p>
-		</div>
+		<p>
+			Play a guess in Wordle, click the tiles here to match its colours, then press Submit. The tool
+			shows the next word. Open with RAISE and play every suggestion as shown. Some suggestions are
+			probes, not answers, and Hard Mode may reject some.
+		</p>
+		<p>
+			Keys 1, 2 and 3 set the focused tile to black, yellow or green; the arrow keys move between
+			tiles. The details are in the
+			<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/wordle.md">docs</a>.
+		</p>
 	</details>
 </div>
 

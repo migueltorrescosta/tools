@@ -24,7 +24,8 @@ async function seedSingleCardSet(page: Page) {
 
 const stats = (page: Page) => page.getByTestId('stats');
 const historyRows = (page: Page) => page.getByTestId('history').getByRole('row');
-const answerBox = (page: Page) => page.getByRole('textbox', { name: /^Answer: .+ form$/ });
+const answerBox = (page: Page) =>
+	page.getByRole('textbox', { name: /^(Risposta|Respuesta|Resposta): .+$/ });
 
 async function blankIndex(page: Page) {
 	const rows = page.getByTestId('card-row');
@@ -50,7 +51,7 @@ test('Verb conjugator - correct answer is recorded and survives reload', async (
 	await answerCurrentCardCorrectly(page);
 	await expect(historyRows(page)).toHaveCount(1);
 	await expect(stats(page)).toContainText('Copertura: 1 / 6');
-	await expect(page.getByRole('status')).toContainText('Correct');
+	await expect(page.getByRole('status')).toContainText('Giusto');
 
 	await page.reload();
 	await load(page);
@@ -65,7 +66,7 @@ test('Verb conjugator - wrong answer is announced and marked in the diff', async
 	await answerBox(page).press('Enter');
 
 	await expect(page.getByRole('status')).toContainText(
-		`Not quite: ${PERSONS[i]} ${ESSERE_PRESENTE[i]}`
+		`Non proprio: ${PERSONS[i]} ${ESSERE_PRESENTE[i]}`
 	);
 	const row = historyRows(page).first();
 	await expect(row).toHaveAttribute('data-state', 'wrong');
@@ -81,7 +82,10 @@ test('Verb conjugator - switching language keeps the Italian session', async ({ 
 
 	await page.getByRole('radio', { name: 'Español' }).check();
 	await expect(stats(page)).toContainText('Cobertura: 0 /');
-	await expect(page.getByText('No attempts yet.')).toBeVisible();
+	await expect(page.getByText('Aún no hay intentos.')).toBeVisible();
+	// All interface text follows the practised language
+	await expect(page.getByRole('button', { name: 'Enviar' })).toBeVisible();
+	await expect(page.locator('.vc-grid')).toHaveAttribute('lang', 'es');
 
 	await page.getByRole('radio', { name: 'Italiano' }).check();
 	await expect(stats(page)).toContainText('Copertura: 1 / 6');
@@ -123,7 +127,7 @@ test('Verb conjugator - verb and tense chips expose pressed state', async ({ pag
 test('Verb conjugator - answer input and submit button have accessible names', async ({ page }) => {
 	await seedSingleCardSet(page);
 	await expect(answerBox(page)).toBeVisible();
-	await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Invia' })).toBeVisible();
 });
 
 test('Verb conjugator - imperative never asks for io and shows a dash', async ({ page }) => {
@@ -141,4 +145,16 @@ test('Verb conjugator - imperative never asks for io and shows a dash', async ({
 	const ioRow = page.getByTestId('card-row').first();
 	await expect(ioRow).not.toHaveAttribute('data-state', 'current');
 	await expect(ioRow).toContainText('—');
+});
+
+test('Verb conjugator - card stays readable at phone width', async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await seedSingleCardSet(page);
+	const card = page.locator('.vc-card');
+	// Each row stacks the translation above the answer instead of one letter per line
+	const height = await card.evaluate((el) => el.getBoundingClientRect().height);
+	expect(height).toBeLessThan(400);
+	const translation = page.locator('.vc-card .vc-translation').first();
+	const width = await translation.evaluate((el) => el.getBoundingClientRect().width);
+	expect(width).toBeGreaterThan(150);
 });
