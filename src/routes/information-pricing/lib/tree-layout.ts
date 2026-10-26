@@ -5,6 +5,7 @@
  */
 import dagre from '@dagrejs/dagre';
 import type { PolicyTreeView } from '$lib/information-pricing/analysis';
+import { thresholdLabels } from './format';
 
 export interface Point {
 	x: number;
@@ -73,15 +74,16 @@ export function layoutTree(view: PolicyTreeView, names: readonly string[]): Tree
 			height: lines.length * LINE_HEIGHT + 2 * PAD
 		});
 	}
+	const labels = new Map(view.splits.map((s) => [s.node, thresholdLabels(s.thresholds)]));
 	for (const s of view.splits) {
 		g.setNode(`s${s.node}`, {
 			width: textWidth(splitText(s, names)) + 24,
 			height: SPLIT_HEIGHT
 		});
 		g.setEdge(`n${s.node}`, `s${s.node}`, {});
-		for (const e of s.edges)
+		for (const [c, e] of s.edges.entries())
 			g.setEdge(`s${s.node}`, `n${e.child}`, {
-				width: textWidth(e.label) + 8,
+				width: textWidth(labels.get(s.node)![c]) + 8,
 				height: 16,
 				labelpos: 'c'
 			});
@@ -98,12 +100,12 @@ export function layoutTree(view: PolicyTreeView, names: readonly string[]): Tree
 	const edges: LaidOutEdge[] = [];
 	for (const s of view.splits) {
 		edges.push({ id: `n${s.node}-s${s.node}`, points: route(`n${s.node}`, `s${s.node}`).points });
-		for (const e of s.edges) {
+		for (const [c, e] of s.edges.entries()) {
 			const r = route(`s${s.node}`, `n${e.child}`);
 			edges.push({
 				id: `s${s.node}-n${e.child}`,
 				points: r.points,
-				label: { text: e.label, x: r.x ?? 0, y: r.y ?? 0 }
+				label: { text: labels.get(s.node)![c], x: r.x ?? 0, y: r.y ?? 0 }
 			});
 		}
 	}

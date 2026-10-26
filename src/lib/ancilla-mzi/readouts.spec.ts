@@ -63,3 +63,25 @@ describe('readouts', () => {
 		expect(maxReadouts(a, b)).toEqual({ epSystem: 1, epJoint: 3, parity: 1, best: 3 });
 	});
 });
+
+describe('joint readouts beat the system alone', () => {
+	// Kills Math.min for the joint parity: a Bell pair carries its phase only in S+A together.
+	it('parity of a Bell pair attains the QFI 4 although S alone sees nothing', () => {
+		const rho = zeros(4);
+		const drho = zeros(4);
+		for (const [i, j] of [
+			[0, 0],
+			[0, 3],
+			[3, 0],
+			[3, 3]
+		])
+			rho.re[i * 4 + j] = 0.5;
+		// d/dφ of the relative phase e^{-2iφ} at φ = 0
+		drho.im[0 * 4 + 3] = -1;
+		drho.im[3 * 4 + 0] = 1;
+		const r = readouts(rho, drho, 1, 1, new Prng(5), 8);
+		expect(r.parity).toBeGreaterThan(4 * (1 - 1e-3));
+		expect(r.epSystem).toBeLessThan(1e-9);
+		expect(r.best).toBe(Math.max(r.epSystem, r.epJoint, r.parity));
+	});
+});

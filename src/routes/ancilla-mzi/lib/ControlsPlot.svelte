@@ -14,12 +14,14 @@
 		testId?: string;
 	} = $props();
 
-	const ROW = 18;
-	const W = 520;
-	const M = { top: 22, right: 76, bottom: 8, left: 56 };
-	const innerW = W - M.left - M.right;
+	const ROW = 22;
+	/** The SVG is drawn at its rendered width, so its text stays at the CSS px sizes below. */
+	let width = $state(520);
+	const W = $derived(Math.max(240, width));
+	const M = { top: 24, right: 84, bottom: 8, left: 56 };
+	const innerW = $derived(W - M.left - M.right);
 	const H = $derived(M.top + M.bottom + Math.max(1, entries.length) * ROW);
-	const mid = M.left + innerW / 2;
+	const mid = $derived(M.left + innerW / 2);
 	/** Value over its bound, in [-1, 1], to x. */
 	const sx = (f: number) => mid + (Math.max(-1, Math.min(1, f)) * innerW) / 2;
 	const fmt = (v: number) => String(Number(v.toPrecision(3)));
@@ -39,50 +41,54 @@
 	{#if entries.length === 0}
 		<p class="note">This setup has no controls.</p>
 	{:else}
-		<svg
-			viewBox="0 0 {W} {H}"
-			role="img"
-			aria-label="Best control values: {entries
-				.map(
-					(e) =>
-						`${e.symbol} ${e.sub} ${fmt(values[e.index] ?? 0)} of ±${fmt(e.bound)}${saturated[e.index] ? ' (at bound)' : ''}`
-				)
-				.join('; ')}"
-		>
-			<text class="axis" x={M.left} y={12} text-anchor="middle">−bound</text>
-			<text class="axis" x={mid} y={12} text-anchor="middle">0</text>
-			<text class="axis" x={M.left + innerW} y={12} text-anchor="middle">+bound</text>
-			<line class="edge" x1={M.left} x2={M.left} y1={M.top - 4} y2={H - M.bottom} />
-			<line
-				class="edge"
-				x1={M.left + innerW}
-				x2={M.left + innerW}
-				y1={M.top - 4}
-				y2={H - M.bottom}
-			/>
-			<line class="zero" x1={mid} x2={mid} y1={M.top - 4} y2={H - M.bottom} />
-			{#each entries as e, i (e.index)}
-				{@const v = values[e.index] ?? 0}
-				{@const f = v / e.bound}
-				{@const y = M.top + i * ROW}
-				{@const sat = saturated[e.index] ?? false}
-				<text class="name" x={M.left - 8} y={y + ROW / 2 + 4} text-anchor="end"
-					>{e.symbol}<tspan class="sub" dy="3">{e.sub}</tspan></text
-				>
-				<rect
-					class="bar {e.group}"
-					class:sat
-					x={Math.min(sx(f), mid)}
-					y={y + 3}
-					width={Math.max(1, Math.abs(sx(f) - mid))}
-					height={ROW - 6}
-					rx="2"
+		<div class="fit-chart" bind:clientWidth={width}>
+			<svg
+				viewBox="0 0 {W} {H}"
+				width={W}
+				height={H}
+				role="img"
+				aria-label="Best control values: {entries
+					.map(
+						(e) =>
+							`${e.symbol} ${e.sub} ${fmt(values[e.index] ?? 0)} of ±${fmt(e.bound)}${saturated[e.index] ? ' (at bound)' : ''}`
+					)
+					.join('; ')}"
+			>
+				<text class="axis" x={M.left} y={14} text-anchor="middle">−bound</text>
+				<text class="axis" x={mid} y={14} text-anchor="middle">0</text>
+				<text class="axis" x={M.left + innerW} y={14} text-anchor="middle">+bound</text>
+				<line class="edge" x1={M.left} x2={M.left} y1={M.top - 4} y2={H - M.bottom} />
+				<line
+					class="edge"
+					x1={M.left + innerW}
+					x2={M.left + innerW}
+					y1={M.top - 4}
+					y2={H - M.bottom}
 				/>
-				<text class="value" x={M.left + innerW + 6} y={y + ROW / 2 + 4}
-					>{fmt(v)}{sat ? ' ⚑' : ''}</text
-				>
-			{/each}
-		</svg>
+				<line class="zero" x1={mid} x2={mid} y1={M.top - 4} y2={H - M.bottom} />
+				{#each entries as e, i (e.index)}
+					{@const v = values[e.index] ?? 0}
+					{@const f = v / e.bound}
+					{@const y = M.top + i * ROW}
+					{@const sat = saturated[e.index] ?? false}
+					<text class="name" x={M.left - 8} y={y + ROW / 2 + 3} text-anchor="end"
+						>{e.symbol}<tspan class="sub" dy="3">{e.sub}</tspan></text
+					>
+					<rect
+						class="bar {e.group}"
+						class:sat
+						x={Math.min(sx(f), mid)}
+						y={y + 3}
+						width={Math.max(1, Math.abs(sx(f) - mid))}
+						height={ROW - 6}
+						rx="2"
+					/>
+					<text class="value" x={M.left + innerW + 6} y={y + ROW / 2 + 4}
+						>{fmt(v)}{sat ? ' ⚑' : ''}</text
+					>
+				{/each}
+			</svg>
+		</div>
 	{/if}
 </figure>
 
@@ -137,24 +143,18 @@
 	.swatch.pulse {
 		background: var(--data-3);
 	}
-	svg {
-		width: 100%;
-		height: auto;
-		display: block;
-		overflow: visible;
-	}
 	.axis,
 	.name,
 	.value {
 		fill: var(--text-muted);
-		font-size: 11px;
+		font-size: 12px;
 		font-family: var(--font-mono);
 	}
 	.name {
 		fill: var(--text);
 	}
 	.sub {
-		font-size: 8px;
+		font-size: 11px;
 	}
 	.edge {
 		stroke: var(--border-strong);

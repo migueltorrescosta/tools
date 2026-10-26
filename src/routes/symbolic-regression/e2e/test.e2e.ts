@@ -76,9 +76,9 @@ async function shareUrl(page: Page): Promise<string> {
 	return (await page.getByTestId('copy-link').getAttribute('data-url')) ?? '';
 }
 
-/** Start a search and wait until the front has `rows` rows. */
+/** Run a search and wait until the front has `rows` rows. */
 async function runUntilFront(page: Page, rows = 2) {
-	await page.getByRole('button', { name: 'Start' }).click();
+	await page.getByRole('button', { name: 'Run', exact: true }).click();
 	await expect.poll(() => frontRows(page).count(), { timeout: 15000 }).toBeGreaterThanOrEqual(rows);
 }
 
@@ -99,7 +99,7 @@ test('Kepler example finds c·a^1.5 with validation R² > 0.999 within 20 s', as
 	await open(page);
 	await loadExample(page, /Kepler/);
 	await expect(page.getByTestId('target')).toHaveValue(/\d+/);
-	await page.getByRole('button', { name: 'Start' }).click();
+	await page.getByRole('button', { name: 'Run', exact: true }).click();
 	await expect.poll(() => frontHasKeplerLaw(page), { timeout: 20000 }).toBe(true);
 	await stopSearch(page);
 });
@@ -108,7 +108,7 @@ test('noisy Newton example reaches validation R² > 0.95 within 30 s', async ({ 
 	test.setTimeout(60000);
 	await open(page);
 	await loadExample(page, /Newton/);
-	await page.getByRole('button', { name: 'Start' }).click();
+	await page.getByRole('button', { name: 'Run', exact: true }).click();
 	await expect.poll(() => bestR2(page), { timeout: 30000 }).toBeGreaterThan(0.95);
 	await stopSearch(page);
 });
@@ -192,7 +192,7 @@ test('categorical columns: level warnings, the limit, and an indicator in the fr
 	await loadExample(page, /Parcel prices/);
 	await expect(mode(page, 'zone', 'Categorical')).toBeChecked();
 	await expect(mode(page, 'carrier', 'Categorical')).toBeChecked();
-	await page.getByRole('button', { name: 'Start' }).click();
+	await page.getByRole('button', { name: 'Run', exact: true }).click();
 	await expect
 		.poll(
 			async () =>

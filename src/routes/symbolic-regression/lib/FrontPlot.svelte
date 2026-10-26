@@ -14,7 +14,7 @@
 		onSelect: (index: number) => void;
 		/** Called with the entry hovered or focused here, and null when it leaves. */
 		onHover?: (index: number | null) => void;
-		/** viewBox height; the width is fixed, so this sets the aspect ratio. */
+		/** Chart height at 420 px wide; it scales with the width, within bounds. */
 		height?: number;
 		/** Tooltip body for one entry. */
 		tooltip: Snippet<[number]>;
@@ -32,10 +32,13 @@
 		tooltip
 	}: Props = $props();
 
-	const W = 420;
-	const H = $derived(height);
-	const M = { top: 12, right: 14, bottom: 44, left: 80 };
-	const innerW = W - M.left - M.right;
+	/** The SVG is drawn at its rendered width, so its text stays at the CSS px size. */
+	let width = $state(420);
+	const W = $derived(Math.max(240, width));
+	/** `height` is the height at 420 px wide; the chart keeps that aspect ratio within bounds. */
+	const H = $derived(Math.round(Math.min(height * 1.25, Math.max(200, (W * height) / 420))));
+	const M = { top: 12, right: 16, bottom: 44, left: 80 };
+	const innerW = $derived(W - M.left - M.right);
 	const innerH = $derived(H - M.top - M.bottom);
 
 	const shown = $derived(
@@ -127,9 +130,11 @@
 			>
 		</span>
 	</figcaption>
-	<div class="canvas">
+	<div class="canvas fit-chart" bind:clientWidth={width}>
 		<svg
 			viewBox="0 0 {W} {H}"
+			width={W}
+			height={H}
 			role="group"
 			aria-label="Pareto front: complexity against validation R²"
 		>
@@ -247,19 +252,13 @@
 	.canvas {
 		position: relative;
 	}
-	svg {
-		width: 100%;
-		height: auto;
-		display: block;
-		overflow: visible;
-	}
 	.grid line {
 		stroke: var(--border);
 	}
 	.grid text,
 	.label {
 		fill: var(--text-muted);
-		font-size: 11px;
+		font-size: 12px;
 		font-family: var(--font-mono);
 	}
 	.front {

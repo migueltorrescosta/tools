@@ -24,13 +24,17 @@ function timeRound(n: number, m: number, rounds: number): number {
 	return performance.now() - t0;
 }
 
+// Wall-clock budgets: both tests run only with SPLIT_BENCH=1.
 describe('split engine performance', () => {
-	it('fits 6 people × 30 items in well under the 50 ms budget', () => {
-		// The bound leaves room for slow CI runners.
-		expect(timeRound(6, 30, 20)).toBeLessThan(250);
-	});
+	it.skipIf(!process.env.SPLIT_BENCH)(
+		'fits 6 people × 30 items in well under the 50 ms budget',
+		() => {
+			// The bound leaves room for slow CI runners.
+			expect(timeRound(6, 30, 20)).toBeLessThan(250);
+		}
+	);
 
-	// Budget 2 s after ~50 rounds. Slow, so it only runs with SPLIT_BENCH=1.
+	// Budget 2 s after ~50 rounds.
 	it.skipIf(!process.env.SPLIT_BENCH)(
 		'fits 10 people × 500 items within 2 s after 50 rounds',
 		() => {

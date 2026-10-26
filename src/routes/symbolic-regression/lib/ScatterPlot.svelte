@@ -11,7 +11,7 @@
 		title: string;
 		/** Replaces the title in the caption, e.g. to hold a control; `title` still labels the plot. */
 		caption?: Snippet;
-		/** viewBox height; the width is fixed, so this sets the aspect ratio. */
+		/** Chart height at 420 px wide; it scales with the width, within bounds. */
 		height?: number;
 		/** Draw y = x across the plot (predicted vs actual). */
 		identityLine?: boolean;
@@ -38,10 +38,13 @@
 		overlayLabel = 'Overlay'
 	}: Props = $props();
 
-	const W = 420;
-	const H = $derived(height);
-	const M = { top: 12, right: 14, bottom: 44, left: 62 };
-	const innerW = W - M.left - M.right;
+	/** The SVG is drawn at its rendered width, so its text stays at the CSS px size. */
+	let width = $state(420);
+	const W = $derived(Math.max(240, width));
+	/** `height` is the height at 420 px wide; the chart keeps that aspect ratio within bounds. */
+	const H = $derived(Math.round(Math.min(height * 1.25, Math.max(200, (W * height) / 420))));
+	const M = { top: 12, right: 16, bottom: 44, left: 62 };
+	const innerW = $derived(W - M.left - M.right);
 	const innerH = $derived(H - M.top - M.bottom);
 
 	const shown = (p: Point) => Number.isFinite(p.x) && Number.isFinite(p.y);
@@ -99,50 +102,54 @@
 			</span>
 		{/if}
 	</figcaption>
-	<svg
-		viewBox="0 0 {W} {H}"
-		role="img"
-		aria-label={overlay.length > 0
-			? `${title}: ${pointsLabel} as dots, ${overlayLabel} as squares`
-			: title}
-	>
-		<g class="grid">
-			{#each xTicks as t (t)}
-				<line x1={sx(t)} x2={sx(t)} y1={M.top} y2={M.top + innerH} />
-				<text x={sx(t)} y={M.top + innerH + 16} text-anchor="middle">{formatTick(t)}</text>
-			{/each}
-			{#each yTicks as t (t)}
-				<line x1={M.left} x2={M.left + innerW} y1={sy(t)} y2={sy(t)} />
-				<text x={M.left - 6} y={sy(t) + 4} text-anchor="end">{formatTick(t)}</text>
-			{/each}
-		</g>
-		{#if identityLine}
-			<line
-				class="ref"
-				x1={sx(domain.x0)}
-				y1={sy(domain.x0)}
-				x2={sx(domain.x1)}
-				y2={sy(domain.x1)}
-			/>
-		{/if}
-		{#if zeroLine}
-			<line class="ref" x1={M.left} x2={M.left + innerW} y1={sy(0)} y2={sy(0)} />
-		{/if}
-		{#each visible as p, i (i)}
-			<circle class="point" cx={sx(p.x)} cy={sy(p.y)} r={2.5} />
-		{/each}
-		{#each visibleOverlay as p, i (i)}
-			<rect class="overlay" x={sx(p.x) - 2} y={sy(p.y) - 2} width={4} height={4} />
-		{/each}
-		<text class="label" x={M.left + innerW / 2} y={H - 6} text-anchor="middle">{xLabel}</text>
-		<text
-			class="label"
-			x={14}
-			y={M.top + innerH / 2}
-			text-anchor="middle"
-			transform="rotate(-90 14 {M.top + innerH / 2})">{yLabel}</text
+	<div class="fit-chart" bind:clientWidth={width}>
+		<svg
+			viewBox="0 0 {W} {H}"
+			width={W}
+			height={H}
+			role="img"
+			aria-label={overlay.length > 0
+				? `${title}: ${pointsLabel} as dots, ${overlayLabel} as squares`
+				: title}
 		>
-	</svg>
+			<g class="grid">
+				{#each xTicks as t (t)}
+					<line x1={sx(t)} x2={sx(t)} y1={M.top} y2={M.top + innerH} />
+					<text x={sx(t)} y={M.top + innerH + 16} text-anchor="middle">{formatTick(t)}</text>
+				{/each}
+				{#each yTicks as t (t)}
+					<line x1={M.left} x2={M.left + innerW} y1={sy(t)} y2={sy(t)} />
+					<text x={M.left - 6} y={sy(t) + 4} text-anchor="end">{formatTick(t)}</text>
+				{/each}
+			</g>
+			{#if identityLine}
+				<line
+					class="ref"
+					x1={sx(domain.x0)}
+					y1={sy(domain.x0)}
+					x2={sx(domain.x1)}
+					y2={sy(domain.x1)}
+				/>
+			{/if}
+			{#if zeroLine}
+				<line class="ref" x1={M.left} x2={M.left + innerW} y1={sy(0)} y2={sy(0)} />
+			{/if}
+			{#each visible as p, i (i)}
+				<circle class="point" cx={sx(p.x)} cy={sy(p.y)} r={2.5} />
+			{/each}
+			{#each visibleOverlay as p, i (i)}
+				<rect class="overlay" x={sx(p.x) - 2} y={sy(p.y) - 2} width={4} height={4} />
+			{/each}
+			<text class="label" x={M.left + innerW / 2} y={H - 6} text-anchor="middle">{xLabel}</text>
+			<text
+				class="label"
+				x={14}
+				y={M.top + innerH / 2}
+				text-anchor="middle"
+				transform="rotate(-90 14 {M.top + innerH / 2})">{yLabel}</text
+			>
+		</svg>
+	</div>
 </figure>
 
 <style>
@@ -184,19 +191,13 @@
 		width: 12px;
 		height: 12px;
 	}
-	svg {
-		width: 100%;
-		height: auto;
-		display: block;
-		overflow: visible;
-	}
 	.grid line {
 		stroke: var(--border);
 	}
 	.grid text,
 	.label {
 		fill: var(--text-muted);
-		font-size: 11px;
+		font-size: 12px;
 		font-family: var(--font-mono);
 	}
 	.ref {

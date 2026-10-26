@@ -8,6 +8,7 @@
 	import { renderProse, stackTex } from '$lib/scientific-derivations/prose';
 	import { renderTex } from '$lib/tex';
 	import Tex from '$lib/ui/Tex.svelte';
+	import ScrollEdges from '$lib/ui/ScrollEdges.svelte';
 
 	let {
 		derivation,
@@ -44,13 +45,10 @@
 		);
 	});
 
-	/** Below this, fitting would make the math unreadable; the box scrolls instead. */
-	const MIN_SCALE = 0.6;
+	/** Fit to width shrinks the whole graph into the box; 100% scrolls instead. */
 	let boxWidth = $state(0);
 	const scale = $derived(
-		layout && fit && boxWidth > 0
-			? Math.max(MIN_SCALE, Math.min(1, (boxWidth - 2) / layout.width))
-			: 1
+		layout && fit && boxWidth > 0 ? Math.min(1, (boxWidth - 2) / layout.width) : 1
 	);
 
 	/** The selection and everything it touches, to highlight. */
@@ -82,11 +80,11 @@
 	}
 </script>
 
-<div
+<ScrollEdges
 	class="dg-scroll"
 	data-testid="graph"
 	data-ready={layout ? '' : undefined}
-	bind:clientWidth={boxWidth}
+	bind:width={boxWidth}
 >
 	{#if !layout}
 		<p class="dg-loading" role="status">
@@ -175,10 +173,11 @@
 			{/each}
 		</div>
 	</div>
-</div>
+</ScrollEdges>
 
 <style>
-	.dg-scroll {
+	/* The scroller lives in ScrollEdges, so its class is global. */
+	:global(.dg-scroll) {
 		position: relative;
 		overflow: auto;
 		max-width: 100%;
@@ -320,8 +319,13 @@
 		background: var(--info-bg);
 	}
 
+	/* At least 24 px tall, so the fact is an easy target at 100%. */
 	.dg-label {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
 		max-width: 13rem;
+		min-height: 24px;
 		padding: 1px var(--sp-1);
 		font-size: var(--text-xs);
 		line-height: 1.3;

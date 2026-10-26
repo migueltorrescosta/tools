@@ -47,7 +47,16 @@
 		type RunSnapshot,
 		type Setup
 	} from '$lib/ancilla-mzi/types';
-	import { Alert, Button, Field, PageHeader, Panel, ShareActions, SegmentedControl } from '$lib/ui';
+	import {
+		Alert,
+		Button,
+		Field,
+		PageHeader,
+		Panel,
+		RunControls,
+		ShareActions,
+		SegmentedControl
+	} from '$lib/ui';
 	import { createAncillaEngine } from '$lib/ancilla-mzi/worker-engine';
 	import { activeControls } from './lib/controls';
 	import ConvergencePlot, { type RefLine } from './lib/ConvergencePlot.svelte';
@@ -350,22 +359,15 @@
 
 	<div class="layout">
 		<div class="stack inputs">
-			<Panel title="Run">
+			<RunControls
+				onrun={start}
+				{running}
+				disabled={errors.length > 0}
+				onstop={stop}
+				oncontinue={resume}
+				{canContinue}
+			>
 				<div class="stack">
-					<div class="cluster">
-						<Button
-							variant="primary"
-							onclick={start}
-							disabled={running || errors.length > 0}
-							data-testid="start">Start</Button
-						>
-						<Button variant="danger" onclick={stop} disabled={!running} data-testid="stop"
-							>Stop</Button
-						>
-						<Button onclick={resume} disabled={!canContinue || running} data-testid="continue"
-							>Continue</Button
-						>
-					</div>
 					<p class="muted" data-testid="progress">
 						{#if running}Running ·
 						{/if}<span data-testid="elapsed">{elapsed}</span> ·
@@ -377,7 +379,7 @@
 					{#if errors.length > 0}
 						<div data-testid="validation-errors">
 							<Alert tone="warning">
-								Fix these to start:
+								Fix these to run:
 								<ul class="errors">
 									{#each errors as e (e.field + e.message)}<li>{e.message}</li>{/each}
 								</ul>
@@ -468,7 +470,7 @@
 						</div>
 					</details>
 				</div>
-			</Panel>
+			</RunControls>
 			<Panel title="Setup">
 				<div class="stack">
 					<Field
@@ -721,7 +723,8 @@
 				</div>
 			</Panel>
 
-			<Panel title="Noise">
+			<details class="how" data-testid="noise-fold">
+				<summary>Noise</summary>
 				<div class="stack">
 					<p class="muted">Rates in units of 1/t. The MZI's particles get the same noise.</p>
 					<label class="toggle wide">
@@ -764,9 +767,10 @@
 						</div>
 					{/if}
 				</div>
-			</Panel>
+			</details>
 
-			<Panel title="Accounting overrides">
+			<details class="how" data-testid="accounting-fold">
+				<summary>Accounting overrides</summary>
 				<div class="stack">
 					<p class="muted">
 						Each override breaks one rule; leave them at their defaults for a fair test.
@@ -803,7 +807,7 @@
 						</Field>
 					</div>
 				</div>
-			</Panel>
+			</details>
 		</div>
 
 		<div class="stack results">
@@ -829,8 +833,8 @@
 			<Panel title="Results">
 				{#if !snapshot}
 					<p class="muted placeholder">
-						Pick a preset or build a setup, then press Start. The MZI baseline comes first, then
-						seeds keep running until you press Stop.
+						Pick a preset or build a setup, then press Run. The MZI baseline comes first, then seeds
+						keep running until you press Stop.
 					</p>
 				{:else}
 					<div class="stack">
@@ -839,7 +843,7 @@
 						{/if}
 						{#if stale}
 							<Alert tone="warning"
-								>The setup has changed since this run. Press Start to rerun it.</Alert
+								>The setup has changed since this run. Press Run to rerun it.</Alert
 							>
 						{/if}
 						<div class="tiles">
@@ -1018,6 +1022,29 @@
 		.layout {
 			grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
 		}
+	}
+	/* One column on phones: Run, then Rules and Results, then the rest of the form. */
+	@media (max-width: 959.98px) {
+		.inputs,
+		.results {
+			display: contents;
+		}
+		.inputs > :global(*) {
+			order: 2;
+		}
+		.inputs > :global(:first-child) {
+			order: 0;
+		}
+		.results > :global(*) {
+			order: 1;
+		}
+	}
+	/* Noise and Accounting overrides: collapsed disclosures in the How it works style. */
+	.inputs > details.how {
+		margin-top: 0;
+	}
+	.inputs > details.how > .stack {
+		color: var(--text);
 	}
 	.inputs,
 	.results {

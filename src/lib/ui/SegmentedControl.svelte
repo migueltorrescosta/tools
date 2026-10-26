@@ -1,3 +1,9 @@
+<!--
+	The single-choice picker for a few short options (Format, language, view mode).
+	Pickers: SegmentedControl for one of a few; a Select for one of many long options;
+	pressed Buttons (aria-pressed) only for independent toggles, many of many (verb chips).
+	One of many short chips (Volt's country filter) is a radio group styled as chips.
+-->
 <script lang="ts" generics="T extends string">
 	const uid = $props.id();
 
@@ -61,27 +67,29 @@
 		font-weight: 500;
 	}
 
+	/* The 1px gap shows the border colour between segments, also between wrapped rows */
 	.ui-options {
 		display: inline-flex;
 		flex-wrap: wrap;
+		gap: 1px;
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius);
+		background: var(--border-strong);
 		overflow: hidden;
 	}
 
+	/* Segments grow, so a wrapped row fills the width instead of leaving a gap */
 	label {
 		position: relative;
+		flex: 1 1 auto;
 		display: inline-flex;
 		align-items: center;
+		justify-content: center;
 		min-height: var(--control-h);
 		padding: 0 var(--sp-3);
 		background: var(--surface);
 		cursor: pointer;
 		user-select: none;
-	}
-
-	label + label {
-		border-left: 1px solid var(--border-strong);
 	}
 
 	label:hover {

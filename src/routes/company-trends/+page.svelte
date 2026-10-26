@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import datasetJson from './data/companies.json';
 	import TrendsChart from './TrendsChart.svelte';
-	import { Alert, Button, PageHeader, SegmentedControl } from '$lib/ui';
+	import { Alert, Button, PageHeader, ScrollEdges, SegmentedControl } from '$lib/ui';
 	import { loadDataset } from '$lib/company-trends/schema';
 	import { companyTypes, DEFAULT_COMPANY_IDS, filterCompanies } from '$lib/company-trends/filter';
 	import {
@@ -188,9 +188,13 @@
 
 		<div class="ct-layout">
 			<div class="ct-chart-col">
-				<div class="ct-chart-scroll">
+				<!-- On a narrow screen the 820 px chart scrolls sideways, opening at the large companies -->
+				<ScrollEdges startAtEnd data-testid="chart-scroll">
+					{#snippet hint()}<p class="ct-note ct-scroll-hint" data-testid="scroll-hint">
+							Scroll sideways for smaller revenues.
+						</p>{/snippet}
 					<TrendsChart trails={visibleTrails} {qi} {quarter} {currency} {colors} {domain} />
-				</div>
+				</ScrollEdges>
 				<ul class="ct-marks" aria-label="Chart marks">
 					<li>
 						<svg width="14" height="14" aria-hidden="true"
@@ -313,19 +317,27 @@
 			</div>
 		</details>
 
-		<p class="ct-note">
-			Units: {dataset.meta.units}. Operating margin = operating income / revenue, on a fixed −200%
-			to +100% axis; expenses = revenue − operating income. Values are fiscal-year figures placed at
-			each fiscal year's closing quarter; quarters in between are log-interpolated.
+		<p class="ct-note ct-closing">
+			Figures are fiscal-year totals in {currency}; quarters in between are estimated. Method and
+			sources are in How it works.
 		</p>
 	{/if}
 
-	{#if errors.length === 0}
-		<p class="ct-note">
-			{dataset.meta.fxMethodology}
-			(<a href={dataset.meta.fxSource} target="_blank" rel="noreferrer">FX source</a>)
+	<details class="how" data-testid="how">
+		<summary>How it works</summary>
+		<p>
+			Pick industries and companies, then press Play or drag the quarter slider. Each dot is a
+			company: revenue across, operating margin up. Figures are fiscal-year totals; quarters in
+			between are estimated. USD and GBP use the
+			<a href={dataset.meta.fxSource} target="_blank" rel="noreferrer">ECB</a> average rate of each fiscal
+			year.
 		</p>
-	{/if}
+		<p>
+			The exact method is in the
+			<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/company-trends.md">docs</a
+			>.
+		</p>
+	</details>
 </div>
 
 <style>
@@ -441,8 +453,13 @@
 		min-width: 0;
 	}
 
-	.ct-chart-scroll {
-		overflow-x: auto;
+	.ct-scroll-hint {
+		margin: 0 0 var(--sp-1);
+		font-size: var(--text-xs);
+	}
+
+	.ct-closing {
+		margin-top: var(--sp-3);
 	}
 
 	.ct-marks {

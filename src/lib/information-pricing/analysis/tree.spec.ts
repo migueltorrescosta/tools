@@ -101,6 +101,7 @@ describe('buildPolicyTree', () => {
 			{
 				node: 0,
 				input: 0,
+				thresholds: [60, 139.5],
 				edges: [
 					{ child: 1, label: '≤60' },
 					{ child: 2, label: '∈(60,139.5]' },

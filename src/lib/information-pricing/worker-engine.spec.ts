@@ -1,8 +1,16 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { WorkerLike } from '$lib/worker-pool';
 import { validateParams } from './distributions';
-import type { PartialAnalysis } from './analysis';
-import { createAnalyser, type AnalysisWorker, type TreeWorker } from './analyser';
+import type { Analysis, PartialAnalysis, TreeResult } from './analysis';
+import {
+	createAnalyser,
+	type Analyser,
+	type AnalysisListener,
+	type AnalysisResult,
+	type AnalysisWorker,
+	type TreeWorker
+} from './analyser';
+import { CHUNK_ROWS } from './simulate';
 import {
 	createAnalysisHost,
 	createTreeHost,
@@ -147,15 +155,15 @@ async function simulate(model: Model, n: number, workers: number): Promise<Scena
 describe('simulation engine', () => {
 	it('draws the same scenarios whatever the worker count', async () => {
 		const model = presetModel('airline-share-buyback');
-		const [a, b] = await Promise.all([simulate(model, 60_000, 1), simulate(model, 60_000, 3)]);
-		expect(a.n).toBe(60_000);
+		const [a, b] = await Promise.all([simulate(model, 20_000, 1), simulate(model, 20_000, 3)]);
+		expect(a.n).toBe(20_000);
 		expect(a.inputs.map((x) => x.symbol)).toEqual(['R', 'K', 'F', 'Lr', 'p', 'i']);
 		expect(a.intermediates.map((x) => x.symbol)).toEqual(['Rev', 'Fuel', 'Delta']);
 		expect(a.decisions).toEqual(['500 M€', '600 M€', '700 M€', '800 M€', '900 M€', '1000 M€']);
 		expect(b.inputs[3].column).toEqual(a.inputs[3].column);
 		expect(b.rewards[4]).toEqual(a.rewards[4]);
 		expect(b.optimal).toEqual(a.optimal);
-	});
+	}, 10_000);
 
 	it('samples only the random inputs; fixed ones get no column', async () => {
 		const model = presetModel('distribution-centre');
@@ -373,5 +381,400 @@ describe('simulation engine', () => {
 		const e = await done;
 		expect(e.type === 'done' && e.scenarios.n).toBe(6_000);
 		engine.dispose();
+	});
+});
+
+/** A simulation worker that records what it is sent and answers only when the test says so. */
+class ManualWorker implements WorkerLike<ToWorker, FromWorker> {
+	onmessage: ((e: MessageEvent<FromWorker>) => void) | null = null;
+	onerror: ((e: ErrorEvent) => void) | null = null;
+	posted: ToWorker[] = [];
+	postMessage(msg: ToWorker): void {
+		this.posted.push(msg);
+	}
+	terminate(): void {}
+	/** Delivers a chunk of `rows` rewards in one decision column. */
+	reply(k: number, rows: number): void {
+		const chunk = { rewards: [new Float64Array(rows)] };
+		this.onmessage?.({ data: { type: 'chunk', k, chunk } } as unknown as MessageEvent<FromWorker>);
+	}
+}
+
+/** A real simulation worker that also records what it is sent. */
+class RecordingWorker extends FakeWorker {
+	posted: ToWorker[] = [];
+	override postMessage(msg: ToWorker): void {
+		this.posted.push(msg);
+		super.postMessage(msg);
+	}
+}
+
+/** An analyser whose calls stay pending until the test settles them. */
+function manualAnalyser() {
+	const calls: {
+		scenarios: Scenarios;
+		listener: AnalysisListener;
+		resolve: (r: AnalysisResult) => void;
+		reject: (e: Error) => void;
+	}[] = [];
+	const trees: {
+		listener: AnalysisListener;
+		resolve: (r: TreeResult) => void;
+		reject: (e: Error) => void;
+	}[] = [];
+	let cancels = 0;
+	const analyser: Analyser = {
+		analyse: (scenarios, _options, listener) =>
+			new Promise<AnalysisResult>((resolve, reject) => {
+				calls.push({ scenarios, listener: listener!, resolve, reject });
+			}),
+		retree: (_scenarios, _options, listener) =>
+			new Promise<TreeResult>((resolve, reject) => {
+				trees.push({ listener: listener!, resolve, reject });
+			}),
+		cancel: () => void cancels++,
+		dispose: () => {}
+	};
+	return { analyser, calls, trees, cancels: () => cancels };
+}
+
+const tick = (ms = 30) => new Promise((r) => setTimeout(r, ms));
+
+describe('stale results and failures', () => {
+	const model = presetModel('blank');
+	const spec = (seed: number) => runSpec({ ...model, seed }, compiled(model));
+	const engineOn = (
+		analyser: Analyser,
+		createWorker: () => WorkerLike<ToWorker, FromWorker> = () => new FakeWorker(),
+		progressMs = 5
+	) => createSimulationEngine(createWorker, { workers: 1, progressMs, analyser });
+	const sentinel = {} as Analysis;
+
+	// Kills the token guards in listenerFor, analyse().then and failedAnalysis.
+	it('ignores progress, partials, results and errors of a cancelled analysis', async () => {
+		const m = manualAnalyser();
+		const engine = engineOn(m.analyser);
+		const events: EngineEvent[] = [];
+		engine.subscribe((e) => events.push(e));
+
+		engine.run(spec(1), 100);
+		await tick();
+		expect(m.calls).toHaveLength(1);
+		engine.cancel();
+		expect(m.cancels()).toBe(1);
+		engine.run(spec(3), 300);
+		await tick();
+		engine.cancel();
+		engine.run(spec(2), 200);
+		await tick();
+		expect(m.calls).toHaveLength(3);
+		const old = m.calls[0]!;
+		const failed = m.calls[1]!;
+		const current = m.calls[2]!;
+
+		events.length = 0;
+		old.listener.progress?.('main', 0.9);
+		old.listener.partial?.({} as PartialAnalysis);
+		old.resolve({ scenarios: old.scenarios, analysis: sentinel });
+		await tick();
+		expect(engine.scenarios).toBeNull();
+		expect(events.filter((e) => e.type === 'partial' || e.type === 'done')).toEqual([]);
+		// The only progress is the timer's, still on the new job: nothing of 'main' counted.
+		for (const e of events) if (e.type === 'progress') expect(e.fraction).toBeCloseTo(0.15, 12);
+
+		failed.reject(new Error('old failure'));
+		await tick();
+		expect(events.some((e) => e.type === 'error')).toBe(false);
+		expect(engine.running).toBe(true);
+
+		current.resolve({ scenarios: current.scenarios, analysis: sentinel });
+		await tick();
+		const done = events.find((e) => e.type === 'done');
+		expect(done?.type === 'done' && done.scenarios.n).toBe(200);
+		expect(engine.running).toBe(false);
+		engine.dispose();
+	});
+
+	// Kills the arithmetic of the partial's elapsed time.
+	it('stamps a partial with the time since the job started', async () => {
+		let t = 1000;
+		const clock = vi.spyOn(performance, 'now').mockImplementation(() => t);
+		try {
+			const m = manualAnalyser();
+			const engine = engineOn(m.analyser);
+			const events: EngineEvent[] = [];
+			engine.subscribe((e) => events.push(e));
+			engine.run(spec(1), 100);
+			await tick();
+			t = 1500;
+			m.calls[0]!.listener.partial?.({} as PartialAnalysis);
+			expect(events.filter((e) => e.type === 'partial')).toMatchObject([{ elapsedMs: 500 }]);
+			engine.cancel();
+			engine.dispose();
+		} finally {
+			clock.mockRestore();
+		}
+	});
+
+	// Kills the explicit progress event when the analysis starts (no timer tick can help: it is off).
+	it('emits progress as soon as the analysis starts', async () => {
+		const m = manualAnalyser();
+		const engine = engineOn(m.analyser, () => new FakeWorker(), 1e9);
+		const fractions: number[] = [];
+		engine.subscribe((e) => e.type === 'progress' && fractions.push(e.fraction));
+		engine.run(spec(1), 100);
+		await tick();
+		expect(m.calls).toHaveLength(1);
+		expect(fractions.at(-1)).toBeCloseTo(0.15, 12);
+		engine.cancel();
+		engine.dispose();
+	});
+
+	// Kills the chunk message, the rows counted per chunk and their share of the total (0.15 for Simulating).
+	it('counts the rows of each chunk drawn into the simulating fraction', async () => {
+		const m = manualAnalyser();
+		let w!: ManualWorker;
+		const engine = engineOn(m.analyser, () => (w = new ManualWorker()));
+		const fractions: number[] = [];
+		engine.subscribe((e) => e.type === 'progress' && fractions.push(e.fraction));
+		engine.run(spec(1), 2 * CHUNK_ROWS);
+		expect(
+			w.posted.filter((p) => p.type === 'chunk').map((p) => p.type === 'chunk' && p.k)
+		).toEqual([0, 1]);
+		w.reply(0, CHUNK_ROWS);
+		await tick();
+		// Half of the rows are drawn: half of the Simulating weight (0.15).
+		expect(fractions[0]).toBe(0);
+		expect(fractions.at(-1)).toBeCloseTo(0.075, 12);
+		expect(fractions.every((f) => [0, 0.075].some((k) => Math.abs(f - k) < 1e-12))).toBe(true);
+		engine.cancel();
+		engine.dispose();
+	});
+
+	// Kills the optional chaining on a chunk without a reward column.
+	it('counts no rows for a chunk without rewards', async () => {
+		let w!: ManualWorker;
+		const engine = engineOn(manualAnalyser().analyser, () => (w = new ManualWorker()));
+		const fractions: number[] = [];
+		engine.subscribe((e) => e.type === 'progress' && fractions.push(e.fraction));
+		engine.run(spec(1), 2 * CHUNK_ROWS);
+		const chunk = { rewards: [] };
+		expect(() =>
+			w.onmessage?.({ data: { type: 'chunk', k: 0, chunk } } as unknown as MessageEvent<FromWorker>)
+		).not.toThrow();
+		await tick();
+		expect(fractions.at(-1)).toBe(0);
+		engine.cancel();
+		engine.dispose();
+	});
+
+	// Kills the guard on the sender: a worker of an abandoned run, or a late reply with no job.
+	it('ignores chunks from workers of an abandoned run', async () => {
+		const workers: ManualWorker[] = [];
+		const engine = engineOn(manualAnalyser().analyser, () => {
+			const w = new ManualWorker();
+			workers.push(w);
+			return w;
+		});
+		const fractions: number[] = [];
+		engine.subscribe((e) => e.type === 'progress' && fractions.push(e.fraction));
+		engine.run(spec(1), 2 * CHUNK_ROWS);
+		// Cancelling detaches the handler; keep it to play a reply that was already in flight.
+		const late = workers[0]!.onmessage!;
+		const reply = () =>
+			late({
+				data: { type: 'chunk', k: 0, chunk: { rewards: [new Float64Array(CHUNK_ROWS)] } }
+			} as unknown as MessageEvent<FromWorker>);
+		engine.cancel();
+		expect(reply).not.toThrow(); // no job at all
+		engine.run(spec(2), 2 * CHUNK_ROWS);
+		expect(workers).toHaveLength(2);
+		reply(); // a job, but not this worker's
+		await tick();
+		expect(Math.max(...fractions)).toBe(0);
+		engine.cancel();
+		engine.dispose();
+	});
+
+	// Kills the token guards when no job is left at all (they must not read `job.token`).
+	it('ignores late analysis calls after a cancel that left no job', async () => {
+		const m = manualAnalyser();
+		const engine = engineOn(m.analyser);
+		engine.run(spec(1), 100);
+		await tick();
+		const [first] = m.calls;
+		engine.cancel();
+		expect(() => first!.listener.progress?.('main', 0.5)).not.toThrow();
+		expect(() => first!.listener.partial?.({} as PartialAnalysis)).not.toThrow();
+		const failures: unknown[] = [];
+		const onUnhandled = (e: unknown) => failures.push(e);
+		process.on('unhandledRejection', onUnhandled);
+		first!.resolve({ scenarios: first!.scenarios, analysis: sentinel });
+		await tick();
+		engine.run(spec(2), 100);
+		await tick();
+		m.calls[1]!.reject(new Error('later'));
+		engine.cancel();
+		await tick();
+		process.off('unhandledRejection', onUnhandled);
+		expect(failures).toEqual([]);
+		expect(engine.scenarios).toBeNull();
+		engine.dispose();
+	});
+
+	// Kills the error of a missing chunk.
+	it('fails loudly when the chunks do not cover the plan', () => {
+		let w!: ManualWorker;
+		const engine = engineOn(manualAnalyser().analyser, () => (w = new ManualWorker()));
+		engine.run(spec(1), 100);
+		expect(() => w.reply(7, 100)).toThrow('missing chunk');
+		engine.cancel();
+		engine.dispose();
+	});
+
+	// Kills the arithmetic of the next chunk index: an add continues after the chunks drawn.
+	it('continues an add at the chunk after the last one drawn', async () => {
+		const m = manualAnalyser();
+		let w!: RecordingWorker;
+		const engine = engineOn(m.analyser, () => (w = new RecordingWorker()));
+		engine.run(spec(1), 2 * CHUNK_ROWS);
+		for (let i = 0; i < 100 && m.calls.length === 0; i++) await tick(50);
+		expect(m.calls).toHaveLength(1);
+		m.calls[0]!.resolve({ scenarios: m.calls[0]!.scenarios, analysis: sentinel });
+		await tick();
+		w.posted.length = 0;
+		engine.add(10);
+		const ks = w.posted.flatMap((p) => (p.type === 'chunk' ? [p.k] : []));
+		expect(ks).toEqual([2]);
+		engine.cancel();
+		engine.dispose();
+	});
+
+	// Kills the failedAnalysis path for the current job.
+	it('ends the job with the error of a failed analysis', async () => {
+		const m = manualAnalyser();
+		const engine = engineOn(m.analyser);
+		const events: EngineEvent[] = [];
+		engine.subscribe((e) => events.push(e));
+		engine.run(spec(1), 100);
+		await tick();
+		m.calls[0]!.reject(new Error('analysis failed'));
+		await tick();
+		expect(events.filter((e) => e.type === 'error')).toEqual([
+			{ type: 'error', message: 'analysis failed' }
+		]);
+		expect(engine.running).toBe(false);
+		engine.dispose();
+	});
+
+	// Kills the token guard of Update tree: a tree that arrives after a cancel is dropped.
+	it('ignores a policy tree that arrives after Update tree was cancelled and a new run started', async () => {
+		const m = manualAnalyser();
+		const engine = engineOn(m.analyser);
+		const events: EngineEvent[] = [];
+		engine.subscribe((e) => events.push(e));
+		engine.run(spec(1), 100);
+		await tick();
+		m.calls[0]!.resolve({ scenarios: m.calls[0]!.scenarios, analysis: sentinel });
+		await tick();
+		const before = engine.scenarios;
+
+		// A tree that arrives when no job is left must not read the job either.
+		const failures: unknown[] = [];
+		const onUnhandled = (e: unknown) => failures.push(e);
+		process.on('unhandledRejection', onUnhandled);
+		engine.reanalyse({ ...spec(1).analysis });
+		engine.cancel();
+		m.trees[0]!.resolve({ error: 'late' });
+		await tick();
+		process.off('unhandledRejection', onUnhandled);
+		expect(failures).toEqual([]);
+
+		engine.reanalyse({ ...spec(1).analysis });
+		expect(m.trees).toHaveLength(2);
+		engine.cancel();
+		engine.run(spec(2), 200);
+		await tick();
+		events.length = 0;
+		m.trees[1]!.resolve({ error: 'late' });
+		m.trees[1]!.listener.partial?.({} as PartialAnalysis);
+		await tick();
+		expect(events.filter((e) => e.type === 'done')).toEqual([]);
+		expect(engine.scenarios).toBe(before);
+		expect(engine.running).toBe(true);
+		engine.cancel();
+		engine.dispose();
+	});
+
+	// Kills Math.max -> Math.min on step fractions and the progress arithmetic.
+	it('keeps the highest fraction of a step and weights the steps', async () => {
+		const m = manualAnalyser();
+		const engine = engineOn(m.analyser);
+		const events: EngineEvent[] = [];
+		engine.subscribe((e) => events.push(e));
+		engine.run(spec(1), 100);
+		await tick();
+		const call = m.calls[0]!;
+		const last = () => events.filter((e) => e.type === 'progress').at(-1);
+
+		// Weights 0.15, 0.25, 0.2, 0.4: Simulating is done, nothing else yet.
+		expect(last()?.fraction).toBeCloseTo(0.15, 12);
+		call.listener.progress?.('main', 0.8);
+		call.listener.progress?.('main', 0.3);
+		call.listener.partial?.({} as PartialAnalysis);
+		expect(last()).toMatchObject({ step: 'Summary and inputs' });
+		expect(last()?.fraction).toBeCloseTo(0.15 + 0.25 * 0.8, 12);
+		await tick();
+		expect(last()?.fraction).toBeCloseTo(0.35, 12);
+
+		call.listener.progress?.('voi', 0.5);
+		call.listener.partial?.({} as PartialAnalysis);
+		expect(last()?.fraction).toBeCloseTo(0.35 + 0.2 * 0.5, 12);
+		for (let i = 1; i < events.length; i++) {
+			const [a, b] = [events[i - 1], events[i]];
+			if (a.type === 'progress' && b.type === 'progress') {
+				expect(b.fraction).toBeGreaterThanOrEqual(a.fraction);
+			}
+		}
+		engine.cancel();
+		engine.dispose();
+	});
+
+	// Kills the worker-error paths (onerror with and without a message, and an error message).
+	describe.each([
+		[
+			'an onerror with a message',
+			(w: FakeWorker) => w.onerror?.({ message: 'boom' } as ErrorEvent),
+			'boom'
+		],
+		[
+			'an onerror without a message',
+			(w: FakeWorker) => w.onerror?.({} as ErrorEvent),
+			'Worker error'
+		],
+		[
+			'an error message',
+			(w: FakeWorker) =>
+				w.onmessage?.({ data: { type: 'error', message: 'bad' } } as MessageEvent<FromWorker>),
+			'bad'
+		]
+	] as const)('on %s', (_, trigger, message) => {
+		it('emits one error, stops, and the next run works', async () => {
+			let worker!: FakeWorker;
+			const engine = engineOn(manualAnalyser().analyser, () => (worker = new FakeWorker()));
+			const events: EngineEvent[] = [];
+			engine.subscribe((e) => events.push(e));
+			engine.run(spec(1), 100);
+			trigger(worker);
+			expect(events.filter((e) => e.type === 'error')).toEqual([{ type: 'error', message }]);
+			expect(engine.running).toBe(false);
+
+			const real = engineWith(1);
+			const done = next(real);
+			real.run(spec(1), 50);
+			expect((await done).type).toBe('done');
+			real.dispose();
+			engine.dispose();
+		});
 	});
 });

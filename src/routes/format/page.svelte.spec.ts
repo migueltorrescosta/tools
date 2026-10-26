@@ -8,7 +8,7 @@ function ui() {
 		content: page.getByRole('textbox', { name: 'Content' }),
 		status: page.getByRole('status', { name: 'Validation result' }),
 		copy: page.getByRole('button', { name: /^(Copy input|Copied|Copy failed)$/ }),
-		format: (name: string) => page.getByRole('button', { name, exact: true })
+		format: (name: string) => page.getByRole('radio', { name, exact: true })
 	};
 }
 
@@ -35,14 +35,14 @@ describe('/format page', () => {
 			.toHaveTextContent("Invalid JSON at line 1, column 8: Trailing comma before '}'");
 	});
 
-	it('exposes the selected format with aria-pressed', async () => {
+	it('exposes the selected format as a checked radio', async () => {
 		render(FormatPage);
 		const u = ui();
-		await expect.element(u.format('JSON')).toHaveAttribute('aria-pressed', 'true');
-		await expect.element(u.format('YAML')).toHaveAttribute('aria-pressed', 'false');
+		await expect.element(u.format('JSON')).toBeChecked();
+		await expect.element(u.format('YAML')).not.toBeChecked();
 		await u.format('YAML').click();
-		await expect.element(u.format('YAML')).toHaveAttribute('aria-pressed', 'true');
-		await expect.element(u.format('JSON')).toHaveAttribute('aria-pressed', 'false');
+		await expect.element(u.format('YAML')).toBeChecked();
+		await expect.element(u.format('JSON')).not.toBeChecked();
 	});
 
 	it('copies the input and confirms it', async () => {

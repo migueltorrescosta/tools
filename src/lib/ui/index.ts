@@ -9,6 +9,8 @@ export { default as Output } from './Output.svelte';
 export { default as PageHeader } from './PageHeader.svelte';
 export { default as Panel } from './Panel.svelte';
 export { default as References } from './References.svelte';
+export { default as RunControls } from './RunControls.svelte';
+export { default as ScrollEdges } from './ScrollEdges.svelte';
 export { default as SegmentedControl } from './SegmentedControl.svelte';
 export { default as ShareActions } from './ShareActions.svelte';
 export { default as Select } from './Select.svelte';

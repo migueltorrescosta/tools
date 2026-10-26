@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildPolicyTree, policyTreeView } from '$lib/information-pricing/analysis';
+import { thresholdLabels } from './format';
 import { layoutTree, nodeLines } from './tree-layout';
 
 describe('layoutTree', () => {
@@ -27,8 +28,9 @@ describe('layoutTree', () => {
 			const child = layout.nodes.find((b) => b.id === e.child)!;
 			expect(child.y).toBeGreaterThan(split.y);
 		}
+		// Edge labels use the axes' compact numbers, not the reference's raw thresholds
 		expect(layout.edges.filter((e) => e.label).map((e) => e.label!.text)).toEqual(
-			view.splits.flatMap((s) => s.edges.map((e) => e.label))
+			view.splits.flatMap((s) => thresholdLabels(s.thresholds))
 		);
 	});
 

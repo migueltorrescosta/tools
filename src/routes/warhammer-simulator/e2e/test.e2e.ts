@@ -6,7 +6,7 @@ async function open(page: Page) {
 	await expect(page.locator('.container[data-hydrated]')).toBeVisible({ timeout: 20_000 });
 }
 
-const runButton = (page: Page) => page.getByRole('button', { name: 'Run simulation' });
+const runButton = (page: Page) => page.getByRole('button', { name: 'Run', exact: true });
 const winnerHeading = (page: Page) => page.getByRole('heading', { name: 'Winner' });
 
 test('Warhammer Simulator - page loads correctly', async ({ page }) => {

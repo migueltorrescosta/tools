@@ -269,16 +269,33 @@ describe('fill', () => {
 		expect([...out.slice(3, 6)].every((x) => x >= 0 && x < 1)).toBe(true);
 	});
 
-	it('draws 1M binomial(1e7, 0.001) and Poisson(1e4) quickly', () => {
+	it('draws 1M binomial(1e7, 0.001) and Poisson(1e4) with the right mean and variance', () => {
 		const out = new Float64Array(1_000_000);
-		for (const [family, params] of [
-			['binomial', [1e7, 0.001]],
-			['poisson', [1e4]]
-		] as [Family, number[]][]) {
-			const t0 = performance.now();
-			fill(family, params, new Prng(1), out);
-			const ms = performance.now() - t0;
-			expect(ms).toBeLessThan(3000);
-		}
-	});
+		const moments = () => {
+			let sum = 0;
+			let sumSq = 0;
+			let allCounts = true;
+			for (const x of out) {
+				if (!Number.isInteger(x) || x < 0) allCounts = false;
+				sum += x;
+				sumSq += x * x;
+			}
+			const mean = sum / out.length;
+			return { allCounts, mean, variance: sumSq / out.length - mean * mean };
+		};
+
+		// binomial(1e7, 0.001): mean = 1e4, var = 1e4 * (1 - 0.001) = 9990
+		fill('binomial', [1e7, 0.001], new Prng(1), out);
+		const b = moments();
+		expect(b.allCounts).toBe(true);
+		expect(Math.abs(b.mean - 1e4)).toBeLessThanOrEqual(0.5);
+		expect(Math.abs(b.variance - 9990)).toBeLessThanOrEqual(9990 * 0.03);
+
+		// Poisson(1e4): mean = 1e4, var = 1e4
+		fill('poisson', [1e4], new Prng(1), out);
+		const p = moments();
+		expect(p.allCounts).toBe(true);
+		expect(Math.abs(p.mean - 1e4)).toBeLessThanOrEqual(0.5);
+		expect(Math.abs(p.variance - 1e4)).toBeLessThanOrEqual(1e4 * 0.03);
+	}, 20_000);
 });

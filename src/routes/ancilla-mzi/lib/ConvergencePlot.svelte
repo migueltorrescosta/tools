@@ -26,11 +26,25 @@
 		testId?: string;
 	} = $props();
 
-	const W = 520;
-	const H = 300;
-	const M = { top: 12, right: 92, bottom: 44, left: 56 };
-	const innerW = W - M.left - M.right;
-	const innerH = H - M.top - M.bottom;
+	/** Chart text size in px; the SVG is drawn at its rendered width, so it stays this size. */
+	const FONT = 12;
+	/** Width of a monospace character at FONT. */
+	const CHAR = FONT * 0.62;
+	let width = $state(520);
+	const W = $derived(Math.max(260, width));
+	const H = $derived(Math.round(Math.min(320, Math.max(220, W * 0.6))));
+	/** Line labels at the right end when there is room; the legend always names the lines. */
+	const endLabels = $derived(W >= 460);
+	const M = $derived({
+		top: 12,
+		right: endLabels
+			? 10 + CHAR * Math.max(0, ...refs.map((r) => (r.short ?? r.label).length))
+			: 12,
+		bottom: 44,
+		left: 60
+	});
+	const innerW = $derived(W - M.left - M.right);
+	const innerH = $derived(H - M.top - M.bottom);
 
 	const shown = $derived(traces.filter((t) => t.points.length > 0));
 	const hasCompanion = $derived(shown.some((t) => t.role === 'companion'));
@@ -102,7 +116,7 @@
 			.map((r) => ({ ...r, y: sy(r.value) }))
 			.sort((a, b) => a.y - b.y);
 		for (let i = 1; i < sorted.length; i++)
-			if (sorted[i].y - sorted[i - 1].y < 12) sorted[i].y = sorted[i - 1].y + 12;
+			if (sorted[i].y - sorted[i - 1].y < 14) sorted[i].y = sorted[i - 1].y + 14;
 		return sorted;
 	});
 
@@ -166,55 +180,61 @@
 			{/each}
 		</span>
 	</figcaption>
-	<svg
-		viewBox="0 0 {W} {H}"
-		role="img"
-		aria-label="Convergence: {shown.length} seed traces{refs.length
-			? `; reference lines: ${refs.map((r) => `${r.label} ${fmt(r.value)}`).join(', ')}`
-			: ''}"
-		onpointermove={onMove}
-		onpointerleave={() => (hoverX = null)}
-	>
-		<g class="grid">
-			{#each xTicks as t (t)}
-				<line x1={sx(t)} x2={sx(t)} y1={M.top} y2={M.top + innerH} />
-				<text x={sx(t)} y={M.top + innerH + 16} text-anchor="middle">{formatTick(t)}</text>
-			{/each}
-			{#each yTicks as t (t)}
-				<line x1={M.left} x2={M.left + innerW} y1={sy(t)} y2={sy(t)} />
-				<text x={M.left - 6} y={sy(t) + 4} text-anchor="end">{formatTick(t)}</text>
-			{/each}
-		</g>
-		{#each refLabels as r (r.kind)}
-			<line
-				class="ref {r.kind}"
-				x1={M.left}
-				x2={M.left + innerW}
-				y1={sy(r.value)}
-				y2={sy(r.value)}
-			/>
-			<text class="ref-label" x={M.left + innerW + 6} y={r.y + 4}>{r.short ?? r.label}</text>
-		{/each}
-		{#each shown as t (`${t.role}-${t.seed}`)}
-			<path
-				class="trace {t.role}"
-				class:best={bestSeeds[t.role] === t.seed}
-				class:running={!t.done}
-				d={path(t)}
-			/>
-		{/each}
-		{#if hover}
-			<line class="crosshair" x1={hover.x} x2={hover.x} y1={M.top} y2={M.top + innerH} />
-		{/if}
-		<text class="label" x={M.left + innerW / 2} y={H - 6} text-anchor="middle">Evaluations</text>
-		<text
-			class="label"
-			x={14}
-			y={M.top + innerH / 2}
-			text-anchor="middle"
-			transform="rotate(-90 14 {M.top + innerH / 2})">QFI/t²{log ? ' (log)' : ''}</text
+	<div class="fit-chart" bind:clientWidth={width}>
+		<svg
+			viewBox="0 0 {W} {H}"
+			width={W}
+			height={H}
+			role="img"
+			aria-label="Convergence: {shown.length} seed traces{refs.length
+				? `; reference lines: ${refs.map((r) => `${r.label} ${fmt(r.value)}`).join(', ')}`
+				: ''}"
+			onpointermove={onMove}
+			onpointerleave={() => (hoverX = null)}
 		>
-	</svg>
+			<g class="grid">
+				{#each xTicks as t (t)}
+					<line x1={sx(t)} x2={sx(t)} y1={M.top} y2={M.top + innerH} />
+					<text x={sx(t)} y={M.top + innerH + 16} text-anchor="middle">{formatTick(t)}</text>
+				{/each}
+				{#each yTicks as t (t)}
+					<line x1={M.left} x2={M.left + innerW} y1={sy(t)} y2={sy(t)} />
+					<text x={M.left - 6} y={sy(t) + 4} text-anchor="end">{formatTick(t)}</text>
+				{/each}
+			</g>
+			{#each refLabels as r (r.kind)}
+				<line
+					class="ref {r.kind}"
+					x1={M.left}
+					x2={M.left + innerW}
+					y1={sy(r.value)}
+					y2={sy(r.value)}
+				/>
+				{#if endLabels}<text class="ref-label" x={M.left + innerW + 6} y={r.y + 4}
+						>{r.short ?? r.label}</text
+					>{/if}
+			{/each}
+			{#each shown as t (`${t.role}-${t.seed}`)}
+				<path
+					class="trace {t.role}"
+					class:best={bestSeeds[t.role] === t.seed}
+					class:running={!t.done}
+					d={path(t)}
+				/>
+			{/each}
+			{#if hover}
+				<line class="crosshair" x1={hover.x} x2={hover.x} y1={M.top} y2={M.top + innerH} />
+			{/if}
+			<text class="label" x={M.left + innerW / 2} y={H - 6} text-anchor="middle">Evaluations</text>
+			<text
+				class="label"
+				x={14}
+				y={M.top + innerH / 2}
+				text-anchor="middle"
+				transform="rotate(-90 14 {M.top + innerH / 2})">QFI/t²{log ? ' (log)' : ''}</text
+			>
+		</svg>
+	</div>
 	<p class="readout" aria-live="off">
 		{#if hover}
 			At {Math.round(hover.evals)} evaluations, best setup {hover.setup === null
@@ -271,12 +291,6 @@
 		width: 18px;
 		height: 8px;
 	}
-	svg {
-		width: 100%;
-		height: auto;
-		display: block;
-		overflow: visible;
-	}
 	.grid line {
 		stroke: var(--border);
 	}
@@ -284,7 +298,7 @@
 	.label,
 	.ref-label {
 		fill: var(--text-muted);
-		font-size: 11px;
+		font-size: 12px;
 		font-family: var(--font-mono);
 	}
 	.trace {

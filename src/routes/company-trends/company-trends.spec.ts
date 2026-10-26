@@ -190,6 +190,59 @@ describe('interpolateSeries', () => {
 		expect(out.map((p) => p.quarter)).toEqual(['2000Q1', '2000Q2', '2000Q3']);
 		expect(out[1].revenue).toBeCloseTo(200, 10);
 	});
+
+	// Kills a mutant that uses + instead of - in span = qb - qa.
+	it('interpolates correctly when anchors do not start at 2000Q1', () => {
+		const grid = quarterRange('2003Q1', '2004Q1');
+		const anchors: CompanyPoint[] = [
+			reported('2003Q2', 100, 25, 'q2 filing'),
+			reported('2003Q4', 400, 100, 'q4 filing')
+		];
+		const out = interpolateSeries(anchors, grid);
+		expect(out.map((p) => p.quarter)).toEqual(['2003Q2', '2003Q3', '2003Q4']);
+		// Middle quarter 2003Q3: t = (3-2)/(4-2) = 0.5, log-interp of 100 and 400 = 200
+		const mid = out[1];
+		expect(mid.quarter).toBe('2003Q3');
+		expect(mid.revenue).toBeCloseTo(200, 10);
+		// expenses: 100-25=75 -> 400-100=300, geometric mean sqrt(75*300)=150, so opInc = 200-150=50
+		expect(mid.operatingIncome).toBeCloseTo(50, 10);
+	});
+
+	// Kills a mutant that uses + instead of - in span = qb - qa.
+	it('handles three anchors with uneven spacing and verifies log-space formula', () => {
+		const grid = quarterRange('2010Q3', '2012Q3');
+		const anchors: CompanyPoint[] = [
+			reported('2010Q3', 100, 20, 'fy2010'),
+			reported('2011Q1', 200, 40, 'fy2011'),
+			reported('2012Q3', 800, 160, 'fy2012')
+		];
+		const out = interpolateSeries(anchors, grid);
+		// Gap 1: 2010Q3 -> 2011Q1 is 2 quarters (indices: 2010Q3=43, 2011Q1=45)
+		// Quarter 2010Q4 is at t = 1/2 = 0.5
+		// Gap 2: 2011Q1 -> 2012Q3 is 6 quarters (indices: 45 to 51)
+		// Quarter 2011Q3 is at t = 2/6 = 1/3 from 2011Q1
+		// Quarter 2012Q1 is at t = 4/6 = 2/3 from 2011Q1
+		const logInterp = (a: number, b: number, t: number) =>
+			Math.exp(Math.log(a) + t * (Math.log(b) - Math.log(a)));
+		const q2010Q4 = out.find((p) => p.quarter === '2010Q4')!;
+		expect(q2010Q4.revenue).toBeCloseTo(logInterp(100, 200, 0.5), 10);
+		expect(q2010Q4.operatingIncome).toBeCloseTo(
+			logInterp(100, 200, 0.5) - logInterp(80, 160, 0.5),
+			10
+		);
+		const q2011Q3 = out.find((p) => p.quarter === '2011Q3')!;
+		expect(q2011Q3.revenue).toBeCloseTo(logInterp(200, 800, 2 / 6), 10);
+		expect(q2011Q3.operatingIncome).toBeCloseTo(
+			logInterp(200, 800, 2 / 6) - logInterp(160, 640, 2 / 6),
+			10
+		);
+		const q2012Q1 = out.find((p) => p.quarter === '2012Q1')!;
+		expect(q2012Q1.revenue).toBeCloseTo(logInterp(200, 800, 4 / 6), 10);
+		expect(q2012Q1.operatingIncome).toBeCloseTo(
+			logInterp(200, 800, 4 / 6) - logInterp(160, 640, 4 / 6),
+			10
+		);
+	});
 });
 
 // ---------------------------------------------------------------------------

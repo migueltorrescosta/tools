@@ -30,7 +30,9 @@ export interface TreeSplitView {
 	/** The internal node the split diamond hangs from. */
 	node: number;
 	input: number;
-	/** One edge per child: `≤t`, `∈(a,b]` or `>t`, thresholds to 5 significant digits. */
+	/** The split's thresholds, ascending, in the input's native units. */
+	thresholds: number[];
+	/** One edge per child: `≤t`, `∈(a,b]` or `>t`, thresholds to 5 significant digits (the reference text). */
 	edges: { child: number; label: string }[];
 }
 
@@ -120,6 +122,7 @@ export function policyTreeView(
 		splits.push({
 			node: node.id,
 			input: node.splitInput,
+			thresholds: [...node.thresholds],
 			edges: node.children.map((child, c) => ({
 				child,
 				label: c === 0 ? `≤${t[0]}` : c === last ? `>${t[last - 1]}` : `∈(${t[c - 1]},${t[c]}]`

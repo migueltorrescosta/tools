@@ -48,6 +48,17 @@
 		chooseDerivation();
 	}
 
+	// The details drawer takes focus when it opens and hands it back to its opener when it closes.
+	let drawer = $state<HTMLElement>();
+	$effect(() => {
+		if (!drawer) return;
+		const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+		drawer.focus();
+		return () => {
+			if (opener?.isConnected) opener.focus();
+		};
+	});
+
 	// ?paper and ?derivation pick the graph; unknown values fall back to the first.
 	onMount(() => {
 		const params = page.url.searchParams;
@@ -107,15 +118,15 @@
 			bind:value={zoom}
 		/>
 		<p class="sd-hint">
-			Select an equation or a fact for details. Dashed boxes are assumptions, bold boxes results;
-			tags mark steps corrected from, or added to, the paper.
+			Select an equation or a fact for details. Dashed boxes are assumptions and bold boxes are
+			results. Tags mark steps that were corrected or added.
 		</p>
 	</div>
 	{#key derivation.id}
 		<DerivationGraph {derivation} bind:selected fit={zoom === 'fit'} />
 	{/key}
 	{#if selected}
-		<aside class="sd-drawer" aria-label="Details">
+		<aside class="sd-drawer" aria-label="Details" tabindex="-1" bind:this={drawer}>
 			<DetailPanel {paper} {derivation} bind:selected onopen={open} />
 		</aside>
 	{/if}
@@ -183,6 +194,15 @@
 		border-left: 1px solid var(--border);
 		box-shadow: -4px 0 16px rgb(0 0 0 / 0.15);
 		animation: sd-slide 0.15s ease-out;
+	}
+
+	.sd-drawer:focus {
+		outline: none;
+	}
+
+	.sd-drawer:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: -2px;
 	}
 
 	.sd-drawer > :global(.ui-panel) {

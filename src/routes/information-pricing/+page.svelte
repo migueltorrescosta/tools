@@ -44,6 +44,7 @@
 		Maximizable,
 		PageHeader,
 		References,
+		RunControls,
 		ShareActions,
 		Stepper
 	} from '$lib/ui';
@@ -432,65 +433,66 @@
 		onselect={(i) => (step = i)}
 	/>
 
-	<div class="runbar">
-		<div class="run-fields">
-			<NumberInput
-				label="Samples"
-				value={model.samples}
-				onchange={(v) => (model.samples = v)}
-				error={samplesError}
-			/>
-			<NumberInput
-				label="Seed"
-				value={model.seed}
-				onchange={(v) => (model.seed = v)}
-				error={seedError}
-			/>
-		</div>
-		<div class="run-actions">
-			<Button
-				variant="primary"
-				onclick={run}
-				disabled={running || problems.length > 0}
-				aria-describedby={problems.length > 0 ? 'run-reason' : undefined}>Run</Button
-			>
-			<Button
-				onclick={addScenarios}
-				disabled={running || !hasScenarios || !!samplesError}
-				aria-describedby="add-hint">Add scenarios</Button
-			>
-			{#if running}<Button variant="danger" onclick={cancel}>Cancel</Button>{/if}
-			<Button
-				variant="ghost"
-				onclick={downloadCsv}
-				disabled={running || !hasScenarios}
-				data-testid="download-csv"
-				><span aria-hidden="true">↓</span><span class="sr-only">Download</span> Scenarios (CSV)</Button
-			>
-			<InfoTip label="the scenarios CSV"
-				>Downloads every simulated scenario: inputs, intermediates, each decision's reward and
-				opportunity loss, and the optimal reward.</InfoTip
-			>
-		</div>
-		<div class="run-status">
-			{#if running && progress}
-				<span class="progress" data-testid="progress">
-					<label for="run-progress" data-testid="progress-label">{stage}</label>
-					<progress id="run-progress" max="1" value={progress.fraction}></progress>
-					<span>{seconds(progress.elapsedMs)}</span>
-				</span>
-			{/if}
-			<span role="status" data-testid="run-status" data-done={completed}
-				>{#if !running && hasScenarios && doneMs !== null}{count(scenarioCount)} scenarios · {seconds(
-						doneMs
-					)}{/if}</span
-			>
-			{#if stale}<span class="stale" data-testid="stale">Out of date, run again</span>{/if}
-		</div>
-		<p id="add-hint" class="sr-only">
-			{#if hasScenarios}Appends {count(model.samples || 0)} to the {count(scenarioCount)} scenarios you
-				have.{:else}Run first.{/if}
-		</p>
+	<div class="run">
+		<RunControls
+			onrun={run}
+			{running}
+			disabled={problems.length > 0}
+			describedby={problems.length > 0 ? 'run-reason' : undefined}
+			onstop={cancel}
+		>
+			{#snippet fields()}
+				<NumberInput
+					label="Samples"
+					value={model.samples}
+					onchange={(v) => (model.samples = v)}
+					error={samplesError}
+				/>
+				<NumberInput
+					label="Seed"
+					value={model.seed}
+					onchange={(v) => (model.seed = v)}
+					error={seedError}
+				/>
+			{/snippet}
+			{#snippet actions()}
+				<Button
+					onclick={addScenarios}
+					disabled={running || !hasScenarios || !!samplesError}
+					aria-describedby="add-hint">Add scenarios</Button
+				>
+				<Button
+					variant="ghost"
+					onclick={downloadCsv}
+					disabled={running || !hasScenarios}
+					data-testid="download-csv"
+					><span aria-hidden="true">↓</span><span class="sr-only">Download</span> Scenarios (CSV)</Button
+				>
+				<InfoTip label="the scenarios CSV"
+					>Downloads every simulated scenario: inputs, intermediates, each decision's reward and
+					opportunity loss, and the optimal reward.</InfoTip
+				>
+			{/snippet}
+			<div class="run-status">
+				{#if running && progress}
+					<span class="progress" data-testid="progress">
+						<label for="run-progress" data-testid="progress-label">{stage}</label>
+						<progress id="run-progress" max="1" value={progress.fraction}></progress>
+						<span>{seconds(progress.elapsedMs)}</span>
+					</span>
+				{/if}
+				<span role="status" data-testid="run-status" data-done={completed}
+					>{#if !running && hasScenarios && doneMs !== null}{count(scenarioCount)} scenarios · {seconds(
+							doneMs
+						)}{/if}</span
+				>
+				{#if stale}<span class="stale" data-testid="stale">Out of date, run again</span>{/if}
+			</div>
+			<p id="add-hint" class="sr-only">
+				{#if hasScenarios}Appends {count(model.samples || 0)} to the {count(scenarioCount)} scenarios
+					you have.{:else}Run first.{/if}
+			</p>
+		</RunControls>
 	</div>
 
 	{#if problems.length > 0}
@@ -585,44 +587,14 @@
 		margin-bottom: var(--sp-3);
 	}
 
-	/* Run bar: one wrapping row under the stepper. */
-	.runbar {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: flex-start;
-		gap: var(--sp-2) var(--sp-3);
+	.run {
 		margin-bottom: var(--sp-3);
-		padding: var(--sp-2) var(--sp-3);
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-	}
-	.run-fields {
-		display: flex;
-		gap: var(--sp-2) var(--sp-3);
-		flex-wrap: wrap;
-	}
-	.run-fields :global(.ui-field) {
-		display: grid;
-		grid-template-columns: auto 6.5rem;
-		align-items: center;
-		gap: var(--sp-0) var(--sp-1);
-	}
-	.run-fields :global(.ui-field > .ui-error) {
-		grid-column: 1 / -1;
-		max-width: 12rem;
-	}
-	.run-actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--sp-1);
 	}
 	.run-status {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
 		gap: var(--sp-1) var(--sp-3);
-		min-height: var(--control-h);
 		font-size: var(--text-sm);
 		color: var(--text-muted);
 	}

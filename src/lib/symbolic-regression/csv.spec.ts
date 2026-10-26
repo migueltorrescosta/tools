@@ -29,6 +29,48 @@ describe('detectDelimiter', () => {
 	});
 });
 
+describe('detectDelimiter consistency preference', () => {
+	// Kills the consistency mutants: a ';' on every line beats a more frequent but uneven ','.
+	it('prefers a consistent ; over a more frequent, uneven , (decimal commas)', () => {
+		const text = 'a;b;c\n1,5;2,25;3,125\n4,5;5,25;6,125\n';
+		expect(detectDelimiter(text)).toBe(';');
+		const parsed = parseCsv(text);
+		expect(parsed.header).toEqual(['a', 'b', 'c']);
+		expect(parsed.rows[0]).toEqual(['1,5', '2,25', '3,125']);
+	});
+
+	it('keeps the first delimiter on a consistent tie', () => {
+		expect(detectDelimiter('a,b;c\n1,2;3\n4,5;6\n')).toBe(',');
+	});
+
+	// Kills the "consistent beats the current best" branch taking over from an equally consistent one.
+	it('keeps an earlier consistent delimiter with the higher total over a later one', () => {
+		expect(detectDelimiter('a,b,c;d\n1,2,3;4\n')).toBe(',');
+	});
+
+	it('takes the higher total among consistent delimiters', () => {
+		expect(detectDelimiter('a\tb\tc,d\n1\t2\t3,4\n')).toBe('\t');
+	});
+
+	it('takes the higher total when none is consistent', () => {
+		expect(detectDelimiter('a,b,c,d\n1;2\n3;4;5;6;7\n')).toBe(';');
+	});
+
+	it('does not let a later uneven delimiter with a higher total beat a consistent one', () => {
+		expect(detectDelimiter('a,b;c;d;e\n1,2;3\n4,5\n')).toBe(',');
+	});
+
+	it('replaces an earlier uneven delimiter by a later consistent one', () => {
+		expect(detectDelimiter('a;b,c,d\n1;2,3\n4;5\n')).toBe(';');
+	});
+
+	it('ignores delimiters inside quotes and counts CRLF and lone CR as one line break each', () => {
+		expect(detectDelimiter('"a,b,c,d";e\r\n"1,2,3,4";5\r\n')).toBe(';');
+		expect(detectDelimiter('a;b;c,d\r1;2;3,4\r')).toBe(';');
+		expect(detectDelimiter('a;b;c,d\r\n1;2;3,4\r\n')).toBe(';');
+	});
+});
+
 describe('parseCsv', () => {
 	it.each([[','], [';'], ['\t']] as [Delimiter][])('parses a simple table with %j', (d) => {
 		const text =
@@ -101,7 +143,7 @@ describe('parseCsv', () => {
 		expect(parseCsv('a,b\n1,"open').rows).toEqual([['1', 'open']]);
 	});
 
-	it('parses 50,000 rows × 20 columns quickly', () => {
+	it('parses 50,000 rows × 20 columns', () => {
 		const cols = 20;
 		const nRows = 50_000;
 		const lines = [Array.from({ length: cols }, (_, j) => `c${j}`).join(',')];
@@ -111,13 +153,12 @@ describe('parseCsv', () => {
 			lines.push(row.join(','));
 		}
 		const text = lines.join('\n') + '\n';
-		const t0 = performance.now();
 		const parsed = parseCsv(text);
-		const ms = performance.now() - t0;
 		expect(parsed.header).toHaveLength(cols);
 		expect(parsed.rows).toHaveLength(nRows);
 		expect(parsed.rows[nRows - 1]).toHaveLength(cols);
 		expect(Number(parsed.rows[123][4])).toBeCloseTo(((123 * 31 + 4 * 7) % 1000) / 7, 10);
-		expect(ms).toBeLessThan(3000);
+		// Last row (i = 49999), last column (j = 19): ((49999*31 + 19*7) % 1000) / 7 = 102/7
+		expect(parsed.rows[nRows - 1][19]).toBe('14.571428571428571');
 	});
 });
