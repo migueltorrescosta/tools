@@ -392,17 +392,25 @@ function manualAnalyser() {
 		resolve: (r: AnalysisResult) => void;
 		reject: (e: Error) => void;
 	}[] = [];
+	const trees: {
+		listener: AnalysisListener;
+		resolve: (r: TreeResult) => void;
+		reject: (e: Error) => void;
+	}[] = [];
 	let cancels = 0;
 	const analyser: Analyser = {
 		analyse: (scenarios, _options, listener) =>
 			new Promise<AnalysisResult>((resolve, reject) => {
 				calls.push({ scenarios, listener: listener!, resolve, reject });
 			}),
-		retree: () => new Promise<TreeResult>(() => {}),
+		retree: (_scenarios, _options, listener) =>
+			new Promise<TreeResult>((resolve, reject) => {
+				trees.push({ listener: listener!, resolve, reject });
+			}),
 		cancel: () => void cancels++,
 		dispose: () => {}
 	};
-	return { analyser, calls, cancels: () => cancels };
+	return { analyser, calls, trees, cancels: () => cancels };
 }
 
 const tick = (ms = 30) => new Promise((r) => setTimeout(r, ms));
@@ -451,6 +459,48 @@ describe('stale results and failures', () => {
 		await tick();
 		const done = events.find((e) => e.type === 'done');
 		expect(done?.type === 'done' && done.scenarios.n).toBe(200);
+		expect(engine.running).toBe(false);
+		engine.dispose();
+	});
+
+	// Kills the failedAnalysis path for the current job.
+	it('ends the job with the error of a failed analysis', async () => {
+		const m = manualAnalyser();
+		const engine = engineOn(m.analyser);
+		const events: EngineEvent[] = [];
+		engine.subscribe((e) => events.push(e));
+		engine.run(spec(1), 100);
+		await tick();
+		m.calls[0]!.reject(new Error('analysis failed'));
+		await tick();
+		expect(events.filter((e) => e.type === 'error')).toEqual([
+			{ type: 'error', message: 'analysis failed' }
+		]);
+		expect(engine.running).toBe(false);
+		engine.dispose();
+	});
+
+	// Kills the token guard of Update tree: a tree that arrives after a cancel is dropped.
+	it('ignores a policy tree that arrives after Update tree was cancelled', async () => {
+		const m = manualAnalyser();
+		const engine = engineOn(m.analyser);
+		const events: EngineEvent[] = [];
+		engine.subscribe((e) => events.push(e));
+		engine.run(spec(1), 100);
+		await tick();
+		m.calls[0]!.resolve({ scenarios: m.calls[0]!.scenarios, analysis: sentinel });
+		await tick();
+		const before = engine.scenarios;
+
+		engine.reanalyse({ ...spec(1).analysis });
+		expect(m.trees).toHaveLength(1);
+		engine.cancel();
+		events.length = 0;
+		m.trees[0]!.resolve({ error: 'late' });
+		m.trees[0]!.listener.partial?.({} as PartialAnalysis);
+		await tick();
+		expect(events.filter((e) => e.type === 'done' || e.type === 'partial')).toEqual([]);
+		expect(engine.scenarios).toBe(before);
 		expect(engine.running).toBe(false);
 		engine.dispose();
 	});
