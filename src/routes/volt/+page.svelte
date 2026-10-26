@@ -214,7 +214,8 @@
 		color: var(--text-muted);
 	}
 
-	/* Axis and rows share one min-width and one location gutter, so years sit over the tracks */
+	/* Axis and rows share one min-width and one location gutter, so years sit over the tracks.
+	   minmax(0, 1fr): a wide font must not stretch the axis column past the rows. */
 	.volt-inner {
 		--gutter: 180px;
 		min-width: 800px;
@@ -222,7 +223,7 @@
 
 	.volt-axis {
 		display: grid;
-		grid-template-columns: var(--gutter) 1fr;
+		grid-template-columns: var(--gutter) minmax(0, 1fr);
 		margin-bottom: var(--sp-1);
 	}
 
@@ -293,7 +294,7 @@
 
 	.volt-row {
 		display: grid;
-		grid-template-columns: var(--gutter) 1fr;
+		grid-template-columns: var(--gutter) minmax(0, 1fr);
 		align-items: center;
 		padding: var(--sp-0) 0;
 		border-top: 1px solid var(--border);
