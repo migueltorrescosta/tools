@@ -102,6 +102,12 @@ export const routes: ToolRoute[] = [
 		group: 'Science and simulation'
 	},
 	{
+		path: '/deconvolution',
+		name: 'Deconvolution',
+		description: 'Simulate noisy data and recover the signal and the noise.',
+		group: 'Science and simulation'
+	},
+	{
 		path: '/information-pricing',
 		name: 'Information Pricing',
 		description: 'Price what knowing more is worth before you decide.',
