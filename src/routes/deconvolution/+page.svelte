@@ -226,7 +226,8 @@
 	let running = $state(false);
 	let runError = $state('');
 
-	const canRun = $derived(!!data && modelValid && chosen.length > 0 && !running);
+	let booting = $state(false);
+	const canRun = $derived(!!data && modelValid && chosen.length > 0 && !running && !booting);
 
 	async function start() {
 		if (!data || !canRun) return;
@@ -557,7 +558,6 @@
 	let boot = $state.raw<{ method: GridMethod; lower: Float64Array; upper: Float64Array } | null>(
 		null
 	);
-	let booting = $state(false);
 	let bootDone = $state(0);
 
 	async function bootstrap() {

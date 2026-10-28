@@ -135,7 +135,7 @@ export const PRESETS2: readonly Preset2[] = [
 		id: 'fringes-2d',
 		name: 'Interference fringes, Gaussian noise',
 		x: { family: 'fringe2', params: [0, 0, 2, 2, 0, 3, 1, 0.8, 0] },
-		y: { family: 'gauss2', params: [0, 0, 0.2, 0.2, 0] },
+		y: { family: 'gauss2', params: [0, 0, 0.4, 0.4, 0] },
 		fitNoise: false
 	}
 ];

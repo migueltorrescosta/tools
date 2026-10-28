@@ -15,7 +15,7 @@ import {
 	type Noise2Spec,
 	type Spec2
 } from './dist2';
-import { gridResolves2, likelihoodGrid2, logLikelihood2 } from './grid2';
+import { likelihoodGrid2, logLikelihood2 } from './grid2';
 import { momentParams } from './mle';
 import type { ParamSpec } from './types';
 
@@ -196,7 +196,9 @@ export function fitMle2({
 		try {
 			const X = makeDist2(m.x, 'signal');
 			const Y = makeDist2(m.y, 'noise');
-			const g = grid && gridResolves2(grid, X, Y) ? grid : likelihoodGrid2(X, Y, xs, ys, SEARCH);
+			// Each phase keeps its own capped grid (coarse search, finer polish), even where it
+			// can't resolve a narrow noise: masses are capped at total 1, so this can't inflate ℓ.
+			const g = grid ?? likelihoodGrid2(X, Y, xs, ys, SEARCH);
 			const ll = logLikelihood2(X, Y, xs, ys, { grid: g });
 			return Number.isFinite(ll) ? -ll : BAD;
 		} catch {

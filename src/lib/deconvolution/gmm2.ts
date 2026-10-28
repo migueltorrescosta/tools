@@ -114,7 +114,8 @@ function step(
 	}
 	const n = R.reduce((a, b) => a + b, 0);
 	const next = comps.map((old, j): Component => {
-		if (!(R[j] > 0)) return old;
+		// A component no point claims drops out (weight 0), so the weights still sum to 1.
+		if (!(R[j] > 0)) return { ...old, w: 0 };
 		const m0 = Rb[j][0] / R[j];
 		const m1 = Rb[j][1] / R[j];
 		const B = pre[j].B;

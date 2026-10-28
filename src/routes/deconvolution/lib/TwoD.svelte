@@ -179,7 +179,8 @@
 	let run = $state.raw<Run | null>(null);
 	let running = $state(false);
 	let runError = $state('');
-	const canRun = $derived(!!data && modelValid && chosen.length > 0 && !running);
+	let booting = $state(false);
+	const canRun = $derived(!!data && modelValid && chosen.length > 0 && !running && !booting);
 
 	async function start() {
 		if (!data || !canRun) return;
@@ -336,7 +337,6 @@
 
 	// --- Bootstrap (Gaussian mixture only: the NPMLE gives point masses) ---
 	let boot = $state.raw<{ lower: Float64Array; upper: Float64Array; axis: 0 | 1 }[] | null>(null);
-	let booting = $state(false);
 	let bootDone = $state(0);
 
 	async function bootstrap() {

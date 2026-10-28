@@ -92,7 +92,7 @@
 		return out;
 	});
 
-	const xTicks = $derived(niceTicks(extent[0], extent[1], Math.max(4, Math.floor(W / 70))));
+	const xTicks = $derived(niceTicks(extent[0], extent[1], Math.max(6, Math.floor(W / 50))));
 	const yTicks = $derived(niceTicks(extent[2], extent[3], 4));
 </script>
 
