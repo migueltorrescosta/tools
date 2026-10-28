@@ -88,7 +88,7 @@ export interface SimpleSpec {
 
 export interface MixtureSpec {
 	family: 'mixture';
-	/** 2–3 components, all continuous or all discrete; weights are normalised. */
+	/** Two or more components (the UI offers 2–3), all continuous or all discrete; weights are normalised. */
 	components: (SimpleSpec & { weight: number })[];
 }
 
@@ -103,6 +103,8 @@ export interface Dist {
 	cf(t: number): [number, number];
 	range(eps: number): [number, number];
 	mean: number | undefined;
+	/** Undefined when the variance doesn't exist or is infinite. */
+	variance: number | undefined;
 	sampler: (prng: Prng) => number;
 }
 

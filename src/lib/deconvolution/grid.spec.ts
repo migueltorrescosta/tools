@@ -104,3 +104,20 @@ describe('logLikelihood', () => {
 		expect(logLikelihood(X, Y, data, { weights: [2, 2, 2] })).toBeCloseTo(2 * one, 9);
 	});
 });
+
+describe('makeDist', () => {
+	it('gives a mixture its mean and variance', () => {
+		const d = makeDist(
+			{
+				family: 'mixture',
+				components: [
+					{ family: 'normal', params: [-1, 1], weight: 1 },
+					{ family: 'normal', params: [2, 0.5], weight: 3 }
+				]
+			},
+			'signal'
+		);
+		expect(d.mean).toBeCloseTo(-0.25 + 1.5, 12);
+		expect(d.variance).toBeCloseTo(0.25 * 2 + 0.75 * 4.25 - 1.25 ** 2, 12);
+	});
+});

@@ -33,6 +33,7 @@ function simple({ family: id, params }: SimpleSpec): Dist {
 		cf: (t) => f.cf(t, ps),
 		range: (eps) => f.range(ps, eps),
 		mean: f.mean(ps),
+		variance: f.variance(ps),
 		sampler: f.sampler(ps)
 	};
 }
@@ -55,6 +56,7 @@ export function shift(d: Dist, s: number): Dist {
 			return [lo + s, hi + s];
 		},
 		mean: d.mean === undefined ? undefined : d.mean + s,
+		variance: d.variance,
 		sampler: (prng) => d.sampler(prng) + s
 	};
 }
@@ -69,6 +71,15 @@ function mergeAtoms(parts: { atoms: Atoms; weight: number }[]): Atoms {
 	}
 	const xs = [...map.keys()].sort((a, b) => a - b);
 	return { x: Float64Array.from(xs), p: Float64Array.from(xs, (x) => map.get(x)!) };
+}
+
+/** Var = Σ wᵢ(σᵢ² + μᵢ²) − μ²; undefined when any component lacks a variance. */
+function mixtureVariance(parts: { weight: number; dist: Dist }[]): number | undefined {
+	if (parts.some((p) => p.dist.mean === undefined || p.dist.variance === undefined))
+		return undefined;
+	const mean = parts.reduce((s, p) => s + p.weight * p.dist.mean!, 0);
+	const second = parts.reduce((s, p) => s + p.weight * (p.dist.variance! + p.dist.mean! ** 2), 0);
+	return second - mean * mean;
 }
 
 function mixture(components: { weight: number; dist: Dist }[]): Dist {
@@ -104,6 +115,7 @@ function mixture(components: { weight: number; dist: Dist }[]): Dist {
 		mean: means.every((m) => m !== undefined)
 			? parts.reduce((s, p, i) => s + p.weight * means[i]!, 0)
 			: undefined,
+		variance: mixtureVariance(parts.map((p) => ({ weight: p.weight, dist: p.dist }))),
 		sampler: (prng) => {
 			let u = prng.next();
 			for (const p of parts) {

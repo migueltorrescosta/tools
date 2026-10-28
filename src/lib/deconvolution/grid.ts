@@ -75,11 +75,22 @@ export function modelWindow(X: Dist, Y: Dist, eps = 1e-3): [number, number] {
  * to hold X's range (all but 1e-9 of its mass), but never by more than the
  * sample's width on either side, so heavy-tailed X keeps a fine step.
  */
-export function likelihoodGrid(X: Dist, Y: Dist, data: ArrayLike<number>) {
+export function likelihoodGrid(
+	X: Dist,
+	Y: Dist,
+	data: ArrayLike<number>,
+	options: { baseNodes?: number; maxNodes?: number } = {}
+) {
 	const [lo, hi] = dataWindow(data);
 	const [xl, xh] = X.range(1e-9);
 	const w = hi - lo;
-	return chooseGrid(Math.max(lo - w, Math.min(lo, xl)), Math.min(hi + w, Math.max(hi, xh)), X, Y);
+	return chooseGrid(
+		Math.max(lo - w, Math.min(lo, xl)),
+		Math.min(hi + w, Math.max(hi, xh)),
+		X,
+		Y,
+		options
+	);
 }
 
 /** Cell masses of `d` on `grid` (mass outside the grid is dropped). */
