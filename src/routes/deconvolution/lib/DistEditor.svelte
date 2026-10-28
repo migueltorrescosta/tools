@@ -7,17 +7,29 @@
 	let {
 		spec = $bindable(),
 		role,
-		testId
+		testId,
+		label,
+		allowMixture = true,
+		continuousOnly = false
 	}: {
 		spec: DistSpec;
 		role: Role;
 		testId: string;
+		/** Defaults to "Signal X" or "Noise Y". */
+		label?: string;
+		/** Offer "Mixture" for the signal (not for a 2D product's marginals). */
+		allowMixture?: boolean;
+		/** Only continuous families (a 2D noise's marginals). */
+		continuousOnly?: boolean;
 	} = $props();
 
 	type Choice = FamilyId | 'mixture';
 	const choices = $derived<{ value: Choice; label: string }[]>([
-		...FAMILIES.map((f) => ({ value: f.id as Choice, label: f.name })),
-		...(role === 'signal' ? [{ value: 'mixture' as Choice, label: 'Mixture' }] : [])
+		...FAMILIES.filter((f) => !continuousOnly || !f.discrete).map((f) => ({
+			value: f.id as Choice,
+			label: f.name
+		})),
+		...(role === 'signal' && allowMixture ? [{ value: 'mixture' as Choice, label: 'Mixture' }] : [])
 	]);
 
 	function pick(value: Choice) {
@@ -78,7 +90,7 @@
 {/snippet}
 
 <div class="editor" data-testid={testId}>
-	<Field label={role === 'signal' ? 'Signal X' : 'Noise Y'}>
+	<Field label={label ?? (role === 'signal' ? 'Signal X' : 'Noise Y')}>
 		{#snippet children(props)}
 			<select
 				class="control"

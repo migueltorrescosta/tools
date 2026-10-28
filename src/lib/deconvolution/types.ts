@@ -25,9 +25,10 @@ export type Role = 'signal' | 'noise';
 /**
  * A parameter's domain, which also fixes how fits move it:
  * `real` as is, `positive` on a log scale, `unit` (0 < v < 1) and
- * `unitClosed` (0 ≤ v ≤ 1) on a logit scale; `count` (a whole number ≥ 0) is held fixed.
+ * `unitClosed` (0 ≤ v ≤ 1) on a logit scale, `corr` (−1 < v < 1) on an atanh scale;
+ * `count` (a whole number ≥ 0) is held fixed.
  */
-export type Domain = 'real' | 'positive' | 'unit' | 'unitClosed' | 'count';
+export type Domain = 'real' | 'positive' | 'unit' | 'unitClosed' | 'corr' | 'count';
 
 export interface ParamSpec {
 	/** Stable key used in state and CSV, e.g. `sigma`. */

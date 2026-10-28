@@ -28,7 +28,7 @@
 		zDensityOnGrid
 	} from '$lib/deconvolution/grid';
 	import { bands, histogram, simulate } from '$lib/deconvolution/sample';
-	import { parseSample, sampleCsv, type ParsedSample } from '$lib/deconvolution/upload';
+	import { sampleCsv, type ParsedSample } from '$lib/deconvolution/upload';
 	import { supportGrid } from '$lib/deconvolution/npmle';
 	import { truthOnGrid, l1, wasserstein1 } from '$lib/deconvolution/metrics';
 	import {
@@ -56,6 +56,8 @@
 	} from '$lib/deconvolution/state';
 	import type { Dist, DistSpec, FamilyId, Grid, MethodId } from '$lib/deconvolution/types';
 	import DistEditor from './lib/DistEditor.svelte';
+	import DataSource from './lib/DataSource.svelte';
+	import TwoD from './lib/TwoD.svelte';
 	import DensityChart, { type Curve, type Stems, type Band } from './lib/DensityChart.svelte';
 	import { REFERENCES } from './lib/references';
 
@@ -168,33 +170,16 @@
 	}
 
 	// --- Data ---
-	let uploadText = $state('');
 	let uploaded = $state<ParsedSample | null>(null);
-	let uploadName = $state('');
-
-	function parseUpload(text: string, name = '') {
-		uploadText = text;
-		uploadName = name;
-		uploaded = text.trim() ? parseSample(text) : null;
-	}
-	async function onFile(e: Event) {
-		const file = (e.currentTarget as HTMLInputElement).files?.[0];
-		if (!file) return;
-		if (file.size > 10 * 1024 * 1024) {
-			uploaded = {
-				data: new Float64Array(0),
-				header: false,
-				invalid: [],
-				invalidCount: 0,
-				error: 'The file is larger than 10 MB.'
-			};
-			return;
-		}
-		parseUpload(await file.text(), file.name);
-	}
+	/** An upload's column count picks the dimension. */
+	const followUpload = (p: ParsedSample) => (settings.dim = p.dim);
 
 	const data = $derived(
-		settings.source === 'simulated' ? sample : uploaded && !uploaded.error ? uploaded.data : null
+		settings.source === 'simulated'
+			? sample
+			: uploaded && !uploaded.error && uploaded.dim === 1
+				? uploaded.data
+				: null
 	);
 	const truth = $derived(settings.source === 'simulated' ? built?.X : undefined);
 
@@ -241,7 +226,8 @@
 	let running = $state(false);
 	let runError = $state('');
 
-	const canRun = $derived(!!data && modelValid && chosen.length > 0 && !running);
+	let booting = $state(false);
+	const canRun = $derived(!!data && modelValid && chosen.length > 0 && !running && !booting);
 
 	async function start() {
 		if (!data || !canRun) return;
@@ -572,7 +558,6 @@
 	let boot = $state.raw<{ method: GridMethod; lower: Float64Array; upper: Float64Array } | null>(
 		null
 	);
-	let booting = $state(false);
 	let bootDone = $state(0);
 
 	async function bootstrap() {
@@ -703,387 +688,351 @@
 		</p>
 	</details>
 
-	<Panel title="Model">
-		<div class="model">
-			<div class="controls">
-				<Field label="Preset">
-					{#snippet children(props)}
-						<select
-							class="control"
-							value=""
-							onchange={(e) => {
-								applyPreset(e.currentTarget.value);
-								e.currentTarget.value = '';
-							}}
-							data-testid="preset"
-							{...props}
+	<SegmentedControl
+		legend="Dimension"
+		options={[
+			{ value: '1', label: '1D' },
+			{ value: '2', label: '2D' }
+		]}
+		bind:value={() => String(settings.dim), (v) => (settings.dim = v === '2' ? 2 : 1)}
+	/>
+
+	{#snippet dataPanel()}
+		<DataSource bind:source={settings.source} bind:uploaded onparsed={followUpload} />
+	{/snippet}
+
+	{#if settings.dim === 2}
+		<TwoD bind:settings {uploaded} {getPool} {dataPanel} {download} />
+	{:else}
+		<Panel title="Model">
+			<div class="model">
+				<div class="controls">
+					<Field label="Preset">
+						{#snippet children(props)}
+							<select
+								class="control"
+								value=""
+								onchange={(e) => {
+									applyPreset(e.currentTarget.value);
+									e.currentTarget.value = '';
+								}}
+								data-testid="preset"
+								{...props}
+							>
+								<option value="" disabled>Load a preset…</option>
+								{#each PRESETS as p (p.id)}<option value={p.id}>{p.name}</option>{/each}
+							</select>
+						{/snippet}
+					</Field>
+					<DistEditor bind:spec={settings.x} role="signal" testId="x" />
+					<DistEditor bind:spec={settings.y as DistSpec} role="noise" testId="y" />
+					<div class="row">
+						<Field
+							label="Sample size n"
+							error={nValid ? undefined : `Between ${MIN_N} and ${MAX_N.toLocaleString('en')}.`}
 						>
-							<option value="" disabled>Load a preset…</option>
-							{#each PRESETS as p (p.id)}<option value={p.id}>{p.name}</option>{/each}
-						</select>
-					{/snippet}
-				</Field>
-				<DistEditor bind:spec={settings.x} role="signal" testId="x" />
-				<DistEditor bind:spec={settings.y as DistSpec} role="noise" testId="y" />
-				<div class="row">
-					<Field
-						label="Sample size n"
-						error={nValid ? undefined : `Between ${MIN_N} and ${MAX_N.toLocaleString('en')}.`}
-					>
+							{#snippet children(props)}
+								<input
+									class="control"
+									type="number"
+									min={MIN_N}
+									max={MAX_N}
+									step="1"
+									bind:value={settings.n}
+									data-testid="n"
+									{...props}
+								/>
+							{/snippet}
+						</Field>
+						<Field label="Seed" error={seedValid ? undefined : 'A whole number ≥ 0.'}>
+							{#snippet children(props)}
+								<input
+									class="control"
+									type="number"
+									min="0"
+									step="1"
+									bind:value={settings.seed}
+									data-testid="seed"
+									{...props}
+								/>
+							{/snippet}
+						</Field>
+					</div>
+					{#if sample}
+						<div>
+							<Button
+								size="sm"
+								variant="secondary"
+								onclick={() => download('deconvolution-sample.csv', sampleCsv(sample))}
+								data-testid="export">Download the sample (CSV)</Button
+							>
+						</div>
+					{/if}
+				</div>
+				<div class="plot">
+					{#if modelView}
+						<DensityChart
+							title="Signal, noise and what we observe"
+							testId="model-chart"
+							xRange={modelView.range}
+							curves={modelView.curves}
+							stems={modelView.stems}
+							histogram={modelView.histogram}
+							summary="Densities of the signal X, the noise Y and the observed Z = X + Y, with a histogram of the simulated sample."
+						/>
+					{:else}
+						<p class="muted">Fix the parameters to see the distributions.</p>
+					{/if}
+				</div>
+			</div>
+		</Panel>
+
+		<h2 class="section">Estimate</h2>
+
+		{@render dataPanel()}
+
+		<Panel title="Methods" level={3}>
+			<fieldset class="methods">
+				<legend class="sr-only">Estimators</legend>
+				{#each METHODS as m (m)}
+					<label class="method" class:off={!!reasons[m]}>
+						<input
+							type="checkbox"
+							checked={settings.methods.includes(m)}
+							disabled={!!reasons[m]}
+							onchange={(e) => toggle(m, e.currentTarget.checked)}
+							data-testid="method-{m}"
+						/>
+						<span>
+							<strong>{METHOD_NAMES[m]}</strong>
+							<span class="muted">{reasons[m] ?? METHOD_HINTS[m]}</span>
+						</span>
+					</label>
+				{/each}
+			</fieldset>
+			<div class="row">
+				<label class="check">
+					<input type="checkbox" bind:checked={settings.fitNoise} data-testid="fit-noise" />
+					The parametric fit also fits the noise
+				</label>
+			</div>
+			<SegmentedControl
+				legend="Noise used by the other methods"
+				options={[
+					{ value: 'entered', label: 'As entered' },
+					{ value: 'fitted', label: 'From the parametric fit', disabled: !settings.fitNoise }
+				]}
+				bind:value={settings.noiseFor}
+			/>
+			<div class="row">
+				{#if settings.methods.includes('gmodel')}
+					<Field label="g-modeling spline df">
 						{#snippet children(props)}
 							<input
 								class="control"
 								type="number"
-								min={MIN_N}
-								max={MAX_N}
+								min="2"
+								max="12"
 								step="1"
-								bind:value={settings.n}
-								data-testid="n"
+								bind:value={settings.df}
 								{...props}
 							/>
 						{/snippet}
 					</Field>
-					<Field label="Seed" error={seedValid ? undefined : 'A whole number ≥ 0.'}>
+					<Field label="g-modeling penalty c₀">
+						{#snippet info()}<InfoTip label="About the penalty"
+								>Larger values give a smoother signal.</InfoTip
+							>{/snippet}
 						{#snippet children(props)}
 							<input
 								class="control"
 								type="number"
 								min="0"
-								step="1"
-								bind:value={settings.seed}
-								data-testid="seed"
+								max="1000"
+								step="any"
+								bind:value={settings.c0}
 								{...props}
 							/>
 						{/snippet}
 					</Field>
-				</div>
-				{#if sample}
-					<div>
-						<Button
-							size="sm"
-							variant="secondary"
-							onclick={() => download('deconvolution-sample.csv', sampleCsv(sample))}
-							data-testid="export">Download the sample (CSV)</Button
-						>
-					</div>
 				{/if}
-			</div>
-			<div class="plot">
-				{#if modelView}
-					<DensityChart
-						title="Signal, noise and what we observe"
-						testId="model-chart"
-						xRange={modelView.range}
-						curves={modelView.curves}
-						stems={modelView.stems}
-						histogram={modelView.histogram}
-						summary="Densities of the signal X, the noise Y and the observed Z = X + Y, with a histogram of the simulated sample."
-					/>
-				{:else}
-					<p class="muted">Fix the parameters to see the distributions.</p>
-				{/if}
-			</div>
-		</div>
-	</Panel>
-
-	<h2 class="section">Estimate</h2>
-
-	<Panel title="Data" level={3}>
-		<SegmentedControl
-			legend="Data to estimate from"
-			options={[
-				{ value: 'simulated', label: 'Simulated sample' },
-				{ value: 'uploaded', label: 'Your data' }
-			]}
-			bind:value={settings.source}
-		/>
-		{#if settings.source === 'uploaded'}
-			<div class="upload">
-				<Field label="CSV or text file" hint="One column of numbers; a header line is fine.">
-					{#snippet children(props)}
-						<input
-							class="control"
-							type="file"
-							accept=".csv,.txt,.tsv,text/csv,text/plain"
-							onchange={onFile}
-							data-testid="file"
-							{...props}
-						/>
-					{/snippet}
-				</Field>
-				<Field label="Or paste numbers">
-					{#snippet children(props)}
-						<textarea
-							class="control paste"
-							rows="4"
-							value={uploadText}
-							oninput={(e) => parseUpload(e.currentTarget.value)}
-							data-testid="paste"
-							{...props}
-						></textarea>
-					{/snippet}
-				</Field>
-				{#if uploaded}
-					{#if uploaded.error}
-						<Alert tone="danger">{uploaded.error}</Alert>
-					{:else}
-						<p class="muted" data-testid="upload-status">
-							{uploaded.data.length.toLocaleString('en')} numbers{uploadName
-								? ` from ${uploadName}`
-								: ''}{uploaded.header ? ', header skipped' : ''}.
-						</p>
-					{/if}
-					{#if uploaded.invalidCount}
-						<Alert tone="warning">
-							Skipped {uploaded.invalidCount} line{uploaded.invalidCount === 1 ? '' : 's'} without a single
-							number:
-							{uploaded.invalid
-								.map((r) => `line ${r.line} (“${r.text}”)`)
-								.join(', ')}{uploaded.invalidCount > uploaded.invalid.length ? ', …' : ''}.
-						</Alert>
-					{/if}
-				{/if}
-				<p class="muted">Your data stays in this browser and isn't saved.</p>
-			</div>
-		{/if}
-	</Panel>
-
-	<Panel title="Methods" level={3}>
-		<fieldset class="methods">
-			<legend class="sr-only">Estimators</legend>
-			{#each METHODS as m (m)}
-				<label class="method" class:off={!!reasons[m]}>
-					<input
-						type="checkbox"
-						checked={settings.methods.includes(m)}
-						disabled={!!reasons[m]}
-						onchange={(e) => toggle(m, e.currentTarget.checked)}
-						data-testid="method-{m}"
-					/>
-					<span>
-						<strong>{METHOD_NAMES[m]}</strong>
-						<span class="muted">{reasons[m] ?? METHOD_HINTS[m]}</span>
-					</span>
-				</label>
-			{/each}
-		</fieldset>
-		<div class="row">
-			<label class="check">
-				<input type="checkbox" bind:checked={settings.fitNoise} data-testid="fit-noise" />
-				The parametric fit also fits the noise
-			</label>
-		</div>
-		<SegmentedControl
-			legend="Noise used by the other methods"
-			options={[
-				{ value: 'entered', label: 'As entered' },
-				{ value: 'fitted', label: 'From the parametric fit', disabled: !settings.fitNoise }
-			]}
-			bind:value={settings.noiseFor}
-		/>
-		<div class="row">
-			{#if settings.methods.includes('gmodel')}
-				<Field label="g-modeling spline df">
-					{#snippet children(props)}
-						<input
-							class="control"
-							type="number"
-							min="2"
-							max="12"
-							step="1"
-							bind:value={settings.df}
-							{...props}
-						/>
-					{/snippet}
-				</Field>
-				<Field label="g-modeling penalty c₀">
-					{#snippet info()}<InfoTip label="About the penalty"
-							>Larger values give a smoother signal.</InfoTip
-						>{/snippet}
-					{#snippet children(props)}
-						<input
-							class="control"
-							type="number"
-							min="0"
-							max="1000"
-							step="any"
-							bind:value={settings.c0}
-							{...props}
-						/>
-					{/snippet}
-				</Field>
-			{/if}
-			{#if settings.methods.includes('kernel')}
-				<Field label="Kernel bandwidth" hint="Leave empty for the default rule.">
-					{#snippet children(props)}
-						<input
-							class="control"
-							type="number"
-							min="0"
-							step="any"
-							value={settings.bandwidth ?? ''}
-							oninput={(e) => {
-								const v = e.currentTarget.value;
-								settings.bandwidth = v === '' ? null : Number(v) > 0 ? Number(v) : null;
-							}}
-							data-testid="bandwidth"
-							{...props}
-						/>
-					{/snippet}
-				</Field>
-			{/if}
-		</div>
-	</Panel>
-
-	<RunControls onrun={start} {running} disabled={!canRun} describedby="run-why" onstop={stop}>
-		{#if !data}
-			<p id="run-why" class="muted">
-				{settings.source === 'uploaded' ? 'Add your data above first.' : 'Fix the model first.'}
-			</p>
-		{:else if chosen.length === 0}
-			<p id="run-why" class="muted">Pick at least one method.</p>
-		{/if}
-		{#if running}<p class="muted" role="status">Fitting…</p>{/if}
-		{#if runError}<Alert tone="danger">{runError}</Alert>{/if}
-		{#if run && !running}<p class="muted" role="status" data-testid="run-status">
-				Done in {(run.ms / 1000).toFixed(1)} s on {run.data.length.toLocaleString('en')} points.
-			</p>{/if}
-	</RunControls>
-
-	{#if run && estimateView}
-		<Panel title="Results" level={3}>
-			<div class="results" data-testid="results">
-				<DensityChart
-					title="Estimated signal over the data"
-					testId="estimate-chart"
-					xRange={estimateView.range}
-					curves={estimateView.curves}
-					stems={estimateView.stems}
-					bands={estimateView.bands}
-					histogram={estimateView.histogram}
-					histogramLabel="Data Z"
-					summary="Each method's estimate of the signal X over a histogram of the data{run.truth
-						? ', with the true X'
-						: ''}."
-				/>
-				{#each run.failures as f (f.method)}
-					<Alert tone="warning">{METHOD_NAMES[f.method]} failed: {f.message}</Alert>
-				{/each}
-				<DataTable caption="Fits" {columns} {rows} rowKey={(r) => r.method} />
-				{#if !run.truth}<p class="muted">
-						W₁ and L₁ need the true signal, so they show for simulated data only.
-					</p>{/if}
-				{#if flat}
-					<Alert tone="warning">
-						<span data-testid="identifiability">
-							The data can't separate these parameters: {flat.direction.map(of).join(' and ')} trade off
-							against each other. Fix the noise (untick "also fits the noise") or pick families that differ
-							in shape.
-						</span>
-					</Alert>
-				{/if}
-				{#if edges.length}
-					<Alert tone="warning">
-						<span data-testid="boundary">
-							{edges.map(of).join(' and ')} ended at the edge of {edges.length === 1
-								? 'its'
-								: 'their'} range. The data may not pin {edges.length === 1 ? 'it' : 'them'} down: a trade-off
-							with the noise often ends there. Fix the noise and fit again.
-						</span>
-					</Alert>
-				{/if}
-				{#if paramRows.length}
-					<DataTable
-						caption="Parametric fit"
-						columns={paramColumns}
-						rows={paramRows}
-						rowKey={(r) => r.id}
-					/>
-				{/if}
-
-				<div class="subsection">
-					<h4>Compare signal families</h4>
-					<p class="muted">
-						Fits every family for X with this noise and ranks them by BIC (lower is better).
-					</p>
-					<div>
-						<Button
-							onclick={compare}
-							disabled={comparing || running || booting}
-							data-testid="compare"
-						>
-							{comparing ? 'Comparing…' : 'Compare families'}
-						</Button>
-					</div>
-					{#if compareRows.length}
-						<DataTable
-							caption="Signal families by BIC"
-							columns={[
-								{ key: 'family', label: 'X family' },
-								{
-									key: 'logLik',
-									label: 'Log-lik',
-									align: 'right',
-									format: (v) => fmt(v as number, 6)
-								},
-								{ key: 'k', label: 'Params', align: 'right' },
-								{ key: 'bic', label: 'BIC', align: 'right', format: (v) => fmt(v as number, 6) },
-								{ key: 'delta', label: 'ΔBIC', align: 'right', format: (v) => fmt(v as number, 4) }
-							]}
-							rows={compareRows}
-							rowKey={(r) => r.id}
-						/>
-					{/if}
-				</div>
-
-				{#if runGrids.some((g) => g.method !== 'npmle')}
-					<div class="subsection">
-						<h4>Bootstrap bands</h4>
-						<p class="muted">Refits on resampled data and shades where 90% of the refits fall.</p>
-						<div class="row">
-							<Field label="Method">
-								{#snippet children(props)}
-									<select
-										class="control"
-										bind:value={bootMethod}
-										data-testid="boot-method"
-										{...props}
-									>
-										{#each runGrids.filter((g) => g.method !== 'npmle') as g (g.method)}<option
-												value={g.method}>{METHOD_NAMES[g.method]}</option
-											>{/each}
-									</select>
-								{/snippet}
-							</Field>
-							<Field label="Resamples B">
-								{#snippet children(props)}
-									<input
-										class="control"
-										type="number"
-										min="10"
-										max={MAX_BOOTSTRAP}
-										step="1"
-										bind:value={settings.bootstrapB}
-										{...props}
-									/>
-								{/snippet}
-							</Field>
-						</div>
-						<div class="buttons">
-							<Button
-								onclick={bootstrap}
-								disabled={booting || running || !bootMethod}
-								data-testid="bootstrap">Run bootstrap</Button
-							>
-							<Button variant="danger" onclick={stop} disabled={!booting}>Stop</Button>
-							{#if booting}<span class="muted" role="status"
-									>{bootDone} / {settings.bootstrapB}</span
-								>{/if}
-						</div>
-					</div>
+				{#if settings.methods.includes('kernel')}
+					<Field label="Kernel bandwidth" hint="Leave empty for the default rule.">
+						{#snippet children(props)}
+							<input
+								class="control"
+								type="number"
+								min="0"
+								step="any"
+								value={settings.bandwidth ?? ''}
+								oninput={(e) => {
+									const v = e.currentTarget.value;
+									settings.bandwidth = v === '' ? null : Number(v) > 0 ? Number(v) : null;
+								}}
+								data-testid="bandwidth"
+								{...props}
+							/>
+						{/snippet}
+					</Field>
 				{/if}
 			</div>
 		</Panel>
+
+		<RunControls onrun={start} {running} disabled={!canRun} describedby="run-why" onstop={stop}>
+			{#if !data}
+				<p id="run-why" class="muted">
+					{settings.source === 'uploaded' ? 'Add your data above first.' : 'Fix the model first.'}
+				</p>
+			{:else if chosen.length === 0}
+				<p id="run-why" class="muted">Pick at least one method.</p>
+			{/if}
+			{#if running}<p class="muted" role="status">Fitting…</p>{/if}
+			{#if runError}<Alert tone="danger">{runError}</Alert>{/if}
+			{#if run && !running}<p class="muted" role="status" data-testid="run-status">
+					Done in {(run.ms / 1000).toFixed(1)} s on {run.data.length.toLocaleString('en')} points.
+				</p>{/if}
+		</RunControls>
+
+		{#if run && estimateView}
+			<Panel title="Results" level={3}>
+				<div class="results" data-testid="results">
+					<DensityChart
+						title="Estimated signal over the data"
+						testId="estimate-chart"
+						xRange={estimateView.range}
+						curves={estimateView.curves}
+						stems={estimateView.stems}
+						bands={estimateView.bands}
+						histogram={estimateView.histogram}
+						histogramLabel="Data Z"
+						summary="Each method's estimate of the signal X over a histogram of the data{run.truth
+							? ', with the true X'
+							: ''}."
+					/>
+					{#each run.failures as f (f.method)}
+						<Alert tone="warning">{METHOD_NAMES[f.method]} failed: {f.message}</Alert>
+					{/each}
+					<DataTable caption="Fits" {columns} {rows} rowKey={(r) => r.method} />
+					{#if !run.truth}<p class="muted">
+							W₁ and L₁ need the true signal, so they show for simulated data only.
+						</p>{/if}
+					{#if flat}
+						<Alert tone="warning">
+							<span data-testid="identifiability">
+								The data can't separate these parameters: {flat.direction.map(of).join(' and ')} trade
+								off against each other. Fix the noise (untick "also fits the noise") or pick families
+								that differ in shape.
+							</span>
+						</Alert>
+					{/if}
+					{#if edges.length}
+						<Alert tone="warning">
+							<span data-testid="boundary">
+								{edges.map(of).join(' and ')} ended at the edge of {edges.length === 1
+									? 'its'
+									: 'their'} range. The data may not pin {edges.length === 1 ? 'it' : 'them'} down: a
+								trade-off with the noise often ends there. Fix the noise and fit again.
+							</span>
+						</Alert>
+					{/if}
+					{#if paramRows.length}
+						<DataTable
+							caption="Parametric fit"
+							columns={paramColumns}
+							rows={paramRows}
+							rowKey={(r) => r.id}
+						/>
+					{/if}
+
+					<div class="subsection">
+						<h4>Compare signal families</h4>
+						<p class="muted">
+							Fits every family for X with this noise and ranks them by BIC (lower is better).
+						</p>
+						<div>
+							<Button
+								onclick={compare}
+								disabled={comparing || running || booting}
+								data-testid="compare"
+							>
+								{comparing ? 'Comparing…' : 'Compare families'}
+							</Button>
+						</div>
+						{#if compareRows.length}
+							<DataTable
+								caption="Signal families by BIC"
+								columns={[
+									{ key: 'family', label: 'X family' },
+									{
+										key: 'logLik',
+										label: 'Log-lik',
+										align: 'right',
+										format: (v) => fmt(v as number, 6)
+									},
+									{ key: 'k', label: 'Params', align: 'right' },
+									{ key: 'bic', label: 'BIC', align: 'right', format: (v) => fmt(v as number, 6) },
+									{
+										key: 'delta',
+										label: 'ΔBIC',
+										align: 'right',
+										format: (v) => fmt(v as number, 4)
+									}
+								]}
+								rows={compareRows}
+								rowKey={(r) => r.id}
+							/>
+						{/if}
+					</div>
+
+					{#if runGrids.some((g) => g.method !== 'npmle')}
+						<div class="subsection">
+							<h4>Bootstrap bands</h4>
+							<p class="muted">Refits on resampled data and shades where 90% of the refits fall.</p>
+							<div class="row">
+								<Field label="Method">
+									{#snippet children(props)}
+										<select
+											class="control"
+											bind:value={bootMethod}
+											data-testid="boot-method"
+											{...props}
+										>
+											{#each runGrids.filter((g) => g.method !== 'npmle') as g (g.method)}<option
+													value={g.method}>{METHOD_NAMES[g.method]}</option
+												>{/each}
+										</select>
+									{/snippet}
+								</Field>
+								<Field label="Resamples B">
+									{#snippet children(props)}
+										<input
+											class="control"
+											type="number"
+											min="10"
+											max={MAX_BOOTSTRAP}
+											step="1"
+											bind:value={settings.bootstrapB}
+											{...props}
+										/>
+									{/snippet}
+								</Field>
+							</div>
+							<div class="buttons">
+								<Button
+									onclick={bootstrap}
+									disabled={booting || running || !bootMethod}
+									data-testid="bootstrap">Run bootstrap</Button
+								>
+								<Button variant="danger" onclick={stop} disabled={!booting}>Stop</Button>
+								{#if booting}<span class="muted" role="status"
+										>{bootDone} / {settings.bootstrapB}</span
+									>{/if}
+							</div>
+						</div>
+					{/if}
+				</div>
+			</Panel>
+		{/if}
 	{/if}
 
 	<Panel title="References" level={2}>

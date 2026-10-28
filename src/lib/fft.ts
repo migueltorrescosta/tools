@@ -81,3 +81,78 @@ export function convolve(a: ArrayLike<number>, b: ArrayLike<number>, size?: numb
 	for (let i = 0; i < out; i++) res[i] = ar[i] / n;
 	return res;
 }
+
+/** In-place 2D FFT of an nx × ny row-major array (index y·nx + x), both powers of two. */
+export function fft2(
+	re: Float64Array,
+	im: Float64Array,
+	nx: number,
+	ny: number,
+	inverse = false
+): void {
+	const rr = new Float64Array(nx);
+	const ri = new Float64Array(nx);
+	for (let y = 0; y < ny; y++) {
+		rr.set(re.subarray(y * nx, (y + 1) * nx));
+		ri.set(im.subarray(y * nx, (y + 1) * nx));
+		fft(rr, ri, inverse);
+		re.set(rr, y * nx);
+		im.set(ri, y * nx);
+	}
+	const cr = new Float64Array(ny);
+	const ci = new Float64Array(ny);
+	for (let x = 0; x < nx; x++) {
+		for (let y = 0; y < ny; y++) {
+			cr[y] = re[y * nx + x];
+			ci[y] = im[y * nx + x];
+		}
+		fft(cr, ci, inverse);
+		for (let y = 0; y < ny; y++) {
+			re[y * nx + x] = cr[y];
+			im[y * nx + x] = ci[y];
+		}
+	}
+}
+
+/**
+ * Circular 2D convolution, on an nx × ny torus (powers of two), of two real
+ * row-major arrays a (ax × ay) and b (bx × by). It matches the linear
+ * convolution where neither axis wraps: x ≥ ax + bx − nx and y ≥ ay + by − ny.
+ */
+export function convolve2(
+	a: ArrayLike<number>,
+	ax: number,
+	ay: number,
+	b: ArrayLike<number>,
+	bx: number,
+	by: number,
+	nx: number,
+	ny: number
+): Float64Array {
+	// Both inputs in one complex transform, as in `convolve`.
+	const zr = new Float64Array(nx * ny);
+	const zi = new Float64Array(nx * ny);
+	for (let y = 0; y < ay; y++)
+		for (let x = 0; x < ax; x++) zr[(y % ny) * nx + (x % nx)] += a[y * ax + x];
+	for (let y = 0; y < by; y++)
+		for (let x = 0; x < bx; x++) zi[(y % ny) * nx + (x % nx)] += b[y * bx + x];
+	fft2(zr, zi, nx, ny);
+	const pr = new Float64Array(nx * ny);
+	const pi = new Float64Array(nx * ny);
+	for (let ky = 0; ky < ny; ky++) {
+		for (let kx = 0; kx < nx; kx++) {
+			const k = ky * nx + kx;
+			const j = ((ny - ky) % ny) * nx + ((nx - kx) % nx);
+			const Ar = (zr[k] + zr[j]) / 2;
+			const Ai = (zi[k] - zi[j]) / 2;
+			const Br = (zi[k] + zi[j]) / 2;
+			const Bi = (zr[j] - zr[k]) / 2;
+			pr[k] = Ar * Br - Ai * Bi;
+			pi[k] = Ar * Bi + Ai * Br;
+		}
+	}
+	fft2(pr, pi, nx, ny, true);
+	const scale = 1 / (nx * ny);
+	for (let k = 0; k < pr.length; k++) pr[k] *= scale;
+	return pr;
+}

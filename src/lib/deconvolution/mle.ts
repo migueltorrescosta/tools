@@ -4,14 +4,22 @@
  * observed information and a check that the data can separate them.
  * No DOM or Svelte imports.
  */
-import { nelderMead } from '$lib/minimise';
-import { Prng } from '$lib/prng';
 import { moments } from '$lib/stats';
 import { makeDist } from './dist';
 import { defaultParams, family, validateParams } from './families';
 import { gridResolves, likelihoodGrid, logLikelihood } from './grid';
-import { invertSymmetric, symmetricEigen } from './linalg';
-import type { Domain, DistSpec, FamilyId, Grid, Role, SimpleSpec } from './types';
+import {
+	BAD,
+	fitCore,
+	toFree,
+	fromFree,
+	type Identifiability,
+	type ParamEstimate,
+	type Slot
+} from './fitcore';
+import type { DistSpec, FamilyId, Grid, Role, SimpleSpec } from './types';
+
+export { IDENTIFIABILITY_LIMIT, type Identifiability, type ParamEstimate } from './fitcore';
 
 export interface MleInput {
 	data: Float64Array;
@@ -24,35 +32,6 @@ export interface MleInput {
 	seed: number;
 	/** Nelder–Mead starts (default 6): the given params, a moment-matched start, then random perturbations. */
 	starts?: number;
-}
-
-export interface ParamEstimate {
-	role: Role;
-	/** Mixture component index, or null for a simple spec. */
-	component: number | null;
-	/** e.g. `sigma`, or `weight` for a mixture weight. */
-	key: string;
-	label: string;
-	value: number;
-	/** 95% interval; NaN when the information matrix isn't positive definite (and for weights). */
-	lower: number;
-	upper: number;
-	fitted: boolean;
-}
-
-export interface Identifiability {
-	/** λmax/λmin of the scaled observed information (unit diagonal); Infinity when λmin ≤ 0. */
-	conditionNumber: number;
-	/** conditionNumber > IDENTIFIABILITY_LIMIT. */
-	flat: boolean;
-	/** When flat: parameters whose |component| in the eigenvector of λmin is at least 0.2 of the largest, with its sign. */
-	direction: { role: Role; component: number | null; key: string; label: string; weight: number }[];
-	/**
-	 * Fitted parameters that ended at the edge of their range: within 1e-3 of 0 or 1,
-	 * or a positive one below 1e-3 of the data's standard deviation. A flat direction
-	 * often runs into such an edge, where the curvature no longer shows it.
-	 */
-	boundary: { role: Role; component: number | null; key: string; label: string }[];
 }
 
 export interface MleResult {
@@ -70,42 +49,15 @@ export interface MleResult {
 	identifiability: Identifiability;
 }
 
-export const IDENTIFIABILITY_LIMIT = 1e6;
-/** Objective value for parameters that are invalid or give no finite likelihood. */
-const BAD = 1e300;
-const HESSIAN_STEP = 1e-3;
 /** Grid nodes while searching, and for the polish and curvature at the optimum. */
 const SEARCH_NODES = 1024;
 const FINAL_NODES = 2048;
 
-/** One parameter's place: which spec, which index, and whether it is fitted. */
-interface Slot {
-	role: Role;
-	component: number | null;
-	index: number;
-	key: string;
-	label: string;
-	domain: Domain | 'weight';
-	fitted: boolean;
-}
+/** A slot with its index in its spec's params (−1 for a mixture weight). */
+type Slot1 = Slot & { index: number };
 
-const sigmoid = (u: number) => 1 / (1 + Math.exp(-u));
-const toFree = (domain: Domain, v: number): number => {
-	if (domain === 'positive') return Math.log(v);
-	if (domain === 'unit' || domain === 'unitClosed') {
-		const p = Math.min(1 - 1e-6, Math.max(1e-6, v));
-		return Math.log(p / (1 - p));
-	}
-	return v;
-};
-const fromFree = (domain: Domain, u: number): number => {
-	if (domain === 'positive') return Math.exp(u);
-	if (domain === 'unit' || domain === 'unitClosed') return sigmoid(u);
-	return u;
-};
-
-function slots(x: DistSpec, y: SimpleSpec, fixedY: boolean[] = []): Slot[] {
-	const out: Slot[] = [];
+function slots(x: DistSpec, y: SimpleSpec, fixedY: boolean[] = []): Slot1[] {
+	const out: Slot1[] = [];
 	const add = (
 		role: Role,
 		component: number | null,
@@ -143,7 +95,7 @@ function slots(x: DistSpec, y: SimpleSpec, fixedY: boolean[] = []): Slot[] {
 }
 
 /** The free vector of the specs (weights as logits relative to the first component). */
-function encode(all: Slot[], x: DistSpec, y: SimpleSpec): number[] {
+function encode(all: Slot1[], x: DistSpec, y: SimpleSpec): number[] {
 	const theta: number[] = [];
 	for (const s of all) {
 		if (!s.fitted) continue;
@@ -159,7 +111,7 @@ function encode(all: Slot[], x: DistSpec, y: SimpleSpec): number[] {
 }
 
 /** Specs with the free vector applied on top of the starting specs. */
-function decode(all: Slot[], theta: readonly number[], x0: DistSpec, y0: SimpleSpec) {
+function decode(all: Slot1[], theta: readonly number[], x0: DistSpec, y0: SimpleSpec) {
 	const x = structuredClone(x0);
 	const y = structuredClone(y0);
 	let k = 0;
@@ -262,173 +214,58 @@ function momentStart(data: Float64Array, x: DistSpec, y: SimpleSpec): DistSpec |
 	return { family: x.family, params };
 }
 
-/** Central-difference Hessian of `f` at `theta`. */
-function hessian(f: (t: number[]) => number, theta: number[]): number[][] {
-	const d = theta.length;
-	const h = HESSIAN_STEP;
-	const f0 = f(theta);
-	const at = (i: number, di: number, j: number, dj: number) => {
-		const t = [...theta];
-		t[i] += di;
-		t[j] += dj;
-		return f(t);
-	};
-	const H = Array.from({ length: d }, () => new Array<number>(d).fill(0));
-	for (let i = 0; i < d; i++) {
-		H[i][i] = (at(i, h, i, 0) - 2 * f0 + at(i, -h, i, 0)) / (h * h);
-		for (let j = i + 1; j < d; j++) {
-			H[i][j] = H[j][i] =
-				(at(i, h, j, h) - at(i, h, j, -h) - at(i, -h, j, h) + at(i, -h, j, -h)) / (4 * h * h);
-		}
-	}
-	return H;
-}
-
 export function fitMle({ data, x, y, fixedY, seed, starts = 6 }: MleInput): MleResult {
 	const all = slots(x, y, fixedY);
-	const free = all.filter((s) => s.fitted);
-	const n = data.length;
-	const prng = new Prng(seed);
-	const valid = specsValid(x, y);
-
-	const candidates: number[][] = [];
-	if (valid) candidates.push(encode(all, x, y));
-	const ms = valid ? momentStart(data, x, y) : null;
-	if (ms && specsValid(ms, y)) candidates.push(encode(all, ms, y));
-	if (candidates.length === 0) {
+	const valid = (s: { x: DistSpec; y: SimpleSpec }) => specsValid(s.x, s.y);
+	const startModels: { x: DistSpec; y: SimpleSpec }[] = [];
+	if (specsValid(x, y)) {
+		startModels.push({ x, y });
+		const ms = momentStart(data, x, y);
+		if (ms && specsValid(ms, y)) startModels.push({ x: ms, y });
+	} else {
 		const def: DistSpec =
 			x.family === 'mixture' ? x : { family: x.family, params: defaultParams(x.family) };
-		const dy = { family: y.family, params: defaultParams(y.family) };
-		candidates.push(encode(all, def, dy));
+		startModels.push({ x: def, y: { family: y.family, params: defaultParams(y.family) } });
 	}
-	const base = candidates[0];
-	while (candidates.length < starts) candidates.push(base.map((v) => v + 0.5 * prng.normal()));
-
-	// Search on one fixed, coarser grid so the objective is smooth in θ.
-	const startSpecs = decode(all, base, x, y);
-	const searchGrid = specsValid(startSpecs.x, startSpecs.y)
-		? likelihoodGrid(makeDist(startSpecs.x, 'signal'), makeDist(startSpecs.y, 'noise'), data, {
-				baseNodes: SEARCH_NODES
-			})
-		: undefined;
-	const searchObjective = (t: number[]) => {
-		const s = decode(all, t, x, y);
-		return objective(data, s.x, s.y, searchGrid);
-	};
-
-	let best = { x: base, f: Infinity };
-	for (const start of candidates.slice(0, Math.max(1, starts))) {
-		if (free.length === 0) {
-			best = { x: start, f: searchObjective(start) };
-			break;
-		}
-		const r = nelderMead(searchObjective, start, { maxIter: 400 * free.length });
-		if (r.f < best.f) best = { x: r.x, f: r.f };
-	}
-
-	// Polish on the full grid at the optimum, then measure the curvature there.
-	const at = decode(all, best.x, x, y);
-	const finalGrid = specsValid(at.x, at.y)
-		? likelihoodGrid(makeDist(at.x, 'signal'), makeDist(at.y, 'noise'), data, {
-				baseNodes: FINAL_NODES
-			})
-		: undefined;
-	const finalObjective = (t: number[]) => {
-		const s = decode(all, t, x, y);
-		return objective(data, s.x, s.y, finalGrid);
-	};
-	let theta = best.x;
-	if (free.length) {
-		const r = nelderMead(finalObjective, theta, { maxIter: 200 * free.length });
-		if (r.f <= finalObjective(theta)) theta = r.x;
-	}
-	const fit = decode(all, theta, x, y);
-	const nll = finalObjective(theta);
-	const logLik = nll >= BAD ? -Infinity : -nll;
-
-	const H = free.length ? hessian(finalObjective, theta) : [];
-	const cov = free.length ? invertSymmetric(H) : null;
-	// Collinearity on the scaled information H_ij/√(H_ii·H_jj), so the units and
-	// transforms of the parameters don't decide which one looks flat.
-	const scale = H.map((row, i) => (row[i] > 0 ? 1 / Math.sqrt(row[i]) : 0));
-	const scaled = H.map((row, i) => row.map((v, j) => v * scale[i] * scale[j]));
-	const { values, vectors } = symmetricEigen(scale.every((v) => v > 0) ? scaled : H);
-	const lmin = values[0];
-	const lmax = values[values.length - 1];
-	const conditionNumber = free.length === 0 ? 1 : lmin > 0 ? lmax / lmin : Infinity;
-	const flat = conditionNumber > IDENTIFIABILITY_LIMIT;
-	const direction = flat
-		? free
-				.map((s, i) => ({
-					role: s.role,
-					component: s.component,
-					key: s.key,
-					label: s.label,
-					weight: vectors[0][i]
-				}))
-				.filter(
-					(d, _, all) => Math.abs(d.weight) >= 0.2 * Math.max(...all.map((a) => Math.abs(a.weight)))
-				)
-		: [];
-
-	let k = 0;
-	const params: ParamEstimate[] = all.map((s) => {
-		const spec =
-			s.role === 'noise'
-				? fit.y
-				: fit.x.family === 'mixture'
-					? fit.x.components[s.component!]
-					: fit.x;
-		const value =
-			s.domain === 'weight'
-				? (fit.x as Extract<DistSpec, { family: 'mixture' }>).components[s.component!].weight
-				: spec.params[s.index];
-		let lower = NaN;
-		let upper = NaN;
-		if (s.fitted) {
-			const i = k++;
-			if (cov && s.domain !== 'weight' && cov[i][i] > 0) {
-				const sd = Math.sqrt(cov[i][i]);
-				lower = fromFree(s.domain, theta[i] - 1.96 * sd);
-				upper = fromFree(s.domain, theta[i] + 1.96 * sd);
-			}
-		}
-		return {
-			role: s.role,
-			component: s.component,
-			key: s.key,
-			label: s.label,
-			value,
-			lower,
-			upper,
-			fitted: s.fitted
-		};
-	});
-
-	const sd = Math.sqrt(moments(data).variance);
-	const boundary = params
-		.filter((p, i) => {
-			const s = all[i];
-			if (!p.fitted || s.domain === 'weight') return false;
-			if (s.domain === 'unit' || s.domain === 'unitClosed')
-				return p.value < 1e-3 || p.value > 1 - 1e-3;
-			return s.domain === 'positive' && p.value < 1e-3 * sd;
-		})
-		.map(({ role, component, key, label }) => ({ role, component, key, label }));
-
-	const kFree = free.length;
+	const r = fitCore<{ x: DistSpec; y: SimpleSpec }, Grid>(
+		{
+			slots: all,
+			encode: (s) => encode(all, s.x, s.y),
+			decode: (theta) => decode(all, theta, x, y),
+			valid,
+			grid: (s, final) =>
+				likelihoodGrid(makeDist(s.x, 'signal'), makeDist(s.y, 'noise'), data, {
+					baseNodes: final ? FINAL_NODES : SEARCH_NODES
+				}),
+			nll: (s, grid) => objective(data, s.x, s.y, grid),
+			values: (s) =>
+				all.map((slot) => {
+					if (slot.domain === 'weight')
+						return (s.x as Extract<DistSpec, { family: 'mixture' }>).components[slot.component!]
+							.weight;
+					const spec =
+						slot.role === 'noise'
+							? s.y
+							: s.x.family === 'mixture'
+								? s.x.components[slot.component!]
+								: s.x;
+					return spec.params[slot.index];
+				}),
+			starts: startModels,
+			n: data.length,
+			sd: Math.sqrt(moments(data).variance)
+		},
+		seed,
+		starts
+	);
 	// The noise's location is held at 0 by definition, not by the fit: leave it out.
 	const yLocation = family(y.family).location;
+	const { fit, ...rest } = r;
 	return {
+		...rest,
 		x: fit.x,
 		y: fit.y,
-		params: params.filter((p, i) => !(p.role === 'noise' && all[i].index === yLocation)),
-		logLik,
-		k: kFree,
-		n,
-		aic: 2 * kFree - 2 * logLik,
-		bic: kFree * Math.log(n) - 2 * logLik,
-		identifiability: { conditionNumber, flat, direction, boundary }
+		params: r.params.filter((_, i) => !(all[i].role === 'noise' && all[i].index === yLocation))
 	};
 }
 
