@@ -2,6 +2,7 @@
  * Fourier kernel deconvolution (Stefanski & Carroll 1990; Fan 1991).
  * f̂(x) = (1/π)·∫₀^{1/h} Re[e^{−itx}·φ_K(th)·φ̂_Z(t)/φ_Y(t)] dt
  */
+import { binData } from './binning';
 import { dataWindow } from './grid';
 import type { Dist, Grid, GridEstimate } from './types';
 
@@ -34,51 +35,15 @@ function kernelCf(t: number, h: number): number {
 	return kernelPhi(s);
 }
 
-/** Empirical characteristic function from raw data. */
-function empiricalCfRaw(data: Float64Array, t: number): [number, number] {
+/** Empirical characteristic function (1/N)·Σ c_i e^{itz_i} of (binned) data. */
+function empiricalCf(z: Float64Array, c: Float64Array, n: number, t: number): [number, number] {
 	let re = 0;
 	let im = 0;
-	for (let i = 0; i < data.length; i++) {
-		const z = data[i];
-		re += Math.cos(t * z);
-		im += Math.sin(t * z);
+	for (let i = 0; i < z.length; i++) {
+		re += c[i] * Math.cos(t * z[i]);
+		im += c[i] * Math.sin(t * z[i]);
 	}
-	const n = data.length;
 	return [re / n, im / n];
-}
-
-/** Empirical characteristic function from binned data (for n > 5000). */
-function empiricalCfBinned(data: Float64Array, t: number): [number, number] {
-	const n = data.length;
-	const nBins = 2000;
-	let lo = Infinity;
-	let hi = -Infinity;
-	for (let i = 0; i < n; i++) {
-		lo = Math.min(lo, data[i]);
-		hi = Math.max(hi, data[i]);
-	}
-	if (hi === lo) return [1, 0];
-	const h = (hi - lo) / nBins;
-	const counts = new Float64Array(nBins);
-	for (let i = 0; i < n; i++) {
-		const z = data[i];
-		const bin = Math.min(Math.floor((z - lo) / h), nBins - 1);
-		counts[bin]++;
-	}
-	let re = 0;
-	let im = 0;
-	for (let b = 0; b < nBins; b++) {
-		if (counts[b] === 0) continue;
-		const center = lo + (b + 0.5) * h;
-		const w = counts[b] / n;
-		re += w * Math.cos(t * center);
-		im += w * Math.sin(t * center);
-	}
-	return [re, im];
-}
-
-function empiricalCf(data: Float64Array, t: number): [number, number] {
-	return data.length > 5000 ? empiricalCfBinned(data, t) : empiricalCfRaw(data, t);
 }
 
 /**
@@ -157,6 +122,8 @@ export function fitKernel(input: KernelInput): KernelResult {
 	const tMax = 1 / h;
 	const mass = new Float64Array(g.m);
 
+	// Above 5000 points the empirical cf comes from 2000 bins, like the other grid methods.
+	const binned = binData(data);
 	// Precompute empirical CF at all t points for efficiency
 	const tVals = new Float64Array(nT);
 	const cfZRe = new Float64Array(nT);
@@ -164,7 +131,7 @@ export function fitKernel(input: KernelInput): KernelResult {
 	for (let i = 0; i < nT; i++) {
 		const t = (i / (nT - 1)) * tMax;
 		tVals[i] = t;
-		const [re, im] = empiricalCf(data, t);
+		const [re, im] = empiricalCf(binned.z, binned.c, data.length, t);
 		cfZRe[i] = re;
 		cfZIm[i] = im;
 	}
