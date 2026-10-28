@@ -52,7 +52,7 @@ export function fft(re: Float64Array, im: Float64Array, inverse = false): void {
 /**
  * Linear convolution of two real sequences (length a.length + b.length − 1).
  * With `size`, a circular convolution of that length (a power of two) instead,
- * which matches the linear one at indices ≥ a.length + b.length − 1 − size.
+ * which matches the linear one at indices ≥ a.length + b.length − size.
  */
 export function convolve(a: ArrayLike<number>, b: ArrayLike<number>, size?: number): Float64Array {
 	const linear = a.length + b.length - 1;

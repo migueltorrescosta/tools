@@ -29,12 +29,6 @@ function kernelPhi(s: number): number {
 	return v * v * v;
 }
 
-/** Characteristic function of the kernel. */
-function kernelCf(t: number, h: number): number {
-	const s = t * h;
-	return kernelPhi(s);
-}
-
 /** Empirical characteristic function (1/N)·Σ c_i e^{itz_i} of (binned) data. */
 function empiricalCf(z: Float64Array, c: Float64Array, n: number, t: number): [number, number] {
 	let re = 0;
@@ -92,20 +86,8 @@ export function defaultBandwidth(data: Float64Array, y: Dist, gaussianNoise: boo
 	return Math.max(hRot, hFan);
 }
 
-/** Trapezoid rule integration. */
-function integrateTrapezoid(f: (t: number) => number, a: number, b: number, n: number): number {
-	if (n <= 1) return 0;
-	const h = (b - a) / (n - 1);
-	let sum = 0.5 * (f(a) + f(b));
-	for (let i = 1; i < n - 1; i++) {
-		sum += f(a + i * h);
-	}
-	return sum * h;
-}
-
 export function fitKernel(input: KernelInput): KernelResult {
 	const { data, y, grid, bandwidth, gaussianNoise = false, nT = 512 } = input;
-	const n = data.length;
 	const h = bandwidth ?? defaultBandwidth(data, y, gaussianNoise);
 	if (cfHasZeros(y, 1 / h)) {
 		throw new Error('The noise characteristic function has zeros');
@@ -124,69 +106,28 @@ export function fitKernel(input: KernelInput): KernelResult {
 
 	// Above 5000 points the empirical cf comes from 2000 bins, like the other grid methods.
 	const binned = binData(data);
-	// Precompute empirical CF at all t points for efficiency
-	const tVals = new Float64Array(nT);
-	const cfZRe = new Float64Array(nT);
-	const cfZIm = new Float64Array(nT);
+	// q(t) = φ_K(th)·φ̂_Z(t)/φ_Y(t) at the trapezoid nodes, with the end weights folded in.
+	const dt = tMax / (nT - 1);
+	const ts = new Float64Array(nT);
+	const qRe = new Float64Array(nT);
+	const qIm = new Float64Array(nT);
 	for (let i = 0; i < nT; i++) {
-		const t = (i / (nT - 1)) * tMax;
-		tVals[i] = t;
-		const [re, im] = empiricalCf(binned.z, binned.c, data.length, t);
-		cfZRe[i] = re;
-		cfZIm[i] = im;
+		const t = (ts[i] = i * dt);
+		const k = kernelPhi(t * h) * (i === 0 || i === nT - 1 ? 0.5 : 1) * dt;
+		if (k === 0) continue;
+		const [zr, zi] = empiricalCf(binned.z, binned.c, data.length, t);
+		const [yr, yi] = y.cf(t);
+		const d = yr * yr + yi * yi;
+		if (d === 0) continue;
+		qRe[i] = (k * (zr * yr + zi * yi)) / d;
+		qIm[i] = (k * (zi * yr - zr * yi)) / d;
 	}
-
-	// Precompute kernel CF and noise CF at all t points
-	const kernelCfVals = new Float64Array(nT);
-	const yCfRe = new Float64Array(nT);
-	const yCfIm = new Float64Array(nT);
-	for (let i = 0; i < nT; i++) {
-		const t = tVals[i];
-		kernelCfVals[i] = kernelCf(t, h);
-		const [re, im] = y.cf(t);
-		yCfRe[i] = re;
-		yCfIm[i] = im;
-	}
-
-	// For each grid point x, compute f̂(x)
+	// f̂(x) = (1/π)·Σ Re[e^{−itx}·q(t)]
 	for (let j = 0; j < g.m; j++) {
 		const x = g.x0 + j * g.h;
-
-		// Integrand: Re[e^{-itx} * φ_K(th) * φ̂_Z(t) / φ_Y(t)]
-		const integrand = (t: number, idx: number): number => {
-			const kcf = kernelCfVals[idx];
-			if (kcf === 0) return 0;
-			const zRe = cfZRe[idx];
-			const zIm = cfZIm[idx];
-			const yRe = yCfRe[idx];
-			const yIm = yCfIm[idx];
-			const denom = yRe * yRe + yIm * yIm;
-			if (denom === 0) return 0;
-			// φ̂_Z / φ_Y
-			const divRe = (zRe * yRe + zIm * yIm) / denom;
-			const divIm = (zIm * yRe - zRe * yIm) / denom;
-			// e^{-itx}
-			const cos = Math.cos(-t * x);
-			const sin = Math.sin(-t * x);
-			// Multiply: e^{-itx} * (φ̂_Z / φ_Y)
-			const prodRe = cos * divRe - sin * divIm;
-			const prodIm = cos * divIm + sin * divRe;
-			// Multiply by φ_K(th) and take real part
-			return kcf * prodRe;
-		};
-
-		// Trapezoid integration
-		let integral = 0;
-		if (nT > 1) {
-			const dt = tMax / (nT - 1);
-			integral = 0.5 * (integrand(0, 0) + integrand(tMax, nT - 1));
-			for (let i = 1; i < nT - 1; i++) {
-				integral += integrand(tVals[i], i);
-			}
-			integral *= dt;
-		}
-
-		mass[j] = integral / Math.PI;
+		let s = 0;
+		for (let i = 0; i < nT; i++) s += Math.cos(ts[i] * x) * qRe[i] + Math.sin(ts[i] * x) * qIm[i];
+		mass[j] = s / Math.PI;
 	}
 
 	// Clip negative values; negativeMass is their share of Σ|f̂|.

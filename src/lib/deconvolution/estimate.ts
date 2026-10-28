@@ -83,7 +83,8 @@ export function unavailable(method: MethodId, y: SimpleSpec): string | null {
 	if (method === 'gmm')
 		return y.family === 'normal' ? null : 'The Gaussian mixture needs normal noise.';
 	if (f.discrete) return 'Needs a continuous noise.';
-	if (method === 'kernel') {
+	// Of the continuous noises, only these have characteristic functions with zeros.
+	if (method === 'kernel' && (y.family === 'uniform' || y.family === 'fringe')) {
 		// Kernel deconvolution needs φ_Y ≠ 0; look well past any bandwidth's cutoff.
 		const Y = makeDist(y, 'noise');
 		const [lo, hi] = Y.range(0.5);

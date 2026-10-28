@@ -90,4 +90,21 @@ describe('EstimatePool', () => {
 		workers[1].flush(reply);
 		await expect(c).resolves.toMatchObject({ kind: 'bootstrap' });
 	});
+
+	it('replaces a worker that crashes, so queued tasks still run', async () => {
+		const workers: FakeWorker[] = [];
+		const pool = new EstimatePool(() => {
+			const w = new FakeWorker();
+			workers.push(w);
+			return w;
+		}, 1);
+		const a = pool.run(task(1));
+		const b = pool.run(task(2));
+		workers[0].onerror?.({ message: 'out of memory' } as ErrorEvent);
+		await expect(a).rejects.toThrow('out of memory');
+		expect(workers[0].terminated).toBe(true);
+		expect(workers.length).toBe(2);
+		workers[1].flush(reply);
+		await expect(b).resolves.toMatchObject({ kind: 'bootstrap' });
+	});
 });

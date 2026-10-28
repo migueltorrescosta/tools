@@ -187,7 +187,9 @@ const laplace: Family = {
 	sampler:
 		([mu, b]) =>
 		(prng) => {
-			const u = prng.next() - 0.5;
+			// next() is in [0, 1); redraw the one value (u = −0.5) whose log is −∞.
+			let u = prng.next() - 0.5;
+			while (u === -0.5) u = prng.next() - 0.5;
 			return mu - b * Math.sign(u) * Math.log(1 - 2 * Math.abs(u));
 		}
 };

@@ -77,9 +77,10 @@ export class EstimatePool {
 			this.pump();
 		};
 		worker.onerror = (e) => {
-			const job = slot.job;
-			slot.job = null;
-			job?.reject(new Error(e.message || 'The estimator stopped unexpectedly.'));
+			// A crashed worker is replaced: drop its slot so pump() spawns a fresh one.
+			worker.terminate();
+			this.workers = this.workers.filter((w) => w !== slot);
+			slot.job?.reject(new Error(e.message || 'The estimator stopped unexpectedly.'));
 			this.pump();
 		};
 		this.workers.push(slot);

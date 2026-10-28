@@ -31,7 +31,12 @@
 	import { parseSample, sampleCsv, type ParsedSample } from '$lib/deconvolution/upload';
 	import { supportGrid } from '$lib/deconvolution/npmle';
 	import { truthOnGrid, l1, wasserstein1 } from '$lib/deconvolution/metrics';
-	import { unavailable, type GridMethod, type GridResult } from '$lib/deconvolution/estimate';
+	import {
+		unavailable,
+		type GridMethod,
+		type GridOptions,
+		type GridResult
+	} from '$lib/deconvolution/estimate';
 	import { EstimatePool, StoppedError } from '$lib/deconvolution/engine';
 	import type { MleResult } from '$lib/deconvolution/mle';
 	import {
@@ -229,6 +234,7 @@
 		grids: GridResult[];
 		failures: { method: MethodId; message: string }[];
 		noise: DistSpec;
+		options: GridOptions;
 		ms: number;
 	}
 	let run = $state.raw<Run | null>(null);
@@ -244,12 +250,18 @@
 		const t0 = performance.now();
 		const snap = $state.snapshot(settings) as Settings;
 		const d = data;
+		// Everything the run reads, fixed now: the inputs stay editable while it fits.
+		const methods = [...chosen];
+		const gridMethods = methods.filter((m) => m !== 'mle') as GridMethod[];
+		const fitted = usesFitted;
+		const runTruth = snap.source === 'simulated' ? truth : undefined;
+		const options = { df: snap.df, c0: snap.c0, bandwidth: snap.bandwidth, seed: snap.seed };
 		const grid = supportGrid(d, 300);
 		const failures: Run['failures'] = [];
 		const p = getPool();
 		try {
 			let mle: MleResult | null = null;
-			if (chosen.includes('mle') || usesFitted) {
+			if (methods.includes('mle') || fitted) {
 				try {
 					const r = await p.run({
 						kind: 'mle',
@@ -267,22 +279,22 @@
 					failures.push({ method: 'mle', message: (err as Error).message });
 				}
 			}
-			const noise = usesFitted && mle ? mle.y : snap.y;
+			const noise = fitted && mle ? mle.y : snap.y;
 			const results = await Promise.allSettled(
-				(chosen.filter((m) => m !== 'mle') as GridMethod[]).map((method) =>
+				gridMethods.map((method) =>
 					p.run({
 						kind: 'grid',
 						method,
 						data: d,
 						y: noise,
 						grid,
-						options: { df: snap.df, c0: snap.c0, bandwidth: snap.bandwidth, seed: snap.seed }
+						options
 					})
 				)
 			);
 			const grids: GridResult[] = [];
 			results.forEach((r, i) => {
-				const method = chosen.filter((m) => m !== 'mle')[i];
+				const method = gridMethods[i];
 				if (r.status === 'fulfilled' && r.value.kind === 'grid') grids.push(r.value.result);
 				else if (r.status === 'rejected') {
 					if (r.reason instanceof StoppedError) throw r.reason;
@@ -291,17 +303,17 @@
 			});
 			run = {
 				data: d,
-				truth: snap.source === 'simulated' ? truth : undefined,
+				truth: runTruth,
 				grid,
-				mle: chosen.includes('mle') ? mle : null,
+				mle,
 				grids,
 				failures,
 				noise,
+				options,
 				ms: performance.now() - t0
 			};
-			if (usesFitted && !chosen.includes('mle') && mle) run = { ...run, mle };
 			boot = null;
-			bootMethod = grids[0]?.method ?? null;
+			bootMethod = grids.find((g) => g.method !== 'npmle')?.method ?? null;
 		} catch (err) {
 			runError = err instanceof StoppedError ? 'Stopped.' : (err as Error).message;
 		} finally {
@@ -587,7 +599,7 @@
 							data: current.data,
 							y: current.noise as typeof snap.y,
 							grid: current.grid,
-							options: { df: snap.df, c0: snap.c0, bandwidth: snap.bandwidth, seed: snap.seed },
+							options: current.options,
 							seed: snap.seed * 7919 + start,
 							count
 						})
@@ -1024,7 +1036,7 @@
 					{/if}
 				</div>
 
-				{#if run.grids.length}
+				{#if runGrids.some((g) => g.method !== 'npmle')}
 					<div class="subsection">
 						<h4>Bootstrap bands</h4>
 						<p class="muted">Refits on resampled data and shades where 90% of the refits fall.</p>
@@ -1037,8 +1049,8 @@
 										data-testid="boot-method"
 										{...props}
 									>
-										{#each runGrids as g (g.method)}<option value={g.method}
-												>{METHOD_NAMES[g.method]}</option
+										{#each runGrids.filter((g) => g.method !== 'npmle') as g (g.method)}<option
+												value={g.method}>{METHOD_NAMES[g.method]}</option
 											>{/each}
 									</select>
 								{/snippet}
