@@ -7,11 +7,11 @@ import {
 	fill,
 	isFamily,
 	isFixed,
-	logGamma,
 	mean,
 	validateParams,
 	variance
 } from './distributions';
+import { logGamma } from '$lib/variates';
 import type { Family } from './types';
 
 const N = 200_000;
