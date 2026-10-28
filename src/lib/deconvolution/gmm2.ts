@@ -172,14 +172,13 @@ export function fitGmm2({
 	const mx = sx / n;
 	const my = sy / n;
 	let vxx = 0;
-	let vxy = 0;
 	let vyy = 0;
 	for (let i = 0; i < x.length; i++) {
 		vxx += c[i] * (x[i] - mx) ** 2;
-		vxy += c[i] * (x[i] - mx) * (y[i] - my);
 		vyy += c[i] * (y[i] - my) ** 2;
 	}
-	[vxx, vxy, vyy] = [vxx / n, vxy / n, vyy / n];
+	vxx /= n;
+	vyy /= n;
 	const tolerance = tol ?? 1e-6 * n;
 	const floor = 1e-6 * Math.min(vxx, vyy);
 	const fits: Gmm2Fit[] = [];
