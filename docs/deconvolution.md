@@ -68,7 +68,7 @@ $f_Z$ comes from one circular 2D FFT, as in 1D (`zDensityOnGrid2` in `grid2.ts`)
 - **NPMLE** (`npmle2.ts`) solves the same convex problem on a 64 × 64 support with the 1D solver (`solveNpmle`); peaks of the gradient are found among each point's 8 neighbours.
 - **Gaussian mixture** (`gmm2.ts`) runs Extreme Deconvolution with full 2 × 2 covariances under Gaussian noise, $K$ by BIC over 1–6.
 
-g-modeling and kernel deconvolution stay 1D-only. Samples above 1,000 points are binned into 40 × 40 cells for the NPMLE and the mixture.
+g-modeling and kernel deconvolution stay 1D-only. Samples above 1,000 points are binned into 40 × 40 cells for the NPMLE and the mixture. Binning smears the data by about $h^2/12$ of variance per axis ($h$ the cell width), below the sampling error at those sizes; a bin's points are treated as sitting at its centre.
 
 Estimates are compared with the true signal on the 64 × 64 grid by $L_1$ on cell masses and by the sliced Wasserstein-1 distance: the mean, over 32 directions, of the 1D $W_1$ between the two distributions projected on that direction (`metrics2.ts`). Bootstrap bands refit the mixture on resamples and shade its marginals.
 

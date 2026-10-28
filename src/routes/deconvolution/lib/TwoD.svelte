@@ -89,6 +89,10 @@
 		built && nValid && seedValid ? simulate2(built.X, built.Y, settings.n, settings.seed) : null
 	);
 
+	/** The node positions of a 1D grid. */
+	const nodes = (g: { x0: number; h: number; m: number }) =>
+		Float64Array.from({ length: g.m }, (_, i) => g.x0 + i * g.h);
+
 	/** A 1D view of a 2D estimate's marginal, as a density curve on its axis. */
 	function marginalCurve(
 		est: GridEstimate2,
@@ -99,8 +103,7 @@
 		dashed = false
 	): Curve {
 		const m = marginal(est, axis);
-		const xs = Float64Array.from({ length: m.grid.m }, (_, i) => m.grid.x0 + i * m.grid.h);
-		return { key, label, colour, xs, ys: m.mass.map((v) => v / m.grid.h), dashed };
+		return { key, label, colour, xs: nodes(m.grid), ys: m.mass.map((v) => v / m.grid.h), dashed };
 	}
 
 	const modelView = $derived.by(() => {
@@ -402,23 +405,21 @@
 						key: 'npmle',
 						label: NAMES.npmle,
 						colour: colourOf('npmle'),
-						x: Float64Array.from({ length: m.grid.m }, (_, i) => m.grid.x0 + i * m.grid.h),
+						x: nodes(m.grid),
 						p: m.mass
 					});
 				} else curves.push(marginalCurve(est, axis, method, NAMES[method], colourOf(method)));
 			}
 			const b = boot?.find((q) => q.axis === axis);
-			if (b) {
-				const m = marginal({ grid: g, mass: new Float64Array(g.mx * g.my) }, axis);
+			if (b)
 				bandList.push({
 					key: 'gmm',
 					label: `${NAMES.gmm}, 90% bootstrap band`,
 					colour: colourOf('gmm'),
-					xs: Float64Array.from({ length: m.grid.m }, (_, i) => m.grid.x0 + i * m.grid.h),
+					xs: nodes(axis === 0 ? { x0: g.x0, h: g.hx, m: g.mx } : { x0: g.y0, h: g.hy, m: g.my }),
 					lower: b.lower,
 					upper: b.upper
 				});
-			}
 			return {
 				axis,
 				range: [lo, hi] as [number, number],
