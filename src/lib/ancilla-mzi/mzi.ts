@@ -21,7 +21,7 @@ import { buildMzi, kronAll, su2, type MziProblem } from './build';
 import type { HoldMap } from './hold';
 import { qfiOfState, randomState, seesaw, type SeesawResult } from './qfi';
 import { symmetricBasis } from './register';
-import { goldenSection, nelderMead } from './minimise';
+import { goldenSection, nelderMead } from '$lib/minimise';
 import { maxReadouts, readouts } from './readouts';
 
 interface MziOptions {

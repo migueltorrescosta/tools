@@ -1,9 +1,11 @@
 // Shared UI components. Style with the tokens in src/lib/styles/tokens.css.
 export { default as Alert } from './Alert.svelte';
+export { default as Axis } from './Axis.svelte';
 export { default as Button } from './Button.svelte';
 export { default as DataTable } from './DataTable.svelte';
 export { default as Field } from './Field.svelte';
 export { default as InfoTip } from './InfoTip.svelte';
+export { default as Legend } from './Legend.svelte';
 export { default as Maximizable } from './Maximizable.svelte';
 export { default as Output } from './Output.svelte';
 export { default as PageHeader } from './PageHeader.svelte';

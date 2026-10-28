@@ -106,33 +106,7 @@ export function nextTowardZero(x: number): number {
 	return f64[0];
 }
 
-/**
- * `np.quantile(x, q)` with the default linear method, given `x` sorted
- * ascending (the partition NumPy uses yields the same order statistics).
- */
-export function quantileSorted(sorted: ArrayLike<number>, q: number): number {
-	const n = sorted.length;
-	if (n === 0) return NaN;
-	const v = (n - 1) * q;
-	let prev: number;
-	let next: number;
-	let prevIndex = Math.floor(v);
-	if (v >= n - 1) {
-		prev = next = n - 1;
-		prevIndex = -1;
-	} else if (v < 0) {
-		prev = next = 0;
-		prevIndex = 0;
-	} else {
-		prev = prevIndex;
-		next = prevIndex + 1;
-	}
-	const t = v - prevIndex;
-	const a = sorted[prev];
-	const b = sorted[next];
-	const diff = b - a;
-	return t >= 0.5 ? b - diff * (1 - t) : a + diff * t;
-}
+export { quantileSorted } from '$lib/stats';
 
 const SMALL_SORT = 1024;
 

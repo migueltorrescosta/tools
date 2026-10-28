@@ -14,6 +14,7 @@ const ROUTES = [
 	'/symbolic-regression',
 	'/ancilla-mzi',
 	'/information-pricing',
+	'/deconvolution',
 	'/scientific-derivations',
 	'/rank-vote',
 	'/verb-conjugator',
