@@ -8,7 +8,7 @@
  * discrete, Z is too and its pmf is computed exactly instead.
  * No DOM or Svelte imports.
  */
-import { convolve } from '$lib/fft';
+import { convolve, nextPow2 } from '$lib/fft';
 import type { Atoms, Dist, Grid } from './types';
 
 /** Nodes used across the window when neither distribution forces a finer step. */
@@ -22,7 +22,7 @@ export const gridPoints = ({ x0, h, m }: Grid): Float64Array =>
 	Float64Array.from({ length: m }, (_, j) => x0 + j * h);
 
 /** Width of the range holding half the mass of a continuous part; Infinity for a discrete one. */
-function typicalWidth(d: Dist): number {
+export function typicalWidth(d: Dist): number {
 	if (d.pdf === null) return Infinity;
 	const [lo, hi] = d.range(0.5);
 	return hi - lo;
@@ -93,11 +93,25 @@ export function likelihoodGrid(
 	);
 }
 
-/** Cell masses of `d` on `grid` (mass outside the grid is dropped). */
+/**
+ * True when the grid's step resolves the continuous parts of X and Y
+ * (at least 4 nodes across each one's typical width).
+ */
+export function gridResolves({ h }: Grid, X: Dist, Y: Dist): boolean {
+	return typicalWidth(X) >= 4 * h && typicalWidth(Y) >= 4 * h;
+}
+
+/**
+ * Cell masses of `d` on `grid` (mass outside the grid is dropped). A density
+ * too narrow for the step would sum to more than 1, so its cells are scaled
+ * back to total 1: a fit can't gain likelihood from an unresolved peak.
+ */
 export function discretise(d: Dist, { x0, h, m }: Grid): Float64Array {
 	const out = new Float64Array(m);
 	if (d.pdf) {
-		for (let j = 0; j < m; j++) out[j] = d.pdf(x0 + j * h) * h;
+		let total = 0;
+		for (let j = 0; j < m; j++) total += out[j] = d.pdf(x0 + j * h) * h;
+		if (total > 1) for (let j = 0; j < m; j++) out[j] /= total;
 	}
 	const { x, p } = d.atoms;
 	for (let k = 0; k < x.length; k++) {
@@ -120,7 +134,9 @@ export function zDensityOnGrid(X: Dist, Y: Dist, grid: Grid): Float64Array {
 	const { h, m } = grid;
 	const xs = discretise(X, grid);
 	const ys = discretise(Y, { x0: -(m - 1) * h, h, m: 2 * m - 1 });
-	const conv = convolve(xs, ys);
+	// Only outputs m − 1 … 2m − 2 are needed, and a circular convolution of
+	// length ≥ 2m leaves those free of wrap-around.
+	const conv = convolve(xs, ys, nextPow2(2 * m));
 	const out = new Float64Array(m);
 	for (let j = 0; j < m; j++) out[j] = Math.max(0, conv[j + m - 1]) / h;
 	return out;

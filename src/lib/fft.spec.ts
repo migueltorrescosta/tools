@@ -52,3 +52,14 @@ describe('convolve', () => {
 		direct.forEach((v, i) => expect(got[i]).toBeCloseTo(v, 12));
 	});
 });
+
+describe('circular convolve', () => {
+	it('matches the linear result where there is no wrap-around', () => {
+		const a = Array.from({ length: 8 }, (_, i) => Math.cos(i));
+		const b = Array.from({ length: 15 }, (_, i) => Math.sin(i));
+		const lin = convolve(a, b);
+		const circ = convolve(a, b, 16);
+		expect(circ.length).toBe(16);
+		for (let i = a.length + b.length - 1 - 16; i < 16; i++) expect(circ[i]).toBeCloseTo(lin[i], 12);
+	});
+});

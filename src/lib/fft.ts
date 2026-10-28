@@ -49,22 +49,32 @@ export function fft(re: Float64Array, im: Float64Array, inverse = false): void {
 	}
 }
 
-/** Linear convolution of two real sequences (length a.length + b.length − 1). */
-export function convolve(a: ArrayLike<number>, b: ArrayLike<number>): Float64Array {
-	const out = a.length + b.length - 1;
-	const n = nextPow2(out);
+/**
+ * Linear convolution of two real sequences (length a.length + b.length − 1).
+ * With `size`, a circular convolution of that length (a power of two) instead,
+ * which matches the linear one at indices ≥ a.length + b.length − 1 − size.
+ */
+export function convolve(a: ArrayLike<number>, b: ArrayLike<number>, size?: number): Float64Array {
+	const linear = a.length + b.length - 1;
+	const n = size ?? nextPow2(linear);
+	const out = Math.min(linear, n);
+	// Both inputs in one complex transform: z = a + i·b, then split the spectra
+	// with A_k = (Z_k + conj Z_{n−k})/2 and B_k = (Z_k − conj Z_{n−k})/2i.
+	const zr = new Float64Array(n);
+	const zi = new Float64Array(n);
+	for (let i = 0; i < a.length; i++) zr[i % n] += a[i];
+	for (let i = 0; i < b.length; i++) zi[i % n] += b[i];
+	fft(zr, zi);
 	const ar = new Float64Array(n);
 	const ai = new Float64Array(n);
-	const br = new Float64Array(n);
-	const bi = new Float64Array(n);
-	for (let i = 0; i < a.length; i++) ar[i] = a[i];
-	for (let i = 0; i < b.length; i++) br[i] = b[i];
-	fft(ar, ai);
-	fft(br, bi);
-	for (let i = 0; i < n; i++) {
-		const r = ar[i] * br[i] - ai[i] * bi[i];
-		ai[i] = ar[i] * bi[i] + ai[i] * br[i];
-		ar[i] = r;
+	for (let k = 0; k < n; k++) {
+		const j = (n - k) % n;
+		const Ar = (zr[k] + zr[j]) / 2;
+		const Ai = (zi[k] - zi[j]) / 2;
+		const Br = (zi[k] + zi[j]) / 2;
+		const Bi = (zr[j] - zr[k]) / 2;
+		ar[k] = Ar * Br - Ai * Bi;
+		ai[k] = Ar * Bi + Ai * Br;
 	}
 	fft(ar, ai, true);
 	const res = new Float64Array(out);

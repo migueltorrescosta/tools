@@ -129,7 +129,13 @@ function gridFit(
 			};
 		}
 		case 'kernel': {
-			const r = fitKernel({ data, y: Y, grid, bandwidth: o.bandwidth ?? undefined });
+			const r = fitKernel({
+				data,
+				y: Y,
+				grid,
+				bandwidth: o.bandwidth ?? undefined,
+				gaussianNoise: y.family === 'normal'
+			});
 			return {
 				method,
 				grid: r.grid,
