@@ -155,3 +155,20 @@ describe('empirical CF binning', () => {
 		}
 	});
 });
+
+describe('cfHasZeros between samples', () => {
+	it('finds the uniform noise zero at t = π even when no sample lands on it', () => {
+		const y = makeDist({ family: 'uniform', params: [0, 2] }, 'noise');
+		expect(cfHasZeros(y, 86.6)).toBe(true);
+		expect(cfHasZeros(y, 3)).toBe(false);
+	});
+
+	it('finds no zeros for normal, Laplace or gamma noise', () => {
+		for (const spec of [
+			{ family: 'normal' as const, params: [0, 1] },
+			{ family: 'laplace' as const, params: [0, 1] },
+			{ family: 'gamma' as const, params: [2, 1] }
+		])
+			expect(cfHasZeros(makeDist(spec, 'noise'), 100)).toBe(false);
+	});
+});

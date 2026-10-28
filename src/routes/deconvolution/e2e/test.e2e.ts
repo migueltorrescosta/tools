@@ -41,7 +41,7 @@ test('shows the signal, the noise and what we observe', async ({ page }) => {
 	await expect(chart.getByTestId('curve-x')).toBeVisible();
 	await expect(chart.getByTestId('curve-y')).toBeVisible();
 	await expect(chart.getByTestId('curve-z')).toBeVisible();
-	await expect(chart.locator('rect.bar').first()).toBeVisible();
+	expect(await chart.locator('rect.bar:not([height="0"])').count()).toBeGreaterThan(10);
 });
 
 test('a discrete signal is drawn as point masses', async ({ page }) => {
@@ -68,7 +68,6 @@ test('the noise hides its location parameter', async ({ page }) => {
 
 test('the parametric fit recovers a simulated model', async ({ page }) => {
 	await open(page);
-	await page.getByTestId('preset').selectOption('waiting-times');
 	await page.getByTestId('method-npmle').uncheck();
 	await run(page);
 	expect(Math.abs((await fitted(page, 'X', 'k')) - 3)).toBeLessThan(0.8);
@@ -97,10 +96,14 @@ test('methods that need another noise are disabled with a reason', async ({ page
 	await expect(page.getByTestId('method-npmle')).toBeDisabled();
 });
 
-test('every method runs on the default model and reports distances to the truth', async ({
+test('every method runs on two peaks in white noise and reports distances to the truth', async ({
 	page
 }) => {
+	test.setTimeout(120_000);
 	await open(page);
+	// Two normal peaks in normal noise: identifiable only with the noise as entered.
+	await page.getByTestId('preset').selectOption('two-peaks');
+	await page.getByTestId('fit-noise').uncheck();
 	for (const m of ['gmodel', 'kernel', 'gmm']) await page.getByTestId(`method-${m}`).check();
 	await run(page);
 	const table = page.getByRole('table', { name: 'Fits' });
@@ -131,12 +134,21 @@ test('pasted data is parsed, bad lines reported, and estimated', async ({ page }
 	await expect(page.getByText('W₁ and L₁ need the true signal')).toBeVisible();
 });
 
-test('bootstrap shades a band and can be stopped', async ({ page }) => {
+test('bootstrap can be stopped, and shades a band when it finishes', async ({ page }) => {
+	test.setTimeout(120_000);
 	await open(page);
+	await page.getByTestId('preset').selectOption('two-peaks');
+	await page.getByTestId('fit-noise').uncheck();
 	await page.getByTestId('method-mle').uncheck();
-	await page.getByTestId('method-gmm').check();
 	await page.getByTestId('method-npmle').uncheck();
+	await page.getByTestId('method-gmodel').check();
 	await run(page);
+	const results = page.getByTestId('results');
+	await page.getByLabel('Resamples B').fill('2000');
+	await page.getByTestId('bootstrap').click();
+	await results.getByRole('button', { name: 'Stop' }).click();
+	await expect(page.getByText('Bootstrap stopped.')).toBeVisible();
+	await expect(page.getByTestId('estimate-chart').locator('path.band')).toHaveCount(0);
 	await page.getByLabel('Resamples B').fill('20');
 	await page.getByTestId('bootstrap').click();
 	await expect(page.getByTestId('estimate-chart').locator('path.band')).toBeVisible({

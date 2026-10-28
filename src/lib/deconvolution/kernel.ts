@@ -81,13 +81,23 @@ function empiricalCf(data: Float64Array, t: number): [number, number] {
 	return data.length > 5000 ? empiricalCfBinned(data, t) : empiricalCfRaw(data, t);
 }
 
-/** True when min |φ_Y(t)| over n equally spaced t in [0, tMax] is below 1e-8. */
+/**
+ * True when φ_Y has a zero on [0, tMax]: between two of n equally spaced t,
+ * both its parts change sign (only the real part, for a real φ_Y). A sign
+ * change catches zeros between the samples; a small |φ_Y| alone is not a
+ * zero, since normal noise's φ_Y decays below any threshold (and underflows).
+ */
 export function cfHasZeros(y: Dist, tMax: number, n = 2000): boolean {
 	if (tMax <= 0) return false;
-	for (let i = 0; i <= n; i++) {
-		const t = (i / n) * tMax;
-		const [re, im] = y.cf(t);
-		if (Math.hypot(re, im) < 1e-8) return true;
+	let [re0, im0] = y.cf(0);
+	for (let i = 1; i <= n; i++) {
+		const [re, im] = y.cf((i / n) * tMax);
+		// An exact zero on a sample (not the underflow of a decaying φ_Y).
+		if (re === 0 && im === 0 && Math.hypot(re0, im0) > 1e-100) return true;
+		const realCf = Math.abs(im) < 1e-12 && Math.abs(im0) < 1e-12;
+		if (re * re0 < 0 && (realCf || im * im0 < 0)) return true;
+		re0 = re;
+		im0 = im;
 	}
 	return false;
 }

@@ -78,9 +78,9 @@ function eStep(
 		B[j] = sj2 - (sj2 * sj2) / T[j];
 	}
 
+	const logR = new Float64Array(k);
 	for (let i = 0; i < n; i++) {
 		const z = data[i];
-		const logR = new Float64Array(k);
 		for (let j = 0; j < k; j++) {
 			logR[j] = Math.log(state.weights[j]) + logNormal(z, state.means[j], Math.sqrt(T[j]));
 		}
@@ -282,7 +282,7 @@ function computeBic(logLik: number, k: number, n: number): number {
 export function fitGmm(input: GmmInput): GmmResult {
 	const { data, noiseSigma, kMax = 6, seed, restarts = 3, maxIter = 500, tol } = input;
 	const n = data.length;
-	const tolerance = tol ?? 1e-8 * n;
+	const tolerance = tol ?? 1e-6 * n;
 
 	const fits: GmmFit[] = [];
 	let bestFit: GmmFit | null = null;

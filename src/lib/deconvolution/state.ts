@@ -46,6 +46,12 @@ export interface Preset {
 
 export const PRESETS: readonly Preset[] = [
 	{
+		id: 'waiting-times',
+		name: 'Waiting times, Laplace noise',
+		x: { family: 'gamma', params: [3, 1] },
+		y: { family: 'laplace', params: [0, 0.5] }
+	},
+	{
 		id: 'two-peaks',
 		name: 'Two peaks in white noise',
 		x: {
@@ -56,12 +62,6 @@ export const PRESETS: readonly Preset[] = [
 			]
 		},
 		y: { family: 'normal', params: [0, 0.7] }
-	},
-	{
-		id: 'waiting-times',
-		name: 'Waiting times, Laplace noise',
-		x: { family: 'gamma', params: [3, 1] },
-		y: { family: 'laplace', params: [0, 0.5] }
 	},
 	{
 		id: 'counts',

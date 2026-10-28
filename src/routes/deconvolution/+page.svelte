@@ -194,7 +194,7 @@
 	// --- Methods ---
 	const reasons = $derived(
 		Object.fromEntries(
-			METHODS.map((m) => [m, unavailable(m, $state.snapshot(settings.y), data ?? undefined)])
+			METHODS.map((m) => [m, unavailable(m, $state.snapshot(settings.y))])
 		) as Record<MethodId, string | null>
 	);
 	const chosen = $derived(settings.methods.filter((m) => !reasons[m]));

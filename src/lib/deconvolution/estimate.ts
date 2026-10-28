@@ -8,7 +8,7 @@ import { Prng } from '$lib/prng';
 import { makeDist } from './dist';
 import { family } from './families';
 import { fitGmm, gmmSpec } from './gmm';
-import { cfHasZeros, defaultBandwidth, fitKernel } from './kernel';
+import { cfHasZeros, fitKernel } from './kernel';
 import { truthOnGrid } from './metrics';
 import { compareFamilies, fitMle, type MleInput, type MleResult } from './mle';
 import { fitGmodel } from './gmodel';
@@ -77,16 +77,18 @@ export type TaskResult =
 	| { kind: 'bootstrap'; masses: Float64Array[] };
 
 /** Why a method can't run with this noise, or null when it can. */
-export function unavailable(method: MethodId, y: SimpleSpec, data?: Float64Array): string | null {
+export function unavailable(method: MethodId, y: SimpleSpec): string | null {
 	const f = family(y.family);
 	if (method === 'mle') return null;
 	if (method === 'gmm')
 		return y.family === 'normal' ? null : 'The Gaussian mixture needs normal noise.';
 	if (f.discrete) return 'Needs a continuous noise.';
-	if (method === 'kernel' && data && data.length >= 10) {
+	if (method === 'kernel') {
+		// Kernel deconvolution needs φ_Y ≠ 0; look well past any bandwidth's cutoff.
 		const Y = makeDist(y, 'noise');
-		const h = defaultBandwidth(data, Y, y.family === 'normal');
-		if (cfHasZeros(Y, 1 / h)) return 'This noise’s characteristic function has zeros.';
+		const [lo, hi] = Y.range(0.5);
+		const scale = Y.variance !== undefined ? Math.sqrt(Y.variance) : (hi - lo) / 2;
+		if (cfHasZeros(Y, 50 / scale)) return 'This noise’s characteristic function has zeros.';
 	}
 	return null;
 }
