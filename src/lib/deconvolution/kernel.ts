@@ -2,6 +2,7 @@
  * Fourier kernel deconvolution (Stefanski & Carroll 1990; Fan 1991).
  * f̂(x) = (1/π)·∫₀^{1/h} Re[e^{−itx}·φ_K(th)·φ̂_Z(t)/φ_Y(t)] dt
  */
+import { moments } from '$lib/stats';
 import { binData } from './binning';
 import { dataWindow } from './grid';
 import type { Dist, Grid, GridEstimate } from './types';
@@ -64,16 +65,7 @@ export function cfHasZeros(y: Dist, tMax: number, n = 2000): boolean {
 export function defaultBandwidth(data: Float64Array, y: Dist, gaussianNoise: boolean): number {
 	const n = data.length;
 	// var(Z)
-	let meanZ = 0;
-	for (let i = 0; i < n; i++) meanZ += data[i];
-	meanZ /= n;
-	let varZ = 0;
-	for (let i = 0; i < n; i++) {
-		const d = data[i] - meanZ;
-		varZ += d * d;
-	}
-	varZ /= n;
-	// var(X) = max(var(Z) - var(Y), 0.01 * var(Z))
+	const varZ = moments(data).variance;
 	const varY = y.variance ?? 0;
 	const varX = Math.max(varZ - varY, 0.01 * varZ);
 	const sigmaX = Math.sqrt(varX);

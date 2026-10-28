@@ -5,7 +5,7 @@
  */
 import { bfgs } from '$lib/minimise';
 import { binData } from './binning';
-import { likelihoodMatrix, supportGrid } from './npmle';
+import { gridLogLik, likelihoodMatrix, supportGrid } from './npmle';
 import { gridPoints } from './grid';
 import type { Dist, Grid, GridEstimate } from './types';
 
@@ -92,12 +92,7 @@ export function gmodelObjective(L: Float64Array, c: Float64Array, Q: Float64Arra
 	const n = c.length;
 	const value = (alpha: number[]) => {
 		const g = weights(Q, alpha, m);
-		let ll = 0;
-		for (let i = 0; i < n; i++) {
-			let f = 0;
-			for (let j = 0; j < m; j++) f += L[i * m + j] * g[j];
-			ll += c[i] * Math.log(Math.max(f, 1e-300));
-		}
+		const ll = gridLogLik(L, c, g);
 		const norm = Math.sqrt(alpha.reduce((s, a) => s + a * a, 0) + NORM_EPS);
 		return { ll, g, f: -ll + c0 * norm, norm };
 	};

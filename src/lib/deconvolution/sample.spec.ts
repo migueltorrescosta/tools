@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Prng } from '$lib/prng';
 import { makeDist } from './dist';
-import { bands, histogram, quantileSorted, resample, simulate } from './sample';
+import { quantileSorted } from '$lib/stats';
+import { bands, histogram, resample, simulate } from './sample';
 
 describe('simulate', () => {
 	it('draws Z = X + Y with the summed mean and variance', () => {

@@ -13,7 +13,7 @@ import { truthOnGrid } from './metrics';
 import { compareFamilies, fitMle, type MleInput, type MleResult } from './mle';
 import { fitGmodel } from './gmodel';
 import { binData } from './binning';
-import { fitNpmle, likelihoodMatrix } from './npmle';
+import { fitNpmle, gridLogLik, likelihoodMatrix } from './npmle';
 import { resample } from './sample';
 import type { DistSpec, FamilyId, Grid, GridEstimate, MethodId, SimpleSpec } from './types';
 
@@ -95,17 +95,9 @@ export function unavailable(method: MethodId, y: SimpleSpec): string | null {
 }
 
 /** Log-likelihood of the sample with X given as cell masses on the grid. */
-export function gridLogLik(data: Float64Array, y: SimpleSpec, est: GridEstimate): number {
+export function sampleLogLik(data: Float64Array, y: SimpleSpec, est: GridEstimate): number {
 	const { z, c } = binData(data);
-	const L = likelihoodMatrix(z, makeDist(y, 'noise'), est.grid);
-	const m = est.grid.m;
-	let s = 0;
-	for (let i = 0; i < z.length; i++) {
-		let f = 0;
-		for (let j = 0; j < m; j++) f += L[i * m + j] * est.mass[j];
-		s += c[i] * Math.log(Math.max(f, 1e-300));
-	}
-	return s;
+	return gridLogLik(likelihoodMatrix(z, makeDist(y, 'noise'), est.grid), c, est.mass);
 }
 
 function gridFit(
@@ -127,7 +119,7 @@ function gridFit(
 				method,
 				grid: r.grid,
 				mass: r.mass,
-				logLik: gridLogLik(data, y, r),
+				logLik: sampleLogLik(data, y, r),
 				converged: r.converged
 			};
 		}
@@ -143,7 +135,7 @@ function gridFit(
 				method,
 				grid: r.grid,
 				mass: r.mass,
-				logLik: gridLogLik(data, y, r),
+				logLik: sampleLogLik(data, y, r),
 				bandwidth: r.bandwidth,
 				negativeMass: r.negativeMass
 			};

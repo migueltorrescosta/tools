@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { makeDist } from './dist';
-import { gridLogLik, runTask, unavailable, type GridMethod } from './estimate';
+import { sampleLogLik, runTask, unavailable, type GridMethod } from './estimate';
 import { supportGrid } from './npmle';
 import { simulate } from './sample';
 import type { SimpleSpec } from './types';
@@ -49,14 +49,14 @@ describe('runTask', () => {
 			expect(Math.min(...r.result.mass)).toBeGreaterThanOrEqual(0);
 			// Every method beats a flat signal on the grid.
 			const flat = { grid, mass: new Float64Array(grid.m).fill(1 / grid.m) };
-			expect(r.result.logLik).toBeGreaterThan(gridLogLik(data, normal, flat));
+			expect(r.result.logLik).toBeGreaterThan(sampleLogLik(data, normal, flat));
 		}
 	);
 
-	it('the NPMLE log-likelihood matches gridLogLik of its own estimate', () => {
+	it('the NPMLE log-likelihood matches sampleLogLik of its own estimate', () => {
 		const r = runTask({ kind: 'grid', method: 'npmle', data, y: normal, grid, options });
 		if (r.kind !== 'grid') throw new Error('wrong kind');
-		expect(gridLogLik(data, normal, r.result)).toBeCloseTo(r.result.logLik, 6);
+		expect(sampleLogLik(data, normal, r.result)).toBeCloseTo(r.result.logLik, 6);
 	});
 
 	it('the Gaussian mixture reports its signal and parameter count', () => {

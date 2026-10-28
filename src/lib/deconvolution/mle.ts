@@ -6,6 +6,7 @@
  */
 import { nelderMead } from '$lib/minimise';
 import { Prng } from '$lib/prng';
+import { moments } from '$lib/stats';
 import { makeDist } from './dist';
 import { defaultParams, family, validateParams } from './families';
 import { gridResolves, likelihoodGrid, logLikelihood } from './grid';
@@ -203,15 +204,6 @@ function objective(data: Float64Array, x: DistSpec, y: SimpleSpec, grid: Grid | 
 	} catch {
 		return BAD;
 	}
-}
-
-function moments(data: Float64Array): { mean: number; variance: number } {
-	let mean = 0;
-	for (const v of data) mean += v;
-	mean /= data.length;
-	let variance = 0;
-	for (const v of data) variance += (v - mean) ** 2;
-	return { mean, variance: variance / data.length };
 }
 
 /**

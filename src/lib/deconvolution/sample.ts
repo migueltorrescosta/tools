@@ -3,6 +3,7 @@
  * No DOM or Svelte imports.
  */
 import { Prng } from '$lib/prng';
+import { quantileSorted } from '$lib/stats';
 import type { Dist } from './types';
 
 /** n draws of Z = X + Y from one seed (X and Y from separate streams). */
@@ -19,15 +20,6 @@ export function resample(data: Float64Array, prng: Prng): Float64Array {
 	const out = new Float64Array(data.length);
 	for (let i = 0; i < data.length; i++) out[i] = data[prng.int(data.length)];
 	return out;
-}
-
-/** The q-quantile (0 ≤ q ≤ 1) of sorted values, linearly interpolated. */
-export function quantileSorted(sorted: ArrayLike<number>, q: number): number {
-	const n = sorted.length;
-	if (n === 0) return NaN;
-	const u = q * (n - 1);
-	const j = Math.floor(u);
-	return j >= n - 1 ? sorted[n - 1] : sorted[j] + (u - j) * (sorted[j + 1] - sorted[j]);
 }
 
 /** Pointwise lower and upper quantiles across replicate vectors of equal length. */

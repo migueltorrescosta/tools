@@ -79,8 +79,8 @@ function pass(
 	return { logLik, gap };
 }
 
-/** Σ c_i log(L_i·w). */
-function logLik(L: Float64Array, c: Float64Array, w: Float64Array): number {
+/** Σ c_i log(L_i·w): the log-likelihood with X as masses w on the grid of L. */
+export function gridLogLik(L: Float64Array, c: Float64Array, w: Float64Array): number {
 	const m = w.length;
 	let s = 0;
 	for (let i = 0; i < c.length; i++) {
@@ -137,10 +137,10 @@ function newtonStep(L: Float64Array, c: Float64Array, N: number, w: Float64Array
 	if (!(total > 0)) return w;
 	const target = new Float64Array(m);
 	S.forEach((j, a) => (target[j] = x[a] / total));
-	const base = logLik(L, c, w);
+	const base = gridLogLik(L, c, w);
 	for (let t = 1; t > 1e-6; t /= 2) {
 		const next = w.map((v, j) => v + t * (target[j] - v));
-		if (logLik(L, c, next) >= base) return next.map((v) => (v > 1e-14 ? v : 0));
+		if (gridLogLik(L, c, next) >= base) return next.map((v) => (v > 1e-14 ? v : 0));
 	}
 	return w;
 }

@@ -5,6 +5,7 @@
  * Large samples are binned like the other grid methods. No DOM or Svelte imports.
  */
 import { Prng } from '$lib/prng';
+import { moments } from '$lib/stats';
 import { binData } from './binning';
 import type { DistSpec } from './types';
 
@@ -46,20 +47,6 @@ export interface GmmState {
 }
 
 const HALF_LOG_2PI = 0.5 * Math.log(2 * Math.PI);
-
-/** Weighted mean and variance. */
-function moments(z: Float64Array, c: Float64Array): { mean: number; variance: number; n: number } {
-	let n = 0;
-	let s = 0;
-	for (let i = 0; i < z.length; i++) {
-		n += c[i];
-		s += c[i] * z[i];
-	}
-	const mean = s / n;
-	let v = 0;
-	for (let i = 0; i < z.length; i++) v += c[i] * (z[i] - mean) ** 2;
-	return { mean, variance: v / n, n };
-}
 
 /**
  * One EM step with weights c (the Bovy et al. updates for equal, known noise).
