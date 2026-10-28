@@ -23,7 +23,9 @@ From one sample of $Z$ you can't recover both $X$ and $Y$ in general. If both ar
 3. **A symmetric noise of unknown shape**: the phase $\varphi_Z/|\varphi_Z|$ equals that of $X$ (Delaigle & Hall 2016).
 4. **In two or more dimensions**, a signal with dependent coordinates and a noise with independent ones (Gassiat, Le Corff & Lehéricy 2022).
 
-The parametric fit checks this numerically. It computes the observed information (the Hessian of the negative log-likelihood, on the fit's transformed scale), and when its condition number exceeds $10^6$ (`IDENTIFIABILITY_LIMIT` in `mle.ts`) the page names the parameters along the flattest direction.
+Some pairs are unidentifiable even with both families named. Two normals only show $\sigma_X^2+\sigma_Y^2$. A fringe pattern blurred by normal noise is a fringe pattern again: the envelope widens to $\sqrt{w^2+\sigma^2}$, while the frequency becomes $kw^2/(w^2+\sigma^2)$ and the visibility drops by $e^{-k^2w^2\sigma^2/2(w^2+\sigma^2)}$. So for the interferometric case the noise's $\sigma$ must be known.
+
+The parametric fit checks this numerically. It computes the observed information (the Hessian of the negative log-likelihood on the fit's transformed scale), scaled to a unit diagonal so the parameters' units don't matter. When its condition number exceeds $10^6$ (`IDENTIFIABILITY_LIMIT` in `mle.ts`), the page names the parameters along the flattest direction. A flat direction often runs into the edge of a parameter's range (a visibility of 1, a noise scale of 0), where the curvature no longer shows it. So the page also flags fitted parameters that end within $10^{-3}$ of 0 or 1, or below $10^{-3}$ of the data's standard deviation.
 
 Only the parametric fit estimates the noise. Without a family for $X$, the likelihood grows without bound as $\sigma_Y \to 0$: a signal with a point mass on every data point explains the sample perfectly. So the nonparametric methods use the noise either as you entered it or as the parametric fit found it ("Noise used by the other methods").
 

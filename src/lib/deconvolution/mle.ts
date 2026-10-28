@@ -40,12 +40,18 @@ export interface ParamEstimate {
 }
 
 export interface Identifiability {
-	/** λmax/λmin of the observed information on the fit's scale; Infinity when λmin ≤ 0. */
+	/** λmax/λmin of the scaled observed information (unit diagonal); Infinity when λmin ≤ 0. */
 	conditionNumber: number;
 	/** conditionNumber > IDENTIFIABILITY_LIMIT. */
 	flat: boolean;
 	/** When flat: parameters whose |component| in the eigenvector of λmin is at least 0.2 of the largest, with its sign. */
 	direction: { role: Role; component: number | null; key: string; label: string; weight: number }[];
+	/**
+	 * Fitted parameters that ended at the edge of their range: within 1e-3 of 0 or 1,
+	 * or a positive one below 1e-3 of the data's standard deviation. A flat direction
+	 * often runs into such an edge, where the curvature no longer shows it.
+	 */
+	boundary: { role: Role; component: number | null; key: string; label: string }[];
 }
 
 export interface MleResult {
@@ -350,7 +356,11 @@ export function fitMle({ data, x, y, fixedY, seed, starts = 6 }: MleInput): MleR
 
 	const H = free.length ? hessian(finalObjective, theta) : [];
 	const cov = free.length ? invertSymmetric(H) : null;
-	const { values, vectors } = symmetricEigen(H);
+	// Collinearity on the scaled information H_ij/√(H_ii·H_jj), so the units and
+	// transforms of the parameters don't decide which one looks flat.
+	const scale = H.map((row, i) => (row[i] > 0 ? 1 / Math.sqrt(row[i]) : 0));
+	const scaled = H.map((row, i) => row.map((v, j) => v * scale[i] * scale[j]));
+	const { values, vectors } = symmetricEigen(scale.every((v) => v > 0) ? scaled : H);
 	const lmin = values[0];
 	const lmax = values[values.length - 1];
 	const conditionNumber = free.length === 0 ? 1 : lmin > 0 ? lmax / lmin : Infinity;
@@ -403,6 +413,17 @@ export function fitMle({ data, x, y, fixedY, seed, starts = 6 }: MleInput): MleR
 		};
 	});
 
+	const sd = Math.sqrt(moments(data).variance);
+	const boundary = params
+		.filter((p, i) => {
+			const s = all[i];
+			if (!p.fitted || s.domain === 'weight') return false;
+			if (s.domain === 'unit' || s.domain === 'unitClosed')
+				return p.value < 1e-3 || p.value > 1 - 1e-3;
+			return s.domain === 'positive' && p.value < 1e-3 * sd;
+		})
+		.map(({ role, component, key, label }) => ({ role, component, key, label }));
+
 	const kFree = free.length;
 	return {
 		x: fit.x,
@@ -413,7 +434,7 @@ export function fitMle({ data, x, y, fixedY, seed, starts = 6 }: MleInput): MleR
 		n,
 		aic: 2 * kFree - 2 * logLik,
 		bic: kFree * Math.log(n) - 2 * logLik,
-		identifiability: { conditionNumber, flat, direction }
+		identifiability: { conditionNumber, flat, direction, boundary }
 	};
 }
 

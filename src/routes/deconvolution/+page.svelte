@@ -348,7 +348,10 @@
 				aic: r.aic,
 				bic: r.bic,
 				...dist(mleOnGrid),
-				note: r.identifiability.flat ? 'Not identifiable: see below' : ''
+				note:
+					r.identifiability.flat || r.identifiability.boundary.length
+						? 'Not identifiable: see below'
+						: ''
 			});
 		}
 		for (const g of run.grids) {
@@ -481,6 +484,9 @@
 	});
 
 	const flat = $derived(run?.mle?.identifiability.flat ? run.mle.identifiability : null);
+	const edges = $derived(run?.mle?.identifiability.boundary ?? []);
+	const of = (d: { label: string; role: 'signal' | 'noise'; component: number | null }) =>
+		`${d.label} of ${d.role === 'signal' ? 'X' : 'Y'}${d.component === null ? '' : ` (component ${d.component + 1})`}`;
 	const runGrids = $derived(run?.grids ?? []);
 
 	// --- Compare X families ---
@@ -930,10 +936,19 @@
 				{#if flat}
 					<Alert tone="warning">
 						<span data-testid="identifiability">
-							The data can't separate these parameters: {flat.direction
-								.map((d) => `${d.label} of ${d.role === 'signal' ? 'X' : 'Y'}`)
-								.join(' and ')} trade off against each other. Fix the noise (untick "also fits the noise")
-							or pick families that differ in shape.
+							The data can't separate these parameters: {flat.direction.map(of).join(' and ')} trade off
+							against each other. Fix the noise (untick "also fits the noise") or pick families that differ
+							in shape.
+						</span>
+					</Alert>
+				{/if}
+				{#if edges.length}
+					<Alert tone="warning">
+						<span data-testid="boundary">
+							{edges.map(of).join(' and ')} ended at the edge of {edges.length === 1
+								? 'its'
+								: 'their'} range. The data may not pin {edges.length === 1 ? 'it' : 'them'} down: a trade-off
+							with the noise often ends there. Fix the noise and fit again.
 						</span>
 					</Alert>
 				{/if}
