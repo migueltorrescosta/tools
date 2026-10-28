@@ -62,12 +62,12 @@ describe('likelihoodMatrix', () => {
 		const a0 = 0,
 			a1 = 1,
 			a2 = 2;
-		expect(L[0]).toBeCloseTo(y.pdf(1 - a0), 10);
-		expect(L[1]).toBeCloseTo(y.pdf(1 - a1), 10);
-		expect(L[2]).toBeCloseTo(y.pdf(1 - a2), 10);
-		expect(L[3]).toBeCloseTo(y.pdf(2 - a0), 10);
-		expect(L[4]).toBeCloseTo(y.pdf(2 - a1), 10);
-		expect(L[5]).toBeCloseTo(y.pdf(2 - a2), 10);
+		expect(L[0]).toBeCloseTo(y.pdf!(1 - a0), 10);
+		expect(L[1]).toBeCloseTo(y.pdf!(1 - a1), 10);
+		expect(L[2]).toBeCloseTo(y.pdf!(1 - a2), 10);
+		expect(L[3]).toBeCloseTo(y.pdf!(2 - a0), 10);
+		expect(L[4]).toBeCloseTo(y.pdf!(2 - a1), 10);
+		expect(L[5]).toBeCloseTo(y.pdf!(2 - a2), 10);
 	});
 });
 

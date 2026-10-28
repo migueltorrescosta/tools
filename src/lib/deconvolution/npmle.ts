@@ -164,7 +164,7 @@ export function fitNpmle({
 	const L = likelihoodMatrix(z, y, g);
 	const N = c.reduce((a, b) => a + b, 0);
 	const m = g.m;
-	let w = new Float64Array(m).fill(1 / m);
+	let w: Float64Array = new Float64Array(m).fill(1 / m);
 	const w1 = new Float64Array(m);
 	const w2 = new Float64Array(m);
 	const w3 = new Float64Array(m);

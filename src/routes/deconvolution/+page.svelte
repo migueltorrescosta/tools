@@ -322,7 +322,7 @@
 	);
 	const truthMass = $derived(run?.truth ? truthOnGrid(run.truth, run.grid) : null);
 
-	interface Row {
+	type Row = {
 		method: string;
 		logLik: number;
 		k: number | undefined;
@@ -331,7 +331,7 @@
 		w1: number | undefined;
 		l1: number | undefined;
 		note: string;
-	}
+	};
 	const rows = $derived.by((): Row[] => {
 		if (!run) return [];
 		const out: Row[] = [];
@@ -383,13 +383,13 @@
 		{ key: 'note', label: 'Note' }
 	];
 
-	interface ParamRow {
+	type ParamRow = {
 		id: string;
 		role: string;
 		param: string;
 		value: number;
 		ci: string;
-	}
+	};
 	const paramRows = $derived.by((): ParamRow[] =>
 		(run?.mle?.params ?? []).map((p, i) => ({
 			id: `${i}`,
@@ -481,6 +481,7 @@
 	});
 
 	const flat = $derived(run?.mle?.identifiability.flat ? run.mle.identifiability : null);
+	const runGrids = $derived(run?.grids ?? []);
 
 	// --- Compare X families ---
 	let comparing = $state(false);
@@ -993,7 +994,7 @@
 										data-testid="boot-method"
 										{...props}
 									>
-										{#each run.grids as g (g.method)}<option value={g.method}
+										{#each runGrids as g (g.method)}<option value={g.method}
 												>{METHOD_NAMES[g.method]}</option
 											>{/each}
 									</select>

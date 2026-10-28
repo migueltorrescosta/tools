@@ -50,7 +50,10 @@ export function bfgs(
 		const slope = dot(p, g);
 		// Not a descent direction (H lost positive definiteness): restart from steepest descent.
 		if (!(slope < 0)) {
-			for (let i = 0; i < n; i++) (H[i].fill(0), (H[i][i] = 1));
+			for (let i = 0; i < n; i++) {
+				H[i].fill(0);
+				H[i][i] = 1;
+			}
 			continue;
 		}
 		let alpha = 1;

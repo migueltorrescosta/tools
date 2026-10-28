@@ -16,7 +16,7 @@ export function symmetricEigen(a: number[][]): { values: number[]; vectors: numb
 	if (n === 0) return { values: [], vectors: [] };
 	const A = a.map((row) => [...row]);
 	const V = Array.from({ length: n }, (_, i) =>
-		Array.from({ length: n }, (_, j) => (i === j ? 1 : 0))
+		Array.from({ length: n }, (_, j): number => (i === j ? 1 : 0))
 	);
 	let norm = 0;
 	for (const row of A) for (const v of row) norm += v * v;
