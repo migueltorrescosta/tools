@@ -171,3 +171,90 @@ test('a damaged share link falls back to the defaults with a warning', async ({ 
 	await expect(page.getByText('This link is damaged')).toBeVisible();
 	await expect(page.getByTestId('model-chart')).toBeVisible();
 });
+
+test.describe('2D', () => {
+	async function open2d(page: Page) {
+		await open(page);
+		await page.getByRole('radio', { name: '2D' }).check();
+		await expect(page.getByTestId('map-z')).toBeVisible();
+	}
+
+	test('shows heatmaps of X, Y and Z and the marginals', async ({ page }) => {
+		await open2d(page);
+		for (const id of ['map-x', 'map-y', 'map-z'])
+			await expect(page.getByTestId(id).locator('rect.cell').first()).toBeVisible();
+		await expect(page.getByTestId('map-z').locator('circle.dot').first()).toBeVisible();
+		await expect(page.getByTestId('model-marginal-x').getByTestId('curve-x')).toBeVisible();
+		await expect(page.getByTestId('model-marginal-y').getByTestId('curve-z')).toBeVisible();
+	});
+
+	test('the default 2D preset holds the noise fixed and the fit recovers the peaks', async ({
+		page
+	}) => {
+		test.setTimeout(120_000);
+		await open2d(page);
+		await expect(page.getByTestId('fit-noise2')).not.toBeChecked();
+		await page.getByTestId('method2-gmm').check();
+		await run(page);
+		for (const id of ['map-truth', 'map-mle', 'map-npmle', 'map-gmm'])
+			await expect(page.getByTestId(id)).toBeVisible();
+		const table = page.getByRole('table', { name: 'Fits' });
+		const w1 = await table
+			.getByRole('row')
+			.filter({ hasText: 'Gaussian mixture' })
+			.getByRole('cell')
+			.nth(5)
+			.innerText();
+		expect(Number(w1)).toBeLessThan(0.15);
+		await expect(page.getByTestId('identifiability')).toHaveCount(0);
+	});
+
+	test('Gaussian noise is needed for the mixture; the noise must be continuous', async ({
+		page
+	}) => {
+		await open2d(page);
+		await page.getByTestId('y2-family').selectOption('product');
+		await expect(page.getByTestId('method2-gmm')).toBeDisabled();
+		await expect(page.getByText('The Gaussian mixture needs Gaussian noise.')).toBeVisible();
+		// Discrete families aren't offered for a 2D noise's axes.
+		await expect(page.getByTestId('y2-x-family').locator('option[value="poisson"]')).toHaveCount(0);
+	});
+
+	test('two pasted columns switch to 2D and run', async ({ page }) => {
+		test.setTimeout(120_000);
+		await open(page);
+		await page.getByRole('radio', { name: 'Your data' }).check();
+		const lines = Array.from({ length: 300 }, (_, i) => `${Math.sin(i) * 2},${Math.cos(i * 1.3)}`);
+		await page.getByTestId('paste').fill(['x,y', ...lines].join('\n'));
+		await expect(page.getByTestId('upload-status')).toContainText('300 points (2 columns)');
+		await expect(page.getByRole('radio', { name: '2D' })).toBeChecked();
+		await page.getByTestId('method2-mle').uncheck();
+		await run(page);
+		await expect(page.getByTestId('map-npmle')).toBeVisible();
+		await expect(page.getByText('Sliced W₁ and L₁ need the true signal')).toBeVisible();
+	});
+
+	test('the 2D model survives a reload', async ({ page }) => {
+		await open2d(page);
+		await page.getByTestId('x2-family').selectOption('gauss2');
+		await page.getByTestId('x2-rho').fill('0.7');
+		await page.reload();
+		await expect(hydrated(page)).toBeVisible();
+		await expect(page.getByRole('radio', { name: '2D' })).toBeChecked();
+		await expect(page.getByTestId('x2-rho')).toHaveValue('0.7');
+	});
+
+	test('bootstrap shades bands on the 2D marginals', async ({ page }) => {
+		test.setTimeout(180_000);
+		await open2d(page);
+		await page.getByTestId('method2-mle').uncheck();
+		await page.getByTestId('method2-npmle').uncheck();
+		await page.getByTestId('method2-gmm').check();
+		await run(page);
+		await page.getByLabel('Resamples B').fill('10');
+		await page.getByTestId('bootstrap2').click();
+		await expect(page.getByTestId('estimate-marginal-x').locator('path.band')).toBeVisible({
+			timeout: 120_000
+		});
+	});
+});
