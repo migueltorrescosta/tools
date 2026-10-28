@@ -115,17 +115,17 @@ function newtonStep(
 		const k = c[i] / (N * f[i]);
 		for (let j = 0; j < m; j++) D[j] += k * L[i * m + j];
 	}
-	// The support: the largest masses and the highest peaks of D above 1, at most
-	// MAX_SUPPORT + MAX_PEAKS points so the NNLS stays small on a 2D grid.
+	// The support: the largest masses and the highest peaks of D above 1 (held or not),
+	// at most MAX_SUPPORT + MAX_PEAKS points so the NNLS stays small on a 2D grid.
 	const held: number[] = [];
 	const peaks: number[] = [];
 	for (let j = 0; j < m; j++) {
 		if (w[j] > SUPPORT) held.push(j);
-		else if (D[j] > 1 && neighbours(j).every((q) => D[j] >= D[q])) peaks.push(j);
+		if (D[j] > 1 && neighbours(j).every((q) => D[j] >= D[q])) peaks.push(j);
 	}
 	held.sort((a, b) => w[b] - w[a]);
 	peaks.sort((a, b) => D[b] - D[a]);
-	const S = [...held.slice(0, MAX_SUPPORT), ...peaks.slice(0, MAX_PEAKS)];
+	const S = [...new Set([...held.slice(0, MAX_SUPPORT), ...peaks.slice(0, MAX_PEAKS)])];
 	const k = S.length;
 	// Masses outside S stay as they are: a fixed background b_i = (their part of f_i)/f_i,
 	// with S's masses summing to 1 minus theirs. With every mass in S this is plain CNM.
@@ -217,7 +217,9 @@ export function solveNpmle(
 	while (at.gap > tol && iterations < maxIter) {
 		iterations++;
 		if (accelerate && iterations > WARMUP) {
-			w = newtonStep(L, c, N, w, neighbours);
+			const next = newtonStep(L, c, N, w, neighbours);
+			// A step that can't improve (it returns w itself) falls back to one EM step.
+			w = next === w ? w1.slice() : next;
 			at = pass(L, c, N, w, w1);
 			continue;
 		}
