@@ -135,6 +135,22 @@ function hessian(f: (t: number[]) => number, theta: number[]): number[][] {
 }
 
 /**
+ * Nelder–Mead, restarted from its own result with a fresh simplex until a
+ * restart gains less than 1e-6 (at most 5 times): a simplex collapses in the
+ * long narrow valleys a signal–noise trade-off makes, and a restart regrows it.
+ */
+function minimise(f: (t: number[]) => number, start: number[], dim: number) {
+	let r = nelderMead(f, start, { maxIter: 400 * dim });
+	for (let k = 0; k < 5; k++) {
+		const next = nelderMead(f, r.x, { maxIter: 400 * dim });
+		const gain = r.f - next.f;
+		if (next.f < r.f) r = next;
+		if (!(gain > 1e-6 * Math.max(1, Math.abs(r.f)))) break;
+	}
+	return r;
+}
+
+/**
  * Fits `p` from its starts plus random perturbations of the first (`starts`
  * in all), keeps the best, polishes it on the final grid and measures it.
  */
@@ -155,7 +171,7 @@ export function fitCore<S, G>(p: Problem<S, G>, seed: number, starts: number): C
 			best = { x: start, f: search(start) };
 			break;
 		}
-		const r = nelderMead(search, start, { maxIter: 400 * free.length });
+		const r = minimise(search, start, free.length);
 		if (r.f < best.f) best = { x: r.x, f: r.f };
 	}
 

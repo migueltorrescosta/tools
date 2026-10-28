@@ -42,8 +42,9 @@ interface Model {
 /** Where a parameter lives: the signal or noise, the product axis or mixture component, its index (−1: weight). */
 type Slot2 = Slot & { part: 'x' | 'y'; sub: 'x' | 'y' | number | null; index: number };
 
-const SEARCH_NODES = 48;
-const FINAL_NODES = 96;
+/** Grids while searching (coarse) and for the polish and curvature at the optimum. */
+const SEARCH = { baseNodes: 32, maxNodes: 96, nodesPerWidth: 4 };
+const FINAL = { baseNodes: 96, maxNodes: 192 };
 const AXIS = { x: 'x', y: 'y' } as const;
 
 /** The params array a slot points into. */
@@ -191,10 +192,7 @@ export function fitMle2({
 		try {
 			const X = makeDist2(m.x, 'signal');
 			const Y = makeDist2(m.y, 'noise');
-			const g =
-				grid && gridResolves2(grid, X, Y)
-					? grid
-					: likelihoodGrid2(X, Y, xs, ys, { baseNodes: SEARCH_NODES });
+			const g = grid && gridResolves2(grid, X, Y) ? grid : likelihoodGrid2(X, Y, xs, ys, SEARCH);
 			const ll = logLikelihood2(X, Y, xs, ys, { grid: g });
 			return Number.isFinite(ll) ? -ll : BAD;
 		} catch {
@@ -208,9 +206,13 @@ export function fitMle2({
 			decode: (theta) => decode(all, theta, m0),
 			valid,
 			grid: (m, final) =>
-				likelihoodGrid2(makeDist2(m.x, 'signal'), makeDist2(m.y, 'noise'), xs, ys, {
-					baseNodes: final ? FINAL_NODES : SEARCH_NODES
-				}),
+				likelihoodGrid2(
+					makeDist2(m.x, 'signal'),
+					makeDist2(m.y, 'noise'),
+					xs,
+					ys,
+					final ? FINAL : SEARCH
+				),
 			nll,
 			values: (m) =>
 				all.map((s) =>

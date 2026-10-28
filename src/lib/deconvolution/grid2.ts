@@ -12,13 +12,13 @@ import type { Dist2, Grid2 } from './dist2';
 /** Nodes per axis when the distributions don't force a finer step, and the most allowed. */
 export const BASE_NODES_2D = 96;
 export const MAX_NODES_2D = 256;
-/** Nodes per typical width of each distribution along each axis. */
+/** Nodes per typical width of each distribution along each axis (by default). */
 const NODES_PER_WIDTH = 8;
 
 /** One axis of a grid over [lo, hi] fine enough for the given typical widths. */
-function axis(lo: number, hi: number, widths: number[], base: number, max: number) {
+function axis(lo: number, hi: number, widths: number[], base: number, max: number, per: number) {
 	const span = hi > lo ? hi - lo : 1;
-	const want = Math.min(span / (base - 1), ...widths.map((w) => w / NODES_PER_WIDTH));
+	const want = Math.min(span / (base - 1), ...widths.map((w) => w / per));
 	const m = Math.min(max, Math.ceil(span / want) + 1);
 	return { x0: lo, h: span / (m - 1), m };
 }
@@ -28,10 +28,10 @@ export function chooseGrid2(
 	[xlo, xhi, ylo, yhi]: [number, number, number, number],
 	X: Dist2,
 	Y: Dist2,
-	{ baseNodes = BASE_NODES_2D, maxNodes = MAX_NODES_2D } = {}
+	{ baseNodes = BASE_NODES_2D, maxNodes = MAX_NODES_2D, nodesPerWidth = NODES_PER_WIDTH } = {}
 ): Grid2 {
-	const ax = axis(xlo, xhi, [X.scale[0], Y.scale[0]], baseNodes, maxNodes);
-	const ay = axis(ylo, yhi, [X.scale[1], Y.scale[1]], baseNodes, maxNodes);
+	const ax = axis(xlo, xhi, [X.scale[0], Y.scale[0]], baseNodes, maxNodes, nodesPerWidth);
+	const ay = axis(ylo, yhi, [X.scale[1], Y.scale[1]], baseNodes, maxNodes, nodesPerWidth);
 	return { x0: ax.x0, hx: ax.h, mx: ax.m, y0: ay.x0, hy: ay.h, my: ay.m };
 }
 
@@ -68,7 +68,7 @@ export function likelihoodGrid2(
 	Y: Dist2,
 	xs: ArrayLike<number>,
 	ys: ArrayLike<number>,
-	options: { baseNodes?: number; maxNodes?: number } = {}
+	options: { baseNodes?: number; maxNodes?: number; nodesPerWidth?: number } = {}
 ): Grid2 {
 	const [a, b, c, d] = dataBox(xs, ys);
 	const [xa, xb, xc, xd] = X.box(1e-6);
@@ -155,9 +155,9 @@ export function logLikelihood2(
 	return s;
 }
 
-/** True when the grid's steps resolve X and Y (at least 4 nodes across each typical width). */
+/** True when the grid's steps resolve X and Y (at least 3 nodes across each typical width). */
 export function gridResolves2(g: Grid2, X: Dist2, Y: Dist2): boolean {
 	return (
-		Math.min(X.scale[0], Y.scale[0]) >= 4 * g.hx && Math.min(X.scale[1], Y.scale[1]) >= 4 * g.hy
+		Math.min(X.scale[0], Y.scale[0]) >= 3 * g.hx && Math.min(X.scale[1], Y.scale[1]) >= 3 * g.hy
 	);
 }

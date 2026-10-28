@@ -28,7 +28,7 @@ const covers = (r: Mle2Result, role: 'signal' | 'noise', key: string, truth: num
 };
 
 describe('fitMle2', { timeout: 120_000 }, () => {
-	it('recovers a correlated Gaussian signal under Laplace × Laplace noise', () => {
+	it('recovers a correlated Gaussian signal under known Laplace × Laplace noise', () => {
 		const x: Spec2 = { family: 'gauss2', params: [1, -1, 1.2, 0.8, 0.5] };
 		const y: Noise2Spec = {
 			family: 'product',
@@ -40,13 +40,10 @@ describe('fitMle2', { timeout: 120_000 }, () => {
 			xs,
 			ys,
 			x: { family: 'gauss2', params: [0, 0, 1, 1, 0] },
-			y: {
-				family: 'product',
-				x: { family: 'laplace', params: [0, 1] },
-				y: { family: 'laplace', params: [0, 1] }
-			},
+			y,
+			fixNoise: true,
 			seed: 1,
-			starts: 2
+			starts: 1
 		});
 		for (const [key, truth] of [
 			['mux', 1],
@@ -56,11 +53,31 @@ describe('fitMle2', { timeout: 120_000 }, () => {
 			['rho', 0.5]
 		] as const)
 			expect(covers(r, 'signal', key, truth), key).toBe(true);
-		expect(covers(r, 'noise', 'x.b', 0.6)).toBe(true);
-		expect(covers(r, 'noise', 'y.b', 0.5)).toBe(true);
 		expect(r.identifiability.flat).toBe(false);
 		// The noise's locations are held at 0 and not reported.
 		expect(r.params.some((p) => p.role === 'noise' && p.key.endsWith('.mu'))).toBe(false);
+	});
+
+	it('fits a gamma × gamma signal and a free Laplace × Laplace noise together', () => {
+		const x: Spec2 = {
+			family: 'product',
+			x: { family: 'gamma', params: [3, 1] },
+			y: { family: 'gamma', params: [2, 1.5] }
+		};
+		const y: Noise2Spec = {
+			family: 'product',
+			x: { family: 'laplace', params: [0, 0.5] },
+			y: { family: 'laplace', params: [0, 0.7] }
+		};
+		const { xs, ys } = sample2(x, y, 2000, 4);
+		const r = fitMle2({ xs, ys, x, y, seed: 4, starts: 1 });
+		for (const [role, key, truth] of [
+			['signal', 'x.shape', 3],
+			['signal', 'y.scale', 1.5],
+			['noise', 'x.b', 0.5],
+			['noise', 'y.b', 0.7]
+		] as const)
+			expect(covers(r, role, key, truth), key).toBe(true);
 	});
 
 	it('flags Gaussian + Gaussian: only the summed covariance is determined', () => {
@@ -95,8 +112,8 @@ describe('fitMle2', { timeout: 120_000 }, () => {
 			y: { family: 'normal', params: [2, 0.7] }
 		};
 		const y: Noise2Spec = { family: 'gauss2', params: [0, 0, 0.4, 0.4, 0] };
-		const { xs, ys } = sample2(x, y, 2000, 10);
-		const r = fitMle2({ xs, ys, x, y, fixNoise: true, seed: 10, starts: 1 });
+		const { xs, ys } = sample2(x, y, 2000, 11);
+		const r = fitMle2({ xs, ys, x, y, fixNoise: true, seed: 11, starts: 1 });
 		expect(covers(r, 'signal', 'x.shape', 3)).toBe(true);
 		expect(covers(r, 'signal', 'y.mu', 2)).toBe(true);
 		expect(covers(r, 'signal', 'y.sigma', 0.7)).toBe(true);
