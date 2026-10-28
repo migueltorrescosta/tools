@@ -4,6 +4,7 @@
  */
 import { Prng } from '$lib/prng';
 import { quantileSorted } from '$lib/stats';
+import type { Dist2 } from './dist2';
 import type { Dist } from './types';
 
 /** n draws of Z = X + Y from one seed (X and Y from separate streams). */
@@ -13,6 +14,26 @@ export function simulate(X: Dist, Y: Dist, n: number, seed: number): Float64Arra
 	const out = new Float64Array(n);
 	for (let i = 0; i < n; i++) out[i] = X.sampler(px) + Y.sampler(py);
 	return out;
+}
+
+/** n draws of Z = X + Y in 2D from one seed (X and Y from separate streams). */
+export function simulate2(
+	X: Dist2,
+	Y: Dist2,
+	n: number,
+	seed: number
+): { xs: Float64Array; ys: Float64Array } {
+	const px = new Prng(seed);
+	const py = new Prng(seed ^ 0x9e3779b9);
+	const xs = new Float64Array(n);
+	const ys = new Float64Array(n);
+	for (let i = 0; i < n; i++) {
+		const [a, b] = X.sampler(px);
+		const [c, d] = Y.sampler(py);
+		xs[i] = a + c;
+		ys[i] = b + d;
+	}
+	return { xs, ys };
 }
 
 /** A bootstrap resample: n draws with replacement. */

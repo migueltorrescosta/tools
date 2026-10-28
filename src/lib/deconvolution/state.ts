@@ -29,6 +29,8 @@ export interface Settings {
 	x2: Spec2;
 	y2: Noise2Spec;
 	methods2: Method2[];
+	/** The 2D parametric fit also fits the noise (2D presets set it like 1D ones set `fitNoise`). */
+	fitNoise2: boolean;
 	n: number;
 	seed: number;
 	source: 'simulated' | 'uploaded';
@@ -148,6 +150,7 @@ export function presetSettings(id = PRESETS[0].id): Settings {
 		x2: structuredClone(PRESETS2[0].x),
 		y2: structuredClone(PRESETS2[0].y),
 		methods2: ['mle', 'npmle'],
+		fitNoise2: PRESETS2[0].fitNoise,
 		n: 2000,
 		seed: 1,
 		source: 'simulated',
@@ -233,13 +236,22 @@ export function parseSettings(v: unknown): Settings | null {
 	// Version 1 had no 2D settings: start those at the defaults.
 	if (v.v === 1) {
 		const d = presetSettings();
-		v = { ...v, v: VERSION, dim: 1, x2: d.x2, y2: d.y2, methods2: d.methods2 };
+		v = {
+			...v,
+			v: VERSION,
+			dim: 1,
+			x2: d.x2,
+			y2: d.y2,
+			methods2: d.methods2,
+			fitNoise2: d.fitNoise2
+		};
 	}
 	if (!isObject(v) || v.v !== VERSION) return null;
 	if (v.dim !== 1 && v.dim !== 2) return null;
 	const x2 = spec2(v.x2);
 	const y2 = noise2(v.y2);
 	if (!x2 || !y2) return null;
+	if (typeof v.fitNoise2 !== 'boolean') return null;
 	if (!Array.isArray(v.methods2) || !v.methods2.every((m) => METHODS2.includes(m as Method2)))
 		return null;
 	const x = distSpec(v.x);
@@ -267,6 +279,7 @@ export function parseSettings(v: unknown): Settings | null {
 		x2,
 		y2,
 		methods2: [...new Set(v.methods2 as Method2[])],
+		fitNoise2: v.fitNoise2,
 		n,
 		seed: v.seed,
 		source: v.source,

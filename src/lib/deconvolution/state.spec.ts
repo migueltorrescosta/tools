@@ -100,6 +100,7 @@ describe('2D settings', () => {
 		delete old.x2;
 		delete old.y2;
 		delete old.methods2;
+		delete old.fitNoise2;
 		const s = parseSettings(old);
 		expect(s?.dim).toBe(1);
 		expect(s?.x).toEqual(presetSettings('counts').x);
