@@ -331,6 +331,7 @@ function mixture2(components: { params: number[]; weight: number }[]): Omit<Dist
 }
 
 function product(X: Dist, Y: Dist): Omit<Dist2, 'key'> {
+	let scale: [number, number] | undefined;
 	const pdf = X.pdf && Y.pdf ? (x: number, y: number) => X.pdf!(x) * Y.pdf!(y) : null;
 	return {
 		pdf,
@@ -347,7 +348,11 @@ function product(X: Dist, Y: Dist): Omit<Dist2, 'key'> {
 			const [c, d] = Y.range(eps / 2);
 			return [a, b, c, d];
 		},
-		scale: [typicalWidth(X), typicalWidth(Y)],
+		// Lazy: a gamma's typical width takes a bisection, and fits build a Dist2 per evaluation
+		// but only need the scale when they choose a grid.
+		get scale(): [number, number] {
+			return (scale ??= [typicalWidth(X), typicalWidth(Y)]);
+		},
 		mean: X.mean !== undefined && Y.mean !== undefined ? [X.mean, Y.mean] : undefined,
 		cov:
 			X.variance !== undefined && Y.variance !== undefined
@@ -369,7 +374,8 @@ export function continuousNoise2(spec: Noise2Spec): boolean {
  * means are held at 0 and each product marginal follows `makeDist`'s noise rule.
  */
 export function makeDist2(spec: Spec2, role: Role): Dist2 {
-	return { ...build2(spec, role), key: `${role}:${JSON.stringify(spec)}` };
+	// Object.assign keeps the lazy `scale` getter, which a spread would evaluate.
+	return Object.assign(build2(spec, role), { key: `${role}:${JSON.stringify(spec)}` });
 }
 
 function build2(spec: Spec2, role: Role): Omit<Dist2, 'key'> {
