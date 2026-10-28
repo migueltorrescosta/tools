@@ -15,6 +15,7 @@ import { fitGmodel } from './gmodel';
 import { binData } from './binning';
 import { fitNpmle, gridLogLik, likelihoodMatrix } from './npmle';
 import { resample } from './sample';
+import { runTask2, type Task2, type TaskResult2 } from './estimate2';
 import type { DistSpec, FamilyId, Grid, GridEstimate, MethodId, SimpleSpec } from './types';
 
 export type GridMethod = Exclude<MethodId, 'mle'>;
@@ -53,7 +54,8 @@ export type Task =
 			options: GridOptions;
 			seed: number;
 			count: number;
-	  };
+	  }
+	| Task2;
 
 export interface GridResult extends GridEstimate {
 	method: GridMethod;
@@ -74,7 +76,8 @@ export type TaskResult =
 	| { kind: 'mle'; result: MleResult }
 	| { kind: 'compare'; results: { family: FamilyId; result: MleResult }[] }
 	| { kind: 'grid'; result: GridResult }
-	| { kind: 'bootstrap'; masses: Float64Array[] };
+	| { kind: 'bootstrap'; masses: Float64Array[] }
+	| TaskResult2;
 
 /** Why a method can't run with this noise, or null when it can. */
 export function unavailable(method: MethodId, y: SimpleSpec): string | null {
@@ -160,6 +163,10 @@ function gridFit(
 /** Runs one task (in a worker, or directly in specs). */
 export function runTask(task: Task): TaskResult {
 	switch (task.kind) {
+		case 'mle2':
+		case 'grid2':
+		case 'bootstrap2':
+			return runTask2(task);
 		case 'mle':
 			return { kind: 'mle', result: fitMle(task.input) };
 		case 'compare':
