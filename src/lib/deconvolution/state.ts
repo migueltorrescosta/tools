@@ -5,22 +5,30 @@
  * No DOM or Svelte imports.
  */
 import { defaultParams, isFamilyId } from './families';
+import { GAUSS2_PARAMS, FRINGE2_PARAMS, type Noise2Spec, type Spec2 } from './dist2';
+import type { Method2 } from './estimate2';
 import type { DistSpec, MethodId, SimpleSpec } from './types';
 
 export const STORAGE_PREFIX = 'deconvolution:';
 export const AUTOSAVE_KEY = `${STORAGE_PREFIX}settings`;
 export const HASH_PARAM = 's';
-export const VERSION = 1;
+export const VERSION = 2;
 export const MAX_N = 100_000;
 export const MIN_N = 10;
 export const MAX_BOOTSTRAP = 2000;
 
 export const METHODS: readonly MethodId[] = ['mle', 'npmle', 'gmodel', 'kernel', 'gmm'];
+export const METHODS2: readonly Method2[] = ['mle', 'npmle', 'gmm'];
 
 export interface Settings {
 	v: typeof VERSION;
+	/** 1D (x, y, methods) or 2D (x2, y2, methods2); both are kept, so switching back restores them. */
+	dim: 1 | 2;
 	x: DistSpec;
 	y: SimpleSpec;
+	x2: Spec2;
+	y2: Noise2Spec;
+	methods2: Method2[];
 	n: number;
 	seed: number;
 	source: 'simulated' | 'uploaded';
@@ -83,12 +91,63 @@ export const PRESETS: readonly Preset[] = [
 	}
 ];
 
+export interface Preset2 {
+	id: string;
+	name: string;
+	x: Spec2;
+	y: Noise2Spec;
+	/** False where the pair can't be identified with the noise fitted too. */
+	fitNoise: boolean;
+}
+
+export const PRESETS2: readonly Preset2[] = [
+	{
+		id: 'two-peaks-2d',
+		name: 'Two correlated peaks, Gaussian noise',
+		x: {
+			family: 'mixture2',
+			components: [
+				{ params: [-2, 0, 0.6, 0.8, 0.3], weight: 0.4 },
+				{ params: [2, 1, 0.7, 0.5, -0.4], weight: 0.6 }
+			]
+		},
+		y: { family: 'gauss2', params: [0, 0, 0.5, 0.5, 0.2] },
+		fitNoise: false
+	},
+	{
+		id: 'waiting-times-2d',
+		name: 'Two waiting times, Laplace noise',
+		x: {
+			family: 'product',
+			x: { family: 'gamma', params: [3, 1] },
+			y: { family: 'gamma', params: [2, 1.5] }
+		},
+		y: {
+			family: 'product',
+			x: { family: 'laplace', params: [0, 0.5] },
+			y: { family: 'laplace', params: [0, 0.7] }
+		},
+		fitNoise: true
+	},
+	{
+		id: 'fringes-2d',
+		name: 'Interference fringes, Gaussian noise',
+		x: { family: 'fringe2', params: [0, 0, 2, 2, 0, 3, 1, 0.8, 0] },
+		y: { family: 'gauss2', params: [0, 0, 0.2, 0.2, 0] },
+		fitNoise: false
+	}
+];
+
 export function presetSettings(id = PRESETS[0].id): Settings {
 	const p = PRESETS.find((q) => q.id === id) ?? PRESETS[0];
 	return {
 		v: VERSION,
+		dim: 1,
 		x: structuredClone(p.x),
 		y: structuredClone(p.y),
+		x2: structuredClone(PRESETS2[0].x),
+		y2: structuredClone(PRESETS2[0].y),
+		methods2: ['mle', 'npmle'],
 		n: 2000,
 		seed: 1,
 		source: 'simulated',
@@ -127,9 +186,62 @@ function distSpec(v: unknown): DistSpec | null {
 	return simpleSpec(v);
 }
 
+const finiteArray = (v: unknown, length: number): v is number[] =>
+	Array.isArray(v) && v.length === length && v.every(finite);
+
+function spec2(v: unknown): Spec2 | null {
+	if (!isObject(v)) return null;
+	switch (v.family) {
+		case 'gauss2':
+			return finiteArray(v.params, GAUSS2_PARAMS.length)
+				? { family: 'gauss2', params: [...v.params] }
+				: null;
+		case 'fringe2':
+			return finiteArray(v.params, FRINGE2_PARAMS.length)
+				? { family: 'fringe2', params: [...v.params] }
+				: null;
+		case 'product': {
+			const x = simpleSpec(v.x);
+			const y = simpleSpec(v.y);
+			return x && y ? { family: 'product', x, y } : null;
+		}
+		case 'mixture2': {
+			const c = v.components;
+			if (!Array.isArray(c) || c.length < 2 || c.length > 3) return null;
+			const components = c.map((q) =>
+				isObject(q) &&
+				finiteArray(q.params, GAUSS2_PARAMS.length) &&
+				finite(q.weight) &&
+				q.weight > 0
+					? { params: [...q.params], weight: q.weight }
+					: null
+			);
+			return components.every((q) => q !== null) ? { family: 'mixture2', components } : null;
+		}
+	}
+	return null;
+}
+
+function noise2(v: unknown): Noise2Spec | null {
+	const s = spec2(v);
+	return s && (s.family === 'gauss2' || s.family === 'product') ? s : null;
+}
+
 /** Settings from untrusted JSON, or null when anything is missing or out of range. */
 export function parseSettings(v: unknown): Settings | null {
+	if (!isObject(v)) return null;
+	// Version 1 had no 2D settings: start those at the defaults.
+	if (v.v === 1) {
+		const d = presetSettings();
+		v = { ...v, v: VERSION, dim: 1, x2: d.x2, y2: d.y2, methods2: d.methods2 };
+	}
 	if (!isObject(v) || v.v !== VERSION) return null;
+	if (v.dim !== 1 && v.dim !== 2) return null;
+	const x2 = spec2(v.x2);
+	const y2 = noise2(v.y2);
+	if (!x2 || !y2) return null;
+	if (!Array.isArray(v.methods2) || !v.methods2.every((m) => METHODS2.includes(m as Method2)))
+		return null;
 	const x = distSpec(v.x);
 	const y = simpleSpec(v.y);
 	if (!x || !y) return null;
@@ -149,8 +261,12 @@ export function parseSettings(v: unknown): Settings | null {
 	if (!finite(b) || !Number.isInteger(b) || b < 10 || b > MAX_BOOTSTRAP) return null;
 	return {
 		v: VERSION,
+		dim: v.dim,
 		x,
 		y,
+		x2,
+		y2,
+		methods2: [...new Set(v.methods2 as Method2[])],
 		n,
 		seed: v.seed,
 		source: v.source,

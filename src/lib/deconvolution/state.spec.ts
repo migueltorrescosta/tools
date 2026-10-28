@@ -27,7 +27,7 @@ describe('parseSettings', () => {
 	const base = () => JSON.parse(JSON.stringify(presetSettings())) as Record<string, unknown>;
 
 	it.each([
-		['a wrong version', { v: 2 }],
+		['a wrong version', { v: 3 }],
 		['an unknown family', { y: { family: 'zeta', params: [1] } }],
 		['a wrong parameter count', { y: { family: 'normal', params: [0] } }],
 		['a non-finite parameter', { y: { family: 'normal', params: [0, null] } }],
@@ -79,5 +79,39 @@ describe('share link', () => {
 		expect(decodeSettings('not-a-real-link')).toBeNull();
 		expect(decodeSettings(encodeSettings(presetSettings()).slice(0, 20))).toBeNull();
 		expect(decodeSettings('x'.repeat(30_000))).toBeNull();
+	});
+});
+
+describe('2D settings', () => {
+	it('2D presets are valid and parse back unchanged', async () => {
+		const { PRESETS2 } = await import('./state');
+		const { validate2 } = await import('./dist2');
+		for (const p of PRESETS2) {
+			expect(validate2(p.x), p.id).toEqual([]);
+			expect(validate2(p.y), p.id).toEqual([]);
+			const s = { ...presetSettings(), dim: 2 as const, x2: p.x, y2: p.y };
+			expect(parseSettings(JSON.parse(JSON.stringify(s)))).toEqual(s);
+		}
+	});
+
+	it('migrates version-1 settings, keeping the 1D model', () => {
+		const old = { ...JSON.parse(JSON.stringify(presetSettings('counts'))), v: 1 };
+		delete old.dim;
+		delete old.x2;
+		delete old.y2;
+		delete old.methods2;
+		const s = parseSettings(old);
+		expect(s?.dim).toBe(1);
+		expect(s?.x).toEqual(presetSettings('counts').x);
+		expect(s?.x2).toEqual(presetSettings().x2);
+	});
+
+	it.each([
+		['a bad dimension', { dim: 3 }],
+		['a 2D noise that is a mixture', { y2: presetSettings().x2 }],
+		['a short Gaussian parameter list', { x2: { family: 'gauss2', params: [0, 0, 1, 1] } }],
+		['an unknown 2D method', { methods2: ['kernel'] }]
+	])('rejects %s', (_, patch) => {
+		expect(parseSettings({ ...JSON.parse(JSON.stringify(presetSettings())), ...patch })).toBeNull();
 	});
 });
