@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { InfoTip } from '$lib/ui';
-	import Axis from './Axis.svelte';
+	import { Axis } from '$lib/ui';
 	import {
 		decades,
 		formatLogTick,

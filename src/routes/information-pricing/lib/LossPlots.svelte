@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { LossDistribution } from '$lib/information-pricing/analysis';
 	import { formatTick, niceTicks } from '$lib/plot';
-	import Axis from './Axis.svelte';
+	import { Axis } from '$lib/ui';
 	import { dataColour, linear, type Money } from './format';
 
 	let {

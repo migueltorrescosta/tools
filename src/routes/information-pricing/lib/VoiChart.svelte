@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { ValueOfInformation } from '$lib/information-pricing/analysis';
-	import Axis from './Axis.svelte';
+	import { Axis } from '$lib/ui';
 	import {
 		dash,
 		decades,

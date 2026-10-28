@@ -4,6 +4,9 @@
  * auto-scaled display unit.
  */
 import { scaledValue } from '$lib/information-pricing/analysis';
+import { linear } from '$lib/plot';
+
+export { dataColour, linear, linePath } from '$lib/plot';
 
 /** A display-unit number with about three significant digits and thousands separators. */
 export function formatNumber(v: number): string {
@@ -31,13 +34,6 @@ export function money(exponent: number, unit: string): Money {
 		scale,
 		format: (v) => (unit ? `${formatNumber(scale(v))} ${unit}` : formatNumber(scale(v)))
 	};
-}
-
-/** A linear map from [d0, d1] onto [r0, r1]; a flat domain maps to the middle. */
-export function linear(d0: number, d1: number, r0: number, r1: number): (v: number) => number {
-	if (!(d1 !== d0) || !Number.isFinite(d0) || !Number.isFinite(d1)) return () => (r0 + r1) / 2;
-	const k = (r1 - r0) / (d1 - d0);
-	return (v) => r0 + (v - d0) * k;
 }
 
 /** A log10 map from [d0, d1] (both > 0) onto [r0, r1]; values at or below d0 land on r0. */
@@ -72,38 +68,9 @@ export function logDomain(values: Iterable<number>): [number, number] {
 	return [10 ** Math.floor(Math.log10(lo)), 10 ** Math.ceil(Math.log10(hi))];
 }
 
-/**
- * Order of the data tokens for decisions. Light --data-1 and --data-5 are both blue, so the sky
- * blue (--data-5) moves to slot 8 and pink (--data-6) takes slot 5: up to seven decisions never
- * show both blues.
- */
-const DATA_ORDER = [1, 2, 3, 4, 6, 7, 8, 5, 9, 10, 11, 12];
-
-/** CSS colour of decision `i` (0-based), cycling through the 12 data colours. */
-export function dataColour(i: number): string {
-	return `var(--data-${DATA_ORDER[((i % 12) + 12) % 12]})`;
-}
-
 /** CSS colour of random input `i` (0-based, model order), cycling through the 9 input colours. */
 export function inputColour(i: number): string {
 	return `var(--input-${(((i % 9) + 9) % 9) + 1})`;
-}
-
-/** SVG path through points, skipping non-finite ones (a gap starts a new segment). */
-export function linePath(xs: ArrayLike<number>, ys: ArrayLike<number>): string {
-	let d = '';
-	let pen = false;
-	for (let i = 0; i < xs.length; i++) {
-		const x = xs[i];
-		const y = ys[i];
-		if (!Number.isFinite(x) || !Number.isFinite(y)) {
-			pen = false;
-			continue;
-		}
-		d += `${pen ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`;
-		pen = true;
-	}
-	return d;
 }
 
 /** Log-axis tick label: 0.01, 1, 100, 10k, 1M. */
