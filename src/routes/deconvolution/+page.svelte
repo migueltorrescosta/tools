@@ -149,6 +149,8 @@
 		const p = presetSettings(id);
 		settings.x = p.x;
 		settings.y = p.y;
+		settings.fitNoise = p.fitNoise;
+		settings.noiseFor = p.noiseFor;
 	}
 
 	function download(name: string, text: string) {
@@ -500,26 +502,32 @@
 		runError = '';
 		try {
 			const snap = $state.snapshot(settings) as Settings;
-			const families = FAMILIES.map((f) => f.id as FamilyId);
-			const r = await getPool().run({
-				kind: 'compare',
-				data,
-				y: snap.y,
-				families,
-				fixedY: snap.y.params.map(() => !snap.fitNoise),
-				seed: snap.seed
-			});
-			if (r.kind === 'compare') {
-				const best = r.results[0]?.result.bic ?? 0;
-				compareRows = r.results.map(({ family: id, result }) => ({
-					id,
-					family: family(id).name,
-					logLik: result.logLik,
-					k: result.k,
-					bic: result.bic,
-					delta: result.bic - best
-				}));
-			}
+			const fixedY = snap.y.params.map(() => !snap.fitNoise);
+			// One task per family, so the pool fits them in parallel.
+			const parts = await Promise.all(
+				FAMILIES.map((f) =>
+					getPool().run({
+						kind: 'compare',
+						data,
+						y: snap.y,
+						families: [f.id as FamilyId],
+						fixedY,
+						seed: snap.seed
+					})
+				)
+			);
+			const results = parts
+				.flatMap((r) => (r.kind === 'compare' ? r.results : []))
+				.sort((a, b) => a.result.bic - b.result.bic);
+			const best = results[0]?.result.bic ?? 0;
+			compareRows = results.map(({ family: id, result }) => ({
+				id,
+				family: family(id).name,
+				logLik: result.logLik,
+				k: result.k,
+				bic: result.bic,
+				delta: result.bic - best
+			}));
 		} catch (err) {
 			runError = err instanceof StoppedError ? 'Stopped.' : (err as Error).message;
 		} finally {

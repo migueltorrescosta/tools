@@ -1,9 +1,11 @@
 /**
- * Extreme Deconvolution in 1D (Bovy, Hogg & Roweis 2011).
- * X is a K-component Gaussian mixture, Y ~ N(0, σ²) with σ known,
- * so Z's components are N(μ_k, s_k² + σ²).
+ * Extreme Deconvolution in 1D (Bovy, Hogg & Roweis 2011): X is a K-component
+ * Gaussian mixture and Y ~ N(0, σ²) with σ known, so Z's components are
+ * N(μ_k, s_k² + σ²). EM per K = 1…kMax from k-means++ starts, best by BIC.
+ * Large samples are binned like the other grid methods. No DOM or Svelte imports.
  */
 import { Prng } from '$lib/prng';
+import { binData } from './binning';
 import type { DistSpec } from './types';
 
 export interface GmmInput {
@@ -13,6 +15,7 @@ export interface GmmInput {
 	seed: number;
 	restarts?: number;
 	maxIter?: number;
+	/** Stop when the log-likelihood gains less than this (default 1e-6·n). */
 	tol?: number;
 }
 
@@ -26,6 +29,7 @@ export interface GmmFit {
 	k: number;
 	components: GmmComponent[];
 	logLik: number;
+	/** (3k − 1)·ln n − 2ℓ */
 	bic: number;
 	iterations: number;
 }
@@ -41,295 +45,178 @@ export interface GmmState {
 	sds: Float64Array;
 }
 
-/** Log-sum-exp for numerical stability. */
-function logSumExp(arr: Float64Array): number {
-	let max = -Infinity;
-	for (let i = 0; i < arr.length; i++) if (arr[i] > max) max = arr[i];
-	if (max === -Infinity) return -Infinity;
-	let sum = 0;
-	for (let i = 0; i < arr.length; i++) sum += Math.exp(arr[i] - max);
-	return max + Math.log(sum);
+const HALF_LOG_2PI = 0.5 * Math.log(2 * Math.PI);
+
+/** Weighted mean and variance. */
+function moments(z: Float64Array, c: Float64Array): { mean: number; variance: number; n: number } {
+	let n = 0;
+	let s = 0;
+	for (let i = 0; i < z.length; i++) {
+		n += c[i];
+		s += c[i] * z[i];
+	}
+	const mean = s / n;
+	let v = 0;
+	for (let i = 0; i < z.length; i++) v += c[i] * (z[i] - mean) ** 2;
+	return { mean, variance: v / n, n };
 }
 
-/** Log normal density. */
-function logNormal(x: number, mu: number, sd: number): number {
-	const diff = x - mu;
-	return (-0.5 * (diff * diff)) / (sd * sd) - Math.log(sd * Math.sqrt(2 * Math.PI));
-}
-
-/** E-step: compute responsibilities r_ik and b_ik, B_k. */
-function eStep(
-	data: Float64Array,
+/**
+ * One EM step with weights c (the Bovy et al. updates for equal, known noise).
+ * Returns the log-likelihood at `state` and writes the update into `next`.
+ */
+function step(
+	z: Float64Array,
+	c: Float64Array,
 	state: GmmState,
-	noiseSigma: number
-): { r: Float64Array; b: Float64Array; B: Float64Array; logLik: number } {
-	const n = data.length;
+	sigma: number,
+	floor: number,
+	next: GmmState
+): number {
 	const k = state.weights.length;
-	const r = new Float64Array(n * k);
-	const b = new Float64Array(n * k);
-	const B = new Float64Array(k);
+	const s2 = state.sds.map((s) => s * s);
+	const T = s2.map((v) => v + sigma * sigma);
+	const shrink = s2.map((v, j) => v / T[j]);
+	const B = s2.map((v, j) => v - v * shrink[j]);
+	const logNorm = T.map((t, j) => Math.log(state.weights[j]) - 0.5 * Math.log(t) - HALF_LOG_2PI);
+	const R = new Float64Array(k);
+	const Rb = new Float64Array(k);
+	const Rbb = new Float64Array(k);
+	const lr = new Float64Array(k);
 	let logLik = 0;
-
-	// Precompute T_k = s_k² + σ²
-	const T = new Float64Array(k);
-	for (let j = 0; j < k; j++) {
-		const sj2 = state.sds[j] * state.sds[j];
-		T[j] = sj2 + noiseSigma * noiseSigma;
-		B[j] = sj2 - (sj2 * sj2) / T[j];
-	}
-
-	const logR = new Float64Array(k);
-	for (let i = 0; i < n; i++) {
-		const z = data[i];
+	for (let i = 0; i < z.length; i++) {
+		let top = -Infinity;
 		for (let j = 0; j < k; j++) {
-			logR[j] = Math.log(state.weights[j]) + logNormal(z, state.means[j], Math.sqrt(T[j]));
+			lr[j] = logNorm[j] - (0.5 * (z[i] - state.means[j]) ** 2) / T[j];
+			top = Math.max(top, lr[j]);
 		}
-		const lse = logSumExp(logR);
-		logLik += lse;
+		let total = 0;
+		for (let j = 0; j < k; j++) total += lr[j] = Math.exp(lr[j] - top);
+		logLik += c[i] * (top + Math.log(total));
 		for (let j = 0; j < k; j++) {
-			const rij = Math.exp(logR[j] - lse);
-			r[i * k + j] = rij;
-			b[i * k + j] = state.means[j] + ((state.sds[j] * state.sds[j]) / T[j]) * (z - state.means[j]);
+			const r = (c[i] * lr[j]) / total;
+			const b = state.means[j] + shrink[j] * (z[i] - state.means[j]);
+			R[j] += r;
+			Rb[j] += r * b;
+			Rbb[j] += r * b * b;
 		}
 	}
-
-	return { r, b, B, logLik };
-}
-
-/** M-step: update weights, means, variances. */
-function mStep(
-	data: Float64Array,
-	r: Float64Array,
-	b: Float64Array,
-	B: Float64Array,
-	state: GmmState,
-	varZ: number
-): void {
-	const n = data.length;
-	const k = state.weights.length;
-
+	const n = R.reduce((a, b) => a + b, 0);
 	for (let j = 0; j < k; j++) {
-		let sumR = 0;
-		let sumRb = 0;
-		let sumRbb = 0;
-		for (let i = 0; i < n; i++) {
-			const rij = r[i * k + j];
-			sumR += rij;
-			sumRb += rij * b[i * k + j];
-			const diff = state.means[j] - b[i * k + j];
-			sumRbb += rij * (diff * diff + B[j]);
-		}
-		state.weights[j] = sumR / n;
-		state.means[j] = sumR > 0 ? sumRb / sumR : state.means[j];
-		const newVar = sumR > 0 ? sumRbb / sumR : state.sds[j] * state.sds[j];
-		// Floor at 1e-6 * varZ
-		state.sds[j] = Math.sqrt(Math.max(newVar, 1e-6 * varZ));
-	}
-}
-
-/** K-means++ seeding on the data. */
-function kmeansPlusPlus(data: Float64Array, k: number, prng: Prng): Float64Array {
-	const n = data.length;
-	const means = new Float64Array(k);
-	const dists = new Float64Array(n);
-	// First center chosen uniformly
-	means[0] = data[prng.int(n)];
-	// Initialize distances to first center
-	for (let i = 0; i < n; i++) {
-		const d = data[i] - means[0];
-		dists[i] = d * d;
-	}
-	// Subsequent centers
-	for (let j = 1; j < k; j++) {
-		// Sample proportional to squared distance
-		let sum = 0;
-		for (let i = 0; i < n; i++) sum += dists[i];
-		if (sum === 0) {
-			means[j] = data[prng.int(n)];
-			for (let i = 0; i < n; i++) dists[i] = 0;
+		if (!(R[j] > 0)) {
+			next.weights[j] = state.weights[j];
+			next.means[j] = state.means[j];
+			next.sds[j] = state.sds[j];
 			continue;
 		}
-		let u = prng.next() * sum;
-		let chosen = n - 1;
-		for (let i = 0; i < n; i++) {
-			u -= dists[i];
-			if (u <= 0) {
-				chosen = i;
-				break;
-			}
-		}
-		means[j] = data[chosen];
-		// Update distances
-		for (let i = 0; i < n; i++) {
-			const d = data[i] - means[j];
-			const d2 = d * d;
-			if (d2 < dists[i]) dists[i] = d2;
-		}
+		const mu = Rb[j] / R[j];
+		// Σ r(μ − b)² = Σ r b² − R μ² at the new μ.
+		const v = (Rbb[j] - R[j] * mu * mu) / R[j] + B[j];
+		next.weights[j] = R[j] / n;
+		next.means[j] = mu;
+		next.sds[j] = Math.sqrt(Math.max(v, floor));
 	}
-	return means;
+	return logLik;
 }
 
-/** Initialise state for a given k. */
-function initialiseState(
-	data: Float64Array,
-	k: number,
-	noiseSigma: number,
-	prng: Prng,
-	varZ: number
-): GmmState {
-	const weights = new Float64Array(k);
-	const means = kmeansPlusPlus(data, k, prng);
-	const sds = new Float64Array(k);
-	for (let j = 0; j < k; j++) {
-		weights[j] = 1 / k;
-		const sj2 = Math.max(varZ / (k * k) - noiseSigma * noiseSigma, 0.01 * varZ);
-		sds[j] = Math.sqrt(sj2);
-	}
-	return { weights, means, sds };
-}
-
-/** Sort components by mean. */
-function sortByMean(state: GmmState): void {
-	const k = state.weights.length;
-	const indices = Array.from({ length: k }, (_, i) => i);
-	indices.sort((a, b) => state.means[a] - state.means[b]);
-	const weights = new Float64Array(k);
-	const means = new Float64Array(k);
-	const sds = new Float64Array(k);
-	for (let i = 0; i < k; i++) {
-		weights[i] = state.weights[indices[i]];
-		means[i] = state.means[indices[i]];
-		sds[i] = state.sds[indices[i]];
-	}
-	state.weights.set(weights);
-	state.means.set(means);
-	state.sds.set(sds);
-}
-
-/** Run EM for a single k, single restart. Returns final state and log-likelihood history. */
-function runEm(
-	data: Float64Array,
-	k: number,
-	noiseSigma: number,
-	seed: number,
-	maxIter: number,
-	tol: number
-): { state: GmmState; logLik: number; iterations: number; logLikHistory: number[] } {
-	const prng = new Prng(seed);
-	// var(Z) computed once
-	const n = data.length;
-	let meanZ = 0;
-	for (let i = 0; i < n; i++) meanZ += data[i];
-	meanZ /= n;
-	let varZ = 0;
-	for (let i = 0; i < n; i++) {
-		const d = data[i] - meanZ;
-		varZ += d * d;
-	}
-	varZ /= n;
-
-	const state = initialiseState(data, k, noiseSigma, prng, varZ);
-	let prevLogLik = -Infinity;
-	const logLikHistory: number[] = [];
-
-	for (let iter = 0; iter < maxIter; iter++) {
-		const { r, b, B, logLik } = eStep(data, state, noiseSigma);
-		logLikHistory.push(logLik);
-		if (logLik - prevLogLik < tol) {
-			mStep(data, r, b, B, state, varZ);
-			break;
-		}
-		mStep(data, r, b, B, state, varZ);
-		prevLogLik = logLik;
-	}
-
-	const { logLik: finalLogLik } = eStep(data, state, noiseSigma);
-	sortByMean(state);
-	return { state, logLik: finalLogLik, iterations: logLikHistory.length, logLikHistory };
-}
-
-/** One EM iteration, exported for testing monotonicity. */
+/** One EM iteration on unbinned data, exported for checking monotonicity. */
 export function emStep(
 	data: Float64Array,
 	state: GmmState,
 	noiseSigma: number
-): { newState: GmmState; logLik: number; r: Float64Array } {
-	const { r, b, B, logLik } = eStep(data, state, noiseSigma);
+): { newState: GmmState; logLik: number } {
+	const c = new Float64Array(data.length).fill(1);
+	const { variance } = moments(data, c);
 	const newState: GmmState = {
-		weights: new Float64Array(state.weights),
-		means: new Float64Array(state.means),
-		sds: new Float64Array(state.sds)
+		weights: new Float64Array(state.weights.length),
+		means: new Float64Array(state.means.length),
+		sds: new Float64Array(state.sds.length)
 	};
-	// Compute varZ for flooring
-	let meanZ = 0;
-	for (let i = 0; i < data.length; i++) meanZ += data[i];
-	meanZ /= data.length;
-	let varZ = 0;
-	for (let i = 0; i < data.length; i++) {
-		const d = data[i] - meanZ;
-		varZ += d * d;
+	const logLik = step(data, c, state, noiseSigma, 1e-6 * variance, newState);
+	return { newState, logLik };
+}
+
+/** k-means++ seeding of k means on the (weighted) points. */
+function seedMeans(z: Float64Array, c: Float64Array, k: number, prng: Prng): Float64Array {
+	const means = new Float64Array(k);
+	const d2 = new Float64Array(z.length).fill(Infinity);
+	const pick = (weights: (i: number) => number) => {
+		let total = 0;
+		for (let i = 0; i < z.length; i++) total += weights(i);
+		let u = prng.next() * total;
+		for (let i = 0; i < z.length; i++) if ((u -= weights(i)) <= 0) return z[i];
+		return z[z.length - 1];
+	};
+	means[0] = pick((i) => c[i]);
+	for (let j = 1; j < k; j++) {
+		for (let i = 0; i < z.length; i++) d2[i] = Math.min(d2[i], (z[i] - means[j - 1]) ** 2);
+		means[j] = pick((i) => c[i] * d2[i]);
 	}
-	varZ /= data.length;
-	mStep(data, r, b, B, newState, varZ);
-	return { newState, logLik, r };
+	return means;
 }
 
-/** BIC = (3k − 1)·ln n − 2ℓ */
-function computeBic(logLik: number, k: number, n: number): number {
-	return (3 * k - 1) * Math.log(n) - 2 * logLik;
-}
-
-export function fitGmm(input: GmmInput): GmmResult {
-	const { data, noiseSigma, kMax = 6, seed, restarts = 3, maxIter = 500, tol } = input;
-	const n = data.length;
+export function fitGmm({
+	data,
+	noiseSigma,
+	kMax = 6,
+	seed,
+	restarts = 3,
+	maxIter = 500,
+	tol
+}: GmmInput): GmmResult {
+	const { z, c } = binData(data);
+	const { variance, n } = moments(z, c);
 	const tolerance = tol ?? 1e-6 * n;
-
+	const floor = 1e-6 * variance;
 	const fits: GmmFit[] = [];
-	let bestFit: GmmFit | null = null;
-
 	for (let k = 1; k <= kMax; k++) {
-		let bestLogLik = -Infinity;
-		let bestState: GmmState | null = null;
-		let bestIterations = 0;
-
+		let best: { state: GmmState; logLik: number; iterations: number } | null = null;
 		for (let r = 0; r < restarts; r++) {
-			const { state, logLik, iterations } = runEm(
-				data,
-				k,
-				noiseSigma,
-				seed + r * 1000 + k,
-				maxIter,
-				tolerance
-			);
-			if (logLik > bestLogLik) {
-				bestLogLik = logLik;
-				bestState = state;
-				bestIterations = iterations;
+			const prng = new Prng(seed + r * 1000 + k);
+			const s0 = Math.sqrt(Math.max(variance / (k * k) - noiseSigma * noiseSigma, 0.01 * variance));
+			let state: GmmState = {
+				weights: new Float64Array(k).fill(1 / k),
+				means: seedMeans(z, c, k, prng),
+				sds: new Float64Array(k).fill(s0)
+			};
+			let next: GmmState = {
+				weights: new Float64Array(k),
+				means: new Float64Array(k),
+				sds: new Float64Array(k)
+			};
+			let prev = -Infinity;
+			let iterations = 0;
+			while (iterations < maxIter) {
+				iterations++;
+				const ll = step(z, c, state, noiseSigma, floor, next);
+				[state, next] = [next, state];
+				if (ll - prev < tolerance) break;
+				prev = ll;
 			}
+			// The log-likelihood of the state returned.
+			const logLik = step(z, c, state, noiseSigma, floor, next);
+			if (!best || logLik > best.logLik) best = { state, logLik, iterations };
 		}
-
-		if (bestState) {
-			const components: GmmComponent[] = [];
-			for (let j = 0; j < k; j++) {
-				components.push({
-					weight: bestState.weights[j],
-					mean: bestState.means[j],
-					sd: bestState.sds[j]
-				});
-			}
-			const bic = computeBic(bestLogLik, k, n);
-			const fit: GmmFit = { k, components, logLik: bestLogLik, bic, iterations: bestIterations };
-			fits.push(fit);
-			if (!bestFit || bic < bestFit.bic) {
-				bestFit = fit;
-			}
-		}
+		const order = Array.from({ length: k }, (_, j) => j).sort(
+			(a, b) => best!.state.means[a] - best!.state.means[b]
+		);
+		fits.push({
+			k,
+			components: order.map((j) => ({
+				weight: best!.state.weights[j],
+				mean: best!.state.means[j],
+				sd: best!.state.sds[j]
+			})),
+			logLik: best!.logLik,
+			bic: (3 * k - 1) * Math.log(n) - 2 * best!.logLik,
+			iterations: best!.iterations
+		});
 	}
-
-	return { best: bestFit!, fits };
+	const best = fits.reduce((a, b) => (b.bic < a.bic ? b : a));
+	return { best, fits };
 }
 
-/** Convert a GmmFit to a DistSpec (mixture of normals, or single normal if k=1). */
+/** A fit as a spec: one normal for k = 1, else a mixture of normals. */
 export function gmmSpec(fit: GmmFit): DistSpec {
 	if (fit.k === 1) {
 		const c = fit.components[0];

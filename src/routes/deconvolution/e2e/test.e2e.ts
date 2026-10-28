@@ -101,9 +101,10 @@ test('every method runs on two peaks in white noise and reports distances to the
 }) => {
 	test.setTimeout(120_000);
 	await open(page);
-	// Two normal peaks in normal noise: identifiable only with the noise as entered.
+	// Two normal peaks in normal noise: identifiable only with the noise as entered,
+	// which the preset sets.
 	await page.getByTestId('preset').selectOption('two-peaks');
-	await page.getByTestId('fit-noise').uncheck();
+	await expect(page.getByTestId('fit-noise')).not.toBeChecked();
 	for (const m of ['gmodel', 'kernel', 'gmm']) await page.getByTestId(`method-${m}`).check();
 	await run(page);
 	const table = page.getByRole('table', { name: 'Fits' });
@@ -138,7 +139,6 @@ test('bootstrap can be stopped, and shades a band when it finishes', async ({ pa
 	test.setTimeout(120_000);
 	await open(page);
 	await page.getByTestId('preset').selectOption('two-peaks');
-	await page.getByTestId('fit-noise').uncheck();
 	await page.getByTestId('method-mle').uncheck();
 	await page.getByTestId('method-npmle').uncheck();
 	await page.getByTestId('method-gmodel').check();

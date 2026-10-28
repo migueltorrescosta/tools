@@ -451,7 +451,7 @@ export function compareFamilies(
 	for (const id of families) {
 		const x: SimpleSpec = { family: id, params: momentParams(id, mean, variance) };
 		if (validateParams(id, x.params).length) x.params = defaultParams(id);
-		const result = fitMle({ data, x, y, fixedY, seed, starts: 3 });
+		const result = fitMle({ data, x, y, fixedY, seed, starts: 2 });
 		if (Number.isFinite(result.logLik)) out.push({ family: id, result });
 	}
 	return out.sort((a, b) => a.result.bic - b.result.bic);

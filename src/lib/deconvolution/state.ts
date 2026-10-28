@@ -42,6 +42,8 @@ export interface Preset {
 	name: string;
 	x: DistSpec;
 	y: SimpleSpec;
+	/** False where the pair can't be identified with the noise fitted too (see the docs). */
+	fitNoise: boolean;
 }
 
 export const PRESETS: readonly Preset[] = [
@@ -49,7 +51,8 @@ export const PRESETS: readonly Preset[] = [
 		id: 'waiting-times',
 		name: 'Waiting times, Laplace noise',
 		x: { family: 'gamma', params: [3, 1] },
-		y: { family: 'laplace', params: [0, 0.5] }
+		y: { family: 'laplace', params: [0, 0.5] },
+		fitNoise: true
 	},
 	{
 		id: 'two-peaks',
@@ -61,19 +64,22 @@ export const PRESETS: readonly Preset[] = [
 				{ family: 'normal', params: [2, 0.8], weight: 0.6 }
 			]
 		},
-		y: { family: 'normal', params: [0, 0.7] }
+		y: { family: 'normal', params: [0, 0.7] },
+		fitNoise: false
 	},
 	{
 		id: 'counts',
 		name: 'Counts in white noise',
 		x: { family: 'poisson', params: [4] },
-		y: { family: 'normal', params: [0, 0.3] }
+		y: { family: 'normal', params: [0, 0.3] },
+		fitNoise: true
 	},
 	{
 		id: 'fringes',
 		name: 'Interference fringes, white noise',
 		x: { family: 'fringe', params: [0, 2, 3, 0.8, 0] },
-		y: { family: 'normal', params: [0, 0.2] }
+		y: { family: 'normal', params: [0, 0.2] },
+		fitNoise: false
 	}
 ];
 
@@ -87,8 +93,8 @@ export function presetSettings(id = PRESETS[0].id): Settings {
 		seed: 1,
 		source: 'simulated',
 		methods: ['mle', 'npmle'],
-		fitNoise: true,
-		noiseFor: 'fitted',
+		fitNoise: p.fitNoise,
+		noiseFor: p.fitNoise ? 'fitted' : 'entered',
 		df: 5,
 		c0: 1,
 		bandwidth: null,
