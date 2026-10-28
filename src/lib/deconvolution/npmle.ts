@@ -97,7 +97,13 @@ export function gridLogLik(L: Float64Array, c: Float64Array, w: Float64Array): n
  * Σ c_i log s_i ≈ const − ½Σ c_i (s_i − 2)², s_i = L_i·w′/f_i, subject to
  * Σw′ = 1, by non-negative least squares, then backtrack until the likelihood rises.
  */
-function newtonStep(L: Float64Array, c: Float64Array, N: number, w: Float64Array): Float64Array {
+function newtonStep(
+	L: Float64Array,
+	c: Float64Array,
+	N: number,
+	w: Float64Array,
+	neighbours: (j: number) => number[]
+): Float64Array {
 	const m = w.length;
 	const n = c.length;
 	const f = new Float64Array(n);
@@ -111,7 +117,7 @@ function newtonStep(L: Float64Array, c: Float64Array, N: number, w: Float64Array
 	}
 	const S: number[] = [];
 	for (let j = 0; j < m; j++) {
-		const peak = D[j] > 1 && (j === 0 || D[j] >= D[j - 1]) && (j === m - 1 || D[j] >= D[j + 1]);
+		const peak = D[j] > 1 && neighbours(j).every((k) => D[j] >= D[k]);
 		if (w[j] > SUPPORT || peak) S.push(j);
 	}
 	const k = S.length;
@@ -151,19 +157,35 @@ const SUPPORT = 1e-9;
 /** SQUAREM iterations before the Newton steps take over. */
 const WARMUP = 25;
 
-export function fitNpmle({
-	data,
-	y,
-	grid,
-	maxIter = 5000,
-	tol = 1e-3,
-	accelerate = true
-}: NpmleInput): NpmleResult {
-	const { z, c } = binData(data);
-	const g = grid ?? supportGrid(data);
-	const L = likelihoodMatrix(z, y, g);
+/** Neighbouring support points on a line of m points. */
+const lineNeighbours = (m: number) => (j: number) => [j - 1, j + 1].filter((k) => k >= 0 && k < m);
+
+export interface NpmleOptions {
+	maxIter?: number;
+	/** Stop when max_j D_j ≤ 1 + tol (default 1e-3). */
+	tol?: number;
+	/** SQUAREM then constrained Newton steps (default true); false runs plain EM. */
+	accelerate?: boolean;
+	/** Support points next to j, for finding the peaks of D (default: a line). */
+	neighbours?: (j: number) => number[];
+}
+
+/**
+ * The NPMLE masses on m support points, from a likelihood matrix L (n × m,
+ * row-major) and counts c: independent of the support's dimension.
+ */
+export function solveNpmle(
+	L: Float64Array,
+	c: Float64Array,
+	m: number,
+	{
+		maxIter = 5000,
+		tol = 1e-3,
+		accelerate = true,
+		neighbours = lineNeighbours(m)
+	}: NpmleOptions = {}
+): Omit<NpmleResult, 'grid'> {
 	const N = c.reduce((a, b) => a + b, 0);
-	const m = g.m;
 	let w: Float64Array = new Float64Array(m).fill(1 / m);
 	const w1 = new Float64Array(m);
 	const w2 = new Float64Array(m);
@@ -175,7 +197,7 @@ export function fitNpmle({
 	while (at.gap > tol && iterations < maxIter) {
 		iterations++;
 		if (accelerate && iterations > WARMUP) {
-			w = newtonStep(L, c, N, w);
+			w = newtonStep(L, c, N, w, neighbours);
 			at = pass(L, c, N, w, w1);
 			continue;
 		}
@@ -207,5 +229,11 @@ export function fitNpmle({
 		w = pp.logLik >= p1.logLik ? w3.slice() : w2.slice();
 		at = pass(L, c, N, w, w1);
 	}
-	return { grid: g, mass: w, logLik: at.logLik, iterations, gap: at.gap, converged: at.gap <= tol };
+	return { mass: w, logLik: at.logLik, iterations, gap: at.gap, converged: at.gap <= tol };
+}
+
+export function fitNpmle({ data, y, grid, ...options }: NpmleInput): NpmleResult {
+	const { z, c } = binData(data);
+	const g = grid ?? supportGrid(data);
+	return { grid: g, ...solveNpmle(likelihoodMatrix(z, y, g), c, g.m, options) };
 }
