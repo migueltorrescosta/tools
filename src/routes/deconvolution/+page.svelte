@@ -399,15 +399,17 @@
 		(run?.mle?.params ?? []).map((p, i) => ({
 			id: `${i}`,
 			role:
-				(p.role === 'signal' ? 'X' : 'Y') +
-				(p.component === null ? '' : ` component ${p.component + 1}`),
+				(p.role === 'signal' ? 'X' : 'Y') + (p.component === null ? '' : ` (${p.component + 1})`),
 			param: p.label,
 			value: p.value,
-			ci: !p.fitted
-				? 'held fixed'
-				: Number.isFinite(p.lower)
-					? `${fmt(p.lower)} – ${fmt(p.upper)}`
-					: '–'
+			ci:
+				p.key === 'weight'
+					? '–'
+					: !p.fitted
+						? 'held fixed'
+						: Number.isFinite(p.lower)
+							? `${fmt(p.lower)} – ${fmt(p.upper)}`
+							: '–'
 		}))
 	);
 	const paramColumns: Column<ParamRow>[] = [
@@ -464,17 +466,35 @@
 				lower: boot.lower,
 				upper: boot.upper
 			});
-		const Y = makeDist(run.noise, 'noise');
-		const ym = marks(
-			Y,
-			chooseGrid(...Y.range(1e-3), Y, Y, { baseNodes: 512 }),
-			'noise',
-			'Noise Y used',
-			dataColour(3),
-			true
-		);
-		if (ym.curve) curves.push(ym.curve);
-		if (ym.stems) stems.push(ym.stems);
+		// f̂_Y: the parametric fit's noise, and the grid methods' noise when it differs.
+		const noises: { spec: DistSpec; key: string; label: string; colour: string }[] = [];
+		if (run.mle)
+			noises.push({
+				spec: run.mle.y,
+				key: 'noise-mle',
+				label: 'Noise Y, parametric fit',
+				colour: methodColour('mle')
+			});
+		if (run.grids.length && !(run.mle && JSON.stringify(run.mle.y) === JSON.stringify(run.noise)))
+			noises.push({
+				spec: run.noise,
+				key: 'noise',
+				label: 'Noise Y, other methods',
+				colour: dataColour(3)
+			});
+		for (const n of noises) {
+			const Y = makeDist(n.spec, 'noise');
+			const m = marks(
+				Y,
+				chooseGrid(...Y.range(1e-3), Y, Y, { baseNodes: 512 }),
+				n.key,
+				n.label,
+				n.colour,
+				true
+			);
+			if (m.curve) curves.push(m.curve);
+			if (m.stems) stems.push(m.stems);
+		}
 		const bins = Math.round(Math.min(80, Math.max(20, Math.sqrt(run.data.length))));
 		return {
 			range: [lo, hi] as [number, number],

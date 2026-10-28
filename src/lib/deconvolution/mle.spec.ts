@@ -38,8 +38,8 @@ describe('fitMle', { timeout: 60_000 }, () => {
 		expect(covers(r, 'signal', 'sigma', 1)).toBe(true);
 		expect(covers(r, 'noise', 'b', 0.6)).toBe(true);
 		expect(r.identifiability.flat).toBe(false);
-		// The noise's location is never fitted.
-		expect(param(r, 'noise', 'mu').fitted).toBe(false);
+		// The noise's location is held at 0 by definition and isn't reported.
+		expect(param(r, 'noise', 'mu')).toBeUndefined();
 		expect(r.k).toBe(3);
 	});
 

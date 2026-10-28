@@ -425,10 +425,12 @@ export function fitMle({ data, x, y, fixedY, seed, starts = 6 }: MleInput): MleR
 		.map(({ role, component, key, label }) => ({ role, component, key, label }));
 
 	const kFree = free.length;
+	// The noise's location is held at 0 by definition, not by the fit: leave it out.
+	const yLocation = family(y.family).location;
 	return {
 		x: fit.x,
 		y: fit.y,
-		params,
+		params: params.filter((p, i) => !(p.role === 'noise' && all[i].index === yLocation)),
 		logLik,
 		k: kFree,
 		n,

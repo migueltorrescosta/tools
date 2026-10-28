@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { makeDist } from './dist';
+import { family } from './families';
 import { fitMle, type MleResult } from './mle';
 import { simulate } from './sample';
 import type { DistSpec, SimpleSpec } from './types';
@@ -7,13 +8,11 @@ import type { DistSpec, SimpleSpec } from './types';
 /** The true value of each fitted, non-weight parameter, keyed like `signal.0.mu`. */
 function truths(x: DistSpec, y: SimpleSpec, r: MleResult): Map<string, number> {
 	const out = new Map<string, number>();
-	const index = new Map<string, number>();
 	for (const p of r.params) {
+		if (!p.fitted || p.key === 'weight') continue;
 		const spec = p.role === 'noise' ? y : x.family === 'mixture' ? x.components[p.component!] : x;
-		const group = `${p.role}.${p.component ?? ''}`;
-		const i = index.get(group) ?? 0;
-		index.set(group, i + 1);
-		if (p.fitted && p.key !== 'weight') out.set(`${group}.${p.key}`, spec.params[i]);
+		const i = family(spec.family).params.findIndex((q) => q.key === p.key);
+		out.set(`${p.role}.${p.component ?? ''}.${p.key}`, spec.params[i]);
 	}
 	return out;
 }

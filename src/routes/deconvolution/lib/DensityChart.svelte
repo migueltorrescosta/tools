@@ -196,7 +196,7 @@
 							stroke={s.colour}
 							class="stem"
 						/>
-						<circle cx={sx(x)} cy={sp(s.p[i])} r="2.5" fill={s.colour} />
+						{#if s.x.length <= 40}<circle cx={sx(x)} cy={sp(s.p[i])} r="2.5" fill={s.colour} />{/if}
 					{/if}
 				{/each}
 			</g>
@@ -236,6 +236,7 @@
 	}
 	.stem {
 		stroke-width: 1.5;
+		opacity: 0.7;
 	}
 	.right text {
 		fill: var(--text-muted);
