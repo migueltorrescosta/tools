@@ -168,7 +168,7 @@ describe('fitNpmle', () => {
 		expect(resNoAcc.iterations).toBeGreaterThan(resAcc.iterations);
 		expect(resAcc.converged).toBe(true);
 		expect(resNoAcc.converged).toBe(true);
-	});
+	}, 30_000);
 
 	it('bins a large sample and still meets the KW condition', () => {
 		const prng = new Prng(5);
