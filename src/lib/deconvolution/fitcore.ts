@@ -181,7 +181,8 @@ export function fitCore<S, G>(p: Problem<S, G>, seed: number, starts: number): C
 	const final = (t: number[]) => p.nll(p.decode(t), finalGrid);
 	let theta = best.x;
 	if (free.length) {
-		const r = nelderMead(final, theta, { maxIter: 200 * free.length });
+		// It starts at the optimum, so a short run suffices on the costlier final grid.
+		const r = nelderMead(final, theta, { maxIter: 60 * free.length });
 		if (r.f <= final(theta)) theta = r.x;
 	}
 	const fit = p.decode(theta);

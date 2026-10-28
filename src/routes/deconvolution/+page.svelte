@@ -182,7 +182,9 @@
 		if (!file) return;
 		if (file.size > 10 * 1024 * 1024) {
 			uploaded = {
+				dim: 1,
 				data: new Float64Array(0),
+				data2: new Float64Array(0),
 				header: false,
 				invalid: [],
 				invalidCount: 0,

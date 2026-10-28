@@ -80,6 +80,8 @@ export interface Dist2 {
 	/** [var x, cov xy, var y]; undefined when it doesn't exist. */
 	cov: [number, number, number] | undefined;
 	sampler: (prng: Prng) => [number, number];
+	/** Identifies the distribution (role and spec), for caching its cell masses. */
+	key: string;
 }
 
 /** Inline errors for a correlated Gaussian's parameters (index 0–4). */
@@ -166,24 +168,76 @@ function gaussSampler(mx: number, my: number, sx: number, sy: number, rho: numbe
 	};
 }
 
-/** Cell masses pdf·hx·hy, capped at total 1 (see `discretise`). */
-function pdfMasses(pdf: (x: number, y: number) => number, g: Grid2): Float64Array {
-	const out = new Float64Array(g.mx * g.my);
-	const cell = g.hx * g.hy;
-	let total = 0;
+/**
+ * Adds weight·N((mx, my), Σ) at every node of g into out, times
+ * (1 + V·cos(kx(x − mx) + ky(y − my) + φ)) when a fringe is given. Along a
+ * row the exponent is quadratic in i, so from the row's peak each node is two
+ * multiplications from its neighbour instead of an exp; the cosine is rotated
+ * the same way.
+ */
+function addGaussGrid(
+	out: Float64Array,
+	g: Grid2,
+	weight: number,
+	[mx, my, sx, sy, rho]: readonly number[],
+	fringe?: { kx: number; ky: number; V: number; phi: number }
+) {
+	const d = 1 - rho * rho;
+	const c = weight / (2 * Math.PI * sx * sy * Math.sqrt(d));
+	const a = (g.hx / sx) ** 2 / d; // Q(i) = a·i² + b·i + e on a row
+	const step = Math.exp(-a);
 	for (let j = 0; j < g.my; j++) {
-		const y = g.y0 + j * g.hy;
-		for (let i = 0; i < g.mx; i++) total += out[j * g.mx + i] = pdf(g.x0 + i * g.hx, y) * cell;
+		const v = (g.y0 + j * g.hy - my) / sy;
+		const u0 = (g.x0 - mx) / sx;
+		const du = g.hx / sx;
+		const b = (2 * u0 * du - 2 * rho * v * du) / d;
+		const e = (u0 * u0 - 2 * rho * u0 * v + v * v) / d;
+		const Q = (i: number) => a * i * i + b * i + e;
+		const peak = Math.min(g.mx - 1, Math.max(0, Math.round(-b / (2 * a))));
+		const row = j * g.mx;
+		const theta = (i: number) =>
+			fringe
+				? fringe.kx * (g.x0 + i * g.hx - mx) + fringe.ky * (g.y0 + j * g.hy - my) + fringe.phi
+				: 0;
+		const dth = fringe ? fringe.kx * g.hx : 0;
+		for (const dir of [1, -1]) {
+			let i = dir === 1 ? peak : peak - 1;
+			if (i < 0) continue;
+			let val = Math.exp(-Q(i) / 2);
+			// Ratio to the next node in this direction, and how it changes per step.
+			let ratio = Math.exp(-(Q(i + dir) - Q(i)) / 2);
+			let cs = Math.cos(theta(i));
+			let sn = Math.sin(theta(i));
+			const cd = Math.cos(dth);
+			const sd = dir * Math.sin(dth);
+			for (; i >= 0 && i < g.mx; i += dir) {
+				if (val < 1e-300) break;
+				out[row + i] += c * val * (fringe ? 1 + fringe.V * cs : 1);
+				val *= ratio;
+				ratio *= step;
+				[cs, sn] = [cs * cd - sn * sd, sn * cd + cs * sd];
+			}
+		}
 	}
+}
+
+/** Caps cell masses at total 1 (see `discretise`), in place. */
+function cap(out: Float64Array): Float64Array {
+	let total = 0;
+	for (let k = 0; k < out.length; k++) total += out[k];
 	if (total > 1) for (let k = 0; k < out.length; k++) out[k] /= total;
 	return out;
 }
 
-function gauss2([mx, my, sx, sy, rho]: readonly number[]): Dist2 {
+function gauss2([mx, my, sx, sy, rho]: readonly number[]): Omit<Dist2, 'key'> {
 	const pdf = gaussPdf(mx, my, sx, sy, rho);
 	return {
 		pdf,
-		masses: (g) => pdfMasses(pdf, g),
+		masses: (g) => {
+			const out = new Float64Array(g.mx * g.my);
+			addGaussGrid(out, g, g.hx * g.hy, [mx, my, sx, sy, rho]);
+			return cap(out);
+		},
 		box: (eps) => {
 			// Each axis's marginal holds 1 − eps/2, so the box holds at least 1 − eps.
 			const w = normalHalfWidth(eps / 2);
@@ -196,7 +250,7 @@ function gauss2([mx, my, sx, sy, rho]: readonly number[]): Dist2 {
 	};
 }
 
-function fringe2([mx, my, sx, sy, rho, kx, ky, V, phi]: readonly number[]): Dist2 {
+function fringe2([mx, my, sx, sy, rho, kx, ky, V, phi]: readonly number[]): Omit<Dist2, 'key'> {
 	const env = gaussPdf(mx, my, sx, sy, rho);
 	const C = fringeNorm(sx, sy, rho, kx, ky, V, phi);
 	const pdf = (x: number, y: number) =>
@@ -206,7 +260,11 @@ function fringe2([mx, my, sx, sy, rho, kx, ky, V, phi]: readonly number[]): Dist
 	const period = (k: number) => (k === 0 ? Infinity : (2 * Math.PI) / Math.abs(k));
 	return {
 		pdf,
-		masses: (g) => pdfMasses(pdf, g),
+		masses: (g) => {
+			const out = new Float64Array(g.mx * g.my);
+			addGaussGrid(out, g, (g.hx * g.hy) / C, [mx, my, sx, sy, rho], { kx, ky, V, phi });
+			return cap(out);
+		},
 		box: (eps) => {
 			const w = normalHalfWidth((eps * C) / (2 * (1 + V)));
 			return [mx - w * sx, mx + w * sx, my - w * sy, my + w * sy];
@@ -224,9 +282,13 @@ function fringe2([mx, my, sx, sy, rho, kx, ky, V, phi]: readonly number[]): Dist
 	};
 }
 
-function mixture2(components: { params: number[]; weight: number }[]): Dist2 {
+function mixture2(components: { params: number[]; weight: number }[]): Omit<Dist2, 'key'> {
 	const total = components.reduce((s, c) => s + c.weight, 0);
-	const parts = components.map((c) => ({ w: c.weight / total, d: gauss2(c.params) }));
+	const parts = components.map((c) => ({
+		w: c.weight / total,
+		d: gauss2(c.params),
+		params: c.params
+	}));
 	const pdf = (x: number, y: number) => parts.reduce((s, p) => s + p.w * p.d.pdf!(x, y), 0);
 	const mean: [number, number] = [
 		parts.reduce((s, p) => s + p.w * p.d.mean![0], 0),
@@ -237,7 +299,11 @@ function mixture2(components: { params: number[]; weight: number }[]): Dist2 {
 		mean[a] * mean[b];
 	return {
 		pdf,
-		masses: (g) => pdfMasses(pdf, g),
+		masses: (g) => {
+			const out = new Float64Array(g.mx * g.my);
+			for (const p of parts) addGaussGrid(out, g, p.w * g.hx * g.hy, p.params);
+			return cap(out);
+		},
 		box: (eps) => {
 			const boxes = parts.map((p) => p.d.box(eps));
 			return [
@@ -264,7 +330,7 @@ function mixture2(components: { params: number[]; weight: number }[]): Dist2 {
 	};
 }
 
-function product(X: Dist, Y: Dist): Dist2 {
+function product(X: Dist, Y: Dist): Omit<Dist2, 'key'> {
 	const pdf = X.pdf && Y.pdf ? (x: number, y: number) => X.pdf!(x) * Y.pdf!(y) : null;
 	return {
 		pdf,
@@ -303,6 +369,10 @@ export function continuousNoise2(spec: Noise2Spec): boolean {
  * means are held at 0 and each product marginal follows `makeDist`'s noise rule.
  */
 export function makeDist2(spec: Spec2, role: Role): Dist2 {
+	return { ...build2(spec, role), key: `${role}:${JSON.stringify(spec)}` };
+}
+
+function build2(spec: Spec2, role: Role): Omit<Dist2, 'key'> {
 	switch (spec.family) {
 		case 'gauss2':
 			return gauss2(role === 'noise' ? [0, 0, ...spec.params.slice(2)] : spec.params);

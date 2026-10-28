@@ -87,11 +87,26 @@ export function likelihoodGrid2(
 	);
 }
 
+/** Recent cell masses by distribution and grid: a fit holding the noise fixed reuses them. */
+const massCache = new Map<string, Float64Array>();
+const CACHE_SIZE = 8;
+
+function cachedMasses(d: Dist2, g: Grid2): Float64Array {
+	const key = `${d.key}|${g.x0},${g.hx},${g.mx},${g.y0},${g.hy},${g.my}`;
+	let m = massCache.get(key);
+	if (!m) {
+		m = d.masses(g);
+		massCache.set(key, m);
+		if (massCache.size > CACHE_SIZE) massCache.delete(massCache.keys().next().value!);
+	}
+	return m;
+}
+
 /** Density of Z = X + Y at each node of the grid (row-major by y). */
 export function zDensityOnGrid2(X: Dist2, Y: Dist2, g: Grid2): Float64Array {
 	const { mx, my, hx, hy } = g;
 	const xs = X.masses(g);
-	const ys = Y.masses({
+	const ys = cachedMasses(Y, {
 		x0: -(mx - 1) * hx,
 		hx,
 		mx: 2 * mx - 1,

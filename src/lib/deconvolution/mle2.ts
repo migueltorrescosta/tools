@@ -42,9 +42,13 @@ interface Model {
 /** Where a parameter lives: the signal or noise, the product axis or mixture component, its index (−1: weight). */
 type Slot2 = Slot & { part: 'x' | 'y'; sub: 'x' | 'y' | number | null; index: number };
 
-/** Grids while searching (coarse) and for the polish and curvature at the optimum. */
-const SEARCH = { baseNodes: 32, maxNodes: 96, nodesPerWidth: 4 };
-const FINAL = { baseNodes: 96, maxNodes: 192 };
+/**
+ * Grids while searching (coarse) and for the polish and curvature at the
+ * optimum. At most 32 and 128 nodes per axis keep the FFT at 64² and 256²:
+ * one more node would double its size.
+ */
+const SEARCH = { baseNodes: 24, maxNodes: 32, nodesPerWidth: 3 };
+const FINAL = { baseNodes: 96, maxNodes: 128 };
 const AXIS = { x: 'x', y: 'y' } as const;
 
 /** The params array a slot points into. */
@@ -180,7 +184,7 @@ export function fitMle2({
 	y,
 	fixNoise = false,
 	seed,
-	starts = 4
+	starts = 2
 }: Mle2Input): Mle2Result {
 	const all = slots(x, y, fixNoise);
 	const m0: Model = { x, y };
