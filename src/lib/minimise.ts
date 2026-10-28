@@ -1,4 +1,126 @@
-/** Small derivative-free minimisers: Nelder–Mead and golden-section search. */
+/** Small minimisers: BFGS (with a gradient), Nelder–Mead and golden-section search. */
+
+export interface BfgsOptions {
+	maxIter?: number;
+	gtol?: number;
+}
+
+/** BFGS with backtracking Armijo line search and standard inverse-Hessian update. */
+export function bfgs(
+	f: (x: number[]) => number,
+	grad: (x: number[]) => number[],
+	x0: readonly number[],
+	{ maxIter = 500, gtol = 1e-6 }: BfgsOptions = {}
+): { x: number[]; f: number; iterations: number; converged: boolean } {
+	const n = x0.length;
+	let x = [...x0];
+	let fx = f(x);
+	let g = grad(x);
+	let gNorm = 0;
+	for (let i = 0; i < n; i++) gNorm += g[i] * g[i];
+	gNorm = Math.sqrt(gNorm);
+
+	// Initial inverse Hessian approximation: identity
+	const H = new Array<number[]>(n);
+	for (let i = 0; i < n; i++) {
+		H[i] = new Array(n).fill(0);
+		H[i][i] = 1;
+	}
+
+	let iterations = 0;
+	let converged = false;
+
+	for (let it = 0; it < maxIter; it++) {
+		iterations++;
+		if (gNorm <= gtol) {
+			converged = true;
+			break;
+		}
+
+		// Search direction: p = -H g
+		const p = new Array(n);
+		for (let i = 0; i < n; i++) {
+			let sum = 0;
+			for (let j = 0; j < n; j++) sum += H[i][j] * g[j];
+			p[i] = -sum;
+		}
+
+		// Backtracking Armijo line search
+		const c1 = 1e-4;
+		const slope = dot(p, g);
+		// Not a descent direction (H lost positive definiteness): restart from steepest descent.
+		if (!(slope < 0)) {
+			for (let i = 0; i < n; i++) (H[i].fill(0), (H[i][i] = 1));
+			continue;
+		}
+		let alpha = 1;
+		let xNew: number[] = x;
+		let fxNew = fx;
+		let accepted = false;
+		for (let ls = 0; ls < 40; ls++) {
+			xNew = x.map((v, i) => v + alpha * p[i]);
+			fxNew = f(xNew);
+			if (fxNew <= fx + c1 * alpha * slope) {
+				accepted = true;
+				break;
+			}
+			alpha *= 0.5;
+		}
+		if (!accepted) break;
+		const gNew = grad(xNew);
+
+		// BFGS update
+		const s = new Array(n);
+		const y = new Array(n);
+		for (let i = 0; i < n; i++) {
+			s[i] = xNew[i] - x[i];
+			y[i] = gNew[i] - g[i];
+		}
+
+		let yTs = 0;
+		for (let i = 0; i < n; i++) yTs += y[i] * s[i];
+
+		if (yTs > 1e-12) {
+			// Standard BFGS inverse Hessian update: H <- (I - rho s y^T) H (I - rho y s^T) + rho s s^T
+			const rho = 1 / yTs;
+
+			// Compute H y
+			const Hy = new Array(n);
+			for (let i = 0; i < n; i++) {
+				let sum = 0;
+				for (let j = 0; j < n; j++) sum += H[i][j] * y[j];
+				Hy[i] = sum;
+			}
+
+			// y^T H y
+			let yTHy = 0;
+			for (let i = 0; i < n; i++) yTHy += y[i] * Hy[i];
+
+			// Update H
+			const coeff = rho * (rho * yTHy + 1);
+			for (let i = 0; i < n; i++) {
+				for (let j = 0; j < n; j++) {
+					H[i][j] = H[i][j] - rho * (Hy[i] * s[j] + s[i] * Hy[j]) + coeff * s[i] * s[j];
+				}
+			}
+		}
+
+		x = xNew;
+		fx = fxNew;
+		g = gNew;
+		gNorm = 0;
+		for (let i = 0; i < n; i++) gNorm += g[i] * g[i];
+		gNorm = Math.sqrt(gNorm);
+	}
+
+	return { x, f: fx, iterations, converged };
+}
+
+function dot(a: number[], b: number[]): number {
+	let sum = 0;
+	for (let i = 0; i < a.length; i++) sum += a[i] * b[i];
+	return sum;
+}
 
 interface NelderMeadOptions {
 	maxIter?: number;

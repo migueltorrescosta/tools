@@ -79,3 +79,91 @@ export function invertSymmetric(a: number[][]): number[][] | null {
 	}
 	return inv;
 }
+
+/** Solves G x = b for a small symmetric positive-definite G by Cholesky; null when G isn't. */
+export function solveSpd(G: number[][], b: number[]): number[] | null {
+	const n = b.length;
+	const L = Array.from({ length: n }, () => new Array<number>(n).fill(0));
+	for (let i = 0; i < n; i++) {
+		for (let j = 0; j <= i; j++) {
+			let s = G[i][j];
+			for (let k = 0; k < j; k++) s -= L[i][k] * L[j][k];
+			if (i === j) {
+				if (!(s > 0)) return null;
+				L[i][i] = Math.sqrt(s);
+			} else L[i][j] = s / L[j][j];
+		}
+	}
+	const y = new Array<number>(n);
+	for (let i = 0; i < n; i++) {
+		let s = b[i];
+		for (let k = 0; k < i; k++) s -= L[i][k] * y[k];
+		y[i] = s / L[i][i];
+	}
+	const x = new Array<number>(n);
+	for (let i = n - 1; i >= 0; i--) {
+		let s = y[i];
+		for (let k = i + 1; k < n; k++) s -= L[k][i] * x[k];
+		x[i] = s / L[i][i];
+	}
+	return x;
+}
+
+/**
+ * Non-negative least squares from the normal equations: minimises
+ * ½xᵀGx − hᵀx over x ≥ 0 (Lawson & Hanson's active-set method).
+ */
+export function nnls(G: number[][], h: number[], maxIter = 200): number[] {
+	const n = h.length;
+	const x = new Array<number>(n).fill(0);
+	const passive = new Array<boolean>(n).fill(false);
+	const solve = () => {
+		const idx = passive.flatMap((p, i) => (p ? [i] : []));
+		const z = new Array<number>(n).fill(0);
+		const sol = solveSpd(
+			idx.map((i) => idx.map((j) => G[i][j])),
+			idx.map((i) => h[i])
+		);
+		if (!sol) return null;
+		idx.forEach((i, k) => (z[i] = sol[k]));
+		return z;
+	};
+	const scale = Math.max(1e-300, ...h.map(Math.abs));
+	for (let iter = 0; iter < maxIter; iter++) {
+		let best = -1;
+		let top = 1e-12 * scale;
+		for (let i = 0; i < n; i++) {
+			if (passive[i]) continue;
+			let g = h[i];
+			for (let j = 0; j < n; j++) g -= G[i][j] * x[j];
+			if (g > top) {
+				top = g;
+				best = i;
+			}
+		}
+		if (best < 0) break;
+		passive[best] = true;
+		for (;;) {
+			const z = solve();
+			if (!z) {
+				passive[best] = false;
+				return x;
+			}
+			if (passive.every((p, i) => !p || z[i] > 0)) {
+				for (let i = 0; i < n; i++) x[i] = z[i];
+				break;
+			}
+			let alpha = Infinity;
+			for (let i = 0; i < n; i++)
+				if (passive[i] && z[i] <= 0) alpha = Math.min(alpha, x[i] / (x[i] - z[i]));
+			for (let i = 0; i < n; i++) {
+				x[i] += alpha * (z[i] - x[i]);
+				if (passive[i] && x[i] <= 1e-15) {
+					passive[i] = false;
+					x[i] = 0;
+				}
+			}
+		}
+	}
+	return x;
+}

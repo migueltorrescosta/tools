@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Prng } from '$lib/prng';
-import { invertSymmetric, symmetricEigen } from './linalg';
+import { invertSymmetric, nnls, solveSpd, symmetricEigen } from './linalg';
 
 describe('symmetricEigen', () => {
 	it('reconstructs a random symmetric 5x5 matrix', () => {
@@ -131,5 +131,46 @@ describe('invertSymmetric', () => {
 			[0, 0]
 		];
 		expect(invertSymmetric(a)).toBeNull();
+	});
+});
+
+describe('solveSpd and nnls', () => {
+	it('solveSpd solves a positive-definite system', () => {
+		const G = [
+			[4, 1, 0],
+			[1, 3, 1],
+			[0, 1, 2]
+		];
+		const x = solveSpd(G, [1, 2, 3])!;
+		G.forEach((row, i) =>
+			expect(row.reduce((s, g, j) => s + g * x[j], 0)).toBeCloseTo([1, 2, 3][i], 12)
+		);
+		expect(solveSpd([[0]], [1])).toBeNull();
+	});
+
+	it('nnls matches the unconstrained solution when it is positive', () => {
+		const G = [
+			[2, 0.5],
+			[0.5, 1]
+		];
+		const h = [1, 1];
+		const free = solveSpd(G, h)!;
+		expect(free.every((v) => v > 0)).toBe(true);
+		nnls(G, h).forEach((v, i) => expect(v).toBeCloseTo(free[i], 12));
+	});
+
+	it('nnls clamps a coordinate that would go negative and satisfies KKT', () => {
+		const G = [
+			[1, 0.9],
+			[0.9, 1]
+		];
+		const h = [1, -1];
+		const x = nnls(G, h);
+		expect(x[1]).toBe(0);
+		expect(x[0]).toBeCloseTo(1, 12);
+		// Gradient h − Gx is 0 on the support and ≤ 0 off it.
+		const g = h.map((hi, i) => hi - G[i].reduce((s, gij, j) => s + gij * x[j], 0));
+		expect(g[0]).toBeCloseTo(0, 12);
+		expect(g[1]).toBeLessThanOrEqual(1e-12);
 	});
 });
