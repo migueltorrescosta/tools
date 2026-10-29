@@ -9,7 +9,7 @@ import { makeDist2, type Grid2, type GridEstimate2, type Noise2Spec, type Spec2 
 import { fitGmm2, gmm2Spec } from './gmm2';
 import { fitMle2, type Mle2Input, type Mle2Result } from './mle2';
 import { dirichletGibbs, gridLogLik } from './npmle';
-import { fitNpmle2, likelihoodMatrix2 } from './npmle2';
+import { fitNpmle2, likelihoodMatrix2, npmleSystem2 } from './npmle2';
 
 /** The 2D methods: kernel deconvolution and g-modeling stay 1D-only. */
 export type Method2 = 'mle' | 'npmle' | 'gmm';
@@ -25,6 +25,8 @@ export type Task2 =
 			y: Noise2Spec;
 			grid: Grid2;
 			seed: number;
+			/** Per-point errors: each point's noise covariance [σx², ρσxσy, σy²]. */
+			cov?: Float64Array[];
 	  }
 	| {
 			kind: 'bootstrap2';
@@ -46,6 +48,8 @@ export type Task2 =
 			mass: Float64Array | null;
 			sweeps: number;
 			seed: number;
+			/** Per-point errors: each point's noise covariance. */
+			cov?: Float64Array[];
 	  };
 
 export interface GridResult2 extends GridEstimate2 {
@@ -66,8 +70,14 @@ export type TaskResult2 =
 	/** The masses after each sweep. */
 	| { kind: 'posterior2'; masses: Float64Array[] };
 
-/** Why a 2D method can't run with this noise, or null when it can. */
-export function unavailable2(method: Method2, y: Noise2Spec): string | null {
+/** Why a 2D method can't run with this noise and regime, or null when it can. */
+export function unavailable2(
+	method: Method2,
+	y: Noise2Spec,
+	regime: 'known' | 'perPoint' = 'known'
+): string | null {
+	if (regime === 'perPoint')
+		return method === 'mle' ? 'Not with per-point errors: needs one noise for all points.' : null;
 	if (method === 'gmm' && y.family !== 'gauss2')
 		return 'The Gaussian mixture needs Gaussian noise.';
 	return null;
@@ -97,14 +107,15 @@ function gridFit2(
 	ys: Float64Array,
 	y: Noise2Spec,
 	grid: Grid2,
-	seed: number
+	seed: number,
+	cov?: Float64Array[]
 ): GridResult2 {
 	const Y = makeDist2(y, 'noise');
 	if (method === 'npmle') {
-		const r = fitNpmle2({ xs, ys, y: Y, grid });
+		const r = fitNpmle2({ xs, ys, y: Y, grid, cov });
 		return { method, grid, mass: r.mass, logLik: r.logLik, converged: r.converged };
 	}
-	const { best } = fitGmm2({ xs, ys, noise: Y.cov!, seed });
+	const { best } = fitGmm2({ xs, ys, noise: cov ?? Y.cov!, seed });
 	const x = gmm2Spec(best);
 	return { method, ...truthOnGrid2(x, grid), logLik: best.logLik, k: 6 * best.k - 1, x };
 }
@@ -129,7 +140,7 @@ export function runTask2(task: Task2): TaskResult2 {
 		case 'grid2':
 			return {
 				kind: 'grid2',
-				result: gridFit2(task.method, task.xs, task.ys, task.y, task.grid, task.seed)
+				result: gridFit2(task.method, task.xs, task.ys, task.y, task.grid, task.seed, task.cov)
 			};
 		case 'bootstrap2': {
 			const prng = new Prng(task.seed);
@@ -141,11 +152,16 @@ export function runTask2(task: Task2): TaskResult2 {
 			return { kind: 'bootstrap2', masses };
 		}
 		case 'posterior2': {
-			const b = binData2(task.xs, task.ys);
-			const L = likelihoodMatrix2(b.x, b.y, makeDist2(task.y, 'noise'), task.grid);
+			const [L, c] = npmleSystem2(
+				task.xs,
+				task.ys,
+				makeDist2(task.y, 'noise'),
+				task.grid,
+				task.cov
+			);
 			const m = task.grid.mx * task.grid.my;
 			const start = task.mass ?? new Float64Array(m).fill(1 / m);
-			const masses = dirichletGibbs(L, b.c, m, start, task.sweeps, new Prng(task.seed));
+			const masses = dirichletGibbs(L, c, m, start, task.sweeps, new Prng(task.seed));
 			return { kind: 'posterior2', masses };
 		}
 	}

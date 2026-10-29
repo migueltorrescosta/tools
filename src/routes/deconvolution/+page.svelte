@@ -27,12 +27,19 @@
 		zAtoms,
 		zDensityOnGrid
 	} from '$lib/deconvolution/grid';
-	import { bands, histogram, simulate } from '$lib/deconvolution/sample';
-	import { sampleCsv, type ParsedSample } from '$lib/deconvolution/upload';
+	import {
+		bands,
+		histogram,
+		simulate,
+		simulatePerPoint,
+		simulateReplicates
+	} from '$lib/deconvolution/sample';
+	import { columnsCsv, type ParsedSample } from '$lib/deconvolution/upload';
 	import { supportGrid } from '$lib/deconvolution/npmle';
 	import { truthOnGrid, l1, wasserstein1 } from '$lib/deconvolution/metrics';
 	import {
 		unavailable,
+		REGIME_METHODS,
 		type GridMethod,
 		type GridOptions,
 		type GridResult
@@ -47,15 +54,18 @@
 		HASH_PARAM,
 		MAX_BOOTSTRAP,
 		MAX_N,
+		MAX_REPLICATES,
 		METHODS,
 		MIN_N,
+		MIN_REPLICATES,
 		PRESETS,
 		STORAGE_PREFIX,
 		decodeSettings,
 		encodeSettings,
 		parseSettings,
 		presetSettings,
-		type Settings
+		type Settings,
+		type NoiseRegime
 	} from '$lib/deconvolution/state';
 	import type {
 		Dist,
@@ -76,16 +86,21 @@
 		npmle: 'NPMLE (grid)',
 		gmodel: 'g-modeling',
 		kernel: 'Kernel deconvolution',
-		gmm: 'Gaussian mixture'
+		gmm: 'Gaussian mixture',
+		phase: 'Phase (symmetric noise)',
+		kotlarski: 'Kotlarski (repeated readings)'
 	};
 	const METHOD_HINTS: Record<MethodId, string> = {
 		mle: 'Fits the chosen families by maximum likelihood.',
 		npmle: 'Any X on a grid, no tuning. Gives point masses.',
 		gmodel: 'A smooth X from a penalised spline family.',
 		kernel: 'The classic Fourier estimator. Slow to converge under normal noise.',
-		gmm: 'X as a mix of 1–6 normals, picked by BIC. Normal noise only.'
+		gmm: 'X as a mix of 1–6 normals, picked by BIC. Normal noise only.',
+		phase: 'Reads X from the data’s phase; the noise only needs to be symmetric.',
+		kotlarski: 'Uses two or more readings of each X to recover both X and the noise.'
 	};
-	const methodColour = (m: MethodId) => dataColour(METHODS.indexOf(m) + 1);
+	// Phase would land on the eighth colour, the grey of the histogram: it takes the ninth.
+	const methodColour = (m: MethodId) => dataColour(m === 'phase' ? 8 : METHODS.indexOf(m) + 1);
 
 	let settings = $state<Settings>(presetSettings());
 
@@ -111,9 +126,38 @@
 			return null;
 		}
 	});
-	const sample = $derived(
-		built && nValid && seedValid ? simulate(built.X, built.Y, settings.n, settings.seed) : null
-	);
+	/** Simulated data per noise regime. */
+	const simulation = $derived.by(() => {
+		if (!built || !nValid || !seedValid) return null;
+		const { X, Y } = built;
+		const n = settings.n;
+		const seed = settings.seed;
+		if (settings.noise === 'known' || settings.noise === 'symmetric') {
+			return { data: simulate(X, Y, n, seed), sigma: undefined, readings: undefined };
+		}
+		if (settings.noise === 'perPoint') {
+			const { z, sigma } = simulatePerPoint(X, settings.sigmaRange, n, seed);
+			return { data: z, sigma, readings: undefined };
+		}
+		// replicates
+		const readings = simulateReplicates(X, Y, n, settings.replicates, seed);
+		return { data: readings[0], sigma: undefined, readings };
+	});
+
+	/** The simulated sample as CSV, with each point's σ or every reading, so it uploads back under the same regime. */
+	function simulationCsv(sim: {
+		data: Float64Array;
+		sigma?: Float64Array;
+		readings?: Float64Array[];
+	}) {
+		if (sim.sigma) return columnsCsv(['z', 'sigma'], [sim.data, sim.sigma]);
+		if (sim.readings)
+			return columnsCsv(
+				sim.readings.map((_, k) => `z${k + 1}`),
+				sim.readings
+			);
+		return columnsCsv(['z'], [sim.data]);
+	}
 
 	/** Curves or stems for one distribution on the chart's grid. */
 	function marks(d: Dist, grid: Grid, key: string, label: string, colour: string, dashed = false) {
@@ -153,12 +197,13 @@
 				ys: zDensityOnGrid(X, Y, grid)
 			});
 		}
-		const bins = sample ? Math.round(Math.min(80, Math.max(20, Math.sqrt(sample.length)))) : 0;
+		const simData = simulation?.data;
+		const bins = simData ? Math.round(Math.min(80, Math.max(20, Math.sqrt(simData.length)))) : 0;
 		return {
 			range: [lo, hi] as [number, number],
 			curves,
 			stems,
-			histogram: sample ? histogram(sample, zl, zh, bins) : undefined
+			histogram: simData ? histogram(simData, zl, zh, bins) : undefined
 		};
 	});
 
@@ -181,22 +226,40 @@
 
 	// --- Data ---
 	let uploaded = $state<ParsedSample | null>(null);
-	/** An upload's column count picks the dimension. */
-	const followUpload = (p: ParsedSample) => (settings.dim = p.dim);
+	/** An upload's column count picks the dimension (only for known noise). */
+	const followUpload = (p: ParsedSample) => {
+		if (settings.noise === 'known') settings.dim = p.dim;
+	};
 
-	const data = $derived(
-		settings.source === 'simulated'
-			? sample
-			: uploaded && !uploaded.error && uploaded.dim === 1
-				? uploaded.data
-				: null
+	/** Why an upload can't be read under this noise regime, or null. */
+	const uploadWarning = $derived.by((): string | null => {
+		if (settings.source !== 'uploaded' || !uploaded || uploaded.error) return null;
+		const { width, columns } = uploaded;
+		if (settings.noise === 'perPoint' && (width !== 2 || columns[1].some((v) => !(v > 0))))
+			return 'Per-point errors need two columns: the value and its σ (positive).';
+		if (settings.noise === 'replicates' && width < 2)
+			return 'Repeated measurements need 2–5 columns, one per reading.';
+		return null;
+	});
+
+	/** The data to estimate from, with each point's σ or the readings when the regime has them. */
+	const dataset = $derived.by(
+		(): { data: Float64Array; sigma?: Float64Array; readings?: Float64Array[] } | null => {
+			if (settings.source === 'simulated') return simulation;
+			if (!uploaded || uploaded.error || uploadWarning) return null;
+			const { columns } = uploaded;
+			if (settings.noise === 'perPoint') return { data: columns[0], sigma: columns[1] };
+			if (settings.noise === 'replicates') return { data: columns[0], readings: columns };
+			return uploaded.dim === 1 ? { data: uploaded.data } : null;
+		}
 	);
+	const data = $derived(dataset?.data ?? null);
 	const truth = $derived(settings.source === 'simulated' ? built?.X : undefined);
 
 	// --- Methods ---
 	const reasons = $derived(
 		Object.fromEntries(
-			METHODS.map((m) => [m, unavailable(m, $state.snapshot(settings.y))])
+			METHODS.map((m) => [m, unavailable(m, $state.snapshot(settings.y), settings.noise)])
 		) as Record<MethodId, string | null>
 	);
 	const chosen = $derived(settings.methods.filter((m) => !reasons[m]));
@@ -207,8 +270,12 @@
 				)
 			: settings.methods.filter((x) => x !== m);
 	}
+	// Only known noise has a parametric fit to borrow the noise from.
 	const usesFitted = $derived(
-		settings.noiseFor === 'fitted' && settings.fitNoise && chosen.some((m) => m !== 'mle')
+		settings.noise === 'known' &&
+			settings.noiseFor === 'fitted' &&
+			settings.fitNoise &&
+			chosen.some((m) => m !== 'mle')
 	);
 
 	// --- Running ---
@@ -233,6 +300,10 @@
 		noise: DistSpec;
 		options: GridOptions;
 		ms: number;
+		/** The noise regime this run used. */
+		regime: NoiseRegime;
+		/** The simulated noise, drawn beside Kotlarski's estimate of it. */
+		trueNoise?: DistSpec;
 	}
 	let run = $state.raw<Run | null>(null);
 	let running = $state(false);
@@ -260,7 +331,15 @@
 		const gridMethods = methods.filter((m) => m !== 'mle') as GridMethod[];
 		const fitted = usesFitted;
 		const runTruth = snap.source === 'simulated' ? truth : undefined;
-		const options = { df: snap.df, c0: snap.c0, bandwidth: snap.bandwidth, seed: snap.seed };
+		const { sigma, readings } = dataset ?? {};
+		const options: GridOptions = {
+			df: snap.df,
+			c0: snap.c0,
+			bandwidth: snap.bandwidth,
+			seed: snap.seed,
+			sigma,
+			readings
+		};
 		const grid = supportGrid(d, 300);
 		const failures: Run['failures'] = [];
 		const p = getPool();
@@ -314,7 +393,9 @@
 				failures,
 				noise,
 				options,
-				ms: performance.now() - t0
+				ms: performance.now() - t0,
+				regime: snap.noise,
+				trueNoise: snap.source === 'simulated' && snap.noise === 'replicates' ? snap.y : undefined
 			};
 			boot = null;
 			bayes = null;
@@ -511,13 +592,33 @@
 				label: 'Noise Y, parametric fit',
 				colour: methodColour('mle')
 			});
-		if (run.grids.length && !(run.mle && JSON.stringify(run.mle.y) === JSON.stringify(run.noise)))
+		// Only known noise has one the other methods used.
+		if (
+			run.regime === 'known' &&
+			run.grids.length &&
+			!(run.mle && JSON.stringify(run.mle.y) === JSON.stringify(run.noise))
+		)
 			noises.push({
 				spec: run.noise,
 				key: 'noise',
 				label: 'Noise Y, other methods',
 				colour: dataColour(3)
 			});
+		// Kotlarski's estimated noise Y (on its own grid centred on 0).
+		for (const g of run.grids) {
+			if (g.method === 'kotlarski' && g.noise) {
+				const noiseGrid = g.noise.grid;
+				const noiseXs = gridPoints(noiseGrid);
+				curves.push({
+					key: 'kotlarski-noise',
+					label: 'Noise Y, Kotlarski',
+					colour: methodColour('kotlarski'),
+					xs: noiseXs,
+					ys: g.noise.mass.map((v) => v / noiseGrid.h),
+					dashed: true
+				});
+			}
+		}
 		for (const n of noises) {
 			const Y = makeDist(n.spec, 'noise');
 			const m = marks(
@@ -530,6 +631,20 @@
 			);
 			if (m.curve) curves.push(m.curve);
 			if (m.stems) stems.push(m.stems);
+		}
+		// True noise Y for simulated data.
+		if (run.trueNoise) {
+			const Y = makeDist(run.trueNoise, 'noise');
+			const m = marks(
+				Y,
+				chooseGrid(...Y.range(1e-3), Y, Y, { baseNodes: 512 }),
+				'noise-truth',
+				'True noise Y',
+				'var(--text)',
+				true
+			);
+			if (m.curve) curves.push(m.curve);
+			if (m.stems) stems.push({ ...m.stems, colour: 'var(--text-muted)' });
 		}
 		const bins = Math.round(Math.min(80, Math.max(20, Math.sqrt(run.data.length))));
 		return {
@@ -806,12 +921,79 @@
 							{/snippet}
 						</Field>
 					</div>
-					{#if sample}
+					{#if settings.noise === 'perPoint'}
+						<div class="row">
+							<Field
+								label="σ from"
+								error={settings.sigmaRange[0] > 0 ? undefined : 'Must be positive.'}
+							>
+								{#snippet children(props)}
+									<input
+										class="control"
+										type="number"
+										min="0.01"
+										max={settings.sigmaRange[1]}
+										step="0.05"
+										bind:value={settings.sigmaRange[0]}
+										data-testid="sigma-lo"
+										{...props}
+									/>
+								{/snippet}
+							</Field>
+							<Field
+								label="to"
+								error={settings.sigmaRange[1] >= settings.sigmaRange[0]
+									? undefined
+									: 'Must be ≥ σ from.'}
+							>
+								{#snippet children(props)}
+									<input
+										class="control"
+										type="number"
+										min={settings.sigmaRange[0]}
+										max="100"
+										step="0.05"
+										bind:value={settings.sigmaRange[1]}
+										data-testid="sigma-hi"
+										{...props}
+									/>
+								{/snippet}
+							</Field>
+						</div>
+						<p class="muted">
+							Each point gets normal noise with its own σ; the noise model above isn't used.
+						</p>
+					{/if}
+					{#if settings.noise === 'replicates'}
+						<div class="row">
+							<Field
+								label="Readings per X"
+								error={settings.replicates >= MIN_REPLICATES &&
+								settings.replicates <= MAX_REPLICATES
+									? undefined
+									: `Between ${MIN_REPLICATES} and ${MAX_REPLICATES}.`}
+							>
+								{#snippet children(props)}
+									<input
+										class="control"
+										type="number"
+										min={MIN_REPLICATES}
+										max={MAX_REPLICATES}
+										step="1"
+										bind:value={settings.replicates}
+										data-testid="replicates"
+										{...props}
+									/>
+								{/snippet}
+							</Field>
+						</div>
+					{/if}
+					{#if simulation}
 						<div>
 							<Button
 								size="sm"
 								variant="secondary"
-								onclick={() => download('deconvolution-sample.csv', sampleCsv(sample))}
+								onclick={() => download('deconvolution-sample.csv', simulationCsv(simulation))}
 								data-testid="export">Download the sample (CSV)</Button
 							>
 						</div>
@@ -838,6 +1020,49 @@
 		<h2 class="section">Estimate</h2>
 
 		{@render dataPanel()}
+		{#if uploadWarning}
+			<Alert tone="warning">{uploadWarning}</Alert>
+		{/if}
+
+		<Panel title="Noise regime" level={3}>
+			<Field label="Noise">
+				{#snippet children(props)}
+					<select
+						class="control"
+						data-testid="noise-regime"
+						bind:value={settings.noise}
+						onchange={() => {
+							const regime = settings.noise;
+							const allowed = REGIME_METHODS[regime];
+							if (!settings.methods.some((m) => allowed.includes(m))) {
+								settings.methods = [...new Set([...settings.methods, allowed[0]])].sort(
+									(a, b) => METHODS.indexOf(a) - METHODS.indexOf(b)
+								);
+							}
+						}}
+						{...props}
+					>
+						<option value="known">Known family</option>
+						<option value="perPoint">Per-point errors</option>
+						<option value="symmetric">Symmetric, unknown shape</option>
+						<option value="replicates">Repeated measurements</option>
+					</select>
+				{/snippet}
+			</Field>
+			{#if settings.noise === 'known'}
+				<p class="muted">The noise's family is the one in the model above.</p>
+			{:else if settings.noise === 'perPoint'}
+				<p class="muted">
+					Each point has its own normal error σᵢ (a second column when you upload).
+				</p>
+			{:else if settings.noise === 'symmetric'}
+				<p class="muted">
+					Only that the noise is symmetric about 0; X must have no symmetric part.
+				</p>
+			{:else if settings.noise === 'replicates'}
+				<p class="muted">Each row holds 2–5 readings of the same X (columns when you upload).</p>
+			{/if}
+		</Panel>
 
 		<Panel title="Methods" level={3}>
 			<fieldset class="methods">
@@ -858,20 +1083,22 @@
 					</label>
 				{/each}
 			</fieldset>
-			<div class="row">
-				<label class="check">
-					<input type="checkbox" bind:checked={settings.fitNoise} data-testid="fit-noise" />
-					The parametric fit also fits the noise
-				</label>
-			</div>
-			<SegmentedControl
-				legend="Noise used by the other methods"
-				options={[
-					{ value: 'entered', label: 'As entered' },
-					{ value: 'fitted', label: 'From the parametric fit', disabled: !settings.fitNoise }
-				]}
-				bind:value={settings.noiseFor}
-			/>
+			{#if settings.noise === 'known'}
+				<div class="row">
+					<label class="check">
+						<input type="checkbox" bind:checked={settings.fitNoise} data-testid="fit-noise" />
+						The parametric fit also fits the noise
+					</label>
+				</div>
+				<SegmentedControl
+					legend="Noise used by the other methods"
+					options={[
+						{ value: 'entered', label: 'As entered' },
+						{ value: 'fitted', label: 'From the parametric fit', disabled: !settings.fitNoise }
+					]}
+					bind:value={settings.noiseFor}
+				/>
+			{/if}
 			<div class="row">
 				{#if settings.methods.includes('gmodel')}
 					<Field label="g-modeling spline df">
@@ -1017,7 +1244,8 @@
 									grid: run!.grid,
 									mass,
 									sweeps,
-									seed
+									seed,
+									sigma: run!.options.sigma
 								})
 							: null}
 						{npmleBand}
@@ -1029,47 +1257,54 @@
 						onerror={(m) => (runError = m)}
 					/>
 
-					<div class="subsection">
-						<h4>Compare signal families</h4>
-						<p class="muted">
-							Fits every family for X with this noise and ranks them by BIC (lower is better).
-						</p>
-						<div>
-							<Button
-								onclick={compare}
-								disabled={comparing || running || booting || chainsRunning}
-								data-testid="compare"
-							>
-								{comparing ? 'Comparing…' : 'Compare families'}
-							</Button>
+					{#if run.regime === 'known'}
+						<div class="subsection">
+							<h4>Compare signal families</h4>
+							<p class="muted">
+								Fits every family for X with this noise and ranks them by BIC (lower is better).
+							</p>
+							<div>
+								<Button
+									onclick={compare}
+									disabled={comparing || running || booting || chainsRunning}
+									data-testid="compare"
+								>
+									{comparing ? 'Comparing…' : 'Compare families'}
+								</Button>
+							</div>
+							{#if compareRows.length}
+								<DataTable
+									caption="Signal families by BIC"
+									columns={[
+										{ key: 'family', label: 'X family' },
+										{
+											key: 'logLik',
+											label: 'Log-lik',
+											align: 'right',
+											format: (v) => fmt(v as number, 6)
+										},
+										{ key: 'k', label: 'Params', align: 'right' },
+										{
+											key: 'bic',
+											label: 'BIC',
+											align: 'right',
+											format: (v) => fmt(v as number, 6)
+										},
+										{
+											key: 'delta',
+											label: 'ΔBIC',
+											align: 'right',
+											format: (v) => fmt(v as number, 4)
+										}
+									]}
+									rows={compareRows}
+									rowKey={(r) => r.id}
+								/>
+							{/if}
 						</div>
-						{#if compareRows.length}
-							<DataTable
-								caption="Signal families by BIC"
-								columns={[
-									{ key: 'family', label: 'X family' },
-									{
-										key: 'logLik',
-										label: 'Log-lik',
-										align: 'right',
-										format: (v) => fmt(v as number, 6)
-									},
-									{ key: 'k', label: 'Params', align: 'right' },
-									{ key: 'bic', label: 'BIC', align: 'right', format: (v) => fmt(v as number, 6) },
-									{
-										key: 'delta',
-										label: 'ΔBIC',
-										align: 'right',
-										format: (v) => fmt(v as number, 4)
-									}
-								]}
-								rows={compareRows}
-								rowKey={(r) => r.id}
-							/>
-						{/if}
-					</div>
+					{/if}
 
-					{#if runGrids.some((g) => g.method !== 'npmle')}
+					{#if runGrids.some((g) => g.method !== 'npmle') && run?.regime === 'known'}
 						<div class="subsection">
 							<h4>Bootstrap bands</h4>
 							<p class="muted">Refits on resampled data and shades where 90% of the refits fall.</p>

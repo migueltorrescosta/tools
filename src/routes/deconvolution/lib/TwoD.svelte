@@ -27,7 +27,7 @@
 	import { posteriorCells, posteriorColumns, type PosteriorCells } from './chains';
 	import Posteriors from './Posteriors.svelte';
 	import { supportGrid2 } from '$lib/deconvolution/npmle2';
-	import { bands, histogram, simulate2 } from '$lib/deconvolution/sample';
+	import { bands, histogram, simulate2, simulate2PerPoint } from '$lib/deconvolution/sample';
 	import {
 		MAX_BOOTSTRAP,
 		MAX_N,
@@ -36,7 +36,7 @@
 		PRESETS2,
 		type Settings
 	} from '$lib/deconvolution/state';
-	import { sampleCsv2, type ParsedSample } from '$lib/deconvolution/upload';
+	import { columnsCsv, type ParsedSample } from '$lib/deconvolution/upload';
 	import DensityChart, { type Band, type Curve, type Stems } from './DensityChart.svelte';
 	import Dist2Editor from './Dist2Editor.svelte';
 	import Heatmap from './Heatmap.svelte';
@@ -88,8 +88,14 @@
 			return null;
 		}
 	});
-	const sample = $derived(
-		built && nValid && seedValid ? simulate2(built.X, built.Y, settings.n, settings.seed) : null
+	/** The simulated sample; with per-point errors also each point's noise covariance. */
+	const sample = $derived.by(
+		(): { xs: Float64Array; ys: Float64Array; cov?: Float64Array[] } | null => {
+			if (!built || !nValid || !seedValid) return null;
+			if (settings.noise2 === 'perPoint')
+				return simulate2PerPoint(built.X, settings.sigmaRange, settings.n, settings.seed);
+			return simulate2(built.X, built.Y, settings.n, settings.seed);
+		}
 	);
 
 	/** The node positions of a 1D grid. */
@@ -150,16 +156,39 @@
 	}
 
 	// --- Data and methods ---
-	const data = $derived(
-		settings.source === 'simulated'
-			? sample
-			: uploaded && !uploaded.error && uploaded.dim === 2
-				? { xs: uploaded.data, ys: uploaded.data2 }
-				: null
+	/** Per-point errors uploaded as x, y, σx, σy and an optional ρ: each point's [σx², ρσxσy, σy²]. */
+	const uploadedCov = $derived.by((): Float64Array[] | null => {
+		if (!uploaded || uploaded.error || (uploaded.width !== 4 && uploaded.width !== 5)) return null;
+		const [, , sx, sy, rho] = uploaded.columns;
+		const cov: Float64Array[] = [];
+		for (let i = 0; i < sx.length; i++) {
+			const r = rho ? rho[i] : 0;
+			if (!(sx[i] > 0 && sy[i] > 0 && Math.abs(r) < 1)) return null;
+			cov.push(Float64Array.of(sx[i] * sx[i], r * sx[i] * sy[i], sy[i] * sy[i]));
+		}
+		return cov;
+	});
+	const data = $derived.by(
+		(): { xs: Float64Array; ys: Float64Array; cov?: Float64Array[] } | null => {
+			if (settings.source === 'simulated') return sample;
+			if (!uploaded || uploaded.error) return null;
+			if (settings.noise2 === 'perPoint')
+				return uploadedCov
+					? { xs: uploaded.columns[0], ys: uploaded.columns[1], cov: uploadedCov }
+					: null;
+			return uploaded.dim === 2 ? { xs: uploaded.data, ys: uploaded.data2 } : null;
+		}
 	);
 	const reasons = $derived(
 		Object.fromEntries(
-			METHODS2.map((m) => [m, unavailable2(m, $state.snapshot(settings.y2) as Noise2Spec)])
+			METHODS2.map((m) => [
+				m,
+				unavailable2(
+					m,
+					$state.snapshot(settings.y2) as Noise2Spec,
+					settings.noise2 === 'perPoint' ? 'perPoint' : 'known'
+				)
+			])
 		) as Record<Method2, string | null>
 	);
 	const chosen = $derived(settings.methods2.filter((m) => !reasons[m]));
@@ -178,6 +207,8 @@
 		grid: Grid2;
 		mle: Mle2Result | null;
 		mleInput: Mle2Input;
+		/** Per-point errors: each point's noise covariance. */
+		cov?: Float64Array[];
 		grids: GridResult2[];
 		failures: { method: Method2; message: string }[];
 		seed: number;
@@ -200,7 +231,7 @@
 		runError = '';
 		const t0 = performance.now();
 		const snap = $state.snapshot(settings) as Settings;
-		const { xs, ys } = data;
+		const { xs, ys, cov } = data;
 		const methods = [...chosen];
 		const truth = snap.source === 'simulated' ? snap.x2 : undefined;
 		const grid = supportGrid2(xs, ys, 64);
@@ -221,7 +252,7 @@
 							kind: 'mle2',
 							input: mleInput
 						})
-					: pool.run({ kind: 'grid2', method, xs, ys, y: snap.y2, grid, seed: snap.seed })
+					: pool.run({ kind: 'grid2', method, xs, ys, y: snap.y2, grid, seed: snap.seed, cov })
 			);
 			const results = await Promise.allSettled(tasks);
 			let mle: Mle2Result | null = null;
@@ -241,6 +272,7 @@
 				grid,
 				mle,
 				mleInput,
+				cov,
 				grids,
 				failures,
 				seed: snap.seed,
@@ -555,7 +587,20 @@
 						size="sm"
 						variant="secondary"
 						onclick={() =>
-							download('deconvolution-sample-2d.csv', sampleCsv2(sample.xs, sample.ys))}
+							download(
+								'deconvolution-sample-2d.csv',
+								sample.cov
+									? columnsCsv(
+											['x', 'y', 'sx', 'sy'],
+											[
+												sample.xs,
+												sample.ys,
+												sample.cov.map((c) => Math.sqrt(c[0])),
+												sample.cov.map((c) => Math.sqrt(c[2]))
+											]
+										)
+									: columnsCsv(['x', 'y'], [sample.xs, sample.ys])
+							)}
 						data-testid="export">Download the sample (CSV)</Button
 					>
 				</div>
@@ -615,11 +660,70 @@
 <h2 class="section">Estimate</h2>
 
 {@render dataPanel()}
-{#if settings.source === 'uploaded' && uploaded && !uploaded.error && uploaded.dim !== 2}
+{#if settings.source === 'uploaded' && uploaded && !uploaded.error && uploaded.dim !== 2 && settings.noise2 === 'known'}
 	<Alert tone="warning">This data has one column: switch to 1D to use it.</Alert>
 {/if}
 
 <Panel title="Methods" level={3}>
+	<Field label="Noise">
+		{#snippet children(props)}
+			<select
+				class="control"
+				bind:value={settings.noise2}
+				onchange={() => {
+					if (!settings.methods2.some((m) => !reasons[m])) settings.methods2 = ['npmle'];
+				}}
+				data-testid="noise2-regime"
+				{...props}
+			>
+				<option value="known">Known family</option>
+				<option value="perPoint">Per-point errors</option>
+			</select>
+		{/snippet}
+	</Field>
+	<p class="muted">
+		{settings.noise2 === 'perPoint'
+			? 'Each point has its own Gaussian error (columns x, y, σx, σy and an optional ρ when you upload).'
+			: 'The noise’s family is the one in the model above.'}
+	</p>
+	{#if settings.noise2 === 'perPoint' && settings.source === 'simulated'}
+		<div class="row">
+			<Field label="σ from">
+				{#snippet children(props)}
+					<input
+						class="control"
+						type="number"
+						min="0.01"
+						step="0.05"
+						bind:value={settings.sigmaRange[0]}
+						data-testid="sigma2-lo"
+						{...props}
+					/>
+				{/snippet}
+			</Field>
+			<Field label="to">
+				{#snippet children(props)}
+					<input
+						class="control"
+						type="number"
+						min="0.01"
+						step="0.05"
+						bind:value={settings.sigmaRange[1]}
+						data-testid="sigma2-hi"
+						{...props}
+					/>
+				{/snippet}
+			</Field>
+		</div>
+		<p class="muted">
+			Each axis of each point gets normal noise with its own σ; the noise model above isn’t used.
+		</p>
+	{/if}
+	{#if settings.noise2 === 'perPoint' && settings.source === 'uploaded' && uploaded && !uploaded.error && !uploadedCov}
+		<Alert tone="warning"
+			>Per-point errors need four or five columns: x, y, σx, σy (positive) and an optional ρ.</Alert
+		>
+	{/if}
 	<fieldset class="methods">
 		<legend class="sr-only">Estimators</legend>
 		{#each METHODS2 as m (m)}
@@ -639,11 +743,13 @@
 		{/each}
 	</fieldset>
 	<p class="muted">g-modeling and kernel deconvolution are 1D only.</p>
-	<label class="check">
-		<input type="checkbox" bind:checked={settings.fitNoise2} data-testid="fit-noise2" />
-		The parametric fit also fits the noise
-	</label>
-	<p class="muted">The NPMLE and the mixture use the noise as entered.</p>
+	{#if settings.noise2 === 'known'}
+		<label class="check">
+			<input type="checkbox" bind:checked={settings.fitNoise2} data-testid="fit-noise2" />
+			The parametric fit also fits the noise
+		</label>
+		<p class="muted">The NPMLE and the mixture use the noise as entered.</p>
+	{/if}
 </Panel>
 
 <RunControls
@@ -763,7 +869,8 @@
 							grid: run!.grid,
 							mass,
 							sweeps,
-							seed
+							seed,
+							cov: run!.cov
 						})
 					: null}
 				{npmleBand}
@@ -774,7 +881,7 @@
 				onrunning={(r) => (chainsRunning = r)}
 				onerror={(m) => (runError = m)}
 			/>
-			{#if run.grids.some((g) => g.method === 'gmm')}
+			{#if !run.cov && run.grids.some((g) => g.method === 'gmm')}
 				<div class="subsection">
 					<h4>Bootstrap bands</h4>
 					<p class="muted">

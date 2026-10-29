@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_ROWS, parseSample, sampleCsv, sampleCsv2 } from './upload';
+import { MAX_ROWS, columnsCsv, parseSample, sampleCsv, sampleCsv2 } from './upload';
 
 const numbers = (n: number) => Array.from({ length: n }, (_, i) => String(i / 10));
 
@@ -43,9 +43,19 @@ describe('parseSample', () => {
 		expect(Array.from(r.data2)).toEqual(Array.from({ length: 20 }, (_, i) => i * 2));
 	});
 
-	it('rejects three columns of numbers', () => {
+	it('reads three to five columns for the noise regimes to interpret', () => {
 		const text = Array.from({ length: 20 }, (_, i) => `${i};${i * 2};${i * 3}`).join('\n');
-		expect(parseSample(text).error).toBe('Expected one or two columns of numbers.');
+		const r = parseSample(text);
+		expect(r.error).toBeNull();
+		expect(r.width).toBe(3);
+		expect(Array.from(r.columns[2].slice(0, 3))).toEqual([0, 3, 6]);
+	});
+
+	it('rejects six columns of numbers', () => {
+		const text = Array.from({ length: 20 }, (_, i) =>
+			[1, 2, 3, 4, 5, 6].map((k) => i * k).join(',')
+		).join('\n');
+		expect(parseSample(text).error).toBe('Expected one to 5 columns of numbers.');
 	});
 
 	it('refuses too few or too many rows', () => {
@@ -141,5 +151,16 @@ describe('sampleCsv2', () => {
 		const y = new Float64Array([5, 6]);
 		const csv = sampleCsv2(x, y);
 		expect(csv).toBe('x,y\n1,5\n2,6\n');
+	});
+});
+
+describe('columnsCsv', () => {
+	it('round-trips per-point errors and replicates through parseSample', () => {
+		const z = Float64Array.from({ length: 20 }, (_, i) => i / 3);
+		const s = Float64Array.from({ length: 20 }, (_, i) => 0.1 + i / 100);
+		const r = parseSample(columnsCsv(['z1', 'z2', 'z3'], [z, s, z]));
+		expect(r.header).toBe(true);
+		expect(r.width).toBe(3);
+		expect(Array.from(r.columns[1])).toEqual(Array.from(s));
 	});
 });

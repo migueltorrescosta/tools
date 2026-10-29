@@ -36,6 +36,72 @@ export function simulate2(
 	return { xs, ys };
 }
 
+/** n subjects with m readings each, Z_k = X + Y_k: one X per subject, a fresh Y per reading. */
+export function simulateReplicates(
+	X: Dist,
+	Y: Dist,
+	n: number,
+	m: number,
+	seed: number
+): Float64Array[] {
+	const px = new Prng(seed);
+	const py = new Prng(seed ^ 0x9e3779b9);
+	const out = Array.from({ length: m }, () => new Float64Array(n));
+	for (let i = 0; i < n; i++) {
+		const x = X.sampler(px);
+		for (let k = 0; k < m; k++) out[k][i] = x + Y.sampler(py);
+	}
+	return out;
+}
+
+/**
+ * n draws of Z = X + Y with per-point normal errors: each point's σ_i is
+ * uniform on [lo, hi], and Y_i ~ N(0, σ_i²).
+ */
+export function simulatePerPoint(
+	X: Dist,
+	[lo, hi]: [number, number],
+	n: number,
+	seed: number
+): { z: Float64Array; sigma: Float64Array } {
+	const px = new Prng(seed);
+	const py = new Prng(seed ^ 0x9e3779b9);
+	const z = new Float64Array(n);
+	const sigma = new Float64Array(n);
+	for (let i = 0; i < n; i++) {
+		sigma[i] = lo + (hi - lo) * py.next();
+		z[i] = X.sampler(px) + sigma[i] * py.normal();
+	}
+	return { z, sigma };
+}
+
+/**
+ * n draws of Z = X + Y in 2D with per-point normal errors: each axis's σ
+ * uniform on [lo, hi], independent axes (ρ = 0). `cov` holds each point's
+ * [σx², 0, σy²].
+ */
+export function simulate2PerPoint(
+	X: Dist2,
+	[lo, hi]: [number, number],
+	n: number,
+	seed: number
+): { xs: Float64Array; ys: Float64Array; cov: Float64Array[] } {
+	const px = new Prng(seed);
+	const py = new Prng(seed ^ 0x9e3779b9);
+	const xs = new Float64Array(n);
+	const ys = new Float64Array(n);
+	const cov: Float64Array[] = [];
+	for (let i = 0; i < n; i++) {
+		const [a, b] = X.sampler(px);
+		const sx = lo + (hi - lo) * py.next();
+		const sy = lo + (hi - lo) * py.next();
+		xs[i] = a + sx * py.normal();
+		ys[i] = b + sy * py.normal();
+		cov.push(Float64Array.of(sx * sx, 0, sy * sy));
+	}
+	return { xs, ys, cov };
+}
+
 /** A bootstrap resample: n draws with replacement. */
 export function resample(data: Float64Array, prng: Prng): Float64Array {
 	const out = new Float64Array(data.length);

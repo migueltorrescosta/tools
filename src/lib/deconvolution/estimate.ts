@@ -9,6 +9,9 @@ import { makeDist } from './dist';
 import { family } from './families';
 import { fitGmm, gmmSpec } from './gmm';
 import { cfHasZeros, fitKernel } from './kernel';
+import { fitKotlarski, replicateVariances } from './kotlarski';
+import { fitPhase } from './phase';
+import type { NoiseRegime } from './state';
 import { truthOnGrid } from './metrics';
 import {
 	compareFamilies,
@@ -20,7 +23,7 @@ import {
 } from './mle';
 import { fitGmodel } from './gmodel';
 import { binData } from './binning';
-import { dirichletGibbs, fitNpmle, gridLogLik, likelihoodMatrix } from './npmle';
+import { dirichletGibbs, fitNpmle, gridLogLik, likelihoodMatrix, npmleSystem } from './npmle';
 import { advance, posterior, startChain, type Chain } from './bayes';
 import type { Slot } from './fitcore';
 import { mle2Problem, sampleGrid2, type Mle2Input, type Model2 } from './mle2';
@@ -35,6 +38,10 @@ export interface GridOptions {
 	c0: number;
 	bandwidth: number | null;
 	seed: number;
+	/** Per-point errors: each point's normal σ (NPMLE and Gaussian mixture). */
+	sigma?: Float64Array;
+	/** Repeated measurements: 2–5 readings per row, the first being `data` (Kotlarski). */
+	readings?: Float64Array[];
 }
 
 /** The parametric model a Bayesian fit samples, and its MLE (where the chains start and the grids are fixed). */
@@ -61,6 +68,8 @@ export type Task =
 			mass: Float64Array | null;
 			sweeps: number;
 			seed: number;
+			/** Per-point errors: each point's σ. */
+			sigma?: Float64Array;
 	  }
 	| {
 			kind: 'compare';
@@ -103,6 +112,8 @@ export interface GridResult extends GridEstimate {
 	/** Kernel: share of the raw estimate that was negative and clipped. */
 	negativeMass?: number;
 	converged?: boolean;
+	/** Kotlarski: the estimated noise Y, on its own grid centred on 0. */
+	noise?: GridEstimate;
 }
 
 export type TaskResult =
@@ -122,8 +133,29 @@ export type TaskResult =
 	| { kind: 'bootstrap'; masses: Float64Array[] }
 	| TaskResult2;
 
-/** Why a method can't run with this noise, or null when it can. */
-export function unavailable(method: MethodId, y: SimpleSpec): string | null {
+/** The methods each noise regime offers (the rest are disabled with `unavailable`). */
+export const REGIME_METHODS: Record<NoiseRegime, readonly MethodId[]> = {
+	known: ['mle', 'npmle', 'gmodel', 'kernel', 'gmm'],
+	perPoint: ['npmle', 'gmm'],
+	symmetric: ['phase'],
+	replicates: ['kotlarski']
+};
+
+const REGIME_NOTE: Record<NoiseRegime, string> = {
+	known: 'Needs a noise of unknown shape.',
+	perPoint: 'Not with per-point errors: needs one noise for all points.',
+	symmetric: 'Not with a noise of unknown shape.',
+	replicates: 'Not with repeated measurements.'
+};
+
+/** Why a method can't run with this noise and regime, or null when it can. */
+export function unavailable(
+	method: MethodId,
+	y: SimpleSpec,
+	regime: NoiseRegime = 'known'
+): string | null {
+	if (!REGIME_METHODS[regime].includes(method)) return REGIME_NOTE[regime];
+	if (regime !== 'known') return null;
 	const f = family(y.family);
 	if (method === 'mle') return null;
 	if (method === 'gmm')
@@ -156,7 +188,7 @@ function gridFit(
 	const Y = makeDist(y, 'noise');
 	switch (method) {
 		case 'npmle': {
-			const r = fitNpmle({ data, y: Y, grid });
+			const r = fitNpmle({ data, y: Y, grid, sigma: o.sigma });
 			return { method, grid: r.grid, mass: r.mass, logLik: r.logLik, converged: r.converged };
 		}
 		case 'gmodel': {
@@ -187,8 +219,7 @@ function gridFit(
 			};
 		}
 		case 'gmm': {
-			const sigma = y.params[1];
-			const r = fitGmm({ data, noiseSigma: sigma, seed: o.seed });
+			const r = fitGmm({ data, noiseSigma: o.sigma ?? y.params[1], seed: o.seed });
 			const x = gmmSpec(r.best);
 			const est = truthOnGrid(makeDist(x, 'signal'), grid);
 			return {
@@ -198,6 +229,37 @@ function gridFit(
 				logLik: r.best.logLik,
 				k: 3 * r.best.k - 1,
 				x
+			};
+		}
+		case 'phase': {
+			const r = fitPhase({ data, grid, seed: o.seed, bandwidth: o.bandwidth ?? undefined });
+			return {
+				method,
+				grid,
+				mass: r.mass,
+				logLik: NaN,
+				bandwidth: r.bandwidth,
+				negativeMass: r.negativeMass
+			};
+		}
+		case 'kotlarski': {
+			if (!o.readings) throw new Error('Needs two or more readings per row');
+			const half = 5 * Math.sqrt(replicateVariances(o.readings).varY || 1);
+			const gridY = { x0: -half, h: (2 * half) / 299, m: 300 };
+			const r = fitKotlarski({
+				readings: o.readings,
+				gridX: grid,
+				gridY,
+				bandwidth: o.bandwidth ?? undefined
+			});
+			return {
+				method,
+				grid,
+				mass: r.x.mass,
+				logLik: NaN,
+				bandwidth: r.bandwidth,
+				negativeMass: r.x.negativeMass,
+				noise: r.y
 			};
 		}
 	}
@@ -224,8 +286,7 @@ export function runTask(task: Task): TaskResult {
 			return { kind: 'bayes', ...r, free: post.free, box: post.box };
 		}
 		case 'posterior': {
-			const { z, c } = binData(task.data);
-			const L = likelihoodMatrix(z, makeDist(task.y, 'noise'), task.grid);
+			const [L, c] = npmleSystem(task.data, makeDist(task.y, 'noise'), task.grid, task.sigma);
 			const m = task.grid.m;
 			const start = task.mass ?? new Float64Array(m).fill(1 / m);
 			const masses = dirichletGibbs(L, c, m, start, task.sweeps, new Prng(task.seed));

@@ -123,4 +123,4 @@ export interface GridEstimate {
 	mass: Float64Array;
 }
 
-export type MethodId = 'mle' | 'npmle' | 'gmodel' | 'kernel' | 'gmm';
+export type MethodId = 'mle' | 'npmle' | 'gmodel' | 'kernel' | 'gmm' | 'phase' | 'kotlarski';

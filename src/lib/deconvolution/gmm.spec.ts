@@ -139,3 +139,46 @@ describe('gmmSpec', () => {
 		}
 	});
 });
+
+describe('fitGmm with per-point errors', () => {
+	it('recovers a two-component mixture when each point has its own σ_i', () => {
+		const n = 4000;
+		const X = sampleMixture(
+			n,
+			[
+				{ weight: 0.5, mean: -2, sd: 0.5 },
+				{ weight: 0.5, mean: 2, sd: 0.7 }
+			],
+			7
+		);
+		const prng = new Prng(8);
+		const sigma = Float64Array.from({ length: n }, () => 0.2 + 1.0 * prng.next());
+		const data = X.map((x, i) => x + sigma[i] * prng.normal());
+		const { best } = fitGmm({ data, noiseSigma: sigma, kMax: 4, seed: 9, restarts: 2 });
+		expect(best.k).toBe(2);
+		const [a, b] = [...best.components].sort((p, q) => p.mean - q.mean);
+		expect(a.mean).toBeCloseTo(-2, 1);
+		expect(b.mean).toBeCloseTo(2, 1);
+		// Noise up to σ = 1.2 hides the scales more than the means.
+		expect(Math.abs(a.sd - 0.5)).toBeLessThan(0.1);
+		expect(Math.abs(b.sd - 0.7)).toBeLessThan(0.1);
+	});
+
+	it('a constant σ_i gives exactly the shared-σ fit', () => {
+		const prng = new Prng(3);
+		const data = Float64Array.from(
+			{ length: 500 },
+			() => (prng.next() < 0.5 ? -2 : 2) + prng.normal()
+		);
+		const shared = fitGmm({ data, noiseSigma: 0.6, kMax: 2, seed: 1, restarts: 1 });
+		const each = fitGmm({
+			data,
+			noiseSigma: new Float64Array(500).fill(0.6),
+			kMax: 2,
+			seed: 1,
+			restarts: 1
+		});
+		expect(each.best.logLik).toBeCloseTo(shared.best.logLik, 6);
+		expect(each.best.components[0].sd).toBeCloseTo(shared.best.components[0].sd, 6);
+	});
+});

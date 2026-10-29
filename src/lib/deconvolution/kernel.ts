@@ -23,7 +23,7 @@ export interface KernelResult extends GridEstimate {
 }
 
 /** Kernel φ_K(s) = (1 − s²)³ on [−1, 1], 0 outside. */
-function kernelPhi(s: number): number {
+export function kernelPhi(s: number): number {
 	const u = Math.abs(s);
 	if (u >= 1) return 0;
 	const v = 1 - u * u;
@@ -31,7 +31,12 @@ function kernelPhi(s: number): number {
 }
 
 /** Empirical characteristic function (1/N)·Σ c_i e^{itz_i} of (binned) data. */
-function empiricalCf(z: Float64Array, c: Float64Array, n: number, t: number): [number, number] {
+export function empiricalCf(
+	z: Float64Array,
+	c: Float64Array,
+	n: number,
+	t: number
+): [number, number] {
 	let re = 0;
 	let im = 0;
 	for (let i = 0; i < z.length; i++) {
@@ -94,7 +99,6 @@ export function fitKernel(input: KernelInput): KernelResult {
 	}
 
 	const tMax = 1 / h;
-	const mass = new Float64Array(g.m);
 
 	// Above 5000 points the empirical cf comes from 2000 bins, like the other grid methods.
 	const binned = binData(data);
@@ -114,11 +118,27 @@ export function fitKernel(input: KernelInput): KernelResult {
 		qRe[i] = (k * (zr * yr + zi * yi)) / d;
 		qIm[i] = (k * (zi * yr - zr * yi)) / d;
 	}
-	// f̂(x) = (1/π)·Σ Re[e^{−itx}·q(t)]
+	return { ...invertCf(ts, qRe, qIm, g), bandwidth: h };
+}
+
+/**
+ * Cell masses on `grid` of f̂(x) = (1/π)·Σᵢ Re[e^{−itᵢx}·qᵢ], where q holds a
+ * characteristic function at t ≥ 0 with the kernel and the quadrature weights
+ * folded in. Negative parts are clipped (`negativeMass`: their share of Σ|f̂|)
+ * and the rest renormalised to sum 1.
+ */
+export function invertCf(
+	ts: Float64Array,
+	qRe: Float64Array,
+	qIm: Float64Array,
+	g: Grid
+): GridEstimate & { negativeMass: number } {
+	const mass = new Float64Array(g.m);
 	for (let j = 0; j < g.m; j++) {
 		const x = g.x0 + j * g.h;
 		let s = 0;
-		for (let i = 0; i < nT; i++) s += Math.cos(ts[i] * x) * qRe[i] + Math.sin(ts[i] * x) * qIm[i];
+		for (let i = 0; i < ts.length; i++)
+			s += Math.cos(ts[i] * x) * qRe[i] + Math.sin(ts[i] * x) * qIm[i];
 		mass[j] = s / Math.PI;
 	}
 
@@ -141,5 +161,5 @@ export function fitKernel(input: KernelInput): KernelResult {
 		for (let j = 0; j < g.m; j++) mass[j] /= sum;
 	}
 
-	return { grid: g, mass, bandwidth: h, negativeMass };
+	return { grid: g, mass, negativeMass };
 }

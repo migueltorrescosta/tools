@@ -88,5 +88,27 @@ export const REFERENCES: readonly Reference[] = [
 		venue: 'Bayesian Analysis 10(1).',
 		href: 'https://doi.org/10.1214/14-BA915',
 		impact: 'The Dirichlet(1/m) prior of the NPMLE posterior, objective for grids of many cells.'
+	},
+	{
+		cite: 'Delaigle, A. & Hall, P. (2016).',
+		title: 'Methodology for non-parametric deconvolution when the error distribution is unknown.',
+		venue: 'Journal of the Royal Statistical Society B 78(1).',
+		href: 'https://doi.org/10.1111/rssb.12109',
+		impact: 'Symmetric noise of unknown shape: the signal is read from the data’s phase.'
+	},
+	{
+		cite: 'Li, T. & Vuong, Q. (1998).',
+		title: 'Nonparametric estimation of the measurement error model using multiple indicators.',
+		venue: 'Journal of Multivariate Analysis 65(2).',
+		href: 'https://doi.org/10.1006/jmva.1998.1741',
+		impact: 'Repeated readings recover both the signal and the noise through Kotlarski’s identity.'
+	},
+	{
+		cite: 'Comte, F. & Kappus, J. (2015).',
+		title:
+			'Density deconvolution from repeated measurements without symmetry assumption on the errors.',
+		venue: 'Journal of Multivariate Analysis 140.',
+		href: 'https://arxiv.org/abs/1407.3495',
+		impact: 'The regularisation that keeps Kotlarski’s divisions stable.'
 	}
 ];

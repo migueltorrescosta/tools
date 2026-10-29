@@ -1,16 +1,22 @@
 /**
- * Parsing an uploaded or pasted sample of Z (one or two numeric columns), and the
+ * Parsing an uploaded or pasted sample of Z (one to five numeric columns), and the
  * CSV export of a simulated sample. No DOM or Svelte imports.
  */
 
 /** Most rows an upload may hold. */
 export const MAX_ROWS = 100_000;
+/** Most columns: z with errors or replicates (1D), or x, y, σx, σy, ρ (2D). */
+export const MAX_COLUMNS = 5;
 /** Problem rows listed by line number; the rest are only counted. */
 const LISTED = 5;
 
 export interface ParsedSample {
-	/** 1 or 2: the number of numeric columns. */
+	/** 1 or 2: the dimension when the columns are plain data (2 for two columns). */
 	dim: 1 | 2;
+	/** The number of numeric columns, 1–5; the noise regime says what they are. */
+	width: number;
+	/** Every column, each with one entry per valid row. */
+	columns: Float64Array[];
 	/** First column. */
 	data: Float64Array;
 	/** Second column when dim is 2, else an empty array. */
@@ -35,8 +41,8 @@ const asNumber = (f: string): number =>
 	/^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(f) ? Number(f) : NaN;
 
 /**
- * One or two numeric columns, an optional header line, any common delimiter.
- * The dimension is the width of most all-numeric rows; other rows are listed as invalid.
+ * One to five numeric columns, an optional header line, any common delimiter.
+ * The width is that of most all-numeric rows; other rows are listed as invalid.
  */
 export function parseSample(text: string): ParsedSample {
 	const rows = text
@@ -47,53 +53,60 @@ export function parseSample(text: string): ParsedSample {
 			return { line: i + 1, raw, f, v, numeric: f.length > 0 && v.every(Number.isFinite) };
 		})
 		.filter((r) => r.f.length > 0);
-	const widths = [0, 0, 0];
-	for (const r of rows) if (r.numeric) widths[Math.min(r.f.length, 3) - 1]++;
+	const widths = new Array<number>(MAX_COLUMNS + 1).fill(0);
+	for (const r of rows) if (r.numeric) widths[Math.min(r.f.length, MAX_COLUMNS + 1) - 1]++;
 	const header = rows.length > 0 && !rows[0].f.some((x) => Number.isFinite(asNumber(x)));
-	const dim: 1 | 2 = widths[1] > widths[0] ? 2 : 1;
-	const data: number[] = [];
-	const data2: number[] = [];
+	// The most common width; ties go to the narrower.
+	const width = widths.indexOf(Math.max(...widths)) + 1;
+	const dim: 1 | 2 = width === 2 ? 2 : 1;
+	const cols: number[][] = Array.from({ length: Math.min(width, MAX_COLUMNS) }, () => []);
 	const invalid: { line: number; text: string }[] = [];
 	let invalidCount = 0;
 	rows.forEach((r, k) => {
-		if (r.numeric && r.f.length === dim) {
-			data.push(r.v[0]);
-			if (dim === 2) data2.push(r.v[1]);
+		if (r.numeric && r.f.length === width) {
+			cols.forEach((c, j) => c.push(r.v[j]));
 		} else if (!(k === 0 && header)) {
 			invalidCount++;
 			if (invalid.length < LISTED) invalid.push({ line: r.line, text: r.raw.trim().slice(0, 40) });
 		}
 	});
+	const columns = cols.map((c) => Float64Array.from(c));
+	const empty = new Float64Array(0);
 	const result = (error: string | null): ParsedSample => ({
 		dim,
-		data: error ? new Float64Array(0) : Float64Array.from(data),
-		data2: error || dim === 1 ? new Float64Array(0) : Float64Array.from(data2),
+		width,
+		columns: error ? [] : columns,
+		data: error ? empty : (columns[0] ?? empty),
+		data2: error || dim === 1 ? empty : columns[1],
 		header,
 		invalid,
 		invalidCount,
 		error
 	});
-	if (widths[2] > widths[0] && widths[2] > widths[1])
-		return result('Expected one or two columns of numbers.');
-	if (data.length > MAX_ROWS)
+	const rowCount = columns[0]?.length ?? 0;
+	if (width > MAX_COLUMNS) return result(`Expected one to ${MAX_COLUMNS} columns of numbers.`);
+	if (rowCount > MAX_ROWS)
 		return result(
-			`At most ${MAX_ROWS.toLocaleString('en')} rows; this has ${data.length.toLocaleString('en')}.`
+			`At most ${MAX_ROWS.toLocaleString('en')} rows; this has ${rowCount.toLocaleString('en')}.`
 		);
-	if (data.length < 10) return result('Add at least 10 numbers.');
+	if (rowCount < 10) return result('Add at least 10 numbers.');
 	return result(null);
 }
 
-/** A sample as a one-column CSV with a `z` header. */
-export function sampleCsv(data: ArrayLike<number>): string {
-	let out = 'z\n';
-	for (let i = 0; i < data.length; i++) out += `${data[i]}\n`;
+/** Columns of equal length as a CSV with a header row (what `parseSample` reads back). */
+export function columnsCsv(
+	names: readonly string[],
+	columns: readonly ArrayLike<number>[]
+): string {
+	const n = Math.min(...columns.map((c) => c.length));
+	let out = `${names.join(',')}\n`;
+	for (let i = 0; i < n; i++) out += `${columns.map((c) => c[i]).join(',')}\n`;
 	return out;
 }
 
+/** A sample as a one-column CSV with a `z` header. */
+export const sampleCsv = (data: ArrayLike<number>) => columnsCsv(['z'], [data]);
+
 /** A sample as a two-column CSV with `x,y` header. */
-export function sampleCsv2(x: ArrayLike<number>, y: ArrayLike<number>): string {
-	let out = 'x,y\n';
-	const n = Math.min(x.length, y.length);
-	for (let i = 0; i < n; i++) out += `${x[i]},${y[i]}\n`;
-	return out;
-}
+export const sampleCsv2 = (x: ArrayLike<number>, y: ArrayLike<number>) =>
+	columnsCsv(['x', 'y'], [x, y]);
