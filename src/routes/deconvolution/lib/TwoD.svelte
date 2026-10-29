@@ -743,11 +743,13 @@
 		{/each}
 	</fieldset>
 	<p class="muted">g-modeling and kernel deconvolution are 1D only.</p>
-	<label class="check">
-		<input type="checkbox" bind:checked={settings.fitNoise2} data-testid="fit-noise2" />
-		The parametric fit also fits the noise
-	</label>
-	<p class="muted">The NPMLE and the mixture use the noise as entered.</p>
+	{#if settings.noise2 === 'known'}
+		<label class="check">
+			<input type="checkbox" bind:checked={settings.fitNoise2} data-testid="fit-noise2" />
+			The parametric fit also fits the noise
+		</label>
+		<p class="muted">The NPMLE and the mixture use the noise as entered.</p>
+	{/if}
 </Panel>
 
 <RunControls
