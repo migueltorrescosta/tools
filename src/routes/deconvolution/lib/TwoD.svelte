@@ -23,8 +23,9 @@
 	import { EstimatePool, StoppedError } from '$lib/deconvolution/engine';
 	import { l1_2, slicedW1 } from '$lib/deconvolution/metrics2';
 	import type { Mle2Input, Mle2Result } from '$lib/deconvolution/mle2';
-	import { summarise, type Chain, type ParamPosterior } from '$lib/deconvolution/bayes';
-	import { runChains } from './chains';
+	import type { ParamPosterior } from '$lib/deconvolution/bayes';
+	import { posteriorCells, posteriorColumns, type PosteriorCells } from './chains';
+	import Posteriors from './Posteriors.svelte';
 	import { supportGrid2 } from '$lib/deconvolution/npmle2';
 	import { bands, histogram, simulate2 } from '$lib/deconvolution/sample';
 	import {
@@ -190,8 +191,7 @@
 	let npost = $state.raw<
 		{ axis: 0 | 1; mean: Float64Array; lower: Float64Array; upper: Float64Array }[] | null
 	>(null);
-	let chainProgress = $state<{ what: 'bayes' | 'npmle'; done: number; total: number } | null>(null);
-	let bayesDraws = $state(2000);
+	let chainsRunning = $state(false);
 	const canRun = $derived(!!data && modelValid && chosen.length > 0 && !running && !booting);
 
 	async function start() {
@@ -330,31 +330,16 @@
 		{ key: 'note', label: 'Note' }
 	];
 
-	type ParamRow = {
+	type ParamRow = PosteriorCells & {
 		id: string;
 		role: string;
 		param: string;
 		value: number;
 		ci: string;
-		median?: number;
-		cri?: string;
-		rhat?: number;
-		ess?: number;
 	};
-	const posteriorOf = (p: { role: string; component: number | null; key: string }) =>
-		bayes?.find((b) => b.role === p.role && b.component === p.component && b.key === p.key);
-	function bayesCells(b: ParamPosterior | undefined): Partial<ParamRow> {
-		if (!b) return {};
-		return {
-			median: b.median,
-			cri: `${fmt(b.lower)} – ${fmt(b.upper)}`,
-			rhat: b.rhat,
-			ess: b.ess
-		};
-	}
 	const paramRows = $derived.by((): ParamRow[] =>
 		(run?.mle?.params ?? []).map((p, i) => ({
-			...bayesCells(posteriorOf(p)),
+			...posteriorCells(bayes, p),
 			id: `${i}`,
 			role:
 				(p.role === 'signal' ? 'X' : 'Y') + (p.component === null ? '' : ` (${p.component + 1})`),
@@ -375,54 +360,11 @@
 		{ key: 'param', label: 'Parameter' },
 		{ key: 'value', label: 'Estimate', align: 'right', format: (v) => fmt(v as number, 4) },
 		{ key: 'ci', label: '95% interval', align: 'right' },
-		...(bayes
-			? ([
-					{
-						key: 'median',
-						label: 'Posterior median',
-						align: 'right',
-						format: (v) => fmt(v as number | undefined, 4)
-					},
-					{
-						key: 'cri',
-						label: '95% credible',
-						align: 'right',
-						format: (v) => (v as string) ?? '–'
-					},
-					{
-						key: 'rhat',
-						label: 'R̂',
-						align: 'right',
-						format: (v) => fmt(v as number | undefined, 4)
-					},
-					{
-						key: 'ess',
-						label: 'ESS',
-						align: 'right',
-						format: (v) => fmt(v as number | undefined, 2)
-					}
-				] satisfies Column<ParamRow>[])
-			: [])
+		...(bayes ? posteriorColumns<ParamRow>() : [])
 	]);
 	const id = $derived(run?.mle?.identifiability ?? null);
 	const of = (d: { label: string; role: 'signal' | 'noise'; component: number | null }) =>
 		`${d.label} of ${d.role === 'signal' ? 'X' : 'Y'}${d.component === null ? '' : ` (component ${d.component + 1})`}`;
-	const bayesBlocked = $derived(
-		!run?.mle
-			? null
-			: run.mle.x.family === 'mixture2'
-				? 'Not offered for mixtures: their components swap labels and have no objective prior. The NPMLE posterior below gives bands without a model.'
-				: run.mle.identifiability.flat
-					? 'The data can’t separate these parameters (see above), so no prior makes the posterior proper.'
-					: null
-	);
-	const unconverged = $derived(bayes?.filter((b) => b.rhat > 1.01) ?? []);
-	const atBoxEdge = $derived(bayes?.filter((b) => b.edge) ?? []);
-	const labelOf = (b: ParamPosterior) =>
-		run?.mle?.params.find(
-			(p) => p.role === b.role && p.component === b.component && p.key === b.key
-		)?.label ?? b.key;
-
 	// --- Bootstrap (Gaussian mixture only: the NPMLE gives point masses) ---
 	let boot = $state.raw<{ lower: Float64Array; upper: Float64Array; axis: 0 | 1 }[] | null>(null);
 	let bootDone = $state(0);
@@ -535,102 +477,18 @@
 	});
 	const cellOf = (g: Grid2) => g.hx * g.hy;
 
-	// --- Bayesian fit and NPMLE posterior ---
-	const CHAINS = 4;
-	const STEPS_PER_CHUNK = 100;
-
-	async function bayesFit() {
-		if (!run?.mle || bayesBlocked) return;
-		const { mle, mleInput } = run;
-		const draws = Math.min(20_000, Math.max(100, Math.round(bayesDraws) || 1000));
-		const warmup = Math.round(draws / 2);
-		const chunks = Math.ceil((warmup + draws) / STEPS_PER_CHUNK);
-		const seed = settings.seed;
-		let free: Parameters<typeof summarise>[0] = [];
-		let box: [number, number][] = [];
-		bayes = null;
-		runError = '';
-		chainProgress = { what: 'bayes', done: 0, total: CHAINS * chunks };
-		try {
-			const chains = await runChains<Chain, number[]>(getPool(), {
-				chains: CHAINS,
-				chunks,
-				task: (c, k, chain) => ({
-					kind: 'bayes',
-					model: { dim: 2, input: mleInput, fit: { x: mle.x, y: mle.y } },
-					chain,
-					steps: Math.min(STEPS_PER_CHUNK, warmup + draws - k * STEPS_PER_CHUNK),
-					warmup,
-					seed: seed * 7919 + 1000 * c + 2 * k
-				}),
-				read: (r) => {
-					if (r.kind !== 'bayes') throw new Error('Unexpected result');
-					({ free, box } = r);
-					return { state: r.chain, draws: r.draws };
-				},
-				progress: (done) => chainProgress && (chainProgress.done = done)
+	// --- NPMLE posterior: the draws' marginals, as a mean and a 90% band per axis ---
+	function npmleBand(draws: Float64Array[]) {
+		const grid = run!.grid;
+		return ([0, 1] as const).map((axis) => {
+			const ms = draws.map((mass) => {
+				const m = marginal({ grid, mass }, axis);
+				return m.mass.map((v) => v / m.grid.h);
 			});
-			bayes = summarise(free, box, chains);
-		} catch (err) {
-			runError = err instanceof StoppedError ? 'Bayesian fit stopped.' : (err as Error).message;
-		} finally {
-			chainProgress = null;
-		}
-	}
-
-	const SWEEPS_PER_CHUNK = 25;
-	const POSTERIOR_CHUNKS = { warmup: 2, kept: 2 };
-
-	async function npmlePosterior() {
-		if (!run) return;
-		const current = run;
-		const chunks = POSTERIOR_CHUNKS.warmup + POSTERIOR_CHUNKS.kept;
-		const seed = settings.seed;
-		npost = null;
-		runError = '';
-		chainProgress = { what: 'npmle', done: 0, total: CHAINS * chunks };
-		try {
-			const chains = await runChains<Float64Array, Float64Array>(getPool(), {
-				chains: CHAINS,
-				chunks,
-				task: (c, k, mass) => ({
-					kind: 'posterior2',
-					xs: current.xs,
-					ys: current.ys,
-					y: current.y,
-					grid: current.grid,
-					mass,
-					sweeps: SWEEPS_PER_CHUNK,
-					seed: seed * 7919 + 1000 * c + k
-				}),
-				read: (r, k) => {
-					if (r.kind !== 'posterior2') throw new Error('Unexpected result');
-					return {
-						state: r.masses[r.masses.length - 1],
-						draws: k >= POSTERIOR_CHUNKS.warmup ? r.masses : []
-					};
-				},
-				progress: (done) => chainProgress && (chainProgress.done = done)
-			});
-			const keptMasses = chains.flat();
-			npost = ([0, 1] as const).map((axis) => {
-				const ms = keptMasses.map((mass) => {
-					const m = marginal({ grid: current.grid, mass }, axis);
-					return m.mass.map((v) => v / m.grid.h);
-				});
-				const meanArr = new Float64Array(ms[0].length);
-				for (let j = 0; j < meanArr.length; j++) {
-					let s = 0;
-					for (const d of ms) s += d[j];
-					meanArr[j] = s / ms.length;
-				}
-				return { axis, mean: meanArr, ...bands(ms) };
-			});
-		} catch (err) {
-			runError = err instanceof StoppedError ? 'NPMLE posterior stopped.' : (err as Error).message;
-		} finally {
-			chainProgress = null;
-		}
+			const mean = new Float64Array(ms[0].length);
+			for (const d of ms) for (let j = 0; j < mean.length; j++) mean[j] += d[j] / ms.length;
+			return { axis, mean, ...bands(ms) };
+		});
 	}
 </script>
 
@@ -791,7 +649,7 @@
 <RunControls
 	onrun={start}
 	{running}
-	disabled={!canRun || !!chainProgress}
+	disabled={!canRun || chainsRunning}
 	describedby="run2-why"
 	onstop={stop}
 >
@@ -885,90 +743,37 @@
 					rowKey={(r) => r.id}
 				/>
 			{/if}
-			{#if run.mle}
-				<div class="subsection">
-					<h4>Bayesian fit</h4>
-					<p class="muted">
-						Samples the parametric model's posterior under an objective (Jeffreys) prior: 4 chains,
-						half of each spent warming up. Credible intervals behave better than the 95% intervals
-						near a range's edge and in small samples.
-					</p>
-					{#if bayesBlocked}
-						<p class="muted" data-testid="bayes2-blocked">{bayesBlocked}</p>
-					{:else}
-						<div class="row">
-							<Field label="Draws per chain">
-								{#snippet children(props)}
-									<input
-										class="control"
-										type="number"
-										min="100"
-										max="20000"
-										step="100"
-										bind:value={bayesDraws}
-										data-testid="bayes2-draws"
-										{...props}
-									/>
-								{/snippet}
-							</Field>
-						</div>
-						<div class="buttons">
-							<Button
-								onclick={bayesFit}
-								disabled={running || booting || !!chainProgress}
-								data-testid="bayes2">Run Bayesian fit</Button
-							>
-							<Button variant="danger" onclick={stop} disabled={chainProgress?.what !== 'bayes'}
-								>Stop</Button
-							>
-							{#if chainProgress?.what === 'bayes'}<span class="muted" role="status"
-									>{Math.round((100 * chainProgress.done) / chainProgress.total)}%</span
-								>{/if}
-						</div>
-					{/if}
-					{#if unconverged.length}
-						<Alert tone="warning">
-							<span data-testid="rhat">
-								The chains disagree for {unconverged.map(labelOf).join(', ')} (R̂ above 1.01), so
-								{unconverged.length === 1 ? 'its interval isn’t' : 'their intervals aren’t'} reliable
-								yet. Run more draws.
-							</span>
-						</Alert>
-					{/if}
-					{#if atBoxEdge.length}
-						<Alert tone="warning">
-							<span data-testid="bayes-edge">
-								Draws of {atBoxEdge.map(labelOf).join(' and ')} pile up at the edge of the allowed range,
-								so the posterior may be improper there and the interval isn’t meaningful. Fix the noise
-								or pick families the data can tell apart.
-							</span>
-						</Alert>
-					{/if}
-				</div>
-			{/if}
-			{#if run.grids.some((g) => g.method === 'npmle')}
-				<div class="subsection">
-					<h4>NPMLE posterior</h4>
-					<p class="muted">
-						Samples the grid masses under a Dirichlet prior with 1/4,096 per point on the 64 × 64
-						grid and shades where 90% of the draws' marginals fall, with the noise the other methods
-						used.
-					</p>
-					<div class="buttons">
-						<Button
-							onclick={npmlePosterior}
-							disabled={running || booting || !!chainProgress}
-							data-testid="npmle2-posterior">Run NPMLE posterior</Button
-						>
-						<Button variant="danger" onclick={stop} disabled={chainProgress?.what !== 'npmle'}
-							>Stop</Button
-						>
-						{#if chainProgress?.what === 'npmle'}<span class="muted" role="status"
-								>{Math.round((100 * chainProgress.done) / chainProgress.total)}%</span
-							>{/if}
-					</div>
-				</div>
-			{/if}
+			<Posteriors
+				pool={getPool}
+				seed={settings.seed}
+				busy={running || booting}
+				model={run.mle
+					? { dim: 2, input: run.mleInput, fit: { x: run.mle.x, y: run.mle.y } }
+					: null}
+				mixture={run.mle?.x.family === 'mixture2'}
+				flat={!!run.mle?.identifiability.flat}
+				params={run.mle?.params ?? []}
+				defaultDraws={2000}
+				npmleTask={run.grids.some((g) => g.method === 'npmle')
+					? (mass, sweeps, seed) => ({
+							kind: 'posterior2',
+							xs: run!.xs,
+							ys: run!.ys,
+							y: run!.y,
+							grid: run!.grid,
+							mass,
+							sweeps,
+							seed
+						})
+					: null}
+				{npmleBand}
+				priorText="1/4,096 per point on the 64 × 64 grid (marginals shaded)"
+				suffix="2"
+				bind:bayes
+				onband={(b) => (npost = b)}
+				onrunning={(r) => (chainsRunning = r)}
+				onerror={(m) => (runError = m)}
+			/>
 			{#if run.grids.some((g) => g.method === 'gmm')}
 				<div class="subsection">
 					<h4>Bootstrap bands</h4>
@@ -994,7 +799,7 @@
 					<div class="buttons">
 						<Button
 							onclick={bootstrap}
-							disabled={booting || running || !!chainProgress}
+							disabled={booting || running || chainsRunning}
 							data-testid="bootstrap2">Run bootstrap</Button
 						>
 						<Button variant="danger" onclick={stop} disabled={!booting}>Stop</Button>
