@@ -99,7 +99,8 @@
 		phase: 'Reads X from the data’s phase; the noise only needs to be symmetric.',
 		kotlarski: 'Uses two or more readings of each X to recover both X and the noise.'
 	};
-	const methodColour = (m: MethodId) => dataColour(METHODS.indexOf(m) + 1);
+	// Phase would land on the eighth colour, the grey of the histogram: it takes the ninth.
+	const methodColour = (m: MethodId) => dataColour(m === 'phase' ? 8 : METHODS.indexOf(m) + 1);
 
 	let settings = $state<Settings>(presetSettings());
 
@@ -591,7 +592,12 @@
 				label: 'Noise Y, parametric fit',
 				colour: methodColour('mle')
 			});
-		if (run.grids.length && !(run.mle && JSON.stringify(run.mle.y) === JSON.stringify(run.noise)))
+		// Only known noise has one the other methods used.
+		if (
+			run.regime === 'known' &&
+			run.grids.length &&
+			!(run.mle && JSON.stringify(run.mle.y) === JSON.stringify(run.noise))
+		)
 			noises.push({
 				spec: run.noise,
 				key: 'noise',
@@ -1251,45 +1257,52 @@
 						onerror={(m) => (runError = m)}
 					/>
 
-					<div class="subsection">
-						<h4>Compare signal families</h4>
-						<p class="muted">
-							Fits every family for X with this noise and ranks them by BIC (lower is better).
-						</p>
-						<div>
-							<Button
-								onclick={compare}
-								disabled={comparing || running || booting || chainsRunning}
-								data-testid="compare"
-							>
-								{comparing ? 'Comparing…' : 'Compare families'}
-							</Button>
+					{#if run.regime === 'known'}
+						<div class="subsection">
+							<h4>Compare signal families</h4>
+							<p class="muted">
+								Fits every family for X with this noise and ranks them by BIC (lower is better).
+							</p>
+							<div>
+								<Button
+									onclick={compare}
+									disabled={comparing || running || booting || chainsRunning}
+									data-testid="compare"
+								>
+									{comparing ? 'Comparing…' : 'Compare families'}
+								</Button>
+							</div>
+							{#if compareRows.length}
+								<DataTable
+									caption="Signal families by BIC"
+									columns={[
+										{ key: 'family', label: 'X family' },
+										{
+											key: 'logLik',
+											label: 'Log-lik',
+											align: 'right',
+											format: (v) => fmt(v as number, 6)
+										},
+										{ key: 'k', label: 'Params', align: 'right' },
+										{
+											key: 'bic',
+											label: 'BIC',
+											align: 'right',
+											format: (v) => fmt(v as number, 6)
+										},
+										{
+											key: 'delta',
+											label: 'ΔBIC',
+											align: 'right',
+											format: (v) => fmt(v as number, 4)
+										}
+									]}
+									rows={compareRows}
+									rowKey={(r) => r.id}
+								/>
+							{/if}
 						</div>
-						{#if compareRows.length}
-							<DataTable
-								caption="Signal families by BIC"
-								columns={[
-									{ key: 'family', label: 'X family' },
-									{
-										key: 'logLik',
-										label: 'Log-lik',
-										align: 'right',
-										format: (v) => fmt(v as number, 6)
-									},
-									{ key: 'k', label: 'Params', align: 'right' },
-									{ key: 'bic', label: 'BIC', align: 'right', format: (v) => fmt(v as number, 6) },
-									{
-										key: 'delta',
-										label: 'ΔBIC',
-										align: 'right',
-										format: (v) => fmt(v as number, 4)
-									}
-								]}
-								rows={compareRows}
-								rowKey={(r) => r.id}
-							/>
-						{/if}
-					</div>
+					{/if}
 
 					{#if runGrids.some((g) => g.method !== 'npmle') && run?.regime === 'known'}
 						<div class="subsection">

@@ -359,6 +359,9 @@ test.describe('Noise regimes', () => {
 		await expect(
 			table.getByRole('cell', { name: 'Phase (symmetric noise)', exact: true })
 		).toBeVisible();
+		// The entered noise played no part, and comparing families needs a known one.
+		await expect(page.getByTestId('estimate-chart').getByTestId('curve-noise')).toHaveCount(0);
+		await expect(page.getByTestId('compare')).toHaveCount(0);
 	});
 
 	test('repeated measurements recover the signal and the noise', async ({ page }) => {
