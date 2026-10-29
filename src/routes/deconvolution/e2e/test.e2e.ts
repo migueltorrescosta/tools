@@ -2,14 +2,18 @@ import { expect, test, type Page } from '@playwright/test';
 
 const PREFIX = 'deconvolution:';
 
-/** The page container (not the top bar) sets data-hydrated once the router is ready. */
-function hydrated(page: Page) {
-	return page.getByRole('main').locator('[data-hydrated]');
+/**
+ * Waits until both the page container and the layout's top bar set data-hydrated:
+ * a select changed before the layout hydrates can lose its change.
+ */
+async function ready(page: Page) {
+	await expect(page.getByRole('main').locator('[data-hydrated]')).toBeVisible();
+	await expect(page.getByRole('navigation', { name: 'Site' })).toHaveAttribute('data-hydrated');
 }
 
 async function open(page: Page, hash = '') {
 	await page.goto(`/deconvolution${hash}`);
-	await expect(hydrated(page)).toBeVisible();
+	await ready(page);
 }
 
 async function run(page: Page) {
@@ -156,12 +160,57 @@ test('bootstrap can be stopped, and shades a band when it finishes', async ({ pa
 	});
 });
 
+test('the Bayesian fit can be stopped, and adds credible intervals next to the MLE', async ({
+	page
+}) => {
+	test.setTimeout(120_000);
+	await open(page);
+	await page.getByTestId('method-npmle').uncheck();
+	await run(page);
+	const results = page.getByTestId('results');
+	await page.getByTestId('bayes-draws').fill('20000');
+	await page.getByTestId('bayes').click();
+	await results.getByRole('button', { name: 'Stop' }).first().click();
+	await expect(page.getByText('Bayesian fit stopped.')).toBeVisible();
+	await page.getByTestId('bayes-draws').fill('200');
+	await page.getByTestId('bayes').click();
+	const table = page.getByRole('table', { name: 'Parametric fit' });
+	await expect(table.getByRole('columnheader', { name: 'Posterior median' })).toBeVisible({
+		timeout: 60_000
+	});
+	const row = table
+		.getByRole('row')
+		.filter({ has: page.getByRole('cell', { name: 'k', exact: true }) });
+	const median = Number(await row.getByRole('cell').nth(4).innerText());
+	expect(Math.abs(median - 3)).toBeLessThan(1);
+});
+
+test('mixtures get no Bayesian fit', async ({ page }) => {
+	await open(page);
+	await page.getByTestId('preset').selectOption('two-peaks');
+	await page.getByTestId('method-npmle').uncheck();
+	await run(page);
+	await expect(page.getByTestId('bayes-blocked')).toContainText('Not offered for mixtures');
+	await expect(page.getByTestId('bayes')).toHaveCount(0);
+});
+
+test('the NPMLE posterior draws its mean and a credible band', async ({ page }) => {
+	test.setTimeout(120_000);
+	await open(page);
+	await page.getByTestId('method-mle').uncheck();
+	await run(page);
+	await page.getByTestId('npmle-posterior').click();
+	const chart = page.getByTestId('estimate-chart');
+	await expect(chart.getByTestId('curve-npmle-post')).toBeVisible({ timeout: 60_000 });
+	await expect(chart.locator('path.band')).toBeVisible();
+});
+
 test('settings survive a reload and travel in the share link', async ({ page }) => {
 	await open(page);
 	await page.getByTestId('n').fill('500');
 	await page.getByTestId('seed').fill('42');
 	await page.reload();
-	await expect(hydrated(page)).toBeVisible();
+	await ready(page);
 	await expect(page.getByTestId('n')).toHaveValue('500');
 	await expect(page.getByTestId('seed')).toHaveValue('42');
 });
@@ -239,7 +288,7 @@ test.describe('2D', () => {
 		await page.getByTestId('x2-family').selectOption('gauss2');
 		await page.getByTestId('x2-rho').fill('0.7');
 		await page.reload();
-		await expect(hydrated(page)).toBeVisible();
+		await ready(page);
 		await expect(page.getByRole('radio', { name: '2D' })).toBeChecked();
 		await expect(page.getByTestId('x2-rho')).toHaveValue('0.7');
 	});
@@ -256,5 +305,35 @@ test.describe('2D', () => {
 		await expect(page.getByTestId('estimate-marginal-x').locator('path.band')).toBeVisible({
 			timeout: 120_000
 		});
+	});
+
+	test('the 2D Bayesian fit adds credible intervals', async ({ page }) => {
+		test.setTimeout(120_000);
+		await open2d(page);
+		await page.getByTestId('x2-family').selectOption('gauss2');
+		await page.getByTestId('method2-npmle').uncheck();
+		await run(page);
+		await page.getByTestId('bayes2-draws').fill('200');
+		await page.getByTestId('bayes2').click();
+		await expect(
+			page
+				.getByRole('table', { name: 'Parametric fit' })
+				.getByRole('columnheader', { name: 'Posterior median' })
+		).toBeVisible({
+			timeout: 90_000
+		});
+	});
+
+	test('the 2D NPMLE posterior shades credible bands', async ({ page }) => {
+		test.setTimeout(120_000);
+		await open2d(page);
+		await page.getByTestId('method2-mle').uncheck();
+		await page.getByTestId('method2-npmle').check();
+		await run(page);
+		await page.getByTestId('npmle2-posterior').click();
+		await expect(page.getByTestId('estimate-marginal-x').locator('path.band')).toBeVisible({
+			timeout: 90_000
+		});
+		await expect(page.getByTestId('curve-npmle-post').first()).toBeVisible();
 	});
 });

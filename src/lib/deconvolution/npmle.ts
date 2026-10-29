@@ -5,6 +5,8 @@
  * then constrained Newton steps (Wang 2007), until the KW optimality
  * condition holds. No DOM or Svelte imports.
  */
+import type { Prng } from '$lib/prng';
+import { logGammaDraw } from '$lib/variates';
 import { binData } from './binning';
 import { nnls } from './linalg';
 import { dataWindow } from './grid';
@@ -258,4 +260,58 @@ export function fitNpmle({ data, y, grid, ...options }: NpmleInput): NpmleResult
 	const { z, c } = binData(data);
 	const g = grid ?? supportGrid(data);
 	return { grid: g, ...solveNpmle(likelihoodMatrix(z, y, g), c, g.m, options) };
+}
+
+/**
+ * Draws of the masses on the support under a Dirichlet(a, …, a) prior, by
+ * Gibbs sampling with data augmentation: each sweep assigns every point to a
+ * support point with probability ∝ w_j L_ij, then draws w from
+ * Dirichlet(a + counts). The default a = 1/m is Berger, Bernardo & Sun's
+ * (2015) overall objective prior for many cells. Counts c must be whole.
+ * Returns the masses after each sweep; `w` is the starting masses.
+ */
+export function dirichletGibbs(
+	L: Float64Array,
+	c: Float64Array,
+	m: number,
+	w: Float64Array,
+	sweeps: number,
+	prng: Prng,
+	a = 1 / m
+): Float64Array[] {
+	const out: Float64Array[] = [];
+	const cum = new Float64Array(m);
+	const counts = new Float64Array(m);
+	const logG = new Float64Array(m);
+	let cur = w;
+	for (let s = 0; s < sweeps; s++) {
+		counts.fill(0);
+		for (let i = 0; i < c.length; i++) {
+			let total = 0;
+			for (let j = 0; j < m; j++) cum[j] = total += cur[j] * L[i * m + j];
+			if (!(total > 0)) continue;
+			for (let k = 0; k < c[i]; k++) {
+				// The first support point whose cumulative weight passes u.
+				const u = prng.next() * total;
+				let lo = 0;
+				let hi = m - 1;
+				while (lo < hi) {
+					const mid = (lo + hi) >> 1;
+					if (cum[mid] > u) hi = mid;
+					else lo = mid + 1;
+				}
+				counts[lo]++;
+			}
+		}
+		// Dirichlet draw through log-gammas: shapes near 1/m underflow as plain gammas.
+		let top = -Infinity;
+		for (let j = 0; j < m; j++) top = Math.max(top, (logG[j] = logGammaDraw(prng, a + counts[j])));
+		let total = 0;
+		const next = new Float64Array(m);
+		for (let j = 0; j < m; j++) total += next[j] = Math.exp(logG[j] - top);
+		for (let j = 0; j < m; j++) next[j] /= total;
+		out.push(next);
+		cur = next;
+	}
+	return out;
 }

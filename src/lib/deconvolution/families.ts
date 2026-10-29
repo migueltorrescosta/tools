@@ -297,6 +297,46 @@ const gamma: Family = {
 			th * Math.exp(logGammaDraw(prng, k))
 };
 
+/**
+ * E[e^{itX}] for a lognormal, as ∫ e^{it·med·e^{su}} φ(u) du by Simpson's
+ * rule in u. Steps keep the phase change under π/16 per step, so the fast
+ * oscillation of the upper tail is resolved. The tail is dropped once it
+ * can't matter: its mass, or 2 f(x)/|t| by integrating by parts (f falls
+ * there), is below 1e-7.
+ */
+function lognormalCf(t: number, med: number, s: number): [number, number] {
+	if (t === 0) return [1, 0];
+	const at = Math.abs(t);
+	let hi = 0;
+	while (hi < 9) {
+		const phi = Math.exp(-0.5 * hi * hi) / SQRT_2PI;
+		// Mass past hi is below φ(hi)/hi; f(x) = φ(hi)/(x s).
+		if (Math.min(phi / hi, (2 * phi) / (med * Math.exp(s * hi) * s * at)) < 1e-7) break;
+		hi += 0.05;
+	}
+	const g = (u: number): [number, number] => {
+		const w = Math.exp(-0.5 * u * u) / SQRT_2PI;
+		const p = t * med * Math.exp(s * u);
+		return [w * Math.cos(p), w * Math.sin(p)];
+	};
+	let re = 0;
+	let im = 0;
+	let u = -9;
+	let [r0, i0] = g(u);
+	while (u < hi) {
+		// Phase rate at the far end of the pair of steps: it only grows with u.
+		const rate = at * med * s * Math.exp(s * Math.min(hi, u + 0.02));
+		const du = Math.min(0.01, (hi - u) / 2, Math.PI / (16 * rate));
+		const [r1, i1] = g(u + du);
+		const [r2, i2] = g(u + 2 * du);
+		re += (du / 3) * (r0 + 4 * r1 + r2);
+		im += (du / 3) * (i0 + 4 * i1 + i2);
+		u += 2 * du;
+		[r0, i0] = [r2, i2];
+	}
+	return [re, im];
+}
+
 const lognormal: Family = {
 	id: 'lognormal',
 	name: 'Lognormal',
@@ -310,26 +350,7 @@ const lognormal: Family = {
 		const u = Math.log(x / med) / s;
 		return Math.exp(-0.5 * u * u) / (x * s * SQRT_2PI);
 	},
-	cf: (t, [med, s]) => {
-		const N = 4001;
-		const U = 9;
-		const du = (2 * U) / (N - 1);
-		let re = 0;
-		let im = 0;
-		for (let i = 0; i < N; i++) {
-			const u = -U + i * du;
-			const x = med * Math.exp(s * u);
-			const w = Math.exp(-0.5 * u * u) / SQRT_2PI;
-			const c = Math.cos(t * x);
-			const sn = Math.sin(t * x);
-			const coeff = i === 0 || i === N - 1 ? 0.5 : 1;
-			re += coeff * w * c;
-			im += coeff * w * sn;
-		}
-		re *= du;
-		im *= du;
-		return [re, im];
-	},
+	cf: (t, [med, s]) => lognormalCf(t, med, s),
 	mean: ([med, s]) => med * Math.exp(0.5 * s * s),
 	variance: ([med, s]) => {
 		const v = Math.exp(s * s);

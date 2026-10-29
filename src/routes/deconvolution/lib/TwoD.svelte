@@ -22,7 +22,10 @@
 	} from '$lib/deconvolution/estimate2';
 	import { EstimatePool, StoppedError } from '$lib/deconvolution/engine';
 	import { l1_2, slicedW1 } from '$lib/deconvolution/metrics2';
-	import type { Mle2Result } from '$lib/deconvolution/mle2';
+	import type { Mle2Input, Mle2Result } from '$lib/deconvolution/mle2';
+	import type { ParamPosterior } from '$lib/deconvolution/bayes';
+	import { posteriorCells, posteriorColumns, type PosteriorCells } from './chains';
+	import Posteriors from './Posteriors.svelte';
 	import { supportGrid2 } from '$lib/deconvolution/npmle2';
 	import { bands, histogram, simulate2 } from '$lib/deconvolution/sample';
 	import {
@@ -174,6 +177,7 @@
 		y: Noise2Spec;
 		grid: Grid2;
 		mle: Mle2Result | null;
+		mleInput: Mle2Input;
 		grids: GridResult2[];
 		failures: { method: Method2; message: string }[];
 		seed: number;
@@ -183,6 +187,11 @@
 	let running = $state(false);
 	let runError = $state('');
 	let booting = $state(false);
+	let bayes = $state.raw<ParamPosterior[] | null>(null);
+	let npost = $state.raw<
+		{ axis: 0 | 1; mean: Float64Array; lower: Float64Array; upper: Float64Array }[] | null
+	>(null);
+	let chainsRunning = $state(false);
 	const canRun = $derived(!!data && modelValid && chosen.length > 0 && !running && !booting);
 
 	async function start() {
@@ -197,12 +206,20 @@
 		const grid = supportGrid2(xs, ys, 64);
 		const pool = getPool();
 		const failures: Run['failures'] = [];
+		const mleInput: Mle2Input = {
+			xs,
+			ys,
+			x: snap.x2,
+			y: snap.y2,
+			fixNoise: !snap.fitNoise2,
+			seed: snap.seed
+		};
 		try {
 			const tasks = methods.map((method) =>
 				method === 'mle'
 					? pool.run({
 							kind: 'mle2',
-							input: { xs, ys, x: snap.x2, y: snap.y2, fixNoise: !snap.fitNoise2, seed: snap.seed }
+							input: mleInput
 						})
 					: pool.run({ kind: 'grid2', method, xs, ys, y: snap.y2, grid, seed: snap.seed })
 			);
@@ -223,12 +240,15 @@
 				y: snap.y2,
 				grid,
 				mle,
+				mleInput,
 				grids,
 				failures,
 				seed: snap.seed,
 				ms: performance.now() - t0
 			};
 			boot = null;
+			bayes = null;
+			npost = null;
 		} catch (err) {
 			runError = err instanceof StoppedError ? 'Stopped.' : (err as Error).message;
 		} finally {
@@ -310,9 +330,16 @@
 		{ key: 'note', label: 'Note' }
 	];
 
-	type ParamRow = { id: string; role: string; param: string; value: number; ci: string };
+	type ParamRow = PosteriorCells & {
+		id: string;
+		role: string;
+		param: string;
+		value: number;
+		ci: string;
+	};
 	const paramRows = $derived.by((): ParamRow[] =>
 		(run?.mle?.params ?? []).map((p, i) => ({
+			...posteriorCells(bayes, p),
 			id: `${i}`,
 			role:
 				(p.role === 'signal' ? 'X' : 'Y') + (p.component === null ? '' : ` (${p.component + 1})`),
@@ -328,16 +355,16 @@
 							: '–'
 		}))
 	);
-	const paramColumns: Column<ParamRow>[] = [
+	const paramColumns = $derived<Column<ParamRow>[]>([
 		{ key: 'role', label: 'Of' },
 		{ key: 'param', label: 'Parameter' },
 		{ key: 'value', label: 'Estimate', align: 'right', format: (v) => fmt(v as number, 4) },
-		{ key: 'ci', label: '95% interval', align: 'right' }
-	];
+		{ key: 'ci', label: '95% interval', align: 'right' },
+		...(bayes ? posteriorColumns<ParamRow>() : [])
+	]);
 	const id = $derived(run?.mle?.identifiability ?? null);
 	const of = (d: { label: string; role: 'signal' | 'noise'; component: number | null }) =>
 		`${d.label} of ${d.role === 'signal' ? 'X' : 'Y'}${d.component === null ? '' : ` (component ${d.component + 1})`}`;
-
 	// --- Bootstrap (Gaussian mixture only: the NPMLE gives point masses) ---
 	let boot = $state.raw<{ lower: Float64Array; upper: Float64Array; axis: 0 | 1 }[] | null>(null);
 	let bootDone = $state(0);
@@ -420,6 +447,24 @@
 					lower: b.lower,
 					upper: b.upper
 				});
+			const np = npost?.find((q) => q.axis === axis);
+			if (np) {
+				curves.push({
+					key: 'npmle-post',
+					label: 'NPMLE posterior mean',
+					colour: colourOf('npmle'),
+					xs: nodes(axis === 0 ? { x0: g.x0, h: g.hx, m: g.mx } : { x0: g.y0, h: g.hy, m: g.my }),
+					ys: np.mean
+				});
+				bandList.push({
+					key: 'npmle-post',
+					label: 'NPMLE posterior, 90% credible band',
+					colour: colourOf('npmle'),
+					xs: nodes(axis === 0 ? { x0: g.x0, h: g.hx, m: g.mx } : { x0: g.y0, h: g.hy, m: g.my }),
+					lower: np.lower,
+					upper: np.upper
+				});
+			}
 			return {
 				axis,
 				range: [lo, hi] as [number, number],
@@ -431,6 +476,20 @@
 		});
 	});
 	const cellOf = (g: Grid2) => g.hx * g.hy;
+
+	// --- NPMLE posterior: the draws' marginals, as a mean and a 90% band per axis ---
+	function npmleBand(draws: Float64Array[]) {
+		const grid = run!.grid;
+		return ([0, 1] as const).map((axis) => {
+			const ms = draws.map((mass) => {
+				const m = marginal({ grid, mass }, axis);
+				return m.mass.map((v) => v / m.grid.h);
+			});
+			const mean = new Float64Array(ms[0].length);
+			for (const d of ms) for (let j = 0; j < mean.length; j++) mean[j] += d[j] / ms.length;
+			return { axis, mean, ...bands(ms) };
+		});
+	}
 </script>
 
 <Panel title="Model">
@@ -587,7 +646,13 @@
 	<p class="muted">The NPMLE and the mixture use the noise as entered.</p>
 </Panel>
 
-<RunControls onrun={start} {running} disabled={!canRun} describedby="run2-why" onstop={stop}>
+<RunControls
+	onrun={start}
+	{running}
+	disabled={!canRun || chainsRunning}
+	describedby="run2-why"
+	onstop={stop}
+>
 	{#if !data}
 		<p id="run2-why" class="muted">
 			{settings.source === 'uploaded' ? 'Add two-column data above first.' : 'Fix the model first.'}
@@ -678,6 +743,37 @@
 					rowKey={(r) => r.id}
 				/>
 			{/if}
+			<Posteriors
+				pool={getPool}
+				seed={settings.seed}
+				busy={running || booting}
+				model={run.mle
+					? { dim: 2, input: run.mleInput, fit: { x: run.mle.x, y: run.mle.y } }
+					: null}
+				mixture={run.mle?.x.family === 'mixture2'}
+				flat={!!run.mle?.identifiability.flat}
+				params={run.mle?.params ?? []}
+				defaultDraws={2000}
+				npmleTask={run.grids.some((g) => g.method === 'npmle')
+					? (mass, sweeps, seed) => ({
+							kind: 'posterior2',
+							xs: run!.xs,
+							ys: run!.ys,
+							y: run!.y,
+							grid: run!.grid,
+							mass,
+							sweeps,
+							seed
+						})
+					: null}
+				{npmleBand}
+				priorText="1/4,096 per point of the 64 × 64 grid"
+				suffix="2"
+				bind:bayes
+				onband={(b) => (npost = b)}
+				onrunning={(r) => (chainsRunning = r)}
+				onerror={(m) => (runError = m)}
+			/>
 			{#if run.grids.some((g) => g.method === 'gmm')}
 				<div class="subsection">
 					<h4>Bootstrap bands</h4>
@@ -701,8 +797,10 @@
 						</Field>
 					</div>
 					<div class="buttons">
-						<Button onclick={bootstrap} disabled={booting || running} data-testid="bootstrap2"
-							>Run bootstrap</Button
+						<Button
+							onclick={bootstrap}
+							disabled={booting || running || chainsRunning}
+							data-testid="bootstrap2">Run bootstrap</Button
 						>
 						<Button variant="danger" onclick={stop} disabled={!booting}>Stop</Button>
 						{#if booting}<span class="muted" role="status">{bootDone} / {settings.bootstrapB}</span

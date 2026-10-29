@@ -4,7 +4,15 @@
  * jointly, with intervals and the identifiability checks. No DOM or Svelte imports.
  */
 import { moments } from '$lib/stats';
-import { BAD, fitCore, fromFree, toFree, type CoreResult, type Slot } from './fitcore';
+import {
+	BAD,
+	fitCore,
+	fromFree,
+	toFree,
+	type CoreResult,
+	type Problem,
+	type Slot
+} from './fitcore';
 import { family } from './families';
 import {
 	FRINGE2_PARAMS,
@@ -15,8 +23,8 @@ import {
 	type Noise2Spec,
 	type Spec2
 } from './dist2';
-import { likelihoodGrid2, logLikelihood2 } from './grid2';
-import { momentParams } from './mle';
+import { chooseGrid2, likelihoodGrid2, logLikelihood2, modelBox2, zDensityOnGrid2 } from './grid2';
+import { flatParam, momentParams } from './mle';
 import type { ParamSpec } from './types';
 
 export interface Mle2Input {
@@ -34,10 +42,11 @@ export interface Mle2Input {
 
 export type Mle2Result = Omit<CoreResult<Model>, 'fit'> & { x: Spec2; y: Noise2Spec };
 
-interface Model {
+export interface Model2 {
 	x: Spec2;
 	y: Noise2Spec;
 }
+type Model = Model2;
 
 /** Where a parameter lives: the signal or noise, the product axis or mixture component, its index (−1: weight). */
 type Slot2 = Slot & { part: 'x' | 'y'; sub: 'x' | 'y' | number | null; index: number };
@@ -49,6 +58,8 @@ type Slot2 = Slot & { part: 'x' | 'y'; sub: 'x' | 'y' | number | null; index: nu
  */
 const SEARCH = { baseNodes: 24, maxNodes: 32, nodesPerWidth: 3 };
 const FINAL = { baseNodes: 96, maxNodes: 128 };
+/** The Bayesian fit's likelihood grid: a step costs a third of the final grid's (tools#65). */
+const SAMPLE = { baseNodes: 48, maxNodes: 64 };
 const AXIS = { x: 'x', y: 'y' } as const;
 
 /** The params array a slot points into. */
@@ -66,7 +77,8 @@ function slots(x: Spec2, y: Noise2Spec, fixNoise: boolean): Slot2[] {
 		sub: Slot2['sub'],
 		specs: readonly ParamSpec[],
 		fitted: (i: number, p: ParamSpec) => boolean,
-		suffix = ''
+		suffix = '',
+		flat: (i: number) => boolean = () => false
 	) =>
 		specs.forEach((p, index) =>
 			out.push({
@@ -76,17 +88,22 @@ function slots(x: Spec2, y: Noise2Spec, fixNoise: boolean): Slot2[] {
 				label: p.label + suffix,
 				domain: p.domain,
 				fitted: p.domain !== 'count' && fitted(index, p),
+				flat: flat(index),
 				part,
 				sub,
 				index
 			})
 		);
 	const all = () => true;
-	if (x.family === 'gauss2') add('x', null, GAUSS2_PARAMS, all);
-	else if (x.family === 'fringe2') add('x', null, FRINGE2_PARAMS, all);
+	// μx and μy lead the Gaussian and fringe parameters.
+	const centre = (i: number) => i < 2;
+	if (x.family === 'gauss2') add('x', null, GAUSS2_PARAMS, all, '', centre);
+	else if (x.family === 'fringe2') add('x', null, FRINGE2_PARAMS, all, '', centre);
 	else if (x.family === 'product')
-		for (const a of ['x', 'y'] as const)
-			add('x', AXIS[a], family(x[a].family).params, all, ` (${a})`);
+		for (const a of ['x', 'y'] as const) {
+			const id = x[a].family;
+			add('x', AXIS[a], family(id).params, all, ` (${a})`, (i) => flatParam(id, i));
+		}
 	else {
 		x.components.forEach((_, c) => add('x', c, GAUSS2_PARAMS, all));
 		x.components.forEach((_, c) =>
@@ -106,8 +123,16 @@ function slots(x: Spec2, y: Noise2Spec, fixNoise: boolean): Slot2[] {
 	if (y.family === 'gauss2') add('y', null, GAUSS2_PARAMS, (i) => i >= 2 && !fixNoise);
 	else
 		for (const a of ['x', 'y'] as const) {
-			const f = family(y[a].family);
-			add('y', AXIS[a], f.params, (i) => i !== f.location && !fixNoise, ` (${a})`);
+			const id = y[a].family;
+			const f = family(id);
+			add(
+				'y',
+				AXIS[a],
+				f.params,
+				(i) => i !== f.location && !fixNoise,
+				` (${a})`,
+				(i) => flatParam(id, i)
+			);
 		}
 	return out;
 }
@@ -177,15 +202,14 @@ function momentStart(xs: Float64Array, ys: Float64Array, m: Model): Model | null
 	return out;
 }
 
-export function fitMle2({
+/** The 2D model as the fitting core sees it; also the Bayesian fit's (`bayes.ts`). */
+export function mle2Problem({
 	xs,
 	ys,
 	x,
 	y,
-	fixNoise = false,
-	seed,
-	starts = 2
-}: Mle2Input): Mle2Result {
+	fixNoise = false
+}: Mle2Input): Problem<Model, Grid2> & { slots: Slot2[] } {
 	const all = slots(x, y, fixNoise);
 	const m0: Model = { x, y };
 	const startModels = [m0];
@@ -205,34 +229,51 @@ export function fitMle2({
 			return BAD;
 		}
 	};
-	const r = fitCore<Model, Grid2>(
-		{
-			slots: all,
-			encode: (m) => encode(all, m),
-			decode: (theta) => decode(all, theta, m0),
-			valid,
-			grid: (m, final) =>
-				likelihoodGrid2(
-					makeDist2(m.x, 'signal'),
-					makeDist2(m.y, 'noise'),
-					xs,
-					ys,
-					final ? FINAL : SEARCH
-				),
-			nll,
-			values: (m) =>
-				all.map((s) =>
-					s.domain === 'weight'
-						? (m.x as Extract<Spec2, { family: 'mixture2' }>).components[s.sub as number].weight
-						: arrayOf(m, s)[s.index]
-				),
-			starts: startModels,
-			n: xs.length,
-			sd: Math.sqrt(Math.min(moments(xs).variance, moments(ys).variance))
+	return {
+		slots: all,
+		encode: (m) => encode(all, m),
+		decode: (theta) => decode(all, theta, m0),
+		valid,
+		grid: (m, final) =>
+			likelihoodGrid2(
+				makeDist2(m.x, 'signal'),
+				makeDist2(m.y, 'noise'),
+				xs,
+				ys,
+				final ? FINAL : SEARCH
+			),
+		nll,
+		infoGrid: (m) => {
+			const X = makeDist2(m.x, 'signal');
+			const Y = makeDist2(m.y, 'noise');
+			return chooseGrid2(modelBox2(X, Y, 1e-4), X, Y, SEARCH);
 		},
-		seed,
-		starts
-	);
+		cells: (m, g) =>
+			zDensityOnGrid2(makeDist2(m.x, 'signal'), makeDist2(m.y, 'noise'), g).map(
+				(f) => f * g.hx * g.hy
+			),
+		values: (m) =>
+			all.map((s) =>
+				s.domain === 'weight'
+					? (m.x as Extract<Spec2, { family: 'mixture2' }>).components[s.sub as number].weight
+					: arrayOf(m, s)[s.index]
+			),
+		starts: startModels,
+		n: xs.length,
+		sd: Math.sqrt(Math.min(moments(xs).variance, moments(ys).variance))
+	};
+}
+
+/** The grid a Bayesian fit samples on, around the MLE `m`. */
+export const sampleGrid2 = ({ xs, ys }: Mle2Input, m: Model): Grid2 =>
+	likelihoodGrid2(makeDist2(m.x, 'signal'), makeDist2(m.y, 'noise'), xs, ys, SAMPLE);
+
+export function fitMle2(input: Mle2Input): Mle2Result {
+	const { seed, starts = 2 } = input;
+	const problem = mle2Problem(input);
+	const all: Slot2[] = problem.slots;
+	const m0: Model = { x: input.x, y: input.y };
+	const r = fitCore(problem, seed, starts);
 	// Parameters held at 0 by definition (the noise's locations) aren't reported.
 	const shown = all.map(
 		(s) =>

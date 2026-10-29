@@ -403,3 +403,32 @@ describe('helpers', () => {
 		expect(normalHalfWidth(0.3173)).toBeGreaterThan(1);
 	});
 });
+
+describe('lognormal characteristic function at large t', () => {
+	// Reference: rotate the contour onto the positive imaginary axis, where e^{itx} decays:
+	// φ(t) = ∫ exp(−t e^v − (v − μ + iπ/2)²/2σ²) dv / (σ√2π), with v = ln y, μ = ln median.
+	function rotated(t: number, med: number, s: number): [number, number] {
+		const mu = Math.log(med);
+		let re = 0;
+		let im = 0;
+		const dv = 1e-4;
+		for (let v = mu - 12 * s; v < mu + 12 * s; v += dv) {
+			const a = v - mu;
+			const mag = Math.exp(-t * Math.exp(v) - (a * a - (Math.PI * Math.PI) / 4) / (2 * s * s));
+			const ph = -(Math.PI * a) / (2 * s * s);
+			re += mag * Math.cos(ph);
+			im += mag * Math.sin(ph);
+		}
+		const k = dv / (s * Math.sqrt(2 * Math.PI));
+		return [re * k, im * k];
+	}
+
+	it.each([
+		[1, 1.5, 50],
+		[1, 1.5, 100],
+		[1, 1, 100],
+		[2, 0.8, 30]
+	])('median %f, σ %f, t %f within 1e-3', (med, s, t) => {
+		cfClose(family('lognormal').cf(t, [med, s]), rotated(t, med, s), 1e-3);
+	});
+});
