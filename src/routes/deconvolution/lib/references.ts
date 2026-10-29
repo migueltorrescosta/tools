@@ -66,5 +66,27 @@ export const REFERENCES: readonly Reference[] = [
 		href: 'https://doi.org/10.3150/bj/1116340297',
 		impact:
 			'When the noise’s scale can be estimated too: only if the signal is rougher than the noise.'
+	},
+	{
+		cite: 'Jeffreys, H. (1946).',
+		title: 'An invariant form for the prior probability in estimation problems.',
+		venue: 'Proceedings of the Royal Society A 186(1007).',
+		href: 'https://doi.org/10.1098/rspa.1946.0056',
+		impact:
+			'The prior of the Bayesian fit: √det of the Fisher information, here of the observed f_Z.'
+	},
+	{
+		cite: 'Haario, H., Saksman, E. & Tamminen, J. (2001).',
+		title: 'An adaptive Metropolis algorithm.',
+		venue: 'Bernoulli 7(2).',
+		href: 'https://doi.org/10.2307/3318737',
+		impact: 'The sampler of the Bayesian fit: random-walk steps shaped by the draws so far.'
+	},
+	{
+		cite: 'Berger, J. O., Bernardo, J. M. & Sun, D. (2015).',
+		title: 'Overall objective priors.',
+		venue: 'Bayesian Analysis 10(1).',
+		href: 'https://doi.org/10.1214/14-BA915',
+		impact: 'The Dirichlet(1/m) prior of the NPMLE posterior, objective for grids of many cells.'
 	}
 ];

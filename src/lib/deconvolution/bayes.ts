@@ -18,7 +18,7 @@ const EDGE = 1e-3;
 /** A draw within this share of the box's width from an edge counts as at the edge. */
 const EDGE_ZONE = 0.02;
 /** More than this share of draws at an edge flags the parameter. */
-export const EDGE_SHARE = 0.05;
+const EDGE_SHARE = 0.05;
 /** Iterations of warm-up before the proposal adapts, and between its updates. */
 const ADAPT_START = 200;
 const ADAPT_EVERY = 100;
