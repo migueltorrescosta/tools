@@ -30,6 +30,8 @@
 		if (file.size > 10 * 1024 * 1024) {
 			uploaded = {
 				dim: 1,
+				width: 1,
+				columns: [],
 				data: new Float64Array(0),
 				data2: new Float64Array(0),
 				header: false,
@@ -56,7 +58,7 @@
 		<div class="upload">
 			<Field
 				label="CSV or text file"
-				hint="One column of numbers (1D) or two (2D); a header line is fine."
+				hint="One column of numbers, or more: the Noise setting says what extra columns hold. A header line is fine."
 			>
 				{#snippet children(props)}
 					<input
@@ -87,9 +89,13 @@
 				{:else}
 					<p class="muted" data-testid="upload-status">
 						{uploaded.data.length.toLocaleString('en')}
-						{uploaded.dim === 2 ? 'points (2 columns)' : 'numbers'}{name
-							? ` from ${name}`
-							: ''}{uploaded.header ? ', header skipped' : ''}.
+						{uploaded.width >= 3
+							? `${uploaded.width} columns`
+							: uploaded.dim === 2
+								? 'points (2 columns)'
+								: 'numbers'}{name ? ` from ${name}` : ''}{uploaded.header
+							? ', header skipped'
+							: ''}.
 					</p>
 				{/if}
 				{#if uploaded.invalidCount}

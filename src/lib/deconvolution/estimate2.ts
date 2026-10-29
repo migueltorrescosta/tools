@@ -70,8 +70,14 @@ export type TaskResult2 =
 	/** The masses after each sweep. */
 	| { kind: 'posterior2'; masses: Float64Array[] };
 
-/** Why a 2D method can't run with this noise, or null when it can. */
-export function unavailable2(method: Method2, y: Noise2Spec): string | null {
+/** Why a 2D method can't run with this noise and regime, or null when it can. */
+export function unavailable2(
+	method: Method2,
+	y: Noise2Spec,
+	regime: 'known' | 'perPoint' = 'known'
+): string | null {
+	if (regime === 'perPoint')
+		return method === 'mle' ? 'Not with per-point errors: needs one noise for all points.' : null;
 	if (method === 'gmm' && y.family !== 'gauss2')
 		return 'The Gaussian mixture needs Gaussian noise.';
 	return null;

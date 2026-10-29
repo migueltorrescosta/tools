@@ -337,3 +337,60 @@ test.describe('2D', () => {
 		await expect(page.getByTestId('curve-npmle-post').first()).toBeVisible();
 	});
 });
+
+test.describe('Noise regimes', () => {
+	test('per-point errors run the NPMLE and the Gaussian mixture', async ({ page }) => {
+		test.setTimeout(120_000);
+		await open(page);
+		await page.getByTestId('noise-regime').selectOption('perPoint');
+		await page.getByTestId('method-gmm').check();
+		await run(page);
+		const table = page.getByRole('table', { name: 'Fits' });
+		await expect(table.getByRole('cell', { name: 'NPMLE (grid)', exact: true })).toBeVisible();
+		await expect(table.getByRole('cell', { name: 'Gaussian mixture', exact: true })).toBeVisible();
+	});
+
+	test('symmetric unknown noise runs the phase estimator', async ({ page }) => {
+		test.setTimeout(120_000);
+		await open(page);
+		await page.getByTestId('noise-regime').selectOption('symmetric');
+		await run(page);
+		const table = page.getByRole('table', { name: 'Fits' });
+		await expect(
+			table.getByRole('cell', { name: 'Phase (symmetric noise)', exact: true })
+		).toBeVisible();
+	});
+
+	test('repeated measurements recover the signal and the noise', async ({ page }) => {
+		test.setTimeout(120_000);
+		await open(page);
+		await page.getByTestId('noise-regime').selectOption('replicates');
+		await page.getByTestId('replicates').fill('3');
+		await run(page);
+		const chart = page.getByTestId('estimate-chart');
+		await expect(chart.getByTestId('curve-kotlarski')).toBeVisible();
+		await expect(chart.getByTestId('curve-kotlarski-noise')).toBeVisible();
+	});
+
+	test('per-point errors need two columns when uploaded', async ({ page }) => {
+		await open(page);
+		await page.getByTestId('noise-regime').selectOption('perPoint');
+		await page.getByRole('radio', { name: 'Your data' }).check();
+		const lines = Array.from({ length: 20 }, (_, i) => `${i},${i * 0.1},${i * 0.2}`);
+		await page.getByTestId('paste').fill(lines.join('\n'));
+		await expect(page.getByText('Per-point errors need two columns')).toBeVisible();
+	});
+
+	test('2D per-point errors run the NPMLE and the mixture', async ({ page }) => {
+		test.setTimeout(120_000);
+		await open(page);
+		await page.getByRole('radio', { name: '2D' }).check();
+		await page.getByTestId('noise2-regime').selectOption('perPoint');
+		await expect(page.getByTestId('method2-mle')).toBeDisabled();
+		await page.getByTestId('method2-gmm').check();
+		await run(page);
+		const table = page.getByRole('table', { name: 'Fits' });
+		await expect(table.getByRole('cell', { name: 'NPMLE (64 × 64 grid)' })).toBeVisible();
+		await expect(table.getByRole('cell', { name: 'Gaussian mixture', exact: true })).toBeVisible();
+	});
+});
