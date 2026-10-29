@@ -27,7 +27,11 @@ describe('parseSettings', () => {
 	const base = () => JSON.parse(JSON.stringify(presetSettings())) as Record<string, unknown>;
 
 	it.each([
-		['a wrong version', { v: 3 }],
+		['a wrong version', { v: 4 }],
+		['an unknown noise regime', { noise: 'psychic' }],
+		['a 1D-only regime in 2D', { noise2: 'replicates' }],
+		['a reversed σ range', { sigmaRange: [0.8, 0.2] }],
+		['too many replicates', { replicates: 6 }],
 		['an unknown family', { y: { family: 'zeta', params: [1] } }],
 		['a wrong parameter count', { y: { family: 'normal', params: [0] } }],
 		['a non-finite parameter', { y: { family: 'normal', params: [0, null] } }],
@@ -92,6 +96,15 @@ describe('2D settings', () => {
 			const s = { ...presetSettings(), dim: 2 as const, x2: p.x, y2: p.y };
 			expect(parseSettings(JSON.parse(JSON.stringify(s)))).toEqual(s);
 		}
+	});
+
+	it('migrates version-2 settings to known noise', () => {
+		const old = { ...JSON.parse(JSON.stringify(presetSettings('counts'))), v: 2 };
+		for (const k of ['noise', 'noise2', 'sigmaRange', 'replicates']) delete old[k];
+		const s = parseSettings(old);
+		expect(s?.noise).toBe('known');
+		expect(s?.replicates).toBe(2);
+		expect(s?.x).toEqual(presetSettings('counts').x);
 	});
 
 	it('migrates version-1 settings, keeping the 1D model', () => {

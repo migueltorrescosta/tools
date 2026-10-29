@@ -12,13 +12,37 @@ import type { DistSpec, MethodId, SimpleSpec } from './types';
 export const STORAGE_PREFIX = 'deconvolution:';
 export const AUTOSAVE_KEY = `${STORAGE_PREFIX}settings`;
 export const HASH_PARAM = 's';
-export const VERSION = 2;
+export const VERSION = 3;
 export const MAX_N = 100_000;
 export const MIN_N = 10;
 export const MAX_BOOTSTRAP = 2000;
 
-export const METHODS: readonly MethodId[] = ['mle', 'npmle', 'gmodel', 'kernel', 'gmm'];
+export const METHODS: readonly MethodId[] = [
+	'mle',
+	'npmle',
+	'gmodel',
+	'kernel',
+	'gmm',
+	'phase',
+	'kotlarski'
+];
 export const METHODS2: readonly Method2[] = ['mle', 'npmle', 'gmm'];
+
+/**
+ * What is known about the noise (tools#66): its family (the parametric and
+ * grid methods so far), each point's own normal σ, only that it is symmetric,
+ * or nothing, with 2–5 readings of each X. 2D offers the first two.
+ */
+export type NoiseRegime = 'known' | 'perPoint' | 'symmetric' | 'replicates';
+export const NOISE_REGIMES: readonly NoiseRegime[] = [
+	'known',
+	'perPoint',
+	'symmetric',
+	'replicates'
+];
+export const NOISE_REGIMES2: readonly NoiseRegime[] = ['known', 'perPoint'];
+export const MIN_REPLICATES = 2;
+export const MAX_REPLICATES = 5;
 
 export interface Settings {
 	v: typeof VERSION;
@@ -45,6 +69,13 @@ export interface Settings {
 	/** Kernel bandwidth; null picks the default rule. */
 	bandwidth: number | null;
 	bootstrapB: number;
+	/** The noise regime, in 1D and in 2D. */
+	noise: NoiseRegime;
+	noise2: NoiseRegime;
+	/** Simulated per-point errors: each σ_i uniform on this range (2D: each axis's σ). */
+	sigmaRange: [number, number];
+	/** Simulated readings per X under repeated measurements. */
+	replicates: number;
 }
 
 export interface Preset {
@@ -160,7 +191,11 @@ export function presetSettings(id = PRESETS[0].id): Settings {
 		df: 5,
 		c0: 1,
 		bandwidth: null,
-		bootstrapB: 200
+		bootstrapB: 200,
+		noise: 'known',
+		noise2: 'known',
+		sigmaRange: [0.2, 0.8],
+		replicates: 2
 	};
 }
 
@@ -233,12 +268,12 @@ function noise2(v: unknown): Noise2Spec | null {
 /** Settings from untrusted JSON, or null when anything is missing or out of range. */
 export function parseSettings(v: unknown): Settings | null {
 	if (!isObject(v)) return null;
-	// Version 1 had no 2D settings: start those at the defaults.
+	// Version 1 had no 2D settings: start those at the defaults (then migrate as version 2).
 	if (v.v === 1) {
 		const d = presetSettings();
 		v = {
 			...v,
-			v: VERSION,
+			v: 2,
 			dim: 1,
 			x2: d.x2,
 			y2: d.y2,
@@ -246,7 +281,33 @@ export function parseSettings(v: unknown): Settings | null {
 			fitNoise2: d.fitNoise2
 		};
 	}
+	// Version 2 had no noise regimes: known noise, the default simulation options.
+	if (isObject(v) && v.v === 2) {
+		const d = presetSettings();
+		v = {
+			...v,
+			v: VERSION,
+			noise: d.noise,
+			noise2: d.noise2,
+			sigmaRange: d.sigmaRange,
+			replicates: d.replicates
+		};
+	}
 	if (!isObject(v) || v.v !== VERSION) return null;
+	if (!NOISE_REGIMES.includes(v.noise as NoiseRegime)) return null;
+	if (!NOISE_REGIMES2.includes(v.noise2 as NoiseRegime)) return null;
+	const sr = v.sigmaRange;
+	if (
+		!Array.isArray(sr) ||
+		sr.length !== 2 ||
+		!sr.every(finite) ||
+		!(sr[0] > 0) ||
+		!(sr[1] >= sr[0])
+	)
+		return null;
+	const reps = v.replicates;
+	if (!finite(reps) || !Number.isInteger(reps) || reps < MIN_REPLICATES || reps > MAX_REPLICATES)
+		return null;
 	if (v.dim !== 1 && v.dim !== 2) return null;
 	const x2 = spec2(v.x2);
 	const y2 = noise2(v.y2);
@@ -289,7 +350,11 @@ export function parseSettings(v: unknown): Settings | null {
 		df: v.df,
 		c0: v.c0,
 		bandwidth: v.bandwidth,
-		bootstrapB: b
+		bootstrapB: b,
+		noise: v.noise as NoiseRegime,
+		noise2: v.noise2 as NoiseRegime,
+		sigmaRange: [sr[0], sr[1]],
+		replicates: reps
 	};
 }
 

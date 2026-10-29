@@ -43,9 +43,19 @@ describe('parseSample', () => {
 		expect(Array.from(r.data2)).toEqual(Array.from({ length: 20 }, (_, i) => i * 2));
 	});
 
-	it('rejects three columns of numbers', () => {
+	it('reads three to five columns for the noise regimes to interpret', () => {
 		const text = Array.from({ length: 20 }, (_, i) => `${i};${i * 2};${i * 3}`).join('\n');
-		expect(parseSample(text).error).toBe('Expected one or two columns of numbers.');
+		const r = parseSample(text);
+		expect(r.error).toBeNull();
+		expect(r.width).toBe(3);
+		expect(Array.from(r.columns[2].slice(0, 3))).toEqual([0, 3, 6]);
+	});
+
+	it('rejects six columns of numbers', () => {
+		const text = Array.from({ length: 20 }, (_, i) =>
+			[1, 2, 3, 4, 5, 6].map((k) => i * k).join(',')
+		).join('\n');
+		expect(parseSample(text).error).toBe('Expected one to 5 columns of numbers.');
 	});
 
 	it('refuses too few or too many rows', () => {
