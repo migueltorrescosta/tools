@@ -7,7 +7,17 @@
 import { moments } from '$lib/stats';
 import { makeDist } from './dist';
 import { defaultParams, family, validateParams } from './families';
-import { gridResolves, likelihoodGrid, logLikelihood } from './grid';
+import {
+	atomMass,
+	chooseGrid,
+	gridResolves,
+	isDiscreteZ,
+	likelihoodGrid,
+	logLikelihood,
+	modelWindow,
+	zAtoms,
+	zDensityOnGrid
+} from './grid';
 import {
 	BAD,
 	fitCore,
@@ -15,6 +25,7 @@ import {
 	fromFree,
 	type Identifiability,
 	type ParamEstimate,
+	type Problem,
 	type Slot
 } from './fitcore';
 import type { DistSpec, FamilyId, Grid, Role, SimpleSpec } from './types';
@@ -52,9 +63,20 @@ export interface MleResult {
 /** Grid nodes while searching, and for the polish and curvature at the optimum. */
 const SEARCH_NODES = 1024;
 const FINAL_NODES = 2048;
+/** The Jeffreys prior's grid over the model's own range (heavy tails make it wide, so it is capped). */
+const INFO_NODES = { baseNodes: 1024, maxNodes: 4096 };
 
 /** A slot with its index in its spec's params (−1 for a mixture weight). */
 type Slot1 = Slot & { index: number };
+
+/** Parameters with a flat prior on the free scale in a Bayesian fit: locations, and a uniform's width. */
+export const flatParam = (id: FamilyId, index: number) =>
+	index === family(id).location || (id === 'uniform' && index === 1);
+
+export interface Model1 {
+	x: DistSpec;
+	y: SimpleSpec;
+}
 
 function slots(x: DistSpec, y: SimpleSpec, fixedY: boolean[] = []): Slot1[] {
 	const out: Slot1[] = [];
@@ -72,7 +94,8 @@ function slots(x: DistSpec, y: SimpleSpec, fixedY: boolean[] = []): Slot1[] {
 				key: p.key,
 				label: p.label,
 				domain: p.domain,
-				fitted: p.domain !== 'count' && !fixed(index)
+				fitted: p.domain !== 'count' && !fixed(index),
+				flat: flatParam(spec.family, index)
 			})
 		);
 	if (x.family === 'mixture') {
@@ -214,10 +237,13 @@ function momentStart(data: Float64Array, x: DistSpec, y: SimpleSpec): DistSpec |
 	return { family: x.family, params };
 }
 
-export function fitMle({ data, x, y, fixedY, seed, starts = 6 }: MleInput): MleResult {
+/** The model as the fitting core sees it; also the Bayesian fit's (`bayes.ts`). */
+export function mleProblem({ data, x, y, fixedY }: MleInput): Problem<Model1, Grid> & {
+	slots: Slot1[];
+} {
 	const all = slots(x, y, fixedY);
-	const valid = (s: { x: DistSpec; y: SimpleSpec }) => specsValid(s.x, s.y);
-	const startModels: { x: DistSpec; y: SimpleSpec }[] = [];
+	const valid = (s: Model1) => specsValid(s.x, s.y);
+	const startModels: Model1[] = [];
 	if (specsValid(x, y)) {
 		startModels.push({ x, y });
 		const ms = momentStart(data, x, y);
@@ -227,37 +253,60 @@ export function fitMle({ data, x, y, fixedY, seed, starts = 6 }: MleInput): MleR
 			x.family === 'mixture' ? x : { family: x.family, params: defaultParams(x.family) };
 		startModels.push({ x: def, y: { family: y.family, params: defaultParams(y.family) } });
 	}
-	const r = fitCore<{ x: DistSpec; y: SimpleSpec }, Grid>(
-		{
-			slots: all,
-			encode: (s) => encode(all, s.x, s.y),
-			decode: (theta) => decode(all, theta, x, y),
-			valid,
-			grid: (s, final) =>
-				likelihoodGrid(makeDist(s.x, 'signal'), makeDist(s.y, 'noise'), data, {
-					baseNodes: final ? FINAL_NODES : SEARCH_NODES
-				}),
-			nll: (s, grid) => objective(data, s.x, s.y, grid),
-			values: (s) =>
-				all.map((slot) => {
-					if (slot.domain === 'weight')
-						return (s.x as Extract<DistSpec, { family: 'mixture' }>).components[slot.component!]
-							.weight;
-					const spec =
-						slot.role === 'noise'
-							? s.y
-							: s.x.family === 'mixture'
-								? s.x.components[slot.component!]
-								: s.x;
-					return spec.params[slot.index];
-				}),
-			starts: startModels,
-			n: data.length,
-			sd: Math.sqrt(moments(data).variance)
+	return {
+		slots: all,
+		encode: (s) => encode(all, s.x, s.y),
+		decode: (theta) => decode(all, theta, x, y),
+		valid,
+		grid: (s, final) =>
+			likelihoodGrid(makeDist(s.x, 'signal'), makeDist(s.y, 'noise'), data, {
+				baseNodes: final ? FINAL_NODES : SEARCH_NODES
+			}),
+		nll: (s, grid) => objective(data, s.x, s.y, grid),
+		infoGrid: (s) => {
+			const X = makeDist(s.x, 'signal');
+			const Y = makeDist(s.y, 'noise');
+			// A discrete Z is integer-valued (the discrete families count from 0): one node per integer.
+			if (isDiscreteZ(X, Y)) {
+				const { x } = zAtoms(X, Y);
+				const lo = Math.floor(x[0]);
+				return { x0: lo, h: 1, m: Math.ceil(x[x.length - 1]) - lo + 1 };
+			}
+			return chooseGrid(...modelWindow(X, Y, 1e-4), X, Y, INFO_NODES);
 		},
-		seed,
-		starts
-	);
+		cells: (s, grid) => {
+			const X = makeDist(s.x, 'signal');
+			const Y = makeDist(s.y, 'noise');
+			if (isDiscreteZ(X, Y)) {
+				const atoms = zAtoms(X, Y);
+				return Float64Array.from({ length: grid.m }, (_, k) => atomMass(atoms, grid.x0 + k));
+			}
+			return zDensityOnGrid(X, Y, grid).map((f) => f * grid.h);
+		},
+		values: (s) =>
+			all.map((slot) => {
+				if (slot.domain === 'weight')
+					return (s.x as Extract<DistSpec, { family: 'mixture' }>).components[slot.component!]
+						.weight;
+				const spec =
+					slot.role === 'noise'
+						? s.y
+						: s.x.family === 'mixture'
+							? s.x.components[slot.component!]
+							: s.x;
+				return spec.params[slot.index];
+			}),
+		starts: startModels,
+		n: data.length,
+		sd: Math.sqrt(moments(data).variance)
+	};
+}
+
+export function fitMle(input: MleInput): MleResult {
+	const { y, seed, starts = 6 } = input;
+	const problem = mleProblem(input);
+	const all = problem.slots;
+	const r = fitCore(problem, seed, starts);
 	// The noise's location is held at 0 by definition, not by the fit: leave it out.
 	const yLocation = family(y.family).location;
 	const { fit, ...rest } = r;

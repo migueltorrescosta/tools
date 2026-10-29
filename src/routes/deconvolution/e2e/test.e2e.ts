@@ -2,14 +2,18 @@ import { expect, test, type Page } from '@playwright/test';
 
 const PREFIX = 'deconvolution:';
 
-/** The page container (not the top bar) sets data-hydrated once the router is ready. */
-function hydrated(page: Page) {
-	return page.getByRole('main').locator('[data-hydrated]');
+/**
+ * Waits until both the page container and the layout's top bar set data-hydrated:
+ * a select changed before the layout hydrates can lose its change.
+ */
+async function ready(page: Page) {
+	await expect(page.getByRole('main').locator('[data-hydrated]')).toBeVisible();
+	await expect(page.getByRole('navigation', { name: 'Site' })).toHaveAttribute('data-hydrated');
 }
 
 async function open(page: Page, hash = '') {
 	await page.goto(`/deconvolution${hash}`);
-	await expect(hydrated(page)).toBeVisible();
+	await ready(page);
 }
 
 async function run(page: Page) {
@@ -161,7 +165,7 @@ test('settings survive a reload and travel in the share link', async ({ page }) 
 	await page.getByTestId('n').fill('500');
 	await page.getByTestId('seed').fill('42');
 	await page.reload();
-	await expect(hydrated(page)).toBeVisible();
+	await ready(page);
 	await expect(page.getByTestId('n')).toHaveValue('500');
 	await expect(page.getByTestId('seed')).toHaveValue('42');
 });
@@ -239,7 +243,7 @@ test.describe('2D', () => {
 		await page.getByTestId('x2-family').selectOption('gauss2');
 		await page.getByTestId('x2-rho').fill('0.7');
 		await page.reload();
-		await expect(hydrated(page)).toBeVisible();
+		await ready(page);
 		await expect(page.getByRole('radio', { name: '2D' })).toBeChecked();
 		await expect(page.getByTestId('x2-rho')).toHaveValue('0.7');
 	});

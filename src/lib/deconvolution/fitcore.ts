@@ -53,6 +53,11 @@ export interface Slot {
 	label: string;
 	domain: Domain | 'weight';
 	fitted: boolean;
+	/**
+	 * A flat prior on the free scale in a Bayesian fit, outside the Jeffreys
+	 * block: locations, and a uniform's width (1/width on its own scale).
+	 */
+	flat?: boolean;
 }
 
 const sigmoid = (u: number) => 1 / (1 + Math.exp(-u));
@@ -89,6 +94,13 @@ export interface Problem<S, G> {
 	grid(s: S, final: boolean): G | undefined;
 	/** −log-likelihood of `s` on `grid`, or BAD. */
 	nll(s: S, grid: G | undefined): number;
+	/**
+	 * A grid holding nearly all of f_Z under `s`, whatever the data: where a
+	 * Bayesian fit measures the information of its Jeffreys prior.
+	 */
+	infoGrid(s: S): G;
+	/** Probability of each cell of `grid` under `s` (each integer's, for a discrete Z). */
+	cells(s: S, grid: G): Float64Array;
 	/** The value of every slot in `s`. */
 	values(s: S): number[];
 	/** Starting models (at least one, all valid if possible). */
@@ -113,7 +125,7 @@ export interface CoreResult<S> {
 }
 
 /** Central-difference Hessian of `f` at `theta`. */
-function hessian(f: (t: number[]) => number, theta: number[]): number[][] {
+export function hessian(f: (t: number[]) => number, theta: number[]): number[][] {
 	const d = theta.length;
 	const h = HESSIAN_STEP;
 	const f0 = f(theta);
