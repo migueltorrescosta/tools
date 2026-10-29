@@ -58,6 +58,8 @@ type Slot2 = Slot & { part: 'x' | 'y'; sub: 'x' | 'y' | number | null; index: nu
  */
 const SEARCH = { baseNodes: 24, maxNodes: 32, nodesPerWidth: 3 };
 const FINAL = { baseNodes: 96, maxNodes: 128 };
+/** The Bayesian fit's likelihood grid: a step costs a third of the final grid's (tools#65). */
+const SAMPLE = { baseNodes: 48, maxNodes: 64 };
 const AXIS = { x: 'x', y: 'y' } as const;
 
 /** The params array a slot points into. */
@@ -261,6 +263,10 @@ export function mle2Problem({
 		sd: Math.sqrt(Math.min(moments(xs).variance, moments(ys).variance))
 	};
 }
+
+/** The grid a Bayesian fit samples on, around the MLE `m`. */
+export const sampleGrid2 = ({ xs, ys }: Mle2Input, m: Model): Grid2 =>
+	likelihoodGrid2(makeDist2(m.x, 'signal'), makeDist2(m.y, 'noise'), xs, ys, SAMPLE);
 
 export function fitMle2(input: Mle2Input): Mle2Result {
 	const { seed, starts = 2 } = input;

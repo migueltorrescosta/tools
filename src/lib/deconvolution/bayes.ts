@@ -40,17 +40,21 @@ export interface Posterior {
 const logit = (p: number) => Math.log(p / (1 - p));
 
 /**
- * The posterior of `p` around its MLE `fit`. Locations (and a uniform's
+ * The posterior of `p` around its MLE `fit`, with the likelihood on `grid`
+ * (default: the MLE's final grid). Locations (and a uniform's
  * width) get a flat prior on the free scale; every other fitted parameter
  * gets √det of the expected Fisher information of f_Z, summed over the
  * cells of a grid that holds nearly all of f_Z (`infoGrid`), so the prior
  * doesn't depend on the data. The free scale makes this the Jeffreys prior
  * of the original parameters too, Jacobian included.
  */
-export function posterior<S, G>(p: Problem<S, G>, fit: S): Posterior {
+export function posterior<S, G>(
+	p: Problem<S, G>,
+	fit: S,
+	grid: G = p.grid(fit, true) as G
+): Posterior {
 	const free = p.slots.filter((s) => s.fitted);
 	const theta0 = p.encode(fit);
-	const grid = p.grid(fit, true) as G;
 	const box = free.map((s, j): [number, number] => {
 		const t = theta0[j];
 		if (s.domain === 'positive') return [t - Math.log(FACTOR), t + Math.log(FACTOR)];

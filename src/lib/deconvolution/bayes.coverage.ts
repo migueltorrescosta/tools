@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+/** Shared by the `bayes.coverage.*.spec.ts` files, one per case so vitest runs them in parallel. */
+import { expect } from 'vitest';
 import { advance, posterior, startChain, summarise } from './bayes';
 import { makeDist } from './dist';
 import { family } from './families';
@@ -11,7 +12,13 @@ import type { SimpleSpec } from './types';
  * inside its 95% credible interval, and how many the MLE's Wald interval does.
  * Two short chains per fit keep the spec affordable; R̂ is checked in bayes.spec.ts.
  */
-function coverage(x: SimpleSpec, y: SimpleSpec, n: number, runs: number, fixedY?: boolean[]) {
+export function coverage(
+	x: SimpleSpec,
+	y: SimpleSpec,
+	n: number,
+	runs: number,
+	fixedY?: boolean[]
+) {
 	const bayes = new Map<string, number>();
 	const wald = new Map<string, number>();
 	const add = (m: Map<string, number>, k: string, hit: boolean) =>
@@ -38,52 +45,7 @@ function coverage(x: SimpleSpec, y: SimpleSpec, n: number, runs: number, fixedY?
 }
 
 // Nominal 95%: each parameter must cover in at least 45 of 50 runs.
-const atLeast = (hits: Map<string, number>, min: number) => {
+export const atLeast = (hits: Map<string, number>, min: number) => {
 	expect(hits.size).toBeGreaterThan(0);
 	for (const [key, h] of hits) expect(h, key).toBeGreaterThanOrEqual(min);
 };
-
-describe('Bayesian credible interval coverage', { timeout: 900_000 }, () => {
-	it('gamma signal + Laplace noise, 50 runs', () => {
-		const { bayes } = coverage(
-			{ family: 'gamma', params: [3, 1] },
-			{ family: 'laplace', params: [0, 0.5] },
-			1000,
-			50
-		);
-		atLeast(bayes, 45);
-	});
-
-	it('Poisson signal + normal noise, 50 runs', () => {
-		const { bayes } = coverage(
-			{ family: 'poisson', params: [4] },
-			{ family: 'normal', params: [0, 0.4] },
-			400,
-			50
-		);
-		atLeast(bayes, 45);
-	});
-
-	it('fringe signal + normal noise of known σ, 50 runs', () => {
-		const { bayes } = coverage(
-			{ family: 'fringe', params: [0, 2, 3, 0.8, 0] },
-			{ family: 'normal', params: [0, 0.2] },
-			1000,
-			50,
-			[false, true]
-		);
-		atLeast(bayes, 45);
-	});
-
-	it('small samples (n = 50): gamma signal + normal noise of known σ', () => {
-		const { bayes, wald } = coverage(
-			{ family: 'gamma', params: [2, 1] },
-			{ family: 'normal', params: [0, 0.5] },
-			50,
-			50,
-			[false, true]
-		);
-		console.log('n = 50 coverage, Bayes', [...bayes], 'Wald', [...wald]);
-		atLeast(bayes, 45);
-	});
-});

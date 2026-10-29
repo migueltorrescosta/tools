@@ -191,7 +191,7 @@
 		{ axis: 0 | 1; mean: Float64Array; lower: Float64Array; upper: Float64Array }[] | null
 	>(null);
 	let chainProgress = $state<{ what: 'bayes' | 'npmle'; done: number; total: number } | null>(null);
-	let bayesDraws = $state(1000);
+	let bayesDraws = $state(2000);
 	const canRun = $derived(!!data && modelValid && chosen.length > 0 && !running && !booting);
 
 	async function start() {

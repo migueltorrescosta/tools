@@ -23,7 +23,7 @@ import { binData } from './binning';
 import { dirichletGibbs, fitNpmle, gridLogLik, likelihoodMatrix } from './npmle';
 import { advance, posterior, startChain, type Chain } from './bayes';
 import type { Slot } from './fitcore';
-import { mle2Problem, type Mle2Input, type Model2 } from './mle2';
+import { mle2Problem, sampleGrid2, type Mle2Input, type Model2 } from './mle2';
 import { resample } from './sample';
 import { runTask2, type Task2, type TaskResult2 } from './estimate2';
 import type { DistSpec, FamilyId, Grid, GridEstimate, MethodId, SimpleSpec } from './types';
@@ -218,7 +218,7 @@ export function runTask(task: Task): TaskResult {
 			const post =
 				model.dim === 1
 					? posterior(mleProblem(model.input), model.fit)
-					: posterior(mle2Problem(model.input), model.fit);
+					: posterior(mle2Problem(model.input), model.fit, sampleGrid2(model.input, model.fit));
 			const chain = task.chain ?? startChain(post, task.seed);
 			const r = advance(post, chain, task.steps, task.warmup, task.seed + 1);
 			return { kind: 'bayes', ...r, free: post.free, box: post.box };
