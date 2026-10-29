@@ -8,7 +8,7 @@ import { binData2 } from './binning2';
 import { makeDist2, type Grid2, type GridEstimate2, type Noise2Spec, type Spec2 } from './dist2';
 import { fitGmm2, gmm2Spec } from './gmm2';
 import { fitMle2, type Mle2Input, type Mle2Result } from './mle2';
-import { gridLogLik } from './npmle';
+import { dirichletGibbs, gridLogLik } from './npmle';
 import { fitNpmle2, likelihoodMatrix2 } from './npmle2';
 
 /** The 2D methods: kernel deconvolution and g-modeling stay 1D-only. */
@@ -35,6 +35,17 @@ export type Task2 =
 			grid: Grid2;
 			seed: number;
 			count: number;
+	  }
+	| {
+			kind: 'posterior2';
+			xs: Float64Array;
+			ys: Float64Array;
+			y: Noise2Spec;
+			grid: Grid2;
+			/** The chain's current masses; null starts from uniform. */
+			mass: Float64Array | null;
+			sweeps: number;
+			seed: number;
 	  };
 
 export interface GridResult2 extends GridEstimate2 {
@@ -51,7 +62,9 @@ export interface GridResult2 extends GridEstimate2 {
 export type TaskResult2 =
 	| { kind: 'mle2'; result: Mle2Result }
 	| { kind: 'grid2'; result: GridResult2 }
-	| { kind: 'bootstrap2'; masses: Float64Array[] };
+	| { kind: 'bootstrap2'; masses: Float64Array[] }
+	/** The masses after each sweep. */
+	| { kind: 'posterior2'; masses: Float64Array[] };
 
 /** Why a 2D method can't run with this noise, or null when it can. */
 export function unavailable2(method: Method2, y: Noise2Spec): string | null {
@@ -126,6 +139,14 @@ export function runTask2(task: Task2): TaskResult2 {
 				masses.push(gridFit2(task.method, a, c, task.y, task.grid, task.seed + b).mass);
 			}
 			return { kind: 'bootstrap2', masses };
+		}
+		case 'posterior2': {
+			const b = binData2(task.xs, task.ys);
+			const L = likelihoodMatrix2(b.x, b.y, makeDist2(task.y, 'noise'), task.grid);
+			const m = task.grid.mx * task.grid.my;
+			const start = task.mass ?? new Float64Array(m).fill(1 / m);
+			const masses = dirichletGibbs(L, b.c, m, start, task.sweeps, new Prng(task.seed));
+			return { kind: 'posterior2', masses };
 		}
 	}
 }

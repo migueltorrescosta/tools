@@ -10,10 +10,20 @@ import { family } from './families';
 import { fitGmm, gmmSpec } from './gmm';
 import { cfHasZeros, fitKernel } from './kernel';
 import { truthOnGrid } from './metrics';
-import { compareFamilies, fitMle, type MleInput, type MleResult } from './mle';
+import {
+	compareFamilies,
+	fitMle,
+	mleProblem,
+	type MleInput,
+	type MleResult,
+	type Model1
+} from './mle';
 import { fitGmodel } from './gmodel';
 import { binData } from './binning';
-import { fitNpmle, gridLogLik, likelihoodMatrix } from './npmle';
+import { dirichletGibbs, fitNpmle, gridLogLik, likelihoodMatrix } from './npmle';
+import { advance, posterior, startChain, type Chain } from './bayes';
+import type { Slot } from './fitcore';
+import { mle2Problem, type Mle2Input, type Model2 } from './mle2';
 import { resample } from './sample';
 import { runTask2, type Task2, type TaskResult2 } from './estimate2';
 import type { DistSpec, FamilyId, Grid, GridEstimate, MethodId, SimpleSpec } from './types';
@@ -27,8 +37,32 @@ export interface GridOptions {
 	seed: number;
 }
 
+/** The parametric model a Bayesian fit samples, and its MLE (where the chains start and the grids are fixed). */
+export type BayesModel =
+	| { dim: 1; input: MleInput; fit: Model1 }
+	| { dim: 2; input: Mle2Input; fit: Model2 };
+
 export type Task =
 	| { kind: 'mle'; input: MleInput }
+	| {
+			kind: 'bayes';
+			model: BayesModel;
+			/** null starts the chain. */
+			chain: Chain | null;
+			steps: number;
+			warmup: number;
+			seed: number;
+	  }
+	| {
+			kind: 'posterior';
+			data: Float64Array;
+			y: SimpleSpec;
+			grid: Grid;
+			/** The chain's current masses; null starts from uniform. */
+			mass: Float64Array | null;
+			sweeps: number;
+			seed: number;
+	  }
 	| {
 			kind: 'compare';
 			data: Float64Array;
@@ -74,6 +108,16 @@ export interface GridResult extends GridEstimate {
 
 export type TaskResult =
 	| { kind: 'mle'; result: MleResult }
+	| {
+			kind: 'bayes';
+			chain: Chain;
+			/** Post-warm-up states on the free scale. */
+			draws: number[][];
+			free: Slot[];
+			box: [number, number][];
+	  }
+	/** The masses after each sweep. */
+	| { kind: 'posterior'; masses: Float64Array[] }
 	| { kind: 'compare'; results: { family: FamilyId; result: MleResult }[] }
 	| { kind: 'grid'; result: GridResult }
 	| { kind: 'bootstrap'; masses: Float64Array[] }
@@ -166,9 +210,28 @@ export function runTask(task: Task): TaskResult {
 		case 'mle2':
 		case 'grid2':
 		case 'bootstrap2':
+		case 'posterior2':
 			return runTask2(task);
 		case 'mle':
 			return { kind: 'mle', result: fitMle(task.input) };
+		case 'bayes': {
+			const { model } = task;
+			const post =
+				model.dim === 1
+					? posterior(mleProblem(model.input), model.fit)
+					: posterior(mle2Problem(model.input), model.fit);
+			const chain = task.chain ?? startChain(post, task.seed);
+			const r = advance(post, chain, task.steps, task.warmup, task.seed + 1);
+			return { kind: 'bayes', ...r, free: post.free, box: post.box };
+		}
+		case 'posterior': {
+			const { z, c } = binData(task.data);
+			const L = likelihoodMatrix(z, makeDist(task.y, 'noise'), task.grid);
+			const m = task.grid.m;
+			const start = task.mass ?? new Float64Array(m).fill(1 / m);
+			const masses = dirichletGibbs(L, c, m, start, task.sweeps, new Prng(task.seed));
+			return { kind: 'posterior', masses };
+		}
 		case 'compare':
 			return {
 				kind: 'compare',

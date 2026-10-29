@@ -263,7 +263,7 @@ export function mle2Problem({ xs, ys, x, y, fixNoise = false }: Mle2Input): Prob
 export function fitMle2(input: Mle2Input): Mle2Result {
 	const { seed, starts = 2 } = input;
 	const problem = mle2Problem(input);
-	const all = problem.slots;
+	const all: Slot2[] = problem.slots;
 	const m0: Model = { x: input.x, y: input.y };
 	const r = fitCore(problem, seed, starts);
 	// Parameters held at 0 by definition (the noise's locations) aren't reported.
