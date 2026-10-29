@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_ROWS, parseSample, sampleCsv, sampleCsv2 } from './upload';
+import { MAX_ROWS, columnsCsv, parseSample, sampleCsv, sampleCsv2 } from './upload';
 
 const numbers = (n: number) => Array.from({ length: n }, (_, i) => String(i / 10));
 
@@ -151,5 +151,16 @@ describe('sampleCsv2', () => {
 		const y = new Float64Array([5, 6]);
 		const csv = sampleCsv2(x, y);
 		expect(csv).toBe('x,y\n1,5\n2,6\n');
+	});
+});
+
+describe('columnsCsv', () => {
+	it('round-trips per-point errors and replicates through parseSample', () => {
+		const z = Float64Array.from({ length: 20 }, (_, i) => i / 3);
+		const s = Float64Array.from({ length: 20 }, (_, i) => 0.1 + i / 100);
+		const r = parseSample(columnsCsv(['z1', 'z2', 'z3'], [z, s, z]));
+		expect(r.header).toBe(true);
+		expect(r.width).toBe(3);
+		expect(Array.from(r.columns[1])).toEqual(Array.from(s));
 	});
 });

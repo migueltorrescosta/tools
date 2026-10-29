@@ -93,17 +93,20 @@ export function parseSample(text: string): ParsedSample {
 	return result(null);
 }
 
-/** A sample as a one-column CSV with a `z` header. */
-export function sampleCsv(data: ArrayLike<number>): string {
-	let out = 'z\n';
-	for (let i = 0; i < data.length; i++) out += `${data[i]}\n`;
+/** Columns of equal length as a CSV with a header row (what `parseSample` reads back). */
+export function columnsCsv(
+	names: readonly string[],
+	columns: readonly ArrayLike<number>[]
+): string {
+	const n = Math.min(...columns.map((c) => c.length));
+	let out = `${names.join(',')}\n`;
+	for (let i = 0; i < n; i++) out += `${columns.map((c) => c[i]).join(',')}\n`;
 	return out;
 }
 
+/** A sample as a one-column CSV with a `z` header. */
+export const sampleCsv = (data: ArrayLike<number>) => columnsCsv(['z'], [data]);
+
 /** A sample as a two-column CSV with `x,y` header. */
-export function sampleCsv2(x: ArrayLike<number>, y: ArrayLike<number>): string {
-	let out = 'x,y\n';
-	const n = Math.min(x.length, y.length);
-	for (let i = 0; i < n; i++) out += `${x[i]},${y[i]}\n`;
-	return out;
-}
+export const sampleCsv2 = (x: ArrayLike<number>, y: ArrayLike<number>) =>
+	columnsCsv(['x', 'y'], [x, y]);

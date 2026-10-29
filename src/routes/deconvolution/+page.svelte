@@ -34,7 +34,7 @@
 		simulatePerPoint,
 		simulateReplicates
 	} from '$lib/deconvolution/sample';
-	import { sampleCsv, type ParsedSample } from '$lib/deconvolution/upload';
+	import { columnsCsv, type ParsedSample } from '$lib/deconvolution/upload';
 	import { supportGrid } from '$lib/deconvolution/npmle';
 	import { truthOnGrid, l1, wasserstein1 } from '$lib/deconvolution/metrics';
 	import {
@@ -142,6 +142,21 @@
 		const readings = simulateReplicates(X, Y, n, settings.replicates, seed);
 		return { data: readings[0], sigma: undefined, readings };
 	});
+
+	/** The simulated sample as CSV, with each point's σ or every reading, so it uploads back under the same regime. */
+	function simulationCsv(sim: {
+		data: Float64Array;
+		sigma?: Float64Array;
+		readings?: Float64Array[];
+	}) {
+		if (sim.sigma) return columnsCsv(['z', 'sigma'], [sim.data, sim.sigma]);
+		if (sim.readings)
+			return columnsCsv(
+				sim.readings.map((_, k) => `z${k + 1}`),
+				sim.readings
+			);
+		return columnsCsv(['z'], [sim.data]);
+	}
 
 	/** Curves or stems for one distribution on the chart's grid. */
 	function marks(d: Dist, grid: Grid, key: string, label: string, colour: string, dashed = false) {
@@ -972,7 +987,7 @@
 							<Button
 								size="sm"
 								variant="secondary"
-								onclick={() => download('deconvolution-sample.csv', sampleCsv(simulation.data))}
+								onclick={() => download('deconvolution-sample.csv', simulationCsv(simulation))}
 								data-testid="export">Download the sample (CSV)</Button
 							>
 						</div>

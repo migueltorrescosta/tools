@@ -36,7 +36,7 @@
 		PRESETS2,
 		type Settings
 	} from '$lib/deconvolution/state';
-	import { sampleCsv2, type ParsedSample } from '$lib/deconvolution/upload';
+	import { columnsCsv, type ParsedSample } from '$lib/deconvolution/upload';
 	import DensityChart, { type Band, type Curve, type Stems } from './DensityChart.svelte';
 	import Dist2Editor from './Dist2Editor.svelte';
 	import Heatmap from './Heatmap.svelte';
@@ -587,7 +587,20 @@
 						size="sm"
 						variant="secondary"
 						onclick={() =>
-							download('deconvolution-sample-2d.csv', sampleCsv2(sample.xs, sample.ys))}
+							download(
+								'deconvolution-sample-2d.csv',
+								sample.cov
+									? columnsCsv(
+											['x', 'y', 'sx', 'sy'],
+											[
+												sample.xs,
+												sample.ys,
+												sample.cov.map((c) => Math.sqrt(c[0])),
+												sample.cov.map((c) => Math.sqrt(c[2]))
+											]
+										)
+									: columnsCsv(['x', 'y'], [sample.xs, sample.ys])
+							)}
 						data-testid="export">Download the sample (CSV)</Button
 					>
 				</div>
