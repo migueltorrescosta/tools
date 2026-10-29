@@ -5,7 +5,7 @@ import { discretise, dataWindow, gridPoints } from './grid';
 import { binData } from './binning';
 import { supportGrid, likelihoodMatrix, fitNpmle, dirichletGibbs, type NpmleInput } from './npmle';
 import { truthOnGrid, wasserstein1 } from './metrics';
-import { simulate } from './sample';
+import { simulate, simulatePerPoint } from './sample';
 import type { Grid, Dist } from './types';
 
 /** Wasserstein-1 distance between two mass vectors on the same grid. */
@@ -235,5 +235,16 @@ describe('dirichletGibbs', () => {
 		const npmle = wasserstein1(fitNpmle({ data, y: Y, grid }), truth);
 		const post = wasserstein1({ grid, mass }, truth);
 		expect(post).toBeLessThan(1.2 * npmle);
+	});
+});
+
+describe('per-point errors', () => {
+	it('the NPMLE with each point’s own σ recovers a gamma signal', () => {
+		const X = makeDist({ family: 'gamma', params: [4, 0.5] }, 'signal');
+		const { z, sigma } = simulatePerPoint(X, [0.1, 0.8], 1000, 4);
+		const grid = supportGrid(z, 150);
+		const r = fitNpmle({ data: z, y: X, sigma, grid });
+		expect(r.converged).toBe(true);
+		expect(wasserstein1(r, truthOnGrid(X, grid))).toBeLessThan(0.15);
 	});
 });

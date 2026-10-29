@@ -288,7 +288,8 @@ export function npmleSystem(
 	g: Grid,
 	sigma?: Float64Array
 ): [Float64Array, Float64Array] {
-	if (sigma) return [likelihoodMatrixPerPoint(data, sigma, g), new Float64Array(data.length).fill(1)];
+	if (sigma)
+		return [likelihoodMatrixPerPoint(data, sigma, g), new Float64Array(data.length).fill(1)];
 	const { z, c } = binData(data);
 	return [likelihoodMatrix(z, y, g), c];
 }

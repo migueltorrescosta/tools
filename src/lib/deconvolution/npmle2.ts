@@ -57,7 +57,8 @@ export function likelihoodMatrix2PerPoint(
 			const v = py[i] - (g.y0 + j * g.hy);
 			for (let q = 0; q < g.mx; q++) {
 				const u = px[i] - (g.x0 + q * g.hx);
-				L[i * m + j * g.mx + q] = k * Math.exp((-0.5 * (c * u * u - 2 * b * u * v + a * v * v)) / d);
+				L[i * m + j * g.mx + q] =
+					k * Math.exp((-0.5 * (c * u * u - 2 * b * u * v + a * v * v)) / d);
 			}
 		}
 	}

@@ -95,3 +95,52 @@ describe('fitGmm2', { timeout: 60_000 }, () => {
 		expect(spec.family === 'gauss2' && spec.params[4]).toBeCloseTo(0.6, 1);
 	});
 });
+
+describe('per-point errors in 2D', { timeout: 60_000 }, () => {
+	/** Two peaks plus per-point Gaussian noise: σx, σy uniform on [0.2, 0.8], ρ uniform on [−0.3, 0.3]. */
+	function perPoint(n: number, seed: number) {
+		const X = makeDist2(twoPeaks, 'signal');
+		const prng = new Prng(seed);
+		const xs = new Float64Array(n);
+		const ys = new Float64Array(n);
+		const cov: Float64Array[] = [];
+		for (let i = 0; i < n; i++) {
+			const [a, b] = X.sampler(prng);
+			const sx = 0.2 + 0.6 * prng.next();
+			const sy = 0.2 + 0.6 * prng.next();
+			const r = -0.3 + 0.6 * prng.next();
+			const u = prng.normal();
+			const v = prng.normal();
+			xs[i] = a + sx * u;
+			ys[i] = b + sy * (r * u + Math.sqrt(1 - r * r) * v);
+			cov.push(Float64Array.of(sx * sx, r * sx * sy, sy * sy));
+		}
+		return { xs, ys, cov };
+	}
+
+	it('the mixture recovers both peaks with each point’s own covariance', () => {
+		const { xs, ys, cov } = perPoint(3000, 11);
+		const { best } = fitGmm2({ xs, ys, noise: cov, seed: 2, kMax: 3 });
+		expect(best.k).toBe(2);
+		const [a, b] = best.components;
+		expect(a.mean[0]).toBeCloseTo(-2, 0);
+		expect(b.mean[0]).toBeCloseTo(2, 0);
+		expect(Math.abs(a.weight - 0.4)).toBeLessThan(0.05);
+		expect(Math.abs(Math.sqrt(b.cov[0]) - 0.7)).toBeLessThan(0.12);
+	});
+
+	it('the NPMLE puts most mass near the peaks', () => {
+		const { xs, ys, cov } = perPoint(1000, 12);
+		const grid = supportGrid2(xs, ys, 32);
+		const r = fitNpmle2({ xs, ys, y: makeDist2(noise, 'noise'), cov, grid });
+		let near = 0;
+		for (let j = 0; j < grid.my; j++)
+			for (let k = 0; k < grid.mx; k++) {
+				const x = grid.x0 + k * grid.hx;
+				const y = grid.y0 + j * grid.hy;
+				if (Math.hypot(x + 2, y) < 2 || Math.hypot(x - 2, y - 1) < 2)
+					near += r.mass[j * grid.mx + k];
+			}
+		expect(near).toBeGreaterThan(0.9);
+	});
+});

@@ -77,7 +77,8 @@ function step(
 		let top = -Infinity;
 		for (let j = 0; j < k; j++) {
 			T[j] = s2[j] + si * si;
-			lr[j] = logW[j] - 0.5 * Math.log(T[j]) - HALF_LOG_2PI - (0.5 * (z[i] - state.means[j]) ** 2) / T[j];
+			lr[j] =
+				logW[j] - 0.5 * Math.log(T[j]) - HALF_LOG_2PI - (0.5 * (z[i] - state.means[j]) ** 2) / T[j];
 			top = Math.max(top, lr[j]);
 		}
 		let total = 0;

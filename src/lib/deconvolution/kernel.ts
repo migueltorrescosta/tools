@@ -31,7 +31,12 @@ export function kernelPhi(s: number): number {
 }
 
 /** Empirical characteristic function (1/N)·Σ c_i e^{itz_i} of (binned) data. */
-export function empiricalCf(z: Float64Array, c: Float64Array, n: number, t: number): [number, number] {
+export function empiricalCf(
+	z: Float64Array,
+	c: Float64Array,
+	n: number,
+	t: number
+): [number, number] {
 	let re = 0;
 	let im = 0;
 	for (let i = 0; i < z.length; i++) {
@@ -132,7 +137,8 @@ export function invertCf(
 	for (let j = 0; j < g.m; j++) {
 		const x = g.x0 + j * g.h;
 		let s = 0;
-		for (let i = 0; i < ts.length; i++) s += Math.cos(ts[i] * x) * qRe[i] + Math.sin(ts[i] * x) * qIm[i];
+		for (let i = 0; i < ts.length; i++)
+			s += Math.cos(ts[i] * x) * qRe[i] + Math.sin(ts[i] * x) * qIm[i];
 		mass[j] = s / Math.PI;
 	}
 
