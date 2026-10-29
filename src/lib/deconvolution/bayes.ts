@@ -69,12 +69,9 @@ export function posterior<S, G>(p: Problem<S, G>, fit: S): Posterior {
 			const c0 = p.cells(centre, g);
 			const d = inner.map((j) => {
 				const up = [...theta];
-				const down = [...theta];
 				up[j] += STEP;
-				down[j] -= STEP;
 				const a = cells(up);
-				const b = cells(down);
-				return c0.map((_, k) => (a[k] - b[k]) / (2 * STEP));
+				return c0.map((v, k) => (a[k] - v) / STEP);
 			});
 			const info = inner.map(() => new Array<number>(inner.length).fill(0));
 			for (let k = 0; k < c0.length; k++) {
@@ -231,7 +228,9 @@ export function effectiveSize(chains: readonly number[][]): number {
 	const means = chains.map((c) => c.reduce((a, b) => a + b, 0) / n);
 	const grand = means.reduce((a, b) => a + b, 0) / M;
 	const B = M > 1 ? (n / (M - 1)) * means.reduce((a, m) => a + (m - grand) ** 2, 0) : 0;
-	const W = chains.reduce((a, c, i) => a + c.reduce((b, v) => b + (v - means[i]) ** 2, 0), 0) / (M * (n - 1));
+	const W =
+		chains.reduce((a, c, i) => a + c.reduce((b, v) => b + (v - means[i]) ** 2, 0), 0) /
+		(M * (n - 1));
 	const varPlus = ((n - 1) / n) * W + B / n;
 	if (!(varPlus > 0)) return NaN;
 	const rho = (t: number) => {

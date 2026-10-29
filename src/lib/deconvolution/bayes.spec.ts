@@ -33,8 +33,7 @@ describe('Jeffreys prior of f_Z on the free scale', () => {
 		const x = (s: number): SimpleSpec => ({ family: 'normal', params: [0, s] });
 		const lp = prior1(sample(x(1), y), x(1), y);
 		const exact = (s: number) => Math.log((s * s) / (s * s + 0.09));
-		for (const s of [0.1, 0.5, 2])
-			expect(lp(x(s)) - lp(x(1))).toBeCloseTo(exact(s) - exact(1), 2);
+		for (const s of [0.1, 0.5, 2]) expect(lp(x(s)) - lp(x(1))).toBeCloseTo(exact(s) - exact(1), 2);
 	});
 
 	const tiny: SimpleSpec = { family: 'normal', params: [0, 0.01] };
@@ -48,9 +47,7 @@ describe('Jeffreys prior of f_Z on the free scale', () => {
 	it('Student t: the independence Jeffreys prior in ν (Fonseca et al. 2008), 1/s in the scale', () => {
 		const g = (nu: number) =>
 			Math.sqrt(nu / (nu + 3)) *
-			Math.sqrt(
-				trigamma(nu / 2) - trigamma((nu + 1) / 2) - (2 * (nu + 3)) / (nu * (nu + 1) ** 2)
-			);
+			Math.sqrt(trigamma(nu / 2) - trigamma((nu + 1) / 2) - (2 * (nu + 3)) / (nu * (nu + 1) ** 2));
 		const x = (nu: number, s = 1): SimpleSpec => ({ family: 'studentT', params: [nu, 0, s] });
 		const lp = prior1(sample(x(5), tiny), x(5), tiny);
 		// On log ν the density is ν g(ν).
@@ -100,7 +97,10 @@ describe('Jeffreys prior of f_Z on the free scale', () => {
 	});
 
 	it('correlated Gaussian: its Jeffreys prior 1/(σx σy (1 − ρ²)^{3/2})', () => {
-		const x = (sx: number, rho: number): Spec2 => ({ family: 'gauss2', params: [0, 0, sx, 1, rho] });
+		const x = (sx: number, rho: number): Spec2 => ({
+			family: 'gauss2',
+			params: [0, 0, sx, 1, rho]
+		});
 		const y: Spec2 = { family: 'gauss2', params: [0, 0, 0.05, 0.05, 0] };
 		const prng = new Prng(3);
 		const xs = Float64Array.from({ length: 500 }, () => prng.normal());

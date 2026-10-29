@@ -39,8 +39,7 @@ export interface GridOptions {
 
 /** The parametric model a Bayesian fit samples, and its MLE (where the chains start and the grids are fixed). */
 export type BayesModel =
-	| { dim: 1; input: MleInput; fit: Model1 }
-	| { dim: 2; input: Mle2Input; fit: Model2 };
+	{ dim: 1; input: MleInput; fit: Model1 } | { dim: 2; input: Mle2Input; fit: Model2 };
 
 export type Task =
 	| { kind: 'mle'; input: MleInput }

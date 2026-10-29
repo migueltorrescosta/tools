@@ -3,13 +3,7 @@ import { Prng } from '$lib/prng';
 import { makeDist } from './dist';
 import { discretise, dataWindow, gridPoints } from './grid';
 import { binData } from './binning';
-import {
-	supportGrid,
-	likelihoodMatrix,
-	fitNpmle,
-	dirichletGibbs,
-	type NpmleInput
-} from './npmle';
+import { supportGrid, likelihoodMatrix, fitNpmle, dirichletGibbs, type NpmleInput } from './npmle';
 import { truthOnGrid, wasserstein1 } from './metrics';
 import { simulate } from './sample';
 import type { Grid, Dist } from './types';
@@ -225,7 +219,14 @@ describe('dirichletGibbs', () => {
 		const grid = supportGrid(data, 100);
 		const { z, c } = binData(data);
 		const L = likelihoodMatrix(z, Y, grid);
-		const draws = dirichletGibbs(L, c, grid.m, new Float64Array(grid.m).fill(1 / grid.m), 400, new Prng(2));
+		const draws = dirichletGibbs(
+			L,
+			c,
+			grid.m,
+			new Float64Array(grid.m).fill(1 / grid.m),
+			400,
+			new Prng(2)
+		);
 		const kept = draws.slice(100);
 		const mass = new Float64Array(grid.m);
 		for (const w of kept) for (let j = 0; j < grid.m; j++) mass[j] += w[j] / kept.length;

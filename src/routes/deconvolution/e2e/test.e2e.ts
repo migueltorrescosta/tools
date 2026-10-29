@@ -160,6 +160,51 @@ test('bootstrap can be stopped, and shades a band when it finishes', async ({ pa
 	});
 });
 
+test('the Bayesian fit can be stopped, and adds credible intervals next to the MLE', async ({
+	page
+}) => {
+	test.setTimeout(120_000);
+	await open(page);
+	await page.getByTestId('method-npmle').uncheck();
+	await run(page);
+	const results = page.getByTestId('results');
+	await page.getByTestId('bayes-draws').fill('20000');
+	await page.getByTestId('bayes').click();
+	await results.getByRole('button', { name: 'Stop' }).first().click();
+	await expect(page.getByText('Bayesian fit stopped.')).toBeVisible();
+	await page.getByTestId('bayes-draws').fill('200');
+	await page.getByTestId('bayes').click();
+	const table = page.getByRole('table', { name: 'Parametric fit' });
+	await expect(table.getByRole('columnheader', { name: 'Posterior median' })).toBeVisible({
+		timeout: 60_000
+	});
+	const row = table
+		.getByRole('row')
+		.filter({ has: page.getByRole('cell', { name: 'k', exact: true }) });
+	const median = Number(await row.getByRole('cell').nth(4).innerText());
+	expect(Math.abs(median - 3)).toBeLessThan(1);
+});
+
+test('mixtures get no Bayesian fit', async ({ page }) => {
+	await open(page);
+	await page.getByTestId('preset').selectOption('two-peaks');
+	await page.getByTestId('method-npmle').uncheck();
+	await run(page);
+	await expect(page.getByTestId('bayes-blocked')).toContainText('Not offered for mixtures');
+	await expect(page.getByTestId('bayes')).toHaveCount(0);
+});
+
+test('the NPMLE posterior draws its mean and a credible band', async ({ page }) => {
+	test.setTimeout(120_000);
+	await open(page);
+	await page.getByTestId('method-mle').uncheck();
+	await run(page);
+	await page.getByTestId('npmle-posterior').click();
+	const chart = page.getByTestId('estimate-chart');
+	await expect(chart.getByTestId('curve-npmle-post')).toBeVisible({ timeout: 60_000 });
+	await expect(chart.locator('path.band')).toBeVisible();
+});
+
 test('settings survive a reload and travel in the share link', async ({ page }) => {
 	await open(page);
 	await page.getByTestId('n').fill('500');

@@ -23,13 +23,7 @@ import {
 	type Noise2Spec,
 	type Spec2
 } from './dist2';
-import {
-	chooseGrid2,
-	likelihoodGrid2,
-	logLikelihood2,
-	modelBox2,
-	zDensityOnGrid2
-} from './grid2';
+import { chooseGrid2, likelihoodGrid2, logLikelihood2, modelBox2, zDensityOnGrid2 } from './grid2';
 import { flatParam, momentParams } from './mle';
 import type { ParamSpec } from './types';
 
@@ -129,8 +123,13 @@ function slots(x: Spec2, y: Noise2Spec, fixNoise: boolean): Slot2[] {
 		for (const a of ['x', 'y'] as const) {
 			const id = y[a].family;
 			const f = family(id);
-			add('y', AXIS[a], f.params, (i) => i !== f.location && !fixNoise, ` (${a})`, (i) =>
-				flatParam(id, i)
+			add(
+				'y',
+				AXIS[a],
+				f.params,
+				(i) => i !== f.location && !fixNoise,
+				` (${a})`,
+				(i) => flatParam(id, i)
 			);
 		}
 	return out;
@@ -202,10 +201,13 @@ function momentStart(xs: Float64Array, ys: Float64Array, m: Model): Model | null
 }
 
 /** The 2D model as the fitting core sees it; also the Bayesian fit's (`bayes.ts`). */
-export function mle2Problem({ xs, ys, x, y, fixNoise = false }: Mle2Input): Problem<
-	Model,
-	Grid2
-> & { slots: Slot2[] } {
+export function mle2Problem({
+	xs,
+	ys,
+	x,
+	y,
+	fixNoise = false
+}: Mle2Input): Problem<Model, Grid2> & { slots: Slot2[] } {
 	const all = slots(x, y, fixNoise);
 	const m0: Model = { x, y };
 	const startModels = [m0];

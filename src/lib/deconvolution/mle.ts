@@ -64,7 +64,7 @@ export interface MleResult {
 const SEARCH_NODES = 1024;
 const FINAL_NODES = 2048;
 /** The Jeffreys prior's grid over the model's own range (heavy tails make it wide, so it is capped). */
-const INFO_NODES = { baseNodes: 1024, maxNodes: 4096 };
+const INFO_NODES = { baseNodes: 512, maxNodes: 2048 };
 
 /** A slot with its index in its spec's params (−1 for a mixture weight). */
 type Slot1 = Slot & { index: number };
