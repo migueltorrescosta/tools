@@ -463,7 +463,12 @@
 						align: 'right',
 						format: (v) => (v as string) ?? '–'
 					},
-					{ key: 'rhat', label: 'R̂', align: 'right', format: (v) => fmt(v as number | undefined) },
+					{
+						key: 'rhat',
+						label: 'R̂',
+						align: 'right',
+						format: (v) => fmt(v as number | undefined, 4)
+					},
 					{
 						key: 'ess',
 						label: 'ESS',

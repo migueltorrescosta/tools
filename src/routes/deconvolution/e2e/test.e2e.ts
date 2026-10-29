@@ -306,4 +306,34 @@ test.describe('2D', () => {
 			timeout: 120_000
 		});
 	});
+
+	test('the 2D Bayesian fit adds credible intervals', async ({ page }) => {
+		test.setTimeout(120_000);
+		await open2d(page);
+		await page.getByTestId('x2-family').selectOption('gauss2');
+		await page.getByTestId('method2-npmle').uncheck();
+		await run(page);
+		await page.getByTestId('bayes2-draws').fill('200');
+		await page.getByTestId('bayes2').click();
+		await expect(
+			page
+				.getByRole('table', { name: 'Parametric fit' })
+				.getByRole('columnheader', { name: 'Posterior median' })
+		).toBeVisible({
+			timeout: 90_000
+		});
+	});
+
+	test('the 2D NPMLE posterior shades credible bands', async ({ page }) => {
+		test.setTimeout(120_000);
+		await open2d(page);
+		await page.getByTestId('method2-mle').uncheck();
+		await page.getByTestId('method2-npmle').check();
+		await run(page);
+		await page.getByTestId('npmle2-posterior').click();
+		await expect(page.getByTestId('estimate-marginal-x').locator('path.band')).toBeVisible({
+			timeout: 90_000
+		});
+		await expect(page.getByTestId('curve-npmle-post').first()).toBeVisible();
+	});
 });
