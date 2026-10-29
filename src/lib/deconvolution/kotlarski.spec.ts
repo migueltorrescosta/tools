@@ -26,16 +26,16 @@ function check(y: SimpleSpec, n: number, m: number) {
 }
 
 describe('fitKotlarski', () => {
-	// The kernel blunts Laplace's cusp, so Y's L₁ is mostly smoothing (0.35 at this bandwidth).
+	// Y gets its own, smaller bandwidth; the kernel still blunts Laplace's cusp (L₁ 0.26 here).
 	it('recovers X within 3× the known-noise kernel and Y itself, under Laplace noise', () => {
 		const d = check({ family: 'laplace', params: [0, 0.5] }, 2000, 2);
 		expect(d.x).toBeLessThan(3 * d.oracle);
-		expect(d.y).toBeLessThan(0.45);
+		expect(d.y).toBeLessThan(0.35);
 	});
 
 	it('needs no symmetry: a skewed (centred exponential) noise, 3 readings', () => {
 		const d = check({ family: 'exponential', params: [1.5] }, 2000, 3);
 		expect(d.x).toBeLessThan(3 * d.oracle);
-		expect(d.y).toBeLessThan(0.45);
+		expect(d.y).toBeLessThan(0.35);
 	});
 });

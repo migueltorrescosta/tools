@@ -18,7 +18,7 @@ export interface KotlarskiInput {
 	/** Grids for X and for Y (Y's centred on 0). */
 	gridX: Grid;
 	gridY: Grid;
-	/** Default: the normal-reference rule on X's variance (see `replicateBandwidth`). */
+	/** X's bandwidth; default the normal-reference rule on X's variance (see `replicateBandwidth`). Y's is the same rule on Y's variance. */
 	bandwidth?: number;
 	/** Frequencies on [0, 1/h] (default 512). */
 	nT?: number;
@@ -28,6 +28,7 @@ export interface KotlarskiResult {
 	x: GridEstimate & { negativeMass: number };
 	y: GridEstimate & { negativeMass: number };
 	bandwidth: number;
+	bandwidthY: number;
 	/** Var X = Cov(Z_j, Z_k) and Var Y = Var Z − Var X, from the readings. */
 	varX: number;
 	varY: number;
@@ -72,7 +73,9 @@ export function fitKotlarski({
 	const N = n * m;
 	const { varX, varY } = replicateVariances(readings);
 	const h = bandwidth ?? replicateBandwidth(varX, N);
-	const tMax = 1 / h;
+	// Y is usually narrower than X, so it gets its own, smaller bandwidth and needs higher frequencies.
+	const hY = Math.min(h, replicateBandwidth(Math.max(varY, 1e-6 * varX), N));
+	const tMax = 1 / hY;
 	const dt = tMax / (nT - 1);
 	const rootN = Math.sqrt(n);
 	// Each subject's sum of readings: Σ_{j≠k} Z_j e^{isZ_k} = Σ_k (S − Z_k) e^{isZ_k}.
@@ -138,16 +141,19 @@ export function fitKotlarski({
 		const b2 = br * br + bi * bi;
 		const fyr = (pr * br + pi * bi) / b2;
 		const fyi = (pi * br - pr * bi) / b2;
-		const k = kernelPhi(t * h) * (q === 0 || q === nT - 1 ? 0.5 : 1) * dt;
-		xRe[q] = k * fxr;
-		xIm[q] = k * fxi;
-		yRe[q] = k * fyr;
-		yIm[q] = k * fyi;
+		const ends = (q === 0 || q === nT - 1 ? 0.5 : 1) * dt;
+		const kx = kernelPhi(t * h) * ends;
+		const ky = kernelPhi(t * hY) * ends;
+		xRe[q] = kx * fxr;
+		xIm[q] = kx * fxi;
+		yRe[q] = ky * fyr;
+		yIm[q] = ky * fyi;
 	}
 	return {
 		x: invertCf(ts, xRe, xIm, gridX),
 		y: invertCf(ts, yRe, yIm, gridY),
 		bandwidth: h,
+		bandwidthY: hY,
 		varX,
 		varY
 	};

@@ -254,8 +254,12 @@
 				)
 			: settings.methods.filter((x) => x !== m);
 	}
+	// Only known noise has a parametric fit to borrow the noise from.
 	const usesFitted = $derived(
-		settings.noiseFor === 'fitted' && settings.fitNoise && chosen.some((m) => m !== 'mle')
+		settings.noise === 'known' &&
+			settings.noiseFor === 'fitted' &&
+			settings.fitNoise &&
+			chosen.some((m) => m !== 'mle')
 	);
 
 	// --- Running ---
@@ -1058,20 +1062,22 @@
 					</label>
 				{/each}
 			</fieldset>
-			<div class="row">
-				<label class="check">
-					<input type="checkbox" bind:checked={settings.fitNoise} data-testid="fit-noise" />
-					The parametric fit also fits the noise
-				</label>
-			</div>
-			<SegmentedControl
-				legend="Noise used by the other methods"
-				options={[
-					{ value: 'entered', label: 'As entered' },
-					{ value: 'fitted', label: 'From the parametric fit', disabled: !settings.fitNoise }
-				]}
-				bind:value={settings.noiseFor}
-			/>
+			{#if settings.noise === 'known'}
+				<div class="row">
+					<label class="check">
+						<input type="checkbox" bind:checked={settings.fitNoise} data-testid="fit-noise" />
+						The parametric fit also fits the noise
+					</label>
+				</div>
+				<SegmentedControl
+					legend="Noise used by the other methods"
+					options={[
+						{ value: 'entered', label: 'As entered' },
+						{ value: 'fitted', label: 'From the parametric fit', disabled: !settings.fitNoise }
+					]}
+					bind:value={settings.noiseFor}
+				/>
+			{/if}
 			<div class="row">
 				{#if settings.methods.includes('gmodel')}
 					<Field label="g-modeling spline df">

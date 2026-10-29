@@ -370,6 +370,9 @@ test.describe('Noise regimes', () => {
 		const chart = page.getByTestId('estimate-chart');
 		await expect(chart.getByTestId('curve-kotlarski')).toBeVisible();
 		await expect(chart.getByTestId('curve-kotlarski-noise')).toBeVisible();
+		await expect(chart.getByTestId('curve-noise-truth')).toBeVisible();
+		// The default preset borrows the noise from the parametric fit, which only known noise has.
+		await expect(page.getByRole('table', { name: 'Parametric fit' })).toHaveCount(0);
 	});
 
 	test('per-point errors need two columns when uploaded', async ({ page }) => {
