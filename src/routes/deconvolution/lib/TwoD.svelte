@@ -767,7 +767,7 @@
 						})
 					: null}
 				{npmleBand}
-				priorText="1/4,096 per point on the 64 × 64 grid (marginals shaded)"
+				priorText="1/4,096 per point of the 64 × 64 grid"
 				suffix="2"
 				bind:bayes
 				onband={(b) => (npost = b)}

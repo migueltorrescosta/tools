@@ -244,6 +244,11 @@
 {/if}
 
 <style>
+	.muted {
+		color: var(--text-muted);
+		font-size: var(--text-sm);
+		margin: 0;
+	}
 	.subsection {
 		display: flex;
 		flex-direction: column;
