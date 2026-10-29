@@ -28,8 +28,8 @@ export interface Gmm2Fit {
 export interface Gmm2Input {
 	xs: Float64Array;
 	ys: Float64Array;
-	/** The noise covariance S. */
-	noise: Cov;
+	/** The noise covariance S, or each point's own [σx², ρσxσy, σy²] (the data aren't binned then). */
+	noise: Noise2;
 	kMax?: number;
 	seed: number;
 	restarts?: number;
@@ -58,37 +58,49 @@ interface Component {
 	V: Cov;
 }
 
-/** One EM step with weights c; returns the log-likelihood at `comps` and the update. */
+/** The noise covariance of point i: one S for all, or each point's own (per-point errors). */
+export type Noise2 = Cov | Float64Array[];
+const isShared = (S: Noise2): S is Cov => typeof S[0] === 'number';
+
+/**
+ * One EM step with weights c; returns the log-likelihood at `comps` and the
+ * update. With per-point covariances S_i, the gain and posterior covariance
+ * are point by point (Bovy, Hogg & Roweis 2011, eq. 13–17).
+ */
 function step(
 	x: Float64Array,
 	y: Float64Array,
 	c: Float64Array,
 	comps: Component[],
-	S: Cov,
+	S: Noise2,
 	floor: number
 ): { logLik: number; next: Component[] } {
 	const k = comps.length;
-	const pre = comps.map(({ w, mu, V }) => {
-		const T: Cov = [V[0] + S[0], V[1] + S[1], V[2] + S[2]];
+	/** For component j under noise covariance N: T⁻¹, the gain V·T⁻¹, B = V − V·T⁻¹·V and log w − log 2π − ½ log det T. */
+	const terms = ({ w, V }: Component, N: Cov) => {
+		const T: Cov = [V[0] + N[0], V[1] + N[1], V[2] + N[2]];
 		const Ti = inv(T);
-		// The gain V·T⁻¹ and the posterior covariance B = V − V·T⁻¹·V.
 		const G = mul(V, Ti);
 		const B: Cov = [
 			V[0] - (G[0] * V[0] + G[1] * V[1]),
 			V[1] - (G[0] * V[1] + G[1] * V[2]),
 			V[2] - (G[2] * V[1] + G[3] * V[2])
 		];
-		return { w, mu, Ti, G, B, logNorm: Math.log(w) - LOG_2PI - 0.5 * Math.log(det(T)) };
-	});
+		return { Ti, G, B, logNorm: Math.log(w) - LOG_2PI - 0.5 * Math.log(det(T)) };
+	};
+	const fixed = isShared(S) ? comps.map((cm) => terms(cm, S)) : null;
 	const R = new Float64Array(k);
 	const Rb = Array.from({ length: k }, () => [0, 0]);
 	const Rbb = Array.from({ length: k }, () => [0, 0, 0]);
+	const RB = Array.from({ length: k }, () => [0, 0, 0]);
 	const lr = new Float64Array(k);
 	let logLik = 0;
 	for (let i = 0; i < x.length; i++) {
+		const pre = fixed ?? comps.map((cm) => terms(cm, Array.from((S as Float64Array[])[i]) as Cov));
 		let top = -Infinity;
 		for (let j = 0; j < k; j++) {
-			const { mu, Ti, logNorm } = pre[j];
+			const { Ti, logNorm } = pre[j];
+			const { mu } = comps[j];
 			const u = x[i] - mu[0];
 			const v = y[i] - mu[1];
 			lr[j] = logNorm - 0.5 * (Ti[0] * u * u + 2 * Ti[1] * u * v + Ti[2] * v * v);
@@ -99,7 +111,8 @@ function step(
 		logLik += c[i] * (top + Math.log(total));
 		for (let j = 0; j < k; j++) {
 			const r = (c[i] * lr[j]) / total;
-			const { mu, G } = pre[j];
+			const { G, B } = pre[j];
+			const { mu } = comps[j];
 			const u = x[i] - mu[0];
 			const v = y[i] - mu[1];
 			const b0 = mu[0] + G[0] * u + G[1] * v;
@@ -110,6 +123,9 @@ function step(
 			Rbb[j][0] += r * b0 * b0;
 			Rbb[j][1] += r * b0 * b1;
 			Rbb[j][2] += r * b1 * b1;
+			RB[j][0] += r * B[0];
+			RB[j][1] += r * B[1];
+			RB[j][2] += r * B[2];
 		}
 	}
 	const n = R.reduce((a, b) => a + b, 0);
@@ -118,11 +134,10 @@ function step(
 		if (!(R[j] > 0)) return { ...old, w: 0 };
 		const m0 = Rb[j][0] / R[j];
 		const m1 = Rb[j][1] / R[j];
-		const B = pre[j].B;
-		// Σ r(μ − b)(μ − b)ᵀ = Σ r b bᵀ − R μ μᵀ at the new μ.
-		const a = Rbb[j][0] / R[j] - m0 * m0 + B[0] + floor;
-		const cc = Rbb[j][2] / R[j] - m1 * m1 + B[2] + floor;
-		let b = Rbb[j][1] / R[j] - m0 * m1 + B[1];
+		// Σ r(μ − b)(μ − b)ᵀ = Σ r b bᵀ − R μ μᵀ at the new μ, plus the mean posterior covariance.
+		const a = (Rbb[j][0] + RB[j][0]) / R[j] - m0 * m0 + floor;
+		const cc = (Rbb[j][2] + RB[j][2]) / R[j] - m1 * m1 + floor;
+		let b = (Rbb[j][1] + RB[j][1]) / R[j] - m0 * m1;
 		// Keep V positive definite.
 		const lim = 0.999 * Math.sqrt(a * cc);
 		b = Math.max(-lim, Math.min(lim, b));
@@ -161,7 +176,12 @@ export function fitGmm2({
 	maxIter = 500,
 	tol
 }: Gmm2Input): { best: Gmm2Fit; fits: Gmm2Fit[] } {
-	const { x, y, c } = binData2(xs, ys);
+	const { x, y, c } = isShared(noise)
+		? binData2(xs, ys)
+		: { x: xs, y: ys, c: new Float64Array(xs.length).fill(1) };
+	// The typical noise variances, for the starting spread.
+	const avg = (k: 0 | 2) =>
+		isShared(noise) ? noise[k] : noise.reduce((a, q) => a + q[k], 0) / noise.length;
 	let n = 0;
 	let sx = 0;
 	let sy = 0;
@@ -191,7 +211,7 @@ export function fitGmm2({
 			let comps: Component[] = seedMeans(x, y, c, k, prng).map((mu) => ({
 				w: 1 / k,
 				mu,
-				V: [v(vxx, noise[0]), 0, v(vyy, noise[2])]
+				V: [v(vxx, avg(0)), 0, v(vyy, avg(2))]
 			}));
 			let prev = -Infinity;
 			let iterations = 0;

@@ -11,7 +11,8 @@ import type { DistSpec } from './types';
 
 export interface GmmInput {
 	data: Float64Array;
-	noiseSigma: number;
+	/** The noise's σ, or each point's own σᵢ (per-point errors; the data aren't binned then). */
+	noiseSigma: number | Float64Array;
 	kMax?: number;
 	seed: number;
 	restarts?: number;
@@ -49,32 +50,34 @@ export interface GmmState {
 const HALF_LOG_2PI = 0.5 * Math.log(2 * Math.PI);
 
 /**
- * One EM step with weights c (the Bovy et al. updates for equal, known noise).
+ * One EM step with weights c: the Bovy et al. updates, with point i's noise
+ * N(0, σᵢ²) (σᵢ = sigma, or sigma[i] for per-point errors).
  * Returns the log-likelihood at `state` and writes the update into `next`.
  */
 function step(
 	z: Float64Array,
 	c: Float64Array,
 	state: GmmState,
-	sigma: number,
+	sigma: number | Float64Array,
 	floor: number,
 	next: GmmState
 ): number {
 	const k = state.weights.length;
 	const s2 = state.sds.map((s) => s * s);
-	const T = s2.map((v) => v + sigma * sigma);
-	const shrink = s2.map((v, j) => v / T[j]);
-	const B = s2.map((v, j) => v - v * shrink[j]);
-	const logNorm = T.map((t, j) => Math.log(state.weights[j]) - 0.5 * Math.log(t) - HALF_LOG_2PI);
+	const logW = state.weights.map((w) => Math.log(w));
 	const R = new Float64Array(k);
 	const Rb = new Float64Array(k);
 	const Rbb = new Float64Array(k);
+	const RB = new Float64Array(k);
 	const lr = new Float64Array(k);
+	const T = new Float64Array(k);
 	let logLik = 0;
 	for (let i = 0; i < z.length; i++) {
+		const si = typeof sigma === 'number' ? sigma : sigma[i];
 		let top = -Infinity;
 		for (let j = 0; j < k; j++) {
-			lr[j] = logNorm[j] - (0.5 * (z[i] - state.means[j]) ** 2) / T[j];
+			T[j] = s2[j] + si * si;
+			lr[j] = logW[j] - 0.5 * Math.log(T[j]) - HALF_LOG_2PI - (0.5 * (z[i] - state.means[j]) ** 2) / T[j];
 			top = Math.max(top, lr[j]);
 		}
 		let total = 0;
@@ -82,10 +85,12 @@ function step(
 		logLik += c[i] * (top + Math.log(total));
 		for (let j = 0; j < k; j++) {
 			const r = (c[i] * lr[j]) / total;
-			const b = state.means[j] + shrink[j] * (z[i] - state.means[j]);
+			const shrink = s2[j] / T[j];
+			const b = state.means[j] + shrink * (z[i] - state.means[j]);
 			R[j] += r;
 			Rb[j] += r * b;
 			Rbb[j] += r * b * b;
+			RB[j] += r * (s2[j] - s2[j] * shrink);
 		}
 	}
 	const n = R.reduce((a, b) => a + b, 0);
@@ -98,7 +103,7 @@ function step(
 		}
 		const mu = Rb[j] / R[j];
 		// Σ r(μ − b)² = Σ r b² − R μ² at the new μ.
-		const v = (Rbb[j] - R[j] * mu * mu) / R[j] + B[j];
+		const v = (Rbb[j] - R[j] * mu * mu + RB[j]) / R[j];
 		next.weights[j] = R[j] / n;
 		next.means[j] = mu;
 		next.sds[j] = Math.sqrt(Math.max(v, floor));
@@ -151,8 +156,16 @@ export function fitGmm({
 	maxIter = 500,
 	tol
 }: GmmInput): GmmResult {
-	const { z, c } = binData(data);
+	const { z, c } =
+		typeof noiseSigma === 'number'
+			? binData(data)
+			: { z: data, c: new Float64Array(data.length).fill(1) };
 	const { variance, n } = moments(z, c);
+	// The typical noise variance, for the starting spread.
+	const noiseVar =
+		typeof noiseSigma === 'number'
+			? noiseSigma * noiseSigma
+			: noiseSigma.reduce((a, s) => a + s * s, 0) / noiseSigma.length;
 	const tolerance = tol ?? 1e-6 * n;
 	const floor = 1e-6 * variance;
 	const fits: GmmFit[] = [];
@@ -160,7 +173,7 @@ export function fitGmm({
 		let best: { state: GmmState; logLik: number; iterations: number } | null = null;
 		for (let r = 0; r < restarts; r++) {
 			const prng = new Prng(seed + r * 1000 + k);
-			const s0 = Math.sqrt(Math.max(variance / (k * k) - noiseSigma * noiseSigma, 0.01 * variance));
+			const s0 = Math.sqrt(Math.max(variance / (k * k) - noiseVar, 0.01 * variance));
 			let state: GmmState = {
 				weights: new Float64Array(k).fill(1 / k),
 				means: seedMeans(z, c, k, prng),

@@ -29,12 +29,32 @@ export function likelihoodMatrix(z: Float64Array, y: Dist, grid: Grid): Float64A
 	return L;
 }
 
+/** Row-major n × m matrix L[i·m + j] = φ((z_i − a_j)/σ_i)/σ_i: normal noise with each point's own σ_i. */
+export function likelihoodMatrixPerPoint(
+	z: Float64Array,
+	sigma: Float64Array,
+	{ x0, h, m }: Grid
+): Float64Array {
+	const L = new Float64Array(z.length * m);
+	for (let i = 0; i < z.length; i++) {
+		const k = 1 / (sigma[i] * Math.sqrt(2 * Math.PI));
+		for (let j = 0; j < m; j++) {
+			const u = (z[i] - (x0 + j * h)) / sigma[i];
+			L[i * m + j] = k * Math.exp(-0.5 * u * u);
+		}
+	}
+	return L;
+}
+
 /** Least mass the extrapolation leaves an atom: EM multiplies masses, so a zero could never come back. */
 const FLOOR = 1e-12;
 
 export interface NpmleInput {
 	data: Float64Array;
+	/** The noise; ignored when `sigma` is given. */
 	y: Dist;
+	/** Each point's own normal-noise σ_i (per-point errors; the data aren't binned then). */
+	sigma?: Float64Array;
 	grid?: Grid;
 	maxIter?: number;
 	/** Stop when max_j D_j ≤ 1 + tol (default 1e-3). */
@@ -256,10 +276,21 @@ export function solveNpmle(
 	return { mass: w, logLik: at.logLik, iterations, gap: at.gap, converged: at.gap <= tol };
 }
 
-export function fitNpmle({ data, y, grid, ...options }: NpmleInput): NpmleResult {
-	const { z, c } = binData(data);
+export function fitNpmle({ data, y, sigma, grid, ...options }: NpmleInput): NpmleResult {
 	const g = grid ?? supportGrid(data);
-	return { grid: g, ...solveNpmle(likelihoodMatrix(z, y, g), c, g.m, options) };
+	return { grid: g, ...solveNpmle(...npmleSystem(data, y, g, sigma), g.m, options) };
+}
+
+/** The likelihood matrix and counts of a sample: binned, or one row per point with per-point σ. */
+export function npmleSystem(
+	data: Float64Array,
+	y: Dist,
+	g: Grid,
+	sigma?: Float64Array
+): [Float64Array, Float64Array] {
+	if (sigma) return [likelihoodMatrixPerPoint(data, sigma, g), new Float64Array(data.length).fill(1)];
+	const { z, c } = binData(data);
+	return [likelihoodMatrix(z, y, g), c];
 }
 
 /**

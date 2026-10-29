@@ -40,6 +40,43 @@ export function likelihoodMatrix2(
 	return L;
 }
 
+/** As `likelihoodMatrix2`, with each point's own normal noise covariance [σx², ρσxσy, σy²]. */
+export function likelihoodMatrix2PerPoint(
+	px: Float64Array,
+	py: Float64Array,
+	cov: Float64Array[],
+	g: Grid2
+): Float64Array {
+	const m = g.mx * g.my;
+	const L = new Float64Array(px.length * m);
+	for (let i = 0; i < px.length; i++) {
+		const [a, b, c] = cov[i];
+		const d = a * c - b * b;
+		const k = 1 / (2 * Math.PI * Math.sqrt(d));
+		for (let j = 0; j < g.my; j++) {
+			const v = py[i] - (g.y0 + j * g.hy);
+			for (let q = 0; q < g.mx; q++) {
+				const u = px[i] - (g.x0 + q * g.hx);
+				L[i * m + j * g.mx + q] = k * Math.exp((-0.5 * (c * u * u - 2 * b * u * v + a * v * v)) / d);
+			}
+		}
+	}
+	return L;
+}
+
+/** The likelihood matrix and counts of a 2D sample: binned, or one row per point with its own covariance. */
+export function npmleSystem2(
+	xs: Float64Array,
+	ys: Float64Array,
+	y: Dist2,
+	g: Grid2,
+	cov?: Float64Array[]
+): [Float64Array, Float64Array] {
+	if (cov) return [likelihoodMatrix2PerPoint(xs, ys, cov, g), new Float64Array(xs.length).fill(1)];
+	const b = binData2(xs, ys);
+	return [likelihoodMatrix2(b.x, b.y, y, g), b.c];
+}
+
 /** The (up to) 8 grid neighbours of support point j. */
 export const gridNeighbours =
 	({ mx, my }: Grid2) =>
@@ -59,6 +96,8 @@ export interface Npmle2Input extends Omit<NpmleOptions, 'neighbours'> {
 	xs: Float64Array;
 	ys: Float64Array;
 	y: Dist2;
+	/** Each point's own noise covariance [σx², ρσxσy, σy²] (per-point errors). */
+	cov?: Float64Array[];
 	grid?: Grid2;
 }
 
@@ -69,12 +108,11 @@ export interface Npmle2Result extends GridEstimate2 {
 	converged: boolean;
 }
 
-export function fitNpmle2({ xs, ys, y, grid, ...options }: Npmle2Input): Npmle2Result {
-	const b = binData2(xs, ys);
+export function fitNpmle2({ xs, ys, y, cov, grid, ...options }: Npmle2Input): Npmle2Result {
 	const g = grid ?? supportGrid2(xs, ys);
-	const L = likelihoodMatrix2(b.x, b.y, y, g);
+	const [L, c] = npmleSystem2(xs, ys, y, g, cov);
 	return {
 		grid: g,
-		...solveNpmle(L, b.c, g.mx * g.my, { ...options, neighbours: gridNeighbours(g) })
+		...solveNpmle(L, c, g.mx * g.my, { ...options, neighbours: gridNeighbours(g) })
 	};
 }
