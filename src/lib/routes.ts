@@ -118,5 +118,11 @@ export const routes: ToolRoute[] = [
 		name: 'Scientific Derivations',
 		description: 'Follow a paper’s derivation step by step.',
 		group: 'Science and simulation'
+	},
+	{
+		path: '/chaos-game',
+		name: 'Chaos Game',
+		description: 'Jump towards random points and watch fractals appear.',
+		group: 'Science and simulation'
 	}
 ];
