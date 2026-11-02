@@ -274,9 +274,6 @@ export function tone(h: Histogram, opts: ToneOptions, out?: Uint8ClampedArray): 
 	const rgba = out ?? new Uint8ClampedArray(4 * n);
 	const logMax = Math.log1p(h.max) || 1;
 	const inv = 1 / opts.gamma;
-	// alpha depends only on the count; tabulate it for small counts
-	const table = new Float64Array(Math.min(h.max, 4096) + 1);
-	for (let c = 1; c < table.length; c++) table[c] = Math.pow(Math.log1p(c) / logMax, inv);
 	const colours = opts.mode === 'point' ? h.colours : null;
 	for (let i = 0; i < n; i++) {
 		const c = h.counts[i];
@@ -285,7 +282,7 @@ export function tone(h: Histogram, opts: ToneOptions, out?: Uint8ClampedArray): 
 			rgba[o + 3] = 0;
 			continue;
 		}
-		const a = c < table.length ? table[c] : Math.pow(Math.log1p(c) / logMax, inv);
+		const a = Math.pow(Math.log1p(c) / logMax, inv);
 		if (colours) {
 			rgba[o] = colours[3 * i] / c;
 			rgba[o + 1] = colours[3 * i + 1] / c;
