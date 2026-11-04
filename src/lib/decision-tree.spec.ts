@@ -623,6 +623,47 @@ describe('Full tree traversal', () => {
 		expect((rows[rows.length - 1] as ResultRow).node.result).toBe('Roman Catholic');
 	});
 
+	it('can traverse the units tree to kelvin', () => {
+		const graph = buildGraph(treeJson as RawTree);
+		const path: TraversalPath = [
+			'root|Pick a unit',
+			'u_q|Temperature',
+			'u_temp|A physics or chemistry formula'
+		];
+		const rows = computeRows(graph, path);
+		expect((rows[rows.length - 1] as ResultRow).node.result).toBe('Kelvin (K)');
+	});
+
+	it('explains every unit answer that leads to a result', () => {
+		const graph = buildGraph(treeJson as RawTree);
+		const unexplained = [...graph.edges.values()].filter(
+			(e) =>
+				e.sourceId.startsWith('u_') && isResultNode(graph.nodes.get(e.targetId)!) && !e.explanation
+		);
+		expect(unexplained.map((e) => e.id)).toEqual([]);
+	});
+
+	it('offers the same country list on every units audience question', () => {
+		const graph = buildGraph(treeJson as RawTree);
+		const countries = [
+			'United States',
+			'United Kingdom',
+			'Canada',
+			'Liberia',
+			'Myanmar',
+			'Bahamas, Belize, Cayman Islands',
+			'Palau, Micronesia, Marshall Islands',
+			'Elsewhere'
+		];
+		const audience = [...graph.nodes.values()].filter(
+			(n) => isQuestionNode(n) && n.prompt === 'Where is your audience?'
+		);
+		expect(audience.length).toBeGreaterThan(0);
+		for (const node of audience) {
+			expect(getAnswersForNode(graph, node.id).map((e) => e.label)).toEqual(countries);
+		}
+	});
+
 	it('can switch trees by changing the root answer', () => {
 		const raw = treeJson as RawTree;
 		const graph = buildGraph(raw);
