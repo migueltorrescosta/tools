@@ -11,9 +11,6 @@
 
 	let { graph, path = $bindable([]) }: Props = $props();
 
-	// Edge ids of explanations opened with the ? button; cleared on every answer
-	let revealed = $state<Set<string>>(new Set());
-
 	const rows = $derived(computeRows(graph, path));
 
 	// Read out by the live region below whenever a choice reveals a new question or the result
@@ -28,21 +25,13 @@
 
 	function choose(depth: number, edgeId: string) {
 		path = selectAnswer(path, depth, edgeId);
-		revealed = new Set();
 	}
 
 	/** Clear every answer and move focus to the root question's first answer. */
 	async function restart() {
 		path = [];
-		revealed = new Set();
 		await tick();
 		container?.querySelector<HTMLButtonElement>('.answer-btn')?.focus();
-	}
-
-	function toggleExplanation(edgeId: string) {
-		const next = new Set(revealed);
-		if (!next.delete(edgeId)) next.add(edgeId);
-		revealed = next;
 	}
 </script>
 
@@ -57,38 +46,14 @@
 				aria-labelledby={`question-${row.index - 1}`}
 				data-testid="answers"
 			>
-				{#each row.edges as edge, i (edge.id)}
-					{@const tipId = `explanation-${row.depth}-${i}`}
-					<div class="answer-item">
-						<Button
-							class="answer-btn"
-							pressed={edge.id === row.selectedEdgeId}
-							aria-describedby={edge.explanation ? tipId : undefined}
-							onclick={() => choose(row.depth, edge.id)}
-						>
-							{edge.label}
-						</Button>
-						{#if edge.explanation}
-							<Button
-								class="explain-btn"
-								variant="ghost"
-								aria-label={`Explain "${edge.label}"`}
-								aria-expanded={revealed.has(edge.id)}
-								aria-controls={tipId}
-								onclick={() => toggleExplanation(edge.id)}
-							>
-								?
-							</Button>
-							<span
-								id={tipId}
-								role="tooltip"
-								class="explanation-tip"
-								class:visible={revealed.has(edge.id)}
-							>
-								{edge.explanation}
-							</span>
-						{/if}
-					</div>
+				{#each row.edges as edge (edge.id)}
+					<Button
+						class="answer-btn"
+						pressed={edge.id === row.selectedEdgeId}
+						onclick={() => choose(row.depth, edge.id)}
+					>
+						{edge.label}
+					</Button>
 				{/each}
 			</div>
 		{:else if row.type === 'result'}
@@ -128,58 +93,6 @@
 		flex-wrap: wrap;
 		justify-content: center;
 		gap: var(--sp-2);
-	}
-
-	.answer-item {
-		position: relative;
-		display: inline-flex;
-		align-items: stretch;
-		gap: var(--sp-0);
-	}
-
-	.answer-item :global(.explain-btn) {
-		min-width: var(--control-h);
-		padding: 0 var(--sp-2);
-		color: var(--text-muted);
-	}
-
-	.answer-item :global(.explain-btn[aria-expanded='true']) {
-		border-color: var(--accent);
-		color: var(--accent);
-	}
-
-	/* Explanation tooltip */
-	.explanation-tip {
-		display: none;
-		position: absolute;
-		top: 100%;
-		margin-top: var(--sp-1);
-		left: 50%;
-		transform: translateX(-50%);
-		z-index: 20;
-		width: max-content;
-		max-width: 280px;
-		padding: var(--sp-2) var(--sp-3);
-		background: var(--surface);
-		border: 1px solid var(--border-strong);
-		border-radius: var(--radius);
-		color: var(--text);
-		font-size: var(--text-sm);
-		font-weight: 400;
-		white-space: normal;
-	}
-
-	/* Shown on pointer hover, on keyboard focus of the answer, or when toggled
-	   with the ? button (touch and keyboard) */
-	@media (hover: hover) {
-		.answer-item:hover .explanation-tip {
-			display: block;
-		}
-	}
-
-	.answer-item:has(:global(.answer-btn:focus-visible)) .explanation-tip,
-	.explanation-tip.visible {
-		display: block;
 	}
 
 	.result-card {

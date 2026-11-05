@@ -44,8 +44,7 @@ export function buildGraph(raw: RawTree): DecisionGraph {
 			id: edgeId,
 			sourceId: e.sourceId,
 			targetId: e.targetId,
-			label: e.label,
-			explanation: e.explanation ?? undefined
+			label: e.label
 		};
 		// An edge from a missing node gives no real incoming edge; validateGraph reports it
 		if (nodes.has(e.sourceId)) hasIncoming.add(e.targetId);

@@ -17,7 +17,6 @@ export interface AnswerEdge {
 	sourceId: string;
 	targetId: string;
 	label: string;
-	explanation?: string;
 }
 
 export interface RawNode {
@@ -30,7 +29,6 @@ export interface RawEdge {
 	sourceId: string;
 	targetId: string;
 	label: string;
-	explanation?: string | null;
 }
 
 export interface RawTree {

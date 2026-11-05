@@ -1,8 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
 
-// Explanation tips are covered by src/lib/decision-tree/DecisionTree.svelte.spec.ts
-// on a fixture tree, since tree.json has no explanations.
-
 /** Load `url` and wait until the page has hydrated, so clicks are not lost. */
 async function open(page: Page, url = '/decision-tree') {
 	await page.goto(url);
@@ -40,7 +37,7 @@ test.describe('Decision Tree E2E', () => {
 		await expect(questions(page)).toHaveCount(2);
 		await expect(questions(page).nth(1)).toHaveText('What matters most?');
 
-		await answer(page, 1, 'Environmental impact');
+		await answer(page, 1, 'Low running cost or emissions');
 		await expect(questions(page)).toHaveCount(3);
 		await expect(questions(page).nth(2)).toHaveText('Can you charge at home?');
 
@@ -51,7 +48,7 @@ test.describe('Decision Tree E2E', () => {
 
 	test('changing a previous answer removes downstream rows', async ({ page }) => {
 		await answer(page, 0, 'Choose a car');
-		await answer(page, 1, 'Environmental impact');
+		await answer(page, 1, 'Low running cost or emissions');
 		await answer(page, 2, 'Yes');
 		await expect(result(page)).toHaveText('Battery EV');
 
@@ -91,9 +88,9 @@ test.describe('Decision Tree E2E', () => {
 
 	test('shareable URL restores traversal state in a fresh context', async ({ page, browser }) => {
 		await answer(page, 0, 'Choose a car');
-		await answer(page, 1, 'Lowest total cost');
+		await answer(page, 1, 'Low running cost or emissions');
 		await answer(page, 2, 'Yes');
-		await expect(result(page)).toHaveText('Hybrid');
+		await expect(result(page)).toHaveText('Battery EV');
 		// Answer positions per step: readable, and immune to commas in labels
 		await expect(page).toHaveURL(/\?p=\d+(\.\d+){2}$/);
 
@@ -101,7 +98,7 @@ test.describe('Decision Tree E2E', () => {
 		const context = await browser.newContext();
 		const shared = await context.newPage();
 		await open(shared, page.url());
-		await expect(result(shared)).toHaveText('Hybrid');
+		await expect(result(shared)).toHaveText('Battery EV');
 		await context.close();
 	});
 
@@ -121,7 +118,7 @@ test.describe('Decision Tree E2E', () => {
 		await answer(page, 0, 'Choose a car');
 
 		const carAnswers = answerRows(page).nth(1).getByRole('button');
-		await expect(carAnswers).toHaveCount(6);
+		await expect(carAnswers).toHaveCount(5);
 		for (const button of await carAnswers.all()) {
 			await expect(button).toBeInViewport();
 		}
@@ -158,9 +155,9 @@ test.describe('Decision Tree E2E', () => {
 
 	test('Start over returns to the root question and clears ?p', async ({ page }) => {
 		await answer(page, 0, 'Choose a car');
-		await answer(page, 1, 'Lowest total cost');
+		await answer(page, 1, 'Low running cost or emissions');
 		await answer(page, 2, 'Yes');
-		await expect(result(page)).toHaveText('Hybrid');
+		await expect(result(page)).toHaveText('Battery EV');
 		await expect(page).toHaveURL(/\?p=/);
 
 		await page.getByRole('button', { name: 'Start over' }).click();
