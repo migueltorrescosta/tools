@@ -1,10 +1,19 @@
 # Decision Tree: units
 
-The sources behind the "Pick a unit" branch of `/decision-tree`. Each answer's ? tooltip gives the short version.
+The sources behind the "Pick a unit" branch of `/decision-tree`, and the details the tree leaves out.
 
 ## How the branch works
 
-The branch asks what you are measuring, then what for, and for everyday quantities where your audience is. The audience question always offers the same list: the United States, the United Kingdom, Canada, Liberia, Myanmar, the Bahamas, Belize and the Cayman Islands, Palau, Micronesia and the Marshall Islands, and everywhere else. Those are the places whose everyday units differ from the metric default. The data is in `src/lib/decision-tree/data/tree.json` (node ids start with `u_`).
+The tree keeps every question to five answers or fewer, shows no tooltips, and reaches any unit within three answers of "What are you measuring?". With 63 ways to reach a unit, three is the fewest possible at five answers per question. Where the audience matters, the answers name only the US, the UK and Canada, which cover most readers. The other places that differ from the metric default are listed below; treat them like this:
+
+| Place                               | Treat as  | Except                                                                                               |
+| ----------------------------------- | --------- | ---------------------------------------------------------------------------------------------------- |
+| Liberia                             | US        | Speed limits are in km/h; sources conflict on °F                                                     |
+| Palau, Micronesia, Marshall Islands | US        | —                                                                                                    |
+| Bahamas, Belize, Cayman Islands     | US        | Cayman fuel is in imperial gallons; Bahamas and Belize also use °C                                   |
+| Myanmar                             | Elsewhere | Roads are signed in miles, fuel is sold by the gallon, and markets weigh food in viss (about 1.6 kg) |
+
+The tree also leaves out US weather pressure (inches of mercury) and imperial gallons in the UK's miles-per-gallon. The data is in `src/lib/decision-tree/data/tree.json` (node ids start with `u_`).
 
 ## Imperial and metric
 

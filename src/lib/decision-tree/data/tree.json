@@ -46,60 +46,68 @@
 
 		{ "id": "u_q", "type": "question", "content": "What are you measuring?" },
 		{ "id": "u_temp", "type": "question", "content": "What is the temperature for?" },
-		{ "id": "u_temp_where", "type": "question", "content": "Where is your audience?" },
 		{ "id": "u_len", "type": "question", "content": "What are you measuring?" },
-		{ "id": "u_len_road", "type": "question", "content": "Where is your audience?" },
-		{ "id": "u_len_height", "type": "question", "content": "Where is your audience?" },
-		{ "id": "u_mass", "type": "question", "content": "What are you weighing?" },
-		{ "id": "u_mass_body", "type": "question", "content": "Where is your audience?" },
-		{ "id": "u_mass_food", "type": "question", "content": "Where is your audience?" },
-		{ "id": "u_vol", "type": "question", "content": "What are you measuring?" },
-		{ "id": "u_vol_fuel", "type": "question", "content": "Where is your audience?" },
+		{ "id": "u_len_day", "type": "question", "content": "Which length?" },
+		{ "id": "u_len_nav", "type": "question", "content": "Which length?" },
+		{ "id": "u_len_space", "type": "question", "content": "How far?" },
+		{ "id": "u_len_sci", "type": "question", "content": "How small?" },
+		{ "id": "u_area", "type": "question", "content": "Which area?" },
+		{ "id": "u_mass", "type": "question", "content": "What are you measuring?" },
+		{ "id": "u_body", "type": "question", "content": "Where is your audience?" },
+		{ "id": "u_food", "type": "question", "content": "Which?" },
+		{ "id": "u_drink", "type": "question", "content": "Which?" },
+		{ "id": "u_trade", "type": "question", "content": "Which?" },
+		{ "id": "u_mass_sci", "type": "question", "content": "Which?" },
+		{ "id": "u_phys", "type": "question", "content": "Which quantity?" },
 		{ "id": "u_speed", "type": "question", "content": "Whose speed?" },
-		{ "id": "u_speed_road", "type": "question", "content": "Where is your audience?" },
-		{ "id": "u_area", "type": "question", "content": "What are you measuring?" },
-		{ "id": "u_area_land", "type": "question", "content": "Where is your audience?" },
-		{ "id": "u_area_home", "type": "question", "content": "Where is your audience?" },
+		{ "id": "u_pres", "type": "question", "content": "What pressure?" },
 		{ "id": "u_energy", "type": "question", "content": "What is the energy for?" },
 		{ "id": "u_power", "type": "question", "content": "What is the power for?" },
-		{ "id": "u_pres", "type": "question", "content": "What pressure?" },
-		{ "id": "u_tyre", "type": "question", "content": "Where are the tyres?" },
+		{ "id": "u_other", "type": "question", "content": "Which quantity?" },
 		{ "id": "u_light", "type": "question", "content": "What about the light?" },
 		{ "id": "u_k", "type": "result", "content": "Kelvin (K)" },
 		{ "id": "u_c", "type": "result", "content": "Degrees Celsius (°C)" },
 		{ "id": "u_f", "type": "result", "content": "Degrees Fahrenheit (°F)" },
-		{ "id": "u_m", "type": "result", "content": "Metres (m)" },
-		{ "id": "u_km", "type": "result", "content": "Kilometres (km)" },
-		{ "id": "u_mi", "type": "result", "content": "Miles (mi)" },
-		{ "id": "u_ft", "type": "result", "content": "Feet (ft)" },
 		{ "id": "u_ftin", "type": "result", "content": "Feet and inches (ft, in)" },
 		{ "id": "u_cm", "type": "result", "content": "Centimetres (cm)" },
+		{ "id": "u_mi", "type": "result", "content": "Miles (mi)" },
+		{ "id": "u_km", "type": "result", "content": "Kilometres (km)" },
 		{ "id": "u_in", "type": "result", "content": "Inches (in)" },
+		{ "id": "u_ft", "type": "result", "content": "Feet (ft)" },
 		{ "id": "u_nmi", "type": "result", "content": "Nautical miles (NM)" },
 		{ "id": "u_au", "type": "result", "content": "Astronomical units (au)" },
 		{ "id": "u_pc", "type": "result", "content": "Parsecs (pc)" },
 		{ "id": "u_ly", "type": "result", "content": "Light-years (ly)" },
 		{ "id": "u_ang", "type": "result", "content": "Ångströms (Å)" },
 		{ "id": "u_nm", "type": "result", "content": "Nanometres (nm)" },
-		{ "id": "u_kg", "type": "result", "content": "Kilograms (kg)" },
+		{ "id": "u_m", "type": "result", "content": "Metres (m)" },
+		{ "id": "u_acre", "type": "result", "content": "Acres (ac)" },
+		{ "id": "u_ha", "type": "result", "content": "Hectares (ha)" },
+		{ "id": "u_sqft", "type": "result", "content": "Square feet (sq ft)" },
+		{ "id": "u_m2", "type": "result", "content": "Square metres (m²)" },
 		{ "id": "u_lb", "type": "result", "content": "Pounds (lb)" },
 		{ "id": "u_st", "type": "result", "content": "Stones and pounds (st, lb)" },
-		{ "id": "u_viss", "type": "result", "content": "Viss and ticals" },
+		{ "id": "u_kg", "type": "result", "content": "Kilograms (kg)" },
+		{ "id": "u_cup", "type": "result", "content": "Cups and spoons (cup, tbsp, tsp)" },
+		{ "id": "u_ml", "type": "result", "content": "Millilitres (mL)" },
+		{ "id": "u_gal", "type": "result", "content": "US gallons (gal)" },
+		{ "id": "u_l", "type": "result", "content": "Litres (L)" },
+		{ "id": "u_pt", "type": "result", "content": "Pints (pt)" },
+		{ "id": "u_bbl", "type": "result", "content": "Barrels (bbl)" },
 		{ "id": "u_ozt", "type": "result", "content": "Troy ounces (oz t)" },
 		{ "id": "u_ct", "type": "result", "content": "Carats (ct)" },
 		{ "id": "u_t", "type": "result", "content": "Tonnes (t)" },
 		{ "id": "u_da", "type": "result", "content": "Daltons (Da)" },
-		{ "id": "u_l", "type": "result", "content": "Litres (L)" },
-		{ "id": "u_gal", "type": "result", "content": "Gallons (gal)" },
-		{ "id": "u_pt", "type": "result", "content": "Pints (pt)" },
-		{ "id": "u_bbl", "type": "result", "content": "Barrels (bbl)" },
-		{ "id": "u_cup", "type": "result", "content": "Cups and spoons (cup, tbsp, tsp)" },
-		{ "id": "u_ml", "type": "result", "content": "Millilitres (mL)" },
 		{ "id": "u_m3", "type": "result", "content": "Cubic metres (m³)" },
 		{ "id": "u_kn", "type": "result", "content": "Knots (kn)" },
 		{ "id": "u_mph", "type": "result", "content": "Miles per hour (mph)" },
 		{ "id": "u_kmh", "type": "result", "content": "Kilometres per hour (km/h)" },
 		{ "id": "u_ms", "type": "result", "content": "Metres per second (m/s)" },
+		{ "id": "u_bar", "type": "result", "content": "Bars (bar)" },
+		{ "id": "u_psi", "type": "result", "content": "Pounds per square inch (psi)" },
+		{ "id": "u_mmhg", "type": "result", "content": "Millimetres of mercury (mmHg)" },
+		{ "id": "u_hpa", "type": "result", "content": "Hectopascals (hPa)" },
+		{ "id": "u_pa", "type": "result", "content": "Pascals (Pa)" },
 		{ "id": "u_kcal", "type": "result", "content": "Kilocalories (kcal)" },
 		{ "id": "u_kwh", "type": "result", "content": "Kilowatt-hours (kWh)" },
 		{ "id": "u_btu", "type": "result", "content": "British thermal units (BTU)" },
@@ -107,16 +115,6 @@
 		{ "id": "u_j", "type": "result", "content": "Joules (J)" },
 		{ "id": "u_hp", "type": "result", "content": "Horsepower (hp)" },
 		{ "id": "u_w", "type": "result", "content": "Watts (W)" },
-		{ "id": "u_psi", "type": "result", "content": "Pounds per square inch (psi)" },
-		{ "id": "u_bar", "type": "result", "content": "Bars (bar)" },
-		{ "id": "u_mmhg", "type": "result", "content": "Millimetres of mercury (mmHg)" },
-		{ "id": "u_hpa", "type": "result", "content": "Hectopascals (hPa)" },
-		{ "id": "u_inhg", "type": "result", "content": "Inches of mercury (inHg)" },
-		{ "id": "u_pa", "type": "result", "content": "Pascals (Pa)" },
-		{ "id": "u_acre", "type": "result", "content": "Acres (ac)" },
-		{ "id": "u_ha", "type": "result", "content": "Hectares (ha)" },
-		{ "id": "u_sqft", "type": "result", "content": "Square feet (sq ft)" },
-		{ "id": "u_m2", "type": "result", "content": "Square metres (m²)" },
 		{ "id": "u_s", "type": "result", "content": "Seconds (s)" },
 		{ "id": "u_a", "type": "result", "content": "Amperes (A)" },
 		{ "id": "u_mol", "type": "result", "content": "Moles (mol)" },
@@ -178,744 +176,95 @@
 		{ "sourceId": "r_q9", "targetId": "r_r15", "label": "No" },
 
 		{ "sourceId": "u_q", "targetId": "u_temp", "label": "Temperature" },
-		{ "sourceId": "u_q", "targetId": "u_len", "label": "Length or distance" },
-		{ "sourceId": "u_q", "targetId": "u_mass", "label": "Mass or weight" },
-		{ "sourceId": "u_q", "targetId": "u_vol", "label": "Volume" },
-		{ "sourceId": "u_q", "targetId": "u_speed", "label": "Speed" },
-		{ "sourceId": "u_q", "targetId": "u_area", "label": "Area" },
-		{ "sourceId": "u_q", "targetId": "u_energy", "label": "Energy" },
-		{ "sourceId": "u_q", "targetId": "u_power", "label": "Power" },
-		{ "sourceId": "u_q", "targetId": "u_pres", "label": "Pressure" },
-		{ "sourceId": "u_q", "targetId": "u_light", "label": "Light" },
-		{
-			"sourceId": "u_q",
-			"targetId": "u_s",
-			"label": "Time",
-			"explanation": "Everyone uses seconds, minutes and hours; s is the SI base unit."
-		},
-		{
-			"sourceId": "u_q",
-			"targetId": "u_a",
-			"label": "Electric current",
-			"explanation": "The ampere is the SI base unit; small currents use mA."
-		},
-		{
-			"sourceId": "u_q",
-			"targetId": "u_mol",
-			"label": "Amount of substance",
-			"explanation": "Chemists count particles in moles: one mole is about 6.022 × 10²³ of them."
-		},
+		{ "sourceId": "u_q", "targetId": "u_len", "label": "Length or area" },
+		{ "sourceId": "u_q", "targetId": "u_mass", "label": "Mass or volume" },
+		{ "sourceId": "u_q", "targetId": "u_phys", "label": "Speed, pressure, energy or power" },
+		{ "sourceId": "u_q", "targetId": "u_other", "label": "Time, current, substance or light" },
 		{
 			"sourceId": "u_temp",
 			"targetId": "u_k",
-			"label": "A physics or chemistry formula",
-			"explanation": "Gas laws, radiation and efficiencies need zero at absolute zero, so use kelvin."
+			"label": "A physics formula, light colour or space"
 		},
+		{ "sourceId": "u_temp", "targetId": "u_c", "label": "A lab reading or a change" },
+		{ "sourceId": "u_temp", "targetId": "u_f", "label": "Everyday use in the US" },
+		{ "sourceId": "u_temp", "targetId": "u_c", "label": "Everyday use elsewhere" },
+		{ "sourceId": "u_len", "targetId": "u_len_day", "label": "An everyday length" },
+		{ "sourceId": "u_len", "targetId": "u_len_nav", "label": "Aircraft or ships" },
+		{ "sourceId": "u_len", "targetId": "u_len_space", "label": "Space" },
+		{ "sourceId": "u_len", "targetId": "u_len_sci", "label": "Science or engineering" },
+		{ "sourceId": "u_len", "targetId": "u_area", "label": "Area" },
+		{ "sourceId": "u_len_day", "targetId": "u_ftin", "label": "Height in the US, UK or Canada" },
+		{ "sourceId": "u_len_day", "targetId": "u_cm", "label": "Height elsewhere" },
+		{ "sourceId": "u_len_day", "targetId": "u_mi", "label": "Roads in the US or UK" },
+		{ "sourceId": "u_len_day", "targetId": "u_km", "label": "Roads elsewhere" },
+		{ "sourceId": "u_len_day", "targetId": "u_in", "label": "Screens, wheels or pipes" },
+		{ "sourceId": "u_len_nav", "targetId": "u_ft", "label": "Altitude" },
+		{ "sourceId": "u_len_nav", "targetId": "u_nmi", "label": "Distance" },
+		{ "sourceId": "u_len_space", "targetId": "u_au", "label": "Within the solar system" },
 		{
-			"sourceId": "u_temp",
-			"targetId": "u_k",
-			"label": "The colour of light",
-			"explanation": "Bulbs and screens give colour temperature in kelvin: 2700 K is warm white."
-		},
-		{
-			"sourceId": "u_temp",
-			"targetId": "u_k",
-			"label": "Very cold things or space",
-			"explanation": "Cryogenics and astronomy work near absolute zero, where kelvin reads naturally."
-		},
-		{
-			"sourceId": "u_temp",
-			"targetId": "u_c",
-			"label": "A lab reading or a change",
-			"explanation": "Labs and engineers use °C. A change of 1 °C is the same as a change of 1 K."
-		},
-		{ "sourceId": "u_temp", "targetId": "u_temp_where", "label": "Weather, cooking or health" },
-		{
-			"sourceId": "u_temp_where",
-			"targetId": "u_f",
-			"label": "United States",
-			"explanation": "Daily life uses °F; scientists use °C and K."
-		},
-		{
-			"sourceId": "u_temp_where",
-			"targetId": "u_c",
-			"label": "United Kingdom",
-			"explanation": "Forecasts, ovens and doctors use °C."
-		},
-		{
-			"sourceId": "u_temp_where",
-			"targetId": "u_c",
-			"label": "Canada",
-			"explanation": "Weather uses °C, though many ovens are marked in °F."
-		},
-		{
-			"sourceId": "u_temp_where",
-			"targetId": "u_f",
-			"label": "Liberia",
-			"explanation": "Daily use leans to °F, but sources conflict."
-		},
-		{
-			"sourceId": "u_temp_where",
-			"targetId": "u_c",
-			"label": "Myanmar",
-			"explanation": "Forecasts use °C."
-		},
-		{
-			"sourceId": "u_temp_where",
-			"targetId": "u_f",
-			"label": "Bahamas, Belize, Cayman Islands",
-			"explanation": "Forecasts use °F; the Bahamas and Belize also use °C."
-		},
-		{
-			"sourceId": "u_temp_where",
-			"targetId": "u_f",
-			"label": "Palau, Micronesia, Marshall Islands",
-			"explanation": "These countries follow US practice."
-		},
-		{
-			"sourceId": "u_temp_where",
-			"targetId": "u_c",
-			"label": "Elsewhere",
-			"explanation": "The rest of the world uses °C."
-		},
-		{
-			"sourceId": "u_len",
-			"targetId": "u_ft",
-			"label": "Aircraft altitude",
-			"explanation": "Aviation gives altitude in feet almost everywhere; China and a few others use metres."
-		},
-		{
-			"sourceId": "u_len",
-			"targetId": "u_nmi",
-			"label": "Distance at sea or in the air",
-			"explanation": "A nautical mile is 1852 m, about one minute of latitude."
-		},
-		{
-			"sourceId": "u_len",
-			"targetId": "u_in",
-			"label": "Screens, wheels or pipes",
-			"explanation": "Screen sizes, wheel rims and pipe threads are in inches worldwide."
-		},
-		{
-			"sourceId": "u_len",
-			"targetId": "u_au",
-			"label": "Distances in the solar system",
-			"explanation": "1 au is the mean Earth–Sun distance; the SI accepts it."
-		},
-		{
-			"sourceId": "u_len",
+			"sourceId": "u_len_space",
 			"targetId": "u_pc",
-			"label": "Stars and galaxies, for astronomers",
-			"explanation": "Research papers use parsecs (kpc, Mpc)."
-		},
-		{
-			"sourceId": "u_len",
-			"targetId": "u_ly",
-			"label": "Stars and galaxies, for everyone",
-			"explanation": "Popular writing uses light-years."
-		},
-		{
-			"sourceId": "u_len",
-			"targetId": "u_ang",
-			"label": "Atoms and crystals",
-			"explanation": "Crystallographers and chemists use Å; 1 Å = 0.1 nm."
-		},
-		{
-			"sourceId": "u_len",
-			"targetId": "u_nm",
-			"label": "Light waves and microchips",
-			"explanation": "Wavelengths and chip features are given in nm."
-		},
-		{
-			"sourceId": "u_len",
-			"targetId": "u_m",
-			"label": "Science or engineering",
-			"explanation": "Use the metre with prefixes (mm, km); engineering drawings use mm."
-		},
-		{ "sourceId": "u_len", "targetId": "u_len_road", "label": "Road distance" },
-		{ "sourceId": "u_len", "targetId": "u_len_height", "label": "A person's height" },
-		{
-			"sourceId": "u_len_road",
-			"targetId": "u_mi",
-			"label": "United States",
-			"explanation": "Road signs and maps use miles."
-		},
-		{
-			"sourceId": "u_len_road",
-			"targetId": "u_mi",
-			"label": "United Kingdom",
-			"explanation": "Road signs must use miles and yards."
-		},
-		{
-			"sourceId": "u_len_road",
-			"targetId": "u_km",
-			"label": "Canada",
-			"explanation": "Road signs have used km since the 1970s."
-		},
-		{
-			"sourceId": "u_len_road",
-			"targetId": "u_mi",
-			"label": "Liberia",
-			"explanation": "People still talk in miles, though new speed limits use km/h."
-		},
-		{
-			"sourceId": "u_len_road",
-			"targetId": "u_mi",
-			"label": "Myanmar",
-			"explanation": "Road signs show miles, though speed limits are in km/h."
-		},
-		{
-			"sourceId": "u_len_road",
-			"targetId": "u_mi",
-			"label": "Bahamas, Belize, Cayman Islands",
-			"explanation": "Road signs use miles."
-		},
-		{
-			"sourceId": "u_len_road",
-			"targetId": "u_mi",
-			"label": "Palau, Micronesia, Marshall Islands",
-			"explanation": "These countries follow US practice."
-		},
-		{
-			"sourceId": "u_len_road",
-			"targetId": "u_km",
-			"label": "Elsewhere",
-			"explanation": "The rest of the world uses km."
-		},
-		{
-			"sourceId": "u_len_height",
-			"targetId": "u_ftin",
-			"label": "United States",
-			"explanation": "Height is given in feet and inches."
-		},
-		{
-			"sourceId": "u_len_height",
-			"targetId": "u_ftin",
-			"label": "United Kingdom",
-			"explanation": "Most people use feet and inches; doctors record cm."
-		},
-		{
-			"sourceId": "u_len_height",
-			"targetId": "u_ftin",
-			"label": "Canada",
-			"explanation": "About 80% of Canadians give height in feet and inches (2022 poll)."
-		},
-		{
-			"sourceId": "u_len_height",
-			"targetId": "u_ftin",
-			"label": "Liberia",
-			"explanation": "US customary units are the norm."
-		},
-		{
-			"sourceId": "u_len_height",
-			"targetId": "u_ftin",
-			"label": "Myanmar",
-			"explanation": "Sources are thin; feet and inches are common from British-era use."
-		},
-		{
-			"sourceId": "u_len_height",
-			"targetId": "u_ftin",
-			"label": "Bahamas, Belize, Cayman Islands",
-			"explanation": "Feet and inches are the norm."
-		},
-		{
-			"sourceId": "u_len_height",
-			"targetId": "u_ftin",
-			"label": "Palau, Micronesia, Marshall Islands",
-			"explanation": "These countries follow US practice."
-		},
-		{
-			"sourceId": "u_len_height",
-			"targetId": "u_cm",
-			"label": "Elsewhere",
-			"explanation": "The rest of the world uses cm."
-		},
-		{ "sourceId": "u_mass", "targetId": "u_mass_body", "label": "A person" },
-		{ "sourceId": "u_mass", "targetId": "u_mass_food", "label": "Food at the shop or market" },
-		{
-			"sourceId": "u_mass",
-			"targetId": "u_ozt",
-			"label": "Gold or silver",
-			"explanation": "Precious metals trade in troy ounces (31.1 g), even in metric countries."
-		},
-		{
-			"sourceId": "u_mass",
-			"targetId": "u_ct",
-			"label": "Gems",
-			"explanation": "One carat is 200 mg."
-		},
-		{
-			"sourceId": "u_mass",
-			"targetId": "u_t",
-			"label": "Cargo or freight",
-			"explanation": "World trade uses the tonne (1000 kg); US domestic freight uses short tons."
-		},
-		{
-			"sourceId": "u_mass",
-			"targetId": "u_da",
-			"label": "Atoms or molecules",
-			"explanation": "1 Da is one twelfth of a carbon-12 atom; biochemists use kDa for proteins."
-		},
-		{
-			"sourceId": "u_mass",
-			"targetId": "u_kg",
-			"label": "Science or engineering",
-			"explanation": "The kilogram is the SI base unit."
-		},
-		{
-			"sourceId": "u_mass_body",
-			"targetId": "u_lb",
-			"label": "United States",
-			"explanation": "Body weight is given in pounds."
-		},
-		{
-			"sourceId": "u_mass_body",
-			"targetId": "u_st",
-			"label": "United Kingdom",
-			"explanation": "Most adults use stones and pounds; the NHS records kg."
-		},
-		{
-			"sourceId": "u_mass_body",
-			"targetId": "u_lb",
-			"label": "Canada",
-			"explanation": "About 76% of Canadians use pounds (2022 poll)."
-		},
-		{
-			"sourceId": "u_mass_body",
-			"targetId": "u_lb",
-			"label": "Liberia",
-			"explanation": "US customary units are the norm."
-		},
-		{
-			"sourceId": "u_mass_body",
-			"targetId": "u_kg",
-			"label": "Myanmar",
-			"explanation": "Sources are thin; pounds are also used."
-		},
-		{
-			"sourceId": "u_mass_body",
-			"targetId": "u_lb",
-			"label": "Bahamas, Belize, Cayman Islands",
-			"explanation": "Pounds are the norm."
-		},
-		{
-			"sourceId": "u_mass_body",
-			"targetId": "u_lb",
-			"label": "Palau, Micronesia, Marshall Islands",
-			"explanation": "These countries follow US practice."
-		},
-		{
-			"sourceId": "u_mass_body",
-			"targetId": "u_kg",
-			"label": "Elsewhere",
-			"explanation": "The rest of the world uses kg."
-		},
-		{
-			"sourceId": "u_mass_food",
-			"targetId": "u_lb",
-			"label": "United States",
-			"explanation": "Prices and labels use pounds and ounces."
-		},
-		{
-			"sourceId": "u_mass_food",
-			"targetId": "u_kg",
-			"label": "United Kingdom",
-			"explanation": "Shops must price in metric; loose goods may also show pounds."
-		},
-		{
-			"sourceId": "u_mass_food",
-			"targetId": "u_kg",
-			"label": "Canada",
-			"explanation": "Labels are metric, though prices are often also shown per pound."
-		},
-		{
-			"sourceId": "u_mass_food",
-			"targetId": "u_lb",
-			"label": "Liberia",
-			"explanation": "US customary units are the norm, with metric in some shops."
-		},
-		{
-			"sourceId": "u_mass_food",
-			"targetId": "u_viss",
-			"label": "Myanmar",
-			"explanation": "Markets weigh food in viss (about 1.6 kg) and ticals (1/100 viss)."
-		},
-		{
-			"sourceId": "u_mass_food",
-			"targetId": "u_lb",
-			"label": "Bahamas, Belize, Cayman Islands",
-			"explanation": "Shops price in pounds."
-		},
-		{
-			"sourceId": "u_mass_food",
-			"targetId": "u_lb",
-			"label": "Palau, Micronesia, Marshall Islands",
-			"explanation": "These countries follow US practice."
-		},
-		{
-			"sourceId": "u_mass_food",
-			"targetId": "u_kg",
-			"label": "Elsewhere",
-			"explanation": "The rest of the world uses kg and g."
-		},
-		{ "sourceId": "u_vol", "targetId": "u_vol_fuel", "label": "Fuel" },
-		{
-			"sourceId": "u_vol",
-			"targetId": "u_pt",
-			"label": "Draught beer in the UK or Ireland",
-			"explanation": "UK law keeps the pint for draught beer and cider; a pint is 568 mL."
-		},
-		{
-			"sourceId": "u_vol",
-			"targetId": "u_bbl",
-			"label": "Crude oil",
-			"explanation": "Oil trades in barrels of 42 US gallons (159 L)."
-		},
-		{
-			"sourceId": "u_vol",
-			"targetId": "u_cup",
-			"label": "A US or Canadian recipe",
-			"explanation": "Recipes use cups (240 mL), tablespoons and teaspoons."
-		},
-		{
-			"sourceId": "u_vol",
-			"targetId": "u_ml",
-			"label": "Any other recipe",
-			"explanation": "Most recipes use mL; a teaspoon is 5 mL, a tablespoon 15 mL (20 mL in Australia)."
-		},
-		{
-			"sourceId": "u_vol",
-			"targetId": "u_l",
-			"label": "Drinks or containers",
-			"explanation": "Bottles and cartons are sold in litres and mL; the US also uses fl oz."
-		},
-		{
-			"sourceId": "u_vol",
-			"targetId": "u_m3",
-			"label": "Science or engineering",
-			"explanation": "The cubic metre is the SI unit; chemists use L and mL."
-		},
-		{
-			"sourceId": "u_vol_fuel",
-			"targetId": "u_gal",
-			"label": "United States",
-			"explanation": "Pumps sell US gallons (3.79 L)."
-		},
-		{
-			"sourceId": "u_vol_fuel",
-			"targetId": "u_l",
-			"label": "United Kingdom",
-			"explanation": "Pumps sell litres, but fuel economy is quoted in miles per gallon."
-		},
-		{
-			"sourceId": "u_vol_fuel",
-			"targetId": "u_l",
-			"label": "Canada",
-			"explanation": "Pumps sell litres."
-		},
-		{
-			"sourceId": "u_vol_fuel",
-			"targetId": "u_gal",
-			"label": "Liberia",
-			"explanation": "Fuel is sold in US gallons."
-		},
-		{
-			"sourceId": "u_vol_fuel",
-			"targetId": "u_gal",
-			"label": "Myanmar",
-			"explanation": "Fuel is sold by the gallon."
-		},
-		{
-			"sourceId": "u_vol_fuel",
-			"targetId": "u_gal",
-			"label": "Bahamas, Belize, Cayman Islands",
-			"explanation": "Belize uses US gallons; the Cayman Islands use imperial gallons (4.55 L)."
-		},
-		{
-			"sourceId": "u_vol_fuel",
-			"targetId": "u_gal",
-			"label": "Palau, Micronesia, Marshall Islands",
-			"explanation": "These countries follow US practice."
-		},
-		{
-			"sourceId": "u_vol_fuel",
-			"targetId": "u_l",
-			"label": "Elsewhere",
-			"explanation": "The rest of the world uses litres."
-		},
-		{
-			"sourceId": "u_speed",
-			"targetId": "u_kn",
-			"label": "Aircraft, ships or wind at sea",
-			"explanation": "One knot is one nautical mile per hour."
-		},
-		{ "sourceId": "u_speed", "targetId": "u_speed_road", "label": "Vehicles on roads" },
-		{
-			"sourceId": "u_speed",
-			"targetId": "u_ms",
-			"label": "Science or engineering",
-			"explanation": "m/s is the SI unit."
-		},
-		{
-			"sourceId": "u_speed_road",
-			"targetId": "u_mph",
-			"label": "United States",
-			"explanation": "Speed limits are in mph."
-		},
-		{
-			"sourceId": "u_speed_road",
-			"targetId": "u_mph",
-			"label": "United Kingdom",
-			"explanation": "Speed limits must be in mph."
-		},
-		{
-			"sourceId": "u_speed_road",
-			"targetId": "u_kmh",
-			"label": "Canada",
-			"explanation": "Speed limits are in km/h."
-		},
-		{
-			"sourceId": "u_speed_road",
-			"targetId": "u_kmh",
-			"label": "Liberia",
-			"explanation": "Speed limits are now in km/h."
-		},
-		{
-			"sourceId": "u_speed_road",
-			"targetId": "u_kmh",
-			"label": "Myanmar",
-			"explanation": "Speed limits are in km/h by law, though distances are in miles."
-		},
-		{
-			"sourceId": "u_speed_road",
-			"targetId": "u_mph",
-			"label": "Bahamas, Belize, Cayman Islands",
-			"explanation": "Speed limits are in mph."
-		},
-		{
-			"sourceId": "u_speed_road",
-			"targetId": "u_mph",
-			"label": "Palau, Micronesia, Marshall Islands",
-			"explanation": "These countries follow US practice."
-		},
-		{
-			"sourceId": "u_speed_road",
-			"targetId": "u_kmh",
-			"label": "Elsewhere",
-			"explanation": "The rest of the world uses km/h."
-		},
-		{ "sourceId": "u_area", "targetId": "u_area_land", "label": "Land" },
-		{ "sourceId": "u_area", "targetId": "u_area_home", "label": "A home's floor space" },
-		{
-			"sourceId": "u_area",
-			"targetId": "u_m2",
-			"label": "Science or engineering",
-			"explanation": "The square metre is the SI unit; the SI also accepts the hectare."
-		},
-		{
-			"sourceId": "u_area_land",
-			"targetId": "u_acre",
-			"label": "United States",
-			"explanation": "Land is sold in acres."
-		},
-		{
-			"sourceId": "u_area_land",
-			"targetId": "u_acre",
-			"label": "United Kingdom",
-			"explanation": "Land is still quoted in acres, though official records use hectares."
-		},
-		{
-			"sourceId": "u_area_land",
-			"targetId": "u_acre",
-			"label": "Canada",
-			"explanation": "Farmland is quoted in acres."
-		},
-		{
-			"sourceId": "u_area_land",
-			"targetId": "u_acre",
-			"label": "Liberia",
-			"explanation": "Land is sold in acres."
-		},
-		{
-			"sourceId": "u_area_land",
-			"targetId": "u_acre",
-			"label": "Myanmar",
-			"explanation": "Farmland is measured in acres."
-		},
-		{
-			"sourceId": "u_area_land",
-			"targetId": "u_acre",
-			"label": "Bahamas, Belize, Cayman Islands",
-			"explanation": "Land is sold in acres."
-		},
-		{
-			"sourceId": "u_area_land",
-			"targetId": "u_acre",
-			"label": "Palau, Micronesia, Marshall Islands",
-			"explanation": "These countries follow US practice."
-		},
-		{
-			"sourceId": "u_area_land",
-			"targetId": "u_ha",
-			"label": "Elsewhere",
-			"explanation": "The rest of the world uses hectares; 1 ha is 10,000 m²."
-		},
-		{
-			"sourceId": "u_area_home",
-			"targetId": "u_sqft",
-			"label": "United States",
-			"explanation": "Listings use square feet."
-		},
-		{
-			"sourceId": "u_area_home",
-			"targetId": "u_m2",
-			"label": "United Kingdom",
-			"explanation": "Listings show both; many buyers think in square feet."
-		},
-		{
-			"sourceId": "u_area_home",
-			"targetId": "u_sqft",
-			"label": "Canada",
-			"explanation": "Listings use square feet."
-		},
-		{
-			"sourceId": "u_area_home",
-			"targetId": "u_sqft",
-			"label": "Liberia",
-			"explanation": "US customary units are the norm."
-		},
-		{
-			"sourceId": "u_area_home",
-			"targetId": "u_sqft",
-			"label": "Myanmar",
-			"explanation": "Condos are marketed in square feet."
-		},
-		{
-			"sourceId": "u_area_home",
-			"targetId": "u_sqft",
-			"label": "Bahamas, Belize, Cayman Islands",
-			"explanation": "Listings use square feet."
-		},
-		{
-			"sourceId": "u_area_home",
-			"targetId": "u_sqft",
-			"label": "Palau, Micronesia, Marshall Islands",
-			"explanation": "These countries follow US practice."
-		},
-		{
-			"sourceId": "u_area_home",
-			"targetId": "u_m2",
-			"label": "Elsewhere",
-			"explanation": "The rest of the world uses m²."
-		},
-		{
-			"sourceId": "u_energy",
-			"targetId": "u_kcal",
-			"label": "Food",
-			"explanation": "Labels show kcal (US: 'Calories'); the EU adds kJ, and Australia and New Zealand put kJ first."
-		},
-		{
-			"sourceId": "u_energy",
-			"targetId": "u_kwh",
-			"label": "Electricity or gas bills",
-			"explanation": "Bills use kWh; US gas bills use therms instead."
-		},
-		{
-			"sourceId": "u_energy",
-			"targetId": "u_btu",
-			"label": "US heating or air conditioning",
-			"explanation": "US furnaces and air conditioners are rated in BTU per hour."
-		},
-		{
-			"sourceId": "u_energy",
-			"targetId": "u_ev",
-			"label": "Particles or atoms",
-			"explanation": "Particle and atomic physics use eV (keV, MeV, GeV)."
-		},
-		{
-			"sourceId": "u_energy",
-			"targetId": "u_j",
-			"label": "Science or engineering",
-			"explanation": "The joule is the SI unit."
-		},
-		{
-			"sourceId": "u_power",
-			"targetId": "u_hp",
-			"label": "A car engine",
-			"explanation": "Adverts use hp (or PS in Europe); EU specs must also give kW."
-		},
-		{
-			"sourceId": "u_power",
-			"targetId": "u_w",
-			"label": "Electrical devices or power plants",
-			"explanation": "Use W, with kW for appliances and MW for power plants."
-		},
-		{
-			"sourceId": "u_power",
-			"targetId": "u_w",
-			"label": "Science or engineering",
-			"explanation": "The watt is the SI unit."
-		},
-		{ "sourceId": "u_pres", "targetId": "u_tyre", "label": "Tyres" },
-		{
-			"sourceId": "u_pres",
-			"targetId": "u_mmhg",
-			"label": "Blood pressure",
-			"explanation": "Doctors everywhere use mmHg."
-		},
-		{
-			"sourceId": "u_pres",
-			"targetId": "u_hpa",
-			"label": "Weather, outside the US",
-			"explanation": "Forecasts use hPa, which equals the millibar."
-		},
-		{
-			"sourceId": "u_pres",
-			"targetId": "u_inhg",
-			"label": "Weather, in the US",
-			"explanation": "US forecasts and altimeters use inches of mercury."
-		},
-		{
-			"sourceId": "u_pres",
-			"targetId": "u_bar",
-			"label": "Diving or gas cylinders",
-			"explanation": "Divers outside the US use bar; US divers use psi."
-		},
-		{
-			"sourceId": "u_pres",
-			"targetId": "u_pa",
-			"label": "Science or engineering",
-			"explanation": "The pascal is the SI unit; engineers often use kPa or MPa."
-		},
-		{
-			"sourceId": "u_tyre",
-			"targetId": "u_bar",
-			"label": "Continental Europe",
-			"explanation": "Gauges and door stickers show bar first."
-		},
-		{
-			"sourceId": "u_tyre",
-			"targetId": "u_psi",
-			"label": "Elsewhere",
-			"explanation": "Gauges show psi; many also show bar."
-		},
-		{
-			"sourceId": "u_light",
-			"targetId": "u_lm",
-			"label": "How bright a lamp is",
-			"explanation": "Bulb packs give total light output in lumens."
-		},
-		{
-			"sourceId": "u_light",
-			"targetId": "u_lx",
-			"label": "How bright a surface is",
-			"explanation": "Workplace and photography guides give lux (lumens per m²)."
-		},
-		{
-			"sourceId": "u_light",
-			"targetId": "u_cd",
-			"label": "Brightness in one direction",
-			"explanation": "The candela is the SI base unit, used for LEDs and headlamps."
-		}
+			"label": "Stars and galaxies, for astronomers"
+		},
+		{ "sourceId": "u_len_space", "targetId": "u_ly", "label": "Stars and galaxies, for everyone" },
+		{ "sourceId": "u_len_sci", "targetId": "u_ang", "label": "Atoms and crystals" },
+		{ "sourceId": "u_len_sci", "targetId": "u_nm", "label": "Light waves and microchips" },
+		{ "sourceId": "u_len_sci", "targetId": "u_m", "label": "Anything larger" },
+		{ "sourceId": "u_area", "targetId": "u_acre", "label": "Land in the US, UK or Canada" },
+		{ "sourceId": "u_area", "targetId": "u_ha", "label": "Land elsewhere" },
+		{ "sourceId": "u_area", "targetId": "u_sqft", "label": "A home in the US or Canada" },
+		{ "sourceId": "u_area", "targetId": "u_m2", "label": "A home elsewhere" },
+		{ "sourceId": "u_area", "targetId": "u_m2", "label": "Science or engineering" },
+		{ "sourceId": "u_mass", "targetId": "u_body", "label": "A person's weight" },
+		{ "sourceId": "u_mass", "targetId": "u_food", "label": "Groceries or recipes" },
+		{ "sourceId": "u_mass", "targetId": "u_drink", "label": "Fuel or drinks" },
+		{ "sourceId": "u_mass", "targetId": "u_trade", "label": "Gold, gems or freight" },
+		{ "sourceId": "u_mass", "targetId": "u_mass_sci", "label": "Science or engineering" },
+		{ "sourceId": "u_body", "targetId": "u_lb", "label": "US or Canada" },
+		{ "sourceId": "u_body", "targetId": "u_st", "label": "United Kingdom" },
+		{ "sourceId": "u_body", "targetId": "u_kg", "label": "Elsewhere" },
+		{ "sourceId": "u_food", "targetId": "u_lb", "label": "Groceries in the US" },
+		{ "sourceId": "u_food", "targetId": "u_kg", "label": "Groceries elsewhere" },
+		{ "sourceId": "u_food", "targetId": "u_cup", "label": "A US or Canadian recipe" },
+		{ "sourceId": "u_food", "targetId": "u_ml", "label": "Any other recipe" },
+		{ "sourceId": "u_drink", "targetId": "u_gal", "label": "Fuel in the US" },
+		{ "sourceId": "u_drink", "targetId": "u_l", "label": "Fuel elsewhere" },
+		{ "sourceId": "u_drink", "targetId": "u_pt", "label": "Draught beer in the UK or Ireland" },
+		{ "sourceId": "u_drink", "targetId": "u_l", "label": "Other drinks" },
+		{ "sourceId": "u_drink", "targetId": "u_bbl", "label": "Crude oil" },
+		{ "sourceId": "u_trade", "targetId": "u_ozt", "label": "Gold or silver" },
+		{ "sourceId": "u_trade", "targetId": "u_ct", "label": "Gems" },
+		{ "sourceId": "u_trade", "targetId": "u_t", "label": "Cargo or freight" },
+		{ "sourceId": "u_mass_sci", "targetId": "u_da", "label": "Atoms or molecules" },
+		{ "sourceId": "u_mass_sci", "targetId": "u_kg", "label": "Mass" },
+		{ "sourceId": "u_mass_sci", "targetId": "u_m3", "label": "Volume" },
+		{ "sourceId": "u_phys", "targetId": "u_speed", "label": "Speed" },
+		{ "sourceId": "u_phys", "targetId": "u_pres", "label": "Pressure" },
+		{ "sourceId": "u_phys", "targetId": "u_energy", "label": "Energy" },
+		{ "sourceId": "u_phys", "targetId": "u_power", "label": "Power" },
+		{ "sourceId": "u_speed", "targetId": "u_kn", "label": "Aircraft, ships or wind at sea" },
+		{ "sourceId": "u_speed", "targetId": "u_mph", "label": "Roads in the US or UK" },
+		{ "sourceId": "u_speed", "targetId": "u_kmh", "label": "Roads elsewhere" },
+		{ "sourceId": "u_speed", "targetId": "u_ms", "label": "Science or engineering" },
+		{ "sourceId": "u_pres", "targetId": "u_bar", "label": "Tyres in Europe, or diving" },
+		{ "sourceId": "u_pres", "targetId": "u_psi", "label": "Tyres elsewhere" },
+		{ "sourceId": "u_pres", "targetId": "u_mmhg", "label": "Blood pressure" },
+		{ "sourceId": "u_pres", "targetId": "u_hpa", "label": "Weather" },
+		{ "sourceId": "u_pres", "targetId": "u_pa", "label": "Science or engineering" },
+		{ "sourceId": "u_energy", "targetId": "u_kcal", "label": "Food" },
+		{ "sourceId": "u_energy", "targetId": "u_kwh", "label": "Electricity or gas bills" },
+		{ "sourceId": "u_energy", "targetId": "u_btu", "label": "US heating or cooling" },
+		{ "sourceId": "u_energy", "targetId": "u_ev", "label": "Particles or atoms" },
+		{ "sourceId": "u_energy", "targetId": "u_j", "label": "Science or engineering" },
+		{ "sourceId": "u_power", "targetId": "u_hp", "label": "A car engine" },
+		{ "sourceId": "u_power", "targetId": "u_w", "label": "Electrical devices" },
+		{ "sourceId": "u_power", "targetId": "u_w", "label": "Science or engineering" },
+		{ "sourceId": "u_other", "targetId": "u_s", "label": "Time" },
+		{ "sourceId": "u_other", "targetId": "u_a", "label": "Electric current" },
+		{ "sourceId": "u_other", "targetId": "u_mol", "label": "Amount of substance" },
+		{ "sourceId": "u_other", "targetId": "u_light", "label": "Light" },
+		{ "sourceId": "u_light", "targetId": "u_lm", "label": "How bright a lamp is" },
+		{ "sourceId": "u_light", "targetId": "u_lx", "label": "How bright a surface is" },
+		{ "sourceId": "u_light", "targetId": "u_cd", "label": "Brightness in one direction" }
 	]
 }

@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
-// Explanation tip behaviour (toggle, focus, hover) is covered by
-// src/lib/decision-tree/DecisionTree.svelte.spec.ts; here one tip is checked on real data.
+// Explanation tips are covered by src/lib/decision-tree/DecisionTree.svelte.spec.ts
+// on a fixture tree, since tree.json has no explanations.
 
 /** Load `url` and wait until the page has hydrated, so clicks are not lost. */
 async function open(page: Page, url = '/decision-tree') {
@@ -188,21 +188,23 @@ test.describe('Decision Tree units', () => {
 
 	// One path per quantity: [answers after "Pick a unit", expected result]
 	const paths: [string[], string][] = [
-		[['Temperature', 'A physics or chemistry formula'], 'Kelvin (K)'],
-		[['Temperature', 'Weather, cooking or health', 'United States'], 'Degrees Fahrenheit (°F)'],
-		[['Temperature', 'Weather, cooking or health', 'Elsewhere'], 'Degrees Celsius (°C)'],
-		[['Length or distance', 'Road distance', 'United Kingdom'], 'Miles (mi)'],
-		[['Length or distance', "A person's height", 'Canada'], 'Feet and inches (ft, in)'],
-		[['Mass or weight', 'A person', 'United Kingdom'], 'Stones and pounds (st, lb)'],
-		[['Mass or weight', 'Food at the shop or market', 'Myanmar'], 'Viss and ticals'],
-		[['Volume', 'Fuel', 'Liberia'], 'Gallons (gal)'],
-		[['Speed', 'Vehicles on roads', 'Bahamas, Belize, Cayman Islands'], 'Miles per hour (mph)'],
-		[['Area', 'Land', 'Elsewhere'], 'Hectares (ha)'],
-		[['Energy', 'Electricity or gas bills'], 'Kilowatt-hours (kWh)'],
-		[['Power', 'A car engine'], 'Horsepower (hp)'],
-		[['Pressure', 'Blood pressure'], 'Millimetres of mercury (mmHg)'],
-		[['Light', 'How bright a lamp is'], 'Lumens (lm)'],
-		[['Amount of substance'], 'Moles (mol)']
+		[['Temperature', 'A physics formula, light colour or space'], 'Kelvin (K)'],
+		[['Temperature', 'Everyday use in the US'], 'Degrees Fahrenheit (°F)'],
+		[['Length or area', 'An everyday length', 'Roads in the US or UK'], 'Miles (mi)'],
+		[['Length or area', 'Aircraft or ships', 'Altitude'], 'Feet (ft)'],
+		[['Length or area', 'Area', 'Land elsewhere'], 'Hectares (ha)'],
+		[['Mass or volume', "A person's weight", 'United Kingdom'], 'Stones and pounds (st, lb)'],
+		[['Mass or volume', 'Fuel or drinks', 'Draught beer in the UK or Ireland'], 'Pints (pt)'],
+		[
+			['Speed, pressure, energy or power', 'Speed', 'Roads elsewhere'],
+			'Kilometres per hour (km/h)'
+		],
+		[
+			['Speed, pressure, energy or power', 'Energy', 'Electricity or gas bills'],
+			'Kilowatt-hours (kWh)'
+		],
+		[['Time, current, substance or light', 'Light', 'How bright a lamp is'], 'Lumens (lm)'],
+		[['Time, current, substance or light', 'Amount of substance'], 'Moles (mol)']
 	];
 	for (const [answers, expected] of paths) {
 		test(`${answers.join(' → ')} gives ${expected}`, async ({ page }) => {
@@ -210,10 +212,4 @@ test.describe('Decision Tree units', () => {
 			await expect(result(page)).toHaveText(expected);
 		});
 	}
-
-	test('an answer explains its unit', async ({ page }) => {
-		await answer(page, 1, 'Temperature');
-		await page.getByRole('button', { name: 'Explain "The colour of light"' }).click();
-		await expect(page.getByText('2700 K is warm white')).toBeVisible();
-	});
 });

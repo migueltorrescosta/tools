@@ -628,40 +628,21 @@ describe('Full tree traversal', () => {
 		const path: TraversalPath = [
 			'root|Pick a unit',
 			'u_q|Temperature',
-			'u_temp|A physics or chemistry formula'
+			'u_temp|A physics formula, light colour or space'
 		];
 		const rows = computeRows(graph, path);
 		expect((rows[rows.length - 1] as ResultRow).node.result).toBe('Kelvin (K)');
 	});
 
-	it('explains every unit answer that leads to a result', () => {
+	it('keeps the units tree to five answers per question and three questions deep', () => {
 		const graph = buildGraph(treeJson as RawTree);
-		const unexplained = [...graph.edges.values()].filter(
-			(e) =>
-				e.sourceId.startsWith('u_') && isResultNode(graph.nodes.get(e.targetId)!) && !e.explanation
-		);
-		expect(unexplained.map((e) => e.id)).toEqual([]);
-	});
-
-	it('offers the same country list on every units audience question', () => {
-		const graph = buildGraph(treeJson as RawTree);
-		const countries = [
-			'United States',
-			'United Kingdom',
-			'Canada',
-			'Liberia',
-			'Myanmar',
-			'Bahamas, Belize, Cayman Islands',
-			'Palau, Micronesia, Marshall Islands',
-			'Elsewhere'
-		];
-		const audience = [...graph.nodes.values()].filter(
-			(n) => isQuestionNode(n) && n.prompt === 'Where is your audience?'
-		);
-		expect(audience.length).toBeGreaterThan(0);
-		for (const node of audience) {
-			expect(getAnswersForNode(graph, node.id).map((e) => e.label)).toEqual(countries);
-		}
+		const depth = (id: string): number => {
+			const answers = getAnswersForNode(graph, id);
+			expect(answers.length).toBeLessThanOrEqual(5);
+			expect(answers.filter((e) => e.explanation)).toEqual([]);
+			return answers.length === 0 ? 0 : 1 + Math.max(...answers.map((e) => depth(e.targetId)));
+		};
+		expect(depth('u_q')).toBe(3);
 	});
 
 	it('can switch trees by changing the root answer', () => {
