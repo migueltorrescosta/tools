@@ -16,7 +16,7 @@ import {
 	type ResultRow
 } from './decision-tree/graph';
 import treeJson from './decision-tree/data/tree.json';
-import { validateGraph } from './decision-tree/validation';
+import { MAX_ANSWERS, validateGraph } from './decision-tree/validation';
 import type { RawTree, DecisionGraph, TraversalPath } from './decision-tree/types';
 
 function makeValidTree(): RawTree {
@@ -140,7 +140,11 @@ describe('Changing answer removes downstream rows', () => {
 describe('State persistence encoding', () => {
 	it('encodes a path as answer positions and decodes it losslessly', () => {
 		const graph = buildGraph(treeJson as RawTree);
-		const path: TraversalPath = ['root|Choose a car', 'c_q1|Lowest total cost', 'c_q2|Yes'];
+		const path: TraversalPath = [
+			'root|Choose a car',
+			'c_q1|Low running cost or emissions',
+			'c_q7|Yes'
+		];
 		const encoded = encodePath(graph, path);
 		expect(encoded).toMatch(/^\d+(\.\d+)*$/);
 		expect(decodePath(graph, encoded)).toEqual(path);
@@ -514,12 +518,12 @@ describe('Single answer selection', () => {
 	});
 
 	it('selecting a different answer replaces the previous selection for that position', () => {
-		const path: TraversalPath = ['root|Choose a car', 'c_q1|Lowest total cost'];
+		const path: TraversalPath = ['root|Choose a car', 'c_q1|Low running cost or emissions'];
 		expect(selectAnswer(path, 1, 'c_q1|Fun / Performance')).toEqual([
 			'root|Choose a car',
 			'c_q1|Fun / Performance'
 		]);
-		expect(path).toEqual(['root|Choose a car', 'c_q1|Lowest total cost']);
+		expect(path).toEqual(['root|Choose a car', 'c_q1|Low running cost or emissions']);
 	});
 
 	it('selecting at depth 0 on a 3-edge path returns a 1-edge path', () => {
@@ -552,6 +556,21 @@ describe('Additional validation', () => {
 		const graph = buildGraph(rawTree);
 		const errors = validateGraph(graph);
 		expect(errors).toHaveLength(0);
+	});
+
+	it('rejects a question with more than MAX_ANSWERS answers', () => {
+		const labels = Array.from({ length: MAX_ANSWERS + 1 }, (_, i) => `Option ${i}`);
+		const raw: RawTree = {
+			nodes: [
+				{ id: 'root', type: 'question', content: 'Pick one?' },
+				{ id: 'r1', type: 'result', content: 'Done' }
+			],
+			edges: labels.map((label) => ({ sourceId: 'root', targetId: 'r1', label }))
+		};
+		const errors = validateGraph(buildGraph(raw));
+		expect(errors).toEqual([
+			`Question node "root" has ${MAX_ANSWERS + 1} answers; at most ${MAX_ANSWERS} are allowed`
+		]);
 	});
 
 	it('detects multiple roots', () => {
@@ -603,11 +622,15 @@ describe('Full tree traversal', () => {
 		const errors = validateGraph(graph);
 		expect(errors).toHaveLength(0);
 
-		// Traverse: root → Choose a car → Lowest total cost → Yes
-		const path: TraversalPath = ['root|Choose a car', 'c_q1|Lowest total cost', 'c_q2|Yes'];
+		// Traverse: root → Choose a car → Low running cost or emissions → Yes
+		const path: TraversalPath = [
+			'root|Choose a car',
+			'c_q1|Low running cost or emissions',
+			'c_q7|Yes'
+		];
 		const rows = computeRows(graph, path);
 		expect(rows[rows.length - 1].type).toBe('result');
-		expect((rows[rows.length - 1] as ResultRow).node.result).toBe('Hybrid');
+		expect((rows[rows.length - 1] as ResultRow).node.result).toBe('Battery EV');
 	});
 
 	it('can traverse the religion tree to a deep result', () => {
@@ -623,12 +646,36 @@ describe('Full tree traversal', () => {
 		expect((rows[rows.length - 1] as ResultRow).node.result).toBe('Roman Catholic');
 	});
 
+	it('can traverse the units tree to kelvin', () => {
+		const graph = buildGraph(treeJson as RawTree);
+		const path: TraversalPath = [
+			'root|Pick a unit',
+			'u_q|Temperature',
+			'u_temp|A physics formula, light colour or space'
+		];
+		const rows = computeRows(graph, path);
+		expect((rows[rows.length - 1] as ResultRow).node.result).toBe('Kelvin (K)');
+	});
+
+	it('reaches every unit within three answers', () => {
+		const graph = buildGraph(treeJson as RawTree);
+		const depth = (id: string): number => {
+			const answers = getAnswersForNode(graph, id);
+			return answers.length === 0 ? 0 : 1 + Math.max(...answers.map((e) => depth(e.targetId)));
+		};
+		expect(depth('u_q')).toBe(3);
+	});
+
 	it('can switch trees by changing the root answer', () => {
 		const raw = treeJson as RawTree;
 		const graph = buildGraph(raw);
 
 		// Start with car tree
-		let path: TraversalPath = ['root|Choose a car', 'c_q1|Environmental impact', 'c_q7|Yes'];
+		let path: TraversalPath = [
+			'root|Choose a car',
+			'c_q1|Low running cost or emissions',
+			'c_q7|Yes'
+		];
 		let rows = computeRows(graph, path);
 		expect((rows[rows.length - 1] as ResultRow).node.result).toBe('Battery EV');
 
@@ -657,7 +704,7 @@ describe('Foreign path edges', () => {
 
 	it('computeRows does not skip to a result through the real tree', () => {
 		const graph = buildGraph(treeJson as RawTree);
-		const rows = computeRows(graph, ['c_q2|Yes']);
+		const rows = computeRows(graph, ['c_q7|Yes']);
 		expect(rows.map((r) => r.type)).toEqual(['question', 'answer']);
 		expect((rows[1] as AnswerRow).selectedEdgeId).toBeUndefined();
 	});

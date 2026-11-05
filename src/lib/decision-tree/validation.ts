@@ -1,6 +1,9 @@
 import type { DecisionGraph } from './types';
 import { isResultNode, getAnswersForNode } from './graph';
 
+/** Most answers a question may offer, so each row stays easy to scan. */
+export const MAX_ANSWERS = 5;
+
 export function validateGraph(graph: DecisionGraph): string[] {
 	const errors: string[] = [];
 
@@ -78,12 +81,16 @@ export function validateGraph(graph: DecisionGraph): string[] {
 		}
 	}
 
-	// 4. All question nodes have at least one answer
+	// 4. All question nodes have between one and MAX_ANSWERS answers
 	for (const [nodeId, node] of graph.nodes) {
 		if (!isResultNode(node)) {
 			const edges = getAnswersForNode(graph, nodeId);
 			if (edges.length === 0) {
 				errors.push(`Question node "${nodeId}" has no answer options`);
+			} else if (edges.length > MAX_ANSWERS) {
+				errors.push(
+					`Question node "${nodeId}" has ${edges.length} answers; at most ${MAX_ANSWERS} are allowed`
+				);
 			}
 		}
 	}
