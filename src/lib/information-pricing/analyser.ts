@@ -6,7 +6,7 @@
  * analysis and the returned scenarios. `retree` regrows only the tree, on the
  * copy the tree worker kept.
  */
-import type { WorkerLike } from '$lib/worker-pool';
+import type { WorkerLike } from '#lib/worker-pool.ts';
 import {
 	mergeParts,
 	type Analysis,

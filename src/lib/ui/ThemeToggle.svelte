@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { initTheme, theme, toggleTheme } from '$lib/theme.svelte';
+	import { initTheme, theme, toggleTheme } from '#lib/theme.svelte.ts';
 
 	onMount(initTheme);
 

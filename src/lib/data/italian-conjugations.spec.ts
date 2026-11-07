@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { italianModule } from '$lib/data/italian-conjugations';
-import { buildPool, cardKey, validateAnswer } from '$lib/verbs';
+import { italianModule } from '#lib/data/italian-conjugations.ts';
+import { buildPool, cardKey, validateAnswer } from '#lib/verbs.ts';
 
 const { conjugationMap, VERB_LIST, PERSON_LABELS } = italianModule;
 

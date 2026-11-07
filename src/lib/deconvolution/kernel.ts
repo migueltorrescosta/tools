@@ -2,7 +2,7 @@
  * Fourier kernel deconvolution (Stefanski & Carroll 1990; Fan 1991).
  * f̂(x) = (1/π)·∫₀^{1/h} Re[e^{−itx}·φ_K(th)·φ̂_Z(t)/φ_Y(t)] dt
  */
-import { moments } from '$lib/stats';
+import { moments } from '#lib/stats.ts';
 import { binData } from './binning';
 import { dataWindow } from './grid';
 import type { Dist, Grid, GridEstimate } from './types';

@@ -1,7 +1,7 @@
 /** Saved state and share URLs for the symbolic regression page. No DOM imports. */
 
 import { ALL_OPERATORS, type OperatorName } from './types';
-import { clampWorkers } from '$lib/worker-pool';
+import { clampWorkers } from '#lib/worker-pool.ts';
 
 /** Every localStorage key the tool writes starts with this. */
 export const STORAGE_PREFIX = 'symbolic-regression:';

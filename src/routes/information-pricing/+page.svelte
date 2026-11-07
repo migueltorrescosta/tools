@@ -2,17 +2,17 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { createAnalyser, type Analyser } from '$lib/information-pricing/analyser';
-	import type { PartialAnalysis } from '$lib/information-pricing/analysis';
-	import { scenariosCsv } from '$lib/information-pricing/csv';
-	import { dataflow } from '$lib/information-pricing/dataflow';
-	import { validateParams } from '$lib/information-pricing/distributions';
+	import { createAnalyser, type Analyser } from '#lib/information-pricing/analyser.ts';
+	import type { PartialAnalysis } from '#lib/information-pricing/analysis/index.ts';
+	import { scenariosCsv } from '#lib/information-pricing/csv.ts';
+	import { dataflow } from '#lib/information-pricing/dataflow.ts';
+	import { validateParams } from '#lib/information-pricing/distributions.ts';
 	import {
 		compileModel,
 		decisionLabels,
 		randomInputs,
 		renameSymbol
-	} from '$lib/information-pricing/model';
+	} from '#lib/information-pricing/model.ts';
 
 	import {
 		DEFAULT_PRESET,
@@ -20,7 +20,7 @@
 		matchPreset,
 		presetModel,
 		type PresetId
-	} from '$lib/information-pricing/presets';
+	} from '#lib/information-pricing/presets.ts';
 	import {
 		HASH_PARAM,
 		STORAGE_PREFIX,
@@ -28,15 +28,15 @@
 		encodeModel,
 		loadSaved,
 		saveModel
-	} from '$lib/information-pricing/state';
-	import { MAX_SAMPLES, type Model } from '$lib/information-pricing/types';
+	} from '#lib/information-pricing/state.ts';
+	import { MAX_SAMPLES, type Model } from '#lib/information-pricing/types.ts';
 	import {
 		createSimulationEngine,
 		runSpec,
 		type EngineEvent,
 		type SimulationEngine
-	} from '$lib/information-pricing/worker-engine';
-	import { browserStorage, clearSaved, createPersistGate } from '$lib/persist-gate';
+	} from '#lib/information-pricing/worker-engine.ts';
+	import { browserStorage, clearSaved, createPersistGate } from '#lib/persist-gate.ts';
 	import {
 		Alert,
 		Button,
@@ -48,8 +48,8 @@
 		RunControls,
 		ShareActions,
 		Stepper
-	} from '$lib/ui';
-	import { defaultWorkerCount } from '$lib/worker-pool';
+	} from '#lib/ui/index.ts';
+	import { defaultWorkerCount } from '#lib/worker-pool.ts';
 	import DataflowGraph from './lib/DataflowGraph.svelte';
 	import DecisionsEditor from './lib/DecisionsEditor.svelte';
 	import {
@@ -237,17 +237,17 @@
 		if (engine) return engine;
 		analyser = createAnalyser(
 			() =>
-				new Worker(new URL('$lib/information-pricing/analysis.worker.ts', import.meta.url), {
+				new Worker(new URL('#lib/information-pricing/analysis.worker.ts', import.meta.url), {
 					type: 'module'
 				}),
 			() =>
-				new Worker(new URL('$lib/information-pricing/tree.worker.ts', import.meta.url), {
+				new Worker(new URL('#lib/information-pricing/tree.worker.ts', import.meta.url), {
 					type: 'module'
 				})
 		);
 		engine = createSimulationEngine(
 			() =>
-				new Worker(new URL('$lib/information-pricing/simulate.worker.ts', import.meta.url), {
+				new Worker(new URL('#lib/information-pricing/simulate.worker.ts', import.meta.url), {
 					type: 'module'
 				}),
 			{ workers: defaultWorkerCount(), analyser }

@@ -2,10 +2,10 @@
  * Editor helpers for the Information Pricing page: stable row ids, fresh
  * symbols for new rows and lookups of model errors by field.
  */
-import type { ErrorLocation, ModelError } from '$lib/information-pricing/model';
-import type { TreeOptions } from '$lib/information-pricing/analysis';
-import { DEFAULT_TREE_OPTIONS } from '$lib/information-pricing/analysis/tree';
-import type { Model } from '$lib/information-pricing/types';
+import type { ErrorLocation, ModelError } from '#lib/information-pricing/model.ts';
+import type { TreeOptions } from '#lib/information-pricing/analysis/index.ts';
+import { DEFAULT_TREE_OPTIONS } from '#lib/information-pricing/analysis/tree.ts';
+import type { Model } from '#lib/information-pricing/types.ts';
 
 /** Row ids kept beside the model (never in it), so `{#each}` keys survive edits. */
 export interface RowIds {

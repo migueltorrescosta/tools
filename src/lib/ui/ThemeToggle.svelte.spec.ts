@@ -2,7 +2,7 @@ import { page } from 'vitest/browser';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import ThemeToggle from './ThemeToggle.svelte';
-import { THEME_KEY } from '$lib/theme.svelte';
+import { THEME_KEY } from '#lib/theme.svelte.ts';
 
 const systemTheme = () => (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 const opposite = (t: string) => (t === 'dark' ? 'light' : 'dark');

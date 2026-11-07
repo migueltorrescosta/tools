@@ -2,13 +2,13 @@
 	import { onMount, untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { browserStorage, createPersistGate } from '$lib/persist-gate';
-	import { buildGraph, encodePath, restorePath } from '$lib/decision-tree/graph';
-	import DecisionTree from '$lib/decision-tree/DecisionTree.svelte';
-	import { PageHeader } from '$lib/ui';
-	import { validateGraph } from '$lib/decision-tree/validation';
-	import rawTreeData from '$lib/decision-tree/data/tree.json';
-	import type { DecisionGraph, TraversalPath, RawTree } from '$lib/decision-tree/types';
+	import { browserStorage, createPersistGate } from '#lib/persist-gate.ts';
+	import { buildGraph, encodePath, restorePath } from '#lib/decision-tree/graph.ts';
+	import DecisionTree from '#lib/decision-tree/DecisionTree.svelte';
+	import { PageHeader } from '#lib/ui/index.ts';
+	import { validateGraph } from '#lib/decision-tree/validation.ts';
+	import rawTreeData from '#lib/decision-tree/data/tree.json';
+	import type { DecisionGraph, TraversalPath, RawTree } from '#lib/decision-tree/types.ts';
 	const treeData = rawTreeData as RawTree;
 
 	// Build the graph once

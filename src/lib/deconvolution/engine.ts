@@ -3,7 +3,7 @@
  * worker; `stop` terminates every worker at once and rejects what is
  * pending, so a long bootstrap stops immediately. No DOM or Svelte imports.
  */
-import { defaultWorkerCount, type WorkerLike } from '$lib/worker-pool';
+import { defaultWorkerCount, type WorkerLike } from '#lib/worker-pool.ts';
 import type { Task, TaskResult } from './estimate';
 
 export interface ToWorker {

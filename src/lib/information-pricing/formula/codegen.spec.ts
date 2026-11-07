@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '$lib/prng';
+import { Prng } from '#lib/prng.ts';
 import { compileModel, evaluateRow, type CompiledModel } from '../model';
 import type { Model } from '../types';
 import {

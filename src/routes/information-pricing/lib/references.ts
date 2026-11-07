@@ -1,4 +1,4 @@
-import type { Reference } from '$lib/ui';
+import type { Reference } from '#lib/ui/index.ts';
 
 /** The work behind the information pricing tool: a short reference, its link, and what it changed here. */
 export const REFERENCES: readonly Reference[] = [

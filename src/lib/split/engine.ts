@@ -62,7 +62,7 @@ import {
 	upperTMul
 } from './linalg';
 import { maximize, type Constraint } from './lp';
-import { Prng } from '$lib/prng';
+import { Prng } from '#lib/prng.ts';
 
 /** Prior SD of the shared per-item deviation μ_k. */
 const SIGMA_MU = 0.3;

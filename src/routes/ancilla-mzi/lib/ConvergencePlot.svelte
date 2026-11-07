@@ -9,9 +9,9 @@
 </script>
 
 <script lang="ts">
-	import type { SeedTrace } from '$lib/ancilla-mzi/types';
-	import { niceTicks, formatTick } from '$lib/plot';
-	import { SegmentedControl } from '$lib/ui';
+	import type { SeedTrace } from '#lib/ancilla-mzi/types.ts';
+	import { niceTicks, formatTick } from '#lib/plot.ts';
+	import { SegmentedControl } from '#lib/ui/index.ts';
 
 	let {
 		traces,

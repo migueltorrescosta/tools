@@ -1,7 +1,7 @@
 /** Bundled example datasets for the symbolic regression tool. */
 
-import { Prng } from '$lib/prng';
-import type { OperatorName } from '$lib/symbolic-regression/types';
+import { Prng } from '#lib/prng.ts';
+import type { OperatorName } from '#lib/symbolic-regression/types.ts';
 
 export interface Example {
 	id: string;

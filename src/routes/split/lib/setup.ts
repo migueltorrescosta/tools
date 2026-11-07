@@ -2,7 +2,7 @@
  * Route-only helpers for the split setup and Start screens: name checks,
  * item pills, the saved-setup shape check, and claimedValues for Start.
  */
-import { personError } from '$lib/split';
+import { personError } from '#lib/split/index.ts';
 import { amountIntensity } from './board';
 
 interface SetupItem {

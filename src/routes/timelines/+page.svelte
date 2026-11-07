@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import timelinesData from './data/timelines.json';
-	import { Alert, Button, PageHeader, Panel, Select } from '$lib/ui';
+	import { Alert, Button, PageHeader, Panel, Select } from '#lib/ui/index.ts';
 	import TimelineView from './TimelineView.svelte';
 	import {
 		createTimelineLoader,

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Axis } from '$lib/ui';
-	import { formatTick, linear, niceTicks } from '$lib/plot';
-	import type { Grid2 } from '$lib/deconvolution/dist2';
+	import { Axis } from '#lib/ui/index.ts';
+	import { formatTick, linear, niceTicks } from '#lib/plot.ts';
+	import type { Grid2 } from '#lib/deconvolution/dist2.ts';
 
 	/**
 	 * A 2D density as shaded cells (at most 48 × 48, averaged from the grid),

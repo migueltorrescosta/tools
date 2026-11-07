@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { Button, Field } from '$lib/ui';
+	import { Button, Field } from '#lib/ui/index.ts';
 	import {
 		FRINGE2_PARAMS,
 		GAUSS2_PARAMS,
 		validate2,
 		type Noise2Spec,
 		type Spec2
-	} from '$lib/deconvolution/dist2';
-	import type { DistSpec, ParamSpec, Role, SimpleSpec } from '$lib/deconvolution/types';
+	} from '#lib/deconvolution/dist2.ts';
+	import type { DistSpec, ParamSpec, Role, SimpleSpec } from '#lib/deconvolution/types.ts';
 	import DistEditor from './DistEditor.svelte';
 
 	/** A 2D signal (Gaussian, mixture, product or fringe) or noise (Gaussian or product). */

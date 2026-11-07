@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '$lib/prng';
+import { Prng } from '#lib/prng.ts';
 import { makeDist } from './dist';
 import { chooseGrid } from './grid';
 import { cfHasZeros, defaultBandwidth, fitKernel } from './kernel';

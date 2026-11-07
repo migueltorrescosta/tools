@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { PolicyTreeView } from '$lib/information-pricing/analysis';
+	import type { PolicyTreeView } from '#lib/information-pricing/analysis/index.ts';
 	import { dataColour } from './format';
-	import { Legend } from '$lib/ui';
+	import { Legend } from '#lib/ui/index.ts';
 	import { scrollFocus } from './scroll-focus';
 	import { LINE_HEIGHT, edgePath, layoutTree, nodeLines, splitText } from './tree-layout';
 

@@ -8,7 +8,7 @@ import {
 	logGammaDraw,
 	poisson as poissonSampler,
 	binomial as binomialSampler
-} from '$lib/variates';
+} from '#lib/variates.ts';
 import type { Atoms, Family, FamilyId, ParamError } from './types';
 
 const SQRT_2PI = Math.sqrt(2 * Math.PI);

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { MAX_WORKERS } from '$lib/worker-pool';
+import { MAX_WORKERS } from '#lib/worker-pool.ts';
 import {
 	canSaveCsv,
 	decodeShareParams,

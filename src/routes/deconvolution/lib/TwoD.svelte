@@ -1,7 +1,15 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { Alert, Button, DataTable, Field, Panel, RunControls, type Column } from '$lib/ui';
-	import { dataColour } from '$lib/plot';
+	import {
+		Alert,
+		Button,
+		DataTable,
+		Field,
+		Panel,
+		RunControls,
+		type Column
+	} from '#lib/ui/index.ts';
+	import { dataColour } from '#lib/plot.ts';
 	import {
 		continuousNoise2,
 		makeDist2,
@@ -11,23 +19,23 @@
 		type GridEstimate2,
 		type Noise2Spec,
 		type Spec2
-	} from '$lib/deconvolution/dist2';
-	import { chooseGrid2, modelBox2, zDensityOnGrid2 } from '$lib/deconvolution/grid2';
+	} from '#lib/deconvolution/dist2.ts';
+	import { chooseGrid2, modelBox2, zDensityOnGrid2 } from '#lib/deconvolution/grid2.ts';
 	import {
 		truthOnGrid2,
 		unavailable2,
 		type GridMethod2,
 		type GridResult2,
 		type Method2
-	} from '$lib/deconvolution/estimate2';
-	import { EstimatePool, StoppedError } from '$lib/deconvolution/engine';
-	import { l1_2, slicedW1 } from '$lib/deconvolution/metrics2';
-	import type { Mle2Input, Mle2Result } from '$lib/deconvolution/mle2';
-	import type { ParamPosterior } from '$lib/deconvolution/bayes';
+	} from '#lib/deconvolution/estimate2.ts';
+	import { EstimatePool, StoppedError } from '#lib/deconvolution/engine.ts';
+	import { l1_2, slicedW1 } from '#lib/deconvolution/metrics2.ts';
+	import type { Mle2Input, Mle2Result } from '#lib/deconvolution/mle2.ts';
+	import type { ParamPosterior } from '#lib/deconvolution/bayes.ts';
 	import { posteriorCells, posteriorColumns, type PosteriorCells } from './chains';
 	import Posteriors from './Posteriors.svelte';
-	import { supportGrid2 } from '$lib/deconvolution/npmle2';
-	import { bands, histogram, simulate2, simulate2PerPoint } from '$lib/deconvolution/sample';
+	import { supportGrid2 } from '#lib/deconvolution/npmle2.ts';
+	import { bands, histogram, simulate2, simulate2PerPoint } from '#lib/deconvolution/sample.ts';
 	import {
 		MAX_BOOTSTRAP,
 		MAX_N,
@@ -35,8 +43,8 @@
 		MIN_N,
 		PRESETS2,
 		type Settings
-	} from '$lib/deconvolution/state';
-	import { columnsCsv, type ParsedSample } from '$lib/deconvolution/upload';
+	} from '#lib/deconvolution/state.ts';
+	import { columnsCsv, type ParsedSample } from '#lib/deconvolution/upload.ts';
 	import DensityChart, { type Band, type Curve, type Stems } from './DensityChart.svelte';
 	import Dist2Editor from './Dist2Editor.svelte';
 	import Heatmap from './Heatmap.svelte';

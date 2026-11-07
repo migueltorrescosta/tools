@@ -4,7 +4,7 @@
  * The noise is a centred Gaussian or a product of two continuous 1D noises,
  * so Z = X + Y always has a density. No DOM or Svelte imports.
  */
-import type { Prng } from '$lib/prng';
+import type { Prng } from '#lib/prng.ts';
 import { makeDist } from './dist';
 import { family, normalHalfWidth, validateParams } from './families';
 import { discretise, typicalWidth } from './grid';

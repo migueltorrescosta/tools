@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { italianModule } from '$lib/data/italian-conjugations';
-import { buildConjugationMap } from '$lib/data/italian-conjugations';
-import { LANGUAGE_REGISTRY, type LanguageModule } from '$lib/data/language-registry';
+import { italianModule } from '#lib/data/italian-conjugations.ts';
+import { buildConjugationMap } from '#lib/data/italian-conjugations.ts';
+import { LANGUAGE_REGISTRY, type LanguageModule } from '#lib/data/language-registry.ts';
 import {
 	HISTORY_LIMIT,
 	buildPool,
@@ -19,7 +19,7 @@ import {
 	type SessionState,
 	type Card,
 	type HistoryEntry
-} from '$lib/verbs';
+} from '#lib/verbs.ts';
 
 const conjugationMap = italianModule.conjugationMap;
 const PERSON_LABELS = italianModule.PERSON_LABELS;

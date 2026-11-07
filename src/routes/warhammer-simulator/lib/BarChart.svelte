@@ -9,7 +9,7 @@
 </script>
 
 <script lang="ts">
-	import { DataTable, type Column } from '$lib/ui';
+	import { DataTable, type Column } from '#lib/ui/index.ts';
 
 	let {
 		categories,

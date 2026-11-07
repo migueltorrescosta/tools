@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { compileModel } from '$lib/information-pricing/model';
-import { presetModel } from '$lib/information-pricing/presets';
+import { compileModel } from '#lib/information-pricing/model.ts';
+import { presetModel } from '#lib/information-pricing/presets.ts';
 import {
 	allFinite,
 	describeLocation,

@@ -2,7 +2,7 @@
  * Scenario generation over a pool of simulation workers. The main thread
  * hands out chunks, collects them in chunk order and assembles `Scenarios`.
  */
-import type { WorkerLike as PoolWorker } from '$lib/worker-pool';
+import type { WorkerLike as PoolWorker } from '#lib/worker-pool.ts';
 import type { Analysis, AnalysisOptions, PartialAnalysis } from './analysis';
 import type { Analyser, AnalysisListener, AnalysisStep } from './analyser';
 import { kernelSource } from './formula/codegen';

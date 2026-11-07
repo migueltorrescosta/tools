@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { SvelteSet } from 'svelte/reactivity';
-	import { Button } from '$lib/ui';
+	import { Button } from '#lib/ui/index.ts';
 	import { formatShortDate, isPast, type TimelineEvent, type YearGroup } from './timelines';
 
 	interface Props {

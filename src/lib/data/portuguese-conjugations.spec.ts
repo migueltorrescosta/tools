@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { portugueseModule, buildConjugationMap } from './portuguese-conjugations';
-import { buildPool, validateAnswer } from '$lib/verbs';
+import { buildPool, validateAnswer } from '#lib/verbs.ts';
 
 const map = portugueseModule.conjugationMap;
 

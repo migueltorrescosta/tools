@@ -4,8 +4,8 @@
 		complete,
 		type Completion,
 		type Suggestion
-	} from '$lib/information-pricing/formula/complete';
-	import { Field } from '$lib/ui';
+	} from '#lib/information-pricing/formula/complete.ts';
+	import { Field } from '#lib/ui/index.ts';
 	import { scrollFocus } from './scroll-focus';
 
 	const uid = $props.id();

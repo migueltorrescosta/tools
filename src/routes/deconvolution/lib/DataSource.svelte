@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Alert, Field, Panel, SegmentedControl } from '$lib/ui';
-	import { parseSample, type ParsedSample } from '$lib/deconvolution/upload';
+	import { Alert, Field, Panel, SegmentedControl } from '#lib/ui/index.ts';
+	import { parseSample, type ParsedSample } from '#lib/deconvolution/upload.ts';
 
 	/** Where the estimate's data comes from: the simulated sample or an upload (one or two columns). */
 	let {

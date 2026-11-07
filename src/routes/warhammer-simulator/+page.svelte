@@ -6,15 +6,15 @@
 		SimulationResults,
 		SimulationJob,
 		WorkerMessage
-	} from '$lib/warhammer-simulator/types';
+	} from '#lib/warhammer-simulator/types.ts';
 	import {
 		MAX_SIMULATIONS,
 		MIN_SIMULATIONS,
 		characterError,
 		parseSeed,
 		parseSimCount
-	} from '$lib/warhammer-simulator/simulation';
-	import { Alert, Field, PageHeader, Panel, RunControls } from '$lib/ui';
+	} from '#lib/warhammer-simulator/simulation.ts';
+	import { Alert, Field, PageHeader, Panel, RunControls } from '#lib/ui/index.ts';
 	import CharacterBuilder from './lib/CharacterBuilder.svelte';
 	import BarChart from './lib/BarChart.svelte';
 	import WinnerBar from './lib/WinnerBar.svelte';
@@ -100,7 +100,7 @@
 		elapsedMs = 0;
 		results = null;
 
-		worker = new Worker(new URL('$lib/warhammer-simulator/simulation.worker.ts', import.meta.url), {
+		worker = new Worker(new URL('#lib/warhammer-simulator/simulation.worker.ts', import.meta.url), {
 			type: 'module'
 		});
 

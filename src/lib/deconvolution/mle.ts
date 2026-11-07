@@ -4,7 +4,7 @@
  * observed information and a check that the data can separate them.
  * No DOM or Svelte imports.
  */
-import { moments } from '$lib/stats';
+import { moments } from '#lib/stats.ts';
 import { makeDist } from './dist';
 import { defaultParams, family, validateParams } from './families';
 import {

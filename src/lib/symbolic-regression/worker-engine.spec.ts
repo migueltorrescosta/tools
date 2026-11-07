@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createIslandHost, type FromWorker, type ToWorker } from './host';
 import { syntheticData } from './synthetic';
 import { DEFAULT_SETTINGS, type SearchEvent } from './types';
-import { MAX_WORKERS, type WorkerLike } from '$lib/worker-pool';
+import { MAX_WORKERS, type WorkerLike } from '#lib/worker-pool.ts';
 import { WorkerSearchEngine, islandSeed } from './worker-engine';
 
 /** Runs the real island host in-process, with structured cloning and async delivery like a worker. */

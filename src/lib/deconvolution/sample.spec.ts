@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '$lib/prng';
+import { Prng } from '#lib/prng.ts';
 import { makeDist } from './dist';
-import { quantileSorted } from '$lib/stats';
+import { quantileSorted } from '#lib/stats.ts';
 import { bands, histogram, resample, simulate } from './sample';
 
 describe('simulate', () => {

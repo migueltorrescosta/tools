@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '$lib/prng';
-import { logGamma } from '$lib/variates';
+import { Prng } from '#lib/prng.ts';
+import { logGamma } from '#lib/variates.ts';
 import { family, FAMILIES, normalHalfWidth, validateParams } from './families';
 import type { Family, FamilyId } from './types';
 

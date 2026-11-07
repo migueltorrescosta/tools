@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { renderTex } from '$lib/tex';
-import { Prng } from '$lib/prng';
+import { renderTex } from '#lib/tex.ts';
+import { Prng } from '#lib/prng.ts';
 import { parse } from './parse';
 import { randomTree } from './test-helpers';
 import { tex, texNumber, texSymbol } from './tex';

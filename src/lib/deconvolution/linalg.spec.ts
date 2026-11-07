@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '$lib/prng';
+import { Prng } from '#lib/prng.ts';
 import { invertSymmetric, nnls, solveSpd, symmetricEigen } from './linalg';
 
 describe('symmetricEigen', () => {

@@ -3,7 +3,7 @@
  * through this (main) thread; each worker refits and scores its own hall of
  * fame, so the main thread only merges fronts.
  */
-import { clampWorkers, type WorkerLike as PoolWorker } from '$lib/worker-pool';
+import { clampWorkers, type WorkerLike as PoolWorker } from '#lib/worker-pool.ts';
 import type { FromWorker, ToWorker } from './host';
 import { mergeFront, type Candidate } from './rescore';
 import type { FrontEntry, PreparedData, SearchEngine, SearchEvent, SearchSettings } from './types';

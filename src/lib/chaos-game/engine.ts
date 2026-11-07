@@ -1,4 +1,4 @@
-import { Prng } from '$lib/prng';
+import { Prng } from '#lib/prng.ts';
 import type { Box, GamePoint, Matrix, Rgb, Setup, View } from './types';
 
 /** Most points a game may have. */

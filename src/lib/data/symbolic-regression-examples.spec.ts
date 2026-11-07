@@ -6,13 +6,13 @@ import {
 	generateNewtonCsv,
 	generateShippingCsv
 } from './symbolic-regression-examples';
-import { parseCsv } from '$lib/symbolic-regression/csv';
+import { parseCsv } from '#lib/symbolic-regression/csv.ts';
 import {
 	analyzeColumns,
 	buildDataset,
 	canBeCategorical,
 	splitDataset
-} from '$lib/symbolic-regression/dataset';
+} from '#lib/symbolic-regression/dataset.ts';
 
 const numeric = (index: number) => ({ index, categorical: false });
 

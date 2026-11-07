@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { tick } from 'svelte';
-	import { FAMILIES } from '$lib/information-pricing/distributions';
-	import type { Family } from '$lib/information-pricing/types';
-	import { Button } from '$lib/ui';
+	import { FAMILIES } from '#lib/information-pricing/distributions.ts';
+	import type { Family } from '#lib/information-pricing/types.ts';
+	import { Button } from '#lib/ui/index.ts';
 
 	/** "Add input" as a menu button: each item appends an input of that distribution. */
 	let { onadd, disabled = false }: { onadd: (family: Family) => void; disabled?: boolean } =

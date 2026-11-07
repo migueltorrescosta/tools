@@ -2,10 +2,10 @@
 	import { onDestroy, onMount, untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { browserStorage, clearSaved, createPersistGate } from '$lib/persist-gate';
-	import { theme } from '$lib/theme.svelte';
-	import { Walker, compile, fitView, optimalRatio, validate } from '$lib/chaos-game/engine';
-	import { CHALLENGES, DEFAULT_SETUP, type Challenge } from '$lib/chaos-game/presets';
+	import { browserStorage, clearSaved, createPersistGate } from '#lib/persist-gate.ts';
+	import { theme } from '#lib/theme.svelte.ts';
+	import { Walker, compile, fitView, optimalRatio, validate } from '#lib/chaos-game/engine.ts';
+	import { CHALLENGES, DEFAULT_SETUP, type Challenge } from '#lib/chaos-game/presets.ts';
 	import {
 		GAMMA_RANGE,
 		STATE_KEY,
@@ -15,9 +15,9 @@
 		hasShareParams,
 		type DecodedShare,
 		type ShareState
-	} from '$lib/chaos-game/state';
-	import type { ColourMode, GamePoint, Rgb, Setup, View } from '$lib/chaos-game/types';
-	import type { FromWorker, ToWorker } from '$lib/chaos-game/worker-engine';
+	} from '#lib/chaos-game/state.ts';
+	import type { ColourMode, GamePoint, Rgb, Setup, View } from '#lib/chaos-game/types.ts';
+	import type { FromWorker, ToWorker } from '#lib/chaos-game/worker-engine.ts';
 	import {
 		Alert,
 		Button,
@@ -28,7 +28,7 @@
 		RunControls,
 		SegmentedControl,
 		ShareActions
-	} from '$lib/ui';
+	} from '#lib/ui/index.ts';
 	import Plot, { type Frame, type StepView, type TargetImage } from './lib/Plot.svelte';
 	import PointsPanel from './lib/PointsPanel.svelte';
 	import Challenges from './lib/Challenges.svelte';
@@ -361,7 +361,7 @@
 	}
 
 	onMount(() => {
-		worker = new Worker(new URL('$lib/chaos-game/chaos.worker.ts', import.meta.url), {
+		worker = new Worker(new URL('#lib/chaos-game/chaos.worker.ts', import.meta.url), {
 			type: 'module'
 		});
 		worker.onmessage = onWorker;

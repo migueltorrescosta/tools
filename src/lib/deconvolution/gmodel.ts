@@ -3,7 +3,7 @@
  * a grid as an exponential family g_j ∝ exp(Q_j·α) with Q a natural-spline
  * basis, fitted by maximising ℓ(α) − c0·‖α‖. No DOM or Svelte imports.
  */
-import { bfgs } from '$lib/minimise';
+import { bfgs } from '#lib/minimise.ts';
 import { binData } from './binning';
 import { gridLogLik, likelihoodMatrix, supportGrid } from './npmle';
 import { gridPoints } from './grid';

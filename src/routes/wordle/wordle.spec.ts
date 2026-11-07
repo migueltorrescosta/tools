@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import rawSolutionTree from '$lib/wordle-solution';
+import rawSolutionTree from '#lib/wordle-solution.ts';
 
 import {
 	answerMessage,
@@ -21,7 +21,7 @@ import {
 	type SolutionTree,
 	type TileColor,
 	type TreeNode
-} from '$lib/wordle';
+} from '#lib/wordle.ts';
 
 const solutionTree: SolutionTree = rawSolutionTree;
 

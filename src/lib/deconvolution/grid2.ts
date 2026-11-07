@@ -5,7 +5,7 @@
  * convolved by one circular 2D FFT; data points interpolate bilinearly.
  * No DOM or Svelte imports.
  */
-import { convolve2, nextPow2 } from '$lib/fft';
+import { convolve2, nextPow2 } from '#lib/fft.ts';
 import { DENSITY_FLOOR } from './grid';
 import type { Dist2, Grid2 } from './dist2';
 

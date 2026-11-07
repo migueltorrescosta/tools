@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { WorkerLike } from '$lib/worker-pool';
+import type { WorkerLike } from '#lib/worker-pool.ts';
 import { EstimatePool, StoppedError, type FromWorker, type ToWorker } from './engine';
 import type { Task, TaskResult } from './estimate';
 

@@ -15,18 +15,18 @@
 		SegmentedControl,
 		ShareActions,
 		type Column
-	} from '$lib/ui';
-	import { browserStorage, clearSaved, createPersistGate, readJson } from '$lib/persist-gate';
-	import { dataColour } from '$lib/plot';
-	import { makeDist } from '$lib/deconvolution/dist';
-	import { FAMILIES, family, validateParams } from '$lib/deconvolution/families';
+	} from '#lib/ui/index.ts';
+	import { browserStorage, clearSaved, createPersistGate, readJson } from '#lib/persist-gate.ts';
+	import { dataColour } from '#lib/plot.ts';
+	import { makeDist } from '#lib/deconvolution/dist.ts';
+	import { FAMILIES, family, validateParams } from '#lib/deconvolution/families.ts';
 	import {
 		chooseGrid,
 		gridPoints,
 		modelWindow,
 		zAtoms,
 		zDensityOnGrid
-	} from '$lib/deconvolution/grid';
+	} from '#lib/deconvolution/grid.ts';
 
 	import {
 		bands,
@@ -34,20 +34,20 @@
 		simulate,
 		simulatePerPoint,
 		simulateReplicates
-	} from '$lib/deconvolution/sample';
-	import { columnsCsv, type ParsedSample } from '$lib/deconvolution/upload';
-	import { supportGrid } from '$lib/deconvolution/npmle';
-	import { truthOnGrid, l1, wasserstein1 } from '$lib/deconvolution/metrics';
+	} from '#lib/deconvolution/sample.ts';
+	import { columnsCsv, type ParsedSample } from '#lib/deconvolution/upload.ts';
+	import { supportGrid } from '#lib/deconvolution/npmle.ts';
+	import { truthOnGrid, l1, wasserstein1 } from '#lib/deconvolution/metrics.ts';
 	import {
 		unavailable,
 		REGIME_METHODS,
 		type GridMethod,
 		type GridOptions,
 		type GridResult
-	} from '$lib/deconvolution/estimate';
-	import { EstimatePool, StoppedError } from '$lib/deconvolution/engine';
-	import type { MleInput, MleResult } from '$lib/deconvolution/mle';
-	import type { ParamPosterior } from '$lib/deconvolution/bayes';
+	} from '#lib/deconvolution/estimate.ts';
+	import { EstimatePool, StoppedError } from '#lib/deconvolution/engine.ts';
+	import type { MleInput, MleResult } from '#lib/deconvolution/mle.ts';
+	import type { ParamPosterior } from '#lib/deconvolution/bayes.ts';
 	import { posteriorCells, posteriorColumns, type PosteriorCells } from './lib/chains';
 	import Posteriors from './lib/Posteriors.svelte';
 	import {
@@ -67,7 +67,7 @@
 		presetSettings,
 		type Settings,
 		type NoiseRegime
-	} from '$lib/deconvolution/state';
+	} from '#lib/deconvolution/state.ts';
 	import type {
 		Dist,
 		DistSpec,
@@ -75,7 +75,7 @@
 		Grid,
 		MethodId,
 		SimpleSpec
-	} from '$lib/deconvolution/types';
+	} from '#lib/deconvolution/types.ts';
 	import DistEditor from './lib/DistEditor.svelte';
 	import DataSource from './lib/DataSource.svelte';
 	import TwoD from './lib/TwoD.svelte';
@@ -295,7 +295,7 @@
 	const getPool = () =>
 		(pool ??= new EstimatePool(
 			() =>
-				new Worker(new URL('$lib/deconvolution/estimate.worker.ts', import.meta.url), {
+				new Worker(new URL('#lib/deconvolution/estimate.worker.ts', import.meta.url), {
 					type: 'module'
 				})
 		));

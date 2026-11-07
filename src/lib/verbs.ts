@@ -1,4 +1,4 @@
-import type { LanguageModule } from '$lib/data/language-registry';
+import type { LanguageModule } from '#lib/data/language-registry.ts';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

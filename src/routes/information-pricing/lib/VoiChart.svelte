@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { ValueOfInformation } from '$lib/information-pricing/analysis';
-	import { Axis } from '$lib/ui';
+	import type { ValueOfInformation } from '#lib/information-pricing/analysis/index.ts';
+	import { Axis } from '#lib/ui/index.ts';
 	import {
 		dash,
 		decades,

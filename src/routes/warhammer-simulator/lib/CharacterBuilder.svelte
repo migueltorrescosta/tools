@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { PRESET_CHARACTERS } from '$lib/warhammer-simulator/presets';
-	import type { Character } from '$lib/warhammer-simulator/types';
-	import { computeEffectiveStats, isModelledSpecialRule } from '$lib/warhammer-simulator/rules';
-	import { MAX_STAT, MIN_STAT, isValidStat } from '$lib/warhammer-simulator/simulation';
-	import armouryData from '$lib/warhammer-simulator/data/armoury.json';
-	import factionsData from '$lib/warhammer-simulator/data/factions.json';
-	import { Button, Field, Panel } from '$lib/ui';
+	import { PRESET_CHARACTERS } from '#lib/warhammer-simulator/presets.ts';
+	import type { Character } from '#lib/warhammer-simulator/types.ts';
+	import { computeEffectiveStats, isModelledSpecialRule } from '#lib/warhammer-simulator/rules.ts';
+	import { MAX_STAT, MIN_STAT, isValidStat } from '#lib/warhammer-simulator/simulation.ts';
+	import armouryData from '#lib/warhammer-simulator/data/armoury.json';
+	import factionsData from '#lib/warhammer-simulator/data/factions.json';
+	import { Button, Field, Panel } from '#lib/ui/index.ts';
 	import {
 		GIFT_POINT_LIMIT,
 		MAX_ITEMS,

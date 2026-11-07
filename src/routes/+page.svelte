@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { routes, TOOL_GROUPS } from '$lib/routes';
+	import { routes, TOOL_GROUPS } from '#lib/routes.ts';
 
 	const groups = TOOL_GROUPS.map((group) => ({
 		group,

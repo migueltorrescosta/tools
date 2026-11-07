@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { reach, type Dataflow } from '$lib/information-pricing/dataflow';
-	import { edgePath, layoutGraph } from '$lib/scientific-derivations/layout';
-	import { renderTex } from '$lib/tex';
-	import Tex from '$lib/ui/Tex.svelte';
+	import { reach, type Dataflow } from '#lib/information-pricing/dataflow.ts';
+	import { edgePath, layoutGraph } from '#lib/scientific-derivations/layout.ts';
+	import { renderTex } from '#lib/tex.ts';
+	import Tex from '#lib/ui/Tex.svelte';
 	import { inputColour } from './format';
 
 	/** The model's dataflow as a top-to-bottom graph; picking a node lights its chain. */

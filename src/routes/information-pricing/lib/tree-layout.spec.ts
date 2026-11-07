@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildPolicyTree, policyTreeView } from '$lib/information-pricing/analysis';
+import { buildPolicyTree, policyTreeView } from '#lib/information-pricing/analysis/index.ts';
 import { thresholdLabels } from './format';
 import { layoutTree, nodeLines } from './tree-layout';
 

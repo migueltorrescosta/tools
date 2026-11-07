@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/env';
-	import { browserStorage, clearSaved, createPersistGate } from '$lib/persist-gate';
+	import { browserStorage, clearSaved, createPersistGate } from '#lib/persist-gate.ts';
 	import {
 		MAX_HOLD,
 		MAX_PULSES,
@@ -14,7 +14,7 @@
 		needsPseudomodes,
 		validateBudget,
 		validateSetup
-	} from '$lib/ancilla-mzi/limits';
+	} from '#lib/ancilla-mzi/limits.ts';
 	import {
 		DEFAULT_BUDGET,
 		PRESETS,
@@ -26,8 +26,8 @@
 		noiseless,
 		sameNoise,
 		type PresetId
-	} from '$lib/ancilla-mzi/presets';
-	import { NO_FEEDBACK, checkRules } from '$lib/ancilla-mzi/rules';
+	} from '#lib/ancilla-mzi/presets.ts';
+	import { NO_FEEDBACK, checkRules } from '#lib/ancilla-mzi/rules.ts';
 	import {
 		RESULT_KEY,
 		SETUP_KEY,
@@ -37,7 +37,7 @@
 		hasShareParams,
 		readSavedResult,
 		type SavedResult
-	} from '$lib/ancilla-mzi/state';
+	} from '#lib/ancilla-mzi/state.ts';
 	import {
 		AXES,
 		type AncillaEngine,
@@ -46,7 +46,7 @@
 		type PulseTarget,
 		type RunSnapshot,
 		type Setup
-	} from '$lib/ancilla-mzi/types';
+	} from '#lib/ancilla-mzi/types.ts';
 	import {
 		Alert,
 		Button,
@@ -56,8 +56,8 @@
 		RunControls,
 		ShareActions,
 		SegmentedControl
-	} from '$lib/ui';
-	import { createAncillaEngine } from '$lib/ancilla-mzi/worker-engine';
+	} from '#lib/ui/index.ts';
+	import { createAncillaEngine } from '#lib/ancilla-mzi/worker-engine.ts';
 	import { activeControls } from './lib/controls';
 	import ConvergencePlot, { type RefLine } from './lib/ConvergencePlot.svelte';
 	import ControlsPlot from './lib/ControlsPlot.svelte';

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Prng } from '$lib/prng';
+import { Prng } from '#lib/prng.ts';
 import {
 	backSolve,
 	cholesky,

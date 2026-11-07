@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '$lib/prng';
+import { Prng } from '#lib/prng.ts';
 import { makeDist2, type Noise2Spec, type Spec2 } from './dist2';
 import { fitMle2, type Mle2Result } from './mle2';
 

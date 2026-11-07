@@ -2,9 +2,9 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { PAPERS } from '$lib/scientific-derivations';
-	import { renderProse } from '$lib/scientific-derivations/prose';
-	import { PageHeader, SegmentedControl, Select } from '$lib/ui';
+	import { PAPERS } from '#lib/scientific-derivations/index.ts';
+	import { renderProse } from '#lib/scientific-derivations/prose.ts';
+	import { PageHeader, SegmentedControl, Select } from '#lib/ui/index.ts';
 	import DerivationGraph, { type Selection } from './lib/DerivationGraph.svelte';
 	import DetailPanel from './lib/DetailPanel.svelte';
 

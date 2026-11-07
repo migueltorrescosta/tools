@@ -4,7 +4,7 @@ import {
 	validateDataset,
 	type Company,
 	type Dataset
-} from '$lib/company-trends/schema';
+} from '#lib/company-trends/schema.ts';
 import {
 	convert,
 	convertFromEur,
@@ -12,8 +12,8 @@ import {
 	fiscalYearRate,
 	type Currency,
 	type FxTable
-} from '$lib/company-trends/fx';
-import { buildTrail, type TrailPoint } from '$lib/company-trends/chart';
+} from '#lib/company-trends/fx.ts';
+import { buildTrail, type TrailPoint } from '#lib/company-trends/chart.ts';
 import {
 	deriveExpenses,
 	interpolateSeries,
@@ -22,8 +22,8 @@ import {
 	quarterLabel,
 	quarterRange,
 	type CompanyPoint
-} from '$lib/company-trends/series';
-import { companyTypes, filterCompanies, type FilterState } from '$lib/company-trends/filter';
+} from '#lib/company-trends/series.ts';
+import { companyTypes, filterCompanies, type FilterState } from '#lib/company-trends/filter.ts';
 import bundled from './data/companies.json';
 
 // ---------------------------------------------------------------------------

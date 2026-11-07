@@ -3,10 +3,10 @@
 	match score says how close the game is. The answer loads its setup.
 -->
 <script lang="ts">
-	import { render, tone } from '$lib/chaos-game/engine';
-	import type { Challenge } from '$lib/chaos-game/presets';
-	import type { Rgb } from '$lib/chaos-game/types';
-	import { Button, Panel } from '$lib/ui';
+	import { render, tone } from '#lib/chaos-game/engine.ts';
+	import type { Challenge } from '#lib/chaos-game/presets.ts';
+	import type { Rgb } from '#lib/chaos-game/types.ts';
+	import { Button, Panel } from '#lib/ui/index.ts';
 
 	let {
 		challenges,

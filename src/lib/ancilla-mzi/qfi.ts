@@ -1,5 +1,5 @@
 /** SLD quantum Fisher information and the see-saw optimal-input search (Macieszczak 2014). */
-import type { Prng } from '$lib/prng';
+import type { Prng } from '#lib/prng.ts';
 import {
 	type CMat,
 	type CRect,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '$lib/prng';
+import { Prng } from '#lib/prng.ts';
 import { applyPreset, defaultSetup, noiseless } from './presets';
 import type { RegisterNoise, Setup } from './types';
 import { buildMzi } from './build';

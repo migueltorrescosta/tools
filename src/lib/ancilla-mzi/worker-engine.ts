@@ -8,7 +8,7 @@
  * are re-run first on Continue, so the seed set stays the same as in an
  * uninterrupted run.
  */
-import { defaultWorkerCount, type WorkerLike as PoolWorker } from '$lib/worker-pool';
+import { defaultWorkerCount, type WorkerLike as PoolWorker } from '#lib/worker-pool.ts';
 import type { FromWorker, ToWorker } from './host';
 import { hasCompanion } from './build';
 import { validateBudget, validateSetup } from './limits';

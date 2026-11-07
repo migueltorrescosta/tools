@@ -2,9 +2,13 @@
 	import { onMount } from 'svelte';
 	import datasetJson from './data/companies.json';
 	import TrendsChart from './TrendsChart.svelte';
-	import { Alert, Button, PageHeader, ScrollEdges, SegmentedControl } from '$lib/ui';
-	import { loadDataset } from '$lib/company-trends/schema';
-	import { companyTypes, DEFAULT_COMPANY_IDS, filterCompanies } from '$lib/company-trends/filter';
+	import { Alert, Button, PageHeader, ScrollEdges, SegmentedControl } from '#lib/ui/index.ts';
+	import { loadDataset } from '#lib/company-trends/schema.ts';
+	import {
+		companyTypes,
+		DEFAULT_COMPANY_IDS,
+		filterCompanies
+	} from '#lib/company-trends/filter.ts';
 	import {
 		assignColors,
 		buildTrail,
@@ -17,9 +21,9 @@
 		revenueDomain,
 		PALETTE_SIZE,
 		typeSlot
-	} from '$lib/company-trends/chart';
-	import { quarterIndex, quarterLabel, quarterRange } from '$lib/company-trends/series';
-	import type { Currency } from '$lib/company-trends/fx';
+	} from '#lib/company-trends/chart.ts';
+	import { quarterIndex, quarterLabel, quarterRange } from '#lib/company-trends/series.ts';
+	import type { Currency } from '#lib/company-trends/fx.ts';
 
 	// Set once the page is interactive; e2e tests wait for it before clicking.
 	let hydrated = $state(false);

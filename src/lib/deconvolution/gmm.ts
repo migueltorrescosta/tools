@@ -4,8 +4,8 @@
  * N(μ_k, s_k² + σ²). EM per K = 1…kMax from k-means++ starts, best by BIC.
  * Large samples are binned like the other grid methods. No DOM or Svelte imports.
  */
-import { Prng } from '$lib/prng';
-import { moments } from '$lib/stats';
+import { Prng } from '#lib/prng.ts';
+import { moments } from '#lib/stats.ts';
 import { binData } from './binning';
 import type { DistSpec } from './types';
 

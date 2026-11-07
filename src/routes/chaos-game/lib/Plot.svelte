@@ -4,7 +4,7 @@
 	for the points' handles and the step-through walk.
 -->
 <script module lang="ts">
-	import type { Box } from '$lib/chaos-game/types';
+	import type { Box } from '#lib/chaos-game/types.ts';
 
 	export interface Frame {
 		pixels: Uint8ClampedArray;
@@ -29,8 +29,8 @@
 </script>
 
 <script lang="ts">
-	import { toPixel, toWorld } from '$lib/chaos-game/engine';
-	import type { GamePoint, View } from '$lib/chaos-game/types';
+	import { toPixel, toWorld } from '#lib/chaos-game/engine.ts';
+	import type { GamePoint, View } from '#lib/chaos-game/types.ts';
 
 	let {
 		points,

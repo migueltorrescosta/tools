@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '$lib/prng';
+import { Prng } from '#lib/prng.ts';
 import { makeDist } from './dist';
 import { makeDist2, marginal, validate2, type Spec2 } from './dist2';
 import { zDensityOnGrid } from './grid';

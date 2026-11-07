@@ -1,14 +1,14 @@
 <script lang="ts">
-	import '$lib/styles/tokens.css';
-	import '$lib/styles/base.css';
-	import '$lib/styles/utilities.css';
-	import favicon from '$lib/assets/favicon.svg';
+	import '#lib/styles/tokens.css';
+	import '#lib/styles/base.css';
+	import '#lib/styles/utilities.css';
+	import favicon from '#lib/assets/favicon.svg';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
-	import { routes, TOOL_GROUPS } from '$lib/routes';
-	import ThemeToggle from '$lib/ui/ThemeToggle.svelte';
+	import { routes, TOOL_GROUPS } from '#lib/routes.ts';
+	import ThemeToggle from '#lib/ui/ThemeToggle.svelte';
 
 	let { children } = $props();
 
