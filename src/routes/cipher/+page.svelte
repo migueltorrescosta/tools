@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { copyToClipboard } from '#lib/clipboard.ts';
-	import { Alert, Button, Field, PageHeader, Panel, Select } from '#lib/ui/index.ts';
+	import { copyToClipboard } from '#lib/clipboard.js';
+	import { Alert, Button, Field, PageHeader, Panel, Select } from '#lib/ui/index.js';
 	import {
 		ALGORITHMS,
 		decrypt as decryptWith,
@@ -15,7 +15,7 @@
 		keyKind,
 		randomKey,
 		type Algorithm
-	} from '#lib/cipher.ts';
+	} from '#lib/cipher.js';
 
 	let selectedAlgorithm = $state<Algorithm>('AES-GCM');
 	let encryptionKey = $state('');

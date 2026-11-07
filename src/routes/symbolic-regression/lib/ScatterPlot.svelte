@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { niceTicks, formatTick, type Point } from '#lib/plot.ts';
+	import { niceTicks, formatTick, type Point } from '#lib/plot.js';
 
 	interface Props {
 		points: Point[];

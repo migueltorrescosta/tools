@@ -3,7 +3,7 @@
  * stream, seeded from (seed, k), so results depend on the seed and the
  * sequence of Run/Add sizes, never on the worker count. No DOM imports.
  */
-import { Prng } from '#lib/prng.ts';
+import { Prng } from '#lib/prng.js';
 import { fill } from './distributions';
 import type { Kernel } from './formula/codegen';
 import type { Family, Scenarios } from './types';

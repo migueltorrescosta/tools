@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { PageHeader, ScrollEdges } from '#lib/ui/index.ts';
+	import { PageHeader, ScrollEdges } from '#lib/ui/index.js';
 	import electedOfficials from '#lib/data/elected_officials.json';
 	import {
 		barGeometry,
@@ -18,7 +18,7 @@
 		timelinePercent,
 		timelineRange,
 		type Politician
-	} from '#lib/volt.ts';
+	} from '#lib/volt.js';
 
 	const officials: Politician[] = electedOfficials;
 

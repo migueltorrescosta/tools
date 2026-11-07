@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '#lib/prng.ts';
+import { Prng } from '#lib/prng.js';
 import { makeDist } from './dist';
 import { discretise, gridPoints } from './grid';
 import { binData } from './binning';

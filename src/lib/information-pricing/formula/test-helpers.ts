@@ -1,5 +1,5 @@
 /** Test helpers: random syntax trees and span-free comparison. */
-import type { Prng } from '#lib/prng.ts';
+import type { Prng } from '#lib/prng.js';
 import type { Model, RandomInput } from '../types';
 import { FUNCTIONS, type BinaryOp, type FnName, type Node } from './ast';
 

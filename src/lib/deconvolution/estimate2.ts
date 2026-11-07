@@ -3,7 +3,7 @@
  * parametric fit, the NPMLE and the Gaussian mixture on a shared 64 × 64
  * support grid, and bootstrap resamples. No DOM or Svelte imports.
  */
-import { Prng } from '#lib/prng.ts';
+import { Prng } from '#lib/prng.js';
 import { binData2 } from './binning2';
 import { makeDist2, type Grid2, type GridEstimate2, type Noise2Spec, type Spec2 } from './dist2';
 import { fitGmm2, gmm2Spec } from './gmm2';

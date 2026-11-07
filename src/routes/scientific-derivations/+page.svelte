@@ -2,9 +2,9 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { PAPERS } from '#lib/scientific-derivations/index.ts';
-	import { renderProse } from '#lib/scientific-derivations/prose.ts';
-	import { PageHeader, SegmentedControl, Select } from '#lib/ui/index.ts';
+	import { PAPERS } from '#lib/scientific-derivations/index.js';
+	import { renderProse } from '#lib/scientific-derivations/prose.js';
+	import { PageHeader, SegmentedControl, Select } from '#lib/ui/index.js';
 	import DerivationGraph, { type Selection } from './lib/DerivationGraph.svelte';
 	import DetailPanel from './lib/DetailPanel.svelte';
 
@@ -26,7 +26,7 @@
 	);
 
 	function writeUrl() {
-		const url = new URL(page.url);
+		const url = new URL(page.url.href);
 		url.searchParams.set('paper', paper.id);
 		url.searchParams.set('derivation', derivation.id);
 		goto(url, { shallow: true, replace: true, state: page.state });
@@ -61,7 +61,7 @@
 
 	// ?paper and ?derivation pick the graph; unknown values fall back to the first.
 	onMount(() => {
-		const params = page.url.searchParams;
+		const params = new URLSearchParams(page.url.search);
 		const fromUrl = PAPERS.find((p) => p.id === params.get('paper'));
 		if (fromUrl) paperId = fromUrl.id;
 		const d = paper.derivations.find((d) => d.id === params.get('derivation'));

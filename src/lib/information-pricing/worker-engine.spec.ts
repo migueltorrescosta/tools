@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { WorkerLike } from '#lib/worker-pool.ts';
+import type { WorkerLike } from '#lib/worker-pool.js';
 import { validateParams } from './distributions';
 import type { Analysis, PartialAnalysis, TreeResult } from './analysis';
 import {

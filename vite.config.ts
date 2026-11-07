@@ -1,12 +1,11 @@
 import adapter from '@sveltejs/adapter-cloudflare';
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
-import { relative, sep } from 'node:path';
 import { defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
 import { sveltekit } from '@sveltejs/kit/vite';
 import type { Plugin } from 'vite';
 import { readdirSync, readFileSync } from 'node:fs';
+import { relative, sep } from 'node:path';
 
 // Killing `pnpm dev` leaves vite, and the workerd it starts, running with no parent.
 // The dev server closes itself once its launcher is gone, which also stops workerd: the
@@ -19,8 +18,9 @@ function launchers(): number[] {
 			const stat = readFileSync(`/proc/${process.ppid}/stat`, 'utf8');
 			pids.push(Number(stat.slice(stat.lastIndexOf(')') + 2).split(' ')[1]));
 		}
-	} catch {}
-	// No /proc: watch the parent alone.
+	} catch {
+		// No /proc: watch the parent alone.
+	}
 	return pids;
 }
 
@@ -45,11 +45,12 @@ if (!process.env.VITEST) {
 					if (readFileSync(`/proc/${pid}/comm`, 'utf8').trim() === 'workerd') process.kill(pid);
 				}
 			}
-		} catch {}
+		} catch {
+			// No /proc, or a child already gone.
+		}
 	});
 }
 
-// No /proc, or a child already gone.
 function exitWithLauncher(): Plugin {
 	return {
 		name: 'exit-with-launcher',
@@ -69,10 +70,9 @@ function exitWithLauncher(): Plugin {
 
 // SvelteKit hashes the scripts it emits itself; inline scripts in app.html (the theme script)
 // need their own hashes.
-const appHtml = readFileSync2(new URL('./src/app.html', import.meta.url), 'utf8');
-
+const appHtml = readFileSync(new URL('./src/app.html', import.meta.url), 'utf8');
 const appHtmlHashes = [...appHtml.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(
-	([, body]) => /** @type {const} */ `sha256-${createHash('sha256').update(body).digest('base64')}`
+	([, body]) => `sha256-${createHash('sha256').update(body).digest('base64')}` as const
 );
 
 export default defineConfig({
@@ -111,7 +111,9 @@ export default defineConfig({
 		}),
 		exitWithLauncher()
 	],
-	server: { allowedHosts: ['aurora.seagull-dominant.ts.net'] },
+	server: {
+		allowedHosts: ['aurora.seagull-dominant.ts.net']
+	},
 	test: {
 		expect: {
 			requireAssertions: true

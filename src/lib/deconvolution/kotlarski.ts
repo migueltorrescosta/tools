@@ -8,7 +8,7 @@
  * estimated with Comte & Kappus's (2015) regularisation and inverted with the
  * kernel of `kernel.ts`. No DOM or Svelte imports.
  */
-import { moments } from '#lib/stats.ts';
+import { moments } from '#lib/stats.js';
 import { invertCf, kernelPhi } from './kernel';
 import type { Grid, GridEstimate } from './types';
 

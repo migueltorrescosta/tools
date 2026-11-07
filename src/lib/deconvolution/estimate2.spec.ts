@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '#lib/prng.ts';
+import { Prng } from '#lib/prng.js';
 import { makeDist2, type Noise2Spec, type Spec2 } from './dist2';
 import { runTask } from './estimate';
 import { sampleLogLik2, truthOnGrid2, unavailable2 } from './estimate2';

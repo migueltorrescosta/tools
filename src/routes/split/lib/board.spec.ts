@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Proposal } from '#lib/split/index.ts';
+import type { Proposal } from '#lib/split/index.js';
 import {
 	amountColour,
 	amountIntensity,

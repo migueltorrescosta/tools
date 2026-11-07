@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import { Field } from '#lib/ui/index.ts';
+	import { Field } from '#lib/ui/index.js';
 
 	let {
 		label,

@@ -1,4 +1,4 @@
-import { renderTex } from '#lib/tex.ts';
+import { renderTex } from '#lib/tex.js';
 
 const ESCAPES: Record<string, string> = {
 	'&': '&amp;',

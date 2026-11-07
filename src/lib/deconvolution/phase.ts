@@ -8,8 +8,8 @@
  * paper's fixed-atom variant, solved by projected gradient on the simplex.
  * No DOM or Svelte imports.
  */
-import { Prng } from '#lib/prng.ts';
-import { moments } from '#lib/stats.ts';
+import { Prng } from '#lib/prng.js';
+import { moments } from '#lib/stats.js';
 import { binData } from './binning';
 import { empiricalCf, invertCf, kernelPhi } from './kernel';
 import type { Grid, GridEstimate } from './types';

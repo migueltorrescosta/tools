@@ -8,7 +8,7 @@
  * discrete, Z is too and its pmf is computed exactly instead.
  * No DOM or Svelte imports.
  */
-import { convolve, nextPow2 } from '#lib/fft.ts';
+import { convolve, nextPow2 } from '#lib/fft.js';
 import type { Atoms, Dist, Grid } from './types';
 
 /** Nodes used across the window when neither distribution forces a finer step. */

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { spanishModule } from './spanish-conjugations';
-import { buildPool, cardKey, validateAnswer } from '#lib/verbs.ts';
+import { buildPool, cardKey, validateAnswer } from '#lib/verbs.js';
 
 const { conjugationMap: map, VERB_LIST, TENSE_LIST, PERSON_LABELS } = spanishModule;
 

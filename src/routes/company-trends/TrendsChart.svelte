@@ -19,8 +19,8 @@
 		type HitSelection,
 		type Trail,
 		type TrailPoint
-	} from '#lib/company-trends/chart.ts';
-	import type { Currency } from '#lib/company-trends/fx.ts';
+	} from '#lib/company-trends/chart.js';
+	import type { Currency } from '#lib/company-trends/fx.js';
 
 	interface Props {
 		trails: Trail[];

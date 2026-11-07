@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { copyToClipboard } from '#lib/clipboard.ts';
-	import { Alert, Button, Field, PageHeader, Panel, Select } from '#lib/ui/index.ts';
+	import { copyToClipboard } from '#lib/clipboard.js';
+	import { Alert, Button, Field, PageHeader, Panel, Select } from '#lib/ui/index.js';
 	import {
 		algorithmOptions,
 		describeClaims,
@@ -15,7 +15,7 @@
 		withHeaderAlg,
 		type JsonObject,
 		type VerifyResult
-	} from '#lib/jwt.ts';
+	} from '#lib/jwt.js';
 
 	let token = $state('');
 	let secret = $state('');

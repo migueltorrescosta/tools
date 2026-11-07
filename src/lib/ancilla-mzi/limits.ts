@@ -1,5 +1,5 @@
 /** Which setups the engine runs, and why it refuses the rest. No DOM imports. */
-import { MAX_WORKERS } from '#lib/worker-pool.ts';
+import { MAX_WORKERS } from '#lib/worker-pool.js';
 import {
 	freeControls,
 	type Budget,

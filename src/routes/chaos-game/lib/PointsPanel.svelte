@@ -4,9 +4,9 @@
 	ratio, rotation and matrix folded away.
 -->
 <script lang="ts">
-	import { MAX_POINTS, polygon } from '#lib/chaos-game/engine.ts';
-	import type { GamePoint, Matrix } from '#lib/chaos-game/types.ts';
-	import { Button, Field, Panel, ScrollEdges } from '#lib/ui/index.ts';
+	import { MAX_POINTS, polygon } from '#lib/chaos-game/engine.js';
+	import type { GamePoint, Matrix } from '#lib/chaos-game/types.js';
+	import { Button, Field, Panel, ScrollEdges } from '#lib/ui/index.js';
 
 	let {
 		points = $bindable(),

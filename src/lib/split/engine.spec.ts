@@ -8,7 +8,7 @@ import {
 	roundCap,
 	transfersFor
 } from './engine';
-import { Prng } from '#lib/prng.ts';
+import { Prng } from '#lib/prng.js';
 
 const sum = (xs: readonly number[]) => xs.reduce((a, b) => a + b, 0);
 

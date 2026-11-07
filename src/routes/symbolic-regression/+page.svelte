@@ -3,10 +3,10 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/env';
-	import { browserStorage, clearSaved, createPersistGate, readJson } from '#lib/persist-gate.ts';
-	import { copyToClipboard } from '#lib/clipboard.ts';
-	import { EXAMPLES } from '#lib/data/symbolic-regression-examples.ts';
-	import { parseCsv, type ParsedCsv } from '#lib/symbolic-regression/csv.ts';
+	import { browserStorage, clearSaved, createPersistGate, readJson } from '#lib/persist-gate.js';
+	import { copyToClipboard } from '#lib/clipboard.js';
+	import { EXAMPLES } from '#lib/data/symbolic-regression-examples.js';
+	import { parseCsv, type ParsedCsv } from '#lib/symbolic-regression/csv.js';
 	import {
 		analyzeColumns,
 		buildDataset,
@@ -15,9 +15,9 @@
 		inputChoices,
 		splitDataset,
 		validationIndices
-	} from '#lib/symbolic-regression/dataset.ts';
-	import { predictionsCsv } from '#lib/symbolic-regression/export.ts';
-	import { evaluate } from '#lib/symbolic-regression/expr.ts';
+	} from '#lib/symbolic-regression/dataset.js';
+	import { predictionsCsv } from '#lib/symbolic-regression/export.js';
+	import { evaluate } from '#lib/symbolic-regression/expr.js';
 	import {
 		toJavaScript,
 		toLatex,
@@ -25,11 +25,11 @@
 		toText,
 		formatNumber,
 		type Levels
-	} from '#lib/symbolic-regression/format.ts';
-	import { renderTex } from '#lib/tex.ts';
-	import { recommendedIndex } from '#lib/symbolic-regression/front.ts';
-	import { WorkerSearchEngine } from '#lib/symbolic-regression/worker-engine.ts';
-	import { defaultWorkerCount } from '#lib/worker-pool.ts';
+	} from '#lib/symbolic-regression/format.js';
+	import { renderTex } from '#lib/tex.js';
+	import { recommendedIndex } from '#lib/symbolic-regression/front.js';
+	import { WorkerSearchEngine } from '#lib/symbolic-regression/worker-engine.js';
+	import { defaultWorkerCount } from '#lib/worker-pool.js';
 	import {
 		DATASET_KEY,
 		FRONT_KEY,
@@ -41,7 +41,7 @@
 		hasShareParams,
 		type SavedDataset,
 		type ShareState
-	} from '#lib/symbolic-regression/state.ts';
+	} from '#lib/symbolic-regression/state.js';
 	import {
 		ALL_OPERATORS,
 		CATEGORY_MAX,
@@ -53,7 +53,7 @@
 		type InputMode,
 		type OperatorName,
 		type PreparedData
-	} from '#lib/symbolic-regression/types.ts';
+	} from '#lib/symbolic-regression/types.js';
 	import {
 		Alert,
 		Button,
@@ -64,12 +64,12 @@
 		RunControls,
 		SegmentedControl,
 		ShareActions
-	} from '#lib/ui/index.ts';
+	} from '#lib/ui/index.js';
 	import Tex from '#lib/ui/Tex.svelte';
 	import ScatterPlot from './lib/ScatterPlot.svelte';
 	import FrontPlot from './lib/FrontPlot.svelte';
 	import { GLOSSARY } from './lib/glossary';
-	import { thin, type Point } from '#lib/plot.ts';
+	import { thin, type Point } from '#lib/plot.js';
 
 	const OPERATOR_LABELS: Record<OperatorName, string> = {
 		add: '+',
@@ -297,7 +297,7 @@
 		frontTarget = data.targetName;
 		engine = new WorkerSearchEngine(
 			() =>
-				new Worker(new URL('#lib/symbolic-regression/search.worker.ts', import.meta.url), {
+				new Worker(new URL('#lib/symbolic-regression/search.worker.js', import.meta.url), {
 					type: 'module'
 				})
 		);
@@ -498,7 +498,7 @@
 		const json = JSON.stringify(shareState);
 		const params = encodeShareParams(shareState).toString();
 		if (!persist.isOpen) return;
-		const url = untrack(() => new URL(page.url));
+		const url = untrack(() => new URL(page.url.href));
 		url.search = params;
 		shareUrl = url.toString();
 		if (json !== defaultSettingsJson) settingsTouched = true;
@@ -556,7 +556,7 @@
 	onMount(() => {
 		workers = defaultWorkerCount();
 		defaultSettingsJson = JSON.stringify(shareState);
-		const params = page.url.searchParams;
+		const params = new URLSearchParams(page.url.search);
 		const fromUrl = hasShareParams(params);
 		settingsTouched = fromUrl || readJson(storage, SETTINGS_KEY) !== null;
 		const share = fromUrl

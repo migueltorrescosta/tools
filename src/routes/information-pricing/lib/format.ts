@@ -3,10 +3,10 @@
  * Values arrive in native units; the page shows them in the analysis'
  * auto-scaled display unit.
  */
-import { scaledValue } from '#lib/information-pricing/analysis/index.ts';
-import { linear } from '#lib/plot.ts';
+import { scaledValue } from '#lib/information-pricing/analysis/index.js';
+import { linear } from '#lib/plot.js';
 
-export { dataColour, linear, linePath } from '#lib/plot.ts';
+export { dataColour, linear, linePath } from '#lib/plot.js';
 
 /** A display-unit number with about three significant digits and thousands separators. */
 export function formatNumber(v: number): string {

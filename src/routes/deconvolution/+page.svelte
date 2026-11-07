@@ -15,18 +15,18 @@
 		SegmentedControl,
 		ShareActions,
 		type Column
-	} from '#lib/ui/index.ts';
-	import { browserStorage, clearSaved, createPersistGate, readJson } from '#lib/persist-gate.ts';
-	import { dataColour } from '#lib/plot.ts';
-	import { makeDist } from '#lib/deconvolution/dist.ts';
-	import { FAMILIES, family, validateParams } from '#lib/deconvolution/families.ts';
+	} from '#lib/ui/index.js';
+	import { browserStorage, clearSaved, createPersistGate, readJson } from '#lib/persist-gate.js';
+	import { dataColour } from '#lib/plot.js';
+	import { makeDist } from '#lib/deconvolution/dist.js';
+	import { FAMILIES, family, validateParams } from '#lib/deconvolution/families.js';
 	import {
 		chooseGrid,
 		gridPoints,
 		modelWindow,
 		zAtoms,
 		zDensityOnGrid
-	} from '#lib/deconvolution/grid.ts';
+	} from '#lib/deconvolution/grid.js';
 
 	import {
 		bands,
@@ -34,20 +34,20 @@
 		simulate,
 		simulatePerPoint,
 		simulateReplicates
-	} from '#lib/deconvolution/sample.ts';
-	import { columnsCsv, type ParsedSample } from '#lib/deconvolution/upload.ts';
-	import { supportGrid } from '#lib/deconvolution/npmle.ts';
-	import { truthOnGrid, l1, wasserstein1 } from '#lib/deconvolution/metrics.ts';
+	} from '#lib/deconvolution/sample.js';
+	import { columnsCsv, type ParsedSample } from '#lib/deconvolution/upload.js';
+	import { supportGrid } from '#lib/deconvolution/npmle.js';
+	import { truthOnGrid, l1, wasserstein1 } from '#lib/deconvolution/metrics.js';
 	import {
 		unavailable,
 		REGIME_METHODS,
 		type GridMethod,
 		type GridOptions,
 		type GridResult
-	} from '#lib/deconvolution/estimate.ts';
-	import { EstimatePool, StoppedError } from '#lib/deconvolution/engine.ts';
-	import type { MleInput, MleResult } from '#lib/deconvolution/mle.ts';
-	import type { ParamPosterior } from '#lib/deconvolution/bayes.ts';
+	} from '#lib/deconvolution/estimate.js';
+	import { EstimatePool, StoppedError } from '#lib/deconvolution/engine.js';
+	import type { MleInput, MleResult } from '#lib/deconvolution/mle.js';
+	import type { ParamPosterior } from '#lib/deconvolution/bayes.js';
 	import { posteriorCells, posteriorColumns, type PosteriorCells } from './lib/chains';
 	import Posteriors from './lib/Posteriors.svelte';
 	import {
@@ -67,7 +67,7 @@
 		presetSettings,
 		type Settings,
 		type NoiseRegime
-	} from '#lib/deconvolution/state.ts';
+	} from '#lib/deconvolution/state.js';
 	import type {
 		Dist,
 		DistSpec,
@@ -75,7 +75,7 @@
 		Grid,
 		MethodId,
 		SimpleSpec
-	} from '#lib/deconvolution/types.ts';
+	} from '#lib/deconvolution/types.js';
 	import DistEditor from './lib/DistEditor.svelte';
 	import DataSource from './lib/DataSource.svelte';
 	import TwoD from './lib/TwoD.svelte';
@@ -295,7 +295,7 @@
 	const getPool = () =>
 		(pool ??= new EstimatePool(
 			() =>
-				new Worker(new URL('#lib/deconvolution/estimate.worker.ts', import.meta.url), {
+				new Worker(new URL('#lib/deconvolution/estimate.worker.js', import.meta.url), {
 					type: 'module'
 				})
 		));
@@ -794,7 +794,7 @@
 		const valid = parseSettings(snap);
 		if (!valid) return;
 		persist.write(AUTOSAVE_KEY, JSON.stringify(valid));
-		const url = new URL(page.url);
+		const url = new URL(page.url.href);
 		url.hash = `${HASH_PARAM}=${encodeSettings(valid)}`;
 		shareUrl = url.toString();
 	});

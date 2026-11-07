@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '#lib/prng.ts';
+import { Prng } from '#lib/prng.js';
 import { convolve, convolve2, fft, nextPow2 } from './fft';
 
 describe('fft', () => {

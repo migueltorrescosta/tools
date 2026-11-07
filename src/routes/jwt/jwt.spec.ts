@@ -20,7 +20,7 @@ import {
 	unsignedReason,
 	tokenView,
 	verifyJwt
-} from '#lib/jwt.ts';
+} from '#lib/jwt.js';
 import { createHmac } from 'node:crypto';
 
 // jwt.io sample token, also the page's initial token

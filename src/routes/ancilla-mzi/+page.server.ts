@@ -1,4 +1,4 @@
-import { renderTex } from '#lib/tex.ts';
+import { renderTex } from '#lib/tex.js';
 import { EQUATIONS, type EquationId } from './lib/equations';
 import type { PageServerLoad } from './$types';
 

@@ -12,7 +12,7 @@ import {
 	XHTML_NS,
 	XML_PROBE,
 	type XmlParser
-} from '#lib/format/validate.ts';
+} from '#lib/format/validate.js';
 
 // Node has no DOMParser. These stubs return what a browser returns: a document whose
 // parsererror element holds the error text (Chromium wording), or none. Chromium and WebKit

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '#lib/prng.ts';
+import { Prng } from '#lib/prng.js';
 import { outer, rectApply, zeros } from './linalg';
 import { buildMzi } from './build';
 import { applyPreset, defaultSetup, noiseless } from './presets';

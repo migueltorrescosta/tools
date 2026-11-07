@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '#lib/prng.ts';
+import { Prng } from '#lib/prng.js';
 import { makeDist } from './dist';
 import { emStep, fitGmm, gmmSpec } from './gmm';
 import type { GmmComponent, GmmState } from './gmm';

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Button, PageHeader } from '#lib/ui/index.ts';
-	import solutionTree from '#lib/wordle-solution.ts';
+	import { Button, PageHeader } from '#lib/ui/index.js';
+	import solutionTree from '#lib/wordle-solution.js';
 	import {
 		answerMessage,
 		cycleTile as cycleResultTile,
@@ -16,7 +16,7 @@
 		type Attempt,
 		type SolutionTree,
 		type TileColor
-	} from '#lib/wordle.ts';
+	} from '#lib/wordle.js';
 
 	let currentSolutionTree = $state<SolutionTree>(solutionTree);
 	let history = $state<Attempt[]>([]);

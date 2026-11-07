@@ -1,5 +1,5 @@
 /** Synthetic datasets for specs and benchmarks. */
-import { Prng } from '#lib/prng.ts';
+import { Prng } from '#lib/prng.js';
 import type { PreparedData } from './types';
 
 export interface SyntheticOptions {

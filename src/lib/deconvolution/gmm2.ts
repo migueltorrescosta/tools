@@ -4,7 +4,7 @@
  * N(μ_k, V_k + S). EM per K = 1…kMax from k-means++ starts, best by BIC.
  * Covariances are [a, b, c] for [[a, b], [b, c]]. No DOM or Svelte imports.
  */
-import { Prng } from '#lib/prng.ts';
+import { Prng } from '#lib/prng.js';
 import { binData2 } from './binning2';
 import type { Spec2 } from './dist2';
 

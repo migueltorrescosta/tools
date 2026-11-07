@@ -106,7 +106,7 @@ export function nextTowardZero(x: number): number {
 	return f64[0];
 }
 
-export { quantileSorted } from '#lib/stats.ts';
+export { quantileSorted } from '#lib/stats.js';
 
 const SMALL_SORT = 1024;
 

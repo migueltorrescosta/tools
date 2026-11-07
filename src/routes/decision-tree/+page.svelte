@@ -2,13 +2,13 @@
 	import { onMount, untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { browserStorage, createPersistGate } from '#lib/persist-gate.ts';
-	import { buildGraph, encodePath, restorePath } from '#lib/decision-tree/graph.ts';
+	import { browserStorage, createPersistGate } from '#lib/persist-gate.js';
+	import { buildGraph, encodePath, restorePath } from '#lib/decision-tree/graph.js';
 	import DecisionTree from '#lib/decision-tree/DecisionTree.svelte';
-	import { PageHeader } from '#lib/ui/index.ts';
-	import { validateGraph } from '#lib/decision-tree/validation.ts';
+	import { PageHeader } from '#lib/ui/index.js';
+	import { validateGraph } from '#lib/decision-tree/validation.js';
 	import rawTreeData from '#lib/decision-tree/data/tree.json';
-	import type { DecisionGraph, TraversalPath, RawTree } from '#lib/decision-tree/types.ts';
+	import type { DecisionGraph, TraversalPath, RawTree } from '#lib/decision-tree/types.js';
 	const treeData = rawTreeData as RawTree;
 
 	// Build the graph once
@@ -33,7 +33,7 @@
 	// --- URL helpers ---
 	function writePathToUrl(path: TraversalPath) {
 		// Untracked: replaceState must not make the sync effect depend on page
-		const url = untrack(() => new URL(page.url));
+		const url = untrack(() => new URL(page.url.href));
 		if (path.length > 0) {
 			url.searchParams.set('p', encodePath(graph, path));
 		} else {

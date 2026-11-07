@@ -2,7 +2,7 @@
  * Exact samplers and special functions shared by the tools that draw random
  * variates over the seeded `Prng`. No DOM or Svelte imports.
  */
-import type { Prng } from '#lib/prng.ts';
+import type { Prng } from '#lib/prng.js';
 
 const HALF_LOG_2PI = 0.5 * Math.log(2 * Math.PI);
 

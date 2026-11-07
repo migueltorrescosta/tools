@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import electedOfficials from './elected_officials.json';
-import { COUNTRY_COLORS, DATA_AS_OF, isFormer, parseDate, type Politician } from '#lib/volt.ts';
+import { COUNTRY_COLORS, DATA_AS_OF, isFormer, parseDate, type Politician } from '#lib/volt.js';
 
 const officials: Politician[] = electedOfficials;
 const FIELDS = ['name', 'startDate', 'endDate', 'position', 'location', 'country', 'url'] as const;

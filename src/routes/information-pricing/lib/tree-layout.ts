@@ -4,7 +4,7 @@
  * outgoing edges.
  */
 import dagre from '@dagrejs/dagre';
-import type { PolicyTreeView } from '#lib/information-pricing/analysis/index.ts';
+import type { PolicyTreeView } from '#lib/information-pricing/analysis/index.js';
 import { thresholdLabels } from './format';
 
 export interface Point {

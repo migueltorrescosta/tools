@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/env';
-	import { browserStorage, clearSaved, createPersistGate } from '#lib/persist-gate.ts';
+	import { browserStorage, clearSaved, createPersistGate } from '#lib/persist-gate.js';
 	import {
 		MAX_HOLD,
 		MAX_PULSES,
@@ -14,7 +14,7 @@
 		needsPseudomodes,
 		validateBudget,
 		validateSetup
-	} from '#lib/ancilla-mzi/limits.ts';
+	} from '#lib/ancilla-mzi/limits.js';
 	import {
 		DEFAULT_BUDGET,
 		PRESETS,
@@ -26,8 +26,8 @@
 		noiseless,
 		sameNoise,
 		type PresetId
-	} from '#lib/ancilla-mzi/presets.ts';
-	import { NO_FEEDBACK, checkRules } from '#lib/ancilla-mzi/rules.ts';
+	} from '#lib/ancilla-mzi/presets.js';
+	import { NO_FEEDBACK, checkRules } from '#lib/ancilla-mzi/rules.js';
 	import {
 		RESULT_KEY,
 		SETUP_KEY,
@@ -37,7 +37,7 @@
 		hasShareParams,
 		readSavedResult,
 		type SavedResult
-	} from '#lib/ancilla-mzi/state.ts';
+	} from '#lib/ancilla-mzi/state.js';
 	import {
 		AXES,
 		type AncillaEngine,
@@ -46,7 +46,7 @@
 		type PulseTarget,
 		type RunSnapshot,
 		type Setup
-	} from '#lib/ancilla-mzi/types.ts';
+	} from '#lib/ancilla-mzi/types.js';
 	import {
 		Alert,
 		Button,
@@ -56,8 +56,8 @@
 		RunControls,
 		ShareActions,
 		SegmentedControl
-	} from '#lib/ui/index.ts';
-	import { createAncillaEngine } from '#lib/ancilla-mzi/worker-engine.ts';
+	} from '#lib/ui/index.js';
+	import { createAncillaEngine } from '#lib/ancilla-mzi/worker-engine.js';
 	import { activeControls } from './lib/controls';
 	import ConvergencePlot, { type RefLine } from './lib/ConvergencePlot.svelte';
 	import ControlsPlot from './lib/ControlsPlot.svelte';
@@ -265,7 +265,7 @@
 		const q = query;
 		// hydrated is reactive and set after persist.open(), so this reruns once on load
 		if (!hydrated) return;
-		const url = untrack(() => new URL(page.url));
+		const url = untrack(() => new URL(page.url.href));
 		url.search = q;
 		shareUrl = url.toString();
 		if (q !== defaultQuery) touched = true;
@@ -299,7 +299,7 @@
 
 	onMount(() => {
 		defaultQuery = query;
-		const params = page.url.searchParams;
+		const params = new URLSearchParams(page.url.search);
 		if (hasShareParams(params)) {
 			touched = true;
 			restore(params);

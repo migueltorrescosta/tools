@@ -1,18 +1,18 @@
 import { describe, it, expect } from 'vitest';
-import { italianModule, spanishModule } from '#lib/data/language-registry.ts';
+import { italianModule, spanishModule } from '#lib/data/language-registry.js';
 import {
 	HISTORY_LIMIT,
 	createFreshSession,
 	type HistoryEntry,
 	type SessionState
-} from '#lib/verbs.ts';
+} from '#lib/verbs.js';
 import {
 	LANGUAGE_STORAGE_KEY,
 	languageStorageKeys,
 	loadLanguageState,
 	loadSelectedLanguage,
 	parseSession
-} from '#lib/verbs-storage.ts';
+} from '#lib/verbs-storage.js';
 
 function memoryStorage(entries: Record<string, string> = {}): Storage {
 	const data = new Map(Object.entries(entries));

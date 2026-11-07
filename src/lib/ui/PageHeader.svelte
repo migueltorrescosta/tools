@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { routes } from '#lib/routes.ts';
+	import { routes } from '#lib/routes.js';
 
 	let {
 		path,

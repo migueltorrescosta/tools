@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '#lib/prng.ts';
+import { Prng } from '#lib/prng.js';
 import {
 	FAMILIES,
 	defaultParams,
@@ -11,7 +11,7 @@ import {
 	validateParams,
 	variance
 } from './distributions';
-import { logGamma } from '#lib/variates.ts';
+import { logGamma } from '#lib/variates.js';
 import type { Family } from './types';
 
 const N = 200_000;

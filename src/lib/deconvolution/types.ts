@@ -3,7 +3,7 @@
  * distributions and estimator results. We observe Z = X + Y with X (the
  * signal) independent of Y (the noise). No DOM or Svelte imports.
  */
-import type { Prng } from '#lib/prng.ts';
+import type { Prng } from '#lib/prng.js';
 
 export type FamilyId =
 	| 'normal'

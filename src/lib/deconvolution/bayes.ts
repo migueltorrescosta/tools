@@ -5,8 +5,8 @@
  * page runs several chains in chunks, so it can show progress and stop, and
  * checks them with R̂ and the effective sample size. No DOM or Svelte imports.
  */
-import { Prng } from '#lib/prng.ts';
-import { quantileSorted } from '#lib/stats.ts';
+import { Prng } from '#lib/prng.js';
+import { quantileSorted } from '#lib/stats.js';
 import { BAD, fromFree, hessian, type Problem, type Slot } from './fitcore';
 import { invertSymmetric, symmetricEigen } from './linalg';
 

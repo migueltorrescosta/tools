@@ -4,7 +4,7 @@
  * stored as plain JSON in localStorage. Decoding validates the shape strictly
  * but does not parse formulas (the page re-parses them). No DOM imports.
  */
-import { readJson, type PersistGate } from '#lib/persist-gate.ts';
+import { readJson, type PersistGate } from '#lib/persist-gate.js';
 import { familyInfo, isFamily } from './distributions';
 import { MAX_FORMULA_LENGTH } from './formula/ast';
 import { MAX_SYMBOLS } from './model';

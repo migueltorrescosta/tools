@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '#lib/prng.ts';
+import { Prng } from '#lib/prng.js';
 import type { LorentzianNoise, MarkovNoise } from './types';
 import {
 	type CMat,

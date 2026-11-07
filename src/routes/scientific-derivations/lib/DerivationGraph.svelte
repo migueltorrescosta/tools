@@ -3,10 +3,10 @@
 </script>
 
 <script lang="ts">
-	import { edgeId, type Derivation } from '#lib/scientific-derivations/index.ts';
-	import { edgePath, layoutGraph } from '#lib/scientific-derivations/layout.ts';
-	import { renderProse, stackTex } from '#lib/scientific-derivations/prose.ts';
-	import { renderTex } from '#lib/tex.ts';
+	import { edgeId, type Derivation } from '#lib/scientific-derivations/index.js';
+	import { edgePath, layoutGraph } from '#lib/scientific-derivations/layout.js';
+	import { renderProse, stackTex } from '#lib/scientific-derivations/prose.js';
+	import { renderTex } from '#lib/tex.js';
 	import Tex from '#lib/ui/Tex.svelte';
 	import ScrollEdges from '#lib/ui/ScrollEdges.svelte';
 

@@ -4,7 +4,7 @@
  * the per-seed block-coordinate ascent of the Python engine (`optimise_seed`,
  * `finalise_controls`).
  */
-import type { Prng } from '#lib/prng.ts';
+import type { Prng } from '#lib/prng.js';
 import type { BestResult, Budget, Role, SeedResult } from './types';
 import { type CVec, outer, rectApply, vzeros } from './linalg';
 import type { AncillaProblem } from './build';

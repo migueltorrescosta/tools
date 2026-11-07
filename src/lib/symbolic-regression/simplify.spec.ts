@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { binary, complexity, constant, evaluate, exprKey, unary, variable } from './expr';
-import { Prng } from '#lib/prng.ts';
+import { Prng } from '#lib/prng.js';
 import { simplify } from './simplify';
 import { ALL_OPERATORS, BINARY_OPS, UNARY_OPS, type Expr } from './types';
 

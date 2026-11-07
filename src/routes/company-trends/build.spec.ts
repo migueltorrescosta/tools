@@ -9,8 +9,8 @@ import {
 	roundSignificant,
 	type SourceCompany,
 	type SourceFx
-} from '#lib/company-trends/build.ts';
-import { validateDataset } from '#lib/company-trends/schema.ts';
+} from '#lib/company-trends/build.js';
+import { validateDataset } from '#lib/company-trends/schema.js';
 import bundled from './data/companies.json';
 
 const SOURCES = 'src/routes/company-trends/data/sources';

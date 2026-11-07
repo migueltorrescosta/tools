@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
-	import { symbolProblem } from '#lib/information-pricing/model.ts';
-	import { Field } from '#lib/ui/index.ts';
+	import { symbolProblem } from '#lib/information-pricing/model.js';
+	import { Field } from '#lib/ui/index.js';
 
 	let {
 		label = 'Symbol',

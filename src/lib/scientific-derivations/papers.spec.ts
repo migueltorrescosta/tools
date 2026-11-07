@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { renderTex } from '#lib/tex.ts';
+import { renderTex } from '#lib/tex.js';
 import { PAPERS, edgeId } from './index';
 import { renderProse, stackTex } from './prose';
 

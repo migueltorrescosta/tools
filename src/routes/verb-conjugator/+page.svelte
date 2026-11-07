@@ -1,19 +1,19 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/env';
-	import { Button, PageHeader, Panel, SegmentedControl } from '#lib/ui/index.ts';
+	import { Button, PageHeader, Panel, SegmentedControl } from '#lib/ui/index.js';
 	import {
 		LANGUAGE_REGISTRY,
 		getLanguage,
 		type LanguageModule
-	} from '#lib/data/language-registry.ts';
-	import { browserStorage, createPersistGate } from '#lib/persist-gate.ts';
+	} from '#lib/data/language-registry.js';
+	import { browserStorage, createPersistGate } from '#lib/persist-gate.js';
 	import {
 		LANGUAGE_STORAGE_KEY,
 		languageStorageKeys,
 		loadLanguageState,
 		loadSelectedLanguage
-	} from '#lib/verbs-storage.ts';
+	} from '#lib/verbs-storage.js';
 	import {
 		buildPool,
 		selectCard,
@@ -26,7 +26,7 @@
 		type Card,
 		type SessionState,
 		type HistoryEntry
-	} from '#lib/verbs.ts';
+	} from '#lib/verbs.js';
 
 	const LANGUAGE_OPTIONS = LANGUAGE_REGISTRY.map((l) => ({
 		value: l.id,

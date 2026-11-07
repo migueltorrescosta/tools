@@ -1,8 +1,8 @@
-import type { Handle } from '@sveltejs/kit';
+import type { Handle } from '@sveltejs/kit/hooks';
 
 /**
  * Headers for responses the worker renders (404s and other errors). Prerendered pages and
- * assets get the same headers from _headers; the CSP comes from kit.csp (svelte.config.js).
+ * assets get the same headers from _headers; the CSP comes from the `csp` option in vite.config.ts.
  */
 export const SECURITY_HEADERS: Readonly<Record<string, string>> = {
 	'X-Content-Type-Options': 'nosniff',

@@ -18,7 +18,7 @@ import {
 	unary,
 	variable
 } from './expr';
-import { Prng } from '#lib/prng.ts';
+import { Prng } from '#lib/prng.js';
 import { simplify } from './simplify';
 import type { BinaryOp, Dataset, Expr, PreparedData, SearchSettings, UnaryOp } from './types';
 import { BINARY_OPS, UNARY_OPS } from './types';

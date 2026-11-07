@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { niceTicks } from '#lib/plot.ts';
-	import type { FrontEntry } from '#lib/symbolic-regression/types.ts';
+	import { niceTicks } from '#lib/plot.js';
+	import type { FrontEntry } from '#lib/symbolic-regression/types.js';
 
 	interface Props {
 		front: FrontEntry[];

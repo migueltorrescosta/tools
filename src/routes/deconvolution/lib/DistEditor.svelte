@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Button, Field } from '#lib/ui/index.ts';
-	import { FAMILIES, defaultParams, family, validateParams } from '#lib/deconvolution/families.ts';
-	import type { DistSpec, FamilyId, Role, SimpleSpec } from '#lib/deconvolution/types.ts';
+	import { Button, Field } from '#lib/ui/index.js';
+	import { FAMILIES, defaultParams, family, validateParams } from '#lib/deconvolution/families.js';
+	import type { DistSpec, FamilyId, Role, SimpleSpec } from '#lib/deconvolution/types.js';
 
 	/** Family and parameters of X (signal; may be a mixture) or Y (noise; no location). */
 	let {

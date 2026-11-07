@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { copyToClipboard } from '#lib/clipboard.ts';
+	import { copyToClipboard } from '#lib/clipboard.js';
 
 	let {
 		url,
