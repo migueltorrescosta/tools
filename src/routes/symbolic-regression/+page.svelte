@@ -2,7 +2,7 @@
 	import { onDestroy, onMount, untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { replaceState } from '$app/navigation';
-	import { browser } from '$app/environment';
+	import { browser } from '$app/env';
 	import { browserStorage, clearSaved, createPersistGate, readJson } from '$lib/persist-gate';
 	import { copyToClipboard } from '$lib/clipboard';
 	import { EXAMPLES } from '$lib/data/symbolic-regression-examples';
@@ -120,6 +120,7 @@
 		return (['exclude', 'include', 'categorical'] as const).map((value) => {
 			const disabled =
 				(value === 'include' && !c.numeric) || (value === 'categorical' && !canBeCategorical(c));
+
 			const title = !disabled
 				? undefined
 				: value === 'include'
@@ -452,7 +453,14 @@
 	let copied = $state('');
 	async function copy(kind: 'text' | 'latex' | 'python' | 'js') {
 		if (!selectedEntry) return;
-		const f = { text: toText, latex: toLatex, python: toPython, js: toJavaScript }[kind];
+
+		const f = {
+			text: toText,
+			latex: toLatex,
+			python: toPython,
+			js: toJavaScript
+		}[kind];
+
 		try {
 			await copyToClipboard(f(selectedEntry.expr, frontNames, frontLevels));
 			copied = kind;
@@ -625,9 +633,11 @@
 				url={shareUrl}
 				onClear={clearAll}
 				description="settings only, never your data"
-			/>{/snippet}
-		Fit compact, interpretable equations to a CSV. Everything runs in your browser.</PageHeader
-	>
+			/>
+		{/snippet}
+
+		Fit compact, interpretable equations to a CSV. Everything runs in your browser.
+	</PageHeader>
 
 	{#snippet metricsTip(i: number)}
 		{@const f = front[i]}
@@ -833,7 +843,11 @@
 								</div>
 								{#each METRICS as [key, label] (key)}
 									<div>
-										<dt>{label} <InfoTip {label}>{GLOSSARY[key]}</InfoTip></dt>
+										<dt>
+											{label}
+											<InfoTip {label}>{GLOSSARY[key]}</InfoTip>
+										</dt>
+
 										<dd data-testid={key === 'valR2' ? 'r2' : undefined}>
 											{fmt(selectedEntry[key])}
 										</dd>

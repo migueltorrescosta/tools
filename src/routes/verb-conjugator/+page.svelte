@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { browser } from '$app/environment';
+	import { browser } from '$app/env';
 	import { Button, PageHeader, Panel, SegmentedControl } from '$lib/ui';
 	import { LANGUAGE_REGISTRY, getLanguage, type LanguageModule } from '$lib/data/language-registry';
 	import { browserStorage, createPersistGate } from '$lib/persist-gate';
@@ -98,12 +98,12 @@
 	let hasNoForms = $derived(
 		coverage.denominator === 0 && selectedVerbs.length > 0 && selectedTenses.length > 0
 	);
+
 	let isComplete = $derived(
 		activePool.length === 0 && selectedVerbs.length > 0 && selectedTenses.length > 0 && !hasNoForms
 	);
 
 	// ─── Card lines data ─────────────────────────────────────────────────────────
-
 	let cardLines = $derived.by(() => {
 		const card = currentCard;
 		if (!card) return [];
@@ -309,9 +309,9 @@
 							{#each lang.PERSON_LABELS as person (person)}
 								<tr>
 									<td class="vc-marker"></td>
-									<td class="vc-translation">&nbsp;</td>
+									<td class="vc-translation"></td>
 									<td class="vc-person">{person}</td>
-									<td class="vc-answer">&nbsp;</td>
+									<td class="vc-answer"></td>
 								</tr>
 							{/each}
 						</tbody>
