@@ -147,10 +147,8 @@
 
 	function setHold(hold: number) {
 		const old = setup.ancillaHold;
-
 		if (Number.isFinite(hold) && hold > 0 && Number.isFinite(old) && old > 0)
 			setup.pulses = setup.pulses.map((p) => ({ ...p, time: (p.time * hold) / old }));
-
 		setup.ancillaHold = hold;
 	}
 
@@ -215,8 +213,8 @@
 	const mzi = $derived(snapshot?.mzi ?? null);
 	const stale = $derived(
 		runSetup !== null &&
-			encodeShareParams({ setup: runSetup, budget }).toString() !==
-				encodeShareParams({ setup: effective, budget }).toString()
+			encodeShareParams({ setup: runSetup, budget: budget }).toString() !==
+				encodeShareParams({ setup: effective, budget: budget }).toString()
 	);
 
 	const shownTraces = $derived.by(() => {
@@ -231,7 +229,6 @@
 				((t.role === 'setup' && t.seed === bestSetup) ||
 					(t.role === 'companion' && t.seed === bestCompanion))
 		);
-
 		return [...keep, ...recent];
 	});
 	const refs = $derived.by<RefLine[]>(() => {
@@ -331,9 +328,9 @@
 		v === null || v === undefined || !Number.isFinite(v)
 			? '—'
 			: String(Number(v.toPrecision(digits)));
-
 	const pct = (v: number | null | undefined) =>
 		v === null || v === undefined || !Number.isFinite(v) ? '—' : `${(v * 100).toFixed(1)}%`;
+
 	const announcement = $derived(
 		running
 			? 'Running…'
@@ -355,12 +352,10 @@
 				url={shareUrl}
 				onClear={clearAll}
 				description="the setup, never results"
-			/>
-		{/snippet}
-
-		Does an ancilla really beat a Mach-Zehnder interferometer under noise? Build a scheme, count it
-		fairly, and see. Everything runs in your browser.
-	</PageHeader>
+			/>{/snippet}
+		Does an ancilla really beat a Mach-Zehnder interferometer under noise? Build a scheme, count it fairly,
+		and see. Everything runs in your browser.</PageHeader
+	>
 
 	<div class="layout">
 		<div class="stack inputs">
@@ -877,10 +872,9 @@
 										class:pass={metrics.significant}
 										data-testid="significance"
 										data-pass={metrics.significant}
+										><span aria-hidden="true">{metrics.significant ? '✓' : '✕'}</span>
+										{metrics.significant ? 'Significant' : 'Not significant'}</span
 									>
-										<span aria-hidden="true">{metrics.significant ? '✓' : '✕'}</span>
-										{metrics.significant ? 'Significant' : 'Not significant'}
-									</span>
 								{/if}
 							</div>
 							{#if metrics?.Rint !== null && metrics?.Rint !== undefined}

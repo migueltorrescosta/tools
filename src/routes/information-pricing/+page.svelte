@@ -13,7 +13,6 @@
 		randomInputs,
 		renameSymbol
 	} from '#lib/information-pricing/model.js';
-
 	import {
 		DEFAULT_PRESET,
 		PRESETS,
@@ -467,12 +466,8 @@
 					onclick={downloadCsv}
 					disabled={running || !hasScenarios}
 					data-testid="download-csv"
+					><span aria-hidden="true">↓</span><span class="sr-only">Download</span> Scenarios (CSV)</Button
 				>
-					<span aria-hidden="true">↓</span>
-					<span class="sr-only">Download</span>
-					Scenarios (CSV)
-				</Button>
-
 				<InfoTip label="the scenarios CSV"
 					>Downloads every simulated scenario: inputs, intermediates, each decision's reward and
 					opportunity loss, and the optimal reward.</InfoTip
@@ -486,15 +481,12 @@
 						<span>{seconds(progress.elapsedMs)}</span>
 					</span>
 				{/if}
-				<span role="status" data-testid="run-status" data-done={completed}>
-					{#if !running && hasScenarios && doneMs !== null}
-						{count(scenarioCount)} scenarios · {seconds(doneMs)}
-					{/if}
-				</span>
-
-				{#if stale}
-					<span class="stale" data-testid="stale">Out of date, run again</span>
-				{/if}
+				<span role="status" data-testid="run-status" data-done={completed}
+					>{#if !running && hasScenarios && doneMs !== null}{count(scenarioCount)} scenarios · {seconds(
+							doneMs
+						)}{/if}</span
+				>
+				{#if stale}<span class="stale" data-testid="stale">Out of date, run again</span>{/if}
 			</div>
 			<p id="add-hint" class="sr-only">
 				{#if hasScenarios}Appends {count(model.samples || 0)} to the {count(scenarioCount)} scenarios

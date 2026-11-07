@@ -27,7 +27,6 @@
 		zAtoms,
 		zDensityOnGrid
 	} from '#lib/deconvolution/grid.js';
-
 	import {
 		bands,
 		histogram,
@@ -164,17 +163,7 @@
 	function marks(d: Dist, grid: Grid, key: string, label: string, colour: string, dashed = false) {
 		if (d.pdf) {
 			const xs = gridPoints(grid);
-
-			return {
-				curve: {
-					key,
-					label,
-					colour,
-					xs,
-					ys: xs.map((x) => d.pdf!(x)),
-					dashed
-				} as Curve
-			};
+			return { curve: { key, label, colour, xs, ys: xs.map((x) => d.pdf!(x)), dashed } as Curve };
 		}
 		return { stems: { key, label, colour, x: d.atoms.x, p: d.atoms.p } as Stems };
 	}
@@ -291,7 +280,6 @@
 
 	// --- Running ---
 	let pool: EstimatePool | null = null;
-
 	const getPool = () =>
 		(pool ??= new EstimatePool(
 			() =>
@@ -699,7 +687,6 @@
 					})
 				)
 			);
-
 			const results = parts
 				.flatMap((r) => (r.kind === 'compare' ? r.results : []))
 				.sort((a, b) => a.result.bic - b.result.bic);
@@ -1206,15 +1193,10 @@
 					{#each run.failures as f (f.method)}
 						<Alert tone="warning">{METHOD_NAMES[f.method]} failed: {f.message}</Alert>
 					{/each}
-
 					<DataTable caption="Fits" {columns} {rows} rowKey={(r) => r.method} />
-
-					{#if !run.truth}
-						<p class="muted">
+					{#if !run.truth}<p class="muted">
 							W₁ and L₁ need the true signal, so they show for simulated data only.
-						</p>
-					{/if}
-
+						</p>{/if}
 					{#if flat}
 						<Alert tone="warning">
 							<span data-testid="identifiability">

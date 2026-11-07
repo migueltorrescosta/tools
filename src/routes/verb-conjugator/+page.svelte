@@ -102,12 +102,12 @@
 	let hasNoForms = $derived(
 		coverage.denominator === 0 && selectedVerbs.length > 0 && selectedTenses.length > 0
 	);
-
 	let isComplete = $derived(
 		activePool.length === 0 && selectedVerbs.length > 0 && selectedTenses.length > 0 && !hasNoForms
 	);
 
 	// ─── Card lines data ─────────────────────────────────────────────────────────
+
 	let cardLines = $derived.by(() => {
 		const card = currentCard;
 		if (!card) return [];
@@ -313,9 +313,9 @@
 							{#each lang.PERSON_LABELS as person (person)}
 								<tr>
 									<td class="vc-marker"></td>
-									<td class="vc-translation"></td>
+									<td class="vc-translation">&nbsp;</td>
 									<td class="vc-person">{person}</td>
-									<td class="vc-answer"></td>
+									<td class="vc-answer">&nbsp;</td>
 								</tr>
 							{/each}
 						</tbody>

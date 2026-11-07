@@ -60,7 +60,7 @@
 		yearGroups = groupByYear(filteredEvents);
 		loading = false;
 
-		// Written after the await: SvelteKit's replaceState throws before the router has
+		// Written after the await: SvelteKit's shallow routing throws before the router has
 		// started, which is still the case while onMount runs.
 		if (page.url.searchParams.get('t') !== id) {
 			const url = new URL(page.url.href);

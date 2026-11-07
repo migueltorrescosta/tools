@@ -73,7 +73,6 @@
 	function applyForbid(f: number[]) {
 		const n = points.length;
 		const set = new Set(f.map((k) => ((k % n) + n) % n));
-
 		if (set.size === 0) ruleMode = 'any';
 		else if (set.size === 1 && set.has(0)) ruleMode = 'same';
 		else if (n > 2 && set.size === 2 && set.has(1) && set.has(n - 1)) ruleMode = 'neighbour';
@@ -498,9 +497,7 @@
 					</Field>
 					<div class="cluster">
 						<Button size="sm" onclick={() => (ratio = 0.5)} pressed={ratio === 0.5}>½</Button>
-
 						<Button size="sm" onclick={() => (ratio = 2 / 3)} pressed={ratio === 2 / 3}>⅔</Button>
-
 						{#if touching !== null}
 							<Button
 								size="sm"

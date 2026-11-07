@@ -26,13 +26,13 @@
 	let traversalPath = $state<TraversalPath>([]);
 	// Set in onMount; e2e tests wait for it so clicks are not lost before hydration
 	let hydrated = $state(false);
-	// SvelteKit's replaceState throws (in dev) until the router has started,
+	// SvelteKit's shallow routing throws (in dev) until the router has started,
 	// which happens after onMount, so the URL is synced only once this is set
 	let routerReady = $state(false);
 
 	// --- URL helpers ---
 	function writePathToUrl(path: TraversalPath) {
-		// Untracked: replaceState must not make the sync effect depend on page
+		// Untracked: the shallow goto must not make the sync effect depend on page
 		const url = untrack(() => new URL(page.url.href));
 		if (path.length > 0) {
 			url.searchParams.set('p', encodePath(graph, path));
