@@ -100,9 +100,12 @@
 		elapsedMs = 0;
 		results = null;
 
-		worker = new Worker(new URL('#lib/warhammer-simulator/simulation.worker.js', import.meta.url), {
-			type: 'module'
-		});
+		worker = new Worker(
+			new URL('../../lib/warhammer-simulator/simulation.worker.ts', import.meta.url),
+			{
+				type: 'module'
+			}
+		);
 
 		worker.onmessage = (e: MessageEvent<WorkerMessage>) => {
 			const data = e.data;

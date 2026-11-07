@@ -295,7 +295,7 @@
 	const getPool = () =>
 		(pool ??= new EstimatePool(
 			() =>
-				new Worker(new URL('#lib/deconvolution/estimate.worker.js', import.meta.url), {
+				new Worker(new URL('../../lib/deconvolution/estimate.worker.ts', import.meta.url), {
 					type: 'module'
 				})
 		));

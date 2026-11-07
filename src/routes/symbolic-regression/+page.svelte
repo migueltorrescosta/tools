@@ -297,7 +297,7 @@
 		frontTarget = data.targetName;
 		engine = new WorkerSearchEngine(
 			() =>
-				new Worker(new URL('#lib/symbolic-regression/search.worker.js', import.meta.url), {
+				new Worker(new URL('../../lib/symbolic-regression/search.worker.ts', import.meta.url), {
 					type: 'module'
 				})
 		);

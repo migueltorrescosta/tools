@@ -361,7 +361,7 @@
 	}
 
 	onMount(() => {
-		worker = new Worker(new URL('#lib/chaos-game/chaos.worker.js', import.meta.url), {
+		worker = new Worker(new URL('../../lib/chaos-game/chaos.worker.ts', import.meta.url), {
 			type: 'module'
 		});
 		worker.onmessage = onWorker;

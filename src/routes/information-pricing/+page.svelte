@@ -237,17 +237,17 @@
 		if (engine) return engine;
 		analyser = createAnalyser(
 			() =>
-				new Worker(new URL('#lib/information-pricing/analysis.worker.js', import.meta.url), {
+				new Worker(new URL('../../lib/information-pricing/analysis.worker.ts', import.meta.url), {
 					type: 'module'
 				}),
 			() =>
-				new Worker(new URL('#lib/information-pricing/tree.worker.js', import.meta.url), {
+				new Worker(new URL('../../lib/information-pricing/tree.worker.ts', import.meta.url), {
 					type: 'module'
 				})
 		);
 		engine = createSimulationEngine(
 			() =>
-				new Worker(new URL('#lib/information-pricing/simulate.worker.js', import.meta.url), {
+				new Worker(new URL('../../lib/information-pricing/simulate.worker.ts', import.meta.url), {
 					type: 'module'
 				}),
 			{ workers: defaultWorkerCount(), analyser }
