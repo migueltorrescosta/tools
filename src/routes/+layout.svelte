@@ -4,7 +4,7 @@
 	import '$lib/styles/utilities.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { page } from '$app/state';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { routes, TOOL_GROUPS } from '$lib/routes';
@@ -14,15 +14,16 @@
 
 	// e2e waits on this before using the switcher, whose handler only exists once hydrated.
 	let hydrated = $state(false);
+
 	onMount(() => (hydrated = true));
 
 	const current = $derived(
-		routes.find((route) => page.url.pathname === `${base}${route.path}`)?.path ?? ''
+		routes.find((route) => page.url.pathname === resolve(`${route.path}`.slice(1)))?.path ?? ''
 	);
 
 	function jumpTo(event: Event & { currentTarget: HTMLSelectElement }) {
 		const path = event.currentTarget.value;
-		if (path) goto(`${base}${path}`);
+		if (path) goto(resolve(`${path}`.slice(1)));
 	}
 </script>
 
@@ -34,8 +35,8 @@
 	<nav class="topbar-inner" aria-label="Site" data-hydrated={hydrated || undefined}>
 		<a
 			class="home"
-			href="{base}/"
-			aria-current={page.url.pathname === `${base}/` ? 'page' : undefined}>Tools</a
+			href="{resolve('')}/"
+			aria-current={page.url.pathname === resolve(`/`.slice(1)) ? 'page' : undefined}>Tools</a
 		>
 		<label class="sr-only" for="tool-switcher">Jump to tool</label>
 		<select id="tool-switcher" class="control switcher" value={current} onchange={jumpTo}>
