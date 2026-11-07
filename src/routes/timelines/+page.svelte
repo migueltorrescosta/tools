@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { replaceState } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import timelinesData from './data/timelines.json';
 	import { Alert, Button, PageHeader, Panel, Select } from '$lib/ui';
 	import TimelineView from './TimelineView.svelte';
@@ -65,7 +65,7 @@
 		if (page.url.searchParams.get('t') !== id) {
 			const url = new URL(page.url);
 			url.searchParams.set('t', id);
-			replaceState(url, page.state);
+			goto(url, { shallow: true, replace: true, state: page.state });
 		}
 	}
 

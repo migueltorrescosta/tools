@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onDestroy, onMount, untrack } from 'svelte';
 	import { page } from '$app/state';
-	import { replaceState } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { browserStorage, clearSaved, createPersistGate } from '$lib/persist-gate';
 	import { theme } from '$lib/theme.svelte';
 	import { Walker, compile, fitView, optimalRatio, validate } from '$lib/chaos-game/engine';
@@ -73,6 +73,7 @@
 	function applyForbid(f: number[]) {
 		const n = points.length;
 		const set = new Set(f.map((k) => ((k % n) + n) % n));
+
 		if (set.size === 0) ruleMode = 'any';
 		else if (set.size === 1 && set.has(0)) ruleMode = 'same';
 		else if (n > 2 && set.size === 2 && set.has(1) && set.has(n - 1)) ruleMode = 'neighbour';
@@ -336,7 +337,7 @@
 		if (params !== DEFAULT_PARAMS) touched = true;
 		if (!touched) return;
 		persist.write(STATE_KEY, params);
-		if (routerReady) replaceState(url, {});
+		if (routerReady) goto(url, { shallow: true, replace: true });
 	});
 
 	function apply(s: DecodedShare) {
@@ -497,7 +498,9 @@
 					</Field>
 					<div class="cluster">
 						<Button size="sm" onclick={() => (ratio = 0.5)} pressed={ratio === 0.5}>½</Button>
+
 						<Button size="sm" onclick={() => (ratio = 2 / 3)} pressed={ratio === 2 / 3}>⅔</Button>
+
 						{#if touching !== null}
 							<Button
 								size="sm"

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onDestroy, onMount, untrack } from 'svelte';
 	import { page } from '$app/state';
-	import { replaceState } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { browser } from '$app/env';
 	import { browserStorage, clearSaved, createPersistGate } from '$lib/persist-gate';
 	import {
@@ -271,7 +271,7 @@
 		if (q !== defaultQuery) touched = true;
 		if (!touched) return;
 		persist.write(SETUP_KEY, q);
-		if (routerReady) replaceState(url, {});
+		if (routerReady) goto(url, { shallow: true, replace: true });
 	});
 
 	function saveResult(snap: RunSnapshot) {

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
-	import { replaceState } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { createAnalyser, type Analyser } from '$lib/information-pricing/analyser';
 	import type { PartialAnalysis } from '$lib/information-pricing/analysis';
@@ -13,6 +13,7 @@
 		randomInputs,
 		renameSymbol
 	} from '$lib/information-pricing/model';
+
 	import {
 		DEFAULT_PRESET,
 		PRESETS,
@@ -375,7 +376,7 @@
 			setModel(presetModel(DEFAULT_PRESET));
 		}
 		// The link has been read; from here on autosave keeps the edits.
-		setTimeout(() => replaceState(location.pathname + location.search, {}));
+		setTimeout(() => goto(location.pathname + location.search, { shallow: true, replace: true }));
 		return true;
 	}
 
@@ -466,8 +467,12 @@
 					onclick={downloadCsv}
 					disabled={running || !hasScenarios}
 					data-testid="download-csv"
-					><span aria-hidden="true">↓</span><span class="sr-only">Download</span> Scenarios (CSV)</Button
 				>
+					<span aria-hidden="true">↓</span>
+					<span class="sr-only">Download</span>
+					Scenarios (CSV)
+				</Button>
+
 				<InfoTip label="the scenarios CSV"
 					>Downloads every simulated scenario: inputs, intermediates, each decision's reward and
 					opportunity loss, and the optimal reward.</InfoTip
@@ -481,12 +486,15 @@
 						<span>{seconds(progress.elapsedMs)}</span>
 					</span>
 				{/if}
-				<span role="status" data-testid="run-status" data-done={completed}
-					>{#if !running && hasScenarios && doneMs !== null}{count(scenarioCount)} scenarios · {seconds(
-							doneMs
-						)}{/if}</span
-				>
-				{#if stale}<span class="stale" data-testid="stale">Out of date, run again</span>{/if}
+				<span role="status" data-testid="run-status" data-done={completed}>
+					{#if !running && hasScenarios && doneMs !== null}
+						{count(scenarioCount)} scenarios · {seconds(doneMs)}
+					{/if}
+				</span>
+
+				{#if stale}
+					<span class="stale" data-testid="stale">Out of date, run again</span>
+				{/if}
 			</div>
 			<p id="add-hint" class="sr-only">
 				{#if hasScenarios}Appends {count(model.samples || 0)} to the {count(scenarioCount)} scenarios

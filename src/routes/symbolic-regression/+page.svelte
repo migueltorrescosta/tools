@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onDestroy, onMount, untrack } from 'svelte';
 	import { page } from '$app/state';
-	import { replaceState } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { browser } from '$app/env';
 	import { browserStorage, clearSaved, createPersistGate, readJson } from '$lib/persist-gate';
 	import { copyToClipboard } from '$lib/clipboard';
@@ -504,7 +504,7 @@
 		if (json !== defaultSettingsJson) settingsTouched = true;
 		if (!settingsTouched) return;
 		persist.write(SETTINGS_KEY, json);
-		if (routerReady) replaceState(url, {});
+		if (routerReady) goto(url, { shallow: true, replace: true });
 	});
 
 	$effect(() => {

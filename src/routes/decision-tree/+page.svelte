@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, untrack } from 'svelte';
 	import { page } from '$app/state';
-	import { replaceState } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { browserStorage, createPersistGate } from '$lib/persist-gate';
 	import { buildGraph, encodePath, restorePath } from '$lib/decision-tree/graph';
 	import DecisionTree from '$lib/decision-tree/DecisionTree.svelte';
@@ -39,7 +39,7 @@
 		} else {
 			url.searchParams.delete('p');
 		}
-		replaceState(url, {});
+		goto(url, { shallow: true, replace: true });
 	}
 
 	// --- Autosave & URL sync ---

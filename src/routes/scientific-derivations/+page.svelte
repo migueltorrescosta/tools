@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { replaceState } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { PAPERS } from '$lib/scientific-derivations';
 	import { renderProse } from '$lib/scientific-derivations/prose';
 	import { PageHeader, SegmentedControl, Select } from '$lib/ui';
@@ -29,7 +29,7 @@
 		const url = new URL(page.url);
 		url.searchParams.set('paper', paper.id);
 		url.searchParams.set('derivation', derivation.id);
-		replaceState(url, page.state);
+		goto(url, { shallow: true, replace: true, state: page.state });
 	}
 
 	function choosePaper() {
