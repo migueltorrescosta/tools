@@ -4,7 +4,7 @@
  * functions can't cross `postMessage`). Also which methods apply to a noise.
  * No DOM or Svelte imports.
  */
-import { Prng } from '$lib/prng';
+import { Prng } from '#lib/prng.js';
 import { makeDist } from './dist';
 import { family } from './families';
 import { fitGmm, gmmSpec } from './gmm';

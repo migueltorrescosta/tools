@@ -1,4 +1,4 @@
-import giftTraitsData from '$lib/warhammer-simulator/data/gift-traits.json';
+import giftTraitsData from '#lib/warhammer-simulator/data/gift-traits.json';
 
 type TraitEntry = {
 	id: string;

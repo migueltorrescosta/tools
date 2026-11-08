@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import electedOfficials from '$lib/data/elected_officials.json';
+import electedOfficials from '#lib/data/elected_officials.json';
 import {
 	barGeometry,
 	computeStats,

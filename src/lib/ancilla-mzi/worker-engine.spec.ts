@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createAncillaHost, taskSeed, type FromWorker, type ToWorker } from './host';
 import { applyPreset, defaultSetup, noiseless } from './presets';
 import type { Budget, RunEvent, RunSnapshot, SeedResult, Setup } from './types';
-import { MAX_WORKERS, type WorkerLike } from '$lib/worker-pool';
+import { MAX_WORKERS, type WorkerLike } from '#lib/worker-pool.js';
 import { createAncillaEngine } from './worker-engine';
 
 /** Runs the real host in-process, with structured cloning and async delivery like a worker. */

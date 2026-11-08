@@ -4,10 +4,10 @@
  * the pool's `stop` ends them. Shared by the Bayesian fit and the NPMLE
  * posterior, in 1D and 2D; and the parameter table's Bayesian columns.
  */
-import type { EstimatePool } from '$lib/deconvolution/engine';
-import type { Column } from '$lib/ui';
-import type { ParamPosterior } from '$lib/deconvolution/bayes';
-import type { Task, TaskResult } from '$lib/deconvolution/estimate';
+import type { EstimatePool } from '#lib/deconvolution/engine.js';
+import type { Column } from '#lib/ui/index.js';
+import type { ParamPosterior } from '#lib/deconvolution/bayes.js';
+import type { Task, TaskResult } from '#lib/deconvolution/estimate.js';
 
 export interface ChainRun<State, Draw> {
 	chains: number;

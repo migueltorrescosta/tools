@@ -28,11 +28,11 @@ import {
 	TYPE_ORDER,
 	type Trail,
 	type TrailPoint
-} from '$lib/company-trends/chart';
-import type { FxTable } from '$lib/company-trends/fx';
-import type { Company } from '$lib/company-trends/schema';
-import { DEFAULT_COMPANY_IDS } from '$lib/company-trends/filter';
-import { quarterRange, type CompanyPoint } from '$lib/company-trends/series';
+} from '#lib/company-trends/chart.js';
+import type { FxTable } from '#lib/company-trends/fx.js';
+import type { Company } from '#lib/company-trends/schema.js';
+import { DEFAULT_COMPANY_IDS } from '#lib/company-trends/filter.js';
+import { quarterRange, type CompanyPoint } from '#lib/company-trends/series.js';
 import bundled from './data/companies.json';
 
 const anchor = (quarter: string, revenue: number, operatingIncome: number): CompanyPoint => ({

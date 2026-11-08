@@ -1,14 +1,15 @@
 <script lang="ts">
-	import '$lib/styles/tokens.css';
-	import '$lib/styles/base.css';
-	import '$lib/styles/utilities.css';
-	import favicon from '$lib/assets/favicon.svg';
+	import '#lib/styles/tokens.css';
+	import '#lib/styles/base.css';
+	import '#lib/styles/utilities.css';
+	import favicon from '#lib/assets/favicon.svg';
 	import { page } from '$app/state';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
+	import type { RouteId } from '$app/types';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
-	import { routes, TOOL_GROUPS } from '$lib/routes';
-	import ThemeToggle from '$lib/ui/ThemeToggle.svelte';
+	import { routes, TOOL_GROUPS } from '#lib/routes.js';
+	import ThemeToggle from '#lib/ui/ThemeToggle.svelte';
 
 	let { children } = $props();
 
@@ -17,12 +18,12 @@
 	onMount(() => (hydrated = true));
 
 	const current = $derived(
-		routes.find((route) => page.url.pathname === `${base}${route.path}`)?.path ?? ''
+		routes.find((route) => page.url.pathname === resolve(route.path))?.path ?? ''
 	);
 
 	function jumpTo(event: Event & { currentTarget: HTMLSelectElement }) {
-		const path = event.currentTarget.value;
-		if (path) goto(`${base}${path}`);
+		const path = event.currentTarget.value as RouteId | '';
+		if (path) goto(resolve(path));
 	}
 </script>
 
@@ -34,8 +35,8 @@
 	<nav class="topbar-inner" aria-label="Site" data-hydrated={hydrated || undefined}>
 		<a
 			class="home"
-			href="{base}/"
-			aria-current={page.url.pathname === `${base}/` ? 'page' : undefined}>Tools</a
+			href={resolve('/')}
+			aria-current={page.url.pathname === resolve('/') ? 'page' : undefined}>Tools</a
 		>
 		<label class="sr-only" for="tool-switcher">Jump to tool</label>
 		<select id="tool-switcher" class="control switcher" value={current} onchange={jumpTo}>

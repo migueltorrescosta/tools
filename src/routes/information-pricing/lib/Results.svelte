@@ -4,8 +4,8 @@
 		InputDensity,
 		PartialAnalysis,
 		ValueOfInformation
-	} from '$lib/information-pricing/analysis';
-	import { Alert, Button, Maximizable, Panel } from '$lib/ui';
+	} from '#lib/information-pricing/analysis/index.js';
+	import { Alert, Button, Maximizable, Panel } from '#lib/ui/index.js';
 	import { dash, dataColour, inputColour, linear, linePath, money as makeMoney } from './format';
 	import InputRow from './InputRow.svelte';
 	import LossPlots from './LossPlots.svelte';

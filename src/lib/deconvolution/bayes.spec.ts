@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '$lib/prng';
+import { Prng } from '#lib/prng.js';
 import { advance, effectiveSize, posterior, splitRhat, startChain, summarise } from './bayes';
 import { makeDist } from './dist';
 import { mleProblem } from './mle';

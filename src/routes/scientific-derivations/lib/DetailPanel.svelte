@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { edgeId, type Derivation, type Paper } from '$lib/scientific-derivations';
-	import { renderProse, stackTex } from '$lib/scientific-derivations/prose';
-	import { renderTex } from '$lib/tex';
-	import { Alert, Button, Panel } from '$lib/ui';
-	import Tex from '$lib/ui/Tex.svelte';
+	import { edgeId, type Derivation, type Paper } from '#lib/scientific-derivations/index.js';
+	import { renderProse, stackTex } from '#lib/scientific-derivations/prose.js';
+	import { renderTex } from '#lib/tex.js';
+	import { Alert, Button, Panel } from '#lib/ui/index.js';
+	import Tex from '#lib/ui/Tex.svelte';
 	import type { Selection } from './DerivationGraph.svelte';
 
 	let {

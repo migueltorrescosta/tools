@@ -1,7 +1,7 @@
 <script lang="ts">
 	import 'katex/dist/katex.min.css';
 
-	/** HTML from `renderTex` in `$lib/tex`, rendered in the browser or at prerender. */
+	/** HTML from `renderTex` in `#lib/tex.ts`, rendered in the browser or at prerender. */
 	let { html }: { html: string } = $props();
 </script>
 

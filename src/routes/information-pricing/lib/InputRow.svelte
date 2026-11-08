@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { GroupTable, InputDensity } from '$lib/information-pricing/analysis';
-	import { niceTicks } from '$lib/plot';
-	import { Axis } from '$lib/ui';
+	import type { GroupTable, InputDensity } from '#lib/information-pricing/analysis/index.js';
+	import { niceTicks } from '#lib/plot.js';
+	import { Axis } from '#lib/ui/index.js';
 	import {
 		compactTick,
 		dataColour,

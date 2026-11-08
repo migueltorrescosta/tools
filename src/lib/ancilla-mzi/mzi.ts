@@ -14,14 +14,14 @@
  * previous optimum); the final window, and t' = 1, get the full multistart
  * (NOON, product, the Sym optimum and random inputs) with more iterations.
  */
-import type { Prng } from '$lib/prng';
+import type { Prng } from '#lib/prng.js';
 import type { Budget, MziResult, Readouts, Setup } from './types';
 import { type CVec, outer, rectApply, vzeros } from './linalg';
 import { buildMzi, kronAll, su2, type MziProblem } from './build';
 import type { HoldMap } from './hold';
 import { qfiOfState, randomState, seesaw, type SeesawResult } from './qfi';
 import { symmetricBasis } from './register';
-import { goldenSection, nelderMead } from '$lib/minimise';
+import { goldenSection, nelderMead } from '#lib/minimise.js';
 import { maxReadouts, readouts } from './readouts';
 
 interface MziOptions {

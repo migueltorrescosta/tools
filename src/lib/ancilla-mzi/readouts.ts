@@ -5,12 +5,12 @@
  * maximised over its rotations by Nelder–Mead from a few seeded starts. With
  * nA = 0 (the MZI) S is the whole register.
  */
-import type { Prng } from '$lib/prng';
+import type { Prng } from '#lib/prng.js';
 import type { Readouts } from './types';
 import { type CMat, adjoint, add, matmul, scale, zeros } from './linalg';
 import { kronAll, su2 } from './build';
 import { embedSiteOperator, spinHalf } from './register';
-import { nelderMead } from '$lib/minimise';
+import { nelderMead } from '#lib/minimise.js';
 
 /** Error-propagation Fisher information slope² / var of an observable; 0 on a dark fringe (var ≤ 1e-9). */
 export function errorPropagation(rho: CMat, drho: CMat, obs: CMat, parity = false): number {

@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { DECISION_NODE, REWARD_NODE } from '$lib/information-pricing/dataflow';
-	import { decisionLabels, type ModelError } from '$lib/information-pricing/model';
-	import type { Model } from '$lib/information-pricing/types';
-	import { Button, Field, InfoTip } from '$lib/ui';
+	import { DECISION_NODE, REWARD_NODE } from '#lib/information-pricing/dataflow.js';
+	import { decisionLabels, type ModelError } from '#lib/information-pricing/model.js';
+	import type { Model } from '#lib/information-pricing/types.js';
+	import { Button, Field, InfoTip } from '#lib/ui/index.js';
 	import { declaredSymbols, errorAt, freshIds, type RowIds } from './editor';
 	import FormulaInput from './FormulaInput.svelte';
 	import NumberInput from './NumberInput.svelte';

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { InfoTip } from '$lib/ui';
-	import { Axis } from '$lib/ui';
+	import { InfoTip } from '#lib/ui/index.js';
+	import { Axis } from '#lib/ui/index.js';
 	import {
 		decades,
 		formatLogTick,

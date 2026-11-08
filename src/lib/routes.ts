@@ -1,3 +1,5 @@
+import type { RouteId } from '$app/types';
+
 /** The index page's sections, in display order. */
 export const TOOL_GROUPS = [
 	'Developer',
@@ -9,7 +11,7 @@ export type ToolGroup = (typeof TOOL_GROUPS)[number];
 
 /** A tool listed on the index page. `path` is the route directory under src/routes. */
 export interface ToolRoute {
-	path: string;
+	path: RouteId;
 	name: string;
 	/** One plain sentence that fits two lines of a 240px card. */
 	description: string;

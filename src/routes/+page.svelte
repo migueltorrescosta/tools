@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { base } from '$app/paths';
-	import { routes, TOOL_GROUPS } from '$lib/routes';
+	import { resolve } from '$app/paths';
+	import { routes, TOOL_GROUPS } from '#lib/routes.js';
 
 	const groups = TOOL_GROUPS.map((group) => ({
 		group,
@@ -25,7 +25,7 @@
 			<ul class="grid">
 				{#each tools as route (route.path)}
 					<li>
-						<a class="tool-card" href={`${base}${route.path}`}>
+						<a class="tool-card" href={resolve(route.path)}>
 							<h3>{route.name}</h3>
 							<p>{route.description}</p>
 						</a>

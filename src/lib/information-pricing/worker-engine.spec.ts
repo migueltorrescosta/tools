@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
-import type { WorkerLike } from '$lib/worker-pool';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { WorkerLike } from '#lib/worker-pool.js';
 import { validateParams } from './distributions';
 import type { Analysis, PartialAnalysis, TreeResult } from './analysis';
 import {
@@ -101,6 +101,15 @@ class FakeTreeWorker implements TreeWorker {
 	}
 }
 
+/**
+ * Every engine a test makes, disposed after it even when the test fails or times out, so a
+ * timed-out run stops instead of computing on into the next tests.
+ */
+const engines: SimulationEngine[] = [];
+afterEach(() => {
+	for (const engine of engines.splice(0)) engine.dispose();
+});
+
 /** An engine on in-process workers; `analysers` and `trees` collect the analysis workers made. */
 function engineWith(workers: number) {
 	const analysers: FakeAnalysisWorker[] = [];
@@ -121,6 +130,7 @@ function engineWith(workers: number) {
 			}
 		)
 	});
+	engines.push(engine);
 	return Object.assign(engine, { analysers, trees });
 }
 
@@ -193,15 +203,16 @@ describe('simulation engine', () => {
 		const model = presetModel('distribution-centre');
 		const engine = engineWith(2);
 		let done = next(engine);
-		engine.run(runSpec(model, compiled(model)), 50_000);
+		// A whole chunk, then part of the next: the add must start the next chunk's stream.
+		engine.run(runSpec(model, compiled(model)), CHUNK_ROWS);
 		await done;
 		done = next(engine);
-		engine.add(30_000);
+		engine.add(1_000);
 		const e = await done;
 		engine.dispose();
 		if (e.type !== 'done') throw new Error('add failed');
-		const whole = await simulate(model, 80_000, 1);
-		expect(e.scenarios.n).toBe(80_000);
+		const whole = await simulate(model, CHUNK_ROWS + 1_000, 1);
+		expect(e.scenarios.n).toBe(CHUNK_ROWS + 1_000);
 		expect(e.scenarios.inputs[0].column).toEqual(whole.inputs[0].column);
 		expect(e.scenarios.rewards[2]).toEqual(whole.rewards[2]);
 	});
@@ -438,7 +449,13 @@ function manualAnalyser() {
 	return { analyser, calls, trees, cancels: () => cancels };
 }
 
+/** Lets pending timers run; only before asserting that something did not happen. */
 const tick = (ms = 30) => new Promise((r) => setTimeout(r, ms));
+
+/** Waits until `ready` holds; the test's timeout bounds the wait, not a fixed delay. */
+async function until(ready: () => boolean): Promise<void> {
+	while (!ready()) await tick(5);
+}
 
 describe('stale results and failures', () => {
 	const model = presetModel('blank');
@@ -447,7 +464,11 @@ describe('stale results and failures', () => {
 		analyser: Analyser,
 		createWorker: () => WorkerLike<ToWorker, FromWorker> = () => new FakeWorker(),
 		progressMs = 5
-	) => createSimulationEngine(createWorker, { workers: 1, progressMs, analyser });
+	) => {
+		const engine = createSimulationEngine(createWorker, { workers: 1, progressMs, analyser });
+		engines.push(engine);
+		return engine;
+	};
 	const sentinel = {} as Analysis;
 
 	// Kills the token guards in listenerFor, analyse().then and failedAnalysis.
@@ -458,16 +479,14 @@ describe('stale results and failures', () => {
 		engine.subscribe((e) => events.push(e));
 
 		engine.run(spec(1), 100);
-		await tick();
-		expect(m.calls).toHaveLength(1);
+		await until(() => m.calls.length === 1);
 		engine.cancel();
 		expect(m.cancels()).toBe(1);
 		engine.run(spec(3), 300);
-		await tick();
+		await until(() => m.calls.length === 2);
 		engine.cancel();
 		engine.run(spec(2), 200);
-		await tick();
-		expect(m.calls).toHaveLength(3);
+		await until(() => m.calls.length === 3);
 		const old = m.calls[0]!;
 		const failed = m.calls[1]!;
 		const current = m.calls[2]!;
@@ -488,7 +507,7 @@ describe('stale results and failures', () => {
 		expect(engine.running).toBe(true);
 
 		current.resolve({ scenarios: current.scenarios, analysis: sentinel });
-		await tick();
+		await until(() => !engine.running);
 		const done = events.find((e) => e.type === 'done');
 		expect(done?.type === 'done' && done.scenarios.n).toBe(200);
 		expect(engine.running).toBe(false);
@@ -505,7 +524,7 @@ describe('stale results and failures', () => {
 			const events: EngineEvent[] = [];
 			engine.subscribe((e) => events.push(e));
 			engine.run(spec(1), 100);
-			await tick();
+			await until(() => m.calls.length === 1);
 			t = 1500;
 			m.calls[0]!.listener.partial?.({} as PartialAnalysis);
 			expect(events.filter((e) => e.type === 'partial')).toMatchObject([{ elapsedMs: 500 }]);
@@ -523,8 +542,7 @@ describe('stale results and failures', () => {
 		const fractions: number[] = [];
 		engine.subscribe((e) => e.type === 'progress' && fractions.push(e.fraction));
 		engine.run(spec(1), 100);
-		await tick();
-		expect(m.calls).toHaveLength(1);
+		await until(() => m.calls.length === 1);
 		expect(fractions.at(-1)).toBeCloseTo(0.15, 12);
 		engine.cancel();
 		engine.dispose();
@@ -542,7 +560,7 @@ describe('stale results and failures', () => {
 			w.posted.filter((p) => p.type === 'chunk').map((p) => p.type === 'chunk' && p.k)
 		).toEqual([0, 1]);
 		w.reply(0, CHUNK_ROWS);
-		await tick();
+		await until(() => fractions.length > 1);
 		// Half of the rows are drawn: half of the Simulating weight (0.15).
 		expect(fractions[0]).toBe(0);
 		expect(fractions.at(-1)).toBeCloseTo(0.075, 12);
@@ -601,7 +619,7 @@ describe('stale results and failures', () => {
 		const m = manualAnalyser();
 		const engine = engineOn(m.analyser);
 		engine.run(spec(1), 100);
-		await tick();
+		await until(() => m.calls.length === 1);
 		const [first] = m.calls;
 		engine.cancel();
 		expect(() => first!.listener.progress?.('main', 0.5)).not.toThrow();
@@ -612,7 +630,7 @@ describe('stale results and failures', () => {
 		first!.resolve({ scenarios: first!.scenarios, analysis: sentinel });
 		await tick();
 		engine.run(spec(2), 100);
-		await tick();
+		await until(() => m.calls.length === 2);
 		m.calls[1]!.reject(new Error('later'));
 		engine.cancel();
 		await tick();
@@ -638,10 +656,9 @@ describe('stale results and failures', () => {
 		let w!: RecordingWorker;
 		const engine = engineOn(m.analyser, () => (w = new RecordingWorker()));
 		engine.run(spec(1), 2 * CHUNK_ROWS);
-		for (let i = 0; i < 100 && m.calls.length === 0; i++) await tick(50);
-		expect(m.calls).toHaveLength(1);
+		await until(() => m.calls.length === 1);
 		m.calls[0]!.resolve({ scenarios: m.calls[0]!.scenarios, analysis: sentinel });
-		await tick();
+		await until(() => !engine.running);
 		w.posted.length = 0;
 		engine.add(10);
 		const ks = w.posted.flatMap((p) => (p.type === 'chunk' ? [p.k] : []));
@@ -657,9 +674,9 @@ describe('stale results and failures', () => {
 		const events: EngineEvent[] = [];
 		engine.subscribe((e) => events.push(e));
 		engine.run(spec(1), 100);
-		await tick();
+		await until(() => m.calls.length === 1);
 		m.calls[0]!.reject(new Error('analysis failed'));
-		await tick();
+		await until(() => !engine.running);
 		expect(events.filter((e) => e.type === 'error')).toEqual([
 			{ type: 'error', message: 'analysis failed' }
 		]);
@@ -674,9 +691,9 @@ describe('stale results and failures', () => {
 		const events: EngineEvent[] = [];
 		engine.subscribe((e) => events.push(e));
 		engine.run(spec(1), 100);
-		await tick();
+		await until(() => m.calls.length === 1);
 		m.calls[0]!.resolve({ scenarios: m.calls[0]!.scenarios, analysis: sentinel });
-		await tick();
+		await until(() => !engine.running);
 		const before = engine.scenarios;
 
 		// A tree that arrives when no job is left must not read the job either.
@@ -713,7 +730,7 @@ describe('stale results and failures', () => {
 		const events: EngineEvent[] = [];
 		engine.subscribe((e) => events.push(e));
 		engine.run(spec(1), 100);
-		await tick();
+		await until(() => m.calls.length === 1);
 		const call = m.calls[0]!;
 		const last = () => events.filter((e) => e.type === 'progress').at(-1);
 
@@ -724,7 +741,9 @@ describe('stale results and failures', () => {
 		call.listener.partial?.({} as PartialAnalysis);
 		expect(last()).toMatchObject({ step: 'Summary and inputs' });
 		expect(last()?.fraction).toBeCloseTo(0.15 + 0.25 * 0.8, 12);
-		await tick();
+		// The timer's next tick must keep the higher fraction of 'main'.
+		const seen = events.length;
+		await until(() => events.length > seen);
 		expect(last()?.fraction).toBeCloseTo(0.35, 12);
 
 		call.listener.progress?.('voi', 0.5);

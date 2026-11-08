@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createPersistGate } from '$lib/persist-gate';
+import { createPersistGate } from '#lib/persist-gate.js';
 import { PRESETS, presetModel } from './presets';
 import {
 	AUTOSAVE_KEY,

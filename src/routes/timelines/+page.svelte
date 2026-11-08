@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { replaceState } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import timelinesData from './data/timelines.json';
-	import { Alert, Button, PageHeader, Panel, Select } from '$lib/ui';
+	import { Alert, Button, PageHeader, Panel, Select } from '#lib/ui/index.js';
 	import TimelineView from './TimelineView.svelte';
 	import {
 		createTimelineLoader,
@@ -60,12 +60,12 @@
 		yearGroups = groupByYear(filteredEvents);
 		loading = false;
 
-		// Written after the await: SvelteKit's replaceState throws before the router has
+		// Written after the await: SvelteKit's shallow routing throws before the router has
 		// started, which is still the case while onMount runs.
 		if (page.url.searchParams.get('t') !== id) {
-			const url = new URL(page.url);
+			const url = new URL(page.url.href);
 			url.searchParams.set('t', id);
-			replaceState(url, page.state);
+			goto(url, { shallow: true, replace: true, state: page.state });
 		}
 	}
 

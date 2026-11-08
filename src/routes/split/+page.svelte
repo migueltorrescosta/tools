@@ -1,7 +1,16 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
-	import { browserStorage, createPersistGate, readJson } from '$lib/persist-gate';
-	import { Alert, Button, Field, InfoTip, PageHeader, Panel, References, Stepper } from '$lib/ui';
+	import { browserStorage, createPersistGate, readJson } from '#lib/persist-gate.js';
+	import {
+		Alert,
+		Button,
+		Field,
+		InfoTip,
+		PageHeader,
+		Panel,
+		References,
+		Stepper
+	} from '#lib/ui/index.js';
 	import {
 		bestFallback,
 		initState,
@@ -16,7 +25,7 @@
 		transfersFor,
 		type Proposal,
 		type SplitState
-	} from '$lib/split';
+	} from '#lib/split/index.js';
 	import {
 		amountColour,
 		bundlesFromOwners,

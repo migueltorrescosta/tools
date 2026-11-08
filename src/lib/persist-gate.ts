@@ -1,4 +1,4 @@
-import { browser } from '$app/environment';
+import { browser } from '$app/env';
 
 /** localStorage, or null outside the browser or where reading it throws (blocked storage). */
 export function browserStorage(): Storage | null {

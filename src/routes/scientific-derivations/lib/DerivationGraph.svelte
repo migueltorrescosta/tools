@@ -3,12 +3,12 @@
 </script>
 
 <script lang="ts">
-	import { edgeId, type Derivation } from '$lib/scientific-derivations';
-	import { edgePath, layoutGraph } from '$lib/scientific-derivations/layout';
-	import { renderProse, stackTex } from '$lib/scientific-derivations/prose';
-	import { renderTex } from '$lib/tex';
-	import Tex from '$lib/ui/Tex.svelte';
-	import ScrollEdges from '$lib/ui/ScrollEdges.svelte';
+	import { edgeId, type Derivation } from '#lib/scientific-derivations/index.js';
+	import { edgePath, layoutGraph } from '#lib/scientific-derivations/layout.js';
+	import { renderProse, stackTex } from '#lib/scientific-derivations/prose.js';
+	import { renderTex } from '#lib/tex.js';
+	import Tex from '#lib/ui/Tex.svelte';
+	import ScrollEdges from '#lib/ui/ScrollEdges.svelte';
 
 	let {
 		derivation,

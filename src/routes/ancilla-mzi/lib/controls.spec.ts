@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { applyPreset, defaultSetup } from '$lib/ancilla-mzi/presets';
-import { controlCount } from '$lib/ancilla-mzi/types';
+import { applyPreset, defaultSetup } from '#lib/ancilla-mzi/presets.js';
+import { controlCount } from '#lib/ancilla-mzi/types.js';
 import { activeControls } from './controls';
 
 describe('activeControls', () => {

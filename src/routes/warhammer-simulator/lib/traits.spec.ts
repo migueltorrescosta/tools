@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PRESET_CHARACTERS } from '$lib/warhammer-simulator/presets';
+import { PRESET_CHARACTERS } from '#lib/warhammer-simulator/presets.js';
 import { GIFT_POINT_LIMIT, MAX_ITEMS, itemCount, totalGiftPoints } from './traits';
 
 describe('presets', () => {

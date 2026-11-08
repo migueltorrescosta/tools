@@ -1,8 +1,11 @@
+import adapter from '@sveltejs/adapter-cloudflare';
+import { createHash } from 'node:crypto';
 import { defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
 import { sveltekit } from '@sveltejs/kit/vite';
 import type { Plugin } from 'vite';
 import { readdirSync, readFileSync } from 'node:fs';
+import { relative, sep } from 'node:path';
 
 // Killing `pnpm dev` leaves vite, and the workerd it starts, running with no parent.
 // The dev server closes itself once its launcher is gone, which also stops workerd: the
@@ -65,8 +68,49 @@ function exitWithLauncher(): Plugin {
 	};
 }
 
+// SvelteKit hashes the scripts it emits itself; inline scripts in app.html (the theme script)
+// need their own hashes.
+const appHtml = readFileSync(new URL('./src/app.html', import.meta.url), 'utf8');
+const appHtmlHashes = [...appHtml.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(
+	([, body]) => `sha256-${createHash('sha256').update(body).digest('base64')}` as const
+);
+
 export default defineConfig({
-	plugins: [sveltekit(), exitWithLauncher()],
+	plugins: [
+		sveltekit({
+			compilerOptions: {
+				// defaults to rune mode for the project, except for `node_modules`. Can be removed in svelte 6.
+				runes: ({ filename }) => {
+					const relativePath = relative(import.meta.dirname, filename);
+					const pathSegments = relativePath.toLowerCase().split(sep);
+					const isExternalLibrary = pathSegments.includes('node_modules');
+
+					return isExternalLibrary ? undefined : true;
+				}
+			},
+			adapter: adapter(),
+			// Every page prerenders, so the policy ships as a <meta> tag, which ignores frame-ancestors:
+			// _headers sends that for static pages and gives workers their own policy. Pages the
+			// worker renders (404s) get this policy as a header, frame-ancestors included.
+			csp: {
+				mode: 'hash',
+				directives: {
+					'default-src': ['self'],
+					'script-src': ['self', ...appHtmlHashes],
+					// Svelte and KaTeX write style attributes, which hashes can't cover.
+					'style-src': ['self', 'unsafe-inline'],
+					// QR codes (rank-vote) and Vite's inlined small KaTeX fonts are data: URLs.
+					'img-src': ['self', 'data:'],
+					'font-src': ['self', 'data:'],
+					'object-src': ['none'],
+					'base-uri': ['self'],
+					'form-action': ['self'],
+					'frame-ancestors': ['none']
+				}
+			}
+		}),
+		exitWithLauncher()
+	],
 	server: {
 		allowedHosts: ['aurora.seagull-dominant.ts.net']
 	},

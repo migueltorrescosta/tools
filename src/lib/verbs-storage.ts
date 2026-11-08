@@ -1,10 +1,10 @@
-import { LANGUAGE_REGISTRY, getLanguage } from '$lib/data/language-registry';
+import { LANGUAGE_REGISTRY, getLanguage } from '#lib/data/language-registry.js';
 import {
 	HISTORY_LIMIT,
 	createFreshSession,
 	type HistoryEntry,
 	type SessionState
-} from '$lib/verbs';
+} from '#lib/verbs.js';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

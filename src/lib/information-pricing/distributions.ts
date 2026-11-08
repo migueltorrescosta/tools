@@ -3,8 +3,8 @@
  * closed-form moments and exact samplers over the seeded `Prng`.
  * No DOM or Svelte imports.
  */
-import type { Prng } from '$lib/prng';
-import { binomial, logGammaDraw, open0, poisson } from '$lib/variates';
+import type { Prng } from '#lib/prng.js';
+import { binomial, logGammaDraw, open0, poisson } from '#lib/variates.js';
 import type { Family } from './types';
 
 export interface ParamInfo {

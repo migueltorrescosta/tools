@@ -1,8 +1,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import QRCode from 'qrcode';
-	import { copyToClipboard as copyToClipboardLib } from '$lib/clipboard';
-	import { Alert, Button, DataTable, Field, PageHeader, Panel, type Column } from '$lib/ui';
+	import { copyToClipboard as copyToClipboardLib } from '#lib/clipboard.js';
+	import {
+		Alert,
+		Button,
+		DataTable,
+		Field,
+		PageHeader,
+		Panel,
+		type Column
+	} from '#lib/ui/index.js';
 	import {
 		MIN_CHOICES,
 		MAX_CHOICES,
@@ -25,7 +33,7 @@
 		type Vote,
 		type TallyResult,
 		type IRVResult
-	} from '$lib/rank-vote';
+	} from '#lib/rank-vote.js';
 
 	// --- State ---
 	type Mode = 'create' | 'vote' | 'tally' | 'error';

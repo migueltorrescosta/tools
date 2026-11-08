@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { Field } from '$lib/ui';
-	import { MAX_LAMBDA, MAX_RATE } from '$lib/ancilla-mzi/limits';
-	import type { LorentzianKind, RegisterNoise } from '$lib/ancilla-mzi/types';
+	import { Field } from '#lib/ui/index.js';
+	import { MAX_LAMBDA, MAX_RATE } from '#lib/ancilla-mzi/limits.js';
+	import type { LorentzianKind, RegisterNoise } from '#lib/ancilla-mzi/types.js';
 
 	let {
 		noise = $bindable(),

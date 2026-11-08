@@ -1,5 +1,5 @@
 /** Share URLs and saved state for the Ancilla vs MZI page. No DOM imports. */
-import { readJson } from '$lib/persist-gate';
+import { readJson } from '#lib/persist-gate.js';
 import { BUDGET_LIMITS } from './limits';
 import { DEFAULT_BUDGET, cloneNoise, defaultSetup, noiseless, sameNoise } from './presets';
 import type {

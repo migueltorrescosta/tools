@@ -7,7 +7,7 @@
 		%sveltekit.head%
 		<script>
 			// Apply a saved theme before first paint; keep in sync with src/lib/theme.svelte.ts.
-			// Placed after the head tags so the CSP <meta> tag covers it; svelte.config.js hashes it.
+			// Placed after the head tags so the CSP <meta> tag covers it; vite.config.ts hashes it.
 			try {
 				const t = localStorage.getItem('theme');
 				if (t === 'light' || t === 'dark') document.documentElement.style.colorScheme = t;

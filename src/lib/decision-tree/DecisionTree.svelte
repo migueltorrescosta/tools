@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { tick } from 'svelte';
-	import { Button } from '$lib/ui';
+	import { Button } from '#lib/ui/index.js';
 	import { computeRows, selectAnswer } from './graph';
 	import type { DecisionGraph, TraversalPath } from './types';
 

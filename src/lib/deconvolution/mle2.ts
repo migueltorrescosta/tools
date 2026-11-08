@@ -3,7 +3,7 @@
  * (`fitcore.ts`): every free parameter of the 2D signal and noise is fitted
  * jointly, with intervals and the identifiability checks. No DOM or Svelte imports.
  */
-import { moments } from '$lib/stats';
+import { moments } from '#lib/stats.js';
 import {
 	BAD,
 	fitCore,

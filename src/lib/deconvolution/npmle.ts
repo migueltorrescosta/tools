@@ -5,8 +5,8 @@
  * then constrained Newton steps (Wang 2007), until the KW optimality
  * condition holds. No DOM or Svelte imports.
  */
-import type { Prng } from '$lib/prng';
-import { logGammaDraw } from '$lib/variates';
+import type { Prng } from '#lib/prng.js';
+import { logGammaDraw } from '#lib/variates.js';
 import { binData } from './binning';
 import { nnls } from './linalg';
 import { dataWindow } from './grid';

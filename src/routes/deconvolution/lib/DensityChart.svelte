@@ -27,8 +27,8 @@
 </script>
 
 <script lang="ts">
-	import { Axis, Legend } from '$lib/ui';
-	import { formatTick, linear, linePath, niceTicks } from '$lib/plot';
+	import { Axis, Legend } from '#lib/ui/index.js';
+	import { formatTick, linear, linePath, niceTicks } from '#lib/plot.js';
 
 	let {
 		title,

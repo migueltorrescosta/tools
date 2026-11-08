@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { copyToClipboard } from '$lib/clipboard';
+	import { copyToClipboard } from '#lib/clipboard.js';
 	import Button from './Button.svelte';
 	import Panel from './Panel.svelte';
 

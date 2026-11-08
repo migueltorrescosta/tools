@@ -5,8 +5,8 @@
  * `mle.ts` (1D) and `mle2.ts` (2D) describe their models through `Problem`.
  * No DOM or Svelte imports.
  */
-import { nelderMead } from '$lib/minimise';
-import { Prng } from '$lib/prng';
+import { nelderMead } from '#lib/minimise.js';
+import { Prng } from '#lib/prng.js';
 import { invertSymmetric, symmetricEigen } from './linalg';
 import type { Domain, Role } from './types';
 

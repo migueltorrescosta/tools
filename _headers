@@ -1,4 +1,4 @@
-# Cloudflare static-asset headers. The page CSP itself is a <meta> tag from kit.csp (svelte.config.js).
+# Cloudflare static-asset headers. The page CSP itself is a <meta> tag from the csp option in vite.config.ts.
 /*
   Content-Security-Policy: frame-ancestors 'none'
   X-Frame-Options: DENY

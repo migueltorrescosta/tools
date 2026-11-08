@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { browserStorage, clearSaved, createPersistGate, readJson } from '$lib/persist-gate';
-import { createFreshSession, type SessionState } from '$lib/verbs';
-import { languageStorageKeys, loadLanguageState } from '$lib/verbs-storage';
+import { browserStorage, clearSaved, createPersistGate, readJson } from '#lib/persist-gate.js';
+import { createFreshSession, type SessionState } from '#lib/verbs.js';
+import { languageStorageKeys, loadLanguageState } from '#lib/verbs-storage.js';
 
 const env = vi.hoisted(() => ({ browser: true }));
-vi.mock('$app/environment', () => ({
+vi.mock('$app/env', () => ({
 	get browser() {
 		return env.browser;
 	}

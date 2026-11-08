@@ -1,5 +1,5 @@
 /** Random matrices and a dense Liouvillian reference, for the specs of this folder only. */
-import type { Prng } from '$lib/prng';
+import type { Prng } from '#lib/prng.js';
 import {
 	type CMat,
 	type CVec,

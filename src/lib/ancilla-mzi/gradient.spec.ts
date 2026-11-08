@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Prng } from '$lib/prng';
+import { Prng } from '#lib/prng.js';
 import { applyPreset, defaultSetup, noiseless, type PresetId } from './presets';
 import type { RegisterNoise, Setup } from './types';
 import { outer, rectApply } from './linalg';

@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { defaultParams, familyInfo } from '$lib/information-pricing/distributions';
-	import { MAX_SYMBOLS, type ModelError } from '$lib/information-pricing/model';
-	import type { Family, Model } from '$lib/information-pricing/types';
-	import { Button, Field, InfoTip } from '$lib/ui';
+	import { defaultParams, familyInfo } from '#lib/information-pricing/distributions.js';
+	import { MAX_SYMBOLS, type ModelError } from '#lib/information-pricing/model.js';
+	import type { Family, Model } from '#lib/information-pricing/types.js';
+	import { Button, Field, InfoTip } from '#lib/ui/index.js';
 	import AddInputMenu from './AddInputMenu.svelte';
 	import { declaredSymbols, errorAt, freeSymbol, freshIds, inputNode, type RowIds } from './editor';
 	import NumberInput from './NumberInput.svelte';

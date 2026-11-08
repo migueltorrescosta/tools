@@ -3,7 +3,7 @@
  * picks, demand cues, colours, the final split and who pays whom.
  * Pure functions over the engine's types; the page holds the state.
  */
-import type { Fallback, Proposal } from '$lib/split';
+import type { Fallback, Proposal } from '#lib/split/index.js';
 
 /** placements[i] = group index person i's chip sits on, or null while unplaced. */
 type Placements = readonly (number | null)[];

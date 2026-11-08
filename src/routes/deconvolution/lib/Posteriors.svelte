@@ -4,10 +4,10 @@
 	 * 2D view: their buttons, progress, Stop and warnings. The parent shows the
 	 * results (`bayes` in its parameter table, `npost` on its charts).
 	 */
-	import { Alert, Button, Field } from '$lib/ui';
-	import { summarise, type Chain, type ParamPosterior } from '$lib/deconvolution/bayes';
-	import { StoppedError, type EstimatePool } from '$lib/deconvolution/engine';
-	import type { BayesModel, Task } from '$lib/deconvolution/estimate';
+	import { Alert, Button, Field } from '#lib/ui/index.js';
+	import { summarise, type Chain, type ParamPosterior } from '#lib/deconvolution/bayes.js';
+	import { StoppedError, type EstimatePool } from '#lib/deconvolution/engine.js';
+	import type { BayesModel, Task } from '#lib/deconvolution/estimate.js';
 	import { runChains } from './chains';
 
 	interface Props {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { base64Encode, base64Decode, toHex, fromHex, rot13 } from '$lib/crypto';
+import { base64Encode, base64Decode, toHex, fromHex, rot13 } from '#lib/crypto.js';
 
 describe('Cipher Tool - Encoding Functions', () => {
 	describe('ROT13 Edge Cases', () => {

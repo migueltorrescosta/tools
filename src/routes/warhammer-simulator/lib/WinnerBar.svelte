@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { SimulationResults } from '$lib/warhammer-simulator/types';
-	import { DataTable, type Column } from '$lib/ui';
+	import type { SimulationResults } from '#lib/warhammer-simulator/types.js';
+	import { DataTable, type Column } from '#lib/ui/index.js';
 
 	let {
 		results,

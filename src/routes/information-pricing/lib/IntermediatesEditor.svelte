@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { MAX_SYMBOLS, type ModelError } from '$lib/information-pricing/model';
-	import type { Model } from '$lib/information-pricing/types';
-	import { Button, Field, InfoTip } from '$lib/ui';
+	import { MAX_SYMBOLS, type ModelError } from '#lib/information-pricing/model.js';
+	import type { Model } from '#lib/information-pricing/types.js';
+	import { Button, Field, InfoTip } from '#lib/ui/index.js';
 	import {
 		declaredSymbols,
 		errorAt,

@@ -2,8 +2,8 @@
  * Simulating Z = X + Y, bootstrap resampling and pointwise bands.
  * No DOM or Svelte imports.
  */
-import { Prng } from '$lib/prng';
-import { quantileSorted } from '$lib/stats';
+import { Prng } from '#lib/prng.js';
+import { quantileSorted } from '#lib/stats.js';
 import type { Dist2 } from './dist2';
 import type { Dist } from './types';
 

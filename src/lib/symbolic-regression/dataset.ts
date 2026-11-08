@@ -1,7 +1,7 @@
 /** Turn a parsed CSV into numeric columns and a seeded train/validation split. */
 
 import type { ParsedCsv } from './csv';
-import { Prng } from '$lib/prng';
+import { Prng } from '#lib/prng.js';
 import { CATEGORY_MAX, type Dataset, type InputMode, type PreparedData } from './types';
 
 /** The level an empty cell of a categorical input falls in. */

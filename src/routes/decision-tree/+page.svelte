@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { onMount, untrack } from 'svelte';
 	import { page } from '$app/state';
-	import { replaceState } from '$app/navigation';
-	import { browserStorage, createPersistGate } from '$lib/persist-gate';
-	import { buildGraph, encodePath, restorePath } from '$lib/decision-tree/graph';
-	import DecisionTree from '$lib/decision-tree/DecisionTree.svelte';
-	import { PageHeader } from '$lib/ui';
-	import { validateGraph } from '$lib/decision-tree/validation';
-	import rawTreeData from '$lib/decision-tree/data/tree.json';
-	import type { DecisionGraph, TraversalPath, RawTree } from '$lib/decision-tree/types';
+	import { goto } from '$app/navigation';
+	import { browserStorage, createPersistGate } from '#lib/persist-gate.js';
+	import { buildGraph, encodePath, restorePath } from '#lib/decision-tree/graph.js';
+	import DecisionTree from '#lib/decision-tree/DecisionTree.svelte';
+	import { PageHeader } from '#lib/ui/index.js';
+	import { validateGraph } from '#lib/decision-tree/validation.js';
+	import rawTreeData from '#lib/decision-tree/data/tree.json';
+	import type { DecisionGraph, TraversalPath, RawTree } from '#lib/decision-tree/types.js';
 	const treeData = rawTreeData as RawTree;
 
 	// Build the graph once
@@ -26,20 +26,20 @@
 	let traversalPath = $state<TraversalPath>([]);
 	// Set in onMount; e2e tests wait for it so clicks are not lost before hydration
 	let hydrated = $state(false);
-	// SvelteKit's replaceState throws (in dev) until the router has started,
+	// SvelteKit's shallow routing throws (in dev) until the router has started,
 	// which happens after onMount, so the URL is synced only once this is set
 	let routerReady = $state(false);
 
 	// --- URL helpers ---
 	function writePathToUrl(path: TraversalPath) {
-		// Untracked: replaceState must not make the sync effect depend on page
-		const url = untrack(() => new URL(page.url));
+		// Untracked: the shallow goto must not make the sync effect depend on page
+		const url = untrack(() => new URL(page.url.href));
 		if (path.length > 0) {
 			url.searchParams.set('p', encodePath(graph, path));
 		} else {
 			url.searchParams.delete('p');
 		}
-		replaceState(url, {});
+		goto(url, { shallow: true, replace: true });
 	}
 
 	// --- Autosave & URL sync ---

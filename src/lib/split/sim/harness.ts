@@ -8,7 +8,7 @@ import {
 	roundCap,
 	type Proposal
 } from '../engine';
-import { Prng } from '$lib/prng';
+import { Prng } from '#lib/prng.js';
 import { roundedBalances } from '../settle';
 
 interface Case {

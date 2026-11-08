@@ -1,4 +1,4 @@
-import { AXES, freeControls, type Setup } from '$lib/ancilla-mzi/types';
+import { AXES, freeControls, type Setup } from '#lib/ancilla-mzi/types.js';
 
 export interface ControlEntry {
 	/** Index into the control vector. */

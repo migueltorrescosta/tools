@@ -1,8 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { copyToClipboard } from '$lib/clipboard';
-	import { Button, Field, PageHeader, Panel, SegmentedControl } from '$lib/ui';
-	import { FORMATS as formats, validateFormat, type ValidationResult } from '$lib/format/validate';
+	import { copyToClipboard } from '#lib/clipboard.js';
+	import { Button, Field, PageHeader, Panel, SegmentedControl } from '#lib/ui/index.js';
+	import {
+		FORMATS as formats,
+		validateFormat,
+		type ValidationResult
+	} from '#lib/format/validate.js';
 
 	let content = $state('');
 	let selectedFormat = $state<(typeof formats)[number]['value']>('json');

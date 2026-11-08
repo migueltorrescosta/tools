@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { onDestroy, onMount, untrack } from 'svelte';
 	import { page } from '$app/state';
-	import { replaceState } from '$app/navigation';
-	import { browserStorage, clearSaved, createPersistGate } from '$lib/persist-gate';
-	import { theme } from '$lib/theme.svelte';
-	import { Walker, compile, fitView, optimalRatio, validate } from '$lib/chaos-game/engine';
-	import { CHALLENGES, DEFAULT_SETUP, type Challenge } from '$lib/chaos-game/presets';
+	import { goto } from '$app/navigation';
+	import { browserStorage, clearSaved, createPersistGate } from '#lib/persist-gate.js';
+	import { theme } from '#lib/theme.svelte.js';
+	import { Walker, compile, fitView, optimalRatio, validate } from '#lib/chaos-game/engine.js';
+	import { CHALLENGES, DEFAULT_SETUP, type Challenge } from '#lib/chaos-game/presets.js';
 	import {
 		GAMMA_RANGE,
 		STATE_KEY,
@@ -15,9 +15,9 @@
 		hasShareParams,
 		type DecodedShare,
 		type ShareState
-	} from '$lib/chaos-game/state';
-	import type { ColourMode, GamePoint, Rgb, Setup, View } from '$lib/chaos-game/types';
-	import type { FromWorker, ToWorker } from '$lib/chaos-game/worker-engine';
+	} from '#lib/chaos-game/state.js';
+	import type { ColourMode, GamePoint, Rgb, Setup, View } from '#lib/chaos-game/types.js';
+	import type { FromWorker, ToWorker } from '#lib/chaos-game/worker-engine.js';
 	import {
 		Alert,
 		Button,
@@ -28,7 +28,7 @@
 		RunControls,
 		SegmentedControl,
 		ShareActions
-	} from '$lib/ui';
+	} from '#lib/ui/index.js';
 	import Plot, { type Frame, type StepView, type TargetImage } from './lib/Plot.svelte';
 	import PointsPanel from './lib/PointsPanel.svelte';
 	import Challenges from './lib/Challenges.svelte';
@@ -329,14 +329,14 @@
 	$effect(() => {
 		const params = encodeShareParams(shareState).toString();
 		if (!persist.isOpen || dragView) return;
-		const url = untrack(() => new URL(page.url));
+		const url = untrack(() => new URL(page.url.href));
 		url.search = params;
 		shareUrl = url.toString();
 		// A fresh or cleared page writes nothing until the game leaves its defaults
 		if (params !== DEFAULT_PARAMS) touched = true;
 		if (!touched) return;
 		persist.write(STATE_KEY, params);
-		if (routerReady) replaceState(url, {});
+		if (routerReady) goto(url, { shallow: true, replace: true });
 	});
 
 	function apply(s: DecodedShare) {
@@ -360,11 +360,11 @@
 	}
 
 	onMount(() => {
-		worker = new Worker(new URL('$lib/chaos-game/chaos.worker.ts', import.meta.url), {
+		worker = new Worker(new URL('../../lib/chaos-game/chaos.worker.ts', import.meta.url), {
 			type: 'module'
 		});
 		worker.onmessage = onWorker;
-		const params = page.url.searchParams;
+		const params = new URLSearchParams(page.url.search);
 		const saved = storage?.getItem(STATE_KEY);
 		if (hasShareParams(params)) apply(decodeShareParams(params));
 		else if (saved) apply(decodeShareParams(new URLSearchParams(saved)));

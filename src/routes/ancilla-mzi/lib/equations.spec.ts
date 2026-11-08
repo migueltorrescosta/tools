@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { renderTex } from '$lib/tex';
+import { renderTex } from '#lib/tex.js';
 import { EQUATIONS } from './equations';
 
 describe('EQUATIONS', () => {

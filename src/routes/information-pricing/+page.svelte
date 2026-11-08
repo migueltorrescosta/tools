@@ -1,25 +1,25 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
-	import { replaceState } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { createAnalyser, type Analyser } from '$lib/information-pricing/analyser';
-	import type { PartialAnalysis } from '$lib/information-pricing/analysis';
-	import { scenariosCsv } from '$lib/information-pricing/csv';
-	import { dataflow } from '$lib/information-pricing/dataflow';
-	import { validateParams } from '$lib/information-pricing/distributions';
+	import { createAnalyser, type Analyser } from '#lib/information-pricing/analyser.js';
+	import type { PartialAnalysis } from '#lib/information-pricing/analysis/index.js';
+	import { scenariosCsv } from '#lib/information-pricing/csv.js';
+	import { dataflow } from '#lib/information-pricing/dataflow.js';
+	import { validateParams } from '#lib/information-pricing/distributions.js';
 	import {
 		compileModel,
 		decisionLabels,
 		randomInputs,
 		renameSymbol
-	} from '$lib/information-pricing/model';
+	} from '#lib/information-pricing/model.js';
 	import {
 		DEFAULT_PRESET,
 		PRESETS,
 		matchPreset,
 		presetModel,
 		type PresetId
-	} from '$lib/information-pricing/presets';
+	} from '#lib/information-pricing/presets.js';
 	import {
 		HASH_PARAM,
 		STORAGE_PREFIX,
@@ -27,15 +27,15 @@
 		encodeModel,
 		loadSaved,
 		saveModel
-	} from '$lib/information-pricing/state';
-	import { MAX_SAMPLES, type Model } from '$lib/information-pricing/types';
+	} from '#lib/information-pricing/state.js';
+	import { MAX_SAMPLES, type Model } from '#lib/information-pricing/types.js';
 	import {
 		createSimulationEngine,
 		runSpec,
 		type EngineEvent,
 		type SimulationEngine
-	} from '$lib/information-pricing/worker-engine';
-	import { browserStorage, clearSaved, createPersistGate } from '$lib/persist-gate';
+	} from '#lib/information-pricing/worker-engine.js';
+	import { browserStorage, clearSaved, createPersistGate } from '#lib/persist-gate.js';
 	import {
 		Alert,
 		Button,
@@ -47,8 +47,8 @@
 		RunControls,
 		ShareActions,
 		Stepper
-	} from '$lib/ui';
-	import { defaultWorkerCount } from '$lib/worker-pool';
+	} from '#lib/ui/index.js';
+	import { defaultWorkerCount } from '#lib/worker-pool.js';
 	import DataflowGraph from './lib/DataflowGraph.svelte';
 	import DecisionsEditor from './lib/DecisionsEditor.svelte';
 	import {
@@ -236,17 +236,17 @@
 		if (engine) return engine;
 		analyser = createAnalyser(
 			() =>
-				new Worker(new URL('$lib/information-pricing/analysis.worker.ts', import.meta.url), {
+				new Worker(new URL('../../lib/information-pricing/analysis.worker.ts', import.meta.url), {
 					type: 'module'
 				}),
 			() =>
-				new Worker(new URL('$lib/information-pricing/tree.worker.ts', import.meta.url), {
+				new Worker(new URL('../../lib/information-pricing/tree.worker.ts', import.meta.url), {
 					type: 'module'
 				})
 		);
 		engine = createSimulationEngine(
 			() =>
-				new Worker(new URL('$lib/information-pricing/simulate.worker.ts', import.meta.url), {
+				new Worker(new URL('../../lib/information-pricing/simulate.worker.ts', import.meta.url), {
 					type: 'module'
 				}),
 			{ workers: defaultWorkerCount(), analyser }
@@ -356,7 +356,7 @@
 		const seq = ++shareSeq;
 		void encodeModel(snap).then((encoded) => {
 			if (seq !== shareSeq) return;
-			const url = new URL(page.url);
+			const url = new URL(page.url.href);
 			url.hash = `${HASH_PARAM}=${encoded}`;
 			shareUrl = url.toString();
 		});
@@ -375,7 +375,7 @@
 			setModel(presetModel(DEFAULT_PRESET));
 		}
 		// The link has been read; from here on autosave keeps the edits.
-		setTimeout(() => replaceState(location.pathname + location.search, {}));
+		setTimeout(() => goto(location.pathname + location.search, { shallow: true, replace: true }));
 		return true;
 	}
 
