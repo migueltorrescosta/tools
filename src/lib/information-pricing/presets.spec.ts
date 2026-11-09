@@ -3,10 +3,11 @@ import { validateParams } from './distributions';
 import { PRESETS, matchPreset, presetModel } from './presets';
 
 describe('presets', () => {
-	it('lists the three presets by display name', () => {
+	it('lists the four presets by display name', () => {
 		expect(PRESETS.map((p) => [p.id, p.name])).toEqual([
 			['distribution-centre', 'Distribution centre'],
 			['airline-share-buyback', 'Airline share buyback'],
+			['portuguese-irc', 'Portuguese IRC rate'],
 			['blank', 'Blank']
 		]);
 	});
@@ -29,10 +30,11 @@ describe('presets', () => {
 	});
 
 	it('lists the fixed inputs after the random ones', () => {
-		const fixed = (id: 'distribution-centre' | 'airline-share-buyback') =>
+		const fixed = (id: 'distribution-centre' | 'airline-share-buyback' | 'portuguese-irc') =>
 			presetModel(id).inputs.map((x) => (x.family === 'fixed' ? x.symbol : '-'));
 		expect(fixed('distribution-centre')).toEqual(['-', '-', '-', 'T']);
 		expect(fixed('airline-share-buyback')).toEqual(['-', '-', '-', '-', '-', '-', 'C0']);
+		expect(fixed('portuguese-irc').slice(-4)).toEqual(['-', 'Y0', 't', 'W0']);
 		expect(presetModel('distribution-centre').inputs[3]).toEqual({
 			symbol: 'T',
 			name: 'Packages per Truck per Year',

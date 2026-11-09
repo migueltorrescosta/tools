@@ -179,7 +179,8 @@ test('autocomplete offers declared symbols and inserts the chosen one', async ({
 
 const BEST: [PresetId, string, number][] = [
 	['distribution-centre', '40 trucks', 3],
-	['airline-share-buyback', '800 M€', 6]
+	['airline-share-buyback', '800 M€', 6],
+	['portuguese-irc', 'IRC 19%', 9]
 ];
 
 for (const [id, best, inputs] of BEST) {
@@ -379,7 +380,7 @@ for (const width of [1920, 1440, 390]) {
 const CI_FONT =
 	":root{--font-sans:'DejaVu Sans' !important; --font-mono:'DejaVu Sans Mono' !important}";
 
-for (const id of ['distribution-centre', 'airline-share-buyback'] as const) {
+for (const id of ['distribution-centre', 'airline-share-buyback', 'portuguese-irc'] as const) {
 	for (const width of [1920, 1440]) {
 		test(`setup at ${width} px on ${id}: no input clips, in the page font or CI's`, async ({
 			page
