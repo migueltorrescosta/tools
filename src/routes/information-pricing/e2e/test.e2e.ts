@@ -180,7 +180,7 @@ test('autocomplete offers declared symbols and inserts the chosen one', async ({
 const BEST: [PresetId, string, number][] = [
 	['distribution-centre', '40 trucks', 3],
 	['airline-share-buyback', '800 M€', 6],
-	['portuguese-irc', 'IRC 19%', 9]
+	['portuguese-irc', 'IRC 19%', 8]
 ];
 
 for (const [id, best, inputs] of BEST) {

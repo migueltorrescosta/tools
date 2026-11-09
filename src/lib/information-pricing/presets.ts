@@ -68,8 +68,9 @@ const airlineShareBuyback: Model = {
  * Portugal's corporate tax (IRC) rate path, in millions of euros. Lei 64/2025
  * sets 19% in 2026, 18% in 2027 and 17% in 2028; each option below 19% cuts a
  * point a year until it reaches its rate. Year k is 2025 + k. The reward is the
- * general-government balance 2026-35 plus the 2035 effects (tax on the extra
- * GDP minus the lost IRC) over `A` discounted years, the 2035 net cost standing in for every later year. Sources: OE2026 report
+ * change in the general-government balance 2026-35 against a freeze at 19%,
+ * plus the 2035 net effect (tax on the extra GDP minus the lost IRC) over `A`
+ * discounted years, standing in for every later year. Sources: OE2026 report
  * (2026 IRC revenue 9,532 M€, about 300 M€ per point), INE (2025 GDP 307 bn€),
  * and the Gechert-Heimberger meta-analysis for the growth effect, whose
  * bias-corrected mean is near zero.
@@ -109,7 +110,6 @@ const portugueseIrc: Model = {
 			family: 'uniform',
 			params: [5, 20]
 		},
-		{ symbol: 'B0', name: 'Balance 2026-35 at 19% (M€)', family: 'normal', params: [0, 15000] },
 		{ symbol: 'Y0', name: 'GDP in 2025 (M€)', family: 'fixed', params: [307000] },
 		{ symbol: 't', name: 'Revenue per euro of extra GDP', family: 'fixed', params: [0.43] }
 	],
@@ -148,7 +148,7 @@ const portugueseIrc: Model = {
 		symbol: 'r',
 		values: [19, 18, 17, 16, 15],
 		label: 'IRC {r}%',
-		reward: 'B0 - D10 - A*N10',
+		reward: '-D10 - A*N10',
 		unit: 'M€'
 	},
 	seed: SEED,
