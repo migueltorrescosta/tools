@@ -68,12 +68,15 @@ const airlineShareBuyback: Model = {
  * Portugal's corporate tax (IRC) rate path, in millions of euros. Lei 64/2025
  * sets 19% in 2026, 18% in 2027 and 17% in 2028; each option below 19% cuts a
  * point a year until it reaches its rate. Year k is 2025 + k. The reward is the
- * change in the general-government balance 2026-35 against a freeze at 19%,
- * plus the 2035 net effect (tax on the extra GDP minus the lost IRC) over `A`
- * discounted years, standing in for every later year. Sources: OE2026 report
- * (2026 IRC revenue 9,532 M€, about 300 M€ per point), INE (2025 GDP 307 bn€),
- * and the Gechert-Heimberger meta-analysis for the growth effect, whose
- * bias-corrected mean is near zero.
+ * government's wealth at the end of 2035: minus the end-2025 debt, grown at the
+ * debt's interest rate, plus the primary balances with IRC frozen at 19%,
+ * minus the cuts' extra debt, plus the 2035 net effect of the cuts (tax on the
+ * extra GDP minus the lost IRC) over `A` discounted years, standing in for
+ * every later year. Sources: Banco de Portugal (end-2025 debt 275.1 bn€), CFP
+ * (2025 primary surplus 2.6% of GDP, deficits expected from 2027), OE2026
+ * report (2026 IRC revenue 9,532 M€, about 300 M€ per point), INE (2025 GDP
+ * 307 bn€), and the Gechert-Heimberger meta-analysis for the growth effect,
+ * whose bias-corrected mean is near zero.
  */
 const portugueseIrc: Model = {
 	inputs: [
@@ -103,15 +106,27 @@ const portugueseIrc: Model = {
 			params: [0, 0.005, 0.06]
 		},
 		{ symbol: 'n', name: 'Nominal GDP growth', family: 'normal', params: [0.04, 0.01] },
-		{ symbol: 'i', name: 'Interest rate on new debt', family: 'uniform', params: [0.02, 0.04] },
+		{ symbol: 'i', name: 'Interest rate on public debt', family: 'uniform', params: [0.02, 0.04] },
 		{
 			symbol: 'A',
 			name: 'Discounted years the 2035 effects last',
 			family: 'uniform',
 			params: [5, 20]
 		},
+		{
+			symbol: 'p',
+			name: 'Primary balance at 19% (share of GDP)',
+			family: 'normal',
+			params: [0.015, 0.01]
+		},
 		{ symbol: 'Y0', name: 'GDP in 2025 (M€)', family: 'fixed', params: [307000] },
-		{ symbol: 't', name: 'Revenue per euro of extra GDP', family: 'fixed', params: [0.43] }
+		{ symbol: 't', name: 'Revenue per euro of extra GDP', family: 'fixed', params: [0.43] },
+		{
+			symbol: 'W0',
+			name: 'Wealth end of 2025: minus debt (M€)',
+			family: 'fixed',
+			params: [-275100]
+		}
 	],
 	intermediates: [
 		{ symbol: 'x2', name: 'Points below 19% in 2027', formula: '19 - max(r, 18)' },
@@ -142,13 +157,16 @@ const portugueseIrc: Model = {
 			symbol: `D${k}`,
 			name: `Extra debt end of ${2025 + k} (M€)`,
 			formula: `D${k - 1}*(1+i) + N${k}`
-		}))
+		})),
+		{ symbol: 'q', name: 'GDP growth over interest', formula: '(1+n)/(1+i)' },
+		{ symbol: 'Q', name: 'Sum of q^k for 2026-35', formula: 'q*(1-q^10)/(1-q)' },
+		{ symbol: 'V10', name: 'Wealth end of 2035 at 19% (M€)', formula: '(W0 + p*Y0*Q)*(1+i)^10' }
 	],
 	decisions: {
 		symbol: 'r',
 		values: [19, 18, 17, 16, 15],
 		label: 'IRC {r}%',
-		reward: '-D10 - A*N10',
+		reward: 'V10 - D10 - A*N10',
 		unit: 'M€'
 	},
 	seed: SEED,

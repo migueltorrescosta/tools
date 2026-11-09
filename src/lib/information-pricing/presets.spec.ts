@@ -34,7 +34,7 @@ describe('presets', () => {
 			presetModel(id).inputs.map((x) => (x.family === 'fixed' ? x.symbol : '-'));
 		expect(fixed('distribution-centre')).toEqual(['-', '-', '-', 'T']);
 		expect(fixed('airline-share-buyback')).toEqual(['-', '-', '-', '-', '-', '-', 'C0']);
-		expect(fixed('portuguese-irc').slice(-3)).toEqual(['-', 'Y0', 't']);
+		expect(fixed('portuguese-irc').slice(-4)).toEqual(['-', 'Y0', 't', 'W0']);
 		expect(presetModel('distribution-centre').inputs[3]).toEqual({
 			symbol: 'T',
 			name: 'Packages per Truck per Year',
