@@ -8,6 +8,8 @@
 		 * danger: destructive; link: an action that reads as underlined text.
 		 */
 		variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'link';
+		/** With variant="link": muted, for quiet actions beside a main one (Undo, Start over). */
+		tone?: 'muted';
 		size?: 'md' | 'sm';
 		/** Set for toggle buttons; renders aria-pressed. */
 		pressed?: boolean;
@@ -19,6 +21,7 @@
 	let {
 		variant = 'secondary',
 		size = 'md',
+		tone,
 		pressed,
 		children,
 		class: className = '',
@@ -27,13 +30,13 @@
 </script>
 
 {#if rest.href !== undefined}
-	<a class="ui-btn {variant} {size} {className}" {...rest as HTMLAnchorAttributes}
+	<a class="ui-btn {variant} {size} {tone} {className}" {...rest as HTMLAnchorAttributes}
 		>{@render children()}</a
 	>
 {:else}
 	<button
 		type="button"
-		class="ui-btn {variant} {size} {className}"
+		class="ui-btn {variant} {size} {tone} {className}"
 		aria-pressed={pressed}
 		{...rest as HTMLButtonAttributes}>{@render children()}</button
 	>
@@ -83,6 +86,14 @@
 	.ui-btn.link:hover:not(:disabled) {
 		background: none;
 		color: var(--accent-hover);
+	}
+
+	.ui-btn.link.muted {
+		color: var(--text-muted);
+	}
+
+	.ui-btn.link.muted:hover:not(:disabled) {
+		color: var(--text);
 	}
 
 	.primary {

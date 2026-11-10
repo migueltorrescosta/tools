@@ -76,11 +76,11 @@
 					{/if}
 				{/each}
 				{#if folded}
-					<button
-						type="button"
-						class="text-link"
+					<Button
+						variant="link"
+						tone="muted"
 						aria-describedby={`question-${row.index - 1}`}
-						onclick={() => change(row.depth)}>Change</button
+						onclick={() => change(row.depth)}>Change</Button
 					>
 				{/if}
 			</div>
@@ -94,7 +94,7 @@
 
 {#if path.length > 0}
 	<div class="restart-row">
-		<button type="button" class="text-link" onclick={restart}>Start over</button>
+		<Button variant="link" tone="muted" onclick={restart}>Start over</Button>
 	</div>
 {/if}
 
@@ -124,23 +124,6 @@
 	/* The result ends the journey: the recommendation alone, centred and larger */
 	:global(.ui-answer.result) {
 		margin-top: var(--sp-3);
-	}
-
-	/* Change and Start over are quiet links, so they never read as one more answer */
-	.text-link {
-		min-height: var(--control-h);
-		padding: 0 var(--sp-1);
-		border: 0;
-		background: none;
-		color: var(--text-muted);
-		font: inherit;
-		text-decoration: underline;
-		text-underline-offset: 3px;
-		cursor: pointer;
-	}
-
-	.text-link:hover {
-		color: var(--text);
 	}
 
 	.restart-row {

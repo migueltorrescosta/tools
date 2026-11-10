@@ -172,7 +172,7 @@
 				<Button variant="primary" class="submit" onclick={handleResultSubmission}>Submit</Button>
 			{/if}
 			{#if history.length > 0}
-				<Button variant="ghost" class="text-link" onclick={undoLastRow}>Undo</Button>
+				<Button variant="link" tone="muted" onclick={undoLastRow}>Undo</Button>
 			{/if}
 		</div>
 	</div>
@@ -298,22 +298,10 @@
 		margin-top: var(--sp-3);
 	}
 
-	/* Submit is the wide main button; Undo is a quiet text link beside it. */
+	/* Submit is the wide main button; Undo is a quiet link beside it. */
 	.actions :global(.submit) {
 		flex: 1;
 		max-width: 14rem;
-	}
-
-	.actions :global(.text-link) {
-		padding: 0 var(--sp-1);
-		color: var(--text);
-		text-decoration: underline;
-		text-underline-offset: 3px;
-	}
-
-	.actions :global(.text-link:hover:not(:disabled)) {
-		background: transparent;
-		color: var(--accent-hover);
 	}
 
 	.how p {
