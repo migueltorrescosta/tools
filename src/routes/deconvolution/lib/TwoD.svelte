@@ -580,11 +580,10 @@
 </script>
 
 <Panel title="Model">
-	{#snippet actions()}<button
-			type="button"
-			class="dim-switch"
+	{#snippet actions()}<Button
+			variant="link"
 			onclick={() => (settings.dim = 1)}
-			data-testid="dim-switch">Switch to a 1D model</button
+			data-testid="dim-switch">Switch to a 1D model</Button
 		>{/snippet}
 	<div class="model">
 		<div class="controls">
@@ -1089,20 +1088,6 @@
 	}
 	.noise-select {
 		max-width: 22rem;
-	}
-	.dim-switch {
-		min-height: var(--control-h-sm);
-		padding: 0;
-		border: 0;
-		background: none;
-		font: inherit;
-		color: var(--accent);
-		text-decoration: underline;
-		text-underline-offset: 3px;
-		cursor: pointer;
-	}
-	.dim-switch:hover {
-		color: var(--accent-hover);
 	}
 	.check {
 		display: flex;

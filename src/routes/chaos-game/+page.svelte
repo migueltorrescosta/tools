@@ -460,16 +460,16 @@
 					</p>
 					<div class="links">
 						{#if running || canResume}
-							<button type="button" class="link" onclick={pauseOrResume} data-testid="pause"
-								>{running ? 'Pause' : 'Resume'}</button
+							<Button variant="link" size="sm" onclick={pauseOrResume} data-testid="pause"
+								>{running ? 'Pause' : 'Resume'}</Button
 							>
 						{/if}
-						<button
-							type="button"
-							class="link"
+						<Button
+							variant="link"
+							size="sm"
 							onclick={startSteps}
 							disabled={!!error}
-							data-testid="step-start">Step through</button
+							data-testid="step-start">Step through</Button
 						>
 					</div>
 				{:else}
@@ -481,19 +481,17 @@
 						{/if}
 					</p>
 					<div class="links">
-						<button
-							type="button"
-							class="link"
+						<Button
+							variant="link"
+							size="sm"
 							onclick={nextStep}
 							disabled={playing}
-							data-testid="step-next">Next jump</button
+							data-testid="step-next">Next jump</Button
 						>
-						<button type="button" class="link" onclick={togglePlay} aria-pressed={playing}
-							>{playing ? 'Pause' : 'Play'}</button
+						<Button variant="link" size="sm" onclick={togglePlay} aria-pressed={playing}
+							>{playing ? 'Pause' : 'Play'}</Button
 						>
-						<button type="button" class="link" onclick={endSteps} data-testid="step-end"
-							>Done</button
-						>
+						<Button variant="link" size="sm" onclick={endSteps} data-testid="step-end">Done</Button>
 					</div>
 				{/if}
 			</div>
@@ -703,37 +701,6 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--sp-1) var(--sp-3);
-	}
-
-	.link {
-		min-height: var(--control-h-sm);
-		padding: 0;
-		border: 0;
-		background: none;
-		color: var(--accent);
-		font: inherit;
-		font-size: var(--text-sm);
-		text-decoration: underline;
-		text-underline-offset: 3px;
-		cursor: pointer;
-	}
-
-	.link:hover {
-		color: var(--accent-hover);
-	}
-
-	.link:disabled {
-		color: var(--text-muted);
-		cursor: not-allowed;
-	}
-
-	.link[aria-pressed='true'] {
-		font-weight: 600;
-	}
-
-	.link:focus-visible {
-		outline: 2px solid var(--focus-ring);
-		outline-offset: 2px;
 	}
 
 	.custom {

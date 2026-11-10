@@ -227,7 +227,7 @@
 					Algorithm: {selectedAlgorithm}{selectedAlgorithm === tokenAlgorithm
 						? ', from the token header'
 						: ''} ·
-					<button type="button" class="link" onclick={changeAlgorithm}>Change</button>
+					<Button variant="link" onclick={changeAlgorithm}>Change</Button>
 				</p>
 			{/if}
 
@@ -384,21 +384,6 @@
 
 	.algorithm {
 		max-width: 12rem;
-	}
-
-	.link {
-		padding: 0;
-		border: 0;
-		background: none;
-		font: inherit;
-		color: var(--accent);
-		text-decoration: underline;
-		text-underline-offset: 3px;
-		cursor: pointer;
-	}
-
-	.link:hover {
-		color: var(--accent-hover);
 	}
 
 	.token,

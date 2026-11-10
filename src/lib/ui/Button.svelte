@@ -3,8 +3,11 @@
 	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements';
 
 	type Common = {
-		/** primary: the one main action; secondary: everything else; ghost: low emphasis; danger: destructive. */
-		variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+		/**
+		 * primary: the one main action; secondary: everything else; ghost: low emphasis;
+		 * danger: destructive; link: an action that reads as underlined text.
+		 */
+		variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'link';
 		size?: 'md' | 'sm';
 		/** Set for toggle buttons; renders aria-pressed. */
 		pressed?: boolean;
@@ -65,6 +68,23 @@
 		color: var(--text);
 	}
 
+	/* Underlined accent text with no box; it keeps the small control height for touch. */
+	.ui-btn.link {
+		min-height: var(--control-h-sm);
+		padding: 0;
+		border-color: transparent;
+		background: none;
+		color: var(--accent);
+		font-weight: inherit;
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	.ui-btn.link:hover:not(:disabled) {
+		background: none;
+		color: var(--accent-hover);
+	}
+
 	.primary {
 		background: var(--accent);
 		border-color: var(--accent);
@@ -97,6 +117,14 @@
 		border-color: var(--accent);
 		color: var(--accent);
 		box-shadow: inset 0 -2px 0 var(--accent);
+	}
+
+	.ui-btn.link[aria-pressed='true'] {
+		background: none;
+		border-color: transparent;
+		color: var(--accent);
+		box-shadow: none;
+		font-weight: 600;
 	}
 
 	.ui-btn:disabled {

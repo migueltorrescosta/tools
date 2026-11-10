@@ -94,7 +94,7 @@
 					{/if}
 				</div>
 				{#if !content}
-					<button type="button" class="example" onclick={tryExample}>Try an example</button>
+					<Button variant="link" onclick={tryExample}>Try an example</Button>
 				{/if}
 			</div>
 		</div>
@@ -143,20 +143,5 @@
 	.placeholder {
 		margin: 0;
 		color: var(--text-muted);
-	}
-
-	/* A link-styled button: it fills the box, it does not navigate. */
-	.example {
-		padding: 0;
-		border: 0;
-		background: none;
-		color: var(--accent);
-		font: inherit;
-		text-decoration: underline;
-		cursor: pointer;
-	}
-
-	.example:hover {
-		text-decoration-thickness: 2px;
 	}
 </style>

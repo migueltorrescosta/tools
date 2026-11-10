@@ -248,11 +248,10 @@
 						<div class="ct-company-group" role="group" aria-labelledby="ct-group-{group.type}">
 							<div class="ct-company-group-title">
 								<span id="ct-group-{group.type}">{group.type}</span>
-								<button
-									type="button"
-									class="ct-link"
+								<Button
+									variant="link"
 									aria-label="All {group.type}"
-									onclick={() => addAll(group.companies.map((c) => c.id))}>All</button
+									onclick={() => addAll(group.companies.map((c) => c.id))}>All</Button
 								>
 							</div>
 							{#each group.companies as company (company.id)}
@@ -568,19 +567,6 @@
 	.ct-company-group {
 		break-inside: avoid;
 		margin-bottom: var(--sp-3);
-	}
-
-	.ct-link {
-		padding: 0;
-		border: 0;
-		background: none;
-		color: var(--accent);
-		font: inherit;
-		font-weight: 500;
-		text-transform: none;
-		letter-spacing: normal;
-		text-decoration: underline;
-		cursor: pointer;
 	}
 
 	.ct-company-group-title {
