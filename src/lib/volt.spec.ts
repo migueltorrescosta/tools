@@ -18,6 +18,7 @@ import {
 	isMep,
 	parseDate,
 	summaryBars,
+	visibleMandates,
 	timelinePercent,
 	timelineRange,
 	type Politician
@@ -129,11 +130,33 @@ describe('computeStats', () => {
 	});
 });
 
+describe('visibleMandates', () => {
+	const asOf = parseDate(DATA_AS_OF);
+
+	it('keeps only running mandates unless former ones are shown', () => {
+		const current = visibleMandates(officials, asOf, false);
+		expect(current.length).toBeGreaterThan(0);
+		expect(current.length).toBeLessThan(officials.length);
+		for (const p of current) expect(isFormer(p, asOf), p.name).toBe(false);
+		expect(visibleMandates(officials, asOf, true)).toEqual(officials);
+	});
+
+	it('still lists a country with no one in office, with a count of 0', () => {
+		const current = visibleMandates(officials, asOf, false);
+		const stats = computeStats(current, officials);
+		expect(Object.keys(stats.byCountry).sort()).toEqual(
+			[...new Set(officials.map((p) => p.country))].sort()
+		);
+		expect(stats.byCountry['🇨🇾']).toBe(0);
+	});
+});
+
 describe('summaryBars', () => {
 	const bars = summaryBars(computeStats(officials));
 
-	it('has All first, MEPs last and one bar per country in the data, sorted by label', () => {
-		expect(bars[0].filter).toBe('all');
+	it('has all countries first, the European Parliament last and one bar per country in the data, sorted by label', () => {
+		expect(bars[0]).toMatchObject({ filter: 'all', label: 'All countries' });
+		expect(bars.at(-1)?.label).toBe('European Parliament');
 		expect(bars.at(-1)?.filter).toBe(EU_FLAG);
 		const countries = bars.slice(1, -1);
 		expect(new Set(countries.map((b) => b.filter))).toEqual(
