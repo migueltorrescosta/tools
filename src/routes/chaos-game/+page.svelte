@@ -25,13 +25,13 @@
 		PageHeader,
 		Panel,
 		References,
-		RunControls,
 		SegmentedControl,
 		ShareActions
 	} from '#lib/ui/index.js';
 	import Plot, { type Frame, type StepView, type TargetImage } from './lib/Plot.svelte';
 	import PointsPanel from './lib/PointsPanel.svelte';
-	import Challenges from './lib/Challenges.svelte';
+	import Shapes from './lib/Shapes.svelte';
+	import Fold from './lib/Fold.svelte';
 	import { REFERENCES } from './lib/references';
 
 	/** Jumps a run makes before it stops. */
@@ -52,6 +52,8 @@
 	let colour = $state<ColourMode>('density');
 	let gamma = $state(2);
 	let challenge = $state<string | null>(null);
+	let challengeMode = $state(false);
+	let editOpen = $state(false);
 	let selected = $state<number | null>(null);
 
 	function parseOffsets(text: string): number[] | null {
@@ -84,11 +86,18 @@
 
 	const setup = $derived<Setup>({ points, ratio, rule: { forbid }, seed });
 	const ratioValid = $derived(ratio > 0 && ratio < 1);
-	const error = $derived(
+	const customError = $derived(
 		ruleMode === 'custom' && !customOffsets
 			? 'List the forbidden steps as whole numbers, like "1" or "1, 3".'
-			: validate($state.snapshot(setup) as Setup)
+			: ''
 	);
+	const error = $derived(customError || validate($state.snapshot(setup) as Setup));
+	/** Errors no field shows: the ratio and the custom rule show theirs under the field. */
+	const setupError = $derived(customError || !ratioValid ? '' : error);
+	// A custom rule lives in the editing fold, so a link or preset with one opens it
+	$effect(() => {
+		if (ruleMode === 'custom') untrack(() => (editOpen = true));
+	});
 
 	function load(s: Setup) {
 		points = structuredClone(s.points);
@@ -111,10 +120,17 @@
 	let palette = $state<Rgb[]>([]);
 	let targetInk = $state<Rgb | null>(null);
 
+	let swatch: CanvasRenderingContext2D | null = null;
+	/** A token's colour as sRGB bytes; a canvas converts any CSS colour (oklch too). */
 	function resolve(el: HTMLElement, token: string): Rgb {
 		el.style.color = `var(${token})`;
-		const m = getComputedStyle(el).color.match(/[\d.]+/g) ?? ['0', '0', '0'];
-		return [Number(m[0]), Number(m[1]), Number(m[2])];
+		swatch ??= document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+		if (!swatch) return [0, 0, 0];
+		swatch.clearRect(0, 0, 1, 1);
+		swatch.fillStyle = getComputedStyle(el).color;
+		swatch.fillRect(0, 0, 1, 1);
+		const [r, g, b] = swatch.getImageData(0, 0, 1, 1).data;
+		return [r, g, b];
 	}
 
 	$effect(() => {
@@ -348,6 +364,7 @@
 		if (s.gamma !== undefined) gamma = s.gamma;
 		if (s.challenge !== undefined)
 			challenge = CHALLENGES.some((c) => c.id === s.challenge) ? s.challenge : null;
+		if (challenge) challengeMode = true;
 	}
 
 	function clearAll() {
@@ -357,6 +374,11 @@
 
 	function showAnswer(c: Challenge) {
 		load(c.setup);
+	}
+
+	const canResume = $derived(!running && jumps > 0 && jumps < CAP);
+	function pauseOrResume() {
+		post({ type: running ? 'stop' : 'continue' });
 	}
 
 	onMount(() => {
@@ -399,8 +421,7 @@
 	const RULES = [
 		{ value: 'any', label: 'Any point' },
 		{ value: 'same', label: 'Never twice' },
-		{ value: 'neighbour', label: 'No neighbour' },
-		{ value: 'custom', label: 'Custom' }
+		{ value: 'neighbour', label: 'No neighbour' }
 	] as const;
 </script>
 
@@ -411,26 +432,9 @@
 				onClear={clearAll}
 				description="the points, rule and colours"
 			/>{/snippet}
-		Pick some points and jump part of the way to a random one, over and over. Fractals appear. From the
-		blog post
-		<a href="https://blog.mptc.uk/posts/Strange-Attractors">Strange Attractors</a>.
 	</PageHeader>
 
 	<span class="sr-only" bind:this={probe} aria-hidden="true"></span>
-
-	<details class="how" data-testid="how">
-		<summary>How it works</summary>
-		<p>
-			Start anywhere. Pick one of the points at random and jump a fraction of the way towards it,
-			the jump ratio. Repeat millions of times and mark where you land. With three points and a
-			ratio of one half you get the Sierpinski triangle.
-		</p>
-		<p>
-			Rules about which point can come next, weights and per-point turns or matrices make many more
-			shapes. The details are in the
-			<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/chaos-game.md">docs</a>.
-		</p>
-	</details>
 
 	<div class="layout">
 		<div class="plot-col">
@@ -449,29 +453,66 @@
 				onremove={removePoint}
 				onresize={resize}
 			/>
-			{#if error || runError}<Alert tone="danger">{error || runError}</Alert>{/if}
-			<RunControls
-				onrun={start}
-				running={running && !stepping}
-				disabled={!!error || stepping}
-				onstop={() => post({ type: 'stop' })}
-				oncontinue={() => post({ type: 'continue' })}
-				canContinue={!running && jumps > 0 && jumps < CAP && !stepping}
-			>
-				<p class="progress" data-testid="progress" data-jumps={jumps}>
-					{fmtJumps(jumps)} jumps{running && !stepping ? '…' : ''}
-				</p>
-			</RunControls>
+			<div class="run-row" data-testid="steps">
+				{#if !stepping}
+					<p class="progress" data-testid="progress" data-jumps={jumps}>
+						{fmtJumps(jumps)} jumps{running ? '…' : ''}
+					</p>
+					<div class="links">
+						{#if running || canResume}
+							<button type="button" class="link" onclick={pauseOrResume} data-testid="pause"
+								>{running ? 'Pause' : 'Resume'}</button
+							>
+						{/if}
+						<button
+							type="button"
+							class="link"
+							onclick={startSteps}
+							disabled={!!error}
+							data-testid="step-start">Step through</button
+						>
+					</div>
+				{:else}
+					<p class="progress" aria-live="polite" data-testid="step-text">
+						{#if stepView?.to === null || stepView?.to === undefined}
+							The orange dot is the start.
+						{:else}
+							Jump {stepCount}: towards point {stepView.to + 1}.
+						{/if}
+					</p>
+					<div class="links">
+						<button
+							type="button"
+							class="link"
+							onclick={nextStep}
+							disabled={playing}
+							data-testid="step-next">Next jump</button
+						>
+						<button type="button" class="link" onclick={togglePlay} aria-pressed={playing}
+							>{playing ? 'Pause' : 'Play'}</button
+						>
+						<button type="button" class="link" onclick={endSteps} data-testid="step-end"
+							>Done</button
+						>
+					</div>
+				{/if}
+			</div>
+			{#if setupError || runError}<Alert tone="danger">{setupError || runError}</Alert>{/if}
+			<Shapes
+				challenges={CHALLENGES}
+				bind:active={challenge}
+				bind:mode={challengeMode}
+				{score}
+				ink={targetInk}
+				onload={(c) => load(c.setup)}
+				onanswer={showAnswer}
+			/>
 		</div>
 
 		<div class="controls-col stack">
 			<Panel title="Jumps">
 				<div class="stack">
-					<Field
-						label="Jump ratio"
-						hint="How far towards the chosen point each jump goes."
-						error={ratioValid ? undefined : 'Use a ratio between 0 and 1.'}
-					>
+					<Field label="Jump ratio" error={ratioValid ? undefined : 'Use a ratio between 0 and 1.'}>
 						{#snippet children(props)}
 							<div class="ratio">
 								<input
@@ -508,28 +549,42 @@
 						{/if}
 					</div>
 					<SegmentedControl legend="Next point" options={RULES} bind:value={ruleMode} />
-					{#if ruleMode === 'custom'}
-						<Field
-							label="Forbidden steps"
-							hint="Steps on from the last point's number: 0 is the same point, 1 the next one."
-						>
-							{#snippet children(props)}
-								<input
-									class="control"
-									bind:value={customRule}
-									{...props}
-									data-testid="custom-rule"
-								/>
-							{/snippet}
-						</Field>
-					{/if}
 				</div>
 			</Panel>
 
-			<PointsPanel bind:points bind:selected {ratio} />
+			<PointsPanel bind:points bind:selected bind:open={editOpen} {ratio}>
+				{#snippet extra()}
+					<div class="custom">
+						<label class="check"
+							><input
+								type="checkbox"
+								checked={ruleMode === 'custom'}
+								onchange={(e) => (ruleMode = e.currentTarget.checked ? 'custom' : 'any')}
+								data-testid="custom-toggle"
+							/> Custom next-point rule</label
+						>
+						{#if ruleMode === 'custom'}
+							<Field
+								label="Forbidden steps"
+								hint="Steps on from the last point's number: 0 is the same point, 1 the next one."
+								error={customError || undefined}
+							>
+								{#snippet children(props)}
+									<input
+										class="control"
+										bind:value={customRule}
+										{...props}
+										data-testid="custom-rule"
+									/>
+								{/snippet}
+							</Field>
+						{/if}
+					</div>
+				{/snippet}
+			</PointsPanel>
 
 			<Panel title="Display">
-				<div class="stack">
+				<Fold label="Colour and contrast" testid="colour-fold">
 					<SegmentedControl
 						legend="Colour"
 						options={[
@@ -538,7 +593,7 @@
 						]}
 						bind:value={colour}
 					/>
-					<Field label="Contrast" hint="Higher shows faint regions more.">
+					<Field label="Contrast">
 						{#snippet children(props)}
 							<input
 								type="range"
@@ -550,41 +605,35 @@
 							/>
 						{/snippet}
 					</Field>
-					<div class="steps" data-testid="steps">
-						{#if !stepping}
-							<p class="hint">Watch the first jumps one at a time.</p>
-							<Button onclick={startSteps} disabled={!!error} data-testid="step-start"
-								>Step through</Button
-							>
-						{:else}
-							<p class="hint" aria-live="polite" data-testid="step-text">
-								{#if stepView?.to === null || stepView?.to === undefined}
-									The orange dot is the start.
-								{:else}
-									Jump {stepCount}: towards point {stepView.to + 1}.
-								{/if}
-							</p>
-							<div class="cluster">
-								<Button onclick={nextStep} disabled={playing} data-testid="step-next"
-									>Next jump</Button
-								>
-								<Button onclick={togglePlay} pressed={playing}>{playing ? 'Pause' : 'Play'}</Button>
-								<Button variant="ghost" onclick={endSteps} data-testid="step-end">Done</Button>
-							</div>
-						{/if}
-					</div>
-				</div>
+				</Fold>
 			</Panel>
-
-			<Challenges
-				challenges={CHALLENGES}
-				bind:active={challenge}
-				{score}
-				ink={targetInk}
-				onanswer={showAnswer}
-			/>
 		</div>
 	</div>
+
+	<details class="how" data-testid="how">
+		<summary>How it works</summary>
+		<p>
+			Pick some points and jump part of the way to a random one, over and over. Fractals appear.
+			Start anywhere. Pick one of the points at random and jump a fraction of the way towards it,
+			the jump ratio. Repeat millions of times and mark where you land. With three points and a
+			ratio of one half you get the Sierpinski triangle.
+		</p>
+		<p>
+			Rules about which point can come next, weights and per-point turns or matrices make many more
+			shapes. Contrast brings out faint regions. Step through shows the first jumps one at a time.
+		</p>
+		<p>
+			A click on a shape loads it. With Challenge mode on, a click starts a try instead: the shape
+			shows faintly behind your game and the match ignores position and size. The first ten shapes
+			are from the original blog post.
+		</p>
+		<p>
+			From the blog post
+			<a href="https://blog.mptc.uk/posts/Strange-Attractors">Strange Attractors</a>. The details
+			are in the
+			<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/chaos-game.md">docs</a>.
+		</p>
+	</details>
 
 	<References references={REFERENCES} />
 </div>
@@ -619,8 +668,7 @@
 		min-width: 0;
 	}
 
-	.progress,
-	.hint {
+	.progress {
 		margin: 0;
 		font-size: var(--text-sm);
 		color: var(--text-muted);
@@ -641,10 +689,65 @@
 		width: 5.5rem;
 	}
 
-	.steps {
+	/* One quiet line under the plot: the count, then link-style actions */
+	.run-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--sp-1) var(--sp-3);
+		min-height: var(--control-h-sm);
+	}
+
+	.links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--sp-1) var(--sp-3);
+	}
+
+	.link {
+		min-height: var(--control-h-sm);
+		padding: 0;
+		border: 0;
+		background: none;
+		color: var(--accent);
+		font: inherit;
+		font-size: var(--text-sm);
+		text-decoration: underline;
+		text-underline-offset: 3px;
+		cursor: pointer;
+	}
+
+	.link:hover {
+		color: var(--accent-hover);
+	}
+
+	.link:disabled {
+		color: var(--text-muted);
+		cursor: not-allowed;
+	}
+
+	.link[aria-pressed='true'] {
+		font-weight: 600;
+	}
+
+	.link:focus-visible {
+		outline: 2px solid var(--focus-ring);
+		outline-offset: 2px;
+	}
+
+	.custom {
 		display: flex;
 		flex-direction: column;
 		gap: var(--sp-2);
+	}
+
+	.check {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--sp-1);
+		min-height: var(--control-h);
+		font-size: var(--text-sm);
 	}
 
 	.how p {
