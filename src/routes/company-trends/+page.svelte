@@ -2,7 +2,8 @@
 	import { onMount } from 'svelte';
 	import datasetJson from './data/companies.json';
 	import TrendsChart from './TrendsChart.svelte';
-	import { Alert, Button, PageHeader, ScrollEdges, SegmentedControl } from '#lib/ui/index.js';
+	import { tick } from 'svelte';
+	import { Alert, Button, PageHeader, ScrollEdges, Select } from '#lib/ui/index.js';
 	import { loadDataset } from '#lib/company-trends/schema.js';
 	import {
 		companyTypes,
@@ -12,15 +13,13 @@
 	import {
 		assignColors,
 		buildTrail,
-		colorMode,
 		formatMoney,
 		formatPercent,
 		latestUpTo,
 		pointSources,
 		REVENUE_FLOOR,
 		revenueDomain,
-		PALETTE_SIZE,
-		typeSlot
+		PALETTE_SIZE
 	} from '#lib/company-trends/chart.js';
 	import { quarterIndex, quarterLabel, quarterRange } from '#lib/company-trends/series.js';
 	import type { Currency } from '#lib/company-trends/fx.js';
@@ -40,22 +39,24 @@
 	);
 	const quarters = quarterRange(FIRST_QUARTER, quarterLabel(lastQi));
 
-	const defaults = companies.filter((c) => DEFAULT_COMPANY_IDS.includes(c.id)).map((c) => c.id);
+	// Defaults in their listed order, which is also the order of the chips.
+	const defaults = DEFAULT_COMPANY_IDS.filter((id) => companies.some((c) => c.id === id));
 
 	let currency = $state<Currency>('EUR');
 	let selectedIds = $state<string[]>(defaults.length > 0 ? defaults : companies.map((c) => c.id));
-	let selectedTypes = $state<string[]>([...types]);
 	let qi = $state(lastQi);
 	let playing = $state(false);
 
-	const visible = $derived(filterCompanies(companies, { selectedIds, types: selectedTypes }));
+	const visible = $derived(filterCompanies(companies, { selectedIds, types }));
+	const byId = new Map(companies.map((c) => [c.id, c]));
+	// The chips list the chosen companies in the order they were added.
+	const chosen = $derived(selectedIds.flatMap((id) => byId.get(id) ?? []));
 
 	// Trails for every company in the chosen currency; filtered views reuse them.
 	const allTrails = $derived(companies.map((c) => buildTrail(c, quarters, currency, dataset.fx)));
 	const visibleTrails = $derived(allTrails.filter((t) => visible.includes(t.company)));
 
 	// Small selections (e.g. one industry) get a colour per company; larger ones per industry.
-	const mode = $derived(colorMode(visibleTrails.length));
 	// Company-mode palette slots from the previous assignment, so toggling a company keeps
 	// every other company's colour. Plain (non-reactive) memory: it only feeds the next run.
 	let colorSlots = new Map<string, number>();
@@ -100,10 +101,23 @@
 		companies: companies.filter((c) => c.type === type)
 	}));
 
+	function addAll(ids: string[]) {
+		selectedIds = [...selectedIds, ...ids.filter((id) => !selectedIds.includes(id))];
+	}
+
+	// The full list opens below the chips from the Add company button.
+	let pickerOpen = $state(false);
+	let addButton = $state<HTMLElement>();
+	async function closePicker() {
+		pickerOpen = false;
+		await tick();
+		addButton?.querySelector('button')?.focus();
+	}
+
 	const CURRENCIES = [
-		{ value: 'EUR', label: 'EUR' },
-		{ value: 'USD', label: 'USD' },
-		{ value: 'GBP', label: 'GBP' }
+		{ value: 'EUR', label: '€ EUR' },
+		{ value: 'USD', label: '$ USD' },
+		{ value: 'GBP', label: '£ GBP' }
 	] as const satisfies readonly { value: Currency; label: string }[];
 
 	const tableRows = $derived(
@@ -117,9 +131,7 @@
 </script>
 
 <div class="container" data-hydrated={hydrated || undefined}>
-	<PageHeader path="/company-trends"
-		>Revenue (log scale) vs operating margin, 2000 to the last reported quarter, in {currency}</PageHeader
-	>
+	<PageHeader path="/company-trends" />
 
 	{#if errors.length > 0}
 		<Alert tone="danger">
@@ -156,122 +168,109 @@
 					/>
 				</label>
 				<output class="ct-quarter" data-testid="quarter-label">{quarter}</output>
-				<SegmentedControl
-					legend="Display currency"
-					hideLegend
-					options={CURRENCIES}
-					bind:value={currency}
-				/>
+				<div class="ct-currency">
+					<Select label="Display currency" hideLabel options={CURRENCIES} bind:value={currency} />
+				</div>
 			</div>
+		</div>
 
-			<fieldset class="ct-types">
-				<legend class="ct-group-legend">Industries</legend>
-				{#each types as type (type)}
-					<label class="ct-check">
-						<input
-							type="checkbox"
-							value={type}
-							checked={selectedTypes.includes(type)}
-							onchange={() => (selectedTypes = toggle(selectedTypes, type))}
-						/>
+		<!-- On a narrow screen the 820 px chart scrolls sideways, opening at the large companies -->
+		<ScrollEdges startAtEnd data-testid="chart-scroll">
+			{#snippet hint()}<p class="ct-note ct-scroll-hint" data-testid="scroll-hint">
+					Scroll sideways for smaller revenues.
+				</p>{/snippet}
+			<TrendsChart trails={visibleTrails} {qi} {quarter} {currency} {colors} {domain} />
+		</ScrollEdges>
+		<ul class="ct-marks" aria-label="Chart marks">
+			<li>
+				<svg width="14" height="14" aria-hidden="true"
+					><circle cx="7" cy="7" r="4" class="ct-mark-reported" /></svg
+				>reported
+			</li>
+			<li>
+				<svg width="14" height="14" aria-hidden="true"
+					><circle cx="7" cy="7" r="4" class="ct-mark-estimated" /></svg
+				>estimated (private company, press reports)
+			</li>
+		</ul>
+
+		<div class="ct-chips" role="group" aria-label="Companies">
+			<ul class="ct-chip-list">
+				{#each chosen as company (company.id)}
+					<li class="ct-chip" data-testid="company-chip">
 						<span
 							class="ct-swatch"
-							class:ct-swatch-neutral={mode === 'company'}
-							style="--c: var(--data-{typeSlot(type) + 1})"
+							style="--c: {colors.get(company.id)}"
 							aria-hidden="true"
-						></span>{type}
-					</label>
+							data-testid="company-swatch"
+						></span>{company.name}<button
+							type="button"
+							class="ct-chip-remove"
+							aria-label="Remove {company.name}"
+							onclick={() => (selectedIds = selectedIds.filter((id) => id !== company.id))}
+							><span aria-hidden="true">×</span></button
+						>
+					</li>
 				{/each}
-				<span class="ct-note ct-color-mode" data-testid="color-mode"
-					>{mode === 'company'
-						? 'Coloured by company'
-						: `Coloured by industry (select ≤ ${PALETTE_SIZE} companies to colour individually)`}</span
+			</ul>
+			<span class="ct-add" bind:this={addButton}>
+				<Button
+					size="sm"
+					variant="ghost"
+					aria-expanded={pickerOpen}
+					aria-controls="ct-picker"
+					onclick={() => (pickerOpen ? closePicker() : (pickerOpen = true))}>+ Add company</Button
 				>
-			</fieldset>
+			</span>
 		</div>
+		{#if chosen.length === 0}
+			<p class="ct-note ct-empty">No companies chosen. Add one to draw it.</p>
+		{/if}
 
-		<div class="ct-layout">
-			<div class="ct-chart-col">
-				<!-- On a narrow screen the 820 px chart scrolls sideways, opening at the large companies -->
-				<ScrollEdges startAtEnd data-testid="chart-scroll">
-					{#snippet hint()}<p class="ct-note ct-scroll-hint" data-testid="scroll-hint">
-							Scroll sideways for smaller revenues.
-						</p>{/snippet}
-					<TrendsChart trails={visibleTrails} {qi} {quarter} {currency} {colors} {domain} />
-				</ScrollEdges>
-				<ul class="ct-marks" aria-label="Chart marks">
-					<li>
-						<svg width="14" height="14" aria-hidden="true"
-							><circle cx="7" cy="7" r="4" class="ct-mark-reported" /></svg
-						>reported
-					</li>
-					<li>
-						<svg width="14" height="14" aria-hidden="true"
-							><circle cx="7" cy="7" r="4" class="ct-mark-estimated" /></svg
-						>estimated (private company, press reports)
-					</li>
-					<li>
-						<svg width="14" height="14" aria-hidden="true"
-							><circle cx="7" cy="7" r="2" class="ct-mark-interp" /></svg
-						>interpolated quarter (log-linear between annual figures)
-					</li>
-					<li>
-						<svg width="24" height="14" aria-hidden="true"
-							><line x1="1" y1="7" x2="23" y2="7" class="ct-mark-gap" /></svg
-						>data gap (missing years)
-					</li>
-					<li>
-						<svg width="14" height="14" aria-hidden="true"
-							><path d="M3,4L11,4L7,12Z" class="ct-mark-offscale" /></svg
-						>off-scale margin (below −200%), pinned to the edge
-					</li>
-				</ul>
-			</div>
-
-			<div class="ct-companies" role="group" aria-labelledby="ct-companies-title">
-				<div class="ct-companies-head">
-					<span class="ct-group-legend" id="ct-companies-title">Companies</span>
+		{#if pickerOpen}
+			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+			<div
+				class="ct-picker"
+				id="ct-picker"
+				role="group"
+				aria-label="All companies"
+				onkeydown={(e) => {
+					if (e.key === 'Escape') closePicker();
+				}}
+			>
+				<div class="ct-picker-head">
 					<Button size="sm" onclick={() => (selectedIds = companies.map((c) => c.id))}>All</Button>
 					<Button size="sm" onclick={() => (selectedIds = [])}>None</Button>
+					<Button size="sm" variant="ghost" class="ct-done" onclick={closePicker}>Done</Button>
 				</div>
-				{#each companiesByType as group (group.type)}
-					<div
-						class="ct-company-group"
-						class:ct-muted={!selectedTypes.includes(group.type)}
-						role="group"
-						aria-labelledby="ct-group-{group.type}"
-					>
-						<div class="ct-company-group-title" id="ct-group-{group.type}">
-							<span
-								class="ct-swatch"
-								class:ct-swatch-neutral={mode === 'company'}
-								style="--c: var(--data-{typeSlot(group.type) + 1})"
-								aria-hidden="true"
-							></span>{group.type}
+				<div class="ct-groups">
+					{#each companiesByType as group (group.type)}
+						<div class="ct-company-group" role="group" aria-labelledby="ct-group-{group.type}">
+							<div class="ct-company-group-title">
+								<span id="ct-group-{group.type}">{group.type}</span>
+								<button
+									type="button"
+									class="ct-link"
+									aria-label="All {group.type}"
+									onclick={() => addAll(group.companies.map((c) => c.id))}>All</button
+								>
+							</div>
+							{#each group.companies as company (company.id)}
+								<label class="ct-check">
+									<input
+										type="checkbox"
+										value={company.id}
+										checked={selectedIds.includes(company.id)}
+										onchange={() => (selectedIds = toggle(selectedIds, company.id))}
+									/>
+									{company.name}
+								</label>
+							{/each}
 						</div>
-						{#each group.companies as company (company.id)}
-							<label class="ct-check ct-company">
-								<input
-									type="checkbox"
-									value={company.id}
-									checked={selectedIds.includes(company.id)}
-									onchange={() => (selectedIds = toggle(selectedIds, company.id))}
-								/>
-								{#if mode === 'company' && colors.has(company.id)}
-									<span
-										class="ct-swatch"
-										style="--c: {colors.get(company.id)}"
-										aria-hidden="true"
-										data-testid="company-swatch"
-									></span>
-								{/if}
-								{company.name}
-							</label>
-						{/each}
-					</div>
-				{/each}
+					{/each}
+				</div>
 			</div>
-		</div>
+		{/if}
 
 		<details class="how" data-testid="table-view">
 			<summary>Data table · {quarter} · {currency}</summary>
@@ -320,19 +319,15 @@
 				</table>
 			</div>
 		</details>
-
-		<p class="ct-note ct-closing">
-			Figures are fiscal-year totals in {currency}; quarters in between are estimated. Method and
-			sources are in How it works.
-		</p>
 	{/if}
 
 	<details class="how" data-testid="how">
 		<summary>How it works</summary>
 		<p>
-			Pick industries and companies, then press Play or drag the quarter slider. Each dot is a
-			company: revenue across, operating margin up. Figures are fiscal-year totals; quarters in
-			between are estimated. USD and GBP use the
+			The chart plots revenue (log scale) against operating margin for each company, from 2000 to
+			the last reported quarter, in {currency}. Add or remove companies below the chart, then press
+			Play or drag the quarter slider. Figures are fiscal-year totals; quarters in between are
+			estimated. USD and GBP use the
 			<a href={dataset.meta.fxSource} target="_blank" rel="noreferrer">ECB</a> average rate of each fiscal
 			year.
 		</p>
@@ -341,6 +336,27 @@
 			<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/company-trends.md">docs</a
 			>.
 		</p>
+		<p>
+			Up to {PALETTE_SIZE} companies each get their own colour; with more, each industry gets one colour.
+			The tooltip gives each point's quality. Other marks on the chart:
+		</p>
+		<ul class="ct-marks ct-marks-how">
+			<li>
+				<svg width="14" height="14" aria-hidden="true"
+					><circle cx="7" cy="7" r="2" class="ct-mark-interp" /></svg
+				>a small dot is an interpolated quarter (log-linear between annual figures)
+			</li>
+			<li>
+				<svg width="24" height="14" aria-hidden="true"
+					><line x1="1" y1="7" x2="23" y2="7" class="ct-mark-gap" /></svg
+				>a dashed line is a data gap (missing years)
+			</li>
+			<li>
+				<svg width="14" height="14" aria-hidden="true"
+					><path d="M3,4L11,4L7,12Z" class="ct-mark-offscale" /></svg
+				>a triangle is an off-scale margin (below −200%), pinned to the edge
+			</li>
+		</ul>
 	</details>
 </div>
 
@@ -351,10 +367,14 @@
 	}
 
 	.ct-controls {
-		display: flex;
-		flex-direction: column;
-		gap: var(--sp-2);
 		margin-bottom: var(--sp-3);
+	}
+
+	.ct-currency :global(select) {
+		width: auto;
+		min-height: var(--control-h-sm);
+		font-size: var(--text-sm);
+		color: var(--text-muted);
 	}
 
 	.ct-time {
@@ -385,28 +405,6 @@
 		min-width: 4.5rem;
 	}
 
-	.ct-types {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0 var(--sp-3);
-		border: 0;
-		padding: 0;
-		margin: 0;
-		min-width: 0;
-	}
-
-	.ct-types > legend {
-		float: left;
-		margin-right: var(--sp-1);
-	}
-
-	.ct-group-legend {
-		padding: 0;
-		font-size: var(--text-sm);
-		font-weight: 600;
-	}
-
 	.ct-check {
 		display: flex;
 		align-items: center;
@@ -432,38 +430,14 @@
 		background: var(--c);
 	}
 
-	.ct-swatch-neutral {
-		background: transparent;
-		box-shadow: inset 0 0 0 1px var(--text-muted);
-	}
-
 	.ct-note {
 		font-size: var(--text-sm);
 		color: var(--text-muted);
 	}
 
-	.ct-color-mode {
-		margin-left: auto;
-	}
-
-	.ct-layout {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) 220px;
-		gap: var(--sp-3);
-		align-items: start;
-	}
-
-	.ct-chart-col {
-		min-width: 0;
-	}
-
 	.ct-scroll-hint {
 		margin: 0 0 var(--sp-1);
 		font-size: var(--text-xs);
-	}
-
-	.ct-closing {
-		margin-top: var(--sp-3);
 	}
 
 	.ct-marks {
@@ -475,6 +449,12 @@
 		list-style: none;
 		font-size: var(--text-xs);
 		color: var(--text-muted);
+	}
+
+	.ct-marks-how {
+		flex-direction: column;
+		margin-bottom: var(--sp-2);
+		font-size: var(--text-sm);
 	}
 
 	.ct-marks li {
@@ -505,41 +485,110 @@
 		stroke-dasharray: 3 4;
 	}
 
-	.ct-companies {
-		max-height: 680px;
-		overflow-y: auto;
-		margin: 0;
-		padding: var(--sp-2);
-		min-width: 0;
+	.ct-chips {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--sp-2);
+		margin-top: var(--sp-3);
+	}
+
+	.ct-chip-list {
+		display: contents;
+	}
+
+	.ct-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--sp-1);
+		min-height: var(--control-h-sm);
+		padding: 0 var(--sp-0) 0 var(--sp-2);
+		font-size: var(--text-sm);
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: 999px;
+	}
+
+	.ct-chip-remove {
+		display: inline-grid;
+		place-items: center;
+		width: 28px;
+		height: 28px;
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		background: none;
+		color: var(--text-muted);
+		font: inherit;
+		font-size: var(--text-md);
+		line-height: 1;
+		cursor: pointer;
+	}
+
+	.ct-chip-remove:hover {
+		color: var(--text);
+		background: var(--surface-2);
+	}
+
+	.ct-add :global(.ui-btn) {
+		border: 1px dashed var(--accent);
+		border-radius: 999px;
+		color: var(--accent);
+	}
+
+	.ct-empty {
+		margin: var(--sp-2) 0 0;
+	}
+
+	.ct-picker {
+		margin-top: var(--sp-2);
+		padding: var(--sp-3);
 		background: var(--surface);
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
+		box-shadow: var(--box-shadow);
 	}
 
-	.ct-companies-head {
+	.ct-picker-head {
 		display: flex;
 		align-items: center;
 		gap: var(--sp-2);
-		margin-bottom: var(--sp-1);
+		margin-bottom: var(--sp-3);
 	}
 
-	.ct-companies-head .ct-group-legend {
-		margin-right: auto;
+	.ct-picker-head :global(.ct-done) {
+		margin-left: auto;
+	}
+
+	.ct-groups {
+		columns: 13rem;
+		column-gap: var(--sp-4);
 	}
 
 	.ct-company-group {
-		margin-bottom: var(--sp-2);
+		break-inside: avoid;
+		margin-bottom: var(--sp-3);
 	}
 
-	.ct-muted {
-		opacity: 0.6;
+	.ct-link {
+		padding: 0;
+		border: 0;
+		background: none;
+		color: var(--accent);
+		font: inherit;
+		font-weight: 500;
+		text-transform: none;
+		letter-spacing: normal;
+		text-decoration: underline;
+		cursor: pointer;
 	}
 
 	.ct-company-group-title {
 		display: flex;
-		align-items: center;
-		gap: var(--sp-1);
-		margin-top: var(--sp-1);
+		align-items: baseline;
+		justify-content: space-between;
+		gap: var(--sp-2);
+		margin-bottom: var(--sp-1);
 		font-size: var(--text-xs);
 		font-weight: 600;
 		text-transform: uppercase;
@@ -577,15 +626,5 @@
 
 	.ct-source {
 		max-width: 22rem;
-	}
-
-	@media (max-width: 900px) {
-		.ct-layout {
-			grid-template-columns: 1fr;
-		}
-
-		.ct-companies {
-			max-height: 260px;
-		}
 	}
 </style>
