@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { MAX_SYMBOLS, type ModelError } from '#lib/information-pricing/model.js';
 	import type { Model } from '#lib/information-pricing/types.js';
-	import { Button, Field, InfoTip } from '#lib/ui/index.js';
+	import { Button, Field } from '#lib/ui/index.js';
 	import {
 		declaredSymbols,
 		errorAt,
@@ -46,10 +46,6 @@
 <section class="stack section" aria-labelledby="intermediates-heading">
 	<div class="section-head">
 		<h3 id="intermediates-heading">Intermediates</h3>
-		<InfoTip label="intermediates"
-			>Named formulas that reuse inputs, other intermediates or the decision. Use them to break up a
-			long reward.</InfoTip
-		>
 	</div>
 	{#if model.intermediates.length}
 		<div class="cols intermediate-cols" aria-hidden="true">

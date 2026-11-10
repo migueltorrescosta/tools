@@ -40,7 +40,6 @@
 		Alert,
 		Button,
 		Field,
-		InfoTip,
 		Maximizable,
 		PageHeader,
 		References,
@@ -79,7 +78,7 @@
 
 	/** The model as JSON: the key for staleness, preset matching and saving. */
 	const modelKey = $derived(JSON.stringify(model));
-	const preset = $derived(matchPreset(JSON.parse(modelKey) as Model));
+	const presetId = $derived(matchPreset(JSON.parse(modelKey) as Model));
 	const compiled = $derived(compileModel(JSON.parse(modelKey) as Model, validateParams));
 	const errors = $derived(compiled.ok ? [] : compiled.errors);
 	const samplesError = $derived(samplesProblem(model.samples, MAX_SAMPLES) ?? undefined);
@@ -334,6 +333,10 @@
 		(runModel?.intermediates ?? []).filter((i) => !runShared.includes(i.symbol)).map(label)
 	);
 	const count = (n: number) => n.toLocaleString('en');
+	/** The closed Advanced line: what the run will use. */
+	const runSummary = $derived(
+		`${Number.isFinite(model.samples) ? count(model.samples) : '?'} samples, seed ${model.seed}`
+	);
 	const seconds = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
 	const stage = $derived(
 		progress ? `${progress.step} · ${Math.floor(progress.fraction * 100)} %` : ''
@@ -416,8 +419,6 @@
 				onClear={clearAll}
 				description="the model, never results"
 			/>{/snippet}
-		What is it worth to know before you decide? Build a model, simulate it and price the uncertainty.
-		Everything runs in your browser.
 	</PageHeader>
 
 	{#if linkError}
@@ -440,7 +441,26 @@
 			disabled={problems.length > 0}
 			describedby={problems.length > 0 ? 'run-reason' : undefined}
 			onstop={cancel}
+			summary={runSummary}
 		>
+			{#snippet preset()}
+				<div class="preset">
+					<Field label="Preset">
+						{#snippet children(props)}
+							<select
+								class="control"
+								value={presetId ?? 'custom'}
+								onchange={(e) => choosePreset(e.currentTarget.value)}
+								data-testid="preset"
+								{...props}
+							>
+								{#each PRESETS as p (p.id)}<option value={p.id}>{p.name}</option>{/each}
+								<option value="custom" disabled>Custom</option>
+							</select>
+						{/snippet}
+					</Field>
+				</div>
+			{/snippet}
 			{#snippet fields()}
 				<NumberInput
 					label="Samples"
@@ -455,24 +475,6 @@
 					error={seedError}
 				/>
 			{/snippet}
-			{#snippet actions()}
-				<Button
-					onclick={addScenarios}
-					disabled={running || !hasScenarios || !!samplesError}
-					aria-describedby="add-hint">Add scenarios</Button
-				>
-				<Button
-					variant="ghost"
-					onclick={downloadCsv}
-					disabled={running || !hasScenarios}
-					data-testid="download-csv"
-					><span aria-hidden="true">↓</span><span class="sr-only">Download</span> Scenarios (CSV)</Button
-				>
-				<InfoTip label="the scenarios CSV"
-					>Downloads every simulated scenario: inputs, intermediates, each decision's reward and
-					opportunity loss, and the optimal reward.</InfoTip
-				>
-			{/snippet}
 			<div class="run-status">
 				{#if running && progress}
 					<span class="progress" data-testid="progress">
@@ -486,6 +488,24 @@
 							doneMs
 						)}{/if}</span
 				>
+				{#if hasScenarios}
+					<span class="scenario-actions">
+						<Button
+							size="sm"
+							onclick={addScenarios}
+							disabled={running || !!samplesError}
+							aria-describedby="add-hint">Add scenarios</Button
+						>
+						<Button
+							size="sm"
+							variant="ghost"
+							onclick={downloadCsv}
+							disabled={running}
+							data-testid="download-csv"
+							><span aria-hidden="true">↓</span><span class="sr-only">Download</span> Scenarios (CSV)</Button
+						>
+					</span>
+				{/if}
 				{#if stale}<span class="stale" data-testid="stale">Out of date, run again</span>{/if}
 			</div>
 			<p id="add-hint" class="sr-only">
@@ -512,22 +532,6 @@
 
 	{#if step === 0}
 		<div class="setup" data-testid="setup">
-			<div class="preset">
-				<Field label="Preset">
-					{#snippet children(props)}
-						<select
-							class="control"
-							value={preset ?? 'custom'}
-							onchange={(e) => choosePreset(e.currentTarget.value)}
-							data-testid="preset"
-							{...props}
-						>
-							{#each PRESETS as p (p.id)}<option value={p.id}>{p.name}</option>{/each}
-							<option value="custom" disabled>Custom</option>
-						</select>
-					{/snippet}
-				</Field>
-			</div>
 			{#each errors.filter((e) => e.where.kind === 'model') as e, i (i)}
 				<Alert tone="warning">{e.message}</Alert>
 			{/each}
@@ -549,12 +553,9 @@
 							<section class="card dataflow" aria-labelledby="dataflow-heading">
 								<div class="section-head">
 									<h3 id="dataflow-heading">Dataflow</h3>
-									<InfoTip label="the dataflow"
-										>How the numbers feed each other, from inputs down to the reward. Click a box to
-										find its row and light up what it uses and what uses it.</InfoTip
-									>
 									{@render button()}
 								</div>
+								<p class="hint">Click a box to find its row.</p>
 								{@render flow(false)}
 							</section>
 						{/snippet}
@@ -636,6 +637,16 @@
 		flex-direction: column;
 		gap: var(--sp-2);
 		container-type: inline-size;
+	}
+	.scenario-actions {
+		display: inline-flex;
+		flex-wrap: wrap;
+		gap: var(--sp-1);
+	}
+	.setup :global(.hint) {
+		margin: 0 0 var(--sp-1);
+		font-size: var(--text-xs);
+		color: var(--text-muted);
 	}
 	.preset :global(.ui-field) {
 		flex-direction: row;

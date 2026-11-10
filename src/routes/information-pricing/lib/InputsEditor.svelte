@@ -2,7 +2,7 @@
 	import { defaultParams, familyInfo } from '#lib/information-pricing/distributions.js';
 	import { MAX_SYMBOLS, type ModelError } from '#lib/information-pricing/model.js';
 	import type { Family, Model } from '#lib/information-pricing/types.js';
-	import { Button, Field, InfoTip } from '#lib/ui/index.js';
+	import { Button, Field } from '#lib/ui/index.js';
 	import AddInputMenu from './AddInputMenu.svelte';
 	import { declaredSymbols, errorAt, freeSymbol, freshIds, inputNode, type RowIds } from './editor';
 	import NumberInput from './NumberInput.svelte';
@@ -46,11 +46,8 @@
 <section class="stack section inputs" aria-labelledby="inputs-heading">
 	<div class="section-head">
 		<h3 id="inputs-heading">Inputs</h3>
-		<InfoTip label="inputs"
-			>The things you're unsure about, each with a distribution. Pick Fixed for a number you already
-			know.</InfoTip
-		>
 	</div>
+	<p class="hint">What you're unsure about. Pick Fixed for a number you already know.</p>
 	{#if model.inputs.length}
 		<div class="cols input-cols" aria-hidden="true">
 			<span>Distribution</span><span>Name</span><span>Symbol</span><span class="params-head"
