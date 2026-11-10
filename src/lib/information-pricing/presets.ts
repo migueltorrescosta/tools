@@ -67,16 +67,25 @@ const airlineShareBuyback: Model = {
 /**
  * Portugal's corporate tax (IRC) rate path, in millions of euros. Lei 64/2025
  * sets 19% in 2026, 18% in 2027 and 17% in 2028; each option below 19% cuts a
- * point a year until it reaches its rate. Year k is 2025 + k. The reward is the
+ * point a year from 2027 until it reaches its rate. The reward is the
  * government's wealth at the end of 2035: minus the end-2025 debt, grown at the
- * debt's interest rate, plus the primary balances with IRC frozen at 19%,
- * minus the cuts' extra debt, plus the 2035 net effect of the cuts (tax on the
- * extra GDP minus the lost IRC) over `A` discounted years, standing in for
- * every later year. Sources: Banco de Portugal (end-2025 debt 275.1 bn€), CFP
- * (2025 primary surplus 2.6% of GDP, deficits expected from 2027), OE2026
- * report (2026 IRC revenue 9,532 M€, about 300 M€ per point), INE (2025 GDP
- * 307 bn€), and the Gechert-Heimberger meta-analysis for the growth effect,
- * whose bias-corrected mean is near zero.
+ * debt's interest rate, plus the primary balances with IRC frozen at 19%, plus
+ * the cuts' net effect over 2027-35 carried to 2035, plus their yearly net
+ * effect from 2036 over `A` discounted years.
+ *
+ * The years are summed in closed form. With the one-point-a-year ramp, the
+ * points cut summed over 2027-35 (`pty`) are cut*(19-cut)/2, and the GDP gains
+ * summed over those years (`gy`, each point-year raising growth by `e`) are
+ * cut*(cut^2-30*cut+299)/6. Flows over 2027-35 are valued at their 2031
+ * midpoint and carried to 2035 with four years of interest; the primary
+ * balances likewise. A share `c` of each year's IRC is collected that year and
+ * the rest the next, so a euro due is worth c + (1-c)/(1+i).
+ *
+ * Sources: Banco de Portugal (end-2025 debt 275.1 bn€), CFP (2025 primary
+ * surplus 2.6% of GDP, deficits expected from 2027), OE2026 report (2026 IRC
+ * revenue 9,532 M€, about 300 M€ per point), INE (2025 GDP 307 bn€), and the
+ * Gechert-Heimberger meta-analysis for the growth effect, whose bias-corrected
+ * mean is near zero.
  */
 const portugueseIrc: Model = {
 	inputs: [
@@ -129,44 +138,46 @@ const portugueseIrc: Model = {
 		}
 	],
 	intermediates: [
-		{ symbol: 'x2', name: 'Points below 19% in 2027', formula: '19 - max(r, 18)' },
-		{ symbol: 'x3', name: 'Points below 19% in 2028', formula: '19 - max(r, 17)' },
-		{ symbol: 'x4', name: 'Points below 19% in 2029', formula: '19 - max(r, 16)' },
-		{ symbol: 'x5', name: 'Points below 19% from 2030', formula: '19 - r' },
-		{ symbol: 'k2', name: 'Points collected in 2027', formula: 'c*x2' },
-		{ symbol: 'k3', name: 'Points collected in 2028', formula: 'c*x3 + (1-c)*x2' },
-		{ symbol: 'k4', name: 'Points collected in 2029', formula: 'c*x4 + (1-c)*x3' },
-		{ symbol: 'k5', name: 'Points collected in 2030', formula: 'c*x5 + (1-c)*x4' },
-		{ symbol: 'P3', name: 'Point-years of cuts to 2028', formula: 'x2 + x3' },
-		{ symbol: 'P4', name: 'Point-years of cuts to 2029', formula: 'P3 + x4' },
-		...[5, 6, 7, 8, 9, 10].map((k) => ({
-			symbol: `P${k}`,
-			name: `Point-years of cuts to ${2025 + k}`,
-			formula: `P${k - 1} + x5`
-		})),
-		{ symbol: 'W', name: 'Net cost per point in 2026 (M€)', formula: 'S*(1-b)' },
-		{ symbol: 'E', name: 'Tax per point-year of growth', formula: 't*e/100*Y0' },
-		{ symbol: 'N2', name: 'Net cost in 2027 (M€)', formula: 'W*(1+g)*k2 - E*x2*(1+n)^2' },
-		...[3, 4, 5, 6, 7, 8, 9, 10].map((k) => ({
-			symbol: `N${k}`,
-			name: `Net cost in ${2025 + k} (M€)`,
-			formula: `W*(1+g)^${k - 1}*${k <= 5 ? `k${k}` : 'x5'} - E*P${k}*(1+n)^${k}`
-		})),
-		{ symbol: 'D3', name: 'Extra debt end of 2028 (M€)', formula: 'N2*(1+i) + N3' },
-		...[4, 5, 6, 7, 8, 9, 10].map((k) => ({
-			symbol: `D${k}`,
-			name: `Extra debt end of ${2025 + k} (M€)`,
-			formula: `D${k - 1}*(1+i) + N${k}`
-		})),
-		{ symbol: 'q', name: 'GDP growth over interest', formula: '(1+n)/(1+i)' },
-		{ symbol: 'Q', name: 'Sum of q^k for 2026-35', formula: 'q*(1-q^10)/(1-q)' },
-		{ symbol: 'V10', name: 'Wealth end of 2035 at 19% (M€)', formula: '(W0 + p*Y0*Q)*(1+i)^10' }
+		{ symbol: 'cut', name: 'Points cut below 19%', formula: '19 - r' },
+		{ symbol: 'pty', name: 'Point-years of cuts, 2027-35', formula: 'cut*(19-cut)/2' },
+		{ symbol: 'gy', name: 'Point-years of growth, 2027-35', formula: 'cut*(cut^2-30*cut+299)/6' },
+		{ symbol: 'cpy', name: 'IRC lost/point-year 2031 (M€)', formula: 'S*(1-b)*(1+g)^5' },
+		{
+			symbol: 'gpy',
+			name: 'Growth tax/point-year 2031 (M€)',
+			formula: 't*e/100*Y0*(1+n)^6'
+		},
+		{
+			symbol: 'lag',
+			name: 'Value of IRC due, after the lag',
+			formula: 'c + (1-c)/(1+i)'
+		},
+		{ symbol: 'lost', name: 'IRC lost 2027-35 (M€)', formula: 'cpy*pty*lag' },
+		{ symbol: 'won', name: 'Growth tax 2027-35 (M€)', formula: 'gpy*gy' },
+		{
+			symbol: 'net',
+			name: 'Net effect 2027-35 at 2035 (M€)',
+			formula: '(won - lost)*(1+i)^4'
+		},
+		{ symbol: 'c35', name: 'IRC lost/point 2035 (M€)', formula: 'S*(1-b)*(1+g)^9' },
+		{
+			symbol: 'g35',
+			name: 'Growth tax/point-year 2035 (M€)',
+			formula: 't*e/100*Y0*(1+n)^10'
+		},
+		{ symbol: 'tail', name: 'Net yearly effect from 2036 (M€)', formula: 'g35*pty - c35*cut' },
+		{
+			symbol: 'PB',
+			name: 'Primary balances to 2035 (M€)',
+			formula: '10*p*Y0*(1+n)^6*(1+i)^5'
+		},
+		{ symbol: 'V10', name: 'Wealth end of 2035 at 19% (M€)', formula: 'W0*(1+i)^10 + PB' }
 	],
 	decisions: {
 		symbol: 'r',
 		values: [19, 18, 17, 16, 15],
 		label: 'IRC {r}%',
-		reward: 'V10 - D10 - A*N10',
+		reward: 'V10 + net + A*tail',
 		unit: 'M€'
 	},
 	seed: SEED,
