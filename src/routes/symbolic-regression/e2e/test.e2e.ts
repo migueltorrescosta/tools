@@ -568,3 +568,49 @@ test('50,000 rows × 20 columns load, stay responsive and search', async ({ page
 	await runUntilFront(page, 1);
 	await stopSearch(page);
 });
+
+test('three boxes: Run holds the data, How it works closes the last box', async ({ page }) => {
+	await open(page);
+	const boxes = page.getByRole('main').locator('.ui-panel');
+	// Before a run: Run (with the data) and Results; How it works ends Results
+	await expect(boxes).toHaveCount(2);
+	await expect(boxes.first().getByTestId('data')).toBeVisible();
+	await expect(boxes.last().getByTestId('how')).toBeVisible();
+
+	await loadExample(page, /Kepler/);
+	await runUntilFront(page, 2);
+	await stopSearch(page);
+	// After a run: the Plots box joins, and How it works moves to its end
+	await expect(boxes).toHaveCount(3);
+	await expect(page.getByTestId('plots').locator('.ui-panel')).toContainText('Complexity');
+	await expect(page.getByTestId('plots').getByTestId('how')).toBeVisible();
+	await expect(page.getByTestId('how')).toHaveCount(1);
+});
+
+test('equation size variant: 1.75× scales the equations and nothing overflows on a phone', async ({
+	page
+}) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.addInitScript(() => localStorage.setItem('proto2', JSON.stringify({ sreq: 's175' })));
+	await open(page);
+	await loadExample(page, /Kepler/);
+	await runUntilFront(page, 2);
+	await stopSearch(page);
+
+	const equation = page.getByTestId('equation');
+	await expect(equation.locator('.katex-html')).toBeVisible();
+	const [size, base] = await equation.evaluate((el) => {
+		const probe = document.createElement('span');
+		probe.style.fontSize = 'var(--text-xl)';
+		document.body.append(probe);
+		const px = parseFloat(getComputedStyle(probe).fontSize);
+		probe.remove();
+		return [parseFloat(getComputedStyle(el).fontSize), px];
+	});
+	expect(size).toBeCloseTo(base * 1.75, 1);
+	await expect(frontRows(page).first().getByTestId('row-equation')).toBeVisible();
+	const overflow = await page.evaluate(
+		() => document.documentElement.scrollWidth - document.documentElement.clientWidth
+	);
+	expect(overflow).toBeLessThanOrEqual(0);
+});

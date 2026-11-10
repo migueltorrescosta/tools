@@ -747,9 +747,7 @@
 				{/snippet}
 				<p class="muted" data-testid="progress">{progressText}</p>
 				{#if runError}<Alert tone="danger">{runError}</Alert>{/if}
-			</RunControls>
-			<Panel title="Data">
-				<div class="stack">
+				<div class="stack data" data-testid="data">
 					<div
 						class="dropzone"
 						class:dragging
@@ -834,7 +832,7 @@
 						</fieldset>
 					{/if}
 				</div>
-			</Panel>
+			</RunControls>
 		</div>
 
 		<div class="results">
@@ -957,62 +955,70 @@
 						{/if}
 					</div>
 				{/if}
+				{#if front.length === 0}{@render how()}{/if}
 			</Panel>
 		</div>
 
 		{#if front.length > 0}
-			<aside class="plots" aria-label="Plots" data-testid="plots">
-				<p class="muted plots-for" data-testid="plots-for">
-					{#if plotEntry}Complexity {plotEntry.complexity}{previewed !== null
-							? ' (preview)'
-							: ''}{/if}
-				</p>
-				<FrontPlot
-					{front}
-					{colors}
-					{selected}
-					{recommended}
-					height={PLOT_H}
-					highlighted={previewed}
-					onSelect={(i) => (selected = i)}
-					onHover={(i) => (previewed = i)}
-					tooltip={metricsTip}
-				/>
-				<ScatterPlot
-					title="Predicted vs actual (validation)"
-					testId="predicted-plot"
-					height={PLOT_H}
-					points={predictedPoints}
-					xLabel="Actual {frontTarget}"
-					yLabel="Predicted"
-					identityLine
-				/>
-				<ScatterPlot
-					title="{frontTarget} against {frontNames[plotInput] ?? ''}"
-					testId="input-plot"
-					height={PLOT_H}
-					points={inputPoints.actual}
-					overlay={inputPoints.predicted}
-					pointsLabel="Actual"
-					overlayLabel="Predicted"
-					xLabel={frontNames[plotInput] ?? ''}
-					yLabel={frontTarget}
-				>
-					{#snippet caption()}
-						{frontTarget} against
-						<select
-							class="control input-select"
-							aria-label="Plot against input"
-							bind:value={plotInput}
+			<div class="plots" data-testid="plots">
+				<Panel title="Plots">
+					<div class="plot-stack">
+						<p class="muted plots-for" data-testid="plots-for">
+							{#if plotEntry}Complexity {plotEntry.complexity}{previewed !== null
+									? ' (preview)'
+									: ''}{/if}
+						</p>
+						<FrontPlot
+							{front}
+							{colors}
+							{selected}
+							{recommended}
+							height={PLOT_H}
+							highlighted={previewed}
+							onSelect={(i) => (selected = i)}
+							onHover={(i) => (previewed = i)}
+							tooltip={metricsTip}
+						/>
+						<ScatterPlot
+							title="Predicted vs actual (validation)"
+							testId="predicted-plot"
+							height={PLOT_H}
+							points={predictedPoints}
+							xLabel="Actual {frontTarget}"
+							yLabel="Predicted"
+							identityLine
+						/>
+						<ScatterPlot
+							title="{frontTarget} against {frontNames[plotInput] ?? ''}"
+							testId="input-plot"
+							height={PLOT_H}
+							points={inputPoints.actual}
+							overlay={inputPoints.predicted}
+							pointsLabel="Actual"
+							overlayLabel="Predicted"
+							xLabel={frontNames[plotInput] ?? ''}
+							yLabel={frontTarget}
 						>
-							{#each frontNames as name, i (i)}<option value={i}>{name}</option>{/each}
-						</select>
-					{/snippet}
-				</ScatterPlot>
-			</aside>
+							{#snippet caption()}
+								{frontTarget} against
+								<select
+									class="control input-select"
+									aria-label="Plot against input"
+									bind:value={plotInput}
+								>
+									{#each frontNames as name, i (i)}<option value={i}>{name}</option>{/each}
+								</select>
+							{/snippet}
+						</ScatterPlot>
+					</div>
+					{@render how()}
+				</Panel>
+			</div>
 		{/if}
 	</div>
+</div>
 
+{#snippet how()}
 	<details class="how" data-testid="how">
 		<summary>How it works</summary>
 		<p>
@@ -1048,7 +1054,7 @@
 			>.
 		</p>
 	</details>
-</div>
+{/snippet}
 
 <style>
 	.sr-page {
@@ -1076,6 +1082,9 @@
 			grid-column: 3;
 			position: sticky;
 			top: calc(var(--topbar-h) + var(--sp-2));
+		}
+		/* The box itself scrolls, so its edges stay whole */
+		.plots > :global(.ui-panel) {
 			max-height: calc(100vh - var(--topbar-h) - var(--sp-3));
 			overflow-y: auto;
 		}
@@ -1085,10 +1094,22 @@
 	.plots {
 		min-width: 0;
 	}
-	.plots {
+	.plot-stack {
 		display: flex;
 		flex-direction: column;
-		gap: var(--sp-2);
+		gap: var(--sp-3);
+	}
+	/* The Data part of the Setup box, after a hairline */
+	.data {
+		padding-top: var(--sp-3);
+		border-top: 1px solid var(--border);
+	}
+	/* How it works closes the last box, after a hairline */
+	.how {
+		margin-top: var(--sp-4);
+		padding-top: var(--sp-2);
+		border-top: 1px solid var(--border);
+		container-type: inline-size;
 	}
 	.plots-for {
 		min-height: 1lh;
@@ -1135,7 +1156,7 @@
 	.glossary dd {
 		margin: 0;
 	}
-	@media (max-width: 600px) {
+	@container (max-width: 600px) {
 		.glossary {
 			grid-template-columns: minmax(0, 1fr);
 		}
@@ -1150,15 +1171,8 @@
 	p {
 		margin: 0;
 	}
-	.dropzone {
-		border: 1px dashed var(--border-strong);
-		border-radius: var(--radius);
-		padding: var(--sp-2) var(--sp-3);
-		background: var(--sunken);
-	}
+	/* A plain line; dropping a file on it still works, and only the background marks the drag */
 	.dropzone.dragging {
-		border-color: var(--accent);
-		border-style: solid;
 		background: var(--accent-bg);
 	}
 	.file-label {
@@ -1220,7 +1234,8 @@
 		display: flex;
 		align-items: center;
 		gap: var(--sp-2);
-		font-size: var(--text-xl);
+		/* --sr-eq-scale: the equation size the owner is trying out (proto.sreq) */
+		font-size: calc(var(--sr-eq-scale, 1) * var(--text-xl));
 		overflow-x: auto;
 	}
 	.copy-row {
@@ -1332,6 +1347,7 @@
 		color: var(--text-muted);
 	}
 	.row-eq {
+		font-size: calc(var(--sr-eq-scale, 1) * var(--text-sm));
 		min-width: 0;
 		overflow: auto hidden;
 	}
