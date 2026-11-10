@@ -1,60 +1,65 @@
-/* Look prototype (branch redesign-proto2): glass boxes and coarser paper, switched by data-* on <html>. */
+/* Review prototype (branch redesign-proto2): box glass in both themes, switched by data-* on <html>. */
 :root {
-	--gl: oklch(0.99 0.004 250);
-	--gd: oklch(0.19 0.06 258);
-	--gl-edge: var(--border);
-	--gd-edge: oklch(1 0 0 / 0.2);
-}
-:root[data-glass='g80'] {
-	--gl: oklch(0.99 0.004 250 / 0.8);
-	--gl-edge: oklch(1 0 0 / 0.75);
-}
-:root[data-glass='g65'] {
-	--gl: oklch(0.99 0.004 250 / 0.65);
-	--gl-edge: oklch(1 0 0 / 0.75);
-}
-:root[data-glass='g50'] {
 	--gl: oklch(0.99 0.004 250 / 0.5);
-	--gl-edge: oklch(1 0 0 / 0.8);
-}
-:root[data-night='smoked'] {
-	--gd: oklch(0.15 0.05 258 / 0.62);
-	--gd-edge: oklch(1 0 0 / 0.16);
-}
-:root[data-night='frosted'] {
 	--gd: oklch(1 0 0 / 0.09);
+	--gl-edge: oklch(1 0 0 / 0.8);
 	--gd-edge: oklch(1 0 0 / 0.24);
+	--glass-blur-l: blur(10px) saturate(1.1);
+	--glass-blur-d: blur(10px) saturate(1.1);
+	/* The frosted dark boxes are lighter than the page: no ink-well inner shadow. */
+	--shadow-inset: transparent;
+}
+:root[data-glass='g40'] {
+	--gl: oklch(0.99 0.004 250 / 0.4);
+	--glass-blur-l: none;
+}
+:root[data-glass='g20'] {
+	--gl: oklch(0.99 0.004 250 / 0.2);
+	--glass-blur-l: none;
+}
+:root[data-glass='g40b4'] {
+	--gl: oklch(0.99 0.004 250 / 0.4);
+	--glass-blur-l: blur(4px);
+}
+:root[data-night='d40'] {
+	--gd: oklch(0.42 0.07 258 / 0.4);
+	--glass-blur-d: none;
+}
+:root[data-night='d20'] {
+	--gd: oklch(0.42 0.07 258 / 0.2);
+	--glass-blur-d: none;
+}
+:root[data-night='d40b4'] {
+	--gd: oklch(0.42 0.07 258 / 0.4);
+	--glass-blur-d: blur(4px);
 }
 
-html:root :is(.ui-panel, .sheet, .plot, .ui-fold.boxed) {
+/* Every box on the site is a Panel (or the homepage sheet, or a boxed Fold). backdrop-filter
+   is not a colour, so light-dark() cannot pick it: the theme's colour-scheme picks the rule. */
+html:root :is(.ui-panel, .sheet, .ui-fold.boxed) {
 	background: light-dark(var(--gl), var(--gd));
 	border-color: light-dark(var(--gl-edge), var(--gd-edge));
-	-webkit-backdrop-filter: blur(10px) saturate(1.1);
-	backdrop-filter: blur(10px) saturate(1.1);
+	-webkit-backdrop-filter: var(--glass-blur-l);
+	backdrop-filter: var(--glass-blur-l);
 }
-/* The frosted dark boxes are lighter than the page: drop the ink-well inner shadow there. */
-:root[data-night='frosted'] {
-	--shadow-inset: light-dark(transparent, transparent);
+@media (prefers-color-scheme: dark) {
+	html:root:not([style*='color-scheme: light']) :is(.ui-panel, .sheet, .ui-fold.boxed) {
+		-webkit-backdrop-filter: var(--glass-blur-d);
+		backdrop-filter: var(--glass-blur-d);
+	}
+}
+html:root[style*='color-scheme: dark'] :is(.ui-panel, .sheet, .ui-fold.boxed) {
+	-webkit-backdrop-filter: var(--glass-blur-d);
+	backdrop-filter: var(--glass-blur-d);
 }
 
-/* Paper */
-:root[data-grid='half'] body::before {
-	background:
-		linear-gradient(var(--grid-strong) 1px, transparent 1px) 0 0 / 20px 20px,
-		linear-gradient(90deg, var(--grid-strong) 1px, transparent 1px) 0 0 / 20px 20px,
-		var(--bg);
+/* Symbolic Regression: equation size (owner asked to explore it). */
+:root[data-sreq='s125'] {
+	--sr-eq-scale: 1.25;
 }
-:root[data-grid='cm'] body::before {
-	background:
-		linear-gradient(var(--grid-strong) 1px, transparent 1px) 0 0 / 40px 40px,
-		linear-gradient(90deg, var(--grid-strong) 1px, transparent 1px) 0 0 / 40px 40px,
-		var(--bg);
+:root[data-sreq='s150'] {
+	--sr-eq-scale: 1.5;
 }
-:root[data-grid='cmhalf'] body::before {
-	background:
-		linear-gradient(var(--grid-strong) 1px, transparent 1px) 0 0 / 40px 40px,
-		linear-gradient(90deg, var(--grid-strong) 1px, transparent 1px) 0 0 / 40px 40px,
-		linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 20px 20px,
-		linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 20px 20px,
-		var(--bg);
+:root[data-sreq='s175'] {
+	--sr-eq-scale: 1.75;
 }

@@ -1,33 +1,56 @@
 /**
- * Look prototype (branch redesign-proto2, never merged): each open look question
- * is an axis on <html> as data-<axis>; proto.css switches on it. The first value
- * of each axis is only where the panel starts, not a suggestion.
+ * Review prototype (branch redesign-proto2, never merged): each option the owner
+ * is still validating is an axis on <html> as data-<axis>, read by proto.css and,
+ * for layouts, by the tool itself through `proto`. The first value of each axis
+ * is the owner's own pick; the others are the challenges proposed against it.
  */
 export const AXES = {
 	glass: {
 		label: 'Boxes, light theme',
 		values: {
-			solid: 'Solid white (today)',
-			g80: 'Glass, 80% opaque',
-			g65: 'Glass, 65% opaque',
-			g50: 'Glass, 50% opaque'
+			g50b: '50% opaque, blurred (your pick)',
+			g40: '40% opaque, no blur',
+			g20: '20% opaque, no blur',
+			g40b4: '40% opaque, light blur (proposal)'
 		}
 	},
 	night: {
 		label: 'Boxes, dark theme',
 		values: {
-			wells: 'Solid ink wells (today)',
-			smoked: 'Smoked glass (darker, see-through)',
-			frosted: 'Frosted glass (lighter, white-tinted)'
+			frostb: 'Frosted, blurred (your pick)',
+			d40: '40% opaque, no blur',
+			d20: '20% opaque, no blur',
+			d40b4: '40% opaque, light blur (proposal)'
 		}
 	},
-	grid: {
-		label: 'Paper',
+	home: {
+		label: 'Homepage',
 		values: {
-			mm: 'Millimetre: 8px and 40px (today)',
-			half: '5 mm squares: 20px',
-			cm: '1 cm squares: 40px',
-			cmhalf: '1 cm squares with faint 5 mm'
+			c: 'Find box beside the list (your pick)',
+			cplus: 'Same, plus the groups as links (proposal)'
+		}
+	},
+	ip: {
+		label: 'Information Pricing',
+		values: { today: 'As today (your pick)', flat: 'As today, flattened (proposal)' }
+	},
+	rv: {
+		label: 'Rank Vote',
+		values: { today: 'As today (your pick)', flat: 'As today, flattened (proposal)' }
+	},
+	split: {
+		label: 'Asset Splitting',
+		values: { today: 'As today (your pick)', flat: 'As today, flattened (proposal)' }
+	},
+	sreq: {
+		label: 'Symbolic Regression equations',
+		values: { s100: 'Today’s size', s125: '1.25×', s150: '1.5×', s175: '1.75×' }
+	},
+	wordle: {
+		label: 'Wordle help',
+		values: {
+			none: 'No help, NYT link (your pick)',
+			hint: 'NYT link plus one hint line (proposal)'
 		}
 	}
 } as const;

@@ -18,12 +18,10 @@ body::before {
 	inset: 0;
 	z-index: -1;
 	pointer-events: none;
-	/* Millimetre paper: a fine line every 8px and a darker one every 40px. */
+	/* 5 mm paper: one line every 20px (owner, round 5). */
 	background:
-		linear-gradient(var(--grid-strong) 1px, transparent 1px) 0 0 / 40px 40px,
-		linear-gradient(90deg, var(--grid-strong) 1px, transparent 1px) 0 0 / 40px 40px,
-		linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 8px 8px,
-		linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 8px 8px,
+		linear-gradient(var(--grid-strong) 1px, transparent 1px) 0 0 / 20px 20px,
+		linear-gradient(90deg, var(--grid-strong) 1px, transparent 1px) 0 0 / 20px 20px,
 		var(--bg);
 }
 
