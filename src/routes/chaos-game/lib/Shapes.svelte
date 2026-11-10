@@ -165,12 +165,6 @@
 		color: var(--text-muted);
 	}
 
-	.hint {
-		margin: 0;
-		font-size: var(--text-sm);
-		color: var(--text-muted);
-	}
-
 	.status p {
 		margin: 0 0 var(--sp-1);
 	}

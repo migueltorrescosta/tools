@@ -715,7 +715,7 @@
 					{/each}
 				</div>
 			{:else}
-				<p class="muted">Fix the parameters to see the distributions.</p>
+				<p class="hint">Fix the parameters to see the distributions.</p>
 			{/if}
 		</div>
 	</div>
@@ -747,7 +747,7 @@
 				</select>
 			{/snippet}
 		</Field>
-		<p class="muted">
+		<p class="hint">
 			{settings.noise2 === 'perPoint'
 				? 'Each point has its own Gaussian error (columns x, y, σx, σy and an optional ρ when you upload).'
 				: 'The noise’s family is the one in the model above.'}
@@ -781,7 +781,7 @@
 					{/snippet}
 				</Field>
 			</div>
-			<p class="muted">
+			<p class="hint">
 				Each axis of each point gets normal noise with its own σ; the noise model above isn’t used.
 			</p>
 		{/if}
@@ -815,18 +815,18 @@
 					/>
 					<span>
 						<strong>{NAMES[m]}</strong>
-						<span class="muted">{HINTS[m]}</span>
+						<span class="hint">{HINTS[m]}</span>
 					</span>
 				</label>
 			{/each}
 		</fieldset>
-		<p class="muted">g-modeling and kernel deconvolution are 1D only.</p>
+		<p class="hint">g-modeling and kernel deconvolution are 1D only.</p>
 		{#if settings.noise2 === 'known'}
 			<label class="check">
 				<input type="checkbox" bind:checked={settings.fitNoise2} data-testid="fit-noise2" />
 				The parametric fit also fits the noise
 			</label>
-			<p class="muted">The NPMLE and the mixture use the noise as entered.</p>
+			<p class="hint">The NPMLE and the mixture use the noise as entered.</p>
 		{/if}
 	</Fold>
 </Panel>
@@ -839,15 +839,15 @@
 	onstop={stop}
 >
 	{#if !data}
-		<p id="run2-why" class="muted">
+		<p id="run2-why" class="hint">
 			{settings.source === 'uploaded' ? 'Add two-column data above first.' : 'Fix the model first.'}
 		</p>
 	{:else if chosen.length === 0}
-		<p id="run2-why" class="muted">Pick at least one method.</p>
+		<p id="run2-why" class="hint">Pick at least one method.</p>
 	{/if}
-	{#if running}<p class="muted" role="status">Fitting…</p>{/if}
+	{#if running}<p class="hint" role="status">Fitting…</p>{/if}
 	{#if runError}<Alert tone="danger">{runError}</Alert>{/if}
-	{#if run && !running}<p class="muted" role="status" data-testid="run-status">
+	{#if run && !running}<p class="hint" role="status" data-testid="run-status">
 			Done in {(run.ms / 1000).toFixed(1)} s on {run.xs.length.toLocaleString('en')} points.
 		</p>{/if}
 </RunControls>
@@ -935,7 +935,7 @@
 				data-testid="fit-tables"
 			>
 				<DataTable caption="Fits" {columns} {rows} rowKey={(r) => r.method} />
-				{#if !run.truth}<p class="muted">
+				{#if !run.truth}<p class="hint">
 						Sliced W₁ and L₁ need the true signal, so they show for simulated data only.
 					</p>{/if}
 				{#if paramRows.length}
@@ -982,7 +982,7 @@
 			{#if !run.cov && run.grids.some((g) => g.method === 'gmm')}
 				<div class="subsection">
 					<h4>Bootstrap bands</h4>
-					<p class="muted">
+					<p class="hint">
 						Refits the Gaussian mixture on resampled data and shades where 90% of its marginals
 						fall.
 					</p>
@@ -1008,7 +1008,7 @@
 							data-testid="bootstrap2">Run bootstrap</Button
 						>
 						<Button variant="danger" onclick={stop} disabled={!booting}>Stop</Button>
-						{#if booting}<span class="muted" role="status">{bootDone} / {settings.bootstrapB}</span
+						{#if booting}<span class="hint" role="status">{bootDone} / {settings.bootstrapB}</span
 							>{/if}
 					</div>
 				</div>
@@ -1093,10 +1093,5 @@
 		display: flex;
 		gap: var(--sp-1);
 		align-items: center;
-	}
-	.muted {
-		color: var(--text-muted);
-		font-size: var(--text-sm);
-		margin: 0;
 	}
 </style>

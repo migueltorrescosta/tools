@@ -229,7 +229,7 @@
 						<Alert tone="danger">{rsaKeyError}</Alert>
 					{/if}
 				{:else}
-					<p class="note">{selectedAlgorithm} is an encoding, not encryption: it needs no key.</p>
+					<p class="hint">{selectedAlgorithm} is an encoding, not encryption: it needs no key.</p>
 				{/if}
 
 				<Field label="Message" error={messageError}>
@@ -328,12 +328,6 @@
 
 	.text {
 		min-height: 6rem;
-	}
-
-	.note {
-		margin: 0;
-		font-size: var(--text-sm);
-		color: var(--text-muted);
 	}
 
 	.out {

@@ -20,6 +20,13 @@
 	border: 0;
 }
 
+/* A one-line hint under a control or heading, in place of an (i) icon. */
+.hint {
+	margin: 0;
+	font-size: var(--text-sm);
+	color: var(--text-muted);
+}
+
 /* Vertical rhythm: children separated by --gap. */
 .stack {
 	display: flex;

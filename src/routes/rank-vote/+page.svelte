@@ -361,7 +361,7 @@
 	{#if qrDataUrl}
 		<img src={qrDataUrl} alt="QR code of the vote link" width="200" height="200" />
 	{:else}
-		<p class="rv-muted">QR generation failed. Copy the link instead.</p>
+		<p class="hint">QR generation failed. Copy the link instead.</p>
 	{/if}
 	<form method="dialog">
 		<Button type="submit">Close</Button>
@@ -435,7 +435,7 @@
 				<Button href={'#tally=' + encodedBallot} variant="ghost" size="sm">← Tally</Button>
 				<h2>{election.title}</h2>
 			</div>
-			<p class="rv-muted">Rank the choices in your preferred order.</p>
+			<p class="hint">Rank the choices in your preferred order.</p>
 
 			<ol class="rv-ranking" aria-label="Your ranking">
 				{#each ranking as choiceIdx, r (choiceIdx)}
@@ -470,7 +470,7 @@
 				<div>
 					<Button variant="primary" onclick={sendVote}>Send my vote</Button>
 				</div>
-				<p class="rv-muted">
+				<p class="hint">
 					Sends your vote code (<output class="rv-code" data-testid="vote-code"
 						>{currentVoteCode}</output
 					>) to whoever shared this link.
@@ -565,9 +565,7 @@
 			<div class="split-view rv-tally-top">
 				<Panel title="Share" level={3}>
 					<div class="stack">
-						<p class="rv-muted">
-							Send voters this link. Each one sends you back a short vote code.
-						</p>
+						<p class="hint">Send voters this link. Each one sends you back a short vote code.</p>
 						<div class="cluster">
 							<CopyIconButton text={getVoteURL()} label="Copy vote link" onerror={copyFailed} />
 							<Button onclick={() => openQRDialog(getVoteURL())}>QR code</Button>
@@ -577,7 +575,7 @@
 
 				<Panel title="Votes" level={3}>
 					<div class="stack">
-						<p class="rv-muted">
+						<p class="hint">
 							<span data-testid="vote-count">{plural(votes.length, 'vote')}</span
 							>{#if votes.length}<span data-testid="voter-names">{` · ${voterNames}`}</span>{/if}
 						</p>
@@ -612,17 +610,17 @@
 											</p>
 											<ul class="rv-bad-lines">
 												{#each parsed.unrecognised as u (u.line)}
-													<li><span class="rv-muted">Line {u.line}:</span> {u.text}</li>
+													<li><span class="hint">Line {u.line}:</span> {u.text}</li>
 												{/each}
 											</ul>
 										</Alert>
 									{:else}
-										<p class="rv-muted" data-testid="paste-status">
+										<p class="hint" data-testid="paste-status">
 											{plural(votes.length, 'vote')} read
 										</p>
 									{/if}
 									{#if parsed.replaced.length}
-										<p class="rv-muted">
+										<p class="hint">
 											A later line replaces the earlier vote from {parsed.replaced.join(', ')}.
 										</p>
 									{/if}
@@ -678,15 +676,10 @@
 		margin: 0;
 	}
 
-	.rv-muted,
 	.rv-note {
 		margin: 0;
-		font-size: var(--text-sm);
-		color: var(--text-muted);
-	}
-
-	.rv-note {
 		font-size: var(--text-xs);
+		color: var(--text-muted);
 	}
 
 	.rv-mono {
@@ -831,7 +824,7 @@
 		overflow-wrap: anywhere;
 	}
 
-	.rv-bad-lines .rv-muted {
+	.rv-bad-lines .hint {
 		font-size: inherit;
 	}
 

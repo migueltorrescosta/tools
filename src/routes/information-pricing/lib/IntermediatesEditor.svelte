@@ -94,15 +94,10 @@
 			>
 		</div>
 	{:else}
-		<p class="muted">None yet. Add one to name a step of the reward.</p>
+		<p class="hint">None yet. Add one to name a step of the reward.</p>
 	{/each}
 	<div><Button size="sm" onclick={add} disabled={full}>Add intermediate</Button></div>
 </section>
 
 <style>
-	.muted {
-		margin: 0;
-		font-size: var(--text-sm);
-		color: var(--text-muted);
-	}
 </style>

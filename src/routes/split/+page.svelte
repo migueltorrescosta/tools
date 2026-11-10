@@ -515,7 +515,7 @@
 				aria-describedby={startMsg ? 'start-error' : undefined}
 				onclick={toStart}>Start</Button
 			>
-			{#if startMsg}<p id="start-error" class="note">{startMsg}</p>{/if}
+			{#if startMsg}<p id="start-error" class="hint">{startMsg}</p>{/if}
 		</div>
 	{:else if phase === 'start'}
 		<Panel title="Start">
@@ -547,7 +547,7 @@
 					{/each}
 				</ul>
 
-				<p class="note" data-testid="claim-hint">
+				<p class="hint" data-testid="claim-hint">
 					Tap your initials on each item you want.{anyClaim ? '' : ' Nothing is picked yet.'}
 				</p>
 				<ul class="pills" aria-label="Items to claim">
@@ -590,7 +590,7 @@
 				</p>
 				<div class="drop" data-testid="split-unplaced" aria-label="Not placed yet" role="group">
 					{#each unplaced as i (people[i].id)}{@render personCard(i)}{/each}
-					{#if unplaced.length === 0}<p class="note">Everyone has picked.</p>{/if}
+					{#if unplaced.length === 0}<p class="hint">Everyone has picked.</p>{/if}
 				</div>
 
 				{#if fallback}
@@ -644,7 +644,7 @@
 								{#each itemOrder.filter((k) => g.includes(k)) as k (k)}<li class="pill">
 										{items[k].description}
 									</li>{/each}
-								{#if g.length === 0}<li class="note">(empty)</li>{/if}
+								{#if g.length === 0}<li class="hint">(empty)</li>{/if}
 							</ul>
 							<div class="drop">
 								{#each onGroup[gi] ?? [] as i (people[i].id)}{@render personCard(i)}{/each}
@@ -692,14 +692,14 @@
 						{/if}
 					</section>
 					{#if final.fallback}
-						<p class="note">
+						<p class="hint">
 							This is the best split found so far, so someone may still prefer another group.
 						</p>
 					{/if}
 				{/if}
 				<section class="owners" aria-labelledby="owners-heading">
 					<h3 id="owners-heading">Who gets what</h3>
-					<p class="note">
+					<p class="hint">
 						Drag items between people to try a different split, then check it with everyone again.
 					</p>
 					<div class="groups">
@@ -747,7 +747,7 @@
 											</li>
 										{/if}
 									{/each}
-									{#if !editOwner.includes(i)}<li class="note">(none)</li>{/if}
+									{#if !editOwner.includes(i)}<li class="hint">(none)</li>{/if}
 								</ul>
 							</section>
 						{/each}
@@ -814,12 +814,6 @@
 {/snippet}
 
 <style>
-	.note {
-		margin: 0;
-		font-size: var(--text-sm);
-		color: var(--text-muted);
-	}
-
 	.pills {
 		display: flex;
 		flex-wrap: wrap;

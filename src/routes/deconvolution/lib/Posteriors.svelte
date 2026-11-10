@@ -167,13 +167,13 @@
 {#if model}
 	<div class="subsection">
 		<h4>Bayesian fit</h4>
-		<p class="muted">
+		<p class="hint">
 			Samples the parametric model's posterior under an objective (Jeffreys) prior: 4 chains, half
 			of each spent warming up. Credible intervals behave better than the 95% intervals near a
 			range's edge and in small samples.
 		</p>
 		{#if blocked}
-			<p class="muted" data-testid="bayes{suffix}-blocked">{blocked}</p>
+			<p class="hint" data-testid="bayes{suffix}-blocked">{blocked}</p>
 		{:else}
 			<div class="row">
 				<Field label="Draws per chain">
@@ -198,7 +198,7 @@
 				<Button variant="danger" onclick={() => pool().stop()} disabled={progress?.what !== 'bayes'}
 					>Stop</Button
 				>
-				{#if progress?.what === 'bayes'}<span class="muted" role="status">{percent}%</span>{/if}
+				{#if progress?.what === 'bayes'}<span class="hint" role="status">{percent}%</span>{/if}
 			</div>
 		{/if}
 		{#if unconverged.length}
@@ -225,7 +225,7 @@
 {#if npmleTask}
 	<div class="subsection">
 		<h4>NPMLE posterior</h4>
-		<p class="muted">
+		<p class="hint">
 			Samples the grid masses under a Dirichlet prior with {priorText} and shades where 90% of the draws
 			fall, with the noise the other methods used.
 		</p>
@@ -238,17 +238,12 @@
 			<Button variant="danger" onclick={() => pool().stop()} disabled={progress?.what !== 'npmle'}
 				>Stop</Button
 			>
-			{#if progress?.what === 'npmle'}<span class="muted" role="status">{percent}%</span>{/if}
+			{#if progress?.what === 'npmle'}<span class="hint" role="status">{percent}%</span>{/if}
 		</div>
 	</div>
 {/if}
 
 <style>
-	.muted {
-		color: var(--text-muted);
-		font-size: var(--text-sm);
-		margin: 0;
-	}
 	.subsection {
 		display: flex;
 		flex-direction: column;

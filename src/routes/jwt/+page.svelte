@@ -185,7 +185,7 @@
 							{#each decodeWarnings as warning, i (i)}<div>{warning}</div>{/each}
 						</Alert>
 					{/if}
-					{#if copyStatus}<p class="muted" role="status">{copyStatus}</p>{/if}
+					{#if copyStatus}<p class="hint" role="status">{copyStatus}</p>{/if}
 				</div>
 			</Panel>
 		</div>
@@ -223,7 +223,7 @@
 					/>
 				</div>
 			{:else}
-				<p class="muted" data-testid="algorithm-text">
+				<p class="hint" data-testid="algorithm-text">
 					Algorithm: {selectedAlgorithm}{selectedAlgorithm === tokenAlgorithm
 						? ', from the token header'
 						: ''} ·
@@ -261,7 +261,7 @@
 					{#if decodedHeaderJson}
 						<pre>{decodedHeaderJson}</pre>
 					{:else}
-						<p class="muted">No token to decode</p>
+						<p class="hint">No token to decode</p>
 					{/if}
 				</div>
 			</Panel>
@@ -280,7 +280,7 @@
 					{#if decodedPayloadJson}
 						<pre>{decodedPayloadJson}</pre>
 					{:else}
-						<p class="muted">No token to decode</p>
+						<p class="hint">No token to decode</p>
 					{/if}
 					{#if claims.length}
 						<div class="claims">
@@ -299,7 +299,7 @@
 	</div>
 
 	<Fold boxed label="Edit and re-sign this token" class="encode">
-		<p class="muted">Signs with the secret or key under Verify signature.</p>
+		<p class="hint">Signs with the secret or key under Verify signature.</p>
 		<div class="split-view">
 			<Field label="Header (JSON)" error={headerError || undefined}>
 				{#snippet children(props)}
@@ -396,12 +396,6 @@
 	pre {
 		margin: 0;
 		white-space: pre-wrap;
-	}
-
-	.muted {
-		margin: 0;
-		font-size: var(--text-sm);
-		color: var(--text-muted);
 	}
 
 	.claims {

@@ -250,12 +250,6 @@
 </Panel>
 
 <style>
-	.hint {
-		margin: 0;
-		font-size: var(--text-sm);
-		color: var(--text-muted);
-	}
-
 	.builder {
 		display: flex;
 		flex-wrap: wrap;

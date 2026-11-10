@@ -973,7 +973,7 @@
 								{/snippet}
 							</Field>
 						</div>
-						<p class="muted">
+						<p class="hint">
 							Each point gets normal noise with its own σ; the noise model above isn't used.
 						</p>
 					{/if}
@@ -1041,7 +1041,7 @@
 							summary="Densities of the signal X, the noise Y and the observed Z = X + Y, with a histogram of the simulated sample."
 						/>
 					{:else}
-						<p class="muted">Fix the parameters to see the distributions.</p>
+						<p class="hint">Fix the parameters to see the distributions.</p>
 					{/if}
 				</div>
 			</div>
@@ -1080,17 +1080,17 @@
 					{/snippet}
 				</Field>
 				{#if settings.noise === 'known'}
-					<p class="muted">The noise's family is the one in the model above.</p>
+					<p class="hint">The noise's family is the one in the model above.</p>
 				{:else if settings.noise === 'perPoint'}
-					<p class="muted">
+					<p class="hint">
 						Each point has its own normal error σᵢ (a second column when you upload).
 					</p>
 				{:else if settings.noise === 'symmetric'}
-					<p class="muted">
+					<p class="hint">
 						Only that the noise is symmetric about 0; X must have no symmetric part.
 					</p>
 				{:else if settings.noise === 'replicates'}
-					<p class="muted">Each row holds 2–5 readings of the same X (columns when you upload).</p>
+					<p class="hint">Each row holds 2–5 readings of the same X (columns when you upload).</p>
 				{/if}
 			</Fold>
 			{#if uploadWarning}
@@ -1117,7 +1117,7 @@
 							/>
 							<span>
 								<strong>{METHOD_NAMES[m]}</strong>
-								<span class="muted">{METHOD_HINTS[m]}</span>
+								<span class="hint">{METHOD_HINTS[m]}</span>
 							</span>
 						</label>
 					{/each}
@@ -1196,15 +1196,15 @@
 			onstop={stop}
 		>
 			{#if !data}
-				<p id="run-why" class="muted">
+				<p id="run-why" class="hint">
 					{settings.source === 'uploaded' ? 'Add your data above first.' : 'Fix the model first.'}
 				</p>
 			{:else if chosen.length === 0}
-				<p id="run-why" class="muted">Pick at least one method.</p>
+				<p id="run-why" class="hint">Pick at least one method.</p>
 			{/if}
-			{#if running}<p class="muted" role="status">Fitting…</p>{/if}
+			{#if running}<p class="hint" role="status">Fitting…</p>{/if}
 			{#if runError}<Alert tone="danger">{runError}</Alert>{/if}
-			{#if run && !running}<p class="muted" role="status" data-testid="run-status">
+			{#if run && !running}<p class="hint" role="status" data-testid="run-status">
 					Done in {(run.ms / 1000).toFixed(1)} s on {run.data.length.toLocaleString('en')} points.
 				</p>{/if}
 		</RunControls>
@@ -1267,7 +1267,7 @@
 						data-testid="fit-tables"
 					>
 						<DataTable caption="Fits" {columns} {rows} rowKey={(r) => r.method} />
-						{#if !run.truth}<p class="muted">
+						{#if !run.truth}<p class="hint">
 								W₁ and L₁ need the true signal, so they show for simulated data only.
 							</p>{/if}
 						{#if paramRows.length}
@@ -1315,7 +1315,7 @@
 					{#if run.regime === 'known'}
 						<div class="subsection">
 							<h4>Compare signal families</h4>
-							<p class="muted">
+							<p class="hint">
 								Fits every family for X with this noise and ranks them by BIC (lower is better).
 							</p>
 							<div>
@@ -1362,7 +1362,7 @@
 					{#if runGrids.some((g) => g.method !== 'npmle') && run?.regime === 'known'}
 						<div class="subsection">
 							<h4>Bootstrap bands</h4>
-							<p class="muted">Refits on resampled data and shades where 90% of the refits fall.</p>
+							<p class="hint">Refits on resampled data and shades where 90% of the refits fall.</p>
 							<div class="row">
 								<Field label="Method">
 									{#snippet children(props)}
@@ -1399,7 +1399,7 @@
 									data-testid="bootstrap">Run bootstrap</Button
 								>
 								<Button variant="danger" onclick={stop} disabled={!booting}>Stop</Button>
-								{#if booting}<span class="muted" role="status"
+								{#if booting}<span class="hint" role="status"
 										>{bootDone} / {settings.bootstrapB}</span
 									>{/if}
 							</div>
@@ -1500,11 +1500,6 @@
 		display: flex;
 		gap: var(--sp-1);
 		align-items: center;
-	}
-	.muted {
-		color: var(--text-muted);
-		font-size: var(--text-sm);
-		margin: 0;
 	}
 	.paste {
 		font-family: var(--font-mono);

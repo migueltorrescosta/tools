@@ -92,7 +92,7 @@
 					{#if uploaded.error}
 						<Alert tone="danger">{uploaded.error}</Alert>
 					{:else}
-						<p class="muted" data-testid="upload-status">
+						<p class="hint" data-testid="upload-status">
 							{uploaded.data.length.toLocaleString('en')}
 							{uploaded.width >= 3
 								? `${uploaded.width} columns`
@@ -113,7 +113,7 @@
 						</Alert>
 					{/if}
 				{/if}
-				<p class="muted">Your data stays in this browser and isn't saved.</p>
+				<p class="hint">Your data stays in this browser and isn't saved.</p>
 			</div>
 		{/if}
 		{@render children?.()}
@@ -127,11 +127,6 @@
 		flex-direction: column;
 		gap: var(--sp-2);
 		min-width: 0;
-	}
-	.muted {
-		color: var(--text-muted);
-		font-size: var(--text-sm);
-		margin: 0;
 	}
 	.paste {
 		font-family: var(--font-mono);
