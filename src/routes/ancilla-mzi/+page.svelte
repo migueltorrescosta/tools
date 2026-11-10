@@ -344,7 +344,112 @@
 		{ value: 'S', label: 'S' },
 		{ value: 'both', label: 'Both' }
 	];
+
+	// --- Folds: the setup and Advanced open by themselves when they hold an error ---
+	const ADVANCED_FIELDS = ['mziParticles', 'ancillaHold'];
+	const inAdvanced = (field: string) =>
+		field.startsWith('noise.') || field.startsWith('budget.') || ADVANCED_FIELDS.includes(field);
+	const advancedErrors = $derived(errors.filter((e) => inAdvanced(e.field)).length);
+	const setupErrors = $derived(errors.length - advancedErrors);
+	let setupOpen = $state(false);
+	/** A node inside RunControls' Advanced fold, to open it from here. */
+	let advancedNode = $state<HTMLElement>();
+	$effect(() => {
+		if (setupErrors > 0) setupOpen = true;
+	});
+	$effect(() => {
+		if (advancedErrors > 0 && advancedNode) {
+			const fold = advancedNode.closest('details');
+			if (fold) fold.open = true;
+		}
+	});
+
+	// --- One-line summaries of what each fold holds ---
+	const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+	const setupSummary = $derived(
+		[
+			`${fmt(setup.nS)} + ${fmt(setup.nA)} particles`,
+			plural(setup.coupling.filter(Boolean).length, 'coupling'),
+			plural([...setup.fieldA, ...setup.fieldS].filter(Boolean).length, 'field'),
+			plural(setup.pulses.length, 'pulse')
+		].join(', ')
+	);
+	const MARKOV_NAMES = {
+		dephasing: 'dephasing',
+		amplitudeDamping: 'damping',
+		depolarizing: 'depolarizing',
+		transverse: 'transverse'
+	} as const;
+	function noiseText(noise: Setup['noise']['system']): string {
+		const parts = (Object.keys(MARKOV_NAMES) as (keyof typeof MARKOV_NAMES)[])
+			.filter((k) => noise.markov[k] > 0)
+			.map((k) => `${MARKOV_NAMES[k]} γ = ${fmt(noise.markov[k], 3)}`);
+		if (noise.lorentzian.kind !== 'none')
+			parts.push(`Lorentzian ${noise.lorentzian.kind === 'dephasing' ? 'dephasing' : 'damping'}`);
+		return parts.join(', ') || 'no noise';
+	}
+	const advancedSummary = $derived.by(() => {
+		const noise = noiseText(setup.noise.system);
+		const parts = [
+			ancillaSame || noAncilla
+				? noise.charAt(0).toUpperCase() + noise.slice(1)
+				: `System ${noise}; ancilla ${noiseText(setup.noise.ancilla)}`
+		];
+		if (setup.mziParticles !== N || setup.ancillaHold !== 1) parts.push('accounting overridden');
+		parts.push(`${fmt(budget.steps)} steps`, `seed ${fmt(budget.seed)}`);
+		return parts.join(', ');
+	});
+
+	// --- Rules and verdict ---
+	const broken = $derived(rules.filter((r) => !r.kept));
+	const rulesLine = $derived(
+		broken.length === 0
+			? `All ${rules.length} fairness rules kept`
+			: broken.length === 1
+				? `Rule ${broken[0].id} broken: ${broken[0].title.toLowerCase()}`
+				: `Rules ${broken.map((r) => r.id).join(', ')} broken`
+	);
+	const verdictTail = $derived.by(() => {
+		if (!metrics) return '';
+		const times = `${fmt(metrics.R)} times the quantum Fisher information of the best MZI`;
+		if (metrics.R < 1) return `the ancilla scheme gets only ${times}, so the MZI does better.`;
+		if (!metrics.significant)
+			return `the ancilla scheme gets ${times}, too close to 1 to count as a real gain.`;
+		return `the ancilla scheme gets ${times}.`;
+	});
+	const moreRatios = $derived(
+		[
+			'fixed window',
+			'standard input',
+			metrics?.Rint !== null && metrics?.Rint !== undefined ? 'coupling off' : null,
+			'readout'
+		]
+			.filter(Boolean)
+			.join(', ')
+	);
 </script>
+
+{#snippet presetPicker()}
+	<Field
+		label="Preset"
+		hint={PRESETS.find((p) => p.id === preset)?.description ?? 'Custom controls.'}
+	>
+		{#snippet children(props)}
+			<select
+				class="control"
+				value={preset ?? 'custom'}
+				onchange={(e) => choosePreset(e.currentTarget.value)}
+				data-testid="preset"
+				{...props}
+			>
+				{#each PRESETS as p (p.id)}
+					<option value={p.id}>{p.label}</option>
+				{/each}
+				<option value="custom" disabled>Custom</option>
+			</select>
+		{/snippet}
+	</Field>
+{/snippet}
 
 <div class="container" data-hydrated={hydrated || undefined}>
 	<PageHeader path="/ancilla-mzi">
@@ -353,9 +458,7 @@
 				onClear={clearAll}
 				description="the setup, never results"
 			/>{/snippet}
-		Does an ancilla really beat a Mach-Zehnder interferometer under noise? Build a scheme, count it fairly,
-		and see. Everything runs in your browser.</PageHeader
-	>
+	</PageHeader>
 
 	<div class="layout">
 		<div class="stack inputs">
@@ -363,32 +466,96 @@
 				onrun={start}
 				{running}
 				disabled={errors.length > 0}
+				describedby={errors.length > 0 ? 'run-blocked' : undefined}
 				onstop={stop}
 				oncontinue={resume}
 				{canContinue}
+				summary={advancedSummary}
+				preset={presetPicker}
 			>
-				<div class="stack">
-					<p class="muted" data-testid="progress">
-						{#if running}Running ·
-						{/if}<span data-testid="elapsed">{elapsed}</span> ·
-						<span data-testid="seeds-done"
-							>{snapshot?.seedsDone.setup ?? 0} seeds{#if snapshot && snapshot.seedsDone.companion > 0},
-								{snapshot.seedsDone.companion} companion seeds{/if}</span
-						>
-					</p>
-					{#if errors.length > 0}
-						<div data-testid="validation-errors">
-							<Alert tone="warning">
-								Fix these to run:
-								<ul class="errors">
-									{#each errors as e (e.field + e.message)}<li>{e.message}</li>{/each}
-								</ul>
-							</Alert>
+				{#snippet fields()}
+					<section class="adv" data-testid="noise" bind:this={advancedNode}>
+						<h3>Noise</h3>
+						<p class="muted">Rates in units of 1/t. The MZI's particles get the same noise.</p>
+						<label class="toggle wide">
+							<input
+								type="checkbox"
+								checked={ancillaSame}
+								onchange={(e) => setAncillaSame(e.currentTarget.checked)}
+								data-testid="ancilla-same"
+							/>
+							Ancilla same as system
+						</label>
+						<div class="noise-grid">
+							<NoiseColumn
+								bind:noise={setup.noise.system}
+								register="system"
+								title="System"
+								{errorFor}
+								kindReasons={systemKindReasons}
+							/>
+							{#if ancillaSame}
+								<div class="same">
+									<p class="legend-like">Ancilla</p>
+									<p class="muted">Same noise as the system.</p>
+								</div>
+							{:else}
+								<NoiseColumn
+									bind:noise={setup.noise.ancilla}
+									register="ancilla"
+									title="Ancilla"
+									{errorFor}
+									kindReasons={ancillaKindReasons}
+								/>
+							{/if}
 						</div>
-					{/if}
-					{#if runError}<Alert tone="danger">{runError}</Alert>{/if}
-					<details class="budget" data-testid="budget">
-						<summary>Budget</summary>
+						{#if !ancillaSame}
+							<div class="cluster">
+								<Button size="sm" onclick={() => (setup.noise.ancilla = noiseless())}
+									>Make the ancilla noiseless</Button
+								>
+							</div>
+						{/if}
+					</section>
+					<section class="adv" data-testid="accounting">
+						<h3>Accounting overrides</h3>
+						<p class="muted">
+							Each override breaks one rule; leave them at their defaults for a fair test.
+						</p>
+						<div class="grid-2">
+							<Field label="MZI particles" hint="Default N = {N}." error={errorFor('mziParticles')}>
+								{#snippet children(props)}
+									<input
+										class="control"
+										type="number"
+										min="1"
+										max={N}
+										step="1"
+										bind:value={setup.mziParticles}
+										data-testid="mzi-particles"
+										{...props}
+									/>
+								{/snippet}
+							</Field>
+							<Field label="Ancilla hold (t)" hint="Default 1." error={errorFor('ancillaHold')}>
+								{#snippet children(props)}
+									<input
+										class="control"
+										type="number"
+										min={MIN_HOLD}
+										max={MAX_HOLD}
+										step="0.1"
+										value={setup.ancillaHold}
+										oninput={(e) => setHold(e.currentTarget.valueAsNumber)}
+										data-testid="ancilla-hold"
+										{...props}
+									/>
+								{/snippet}
+							</Field>
+						</div>
+					</section>
+					<section class="adv" data-testid="budget">
+						<h3>Precision and speed</h3>
 						<div class="grid-2">
 							<Field label="Strang steps M" error={errorFor('budget.steps')}>
 								{#snippet children(props)}
@@ -468,373 +635,301 @@
 								{/snippet}
 							</Field>
 						</div>
-					</details>
-				</div>
+					</section>
+				{/snippet}
+				{#if running || snapshot}
+					<p class="muted" data-testid="progress">
+						{#if running}Running ·
+						{/if}<span data-testid="elapsed">{elapsed}</span> ·
+						<span data-testid="seeds-done"
+							>{snapshot?.seedsDone.setup ?? 0} seeds{#if snapshot && snapshot.seedsDone.companion > 0},
+								{snapshot.seedsDone.companion} companion seeds{/if}</span
+						>
+					</p>
+				{/if}
+				{#if errors.length > 0}
+					<div id="run-blocked" data-testid="validation-errors">
+						<Alert tone="warning"
+							>Fix {errors.length === 1 ? 'the setting' : `${errors.length} settings`} marked below to
+							run.</Alert
+						>
+					</div>
+				{/if}
+				{#if runError}<Alert tone="danger">{runError}</Alert>{/if}
 			</RunControls>
-			<Panel title="Setup">
-				<div class="stack">
-					<Field
-						label="Preset"
-						hint={PRESETS.find((p) => p.id === preset)?.description ?? 'Custom controls.'}
-					>
-						{#snippet children(props)}
-							<select
-								class="control"
-								value={preset ?? 'custom'}
-								onchange={(e) => choosePreset(e.currentTarget.value)}
-								data-testid="preset"
-								{...props}
-							>
-								{#each PRESETS as p (p.id)}
-									<option value={p.id}>{p.label}</option>
-								{/each}
-								<option value="custom" disabled>Custom</option>
-							</select>
-						{/snippet}
-					</Field>
-					<div class="grid-2">
-						<Field label="System particles" error={errorFor('nS')}>
-							{#snippet children(props)}
-								<input
-									class="control"
-									type="number"
-									min="1"
-									max="4"
-									step="1"
-									value={setup.nS}
-									oninput={(e) => setRegisters(e.currentTarget.valueAsNumber, setup.nA)}
-									data-testid="nS"
-									{...props}
-								/>
-							{/snippet}
-						</Field>
-						<Field label="Ancilla particles" error={errorFor('nA')}>
-							{#snippet children(props)}
-								<input
-									class="control"
-									type="number"
-									min="0"
-									max="3"
-									step="1"
-									value={setup.nA}
-									oninput={(e) => setRegisters(setup.nS, e.currentTarget.valueAsNumber)}
-									data-testid="nA"
-									{...props}
-								/>
-							{/snippet}
-						</Field>
-					</div>
-					<SegmentedControl
-						legend="Input space"
-						options={[
-							{ value: 'sym', label: 'Sym(S) ⊗ Sym(A)' },
-							{ value: 'full', label: `Full (${2 ** N} states)` }
-						]}
-						bind:value={setup.input}
-					/>
-					<Field
-						label="Ancilla weight a"
-						hint="0 passive, 1 active; above 1 breaks rule 2."
-						error={errorFor('ancillaWeight')}
-					>
-						{#snippet children(props)}
-							<input
-								class="control"
-								type="number"
-								min="0"
-								max={MAX_WEIGHT}
-								step="0.1"
-								bind:value={setup.ancillaWeight}
-								data-testid="weight"
-								{...props}
-							/>
-						{/snippet}
-					</Field>
 
-					{#if noAncilla}
-						<p class="muted" data-testid="no-ancilla-note">
-							No ancilla: the coupling, the fields b and pulses on A are ignored, and pulses on both
-							act on S only.
-						</p>
-					{/if}
-					<fieldset class="group" data-testid="coupling" disabled={noAncilla}>
-						<legend>Coupling α<sub>ij</sub>, S axis i by A axis j</legend>
-						<table class="coupling">
-							<thead>
-								<tr>
-									<td></td>
-									{#each AXES as j (j)}<th scope="col">A {j}</th>{/each}
-								</tr>
-							</thead>
-							<tbody>
-								{#each AXES as i, a (i)}
-									<tr>
-										<th scope="row">S {i}</th>
-										{#each AXES as j, b (j)}
-											<td>
-												<label class="toggle">
-													<input
-														type="checkbox"
-														bind:checked={setup.coupling[3 * a + b]}
-														data-testid="alpha-{i}{j}"
-													/>
-													α<sub>{i}{j}</sub>
-												</label>
-											</td>
-										{/each}
-									</tr>
-								{/each}
-							</tbody>
-						</table>
-					</fieldset>
-
-					<fieldset class="group">
-						<legend>Static fields</legend>
-						<div class="cluster">
-							{#each AXES as axis, i (axis)}
-								<label class="toggle">
+			<Panel>
+				<details class="fold" data-testid="setup-fold" bind:open={setupOpen}>
+					<summary>Customise setup <span class="fold-summary">· {setupSummary}</span></summary>
+					<div class="stack fold-body">
+						<div class="grid-2">
+							<Field label="System particles" error={errorFor('nS')}>
+								{#snippet children(props)}
 									<input
-										type="checkbox"
-										bind:checked={setup.fieldA[i]}
-										disabled={noAncilla}
-										data-testid="field-b{axis}"
+										class="control"
+										type="number"
+										min="1"
+										max="4"
+										step="1"
+										value={setup.nS}
+										oninput={(e) => setRegisters(e.currentTarget.valueAsNumber, setup.nA)}
+										data-testid="nS"
+										{...props}
 									/>
-									b<sub>{axis}</sub>
-								</label>
-							{/each}
-							<span class="muted">on A</span>
-						</div>
-						<div class="cluster">
-							{#each AXES as axis, i (axis)}
-								<label class="toggle">
+								{/snippet}
+							</Field>
+							<Field label="Ancilla particles" error={errorFor('nA')}>
+								{#snippet children(props)}
 									<input
-										type="checkbox"
-										bind:checked={setup.fieldS[i]}
-										data-testid="field-c{axis}"
+										class="control"
+										type="number"
+										min="0"
+										max="3"
+										step="1"
+										value={setup.nA}
+										oninput={(e) => setRegisters(setup.nS, e.currentTarget.valueAsNumber)}
+										data-testid="nA"
+										{...props}
 									/>
-									c<sub>{axis}</sub>
-								</label>
-							{/each}
-							<span class="muted">on S</span>
+								{/snippet}
+							</Field>
 						</div>
-					</fieldset>
-
-					<div class="grid-2">
-						<Field label="Control bound (1/t)" error={errorFor('controlBound')}>
-							{#snippet children(props)}
-								<input
-									class="control"
-									type="number"
-									min="0"
-									step="1"
-									bind:value={setup.controlBound}
-									data-testid="control-bound"
-									{...props}
-								/>
-							{/snippet}
-						</Field>
-						<Field label="Pulse bound (× π)" error={errorFor('pulseBound')}>
-							{#snippet children(props)}
-								<input
-									class="control"
-									type="number"
-									min="0"
-									max="4"
-									step="0.1"
-									value={Number((setup.pulseBound / Math.PI).toPrecision(10))}
-									oninput={(e) => setPulseBoundPi(e.currentTarget.valueAsNumber)}
-									data-testid="pulse-bound"
-									{...props}
-								/>
-							{/snippet}
-						</Field>
-					</div>
-
-					<fieldset class="group" data-testid="pulses">
-						<legend>Pulses</legend>
-						<Field label="Number of pulses" error={errorFor('pulses')}>
-							{#snippet children(props)}
-								<select
-									class="control"
-									value={setup.pulses.length}
-									onchange={(e) => setPulseCount(Number(e.currentTarget.value))}
-									data-testid="pulse-count"
-									{...props}
-								>
-									{#each Array.from({ length: MAX_PULSES + 1 }, (_, k) => k) as k (k)}
-										<option value={k}>{k}</option>
-									{/each}
-								</select>
-							{/snippet}
-						</Field>
-						{#each setup.pulses as pulse, m (m)}
-							<div class="grid-2 pulse">
-								<Field label="Pulse {m + 1} time (t)" error={errorFor(`pulses.${m}.time`)}>
-									{#snippet children(props)}
-										<input
-											class="control"
-											type="number"
-											min="0"
-											max={setup.ancillaHold}
-											step="0.01"
-											value={Number(pulse.time.toFixed(4))}
-											oninput={(e) => (pulse.time = e.currentTarget.valueAsNumber)}
-											data-testid="pulse-{m}-time"
-											{...props}
-										/>
-									{/snippet}
-								</Field>
-								<Field label="Pulse {m + 1} acts on" error={errorFor(`pulses.${m}.target`)}>
-									{#snippet children(props)}
-										<select
-											class="control"
-											bind:value={pulse.target}
-											disabled={noAncilla}
-											data-testid="pulse-{m}-target"
-											{...props}
-										>
-											{#each targetOptions as o (o.value)}<option value={o.value}>{o.label}</option
-												>{/each}
-										</select>
-									{/snippet}
-								</Field>
-							</div>
-						{/each}
-					</fieldset>
-
-					{#if showCutoff}
+						<SegmentedControl
+							legend="Input space"
+							options={[
+								{ value: 'sym', label: 'Sym(S) ⊗ Sym(A)' },
+								{ value: 'full', label: `Full (${2 ** N} states)` }
+							]}
+							bind:value={setup.input}
+						/>
 						<Field
-							label="Pseudomode Fock cutoff d"
-							hint="Controlled Lorentzian dephasing runs explicit pseudomodes."
-							error={errorFor('pmLevels')}
+							label="Ancilla weight a"
+							hint="0 passive, 1 active; above 1 breaks rule 2."
+							error={errorFor('ancillaWeight')}
 						>
 							{#snippet children(props)}
-								<select
+								<input
 									class="control"
-									bind:value={setup.pmLevels}
-									data-testid="pm-levels"
+									type="number"
+									min="0"
+									max={MAX_WEIGHT}
+									step="0.1"
+									bind:value={setup.ancillaWeight}
+									data-testid="weight"
 									{...props}
-								>
-									{#each PM_LEVELS as d (d)}<option value={d}>{d}</option>{/each}
-								</select>
+								/>
 							{/snippet}
 						</Field>
-					{/if}
-				</div>
-			</Panel>
 
-			<details class="how" data-testid="noise-fold">
-				<summary>Noise</summary>
-				<div class="stack">
-					<p class="muted">Rates in units of 1/t. The MZI's particles get the same noise.</p>
-					<label class="toggle wide">
-						<input
-							type="checkbox"
-							checked={ancillaSame}
-							onchange={(e) => setAncillaSame(e.currentTarget.checked)}
-							data-testid="ancilla-same"
-						/>
-						Ancilla same as system
-					</label>
-					<div class="noise-grid">
-						<NoiseColumn
-							bind:noise={setup.noise.system}
-							register="system"
-							title="System"
-							{errorFor}
-							kindReasons={systemKindReasons}
-						/>
-						{#if ancillaSame}
-							<div class="same">
-								<p class="legend-like">Ancilla</p>
-								<p class="muted">Same noise as the system.</p>
+						{#if noAncilla}
+							<p class="muted" data-testid="no-ancilla-note">
+								No ancilla: the coupling, the fields b and pulses on A are ignored, and pulses on
+								both act on S only.
+							</p>
+						{/if}
+						<fieldset class="group" data-testid="coupling" disabled={noAncilla}>
+							<legend>Coupling α<sub>ij</sub>, S axis i by A axis j</legend>
+							<table class="coupling">
+								<thead>
+									<tr>
+										<td></td>
+										{#each AXES as j (j)}<th scope="col">A {j}</th>{/each}
+									</tr>
+								</thead>
+								<tbody>
+									{#each AXES as i, a (i)}
+										<tr>
+											<th scope="row">S {i}</th>
+											{#each AXES as j, b (j)}
+												<td>
+													<label class="toggle">
+														<input
+															type="checkbox"
+															bind:checked={setup.coupling[3 * a + b]}
+															data-testid="alpha-{i}{j}"
+														/>
+														α<sub>{i}{j}</sub>
+													</label>
+												</td>
+											{/each}
+										</tr>
+									{/each}
+								</tbody>
+							</table>
+						</fieldset>
+
+						<fieldset class="group">
+							<legend>Static fields</legend>
+							<div class="cluster">
+								{#each AXES as axis, i (axis)}
+									<label class="toggle">
+										<input
+											type="checkbox"
+											bind:checked={setup.fieldA[i]}
+											disabled={noAncilla}
+											data-testid="field-b{axis}"
+										/>
+										b<sub>{axis}</sub>
+									</label>
+								{/each}
+								<span class="muted">on A</span>
 							</div>
-						{:else}
-							<NoiseColumn
-								bind:noise={setup.noise.ancilla}
-								register="ancilla"
-								title="Ancilla"
-								{errorFor}
-								kindReasons={ancillaKindReasons}
-							/>
+							<div class="cluster">
+								{#each AXES as axis, i (axis)}
+									<label class="toggle">
+										<input
+											type="checkbox"
+											bind:checked={setup.fieldS[i]}
+											data-testid="field-c{axis}"
+										/>
+										c<sub>{axis}</sub>
+									</label>
+								{/each}
+								<span class="muted">on S</span>
+							</div>
+						</fieldset>
+
+						<div class="grid-2">
+							<Field label="Control bound (1/t)" error={errorFor('controlBound')}>
+								{#snippet children(props)}
+									<input
+										class="control"
+										type="number"
+										min="0"
+										step="1"
+										bind:value={setup.controlBound}
+										data-testid="control-bound"
+										{...props}
+									/>
+								{/snippet}
+							</Field>
+							<Field label="Pulse bound (× π)" error={errorFor('pulseBound')}>
+								{#snippet children(props)}
+									<input
+										class="control"
+										type="number"
+										min="0"
+										max="4"
+										step="0.1"
+										value={Number((setup.pulseBound / Math.PI).toPrecision(10))}
+										oninput={(e) => setPulseBoundPi(e.currentTarget.valueAsNumber)}
+										data-testid="pulse-bound"
+										{...props}
+									/>
+								{/snippet}
+							</Field>
+						</div>
+
+						<fieldset class="group" data-testid="pulses">
+							<legend>Pulses</legend>
+							<Field label="Number of pulses" error={errorFor('pulses')}>
+								{#snippet children(props)}
+									<select
+										class="control"
+										value={setup.pulses.length}
+										onchange={(e) => setPulseCount(Number(e.currentTarget.value))}
+										data-testid="pulse-count"
+										{...props}
+									>
+										{#each Array.from({ length: MAX_PULSES + 1 }, (_, k) => k) as k (k)}
+											<option value={k}>{k}</option>
+										{/each}
+									</select>
+								{/snippet}
+							</Field>
+							{#each setup.pulses as pulse, m (m)}
+								<div class="grid-2 pulse">
+									<Field label="Pulse {m + 1} time (t)" error={errorFor(`pulses.${m}.time`)}>
+										{#snippet children(props)}
+											<input
+												class="control"
+												type="number"
+												min="0"
+												max={setup.ancillaHold}
+												step="0.01"
+												value={Number(pulse.time.toFixed(4))}
+												oninput={(e) => (pulse.time = e.currentTarget.valueAsNumber)}
+												data-testid="pulse-{m}-time"
+												{...props}
+											/>
+										{/snippet}
+									</Field>
+									<Field label="Pulse {m + 1} acts on" error={errorFor(`pulses.${m}.target`)}>
+										{#snippet children(props)}
+											<select
+												class="control"
+												bind:value={pulse.target}
+												disabled={noAncilla}
+												data-testid="pulse-{m}-target"
+												{...props}
+											>
+												{#each targetOptions as o (o.value)}<option value={o.value}
+														>{o.label}</option
+													>{/each}
+											</select>
+										{/snippet}
+									</Field>
+								</div>
+							{/each}
+						</fieldset>
+
+						{#if showCutoff}
+							<Field
+								label="Pseudomode Fock cutoff d"
+								hint="Controlled Lorentzian dephasing runs explicit pseudomodes."
+								error={errorFor('pmLevels')}
+							>
+								{#snippet children(props)}
+									<select
+										class="control"
+										bind:value={setup.pmLevels}
+										data-testid="pm-levels"
+										{...props}
+									>
+										{#each PM_LEVELS as d (d)}<option value={d}>{d}</option>{/each}
+									</select>
+								{/snippet}
+							</Field>
 						{/if}
 					</div>
-					{#if !ancillaSame}
-						<div class="cluster">
-							<Button size="sm" onclick={() => (setup.noise.ancilla = noiseless())}
-								>Make the ancilla noiseless</Button
-							>
-						</div>
-					{/if}
-				</div>
-			</details>
-
-			<details class="how" data-testid="accounting-fold">
-				<summary>Accounting overrides</summary>
-				<div class="stack">
-					<p class="muted">
-						Each override breaks one rule; leave them at their defaults for a fair test.
-					</p>
-					<div class="grid-2">
-						<Field label="MZI particles" hint="Default N = {N}." error={errorFor('mziParticles')}>
-							{#snippet children(props)}
-								<input
-									class="control"
-									type="number"
-									min="1"
-									max={N}
-									step="1"
-									bind:value={setup.mziParticles}
-									data-testid="mzi-particles"
-									{...props}
-								/>
-							{/snippet}
-						</Field>
-						<Field label="Ancilla hold (t)" hint="Default 1." error={errorFor('ancillaHold')}>
-							{#snippet children(props)}
-								<input
-									class="control"
-									type="number"
-									min={MIN_HOLD}
-									max={MAX_HOLD}
-									step="0.1"
-									value={setup.ancillaHold}
-									oninput={(e) => setHold(e.currentTarget.valueAsNumber)}
-									data-testid="ancilla-hold"
-									{...props}
-								/>
-							{/snippet}
-						</Field>
-					</div>
-				</div>
-			</details>
+				</details>
+			</Panel>
 		</div>
 
 		<div class="stack results">
 			<p class="sr-only" role="status">{announcement}</p>
-			<Panel title="Rules">
-				<ul class="rules" data-testid="rules">
-					{#each rules as r (r.id)}
-						<li class:broken={!r.kept} data-testid="rule-{r.id}" data-kept={r.kept}>
-							<span class="badge" class:kept={r.kept}
-								><span aria-hidden="true">{r.kept ? '✓' : '✕'}</span>
-								{r.kept ? 'Kept' : 'Broken'}</span
-							>
-							<span><strong>{r.id}. {r.title}.</strong> {r.reason}</span>
+			<Panel>
+				<details class="fold rules-fold" data-testid="rules-fold">
+					<summary
+						><span class="badge" class:kept={broken.length === 0} data-testid="fair-test"
+							><span aria-hidden="true">{broken.length === 0 ? '✓' : '✕'}</span>
+							{broken.length === 0 ? 'Fair test' : 'Rules broken'}</span
+						>
+						<span class="rules-line">{rulesLine}</span></summary
+					>
+					<ul class="rules" data-testid="rules">
+						{#each rules as r (r.id)}
+							<li class:broken={!r.kept} data-testid="rule-{r.id}" data-kept={r.kept}>
+								<span class="badge" class:kept={r.kept}
+									><span aria-hidden="true">{r.kept ? '✓' : '✕'}</span>
+									{r.kept ? 'Kept' : 'Broken'}</span
+								>
+								<span><strong>{r.id}. {r.title}.</strong> {r.reason}</span>
+							</li>
+						{/each}
+						<li class="fixed">
+							<span class="badge kept"><span aria-hidden="true">✓</span> Always</span>
+							<span>{NO_FEEDBACK}</span>
 						</li>
-					{/each}
-					<li class="fixed">
-						<span class="badge kept"><span aria-hidden="true">✓</span> Always</span>
-						<span>{NO_FEEDBACK}</span>
-					</li>
-				</ul>
+					</ul>
+				</details>
 			</Panel>
 
 			<Panel title="Results">
 				{#if !snapshot}
 					<p class="muted placeholder">
-						Pick a preset or build a setup, then press Run. The MZI baseline comes first, then seeds
-						keep running until you press Stop.
+						Pick a preset, then press Run. The MZI baseline comes first, then seeds keep running
+						until you press Stop.
 					</p>
 				{:else}
 					<div class="stack">
@@ -846,27 +941,10 @@
 								>The setup has changed since this run. Press Run to rerun it.</Alert
 							>
 						{/if}
-						<div class="tiles">
-							<div class="tile">
-								<span class="tile-label"><T id="Rshort" /></span>
-								<span class="tile-value" data-testid="metric-R">{fmt(metrics?.R)}</span>
-								<span class="tile-note">over the best MZI</span>
-							</div>
-							<div class="tile">
-								<span class="tile-label"><T id="Rfixed" /></span>
-								<span class="tile-value" data-testid="metric-Rfixed">{fmt(metrics?.Rfixed)}</span>
-								<span class="tile-note">MZI at t′ = t</span>
-							</div>
-							<div class="tile">
-								<span class="tile-label"><T id="Rstd" /></span>
-								<span class="tile-value" data-testid="metric-Rstd">{fmt(metrics?.Rstd)}</span>
-								<span class="tile-note">best standard input</span>
-							</div>
-							<div class="tile">
-								<span class="tile-label"><T id="deltaRshort" /></span>
-								<span class="tile-value" data-testid="metric-deltaR">{fmt(metrics?.deltaR, 2)}</span
-								>
-								{#if metrics}
+						<div class="verdict" data-testid="verdict">
+							{#if metrics}
+								<p class="verdict-head">
+									<span>{fmt(metrics.R, 3)}× the best MZI</span>
 									<span
 										class="sig"
 										class:pass={metrics.significant}
@@ -875,27 +953,55 @@
 										><span aria-hidden="true">{metrics.significant ? '✓' : '✕'}</span>
 										{metrics.significant ? 'Significant' : 'Not significant'}</span
 									>
-								{/if}
-							</div>
-							{#if metrics?.Rint !== null && metrics?.Rint !== undefined}
-								<div class="tile">
-									<span class="tile-label"><T id="RintShort" /></span>
-									<span class="tile-value" data-testid="metric-Rint">{fmt(metrics.Rint)}</span>
-									<span class="tile-note">over coupling off</span>
-								</div>
+								</p>
+								<p>
+									R = <span data-testid="metric-R">{fmt(metrics.R)}</span>, δR =
+									<span data-testid="metric-deltaR">{fmt(metrics.deltaR, 2)}</span>: {verdictTail}
+								</p>
+							{:else}
+								<p class="muted">Working out the MZI baseline and the first seed…</p>
 							{/if}
-							<div class="tile">
-								<span class="tile-label">Readout ratio</span>
-								<span class="tile-value" data-testid="metric-readout"
-									>{fmt(metrics?.readoutRatio)}</span
-								>
-								<span class="tile-note"
-									>attained: ancilla {pct(metrics?.attained.ancilla)}, MZI {pct(
-										metrics?.attained.mzi
-									)}</span
-								>
-							</div>
 						</div>
+						{#if metrics}
+							<details class="fold" data-testid="more-ratios">
+								<summary>More ratios <span class="fold-summary">· {moreRatios}</span></summary>
+								<div class="fold-body">
+									<div class="tiles">
+										<div class="tile">
+											<span class="tile-label"><T id="Rfixed" /></span>
+											<span class="tile-value" data-testid="metric-Rfixed"
+												>{fmt(metrics?.Rfixed)}</span
+											>
+											<span class="tile-note">MZI at t′ = t</span>
+										</div>
+										<div class="tile">
+											<span class="tile-label"><T id="Rstd" /></span>
+											<span class="tile-value" data-testid="metric-Rstd">{fmt(metrics?.Rstd)}</span>
+											<span class="tile-note">best standard input</span>
+										</div>
+										{#if metrics?.Rint !== null && metrics?.Rint !== undefined}
+											<div class="tile">
+												<span class="tile-label"><T id="RintShort" /></span>
+												<span class="tile-value" data-testid="metric-Rint">{fmt(metrics.Rint)}</span
+												>
+												<span class="tile-note">over coupling off</span>
+											</div>
+										{/if}
+										<div class="tile">
+											<span class="tile-label">Readout ratio</span>
+											<span class="tile-value" data-testid="metric-readout"
+												>{fmt(metrics?.readoutRatio)}</span
+											>
+											<span class="tile-note"
+												>attained: ancilla {pct(metrics?.attained.ancilla)}, MZI {pct(
+													metrics?.attained.mzi
+												)}</span
+											>
+										</div>
+									</div>
+								</div>
+							</details>
+						{/if}
 
 						<div class="plots">
 							<ConvergencePlot
@@ -1023,7 +1129,7 @@
 			grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
 		}
 	}
-	/* One column on phones: Run, then Rules and Results, then the rest of the form. */
+	/* One column on phones: Run, then the rules line and Results, then the setup. */
 	@media (max-width: 959.98px) {
 		.inputs,
 		.results {
@@ -1038,13 +1144,6 @@
 		.results > :global(*) {
 			order: 1;
 		}
-	}
-	/* Noise and Accounting overrides: collapsed disclosures in the How it works style. */
-	.inputs > details.how {
-		margin-top: 0;
-	}
-	.inputs > details.how > .stack {
-		color: var(--text);
 	}
 	.inputs,
 	.results {
@@ -1083,10 +1182,6 @@
 	}
 	.legend-like {
 		font-weight: 600;
-	}
-	.error {
-		font-size: var(--text-xs);
-		color: var(--danger-text);
 	}
 	.coupling {
 		width: auto;
@@ -1135,19 +1230,6 @@
 		grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
 		gap: var(--sp-3);
 	}
-	.budget > summary {
-		cursor: pointer;
-		font-size: var(--text-sm);
-		font-weight: 500;
-		min-height: 24px;
-	}
-	.budget[open] > summary {
-		margin-bottom: var(--sp-2);
-	}
-	.errors {
-		margin: var(--sp-1) 0 0;
-		padding-left: var(--sp-4);
-	}
 	.rules {
 		list-style: none;
 		margin: 0;
@@ -1177,6 +1259,68 @@
 		border-color: var(--success);
 		color: var(--success-text);
 		background: var(--success-bg);
+	}
+	/* A closed line that says what it holds: "Customise setup · 1 + 1 particles, …". */
+	.fold > summary {
+		padding-block: var(--sp-1);
+		color: var(--accent);
+		cursor: pointer;
+	}
+	.fold-summary {
+		color: var(--text-muted);
+	}
+	.fold-body {
+		margin-top: var(--sp-3);
+	}
+	.rules-fold > summary {
+		color: var(--text);
+	}
+	.rules-fold > summary .badge {
+		min-width: 0;
+		margin-right: var(--sp-1);
+	}
+	.rules-line {
+		font-size: var(--text-md);
+	}
+	.rules-fold > .rules {
+		margin-top: var(--sp-3);
+	}
+	/* Advanced: each heading spans the run settings grid. */
+	.adv {
+		grid-column: 1 / -1;
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-2);
+		min-width: 0;
+	}
+	.adv + .adv {
+		padding-top: var(--sp-2);
+		border-top: 1px solid var(--border);
+	}
+	.adv h3 {
+		font-size: var(--text-md);
+		font-weight: 600;
+	}
+	.verdict {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-1);
+		padding: var(--sp-3);
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius);
+		background: var(--surface-2);
+	}
+	.verdict-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--sp-2);
+		font-size: var(--text-xl);
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+	}
+	.verdict-head .sig {
+		font-size: var(--text-sm);
 	}
 	.tiles {
 		display: grid;

@@ -7,12 +7,17 @@ function hydrated(page: Page) {
 	return page.getByRole('main').locator('[data-hydrated]');
 }
 
-/** Opens the page with the Noise and Accounting overrides panels expanded (they start collapsed). */
+/** The Run box's Advanced fold: noise, accounting overrides, precision and speed. */
+function advanced(page: Page) {
+	return page.locator('details', { has: page.locator('summary', { hasText: /^Advanced/ }) });
+}
+
+/** Opens the page with Customise setup and Advanced expanded (they start collapsed). */
 async function open(page: Page, query = '') {
 	await page.goto(`/ancilla-mzi${query}`);
 	await expect(hydrated(page)).toBeVisible();
-	for (const id of ['noise-fold', 'accounting-fold'])
-		await page.getByTestId(id).evaluate((d) => ((d as HTMLDetailsElement).open = true));
+	for (const fold of [page.getByTestId('setup-fold'), advanced(page)])
+		await fold.evaluate((d) => ((d as HTMLDetailsElement).open = true));
 }
 
 async function savedKeys(page: Page): Promise<string[]> {
@@ -70,22 +75,23 @@ test('custom edits: coupling toggle, pulse count, time and target', async ({ pag
 
 	// Out of order breaks the pulse sequence
 	await page.getByTestId('pulse-1-time').fill('0.9');
-	await expect(page.getByTestId('validation-errors')).toContainText('must come after pulse 2');
+	await expect(page.getByTestId('pulses').getByText(/must come after pulse 2/)).toBeVisible();
+	await expect(page.getByTestId('validation-errors')).toContainText('Fix the setting marked below');
 	await expect(page.getByTestId('run')).toBeDisabled();
 });
 
 test('out-of-range budget values disable Run and say why', async ({ page }) => {
 	await open(page);
-	await page.getByTestId('budget').locator('summary').click();
 	const steps = page.getByLabel('Strang steps M');
 	await steps.fill('1');
 	const message = 'Strang steps M must be a whole number from 2 to 400.';
-	await expect(page.getByTestId('validation-errors')).toContainText(message);
 	await expect(page.getByTestId('budget').getByText(message)).toBeVisible();
+	await expect(page.getByTestId('validation-errors')).toContainText('Fix the setting marked below');
 	await expect(steps).toHaveAttribute('aria-invalid', 'true');
 	await expect(page.getByTestId('run')).toBeDisabled();
 	await page.getByLabel('Workers').fill('');
-	await expect(page.getByTestId('validation-errors')).toContainText('Workers must be');
+	await expect(page.getByTestId('budget').getByText(/Workers must be/)).toBeVisible();
+	await expect(page.getByTestId('validation-errors')).toContainText('Fix 2 settings');
 	await steps.fill('8');
 	await page.getByLabel('Workers').fill('0');
 	await expect(page.getByTestId('run')).toBeEnabled();
@@ -98,8 +104,8 @@ test('noise combination limits disable Run and say why', async ({ page }) => {
 	await expect(page.getByTestId('pm-levels')).toBeVisible();
 	await expect(page.getByTestId('run')).toBeEnabled();
 	await page.getByTestId('nS').fill('2');
-	await expect(page.getByTestId('validation-errors')).toContainText(
-		'Lorentzian dephasing needs pseudomodes'
+	await expect(page.getByTestId('system-lorentzian')).toHaveAccessibleDescription(
+		/Lorentzian dephasing needs pseudomodes/
 	);
 	await expect(page.getByTestId('run')).toBeDisabled();
 	// Lorentzian damping can't even be picked there
@@ -109,7 +115,9 @@ test('noise combination limits disable Run and say why', async ({ page }) => {
 
 	// Two Lorentzian kinds, one per register
 	await open(page, '?n=1_1&ls=d_1_1&na=0_0_0_0_0&la=a_1_1');
-	await expect(page.getByTestId('validation-errors')).toContainText('one Lorentzian bath per run');
+	await expect(page.getByTestId('ancilla-lorentzian')).toHaveAccessibleDescription(
+		/one Lorentzian bath per run/
+	);
 	await expect(page.getByTestId('run')).toBeDisabled();
 });
 
@@ -130,9 +138,16 @@ test('without an ancilla the A-only controls are greyed out and ignored', async 
 test('the rules panel reacts to each rule break', async ({ page }) => {
 	await open(page);
 	for (const id of [1, 2, 3, 4]) await expect(rule(page, id)).toHaveAttribute('data-kept', 'true');
+	const fair = page.getByTestId('rules-fold').locator('summary');
+	await expect(fair).toHaveText(/Fair test\s+All 4 fairness rules kept/);
+	// The full list opens from the one line
+	await expect(rule(page, 1)).toBeHidden();
+	await fair.click();
+	await expect(rule(page, 1)).toBeVisible();
 
 	await page.getByTestId('weight').fill('2');
 	await expect(rule(page, 2)).toHaveAttribute('data-kept', 'false');
+	await expect(fair).toHaveText(/Rules broken\s+Rule 2 broken: bounded generator/);
 	await expect(rule(page, 2)).toContainText('a = 2 > 1');
 	await page.getByTestId('weight').fill('1');
 	await expect(rule(page, 2)).toHaveAttribute('data-kept', 'true');
@@ -160,11 +175,20 @@ test('Run, Stop and Continue with live updates', async ({ page }) => {
 	await open(page);
 	await page.getByTestId('run').click();
 	await expect(page.getByTestId('stop')).toBeEnabled();
+	await expect(page.getByTestId('run')).toHaveCount(0);
 	await expect
 		.poll(async () => Number(await page.getByTestId('metric-R').textContent()), {
 			timeout: 20000
 		})
 		.toBeGreaterThan(1);
+	// The verdict states the answer in one line; the other ratios fold away
+	await expect(page.getByTestId('verdict')).toContainText(/× the best MZI/);
+	await expect(page.getByTestId('verdict')).toContainText(
+		/the ancilla scheme gets .* times the quantum Fisher information of the best MZI/
+	);
+	await expect(page.getByTestId('metric-Rfixed')).toBeHidden();
+	await page.getByTestId('more-ratios').locator('summary').click();
+	await expect(page.getByTestId('metric-Rfixed')).toBeVisible();
 	await expect(page.getByTestId('convergence')).toBeVisible();
 	// A log axis draws every bound instead of noting it
 	await page.getByTestId('convergence').getByText('Log', { exact: true }).click();
@@ -177,7 +201,7 @@ test('Run, Stop and Continue with live updates', async ({ page }) => {
 	await page.getByTestId('stop').click();
 	await expect(page.getByTestId('continue')).toBeEnabled({ timeout: 2000 });
 	await expect(page.getByTestId('run')).toBeEnabled();
-	await expect(page.getByTestId('stop')).toBeDisabled();
+	await expect(page.getByTestId('stop')).toHaveCount(0);
 	const stopped = await seeds(page);
 
 	await page.getByTestId('continue').click();
@@ -247,17 +271,41 @@ test('Clear saved data removes the saved setup and result', async ({ page }) => 
 	await expect(page.getByTestId('metric-R')).toHaveCount(0);
 });
 
-test('on a phone, Results follow Run and the rarely used panels start collapsed', async ({
-	page
-}) => {
+test('on a phone, Results follow Run and the setup and Advanced start folded', async ({ page }) => {
 	await page.setViewportSize({ width: 390, height: 844 });
 	await page.goto('/ancilla-mzi');
 	await expect(hydrated(page)).toBeVisible();
-	await expect(page.getByTestId('noise-fold')).not.toHaveAttribute('open');
-	await expect(page.getByTestId('accounting-fold')).not.toHaveAttribute('open');
-	const top = async (name: string) =>
-		(await page.getByRole('heading', { name, exact: true }).boundingBox())?.y ?? 0;
-	const [run, results, setup] = [await top('Run'), await top('Results'), await top('Setup')];
+	await expect(page.getByTestId('setup-fold')).not.toHaveAttribute('open');
+	await expect(advanced(page)).not.toHaveAttribute('open');
+	await expect(page.getByTestId('rules-fold')).not.toHaveAttribute('open');
+	// The preset sits right above Run
+	const y = async (box: Promise<{ y: number } | null>) => (await box)?.y ?? 0;
+	const preset = await y(page.getByTestId('preset').boundingBox());
+	const run = await y(page.getByTestId('run').boundingBox());
+	const results = await y(
+		page.getByRole('heading', { name: 'Results', exact: true }).boundingBox()
+	);
+	const setup = await y(page.getByTestId('setup-fold').boundingBox());
+	expect(preset).toBeLessThan(run);
 	expect(run).toBeLessThan(results);
 	expect(results).toBeLessThan(setup);
+});
+
+test('a fold opens by itself when a setting inside it is wrong', async ({ page }) => {
+	await page.goto('/ancilla-mzi?a=9');
+	await expect(hydrated(page)).toBeVisible();
+	await expect(page.getByTestId('setup-fold')).toHaveAttribute('open');
+	await expect(page.getByTestId('setup-fold').getByText(/Keep a at most/)).toBeVisible();
+	await expect(advanced(page)).not.toHaveAttribute('open');
+	await expect(page.getByTestId('run')).toBeDisabled();
+	await expect(page.getByTestId('run')).toHaveAttribute('aria-describedby', 'run-blocked');
+
+	// Two system particles can't run Lorentzian dephasing with controls: the error is in Advanced
+	await page.goto('/ancilla-mzi?n=2_1&ls=d_1_1');
+	await expect(hydrated(page)).toBeVisible();
+	await expect(advanced(page)).toHaveAttribute('open');
+	await expect(page.getByTestId('system-lorentzian')).toHaveAttribute('aria-invalid', 'true');
+	await expect(page.getByTestId('system-lorentzian')).toHaveAccessibleDescription(
+		/needs pseudomodes/
+	);
 });
