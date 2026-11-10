@@ -7,25 +7,40 @@
 :root {
 	color-scheme: light dark;
 
+	/* Workbench paper (owner, rounds 1-4 of the 2026-11 redesign; docs/design.md):
+	   kraft paper with a millimetre grid in light, blueprint navy in dark. Boxes
+	   are cool white on kraft and darker than the page (ink wells) on navy, so
+	   they stand apart from the ground in both. */
+
 	/* Surfaces */
-	--bg: light-dark(#f6f7f9, #111318);
-	--surface: light-dark(#ffffff, #1a1d23);
-	--surface-2: light-dark(#eef1f4, #22262d);
-	--sunken: light-dark(#ffffff, #0d0f13);
+	--bg: light-dark(oklch(0.925 0.03 75), oklch(0.25 0.07 258));
+	--surface: light-dark(oklch(0.99 0.004 250), oklch(0.19 0.06 258));
+	--surface-2: light-dark(oklch(0.955 0.008 250), oklch(0.23 0.06 258));
+	--sunken: light-dark(oklch(1 0 0), oklch(0.16 0.05 258));
+	/* The page's grid: fine lines every 8px, a darker one every 40px (base.css). */
+	--grid: light-dark(oklch(0.45 0.05 60 / 0.09), oklch(1 0 0 / 0.07));
+	--grid-strong: light-dark(oklch(0.45 0.05 60 / 0.17), oklch(1 0 0 / 0.13));
+	/* A box's lift: a soft shadow on kraft, an inner shadow for an ink well.
+	   light-dark() takes only colours, so each theme blanks the other's layers. */
+	--shadow-near: light-dark(oklch(0.35 0.04 60 / 0.14), transparent);
+	--shadow-far: light-dark(oklch(0.35 0.04 60 / 0.08), transparent);
+	--shadow-inset: light-dark(transparent, oklch(0 0 0 / 0.45));
+	--box-shadow:
+		0 1px 2px var(--shadow-near), 0 6px 18px var(--shadow-far), inset 0 2px 8px var(--shadow-inset);
 
 	/* Text */
-	--text: light-dark(#1b1f24, #e6e8eb);
-	--text-muted: light-dark(#57606a, #9aa4b1);
+	--text: light-dark(oklch(0.24 0.02 60), oklch(0.96 0.01 250));
+	--text-muted: light-dark(oklch(0.4 0.025 60), oklch(0.84 0.03 250));
 
 	/* Borders: --border is decorative, --border-strong outlines controls (3:1) */
-	--border: light-dark(#d0d7de, #353a43);
-	--border-strong: light-dark(#818b98, #6e7681);
+	--border: light-dark(oklch(0.8 0.02 70), oklch(1 0 0 / 0.2));
+	--border-strong: light-dark(oklch(0.55 0.03 65), oklch(0.7 0.04 250));
 
-	/* Accent */
-	--accent: light-dark(#0e7490, #22d3ee);
-	--accent-hover: light-dark(#155e75, #67e8f9);
-	--on-accent: light-dark(#ffffff, #0b1215);
-	--accent-bg: light-dark(#e6f6f9, #0f262b);
+	/* Accent: teal */
+	--accent: light-dark(oklch(0.45 0.09 195), oklch(0.8 0.1 190));
+	--accent-hover: light-dark(oklch(0.39 0.09 195), oklch(0.86 0.09 190));
+	--on-accent: light-dark(oklch(0.99 0.003 80), oklch(0.18 0.01 60));
+	--accent-bg: light-dark(oklch(0.94 0.03 195), oklch(0.32 0.05 195));
 	--focus-ring: var(--accent);
 
 	/* Status: -text on -bg is at least 4.5:1 */
@@ -107,18 +122,18 @@
 	--sp-6: 32px;
 
 	/* Controls */
-	--control-h: 32px;
-	--control-h-sm: 28px;
+	--control-h: 36px;
+	--control-h-sm: 32px;
 	--radius: 6px;
 	--radius-sm: 4px;
-	--topbar-h: 44px;
-	--content-max: 1400px;
+	--topbar-h: 48px;
+	--content-max: 72rem;
 }
 
 @media (pointer: coarse) {
 	:root {
-		--control-h: 40px;
-		--control-h-sm: 36px;
+		--control-h: 44px;
+		--control-h-sm: 40px;
 	}
 }
 

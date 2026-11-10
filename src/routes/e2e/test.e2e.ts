@@ -1,16 +1,16 @@
 import { expect, test } from '@playwright/test';
 import { routes, TOOL_GROUPS } from '../../lib/routes';
 
-test('Index - every tool card is a real link to its route', async ({ page }) => {
+test('Index - every tool is a real link to its route', async ({ page }) => {
 	await page.goto('/');
-	const cards = page.getByRole('main').getByRole('listitem');
-	await expect(cards).toHaveCount(routes.length);
+	const main = page.getByRole('main');
+	await expect(main.getByRole('listitem')).toHaveCount(routes.length);
 	for (const route of routes) {
-		const heading = page.getByRole('heading', { level: 3, name: route.name, exact: true });
-		const link = page.getByRole('main').getByRole('link').filter({ has: heading });
-		await expect(link).toHaveAttribute('href', route.path);
+		await expect(
+			main.getByRole('link', { name: new RegExp(`^${route.name}`) }).first()
+		).toHaveAttribute('href', route.path);
 	}
-	await expect(page.getByRole('main').getByRole('button')).toHaveCount(0);
+	await expect(main.getByRole('button')).toHaveCount(0);
 });
 
 test('Index - tools are grouped by kind, in the order of TOOL_GROUPS', async ({ page }) => {
@@ -26,11 +26,33 @@ test('Index - tools are grouped by kind, in the order of TOOL_GROUPS', async ({ 
 	}
 });
 
-test('Index - clicking a card navigates to the tool', async ({ page }) => {
+test('Index - the filter lists matches in one list; Enter opens the first', async ({ page }) => {
+	await page.goto('/', { waitUntil: 'networkidle' });
+	await page.locator('nav[data-hydrated]').waitFor();
+	await page.keyboard.press('/');
+	const filter = page.getByRole('searchbox', { name: 'Filter tools' });
+	await expect(filter).toBeFocused();
+	await filter.fill('vote');
+	await expect(page.getByRole('status')).toHaveText(`1 of ${routes.length}`);
+	await expect(page.getByRole('main').getByRole('heading', { level: 2 })).toHaveCount(0);
+	await filter.press('Enter');
+	await expect(page).toHaveURL(/\/rank-vote$/);
+});
+
+test('Index - Escape clears the filter; no match says so', async ({ page }) => {
+	await page.goto('/', { waitUntil: 'networkidle' });
+	const filter = page.getByRole('searchbox', { name: 'Filter tools' });
+	await filter.fill('zzzz');
+	await expect(page.getByText('No tool matches “zzzz”. Try a shorter word.')).toBeVisible();
+	await filter.press('Escape');
+	await expect(page.getByRole('main').getByRole('listitem')).toHaveCount(routes.length);
+});
+
+test('Index - tapping a tool navigates to it', async ({ page }) => {
 	await page.goto('/', { waitUntil: 'networkidle' });
 	await page
 		.getByRole('main')
-		.getByRole('link', { name: /JWT Parser/ })
+		.getByRole('link', { name: /^JWT Parser/ })
 		.click();
 	await expect(page).toHaveURL(/\/jwt$/);
 });

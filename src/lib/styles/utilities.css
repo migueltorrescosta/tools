@@ -3,7 +3,7 @@
 	width: 100%;
 	max-width: var(--content-max);
 	margin: 0 auto;
-	padding: var(--sp-3) var(--sp-4);
+	padding: var(--sp-2) var(--sp-4) var(--sp-4);
 	flex: 1;
 }
 

@@ -19,7 +19,6 @@ const ROUTES = [
 	'/chaos-game',
 	'/rank-vote',
 	'/verb-conjugator',
-	'/warhammer-simulator',
 	// A fixed timeline: without ?t the page picks one at random.
 	'/timelines?t=llm-breakthroughs',
 	'/volt',

@@ -1,11 +1,15 @@
 /**
- * Two-state theme. With nothing saved the site follows the OS; toggling saves
- * the opposite theme in localStorage for good. src/app.html applies the saved
- * value before first paint, so this module only keeps the toggle in sync.
+ * Three-way theme: Light, Dark, or Match device (nothing saved). src/app.html
+ * applies a saved choice before first paint; this module keeps the switch, the
+ * page's color-scheme and the browser bar colour (meta theme-color) in sync.
  */
 export type Theme = 'light' | 'dark';
+export type Mode = Theme | 'system';
 
 export const THEME_KEY = 'theme';
+
+/** --bg of each theme in tokens.css, for the browser bar; keep in sync with src/app.html. */
+export const THEME_COLOURS: Record<Theme, string> = { light: '#f2e4d1', dark: '#092142' };
 
 const DARK_QUERY = '(prefers-color-scheme: dark)';
 
@@ -22,25 +26,38 @@ function system(): Theme {
 	return matchMedia(DARK_QUERY).matches ? 'dark' : 'light';
 }
 
-export const theme = $state<{ current: Theme }>({ current: 'dark' });
+/** `current` is the theme on screen; `mode` is what the switch shows. */
+export const theme = $state<{ current: Theme; mode: Mode }>({ current: 'dark', mode: 'system' });
 
-/** Read the effective theme and follow OS changes until the user picks one. Returns a cleanup. */
+function paintBar(t: Theme) {
+	for (const meta of document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')) {
+		meta.content = THEME_COLOURS[t];
+	}
+}
+
+/** Read the saved mode and follow OS changes while matching the device. Returns a cleanup. */
 export function initTheme(): () => void {
+	theme.mode = saved() ?? 'system';
 	theme.current = saved() ?? system();
 	const media = matchMedia(DARK_QUERY);
 	const onChange = () => {
-		if (!saved()) theme.current = system();
+		if (theme.mode === 'system') {
+			theme.current = system();
+			paintBar(theme.current);
+		}
 	};
 	media.addEventListener('change', onChange);
 	return () => media.removeEventListener('change', onChange);
 }
 
-export function toggleTheme(): void {
-	const next: Theme = theme.current === 'dark' ? 'light' : 'dark';
-	theme.current = next;
-	document.documentElement.style.colorScheme = next;
+export function setMode(mode: Mode): void {
+	theme.mode = mode;
+	theme.current = mode === 'system' ? system() : mode;
+	document.documentElement.style.colorScheme = mode === 'system' ? '' : mode;
+	paintBar(theme.current);
 	try {
-		localStorage.setItem(THEME_KEY, next);
+		if (mode === 'system') localStorage.removeItem(THEME_KEY);
+		else localStorage.setItem(THEME_KEY, mode);
 	} catch {
 		// Storage blocked: the choice lasts for this page only.
 	}

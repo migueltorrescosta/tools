@@ -111,6 +111,12 @@ export default defineConfig({
 		}),
 		exitWithLauncher()
 	],
+	build: {
+		// Browsers with light-dark() (2024), so the minifier keeps it as written. Lowered, it
+		// becomes variables that only prefers-color-scheme switches, and the theme switch,
+		// which sets color-scheme on <html>, changes nothing on the built site.
+		cssTarget: ['chrome123', 'edge123', 'firefox120', 'safari17.5']
+	},
 	server: {
 		allowedHosts: ['aurora.seagull-dominant.ts.net']
 	},

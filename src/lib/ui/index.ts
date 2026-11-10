@@ -17,7 +17,7 @@ export { default as SegmentedControl } from './SegmentedControl.svelte';
 export { default as ShareActions } from './ShareActions.svelte';
 export { default as Select } from './Select.svelte';
 export { default as Stepper } from './Stepper.svelte';
-export { default as ThemeToggle } from './ThemeToggle.svelte';
+export { default as ThemeSwitch } from './ThemeSwitch.svelte';
 export type { Column } from './DataTable.svelte';
 export type { Reference } from './References.svelte';
 export type { Step } from './Stepper.svelte';

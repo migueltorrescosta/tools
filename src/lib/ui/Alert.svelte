@@ -20,41 +20,26 @@
 </div>
 
 <style>
+	/* A message is its symbol and coloured text, no box (owner, 2026-11 redesign). */
 	.ui-alert {
 		display: flex;
-		align-items: flex-start;
+		align-items: baseline;
 		gap: var(--sp-2);
-		padding: var(--sp-2) var(--sp-3);
-		border: 1px solid;
-		border-radius: var(--radius);
 	}
-
 	.ui-icon {
 		font-weight: 700;
 		min-width: 1ch;
 	}
-
 	.info {
-		background: var(--info-bg);
-		border-color: var(--info);
 		color: var(--info-text);
 	}
-
 	.success {
-		background: var(--success-bg);
-		border-color: var(--success);
 		color: var(--success-text);
 	}
-
 	.warning {
-		background: var(--warning-bg);
-		border-color: var(--warning);
 		color: var(--warning-text);
 	}
-
 	.danger {
-		background: var(--danger-bg);
-		border-color: var(--danger);
 		color: var(--danger-text);
 	}
 </style>

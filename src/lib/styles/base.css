@@ -15,7 +15,13 @@ body {
 	min-height: 100vh;
 	display: flex;
 	flex-direction: column;
-	background: var(--bg);
+	/* Millimetre paper: a fine line every 8px and a darker one every 40px. */
+	background:
+		linear-gradient(var(--grid-strong) 1px, transparent 1px) 0 0 / 40px 40px,
+		linear-gradient(90deg, var(--grid-strong) 1px, transparent 1px) 0 0 / 40px 40px,
+		linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 8px 8px,
+		linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 8px 8px,
+		var(--bg);
 	color: var(--text);
 	font-family: var(--font-sans);
 	font-size: var(--text-md);
@@ -122,29 +128,33 @@ table {
 	overflow: visible;
 }
 
-/* Collapsible help: <details class="how"><summary>How it works</summary>…</details> */
+/* How it works: a quiet link at the end of a tool that opens its explanation,
+   credits and blog links in place. <details class="how"><summary>How it works</summary>…</details> */
 details.how {
 	margin-top: var(--sp-4);
-	border: 1px solid var(--border);
-	border-radius: var(--radius);
-	background: var(--surface);
 }
 
 details.how > summary {
-	min-height: var(--control-h);
-	padding: var(--sp-1) var(--sp-3);
-	/* list-item keeps the native disclosure triangle. */
-	display: list-item;
-	align-content: center;
-	font-weight: 600;
+	display: inline-flex;
+	align-items: center;
+	min-height: var(--control-h-sm);
+	color: var(--accent);
+	text-decoration: underline;
+	text-underline-offset: 3px;
 	cursor: pointer;
+	list-style: none;
 }
 
-details.how[open] > summary {
-	border-bottom: 1px solid var(--border);
+details.how > summary::-webkit-details-marker {
+	display: none;
+}
+
+details.how > summary:hover {
+	color: var(--accent-hover);
 }
 
 details.how > :not(summary) {
-	margin: var(--sp-3);
+	max-width: 70ch;
+	margin: var(--sp-2) 0;
 	color: var(--text-muted);
 }

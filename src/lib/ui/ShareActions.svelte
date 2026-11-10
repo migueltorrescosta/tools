@@ -108,12 +108,14 @@
 	.ui-icon-btn:hover {
 		background: var(--surface-2);
 	}
+	/* Clear stays quiet until it is pointed at or armed: a destructive action should not draw the eye. */
 	.ui-icon-btn.danger {
-		color: var(--danger-text);
-		border-color: var(--danger);
+		color: var(--text-muted);
 	}
 	.ui-icon-btn.danger:hover,
 	.ui-icon-btn.confirming {
+		color: var(--danger-text);
+		border-color: var(--danger);
 		background: var(--danger-bg);
 	}
 	svg {

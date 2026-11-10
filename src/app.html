@@ -4,13 +4,20 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="color-scheme" content="light dark" />
+		<!-- --bg of each theme (tokens.css); keep in sync with THEME_COLOURS in src/lib/theme.svelte.ts. -->
+		<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2e4d1" />
+		<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#092142" />
 		%sveltekit.head%
 		<script>
 			// Apply a saved theme before first paint; keep in sync with src/lib/theme.svelte.ts.
 			// Placed after the head tags so the CSP <meta> tag covers it; vite.config.ts hashes it.
 			try {
 				const t = localStorage.getItem('theme');
-				if (t === 'light' || t === 'dark') document.documentElement.style.colorScheme = t;
+				if (t === 'light' || t === 'dark') {
+					document.documentElement.style.colorScheme = t;
+					const bar = t === 'light' ? '#f2e4d1' : '#092142';
+					for (const m of document.querySelectorAll('meta[name="theme-color"]')) m.content = bar;
+				}
 			} catch {
 				// Storage blocked: follow the OS.
 			}

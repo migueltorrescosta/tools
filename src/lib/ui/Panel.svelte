@@ -28,33 +28,37 @@
 </section>
 
 <style>
+	/* A box on the paper: its title in body size over a short accent rule, no header band. */
 	.ui-panel {
 		background: var(--surface);
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
+		box-shadow: var(--box-shadow);
 		min-width: 0;
 	}
-
 	.ui-panel-head {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		gap: var(--sp-2);
-		min-height: 36px;
-		padding: var(--sp-1) var(--sp-3);
-		border-bottom: 1px solid var(--border);
+		padding: var(--sp-3) var(--sp-3) 0;
 	}
-
 	.ui-panel-heading {
-		font-size: var(--text-sm);
+		font-size: var(--text-lg);
 		font-weight: 600;
 	}
-
+	.ui-panel-heading::after {
+		content: '';
+		display: block;
+		width: 24px;
+		height: 2px;
+		margin-top: 6px;
+		background: var(--accent);
+	}
 	.ui-panel-actions {
 		display: flex;
 		gap: var(--sp-1);
 		margin-left: auto;
 	}
-
 	.ui-panel-body {
 		padding: var(--sp-3);
 	}
