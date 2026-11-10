@@ -1,4 +1,4 @@
-/** Explanations shown in the page's info tooltips. */
+/** Explanations shown in How it works and the metric tooltips. */
 export const GLOSSARY = {
 	complexity:
 		'Nodes in the expression tree: every constant, input, indicator and operator counts 1. Simpler equations are easier to read and tend to generalise better.',
