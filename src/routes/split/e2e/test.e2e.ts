@@ -25,7 +25,7 @@ async function addPerson(page: Page, name: string) {
 
 async function addItem(page: Page, description: string, price: string) {
 	await page.getByLabel('Item description').fill(description);
-	await page.getByLabel('Item price (€)').fill(price);
+	await page.getByLabel('Rough price (€)').fill(price);
 	await page.getByRole('button', { name: 'Add item' }).click();
 }
 
@@ -52,13 +52,19 @@ async function startTwo(page: Page) {
 /** One card per person on the final screen. */
 const finalRows = (page: Page) => page.getByTestId('final-person');
 
-async function expectSettlementsSumToZero(page: Page) {
-	const rows = finalRows(page);
-	await expect(rows).toHaveCount(2);
-	const payments = await Promise.all(
-		(await rows.all()).map((row) => row.locator('.settlement').innerText())
-	);
-	expect(payments.reduce((s, t) => s + signedAmount(t), 0)).toBe(0);
+/** The result's answer: the "Who pays whom" lines. */
+const paymentLines = (page: Page) =>
+	page.getByRole('region', { name: 'Who pays whom' }).getByRole('listitem');
+
+/**
+ * Two people: the answer is one payment, and the person cards below list
+ * items only, never an amount.
+ */
+async function expectOnePayment(page: Page) {
+	await expect(finalRows(page)).toHaveCount(2);
+	await expect(paymentLines(page)).toHaveCount(1);
+	await expect(paymentLines(page)).toHaveText(/^(Alice|Bob) pays (Alice|Bob) \d[\d\s]*\s€$/);
+	await expect(finalRows(page).getByText(/€|Pay|Receive/)).toHaveCount(0);
 }
 
 /** An item pill in the setup screen. */
@@ -97,9 +103,22 @@ test('Asset Splitting - picks on different groups certify the split', async ({ p
 	await expect(groups.nth(1)).toContainText('Car');
 	await expect(groups.nth(1)).toContainText('Receive');
 
+	// One visible instruction, then the name chips, then the groups; no info tip, no "Unplaced" label.
+	await expect(
+		page.getByText(/^Drag your name onto the group you'd take at these amounts\./)
+	).toBeVisible();
+	await expect(page.getByRole('button', { name: /^About / })).toHaveCount(0);
+	await expect(page.getByText('Unplaced', { exact: true })).toHaveCount(0);
 	const unplaced = page.getByTestId('split-unplaced');
 	await expect(chip(unplaced, 'Alice')).toBeVisible();
 	await expect(chip(unplaced, 'Bob')).toBeVisible();
+	const tray = (await unplaced.boundingBox())!;
+	expect(tray.y).toBeLessThan((await groups.nth(0).boundingBox())!.y);
+	// Each card is headed by its amount, not a number.
+	await expect(groups.nth(0).getByRole('heading', { level: 3 })).toHaveText(/^Pay \d/);
+	await expect(groups.nth(1).getByRole('heading', { level: 3 })).toHaveText(/^Receive \d/);
+	await expect(page.getByText(/^Group \d$/)).toHaveCount(0);
+	const boardPay = signedAmount(await groups.nth(0).getByRole('heading').innerText());
 
 	const complete = page.getByRole('button', { name: 'Complete round' });
 	await expect(complete).toBeDisabled();
@@ -112,22 +131,17 @@ test('Asset Splitting - picks on different groups certify the split', async ({ p
 
 	await expect(page.getByRole('heading', { name: 'Everyone keeps their own group' })).toBeVisible();
 	await expect(currentStep(page)).toHaveText(/Result$/);
-	// The explanation lives in the heading's info tip.
-	await page.getByRole('button', { name: 'About the final split' }).focus();
-	await expect(
-		page.getByRole('tooltip').filter({ hasText: 'nobody would rather swap' })
-	).toBeVisible();
+	await expect(page.getByRole('button', { name: /^About / })).toHaveCount(0);
 	const alice = finalRows(page).filter({ hasText: 'Alice' });
 	await expect(alice).toContainText('House');
-	await expect(alice).toContainText('Pay');
-	await expectSettlementsSumToZero(page);
-	// One concrete payment settles two people.
-	const payments = page.getByRole('region', { name: 'Who pays whom' }).getByRole('listitem');
-	await expect(payments).toHaveCount(1);
+	// The answer comes first: one concrete payment, the amount the board showed.
+	await expectOnePayment(page);
+	const payments = paymentLines(page);
 	await expect(payments).toHaveText(/^Alice pays Bob \d[\d\s]*\s€$/);
-	const paid = signedAmount('Pay ' + (await payments.innerText()));
-	const owed = signedAmount(await alice.locator('.settlement').innerText());
-	expect(paid).toBe(owed);
+	expect(signedAmount('Pay ' + (await payments.innerText()))).toBe(boardPay);
+	const answer = (await page.getByRole('region', { name: 'Who pays whom' }).boundingBox())!;
+	const owners = (await page.getByRole('region', { name: 'Who gets what' }).boundingBox())!;
+	expect(answer.y).toBeLessThan(owners.y);
 
 	// Final screen edits: tap the Car pill, then Alice's card (tap fallback).
 	const card = (name: string) =>
@@ -148,8 +162,7 @@ test('Asset Splitting - picks on different groups certify the split', async ({ p
 	// Undo restores the agreed split and its amounts.
 	await page.getByRole('button', { name: 'Undo changes' }).click();
 	await expect(card('Bob')).toContainText('Car');
-	await expect(card('Alice')).toContainText('Pay');
-	await expect(page.getByRole('region', { name: 'Who pays whom' })).toBeVisible();
+	await expect(payments).toHaveText(/^Alice pays Bob /);
 	await expect(recheck).toHaveCount(0);
 
 	// Drag the House pill onto Bob's card, and the Car onto Alice's.
@@ -179,7 +192,7 @@ test('Asset Splitting - picks on different groups certify the split', async ({ p
 	await tapPlace(page, 'Bob', 1);
 	await complete.click();
 	await expect(card('Alice')).toContainText('Car');
-	await expectSettlementsSumToZero(page);
+	await expectOnePayment(page);
 
 	// Start over keeps people and items.
 	await page.getByRole('button', { name: 'Start over' }).click();
@@ -347,8 +360,12 @@ test('Asset Splitting - a shared pick starts another round', async ({ page }) =>
 	await expect(currentStep(page)).toHaveText(/^3\s*Rounds · 2$/);
 	await expect(groups.nth(0)).not.toContainText('Over-demanded');
 
-	// Back to setup discards the rounds and keeps the entered prices.
+	// Back to setup asks once before it discards the rounds, and keeps the entered prices.
 	await page.getByRole('button', { name: 'Back to setup' }).click();
+	const discard = page.getByRole('button', { name: 'Discard 1 round and go back' });
+	await expect(discard).toBeVisible();
+	await expect(currentStep(page)).toHaveText(/Rounds · 2$/);
+	await discard.click();
 	await expect(page.getByLabel('Person name')).toBeVisible();
 	await expect(itemPill(page, 'Car')).toContainText(/10\s000\s€/);
 	await page.getByRole('button', { name: 'Start', exact: true }).click();
@@ -382,7 +399,8 @@ test('Asset Splitting - after the round cap the best split is offered', async ({
 	await expect(offer).toBeVisible();
 	await page.getByRole('button', { name: 'Accept this split' }).click();
 	await expect(page.getByRole('heading', { name: 'Everyone keeps their own group' })).toBeVisible();
-	await expectSettlementsSumToZero(page);
+	await expectOnePayment(page);
+	await expect(page.getByText('This is the best split found so far')).toBeVisible();
 	expect(errors).toEqual([]);
 });
 
@@ -391,6 +409,14 @@ test('Asset Splitting - setup validates input and blocks Start with a reason', a
 	await open(page);
 	const start = page.getByRole('button', { name: 'Start', exact: true });
 	await expect(currentStep(page)).toHaveText(/^1\s*Setup$/);
+
+	// The empty setup shows only titles, labels and empty fields: no tips, no empty-state lines.
+	await expect(page.getByRole('button', { name: /^About / })).toHaveCount(0);
+	await expect(page.getByText(/^No (people|items) yet\.$/)).toHaveCount(0);
+	for (const label of ['Person name', 'Item description', 'Rough price (€)']) {
+		await expect(page.getByLabel(label)).toHaveValue('');
+		await expect(page.getByLabel(label)).not.toHaveAttribute('placeholder');
+	}
 
 	await page.getByRole('button', { name: 'Add person' }).click();
 	await expect(page.getByRole('alert')).toHaveText(/^\W*Enter a name\.$/);
@@ -405,7 +431,7 @@ test('Asset Splitting - setup validates input and blocks Start with a reason', a
 	await expect(page.getByText('Add at least 1 item to start.')).toBeVisible();
 
 	await page.getByLabel('Item description').fill('Car');
-	await page.getByLabel('Item price (€)').fill('0');
+	await page.getByLabel('Rough price (€)').fill('0');
 	await page.getByRole('button', { name: 'Add item' }).click();
 	await expect(page.getByText('Enter a price greater than 0.')).toBeVisible();
 	// Rejected input stays in the form for correction, and no pill is added.
@@ -413,10 +439,12 @@ test('Asset Splitting - setup validates input and blocks Start with a reason', a
 	await expect(page.getByRole('button', { name: 'Remove Car' })).toHaveCount(0);
 
 	await addItem(page, 'Car', '10000');
+	// The price field is empty again after an add.
+	await expect(page.getByLabel('Rough price (€)')).toHaveValue('');
 	// Enter in the price field submits the add-item form.
 	await page.getByLabel('Item description').fill('House');
-	await page.getByLabel('Item price (€)').fill('50000');
-	await page.getByLabel('Item price (€)').press('Enter');
+	await page.getByLabel('Rough price (€)').fill('50000');
+	await page.getByLabel('Rough price (€)').press('Enter');
 	await expect(start).toBeEnabled();
 	await addItem(page, 'Boat', '3000');
 	await page.getByRole('button', { name: 'Remove Boat' }).click();
@@ -449,7 +477,7 @@ test('Asset Splitting - "+" adds and refocuses, and the setup survives a reload'
 	await page.getByRole('button', { name: 'Start', exact: true }).click();
 	await page.getByRole('button', { name: 'Continue' }).click();
 	await expect(page.getByRole('heading', { name: 'Round 1', exact: true })).toBeVisible();
-	await expect(page.getByRole('button', { name: 'About rounds' })).toBeVisible();
+	await expect(page.getByText(/^Drag your name onto the group/)).toBeVisible();
 	expect(errors).toEqual([]);
 });
 
@@ -471,8 +499,6 @@ for (const colorScheme of ['light', 'dark'] as const) {
 		await addItem(page, 'House', '50000');
 		await addItem(page, 'Car', '10000');
 		await addItem(page, 'Lamp', '20');
-		await page.getByRole('button', { name: 'About items' }).focus();
-		await expect(page.getByRole('tooltip').filter({ hasText: 'best guess' })).toBeVisible();
 		expect(await axe(page)).toEqual([]);
 
 		await page.getByRole('button', { name: 'Start', exact: true }).click();
@@ -536,6 +562,8 @@ test('Asset Splitting - first screen leads with the task, references in How it w
 	const how = page.locator('details.how');
 	await expect(how).not.toHaveAttribute('open');
 	await expect(page.getByRole('heading', { name: 'References' })).toBeHidden();
+	await expect(page.getByRole('link', { name: 'First written up on the blog' })).toBeHidden();
 	await how.locator('summary').click();
 	await expect(page.getByRole('heading', { name: 'References' })).toBeVisible();
+	await expect(how.getByRole('link', { name: 'First written up on the blog' })).toBeVisible();
 });
