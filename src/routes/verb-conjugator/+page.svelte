@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { browser } from '$app/env';
-	import { Button, PageHeader, Panel, SegmentedControl } from '#lib/ui/index.js';
+	import { Button, Fold, PageHeader, Panel, SegmentedControl } from '#lib/ui/index.js';
 	import {
 		LANGUAGE_REGISTRY,
 		getLanguage,
@@ -419,17 +419,15 @@
 		</Panel>
 	</div>
 
-	<details class="vc-settings" lang={lang.ui.locale}>
-		<summary data-testid="practice-settings">
-			{#if hydrated}
-				<span class="vc-muted"
-					>{lang.ui.practising} <strong>{lang.ui.verbCount(selectedVerbs.length)}</strong>
-					<span aria-hidden="true">·</span>
-					<strong>{lang.ui.tenseCount(selectedTenses.length)}</strong></span
-				>
-				<span class="vc-change">{lang.ui.change}</span>
-			{/if}
-		</summary>
+	<Fold
+		label={lang.ui.practice}
+		summary={hydrated
+			? `${lang.ui.verbCount(selectedVerbs.length)}, ${lang.ui.tenseCount(selectedTenses.length)}`
+			: undefined}
+		class="vc-settings"
+		lang={lang.ui.locale}
+		data-testid="practice-settings"
+	>
 		<div class="vc-chip-panels">
 			<Panel>
 				<div class="vc-group" role="group" aria-labelledby="vc-verbs">
@@ -465,7 +463,7 @@
 				</div>
 			</Panel>
 		</div>
-	</details>
+	</Fold>
 </div>
 
 <style>
@@ -712,43 +710,13 @@
 		text-underline-offset: 2px;
 	}
 
-	.vc-settings {
+	:global(.ui-fold.vc-settings) {
 		margin-top: var(--sp-3);
-	}
-
-	.vc-settings > summary {
-		display: inline-flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: var(--sp-0) var(--sp-2);
-		min-height: var(--control-h-sm);
-		cursor: pointer;
-		list-style: none;
-	}
-
-	.vc-settings > summary::-webkit-details-marker {
-		display: none;
-	}
-
-	.vc-settings strong {
-		color: var(--text);
-		font-weight: 600;
-	}
-
-	.vc-change {
-		color: var(--accent);
-		text-decoration: underline;
-		text-underline-offset: 3px;
-	}
-
-	.vc-settings > summary:hover .vc-change {
-		color: var(--accent-hover);
 	}
 
 	.vc-chip-panels {
 		display: grid;
 		gap: var(--sp-3);
-		margin-top: var(--sp-2);
 	}
 
 	.vc-group h2 {

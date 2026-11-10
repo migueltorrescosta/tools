@@ -24,7 +24,7 @@ async function seedSingleCardSet(page: Page) {
 
 const stats = (page: Page) => page.getByTestId('stats');
 const historyRows = (page: Page) => page.getByTestId('history').getByRole('row');
-const settings = (page: Page) => page.getByTestId('practice-settings');
+const settings = (page: Page) => page.getByTestId('practice-settings').locator('summary');
 const answerBox = (page: Page) =>
 	page.getByRole('textbox', { name: /^(Risposta|Respuesta|Resposta): .+$/ });
 
@@ -94,7 +94,7 @@ test('Verb conjugator - switching language keeps the Italian session', async ({ 
 	await expect(page.getByText('Aún no hay intentos.')).toBeVisible();
 	// All interface text follows the practised language
 	await expect(page.getByRole('button', { name: 'Comprobar' })).toBeVisible();
-	await expect(settings(page)).toContainText('Practicas');
+	await expect(settings(page)).toContainText('Práctica');
 	await expect(page.locator('.vc-grid')).toHaveAttribute('lang', 'es');
 
 	await page.getByRole('radio', { name: 'Italiano' }).check();
@@ -116,10 +116,10 @@ test('Verb conjugator - selected language survives reload', async ({ page }) => 
 test('Verb conjugator - verb and tense chips expose pressed state', async ({ page }) => {
 	await seedSingleCardSet(page);
 	// The chips sit behind one closed summary line
-	await expect(settings(page)).toContainText('Stai esercitando 1 verbo · 1 tempo');
+	await expect(settings(page)).toHaveText('Pratica · 1 verbo, 1 tempo');
 	const verbs = page.getByRole('group', { name: 'Verbi' });
 	await expect(verbs).toBeHidden();
-	await page.getByText('Cambia', { exact: true }).click();
+	await settings(page).click();
 	await expect(verbs).toBeVisible();
 	const essere = verbs.getByRole('button', { name: 'essere', exact: true });
 	await expect(essere).toHaveAttribute('aria-pressed', 'true');
@@ -131,7 +131,7 @@ test('Verb conjugator - verb and tense chips expose pressed state', async ({ pag
 	await avere.click();
 	await expect(avere).toHaveAttribute('aria-pressed', 'true');
 	await expect(essere).toBeEnabled();
-	await expect(settings(page)).toContainText('2 verbi · 1 tempo');
+	await expect(settings(page)).toHaveText('Pratica · 2 verbi, 1 tempo');
 
 	const tenses = page.getByRole('group', { name: 'Tempi' });
 	await expect(

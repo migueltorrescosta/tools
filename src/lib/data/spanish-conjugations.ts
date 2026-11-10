@@ -1129,10 +1129,9 @@ export const spanishModule: LanguageModule = {
 		noForms: 'Estos tiempos no tienen formas para los verbos elegidos. Elige otro verbo o tiempo.',
 		complete: 'Enhorabuena, has terminado. ¿Empezar de nuevo?',
 		restart: 'Empezar de nuevo',
-		practising: 'Practicas',
+		practice: 'Práctica',
 		verbCount: (n) => `${n} ${n === 1 ? 'verbo' : 'verbos'}`,
-		tenseCount: (n) => `${n} ${n === 1 ? 'tiempo' : 'tiempos'}`,
-		change: 'Cambiar'
+		tenseCount: (n) => `${n} ${n === 1 ? 'tiempo' : 'tiempos'}`
 	},
 	extractConjugation: spanishExtractConjugation
 };

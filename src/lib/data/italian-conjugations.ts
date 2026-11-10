@@ -2474,10 +2474,9 @@ export const italianModule: LanguageModule = {
 		noForms: 'Questi tempi non hanno forme per i verbi scelti. Scegli un altro verbo o tempo.',
 		complete: 'Complimenti, hai finito. Ricominciare?',
 		restart: 'Ricomincia',
-		practising: 'Stai esercitando',
+		practice: 'Pratica',
 		verbCount: (n) => `${n} ${n === 1 ? 'verbo' : 'verbi'}`,
-		tenseCount: (n) => `${n} ${n === 1 ? 'tempo' : 'tempi'}`,
-		change: 'Cambia'
+		tenseCount: (n) => `${n} ${n === 1 ? 'tempo' : 'tempi'}`
 	},
 	extractConjugation: italianExtractConjugation
 };

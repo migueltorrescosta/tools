@@ -1273,10 +1273,9 @@ export const portugueseModule: LanguageModule = {
 		noForms: 'Estes tempos não têm formas para os verbos escolhidos. Escolha outro verbo ou tempo.',
 		complete: 'Parabéns, terminou. Recomeçar?',
 		restart: 'Recomeçar',
-		practising: 'A praticar',
+		practice: 'Prática',
 		verbCount: (n) => `${n} ${n === 1 ? 'verbo' : 'verbos'}`,
-		tenseCount: (n) => `${n} ${n === 1 ? 'tempo' : 'tempos'}`,
-		change: 'Alterar'
+		tenseCount: (n) => `${n} ${n === 1 ? 'tempo' : 'tempos'}`
 	},
 	extractConjugation: portugueseExtractConjugation
 };

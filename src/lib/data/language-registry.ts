@@ -44,14 +44,12 @@ export interface UILabels {
 	noForms: string;
 	complete: string;
 	restart: string;
-	/** Start of the practice settings line, e.g. "Practising" */
-	practising: string;
+	/** Label of the closed practice settings line, e.g. "Practice" */
+	practice: string;
 	/** "25 verbs", with the right plural */
 	verbCount: (n: number) => string;
 	/** "5 tenses", with the right plural */
 	tenseCount: (n: number) => string;
-	/** The link that opens the verb and tense chips */
-	change: string;
 }
 
 export interface LanguageModule {
