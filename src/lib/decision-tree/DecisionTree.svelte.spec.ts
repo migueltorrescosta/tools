@@ -24,7 +24,10 @@ describe('DecisionTree selection state and restart', () => {
 		const hot = page.getByRole('button', { name: 'Hot', exact: true });
 		const cold = page.getByRole('button', { name: 'Cold', exact: true });
 		await expect.element(hot).toHaveAttribute('aria-pressed', 'false');
+		await expect.element(cold).toHaveAttribute('aria-pressed', 'false');
 		await hot.click();
+		await expect.element(hot).toHaveAttribute('aria-pressed', 'true');
+		await page.getByRole('button', { name: 'Change' }).click();
 		await expect.element(hot).toHaveAttribute('aria-pressed', 'true');
 		await expect.element(cold).toHaveAttribute('aria-pressed', 'false');
 	});
@@ -47,5 +50,21 @@ describe('DecisionTree selection state and restart', () => {
 		await expect.element(page.getByText('Milk?')).not.toBeInTheDocument();
 		await expect.element(page.getByRole('button', { name: 'Hot', exact: true })).toHaveFocus();
 		await expect.element(page.getByRole('button', { name: 'Start over' })).not.toBeInTheDocument();
+	});
+
+	it('folds an answered question to its chosen answer and a Change link', async () => {
+		render(DecisionTree, { graph: twoStep, path: ['root|Hot', 'q1|Yes'] });
+		const hot = page.getByRole('button', { name: 'Hot', exact: true });
+		const cold = page.getByRole('button', { name: 'Cold', exact: true });
+		await expect.element(hot).toHaveAttribute('aria-pressed', 'true');
+		await expect.element(cold).not.toBeInTheDocument();
+		await expect.element(page.getByTestId('result')).toHaveTextContent(/^Latte$/);
+
+		await page.getByRole('button', { name: 'Change' }).first().click();
+		await expect.element(cold).toBeVisible();
+		await expect.element(hot).toHaveFocus();
+		await cold.click();
+		await expect.element(hot).not.toBeInTheDocument();
+		await expect.element(page.getByTestId('result')).toHaveTextContent(/^Iced tea$/);
 	});
 });

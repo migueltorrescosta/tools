@@ -79,7 +79,20 @@
 </script>
 
 <div class="container" data-hydrated={hydrated || undefined}>
-	<PageHeader path="/decision-tree">Navigate a decision tree one answer at a time</PageHeader>
+	<PageHeader path="/decision-tree" />
 
 	<DecisionTree {graph} bind:path={traversalPath} />
+
+	<details class="how">
+		<summary>How it works</summary>
+		<p>
+			Pick a guide, then answer one question at a time. Each answer opens the next question, until
+			you reach a recommendation. Change an earlier answer to take another branch: the questions
+			after it are cleared.
+		</p>
+		<p>
+			Your answers are saved in this browser and in the page address, so you can come back later or
+			share the link.
+		</p>
+	</details>
 </div>

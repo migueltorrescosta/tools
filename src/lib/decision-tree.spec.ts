@@ -141,7 +141,7 @@ describe('State persistence encoding', () => {
 	it('encodes a path as answer positions and decodes it losslessly', () => {
 		const graph = buildGraph(treeJson as RawTree);
 		const path: TraversalPath = [
-			'root|Choose a car',
+			'root|Which car to buy',
 			'c_q1|Low running cost or emissions',
 			'c_q7|Yes'
 		];
@@ -518,29 +518,29 @@ describe('Single answer selection', () => {
 	});
 
 	it('selecting a different answer replaces the previous selection for that position', () => {
-		const path: TraversalPath = ['root|Choose a car', 'c_q1|Low running cost or emissions'];
+		const path: TraversalPath = ['root|Which car to buy', 'c_q1|Low running cost or emissions'];
 		expect(selectAnswer(path, 1, 'c_q1|Fun / Performance')).toEqual([
-			'root|Choose a car',
+			'root|Which car to buy',
 			'c_q1|Fun / Performance'
 		]);
-		expect(path).toEqual(['root|Choose a car', 'c_q1|Low running cost or emissions']);
+		expect(path).toEqual(['root|Which car to buy', 'c_q1|Low running cost or emissions']);
 	});
 
 	it('selecting at depth 0 on a 3-edge path returns a 1-edge path', () => {
-		const path: TraversalPath = ['root|Religion', 'r_q1|Bible', 'r_q4|Yes'];
-		expect(selectAnswer(path, 0, 'root|Choose a car')).toEqual(['root|Choose a car']);
+		const path: TraversalPath = ['root|Which religion fits you', 'r_q1|Bible', 'r_q4|Yes'];
+		expect(selectAnswer(path, 0, 'root|Which car to buy')).toEqual(['root|Which car to buy']);
 	});
 
 	it('selecting at the frontier appends', () => {
-		expect(selectAnswer(['root|Religion'], 1, 'r_q1|Bible')).toEqual([
-			'root|Religion',
+		expect(selectAnswer(['root|Which religion fits you'], 1, 'r_q1|Bible')).toEqual([
+			'root|Which religion fits you',
 			'r_q1|Bible'
 		]);
 	});
 
 	it('answer rows carry their path depth', () => {
 		const graph = buildGraph(treeJson as RawTree);
-		const rows = computeRows(graph, ['root|Religion', 'r_q1|Bible', 'r_q4|Yes']);
+		const rows = computeRows(graph, ['root|Which religion fits you', 'r_q1|Bible', 'r_q4|Yes']);
 		const depths = rows.filter((r): r is AnswerRow => r.type === 'answer').map((r) => r.depth);
 		expect(depths).toEqual([0, 1, 2, 3]);
 	});
@@ -622,9 +622,9 @@ describe('Full tree traversal', () => {
 		const errors = validateGraph(graph);
 		expect(errors).toHaveLength(0);
 
-		// Traverse: root → Choose a car → Low running cost or emissions → Yes
+		// Traverse: root → Which car to buy → Low running cost or emissions → Yes
 		const path: TraversalPath = [
-			'root|Choose a car',
+			'root|Which car to buy',
 			'c_q1|Low running cost or emissions',
 			'c_q7|Yes'
 		];
@@ -640,7 +640,12 @@ describe('Full tree traversal', () => {
 		expect(errors).toHaveLength(0);
 
 		// root → Religion → Bible → Yes → Pope of Rome
-		const path: TraversalPath = ['root|Religion', 'r_q1|Bible', 'r_q4|Yes', 'r_q5|Pope of Rome'];
+		const path: TraversalPath = [
+			'root|Which religion fits you',
+			'r_q1|Bible',
+			'r_q4|Yes',
+			'r_q5|Pope of Rome'
+		];
 		const rows = computeRows(graph, path);
 		expect(rows[rows.length - 1].type).toBe('result');
 		expect((rows[rows.length - 1] as ResultRow).node.result).toBe('Roman Catholic');
@@ -649,7 +654,7 @@ describe('Full tree traversal', () => {
 	it('can traverse the units tree to kelvin', () => {
 		const graph = buildGraph(treeJson as RawTree);
 		const path: TraversalPath = [
-			'root|Pick a unit',
+			'root|Which unit to measure in',
 			'u_q|Temperature',
 			'u_temp|A physics formula, light colour or space'
 		];
@@ -672,7 +677,7 @@ describe('Full tree traversal', () => {
 
 		// Start with car tree
 		let path: TraversalPath = [
-			'root|Choose a car',
+			'root|Which car to buy',
 			'c_q1|Low running cost or emissions',
 			'c_q7|Yes'
 		];
@@ -680,7 +685,7 @@ describe('Full tree traversal', () => {
 		expect((rows[rows.length - 1] as ResultRow).node.result).toBe('Battery EV');
 
 		// Switch to religion tree at root
-		path = ['root|Religion', 'r_q1|None'];
+		path = ['root|Which religion fits you', 'r_q1|None'];
 		rows = computeRows(graph, path);
 		expect((rows[rows.length - 1] as ResultRow).node.result).toBe(
 			'Outside major Abrahamic religions'
