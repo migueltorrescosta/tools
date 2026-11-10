@@ -1,6 +1,8 @@
 export interface Timeline {
 	id: string;
-	shortTitle: string;
+	emoji: string;
+	/** One or two words, for the topic chip. */
+	label: string;
 	description: string;
 }
 
@@ -9,7 +11,8 @@ export interface TimelineEvent {
 	emoji: string;
 	date: string;
 	title: string;
-	description: string;
+	/** Missing when it would only repeat the title (most public holidays). */
+	description?: string;
 	url?: string;
 	conceptDescription?: string;
 	valueAdd?: string;

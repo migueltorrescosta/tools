@@ -212,9 +212,19 @@ describe('de facto holidays', () => {
 				const entry = entries.find((x) => x.country === country && holidayLabel(x.entry) === label);
 				expect(entry, `${e.title}`).toBeDefined();
 			}
-			const hasDeFacto = e.title.includes(DE_FACTO_MARKER);
-			expect(/customary|collective agreements/.test(e.description)).toBe(hasDeFacto);
 		}
+	});
+
+	it('describes a holiday only with its note, never by repeating the title', () => {
+		const notes = new Set(entries.flatMap(({ entry }) => (entry[2]?.note ? [entry[2].note] : [])));
+		const described = holidays.filter((e) => e.description !== undefined);
+		expect(described.length).toBeGreaterThan(0);
+		for (const e of described) expect(notes.has(e.description!), e.title).toBe(true);
+		expect(
+			holidays
+				.filter((e) => e.title.startsWith('Netherlands: Liberation Day'))
+				.every((e) => e.description)
+		).toBe(true);
 	});
 
 	it('includes the customary days on the right dates', () => {

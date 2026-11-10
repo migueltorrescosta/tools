@@ -268,9 +268,9 @@ describe('createTimelineLoader', () => {
 
 describe('pickTimelineId', () => {
 	const timelines = [
-		{ id: 'a', shortTitle: 'A', description: '' },
-		{ id: 'b', shortTitle: 'B', description: '' },
-		{ id: 'c', shortTitle: 'C', description: '' }
+		{ id: 'a', emoji: '📅', label: 'A', description: '' },
+		{ id: 'b', emoji: '📅', label: 'B', description: '' },
+		{ id: 'c', emoji: '📅', label: 'C', description: '' }
 	];
 	const never = () => {
 		throw new Error('random must not be used for a valid ?t');
