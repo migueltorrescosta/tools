@@ -94,6 +94,11 @@ describe('Output', () => {
 });
 
 describe('Alert', () => {
+	it('has no role when live is false', async () => {
+		render(Alert, { tone: 'danger', live: false, children: text('Bad') });
+		await expect.element(page.getByText('Bad')).toBeVisible();
+		await expect.element(page.getByRole('alert')).not.toBeInTheDocument();
+	});
 	it('uses role=alert for danger and status otherwise', async () => {
 		render(Alert, { tone: 'danger', children: text('Bad token') });
 		await expect.element(page.getByRole('alert')).toHaveTextContent('Bad token');

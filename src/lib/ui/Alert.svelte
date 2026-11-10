@@ -3,10 +3,13 @@
 
 	let {
 		tone = 'info',
+		live = true,
 		children
 	}: {
 		/** danger is announced immediately (role=alert); the others politely (role=status). */
 		tone?: 'info' | 'success' | 'warning' | 'danger';
+		/** false drops the role, for a message inside an existing live region or one that is not news. */
+		live?: boolean;
 		children: Snippet;
 	} = $props();
 
@@ -14,9 +17,9 @@
 	const icons = { info: 'ℹ', success: '✓', warning: '!', danger: '✕' } as const;
 </script>
 
-<div class="ui-alert {tone}" role={tone === 'danger' ? 'alert' : 'status'}>
+<div class="ui-alert {tone}" role={live ? (tone === 'danger' ? 'alert' : 'status') : undefined}>
 	<span class="ui-icon" aria-hidden="true">{icons[tone]}</span>
-	<div>{@render children()}</div>
+	<div class="ui-alert-text">{@render children()}</div>
 </div>
 
 <style>
@@ -25,6 +28,10 @@
 		display: flex;
 		align-items: baseline;
 		gap: var(--sp-2);
+	}
+	.ui-alert-text {
+		min-width: 0;
+		overflow-wrap: break-word;
 	}
 	.ui-icon {
 		font-weight: 700;

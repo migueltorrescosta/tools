@@ -59,11 +59,12 @@ test('an expired token says so in one red line, with the issue time below', asyn
 	const header = Buffer.from('{"alg":"HS256","typ":"JWT"}').toString('base64url');
 	const payload = Buffer.from('{"iat":1516239022,"exp":1700003600}').toString('base64url');
 	await u.token.fill(`${header}.${payload}.sig`);
-	const expired = u.payload.getByText(/Expired \d+ years ago \(14 Nov 2023, 23:13 UTC\)/);
+	const expired = u.payload.locator('.ui-alert.danger', {
+		hasText: /Expired \d+ years ago \(14 Nov 2023, 23:13 UTC\)/
+	});
 	await expect(expired).toBeVisible();
-	await expect(expired).toHaveClass(/danger/);
 	await expect(u.payload.getByText(/Issued \d+ years ago \(18 Jan 2018, 01:30 UTC\)/)).toHaveClass(
-		/muted/
+		/hint/
 	);
 });
 

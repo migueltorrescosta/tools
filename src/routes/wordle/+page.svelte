@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Button, PageHeader } from '#lib/ui/index.js';
+	import { Alert, Button, PageHeader } from '#lib/ui/index.js';
 	import solutionTree from '#lib/wordle-solution.js';
 	import {
 		cycleTile as cycleResultTile,
@@ -157,12 +157,11 @@
 			{/if}
 		</div>
 
-		<div role="status">
-			{#if message}
-				<p class="message {messageKind}">
-					{#if messageKind === 'error'}<span aria-hidden="true">✕</span>{/if}
-					<span data-testid="message">{message}</span>
-				</p>
+		<div role="status" class="message">
+			{#if message && messageKind === 'error'}
+				<Alert tone="danger" live={false}><span data-testid="message">{message}</span></Alert>
+			{:else if message}
+				<p class="solved"><span data-testid="message">{message}</span></p>
 			{/if}
 		</div>
 
@@ -288,17 +287,11 @@
 		border-color: var(--text);
 	}
 
-	.message {
-		display: flex;
-		gap: var(--sp-2);
+	.message > :global(*) {
 		margin: var(--sp-2) 0 0;
 	}
 
-	.message.error {
-		color: var(--danger-text);
-	}
-
-	.message.solved {
+	.solved {
 		font-weight: 700;
 	}
 

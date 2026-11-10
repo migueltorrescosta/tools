@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { copyToClipboard } from '#lib/clipboard.js';
-	import { Button, Field, PageHeader, Panel, SegmentedControl } from '#lib/ui/index.js';
+	import { Alert, Button, Field, PageHeader, Panel, SegmentedControl } from '#lib/ui/index.js';
 	import {
 		FORMATS as formats,
 		validateFormat,
@@ -83,10 +83,9 @@
 			<div class="result">
 				<div role="status" aria-live="polite" aria-label="Validation result">
 					{#if validationResult}
-						<p class="verdict" class:valid={validationResult.valid}>
-							<span class="icon" aria-hidden="true">{validationResult.valid ? '✓' : '✕'}</span>
-							<span data-testid="result-message">{validationResult.message}</span>
-						</p>
+						<Alert tone={validationResult.valid ? 'success' : 'danger'} live={false}
+							><span data-testid="result-message">{validationResult.message}</span></Alert
+						>
 					{:else}
 						<p class="placeholder" data-testid="result-placeholder">
 							Enter content above to validate
@@ -119,25 +118,6 @@
 		flex-wrap: wrap;
 		align-items: baseline;
 		gap: var(--sp-1) var(--sp-3);
-	}
-
-	/* The verdict is its symbol and coloured text, with no box. */
-	.verdict {
-		display: flex;
-		align-items: baseline;
-		gap: var(--sp-2);
-		margin: 0;
-		color: var(--danger-text);
-		word-break: break-word;
-	}
-
-	.verdict.valid {
-		color: var(--success-text);
-	}
-
-	.icon {
-		font-weight: 700;
-		min-width: 1ch;
 	}
 
 	.placeholder {

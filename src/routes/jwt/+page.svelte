@@ -285,11 +285,11 @@
 					{#if claims.length}
 						<div class="claims">
 							{#each claims as claim, i (i)}
-								<p class="claim {claim.tone}">
-									{#if claim.tone !== 'muted'}<span class="claim-icon" aria-hidden="true"
-											>{claim.tone === 'danger' ? '✕' : '!'}</span
-										>{/if}{claim.text}
-								</p>
+								{#if claim.tone === 'muted'}
+									<p class="hint">{claim.text}</p>
+								{:else}
+									<Alert tone={claim.tone} live={false}>{claim.text}</Alert>
+								{/if}
 							{/each}
 						</div>
 					{/if}
@@ -402,27 +402,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--sp-1);
-	}
-
-	.claim {
-		margin: 0;
 		font-size: var(--text-sm);
-		color: var(--text-muted);
-	}
-
-	.claim.danger {
-		color: var(--danger-text);
-	}
-
-	.claim.warning {
-		color: var(--warning-text);
-	}
-
-	.claim-icon {
-		display: inline-block;
-		min-width: 1ch;
-		margin-right: var(--sp-2);
-		font-weight: 700;
 	}
 
 	:global(.ui-fold.encode) {
