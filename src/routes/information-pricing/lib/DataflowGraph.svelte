@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { reach, type Dataflow } from '#lib/information-pricing/dataflow.js';
-	import { edgePath, layoutGraph } from '#lib/scientific-derivations/layout.js';
+	import { edgePath, layoutGraph, type GraphLayout, type Size } from '#lib/graph-layout.js';
 	import { renderTex } from '#lib/tex.js';
 	import Tex from '#lib/ui/Tex.svelte';
 	import { inputColour } from './format';
@@ -34,20 +34,33 @@
 	// Rendered sizes, measured in the browser; the layout waits until every node has one.
 	const width = $state<Record<string, number>>({});
 	const height = $state<Record<string, number>>({});
-	const NO_LABEL = { width: 0, height: 0 };
 
 	let boxWidth = $state(0);
-	/** Boxes per row before inputs move up a row: narrow boxes grow the graph taller. */
-	const perRow = $derived(Math.min(12, Math.max(2, Math.floor(boxWidth / 200))));
 
-	const layout = $derived.by(() => {
-		if (!nodes.every((n) => width[n.id] > 0 && height[n.id] > 0)) return null;
-		return layoutGraph(
-			Object.fromEntries(nodes.map((n) => [n.id, { width: width[n.id], height: height[n.id] }])),
-			graph.edges.map((e) => ({ ...e, label: NO_LABEL })),
-			perRow
+	/** What to lay out, once every node has a size. */
+	const request = $derived.by(() => {
+		if (!nodes.every((n) => width[n.id] > 0 && height[n.id] > 0)) return undefined;
+		const sizes: Record<string, Size> = Object.fromEntries(
+			nodes.map((n) => [n.id, { width: width[n.id], height: height[n.id] }])
 		);
+		return { sizes, edges: graph.edges };
 	});
+	// ELK lays the graph out off the main thread. While a newer layout computes, the last one
+	// stays up (nodes and arrows it doesn't know yet stay hidden), so editing doesn't blink.
+	let laidOut = $state.raw<{ request: NonNullable<typeof request>; layout: GraphLayout }>();
+	$effect(() => {
+		const r = request;
+		if (!r) return;
+		let live = true;
+		layoutGraph(r.sizes, r.edges).then((layout) => {
+			if (live) laidOut = { request: r, layout };
+		});
+		return () => {
+			live = false;
+		};
+	});
+	const layout = $derived(laidOut?.layout ?? null);
+	const ready = $derived(!!request && laidOut?.request === request);
 
 	/** Shrinks to fit, never grows past 1 (text stays its normal size); below MIN_SCALE the box scrolls. */
 	const MIN_SCALE = 0.65;
@@ -89,7 +102,7 @@
 
 	function position(id: string) {
 		const p = layout?.nodes[id];
-		return p ? `left:${p.x - width[id] / 2}px;top:${p.y - height[id] / 2}px` : '';
+		return p ? `left:${p.x - width[id] / 2}px;top:${p.y - height[id] / 2}px` : 'visibility:hidden';
 	}
 </script>
 
@@ -100,7 +113,7 @@
 	aria-label="Dataflow"
 	aria-describedby="df-summary-{uid}"
 	data-testid="dataflow"
-	data-ready={layout ? '' : undefined}
+	data-ready={ready ? '' : undefined}
 	bind:this={scroller}
 	bind:clientWidth={boxWidth}
 >
@@ -134,7 +147,7 @@
 							</marker>
 						{/each}
 					</defs>
-					{#each graph.edges as edge (edge.id)}
+					{#each graph.edges.filter((e) => layout.edges[e.id]) as edge (edge.id)}
 						{@const on = lit.edges.has(edge.id)}
 						<path
 							d={edgePath(layout.edges[edge.id].points)}

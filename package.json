@@ -25,7 +25,6 @@
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "^4.14.0",
-		"@dagrejs/dagre": "^3.1.1",
 		"@eslint/compat": "^2.0.3",
 		"@eslint/js": "^10.0.1",
 		"@playwright/test": "^1.58.2",
@@ -53,6 +52,7 @@
 		"wrangler": "^4.158.0"
 	},
 	"dependencies": {
+		"elkjs": "^0.11.0",
 		"katex": "^0.19.0",
 		"qrcode": "^1.5.4",
 		"yaml": "^2.9.1"
