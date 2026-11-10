@@ -5,7 +5,7 @@ const paper = PAPERS[0];
 
 async function open(page: Page, query = '') {
 	await page.goto(`/scientific-derivations${query}`);
-	// The first visit on a cold dev server waits for Vite to optimise dagre.
+	// The first visit on a cold dev server waits for Vite to optimise ELK.
 	await expect(page.getByRole('main').locator('[data-hydrated]')).toBeVisible({ timeout: 15000 });
 	await expect(page.getByTestId('graph')).toHaveAttribute('data-ready', '');
 }

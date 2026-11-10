@@ -1,5 +1,5 @@
 /**
- * What the policy-tree diagram shows per node, as plain data for a dagre
+ * What the policy-tree diagram shows per node, as plain data for the ELK
  * layout: sample share, scaled savings, decision border, savings fill, and the
  * split diamonds with their edge labels (mirrors the reference Graphviz render).
  */

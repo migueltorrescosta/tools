@@ -3,7 +3,9 @@
 	import { dataColour } from './format';
 	import { Legend } from '#lib/ui/index.js';
 	import { scrollFocus } from './scroll-focus';
-	import { LINE_HEIGHT, edgePath, layoutTree, nodeLines, splitText } from './tree-layout';
+	import { AsyncLayout } from '#lib/async-layout.svelte.js';
+	import { edgePath } from '#lib/graph-layout.js';
+	import { LINE_HEIGHT, layoutTree, nodeLines, splitText } from './tree-layout';
 
 	let {
 		view,
@@ -19,19 +21,26 @@
 
 	const uid = $props.id();
 
-	const layout = $derived(layoutTree(view, inputs));
+	/** ELK lays the tree out off the main thread; a layout shows only for the view it was made for. */
+	const laidOut = new AsyncLayout(
+		() => view,
+		(v) => layoutTree(v, inputs)
+	);
+	const layout = $derived(laidOut.ready ? laidOut.latest : undefined);
 
 	/** A tree wider than its box shrinks to fit, down to MIN_SCALE; past that it scrolls. */
 	const MIN_SCALE = 0.6;
 	let boxWidth = $state(0);
 	const scale = $derived(
-		!maximized && boxWidth > 0 ? Math.max(MIN_SCALE, Math.min(1, boxWidth / layout.width)) : 1
+		layout && !maximized && boxWidth > 0
+			? Math.max(MIN_SCALE, Math.min(1, boxWidth / layout.width))
+			: 1
 	);
 
 	/** A tree that still scrolls opens at its root (the middle), not its left edge. */
 	let scroller = $state<HTMLDivElement>();
 	$effect(() => {
-		if (!scroller || !layout.width) return;
+		if (!scroller || !layout?.width) return;
 		void scale;
 		scroller.scrollLeft = (scroller.scrollWidth - scroller.clientWidth) / 2;
 	});
@@ -72,84 +81,84 @@
 		bind:clientWidth={boxWidth}
 		use:scrollFocus={'Policy tree diagram'}
 	>
-		<svg
-			viewBox="0 0 {layout.width} {layout.height}"
-			width={layout.width * scale}
-			height={layout.height * scale}
-			role="img"
-			aria-label="Optimal Policy Tree. {description}."
-			data-testid="policy-tree"
-		>
-			<defs>
-				<marker
-					id="tree-arrow-{uid}"
-					viewBox="0 0 8 8"
-					refX="7"
-					refY="4"
-					markerWidth="7"
-					markerHeight="7"
-					orient="auto"
-				>
-					<path d="M0,0L8,4L0,8Z" class="arrow" />
-				</marker>
-			</defs>
-			{#each layout.edges as e (e.id)}
-				<path class="edge" d={edgePath(e.points)} marker-end="url(#tree-arrow-{uid})" />
-			{/each}
-			{#each layout.edges as e (e.id)}
-				{#if e.label}
-					<rect
-						class="edge-label-bg"
-						x={e.label.x - e.label.text.length * 3.6 - 3}
-						y={e.label.y - 9}
-						width={e.label.text.length * 7.2 + 6}
-						height={17}
-						rx="3"
-					/>
-					<text class="edge-label" x={e.label.x} y={e.label.y + 4} text-anchor="middle"
-						>{e.label.text}</text
+		{#if layout}<svg
+				viewBox="0 0 {layout.width} {layout.height}"
+				width={layout.width * scale}
+				height={layout.height * scale}
+				role="img"
+				aria-label="Optimal Policy Tree. {description}."
+				data-testid="policy-tree"
+			>
+				<defs>
+					<marker
+						id="tree-arrow-{uid}"
+						viewBox="0 0 8 8"
+						refX="7"
+						refY="4"
+						markerWidth="7"
+						markerHeight="7"
+						orient="auto"
 					>
-				{/if}
-			{/each}
-			{#each layout.splits as s (s.node)}
-				{@const split = splitOf.get(s.node)!}
-				<rect
-					class="split"
-					x={s.x - s.width / 2}
-					y={s.y - s.height / 2}
-					width={s.width}
-					height={s.height}
-					rx={s.height / 2}
-				/>
-				<text class="split-label" x={s.x} y={s.y + 4} text-anchor="middle"
-					>{splitText(split, inputs)}</text
-				>
-			{/each}
-			{#each layout.nodes as box (box.id)}
-				{@const n = byId.get(box.id)!}
-				<rect
-					class="node"
-					class:quo={n.isStatusQuo}
-					x={box.x - box.width / 2}
-					y={box.y - box.height / 2}
-					width={box.width}
-					height={box.height}
-					rx="5"
-					fill={fill(n.fill)}
-					data-fill={n.fill}
-					data-testid="tree-node"
-					stroke={n.isStatusQuo ? undefined : dataColour(n.decision)}
-				/>
-				{#each nodeLines(n) as line, k (k)}
-					<text
-						class="node-text"
-						x={box.x}
-						y={box.y - box.height / 2 + 8 + (k + 0.75) * LINE_HEIGHT}
-						text-anchor="middle">{line}</text
+						<path d="M0,0L8,4L0,8Z" class="arrow" />
+					</marker>
+				</defs>
+				{#each layout.edges as e (e.id)}
+					<path class="edge" d={edgePath(e.points)} marker-end="url(#tree-arrow-{uid})" />
+				{/each}
+				{#each layout.edges as e (e.id)}
+					{#if e.label}
+						<rect
+							class="edge-label-bg"
+							x={e.label.x - e.label.text.length * 3.6 - 3}
+							y={e.label.y - 9}
+							width={e.label.text.length * 7.2 + 6}
+							height={17}
+							rx="3"
+						/>
+						<text class="edge-label" x={e.label.x} y={e.label.y + 4} text-anchor="middle"
+							>{e.label.text}</text
+						>
+					{/if}
+				{/each}
+				{#each layout.splits as s (s.node)}
+					{@const split = splitOf.get(s.node)!}
+					<rect
+						class="split"
+						x={s.x - s.width / 2}
+						y={s.y - s.height / 2}
+						width={s.width}
+						height={s.height}
+						rx={s.height / 2}
+					/>
+					<text class="split-label" x={s.x} y={s.y + 4} text-anchor="middle"
+						>{splitText(split, inputs)}</text
 					>
 				{/each}
-			{/each}
-		</svg>
+				{#each layout.nodes as box (box.id)}
+					{@const n = byId.get(box.id)!}
+					<rect
+						class="node"
+						class:quo={n.isStatusQuo}
+						x={box.x - box.width / 2}
+						y={box.y - box.height / 2}
+						width={box.width}
+						height={box.height}
+						rx="5"
+						fill={fill(n.fill)}
+						data-fill={n.fill}
+						data-testid="tree-node"
+						stroke={n.isStatusQuo ? undefined : dataColour(n.decision)}
+					/>
+					{#each nodeLines(n) as line, k (k)}
+						<text
+							class="node-text"
+							x={box.x}
+							y={box.y - box.height / 2 + 8 + (k + 0.75) * LINE_HEIGHT}
+							text-anchor="middle">{line}</text
+						>
+					{/each}
+				{/each}
+			</svg>{/if}
 	</div>
 	<figcaption class="footer">
 		{#each view.footer as line (line)}<span>{line}</span>{/each}

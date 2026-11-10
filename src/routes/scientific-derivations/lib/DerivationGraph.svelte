@@ -4,7 +4,8 @@
 
 <script lang="ts">
 	import { edgeId, type Derivation } from '#lib/scientific-derivations/index.js';
-	import { edgePath, layoutGraph } from '#lib/scientific-derivations/layout.js';
+	import { AsyncLayout } from '#lib/async-layout.svelte.js';
+	import { edgePath, layoutGraph } from '#lib/graph-layout.js';
 	import { renderProse, stackTex } from '#lib/scientific-derivations/prose.js';
 	import { renderTex } from '#lib/tex.js';
 	import Tex from '#lib/ui/Tex.svelte';
@@ -35,15 +36,23 @@
 	const width = $state<Record<string, number>>({});
 	const height = $state<Record<string, number>>({});
 
-	const layout = $derived.by(() => {
+	/** What to lay out, once every box has a size. */
+	const request = $derived.by(() => {
 		const ids = [...nodes.map((n) => n.id), ...edges.map((e) => e.id)];
-		if (!ids.every((id) => width[id] > 0 && height[id] > 0)) return null;
+		if (!ids.every((id) => width[id] > 0 && height[id] > 0)) return undefined;
 		const size = (id: string) => ({ width: width[id], height: height[id] });
-		return layoutGraph(
-			Object.fromEntries(nodes.map((n) => [n.id, size(n.id)])),
-			edges.map((e) => ({ id: e.id, from: e.from, to: e.to, label: size(e.id) }))
-		);
+		return {
+			nodes: Object.fromEntries(nodes.map((n) => [n.id, size(n.id)])),
+			edges: edges.map((e) => ({ id: e.id, from: e.from, to: e.to, label: size(e.id) }))
+		};
 	});
+	// ELK lays the graph out off the main thread; until a newer layout arrives the last one stays
+	// up, hiding boxes and arrows it doesn't know yet.
+	const laidOut = new AsyncLayout(
+		() => request,
+		(r) => layoutGraph(r.nodes, r.edges)
+	);
+	const layout = $derived(laidOut.latest ?? null);
 
 	/** Fit to width shrinks the whole graph into the box; 100% scrolls instead. */
 	let boxWidth = $state(0);
@@ -75,7 +84,7 @@
 	function position(id: string, kind: 'node' | 'edge') {
 		if (!layout) return '';
 		const p = kind === 'node' ? layout.nodes[id] : layout.edges[id]?.label;
-		if (!p) return '';
+		if (!p) return 'visibility:hidden';
 		return `left:${p.x - width[id] / 2}px;top:${p.y - height[id] / 2}px`;
 	}
 </script>
@@ -83,7 +92,7 @@
 <ScrollEdges
 	class="dg-scroll"
 	data-testid="graph"
-	data-ready={layout ? '' : undefined}
+	data-ready={laidOut.ready ? '' : undefined}
 	bind:width={boxWidth}
 >
 	{#if !layout}
@@ -121,7 +130,7 @@
 							</marker>
 						{/each}
 					</defs>
-					{#each edges as edge (edge.id)}
+					{#each edges.filter((e) => layout.edges[e.id]) as edge (edge.id)}
 						{@const on = lit.has(edge.id)}
 						<path
 							d={edgePath(layout.edges[edge.id].points)}
