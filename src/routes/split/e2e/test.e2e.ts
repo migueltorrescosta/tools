@@ -558,11 +558,51 @@ test('Asset Splitting - first screen leads with the task, references in How it w
 	page
 }) => {
 	await open(page);
-	const how = page.locator('details.how');
+	// Everything but the stepper sits in a box: Start and How it works close the Items box.
+	const items = page
+		.locator('.ui-panel')
+		.filter({ has: page.getByRole('heading', { name: 'Items' }) });
+	await expect(items.getByRole('button', { name: 'Start', exact: true })).toBeVisible();
+	const how = items.locator('details.how');
+	await expect(how).toHaveCount(1);
 	await expect(how).not.toHaveAttribute('open');
 	await expect(page.getByRole('heading', { name: 'References' })).toBeHidden();
 	await expect(page.getByRole('link', { name: 'First written up on the blog' })).toBeHidden();
 	await how.locator('summary').click();
 	await expect(page.getByRole('heading', { name: 'References' })).toBeVisible();
 	await expect(how.getByRole('link', { name: 'First written up on the blog' })).toBeVisible();
+});
+
+test('Asset Splitting - the flat prototype draws groups and people without inner boxes', async ({
+	page
+}) => {
+	await page.addInitScript(() => localStorage.setItem('proto2', JSON.stringify({ split: 'flat' })));
+	await startTwo(page);
+	await expect(page.locator('html')).toHaveAttribute('data-split', 'flat');
+	/** No border box and no fill: each one is a column under a hairline. */
+	const unboxed = (rows: Locator) =>
+		rows.evaluateAll((els) =>
+			els.map((el) => {
+				const css = getComputedStyle(el);
+				return (
+					css.borderLeftWidth === '0px' &&
+					css.borderRightWidth === '0px' &&
+					css.borderBottomWidth === '0px' &&
+					css.backgroundColor === 'rgba(0, 0, 0, 0)'
+				);
+			})
+		);
+	const groups = page.getByTestId('split-group');
+	await expect(groups).toHaveCount(2);
+	expect(await unboxed(groups)).toEqual([true, true]);
+	await expect(page.locator('.ui-panel .ui-panel')).toHaveCount(0);
+
+	await tapPlace(page, 'Alice', 0);
+	await tapPlace(page, 'Bob', 1);
+	await page.getByRole('button', { name: 'Complete round' }).click();
+	await expect(page.getByRole('heading', { name: 'Everyone keeps their own group' })).toBeVisible();
+	await expectOnePayment(page);
+	expect(await unboxed(finalRows(page))).toEqual([true, true]);
+	await expect(page.locator('.ui-panel')).toHaveCount(1);
+	await expect(page.locator('.ui-panel details.how')).toHaveCount(1);
 });

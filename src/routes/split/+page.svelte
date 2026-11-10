@@ -522,18 +522,18 @@
 					{#if itemMsg}
 						<div id="item-error"><Alert tone="danger">{itemMsg}</Alert></div>
 					{/if}
+					<div class="cluster">
+						<Button
+							variant="primary"
+							disabled={startMsg !== null}
+							aria-describedby={startMsg ? 'start-error' : undefined}
+							onclick={toStart}>Start</Button
+						>
+						{#if startMsg}<p id="start-error" class="hint">{startMsg}</p>{/if}
+					</div>
+					{@render how()}
 				</div>
 			</Panel>
-		</div>
-
-		<div class="cluster start">
-			<Button
-				variant="primary"
-				disabled={startMsg !== null}
-				aria-describedby={startMsg ? 'start-error' : undefined}
-				onclick={toStart}>Start</Button
-			>
-			{#if startMsg}<p id="start-error" class="hint">{startMsg}</p>{/if}
 		</div>
 	{:else if phase === 'start'}
 		<Panel title="Start">
@@ -597,6 +597,7 @@
 					>
 					<Button onclick={backToSetup} disabled={busy}>Back to setup</Button>
 				</div>
+				{@render how()}
 			</div>
 		</Panel>
 	{:else if phase === 'round' && proposal}
@@ -687,6 +688,7 @@
 							: 'Back to setup'}</Button
 					>
 				</div>
+				{@render how()}
 			</div>
 		</Panel>
 	{:else if phase === 'final' && final}
@@ -785,10 +787,14 @@
 					{/if}
 					<Button disabled={busy} onclick={backToSetup}>Start over</Button>
 				</div>
+				{@render how()}
 			</div>
 		</Panel>
 	{/if}
+</div>
 
+<!-- How it works closes the last box of every step. -->
+{#snippet how()}
 	<details class="how">
 		<summary>How it works</summary>
 		<p>
@@ -813,7 +819,7 @@
 		</p>
 		<References references={REFERENCES} />
 	</details>
-</div>
+{/snippet}
 
 {#snippet personCard(i: number)}
 	<button
@@ -920,8 +926,9 @@
 		flex: 0 1 8rem;
 	}
 
-	.start {
-		margin-top: var(--sp-3);
+	/* Inside a box the stack's gap spaces How it works. */
+	.how {
+		margin-top: 0;
 	}
 
 	.instruction {
@@ -1224,6 +1231,34 @@
 
 	.group h3 .dot {
 		margin-right: var(--sp-1);
+	}
+
+	/* Review prototype, "flat": no box inside the box. Each group or person is a plain column
+	   under a hairline; the hairline carries the demand state the card border carried. */
+	:global(:root[data-split='flat']) .groups {
+		column-gap: var(--sp-4);
+		row-gap: var(--sp-4);
+	}
+
+	:global(:root[data-split='flat']) .group {
+		padding: var(--sp-2) 0 var(--sp-1);
+		background: none;
+		border: 0;
+		border-top: 1px solid var(--border);
+		border-radius: 0;
+		outline-offset: var(--sp-1);
+	}
+
+	:global(:root[data-split='flat']) .group.over {
+		border-top: 2px solid var(--warning);
+	}
+
+	:global(:root[data-split='flat']) .group.unclaimed {
+		border-top: 1px dashed var(--border-strong);
+	}
+
+	:global(:root[data-split='flat']) .group.drop-over {
+		background: var(--accent-bg);
 	}
 
 	@media (prefers-reduced-motion: reduce) {
