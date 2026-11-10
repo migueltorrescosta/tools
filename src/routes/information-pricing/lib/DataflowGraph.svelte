@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { reach, type Dataflow } from '#lib/information-pricing/dataflow.js';
-	import { edgePath, layoutGraph, type GraphLayout, type Size } from '#lib/graph-layout.js';
+	import { AsyncLayout } from '#lib/async-layout.svelte.js';
+	import { edgePath, layoutGraph, type Size } from '#lib/graph-layout.js';
 	import { renderTex } from '#lib/tex.js';
 	import Tex from '#lib/ui/Tex.svelte';
 	import { inputColour } from './format';
@@ -45,22 +46,13 @@
 		);
 		return { sizes, edges: graph.edges };
 	});
-	// ELK lays the graph out off the main thread. While a newer layout computes, the last one
-	// stays up (nodes and arrows it doesn't know yet stay hidden), so editing doesn't blink.
-	let laidOut = $state.raw<{ request: NonNullable<typeof request>; layout: GraphLayout }>();
-	$effect(() => {
-		const r = request;
-		if (!r) return;
-		let live = true;
-		layoutGraph(r.sizes, r.edges).then((layout) => {
-			if (live) laidOut = { request: r, layout };
-		});
-		return () => {
-			live = false;
-		};
-	});
-	const layout = $derived(laidOut?.layout ?? null);
-	const ready = $derived(!!request && laidOut?.request === request);
+	// ELK lays the graph out off the main thread; until a newer layout arrives the last one stays
+	// up, hiding nodes and arrows it doesn't know yet.
+	const laidOut = new AsyncLayout(
+		() => request,
+		(r) => layoutGraph(r.sizes, r.edges)
+	);
+	const layout = $derived(laidOut.latest ?? null);
 
 	/** Shrinks to fit, never grows past 1 (text stays its normal size); below MIN_SCALE the box scrolls. */
 	const MIN_SCALE = 0.65;
@@ -113,7 +105,7 @@
 	aria-label="Dataflow"
 	aria-describedby="df-summary-{uid}"
 	data-testid="dataflow"
-	data-ready={ready ? '' : undefined}
+	data-ready={laidOut.ready ? '' : undefined}
 	bind:this={scroller}
 	bind:clientWidth={boxWidth}
 >

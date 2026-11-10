@@ -1,7 +1,11 @@
+import Elk from 'elkjs/lib/elk.bundled.js';
 import { describe, expect, it } from 'vitest';
 import { buildPolicyTree, policyTreeView } from '#lib/information-pricing/analysis/index.js';
 import { thresholdLabels } from './format';
+import { useElk } from '#lib/graph-layout.js';
 import { layoutTree, nodeLines } from './tree-layout';
+
+useElk(new Elk());
 
 describe('layoutTree', () => {
 	it('places every node and split inside the drawing, splits between their node and children', async () => {

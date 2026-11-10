@@ -3,8 +3,9 @@
 	import { dataColour } from './format';
 	import { Legend } from '#lib/ui/index.js';
 	import { scrollFocus } from './scroll-focus';
+	import { AsyncLayout } from '#lib/async-layout.svelte.js';
 	import { edgePath } from '#lib/graph-layout.js';
-	import { LINE_HEIGHT, layoutTree, nodeLines, splitText, type TreeLayout } from './tree-layout';
+	import { LINE_HEIGHT, layoutTree, nodeLines, splitText } from './tree-layout';
 
 	let {
 		view,
@@ -21,24 +22,11 @@
 	const uid = $props.id();
 
 	/** ELK lays the tree out off the main thread; a layout shows only for the view it was made for. */
-	let laidOut = $state.raw<{
-		view: PolicyTreeView;
-		inputs: readonly string[];
-		layout: TreeLayout;
-	}>();
-	$effect(() => {
-		const request = { view, inputs };
-		let live = true;
-		layoutTree(view, inputs).then((layout) => {
-			if (live) laidOut = { ...request, layout };
-		});
-		return () => {
-			live = false;
-		};
-	});
-	const layout = $derived(
-		laidOut?.view === view && laidOut.inputs === inputs ? laidOut.layout : undefined
+	const laidOut = new AsyncLayout(
+		() => view,
+		(v) => layoutTree(v, inputs)
 	);
+	const layout = $derived(laidOut.ready ? laidOut.latest : undefined);
 
 	/** A tree wider than its box shrinks to fit, down to MIN_SCALE; past that it scrolls. */
 	const MIN_SCALE = 0.6;

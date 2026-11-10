@@ -1,7 +1,7 @@
 /**
  * Top-to-bottom layered layout of the app's node-link diagrams (Dataflow, derivations,
- * policy tree) with ELK. In the browser ELK runs in a worker (`graph-layout.worker.ts`),
- * loaded on the first layout; specs and other workerless runtimes use ELK's bundled build.
+ * policy tree) with ELK, which runs in a worker (`graph-layout.worker.ts`) started on the
+ * first layout. Node has no workers, so specs pass ELK's bundled build to `useElk`.
  */
 import type { ELK, ElkNode } from 'elkjs/lib/elk-api.js';
 
@@ -44,19 +44,19 @@ export interface LayoutOptions {
 let engine: Promise<ELK> | undefined;
 
 function elk(): Promise<ELK> {
-	engine ??=
-		typeof Worker === 'undefined'
-			? import('elkjs/lib/elk.bundled.js').then(({ default: Elk }) => new Elk())
-			: import('elkjs/lib/elk-api.js').then(
-					({ default: Elk }) =>
-						new Elk({
-							workerFactory: () =>
-								new Worker(new URL('./graph-layout.worker.ts', import.meta.url), {
-									type: 'module'
-								})
-						})
-				);
+	engine ??= import('elkjs/lib/elk-api.js').then(
+		({ default: Elk }) =>
+			new Elk({
+				workerFactory: () =>
+					new Worker(new URL('./graph-layout.worker.ts', import.meta.url), { type: 'module' })
+			})
+	);
 	return engine;
+}
+
+/** Lays out with this ELK instead of the worker; specs pass ELK's bundled build. */
+export function useElk(instance: ELK): void {
+	engine = Promise.resolve(instance);
 }
 
 export async function layoutGraph(

@@ -4,7 +4,8 @@
 
 <script lang="ts">
 	import { edgeId, type Derivation } from '#lib/scientific-derivations/index.js';
-	import { edgePath, layoutGraph, type GraphLayout } from '#lib/graph-layout.js';
+	import { AsyncLayout } from '#lib/async-layout.svelte.js';
+	import { edgePath, layoutGraph } from '#lib/graph-layout.js';
 	import { renderProse, stackTex } from '#lib/scientific-derivations/prose.js';
 	import { renderTex } from '#lib/tex.js';
 	import Tex from '#lib/ui/Tex.svelte';
@@ -45,22 +46,13 @@
 			edges: edges.map((e) => ({ id: e.id, from: e.from, to: e.to, label: size(e.id) }))
 		};
 	});
-	// ELK lays the graph out off the main thread. While a newer layout computes, the last one
-	// stays up (boxes and arrows it doesn't know yet stay hidden), so the drawing doesn't blink.
-	let laidOut = $state.raw<{ request: NonNullable<typeof request>; layout: GraphLayout }>();
-	$effect(() => {
-		const r = request;
-		if (!r) return;
-		let live = true;
-		layoutGraph(r.nodes, r.edges).then((layout) => {
-			if (live) laidOut = { request: r, layout };
-		});
-		return () => {
-			live = false;
-		};
-	});
-	const layout = $derived(laidOut?.layout ?? null);
-	const ready = $derived(!!request && laidOut?.request === request);
+	// ELK lays the graph out off the main thread; until a newer layout arrives the last one stays
+	// up, hiding boxes and arrows it doesn't know yet.
+	const laidOut = new AsyncLayout(
+		() => request,
+		(r) => layoutGraph(r.nodes, r.edges)
+	);
+	const layout = $derived(laidOut.latest ?? null);
 
 	/** Fit to width shrinks the whole graph into the box; 100% scrolls instead. */
 	let boxWidth = $state(0);
@@ -100,7 +92,7 @@
 <ScrollEdges
 	class="dg-scroll"
 	data-testid="graph"
-	data-ready={ready ? '' : undefined}
+	data-ready={laidOut.ready ? '' : undefined}
 	bind:width={boxWidth}
 >
 	{#if !layout}

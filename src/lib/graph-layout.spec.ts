@@ -1,7 +1,10 @@
+import Elk from 'elkjs/lib/elk.bundled.js';
 import { describe, expect, it } from 'vitest';
 import { dataflow } from './information-pricing/dataflow';
 import { presetModel } from './information-pricing/presets';
-import { edgePath, layoutGraph, type GraphLayout, type Point } from './graph-layout';
+import { edgePath, layoutGraph, useElk, type GraphLayout, type Point } from './graph-layout';
+
+useElk(new Elk());
 
 const box = { width: 120, height: 40 };
 const label = { width: 60, height: 20 };
