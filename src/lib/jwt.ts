@@ -388,6 +388,42 @@ export function describeClaims(payload: JsonObject | undefined, now: number): Cl
 	return summary;
 }
 
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** "14 Nov 2023, 23:13 UTC" for a NumericDate, the same in every locale. */
+export function formatUtc(seconds: number): string {
+	const d = new Date(seconds * 1000);
+	const pad = (n: number) => String(n).padStart(2, '0');
+	return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}, ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`;
+}
+
+export interface ClaimLine {
+	text: string;
+	/** danger: the token is not valid now; warning: suspicious; muted: just information. */
+	tone: 'danger' | 'warning' | 'muted';
+}
+
+/** One plain line per time claim ("Expired 2 years ago (14 Nov 2023, 23:13 UTC)"), then the errors. */
+export function claimLines(summary: ClaimsSummary): ClaimLine[] {
+	const lines = summary.times.map(({ name, seconds, relative }): ClaimLine => {
+		const when = `${relative} (${formatUtc(seconds)})`;
+		if (name === 'exp') {
+			return summary.expired
+				? { text: `Expired ${when}`, tone: 'danger' }
+				: { text: `Expires ${when}`, tone: 'muted' };
+		}
+		if (name === 'nbf') {
+			return summary.notYetValid
+				? { text: `Not valid yet, starts ${when}`, tone: 'danger' }
+				: { text: `Valid from ${when}`, tone: 'muted' };
+		}
+		return summary.issuedInFuture
+			? { text: `Issued in the future, ${when}`, tone: 'warning' }
+			: { text: `Issued ${when}`, tone: 'muted' };
+	});
+	return [...lines, ...summary.errors.map((text): ClaimLine => ({ text, tone: 'danger' }))];
+}
+
 /** Why a token carries no signature, or '' when it has one. */
 export function unsignedReason(header: JsonObject | undefined, signature: string): string {
 	const none = typeof header?.alg === 'string' && header.alg.toLowerCase() === 'none';
@@ -470,6 +506,9 @@ export function encodeJwt(header: unknown, payload: unknown): string {
 }
 
 // --- verify ---
+
+/** verifyJwt's message when the signature is well formed but the key does not produce it. */
+export const SIGNATURE_MISMATCH = 'Signature does not match';
 
 export type VerifyResult =
 	| { status: 'valid' }
@@ -642,7 +681,7 @@ export async function verifyJwt(
 	} catch (e) {
 		return { status: 'error', message: e instanceof Error ? e.message : String(e) };
 	}
-	return ok ? { status: 'valid' } : { status: 'invalid', message: 'Signature does not match' };
+	return ok ? { status: 'valid' } : { status: 'invalid', message: SIGNATURE_MISMATCH };
 }
 
 // --- sign ---

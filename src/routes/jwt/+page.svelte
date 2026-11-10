@@ -1,9 +1,11 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { copyToClipboard } from '#lib/clipboard.js';
 	import { Alert, Button, Field, PageHeader, Panel, Select } from '#lib/ui/index.js';
 	import {
+		SIGNATURE_MISMATCH,
 		algorithmOptions,
+		claimLines,
 		describeClaims,
 		headerJsonAlg,
 		isSymmetric,
@@ -36,20 +38,24 @@
 	let verification = $state<VerifyResult | null>(null);
 	// Bumped per verification so a slow earlier result cannot overwrite a newer one
 	let verifySeq = 0;
-	let signatureResult = $state('');
 	let signatureError = $state('');
 	let decodeWarnings = $state<string[]>([]);
 	let decodedPayload = $state<JsonObject | undefined>(undefined);
 	let unsignedBanner = $state('');
 	let now = $state(Date.now());
 	let showSecret = $state(false);
+	// The alg the token's header names, so the Algorithm line can say where its value came from
+	let tokenAlgorithm = $state<string | null>(null);
+	// The Algorithm line turns into the menu once Change is pressed
+	let changingAlgorithm = $state(false);
+	let algorithmBox = $state<HTMLElement>();
 	let copyStatus = $state('');
 	let hydrated = $state(false);
 	// An unknown header alg (e.g. ES256K) gets its own option so the select never shows a blank
 	const algorithms = $derived(
 		algorithmOptions(selectedAlgorithm).map((alg) => ({ value: alg, label: alg }))
 	);
-	const claims = $derived(describeClaims(decodedPayload, now));
+	const claims = $derived(claimLines(describeClaims(decodedPayload, now)));
 	// What ENCODE would change: JSON.parse rounds big integers and drops duplicate keys
 	const encodeWarnings = $derived([
 		...jsonWarnings(headerJson).map((w) => `Header: ${w}`),
@@ -71,12 +77,12 @@
 			headerError = '';
 			payloadError = '';
 		}
-		signatureResult = bad ? '' : view.signature;
 		signatureError = bad ? '' : view.signatureError;
 		decodeWarnings = view.warnings;
 		decodedPayload = view.payload;
 		unsignedBanner = view.unsigned;
 		copyStatus = '';
+		tokenAlgorithm = view.alg;
 		if (view.alg) selectedAlgorithm = view.alg;
 	}
 
@@ -84,6 +90,12 @@
 	function selectAlgorithm(alg: string) {
 		selectedAlgorithm = alg;
 		headerJson = withHeaderAlg(headerJson, alg);
+	}
+
+	async function changeAlgorithm() {
+		changingAlgorithm = true;
+		await tick();
+		algorithmBox?.querySelector('select')?.focus();
 	}
 
 	function editHeader(text: string) {
@@ -149,8 +161,8 @@
 <div class="container" data-hydrated={hydrated || undefined}>
 	<PageHeader path="/jwt" />
 
-	<div class="split-view top">
-		<div class="stack">
+	<div class="top">
+		<div class="area-token">
 			<Panel title="Encoded token">
 				<div class="stack">
 					<Field label="Encoded token" hideLabel>
@@ -166,6 +178,7 @@
 						{/snippet}
 					</Field>
 					{#if tokenError}<Alert tone="danger">{tokenError}</Alert>{/if}
+					{#if signatureError}<Alert tone="danger">{signatureError}</Alert>{/if}
 					{#if unsignedBanner}<Alert tone="danger">{unsignedBanner}</Alert>{/if}
 					{#if decodeWarnings.length}
 						<Alert tone="warning">
@@ -175,64 +188,70 @@
 					{#if copyStatus}<p class="muted" role="status">{copyStatus}</p>{/if}
 				</div>
 			</Panel>
+		</div>
 
-			<Panel title="Verify signature">
-				<div class="stack">
-					<div class="verify-row">
-						<Field label={isSymmetric(selectedAlgorithm) ? 'Secret' : 'Key (PEM or JWK)'}>
-							{#snippet children(props)}
-								<div class="cluster secret-row">
-									<input
-										{...props}
-										type={showSecret ? 'text' : 'password'}
-										class="control"
-										autocomplete="off"
-										spellcheck="false"
-										bind:value={secret}
-										placeholder={isSymmetric(selectedAlgorithm)
-											? 'secret'
-											: 'public key verifies, private key signs'}
-									/>
-									<Button
-										pressed={showSecret}
-										aria-controls={props.id}
-										onclick={() => (showSecret = !showSecret)}>Show</Button
-									>
-								</div>
-							{/snippet}
-						</Field>
+		<details class="fold area-verify">
+			<summary>Verify signature<span class="muted-inline"> · with a secret or key</span></summary>
+			<div class="fold-body stack">
+				<Field label={isSymmetric(selectedAlgorithm) ? 'Secret' : 'Key (PEM or JWK)'}>
+					{#snippet children(props)}
+						<div class="cluster secret-row">
+							<input
+								{...props}
+								type={showSecret ? 'text' : 'password'}
+								class="control"
+								autocomplete="off"
+								spellcheck="false"
+								bind:value={secret}
+								placeholder={isSymmetric(selectedAlgorithm)
+									? 'secret'
+									: 'public key verifies, private key signs'}
+							/>
+							<Button
+								pressed={showSecret}
+								aria-controls={props.id}
+								onclick={() => (showSecret = !showSecret)}>Show</Button
+							>
+						</div>
+					{/snippet}
+				</Field>
+
+				{#if changingAlgorithm}
+					<div class="algorithm" bind:this={algorithmBox}>
 						<Select
 							label="Algorithm"
 							options={algorithms}
 							bind:value={() => selectedAlgorithm, selectAlgorithm}
 						/>
 					</div>
+				{:else}
+					<p class="muted" data-testid="algorithm-text">
+						Algorithm: {selectedAlgorithm}{selectedAlgorithm === tokenAlgorithm
+							? ', from the token header'
+							: ''} ·
+						<button type="button" class="link" onclick={changeAlgorithm}>Change</button>
+					</p>
+				{/if}
 
-					<div>
-						<p class="sig-label">Signature</p>
-						<code class="signature" data-testid="signature-value"
-							>{signatureResult || 'Not available'}</code
-						>
-						{#if signatureError}<p class="error-text">{signatureError}</p>{/if}
-					</div>
+				{#if verification?.status === 'valid'}
+					<Alert tone="success"
+						><span data-testid="signature-status">Signature verified</span></Alert
+					>
+				{:else if verification?.status === 'invalid'}
+					<Alert tone="danger"
+						><span data-testid="signature-status"
+							>{verification.message === SIGNATURE_MISMATCH
+								? `Signature does not match this ${isSymmetric(selectedAlgorithm) ? 'secret' : 'key'}`
+								: verification.message}</span
+						></Alert
+					>
+				{:else if verification}
+					<Alert tone="warning">{verification.message}</Alert>
+				{/if}
+			</div>
+		</details>
 
-					{#if verification?.status === 'valid'}
-						<Alert tone="success"
-							><span data-testid="signature-status">Signature Verified</span></Alert
-						>
-					{:else if verification?.status === 'invalid'}
-						<Alert tone="danger">
-							<div data-testid="signature-status">Signature Invalid</div>
-							<div>{verification.message}</div>
-						</Alert>
-					{:else if verification}
-						<Alert tone="warning">{verification.message}</Alert>
-					{/if}
-				</div>
-			</Panel>
-		</div>
-
-		<div class="stack">
+		<div class="stack area-decoded">
 			<Panel title="Header">
 				{#snippet actions()}
 					<Button
@@ -268,86 +287,145 @@
 					{:else}
 						<p class="muted">No token to decode</p>
 					{/if}
-					{#if claims.expired}
-						<Alert tone="danger">Expired</Alert>
-					{:else if claims.notYetValid}
-						<Alert tone="danger">Not yet valid (nbf)</Alert>
-					{/if}
-					{#if claims.issuedInFuture}
-						<Alert tone="warning">Issued in the future (iat)</Alert>
-					{/if}
-					{#if claims.times.length || claims.errors.length}
-						<ul class="claims">
-							{#each claims.times as claim (claim.name)}
-								<li>{claim.name}: {claim.iso} ({claim.relative})</li>
+					{#if claims.length}
+						<div class="claims">
+							{#each claims as claim, i (i)}
+								<p class="claim {claim.tone}">
+									{#if claim.tone !== 'muted'}<span class="claim-icon" aria-hidden="true"
+											>{claim.tone === 'danger' ? '✕' : '!'}</span
+										>{/if}{claim.text}
+								</p>
 							{/each}
-							{#each claims.errors as error, i (i)}
-								<li class="error-text">{error}</li>
-							{/each}
-						</ul>
+						</div>
 					{/if}
 				</div>
 			</Panel>
 		</div>
 	</div>
 
-	<div class="encode">
-		<Panel title="Encode">
-			<div class="stack">
-				<p class="muted">Edit the header and payload, then sign with the key above.</p>
-				<div class="split-view">
-					<Field label="Header (JSON)" error={headerError || undefined}>
-						{#snippet children(props)}
-							<textarea
-								{...props}
-								class="control"
-								rows="6"
-								bind:value={() => headerJson, editHeader}
-								placeholder={'{"alg": "HS256", "typ": "JWT"}'}
-								spellcheck="false"
-							></textarea>
-						{/snippet}
-					</Field>
-					<Field label="Payload (JSON)" error={payloadError || undefined}>
-						{#snippet children(props)}
-							<textarea
-								{...props}
-								class="control"
-								rows="6"
-								bind:value={payloadJson}
-								placeholder={'{"sub": "1234567890", "name": "John Doe"}'}
-								spellcheck="false"
-							></textarea>
-						{/snippet}
-					</Field>
-				</div>
-				{#if encodeWarnings.length}
-					<Alert tone="warning">
-						{#each encodeWarnings as warning, i (i)}<div>Encode changes this: {warning}</div>{/each}
-					</Alert>
-				{/if}
-				{#if encodeError}<Alert tone="danger">{encodeError}</Alert>{/if}
-				{#if encodeNote}<Alert tone="info">{encodeNote}</Alert>{/if}
-				<div>
-					<Button variant="primary" onclick={encodeToken}
-						>{selectedAlgorithm === 'none' ? 'Encode unsigned' : 'Sign & encode'}</Button
-					>
-				</div>
+	<details class="fold encode">
+		<summary>Edit and re-sign this token</summary>
+		<div class="fold-body stack">
+			<p class="muted">Signs with the secret or key under Verify signature.</p>
+			<div class="split-view">
+				<Field label="Header (JSON)" error={headerError || undefined}>
+					{#snippet children(props)}
+						<textarea
+							{...props}
+							class="control"
+							rows="6"
+							bind:value={() => headerJson, editHeader}
+							placeholder={'{"alg": "HS256", "typ": "JWT"}'}
+							spellcheck="false"
+						></textarea>
+					{/snippet}
+				</Field>
+				<Field label="Payload (JSON)" error={payloadError || undefined}>
+					{#snippet children(props)}
+						<textarea
+							{...props}
+							class="control"
+							rows="6"
+							bind:value={payloadJson}
+							placeholder={'{"sub": "1234567890", "name": "John Doe"}'}
+							spellcheck="false"
+						></textarea>
+					{/snippet}
+				</Field>
 			</div>
-		</Panel>
-	</div>
+			{#if encodeWarnings.length}
+				<Alert tone="warning">
+					{#each encodeWarnings as warning, i (i)}<div>Encode changes this: {warning}</div>{/each}
+				</Alert>
+			{/if}
+			{#if encodeError}<Alert tone="danger">{encodeError}</Alert>{/if}
+			{#if encodeNote}<Alert tone="info">{encodeNote}</Alert>{/if}
+			<div>
+				<Button variant="primary" onclick={encodeToken}
+					>{selectedAlgorithm === 'none' ? 'Encode unsigned' : 'Sign & encode'}</Button
+				>
+			</div>
+		</div>
+	</details>
 </div>
 
 <style>
+	/* Token and Verify on the left, Header and Payload on the right; on a phone the decoded
+	   result comes right under the token and Verify follows it. */
 	.top {
+		display: grid;
+		gap: var(--sp-3);
+		grid-template-areas: 'token' 'decoded' 'verify';
 		align-items: start;
 	}
 
-	.verify-row {
-		display: grid;
-		grid-template-columns: 1fr minmax(8rem, 10rem);
-		gap: var(--sp-3);
-		align-items: start;
+	@media (min-width: 720px) {
+		.top {
+			grid-template-columns: 1fr 1fr;
+			grid-template-rows: auto 1fr;
+			grid-template-areas: 'token decoded' 'verify decoded';
+		}
+	}
+
+	.area-token {
+		grid-area: token;
+		min-width: 0;
+	}
+
+	.area-verify {
+		grid-area: verify;
+	}
+
+	.area-decoded {
+		grid-area: decoded;
+		min-width: 0;
+	}
+
+	/* A closed panel: one row that opens in place. */
+	.fold {
+		min-width: 0;
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: var(--radius);
+		box-shadow: var(--box-shadow);
+	}
+
+	.fold > summary {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-1);
+		min-height: var(--control-h);
+		padding: var(--sp-2) var(--sp-3);
+		cursor: pointer;
+		list-style: none;
+	}
+
+	.fold > summary::-webkit-details-marker {
+		display: none;
+	}
+
+	.fold > summary::before {
+		content: '▸';
+		display: inline-block;
+		width: 1ch;
+		margin-right: var(--sp-1);
+		color: var(--text-muted);
+	}
+
+	.fold[open] > summary::before {
+		content: '▾';
+	}
+
+	.fold > summary:hover {
+		color: var(--accent-hover);
+	}
+
+	.muted-inline {
+		color: var(--text-muted);
+	}
+
+	.fold-body {
+		padding: 0 var(--sp-3) var(--sp-3);
 	}
 
 	.secret-row {
@@ -359,8 +437,26 @@
 		min-width: 0;
 	}
 
+	.algorithm {
+		max-width: 12rem;
+	}
+
+	.link {
+		padding: 0;
+		border: 0;
+		background: none;
+		font: inherit;
+		color: var(--accent);
+		text-decoration: underline;
+		text-underline-offset: 3px;
+		cursor: pointer;
+	}
+
+	.link:hover {
+		color: var(--accent-hover);
+	}
+
 	.token,
-	.signature,
 	pre {
 		font-family: var(--font-mono);
 		font-size: var(--text-sm);
@@ -372,32 +468,37 @@
 		white-space: pre-wrap;
 	}
 
-	.signature {
-		display: block;
-		color: var(--text);
-	}
-
-	.sig-label {
-		margin: 0 0 var(--sp-1);
-		font-size: var(--text-sm);
-		font-weight: 500;
-	}
-
-	.muted,
-	.claims {
+	.muted {
 		margin: 0;
 		font-size: var(--text-sm);
 		color: var(--text-muted);
 	}
 
 	.claims {
-		padding-left: var(--sp-4);
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-1);
 	}
 
-	.error-text {
+	.claim {
 		margin: 0;
 		font-size: var(--text-sm);
+		color: var(--text-muted);
+	}
+
+	.claim.danger {
 		color: var(--danger-text);
+	}
+
+	.claim.warning {
+		color: var(--warning-text);
+	}
+
+	.claim-icon {
+		display: inline-block;
+		min-width: 1ch;
+		margin-right: var(--sp-2);
+		font-weight: 700;
 	}
 
 	.encode {
