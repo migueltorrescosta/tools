@@ -10,7 +10,7 @@ When every map shrinks distances, the positions settle onto the maps' attractor 
 
 ## Picking the next point
 
-Each point is picked in proportion to its weight (default 1). A rule forbids offsets from the last point's index, modulo the number of points $n$: "Never twice" forbids 0, "No neighbour" forbids 1 and $n - 1$, and "Custom" takes any list. Offsets follow the points' order in the table, so the polygon builder lists vertices anticlockwise, each edge midpoint after its first vertex, and the centre last. `compile` turns the weights and the rule into one table per last point; `validate` rejects a rule that leaves some point with nothing to pick.
+Each point is picked in proportion to its weight (default 1). A rule forbids offsets from the last point's index, modulo the number of points $n$: "Never twice" forbids 0, "No neighbour" forbids 1 and $n - 1$, and a custom rule (in "Edit points and polygon", which a link with one opens) takes any list. Offsets follow the points' order in the table, so the polygon builder lists vertices anticlockwise, each edge midpoint after its first vertex, and the centre last. `compile` turns the weights and the rule into one table per last point; `validate` rejects a rule that leaves some point with nothing to pick.
 
 ## The "copies touch" ratio
 
@@ -22,9 +22,13 @@ A Web Worker (`chaos.worker.ts`, logic in `worker-engine.ts`) counts hits per ca
 
 Each pixel's opacity is $\left(\log(1 + c) / \log(1 + c_{\max})\right)^{1/\gamma}$ for $c$ hits, above a small floor so single hits show, the log-density mapping of fractal flames (Draves and Reckase 2008). The Contrast slider sets $\gamma$. "By point" colours each pixel by the average colour of the points whose jumps landed there (`--data-1` to `--data-12`, cycled). The background stays transparent, so both themes work; colours are read from the tokens and the run restarts when the theme changes.
 
+The line under the plot counts the jumps; Pause stops the worker and Resume continues the same run. Step through replaces it with the first jumps one at a time.
+
 While a point is dragged the view stays fixed and each move runs a 300,000-jump preview; releasing refits the view and runs in full.
 
-## Challenges
+## Shapes and challenges
+
+The Shapes row under the plot holds every preset. A click loads its setup. With Challenge mode on, a click starts a scored try instead: the shape shows faintly behind the game and the match score appears above the row, with Hint and Show answer. Turning Challenge mode off ends the try; a share link with a challenge turns it on.
 
 `presets.ts` holds the blog post's ten patterns, rebuilt from its images: the points are the images' black dots, normalised to $[-1, 1]$ across, and each ratio was fitted by rendering ratios from 0.30 to 0.95 and keeping the one whose dilated hits best overlap the image's pixels (overlap 0.81 to 0.95). The post's Plotly axes weren't to scale, so its "Octagon" is a stretched one and the triangle's best ratio is 0.53, not 0.5. Ten more patterns follow: the carpet, the Vicsek fractal, the pentagon and hexagon at their touching ratios, three rule-based ones, a turned triangle and the fern.
 
