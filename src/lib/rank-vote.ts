@@ -212,22 +212,6 @@ export function isValidCode(code: string, numChoices: number, cs: string): boole
 	return decodeVote(code, numChoices, cs) !== null;
 }
 
-// --- Color palette ---
-// The shared categorical palette (--data-1..12 in src/lib/styles/tokens.css),
-// at least 3:1 in both themes. Ballots allow up to 14 choices, so past 12 the
-// colours repeat with a dashed line instead of a solid one to stay distinct.
-export const PALETTE_SIZE = 12;
-
-export function choiceColor(index: number): string {
-	return `var(--data-${(index % PALETTE_SIZE) + 1})`;
-}
-
-/** Inline custom properties a route's CSS reads to draw the choice's colour line. */
-export function colorStyle(index: number): string {
-	const line = index < PALETTE_SIZE ? 'solid' : 'dashed';
-	return `--choice-color:${choiceColor(index)};--choice-line:${line}`;
-}
-
 // --- Votes ---
 
 export interface Vote {
@@ -581,4 +565,96 @@ export function parseStoredVotes(raw: string | null, numChoices: number, cs: str
 		byName.set(name, { name, code: cb32Normalize(code) });
 	}
 	return [...byName.values()];
+}
+
+/** Lines for the paste box, one "Name code" per saved vote. */
+export function votesToText(votes: Vote[]): string {
+	return votes.map((v) => `${v.name} ${v.code}`).join('\n');
+}
+
+// --- Sending and pasting votes ---
+
+/** The message a voter sends back. parseVoteLines reads it whole, chat prefixes included. */
+export function voteMessage(title: string, code: string): string {
+	return `My vote for ${title}: ${code}`;
+}
+
+export interface ParsedVotes {
+	/** The last vote for each name, in the order the names last appeared. */
+	votes: Vote[];
+	/** 1-based line numbers and text of non-blank lines with no valid code. */
+	unrecognised: { line: number; text: string }[];
+	/** Names whose earlier line a later line replaced. */
+	replaced: string[];
+}
+
+/**
+ * Read the paste box leniently. Each non-blank line is "Name code", a bare
+ * code, or any text holding a code (a forwarded voteMessage, a chat line):
+ * the last word that decodes as a vote for this election is the code. The
+ * name is the text before it (before "My vote for" in a forwarded message),
+ * or "Voter N" when there is none. A later line for the same name replaces
+ * the earlier one.
+ */
+export function parseVoteLines(text: string, numChoices: number, cs: string): ParsedVotes {
+	const byName = new Map<string, Vote>();
+	const unrecognised: ParsedVotes['unrecognised'] = [];
+	const replaced: string[] = [];
+	let count = 0;
+	text.split(/\r?\n/).forEach((raw, i) => {
+		const line = raw.trim();
+		if (!line) return;
+		const words = [...line.matchAll(/[0-9A-Za-z]+/g)];
+		const hit = words.reverse().find((m) => isValidCode(m[0], numChoices, cs));
+		if (!hit) {
+			unrecognised.push({ line: i + 1, text: line });
+			return;
+		}
+		count++;
+		let before = line.slice(0, hit.index);
+		const message = before.search(/my vote for/i);
+		if (message >= 0) before = before.slice(0, message);
+		const name = before.replace(/[\s:;,.\-–—]+$/, '').trim() || `Voter ${count}`;
+		if (byName.has(name)) {
+			byName.delete(name);
+			if (!replaced.includes(name)) replaced.push(name);
+		}
+		byName.set(name, { name, code: cb32Normalize(hit[0]) });
+	});
+	return { votes: [...byName.values()], unrecognised, replaced };
+}
+
+// --- The answer sentence ---
+
+/**
+ * The result in words: the Condorcet winner when there is one, else the
+ * instant-runoff winner. Null with no valid votes.
+ */
+export function winnerSummary(
+	condorcet: CondorcetResult,
+	irv: IRVResult
+): { headline: string; detail: string } | null {
+	if (condorcet.valid === 0) return null;
+	const name = (i: number) => condorcet.results.find((r) => r.index === i)?.text ?? '';
+	if (condorcet.condorcetWinner !== null) {
+		const w = name(condorcet.condorcetWinner);
+		return { headline: `${w} wins`, detail: `${w} beats every other choice head to head.` };
+	}
+	const firsts = irv.tie ?? irv.results.filter((r) => r.rank === 1).map((r) => r.index);
+	const noneBeatsAll = 'No choice beats every other head to head';
+	if (firsts.length > 1) {
+		const names = firsts.map(name);
+		const list = names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+		return {
+			headline: 'No clear winner',
+			detail: `${noneBeatsAll}, and instant runoff ends in a tie between ${list}.`
+		};
+	}
+	const w = name(firsts[0]);
+	// A majority of first choices would beat everyone head to head, so here
+	// instant runoff always takes more than one round.
+	return {
+		headline: `${w} wins`,
+		detail: `${noneBeatsAll}, so instant runoff decides: ${w} wins after ${irv.rounds.length} rounds.`
+	};
 }

@@ -5,8 +5,12 @@ The details behind `/rank-vote`. The page's "How it works" gives the short versi
 ## The flow
 
 1. Create a ballot with a title and its choices.
-2. Share the vote link. Each voter ranks the choices and sends you the short vote code it gives them.
-3. Enter each name and code on the tally page to see the results under four counting methods.
+2. Share the vote link (the copy icon, or the QR code). Each voter ranks the choices and presses Send my vote, which opens the phone's share sheet, or copies the message "My vote for <title>: <code>" on a computer.
+3. Paste what voters send into the tally page's Votes box, one per line. The page answers with one sentence (the Condorcet winner, else the instant-runoff winner) and keeps the four counts under "Compare counting methods".
+
+## Reading the Votes box
+
+Each non-blank line is "Name code", a bare code, or any text that holds a code, such as a forwarded message with a chat prefix. The code is the last word on the line that is a valid vote for this ballot (right length, in range and passing the check symbol). The name is the text before it, or before "My vote for" in a forwarded message; a line with no name is called Voter N. A later line for the same name replaces the earlier vote. Lines without a valid code are listed under the box by line number.
 
 The ballot lives in the link itself; entered votes are saved in this browser only.
 
