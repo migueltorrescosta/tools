@@ -1,6 +1,6 @@
 # Decision Tree: units
 
-The sources behind the "Pick a unit" branch of `/decision-tree`, and the details the tree leaves out.
+The sources behind the "Which unit to measure in" branch of `/decision-tree`, and the details the tree leaves out.
 
 ## How the branch works
 
