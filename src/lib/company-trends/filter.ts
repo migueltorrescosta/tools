@@ -1,19 +1,13 @@
 import type { Company } from './schema';
 
-/** A readable default subset spanning every type; the rest are one click away. */
+/** A small default whose lines and labels stand apart; the rest are one click away. */
 export const DEFAULT_COMPANY_IDS: readonly string[] = [
-	'apple',
-	'amazon',
-	'nvidia',
-	'tesla',
-	'volkswagen',
-	'exxonmobil',
-	'walmart',
-	'pfizer',
-	'netflix',
 	'anthropic',
-	'boeing',
-	'coca-cola'
+	'tesla',
+	'coca-cola',
+	'exxonmobil',
+	'apple',
+	'nvidia'
 ];
 
 export interface FilterState {
