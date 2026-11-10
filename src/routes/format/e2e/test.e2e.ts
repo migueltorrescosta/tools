@@ -6,7 +6,8 @@ function ui(page: Page) {
 		format: (label: string) => page.getByRole('radio', { name: label, exact: true }),
 		status: page.getByRole('status', { name: 'Validation result' }),
 		result: page.getByTestId('result-message'),
-		placeholder: page.getByTestId('result-placeholder')
+		placeholder: page.getByTestId('result-placeholder'),
+		example: page.getByRole('button', { name: 'Try an example' })
 	};
 }
 
@@ -21,14 +22,43 @@ test.beforeEach(async ({ page }) => {
 	await open(page);
 });
 
-test('validates the JSON example loaded on mount', async ({ page }) => {
+test('opens empty, then fills and validates the JSON example on request', async ({ page }) => {
 	const u = ui(page);
+	await expect(u.content).toHaveValue('');
+	await expect(u.placeholder).toHaveText('Enter content above to validate');
+	await expect(u.result).toHaveCount(0);
+	await u.example.click();
 	await expect(u.content).toHaveValue(/"name": "example"/);
 	await expect(u.result).toHaveText('Valid JSON');
+	await expect(u.example).toHaveCount(0);
+});
+
+test('the verdict sits directly under the text box', async ({ page }) => {
+	const u = ui(page);
+	await u.example.click();
+	const box = await u.content.boundingBox();
+	const verdict = await u.result.boundingBox();
+	expect(box && verdict).toBeTruthy();
+	expect(verdict!.y).toBeGreaterThan(box!.y + box!.height);
+	expect(verdict!.y - (box!.y + box!.height)).toBeLessThan(40);
+	await expect(page.getByRole('heading', { name: 'Validation result' })).toHaveCount(0);
+});
+
+test('the five formats fit on one row on a phone', async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	const tops = await page
+		.getByRole('group', { name: 'Format' })
+		.getByRole('radio')
+		.evaluateAll((els) =>
+			els.map((el) => Math.round((el.closest('label') ?? el).getBoundingClientRect().top))
+		);
+	expect(tops).toHaveLength(5);
+	expect(new Set(tops).size).toBe(1);
 });
 
 test('switching format re-validates the same content', async ({ page }) => {
 	const u = ui(page);
+	await u.example.click();
 	await expect(u.result).toHaveText('Valid JSON');
 	await u.format('XML').click();
 	await expect(u.result).toHaveText(/^Invalid XML at line \d+, column \d+: \S/);
@@ -57,6 +87,7 @@ test('rejects malformed YAML with its line', async ({ page }) => {
 
 test('clearing the content shows the placeholder', async ({ page }) => {
 	const u = ui(page);
+	await u.example.click();
 	await expect(u.result).toHaveText('Valid JSON');
 	await u.content.fill('');
 	await expect(u.placeholder).toHaveText('Enter content above to validate');
@@ -77,6 +108,7 @@ test('the format picker is a radio group and results are announced', async ({ pa
 	await u.format('YAML').click();
 	await expect(u.format('YAML')).toBeChecked();
 	await expect(u.format('JSON')).not.toBeChecked();
+	await u.content.fill('key: value');
 	await expect(u.status).toHaveAttribute('aria-live', 'polite');
 	await expect(u.status).toContainText('Valid YAML');
 });

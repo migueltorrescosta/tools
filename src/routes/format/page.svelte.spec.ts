@@ -8,17 +8,45 @@ function ui() {
 		content: page.getByRole('textbox', { name: 'Content' }),
 		status: page.getByRole('status', { name: 'Validation result' }),
 		copy: page.getByRole('button', { name: /^(Copy input|Copied|Copy failed)$/ }),
-		format: (name: string) => page.getByRole('radio', { name, exact: true })
+		format: (name: string) => page.getByRole('radio', { name, exact: true }),
+		example: page.getByRole('button', { name: 'Try an example' })
 	};
 }
 
 afterEach(() => vi.restoreAllMocks());
 
 describe('/format page', () => {
+	it('opens empty, with the placeholder and an example link', async () => {
+		render(FormatPage);
+		const u = ui();
+		await expect.element(u.content).toHaveValue('');
+		await expect.element(u.content).toHaveAttribute('placeholder', 'Paste your JSON here...');
+		await expect.element(u.status).toHaveTextContent('Enter content above to validate');
+		await expect.element(u.example).toBeVisible();
+		await expect.element(u.copy).toBeDisabled();
+	});
+
+	it('fills the JSON example, switching to JSON, and hides the link', async () => {
+		render(FormatPage);
+		const u = ui();
+		await u.format('YAML').click();
+		await u.example.click();
+		await expect.element(u.format('JSON')).toBeChecked();
+		await expect.element(u.content).toHaveValue('{\n  "name": "example",\n  "value": 123\n}');
+		await expect.element(u.status).toHaveTextContent('Valid JSON');
+		await expect.element(u.example).not.toBeInTheDocument();
+	});
+
+	it('names the Text format plainly in its placeholder', async () => {
+		render(FormatPage);
+		const u = ui();
+		await u.format('Text').click();
+		await expect.element(u.content).toHaveAttribute('placeholder', 'Paste your text here...');
+	});
+
 	it('shows the placeholder, not an error, for whitespace-only content', async () => {
 		render(FormatPage);
 		const u = ui();
-		await expect.element(u.status).toHaveTextContent('Valid JSON');
 		await u.content.fill('   \n\t  ');
 		await expect.element(u.status).toHaveTextContent('Enter content above to validate');
 		await expect.element(u.status).not.toHaveTextContent(/empty|Invalid/);
@@ -60,7 +88,7 @@ describe('/format page', () => {
 		vi.spyOn(navigator.clipboard, 'writeText').mockRejectedValue(new DOMException('denied'));
 		render(FormatPage);
 		const u = ui();
-		await expect.element(u.status).toHaveTextContent('Valid JSON');
+		await u.content.fill('{}');
 		await u.copy.click();
 		await expect.element(u.copy).toHaveTextContent('Copy failed');
 	});
@@ -68,7 +96,9 @@ describe('/format page', () => {
 	it('disables copy when there is nothing to copy', async () => {
 		render(FormatPage);
 		const u = ui();
+		await u.content.fill('{}');
 		await expect.element(u.status).toHaveTextContent('Valid JSON');
+		await expect.element(u.copy).toBeEnabled();
 		await userEvent.clear(u.content);
 		await expect.element(u.copy).toBeDisabled();
 	});
