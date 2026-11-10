@@ -21,8 +21,16 @@ async function run(page: Page) {
 	await expect(page.getByTestId('run-status')).toBeVisible({ timeout: 60_000 });
 }
 
+/** Opens one of the page's closed lines (methods, noise assumption, seed, fit tables). */
+async function unfold(page: Page, id: string) {
+	const fold = page.getByTestId(id);
+	if ((await fold.getAttribute('open')) === null) await fold.locator('summary').first().click();
+	await expect(fold).toHaveAttribute('open');
+}
+
 /** Fitted value of a parameter in the parametric fit table, by its row text. */
 async function fitted(page: Page, of: string, param: string): Promise<number> {
+	await unfold(page, 'fit-tables');
 	const row = page
 		.getByRole('table', { name: 'Parametric fit' })
 		.getByRole('row')
@@ -72,8 +80,14 @@ test('the noise hides its location parameter', async ({ page }) => {
 
 test('the parametric fit recovers a simulated model', async ({ page }) => {
 	await open(page);
+	await unfold(page, 'methods-fold');
 	await page.getByTestId('method-npmle').uncheck();
 	await run(page);
+	// The answer comes first, in one sentence; the tables wait behind their closed line.
+	await expect(page.getByTestId('answer')).toContainText(
+		/Signal X looks like Gamma \(k ≈ [\d.]+, θ ≈ [\d.]+\); noise Y like Laplace \(b ≈ [\d.]+\)\./
+	);
+	await expect(page.getByTestId('fit-tables')).not.toHaveAttribute('open');
 	expect(Math.abs((await fitted(page, 'X', 'k')) - 3)).toBeLessThan(0.8);
 	expect(Math.abs((await fitted(page, 'Y', 'b')) - 0.5)).toBeLessThan(0.25);
 	await expect(page.getByTestId('estimate-chart').getByTestId('curve-mle')).toBeVisible();
@@ -84,20 +98,38 @@ test('normal signal plus normal noise is flagged as not identifiable', async ({ 
 	await open(page);
 	await page.getByTestId('x-family').selectOption('normal');
 	await page.getByTestId('y-family').selectOption('normal');
+	await unfold(page, 'methods-fold');
 	await page.getByTestId('method-npmle').uncheck();
 	await run(page);
 	await expect(page.getByTestId('identifiability')).toContainText('σ of X and σ of Y');
 });
 
-test('methods that need another noise are disabled with a reason', async ({ page }) => {
+test('the methods line names the picked methods and opens onto them', async ({ page }) => {
 	await open(page);
+	const fold = page.getByTestId('methods-fold');
+	await expect(fold.locator('summary')).toHaveText(
+		'Methods: Parametric MLE and NPMLE (grid) · change'
+	);
+	await expect(page.getByTestId('method-gmodel')).toBeHidden();
+	await unfold(page, 'methods-fold');
+	await page.getByTestId('method-gmodel').check();
+	await expect(fold.locator('summary')).toContainText(
+		'Parametric MLE, NPMLE (grid) and g-modeling'
+	);
+});
+
+test('methods that need another noise are hidden', async ({ page }) => {
+	await open(page);
+	await unfold(page, 'methods-fold');
+	await page.getByTestId('y-family').selectOption('normal');
+	await expect(page.getByTestId('method-gmm')).toBeVisible();
 	await page.getByTestId('y-family').selectOption('laplace');
-	await expect(page.getByTestId('method-gmm')).toBeDisabled();
-	await expect(page.getByText('The Gaussian mixture needs normal noise.')).toBeVisible();
+	await expect(page.getByTestId('method-gmm')).toHaveCount(0);
 	await page.getByTestId('y-family').selectOption('uniform');
-	await expect(page.getByTestId('method-kernel')).toBeDisabled();
+	await expect(page.getByTestId('method-kernel')).toHaveCount(0);
 	await page.getByTestId('y-family').selectOption('poisson');
-	await expect(page.getByTestId('method-npmle')).toBeDisabled();
+	await expect(page.getByTestId('method-npmle')).toHaveCount(0);
+	await expect(page.getByTestId('method-mle')).toBeVisible();
 });
 
 test('every method runs on two peaks in white noise and reports distances to the truth', async ({
@@ -108,9 +140,12 @@ test('every method runs on two peaks in white noise and reports distances to the
 	// Two normal peaks in normal noise: identifiable only with the noise as entered,
 	// which the preset sets.
 	await page.getByTestId('preset').selectOption('two-peaks');
+	await unfold(page, 'methods-fold');
 	await expect(page.getByTestId('fit-noise')).not.toBeChecked();
 	for (const m of ['gmodel', 'kernel', 'gmm']) await page.getByTestId(`method-${m}`).check();
 	await run(page);
+	await expect(page.getByTestId('answer')).toContainText('Signal X looks like a mix of');
+	await unfold(page, 'fit-tables');
 	const table = page.getByRole('table', { name: 'Fits' });
 	for (const name of [
 		'Parametric MLE',
@@ -135,6 +170,8 @@ test('pasted data is parsed, bad lines reported, and estimated', async ({ page }
 	await expect(page.getByTestId('upload-status')).toContainText('200 numbers, header skipped');
 	await expect(page.getByText('Skipped 1 line')).toBeVisible();
 	await run(page);
+	await expect(page.getByTestId('fit-tables').locator('summary')).not.toContainText('truth');
+	await unfold(page, 'fit-tables');
 	await expect(page.getByRole('table', { name: 'Fits' })).toBeVisible();
 	await expect(page.getByText('W₁ and L₁ need the true signal')).toBeVisible();
 });
@@ -143,6 +180,7 @@ test('bootstrap can be stopped, and shades a band when it finishes', async ({ pa
 	test.setTimeout(120_000);
 	await open(page);
 	await page.getByTestId('preset').selectOption('two-peaks');
+	await unfold(page, 'methods-fold');
 	await page.getByTestId('method-mle').uncheck();
 	await page.getByTestId('method-npmle').uncheck();
 	await page.getByTestId('method-gmodel').check();
@@ -165,6 +203,7 @@ test('the Bayesian fit can be stopped, and adds credible intervals next to the M
 }) => {
 	test.setTimeout(120_000);
 	await open(page);
+	await unfold(page, 'methods-fold');
 	await page.getByTestId('method-npmle').uncheck();
 	await run(page);
 	const results = page.getByTestId('results');
@@ -174,6 +213,7 @@ test('the Bayesian fit can be stopped, and adds credible intervals next to the M
 	await expect(page.getByText('Bayesian fit stopped.')).toBeVisible();
 	await page.getByTestId('bayes-draws').fill('200');
 	await page.getByTestId('bayes').click();
+	// The fit tables open themselves to show the credible intervals.
 	const table = page.getByRole('table', { name: 'Parametric fit' });
 	await expect(table.getByRole('columnheader', { name: 'Posterior median' })).toBeVisible({
 		timeout: 60_000
@@ -188,6 +228,7 @@ test('the Bayesian fit can be stopped, and adds credible intervals next to the M
 test('mixtures get no Bayesian fit', async ({ page }) => {
 	await open(page);
 	await page.getByTestId('preset').selectOption('two-peaks');
+	await unfold(page, 'methods-fold');
 	await page.getByTestId('method-npmle').uncheck();
 	await run(page);
 	await expect(page.getByTestId('bayes-blocked')).toContainText('Not offered for mixtures');
@@ -197,6 +238,7 @@ test('mixtures get no Bayesian fit', async ({ page }) => {
 test('the NPMLE posterior draws its mean and a credible band', async ({ page }) => {
 	test.setTimeout(120_000);
 	await open(page);
+	await unfold(page, 'methods-fold');
 	await page.getByTestId('method-mle').uncheck();
 	await run(page);
 	await page.getByTestId('npmle-posterior').click();
@@ -205,14 +247,33 @@ test('the NPMLE posterior draws its mean and a credible band', async ({ page }) 
 	await expect(chart.locator('path.band')).toBeVisible();
 });
 
+test('Run turns into Stop while fitting', async ({ page }) => {
+	test.setTimeout(120_000);
+	await open(page);
+	await page.getByTestId('n').fill('100000');
+	await unfold(page, 'methods-fold');
+	await page.getByTestId('method-gmodel').check();
+	await page.getByTestId('run').click();
+	await expect(page.getByTestId('stop')).toBeVisible();
+	await expect(page.getByTestId('run')).toHaveCount(0);
+	await page.getByTestId('stop').click();
+	await expect(page.getByText('Stopped.')).toBeVisible();
+	await expect(page.getByTestId('run')).toBeVisible();
+	await expect(page.getByTestId('stop')).toHaveCount(0);
+});
+
 test('settings survive a reload and travel in the share link', async ({ page }) => {
 	await open(page);
 	await page.getByTestId('n').fill('500');
+	await expect(page.getByTestId('seed')).toBeHidden();
+	await unfold(page, 'sample-fold');
 	await page.getByTestId('seed').fill('42');
 	await page.reload();
 	await ready(page);
 	await expect(page.getByTestId('n')).toHaveValue('500');
+	await unfold(page, 'sample-fold');
 	await expect(page.getByTestId('seed')).toHaveValue('42');
+	await expect(page.getByTestId('export')).toBeVisible();
 });
 
 test('a damaged share link falls back to the defaults with a warning', async ({ page }) => {
@@ -224,9 +285,17 @@ test('a damaged share link falls back to the defaults with a warning', async ({ 
 test.describe('2D', () => {
 	async function open2d(page: Page) {
 		await open(page);
-		await page.getByRole('radio', { name: '2D' }).check();
+		await page.getByRole('button', { name: 'Switch to a 2D model' }).click();
 		await expect(page.getByTestId('map-z')).toBeVisible();
 	}
+
+	test('the Model title switches between 1D and 2D', async ({ page }) => {
+		await open2d(page);
+		await expect(page.getByTestId('model-chart')).toHaveCount(0);
+		await page.getByRole('button', { name: 'Switch to a 1D model' }).click();
+		await expect(page.getByTestId('model-chart')).toBeVisible();
+		await expect(page.getByTestId('map-z')).toHaveCount(0);
+	});
 
 	test('shows heatmaps of X, Y and Z and the marginals', async ({ page }) => {
 		await open2d(page);
@@ -242,11 +311,14 @@ test.describe('2D', () => {
 	}) => {
 		test.setTimeout(120_000);
 		await open2d(page);
+		await unfold(page, 'methods-fold');
 		await expect(page.getByTestId('fit-noise2')).not.toBeChecked();
 		await page.getByTestId('method2-gmm').check();
 		await run(page);
 		for (const id of ['map-truth', 'map-mle', 'map-npmle', 'map-gmm'])
 			await expect(page.getByTestId(id)).toBeVisible();
+		await expect(page.getByTestId('answer')).toContainText('Signal X looks like');
+		await unfold(page, 'fit-tables');
 		const table = page.getByRole('table', { name: 'Fits' });
 		const w1 = await table
 			.getByRole('row')
@@ -262,9 +334,10 @@ test.describe('2D', () => {
 		page
 	}) => {
 		await open2d(page);
+		await unfold(page, 'methods-fold');
+		await expect(page.getByTestId('method2-gmm')).toBeVisible();
 		await page.getByTestId('y2-family').selectOption('product');
-		await expect(page.getByTestId('method2-gmm')).toBeDisabled();
-		await expect(page.getByText('The Gaussian mixture needs Gaussian noise.')).toBeVisible();
+		await expect(page.getByTestId('method2-gmm')).toHaveCount(0);
 		// Discrete families aren't offered for a 2D noise's axes.
 		await expect(page.getByTestId('y2-x-family').locator('option[value="poisson"]')).toHaveCount(0);
 	});
@@ -276,10 +349,15 @@ test.describe('2D', () => {
 		const lines = Array.from({ length: 300 }, (_, i) => `${Math.sin(i) * 2},${Math.cos(i * 1.3)}`);
 		await page.getByTestId('paste').fill(['x,y', ...lines].join('\n'));
 		await expect(page.getByTestId('upload-status')).toContainText('300 points (2 columns)');
-		await expect(page.getByRole('radio', { name: '2D' })).toBeChecked();
+		await expect(page.getByRole('button', { name: 'Switch to a 1D model' })).toBeVisible();
+		await unfold(page, 'methods-fold');
 		await page.getByTestId('method2-mle').uncheck();
 		await run(page);
 		await expect(page.getByTestId('map-npmle')).toBeVisible();
+		await expect(page.getByTestId('answer')).toContainText(
+			/By NPMLE \(64 × 64 grid\), signal X has its mean at \(-?[\d.]+, -?[\d.]+\)\./
+		);
+		await unfold(page, 'fit-tables');
 		await expect(page.getByText('Sliced W₁ and L₁ need the true signal')).toBeVisible();
 	});
 
@@ -289,13 +367,14 @@ test.describe('2D', () => {
 		await page.getByTestId('x2-rho').fill('0.7');
 		await page.reload();
 		await ready(page);
-		await expect(page.getByRole('radio', { name: '2D' })).toBeChecked();
+		await expect(page.getByRole('button', { name: 'Switch to a 1D model' })).toBeVisible();
 		await expect(page.getByTestId('x2-rho')).toHaveValue('0.7');
 	});
 
 	test('bootstrap shades bands on the 2D marginals', async ({ page }) => {
 		test.setTimeout(180_000);
 		await open2d(page);
+		await unfold(page, 'methods-fold');
 		await page.getByTestId('method2-mle').uncheck();
 		await page.getByTestId('method2-npmle').uncheck();
 		await page.getByTestId('method2-gmm').check();
@@ -311,6 +390,7 @@ test.describe('2D', () => {
 		test.setTimeout(120_000);
 		await open2d(page);
 		await page.getByTestId('x2-family').selectOption('gauss2');
+		await unfold(page, 'methods-fold');
 		await page.getByTestId('method2-npmle').uncheck();
 		await run(page);
 		await page.getByTestId('bayes2-draws').fill('200');
@@ -327,6 +407,7 @@ test.describe('2D', () => {
 	test('the 2D NPMLE posterior shades credible bands', async ({ page }) => {
 		test.setTimeout(120_000);
 		await open2d(page);
+		await unfold(page, 'methods-fold');
 		await page.getByTestId('method2-mle').uncheck();
 		await page.getByTestId('method2-npmle').check();
 		await run(page);
@@ -339,12 +420,25 @@ test.describe('2D', () => {
 });
 
 test.describe('Noise regimes', () => {
+	test('the noise assumption sits in the Data box and says what it is', async ({ page }) => {
+		await open(page);
+		const summary = page.getByTestId('noise-fold').locator('summary');
+		await expect(summary).toHaveText('Noise assumption: known family, as in the model above');
+		await expect(page.getByTestId('noise-regime')).toBeHidden();
+		await unfold(page, 'noise-fold');
+		await page.getByTestId('noise-regime').selectOption('replicates');
+		await expect(summary).toHaveText('Noise assumption: repeated measurements');
+	});
+
 	test('per-point errors run the NPMLE and the Gaussian mixture', async ({ page }) => {
 		test.setTimeout(120_000);
 		await open(page);
+		await unfold(page, 'noise-fold');
 		await page.getByTestId('noise-regime').selectOption('perPoint');
+		await unfold(page, 'methods-fold');
 		await page.getByTestId('method-gmm').check();
 		await run(page);
+		await unfold(page, 'fit-tables');
 		const table = page.getByRole('table', { name: 'Fits' });
 		await expect(table.getByRole('cell', { name: 'NPMLE (grid)', exact: true })).toBeVisible();
 		await expect(table.getByRole('cell', { name: 'Gaussian mixture', exact: true })).toBeVisible();
@@ -353,8 +447,14 @@ test.describe('Noise regimes', () => {
 	test('symmetric unknown noise runs the phase estimator', async ({ page }) => {
 		test.setTimeout(120_000);
 		await open(page);
+		await unfold(page, 'noise-fold');
 		await page.getByTestId('noise-regime').selectOption('symmetric');
 		await run(page);
+		// Without a parametric fit, the answer reads the estimate's mean and spread.
+		await expect(page.getByTestId('answer')).toContainText(
+			/By Phase \(symmetric noise\), signal X has mean ≈ [\d.]+ and standard\s+deviation ≈ [\d.]+\./
+		);
+		await unfold(page, 'fit-tables');
 		const table = page.getByRole('table', { name: 'Fits' });
 		await expect(
 			table.getByRole('cell', { name: 'Phase (symmetric noise)', exact: true })
@@ -367,9 +467,11 @@ test.describe('Noise regimes', () => {
 	test('repeated measurements recover the signal and the noise', async ({ page }) => {
 		test.setTimeout(120_000);
 		await open(page);
+		await unfold(page, 'noise-fold');
 		await page.getByTestId('noise-regime').selectOption('replicates');
 		await page.getByTestId('replicates').fill('3');
 		await run(page);
+		await unfold(page, 'fit-tables');
 		const chart = page.getByTestId('estimate-chart');
 		await expect(chart.getByTestId('curve-kotlarski')).toBeVisible();
 		await expect(chart.getByTestId('curve-kotlarski-noise')).toBeVisible();
@@ -380,6 +482,7 @@ test.describe('Noise regimes', () => {
 
 	test('per-point errors need two columns when uploaded', async ({ page }) => {
 		await open(page);
+		await unfold(page, 'noise-fold');
 		await page.getByTestId('noise-regime').selectOption('perPoint');
 		await page.getByRole('radio', { name: 'Your data' }).check();
 		const lines = Array.from({ length: 20 }, (_, i) => `${i},${i * 0.1},${i * 0.2}`);
@@ -390,11 +493,14 @@ test.describe('Noise regimes', () => {
 	test('2D per-point errors run the NPMLE and the mixture', async ({ page }) => {
 		test.setTimeout(120_000);
 		await open(page);
-		await page.getByRole('radio', { name: '2D' }).check();
+		await page.getByRole('button', { name: 'Switch to a 2D model' }).click();
+		await unfold(page, 'noise-fold');
 		await page.getByTestId('noise2-regime').selectOption('perPoint');
-		await expect(page.getByTestId('method2-mle')).toBeDisabled();
+		await unfold(page, 'methods-fold');
+		await expect(page.getByTestId('method2-mle')).toHaveCount(0);
 		await page.getByTestId('method2-gmm').check();
 		await run(page);
+		await unfold(page, 'fit-tables');
 		const table = page.getByRole('table', { name: 'Fits' });
 		await expect(table.getByRole('cell', { name: 'NPMLE (64 × 64 grid)' })).toBeVisible();
 		await expect(table.getByRole('cell', { name: 'Gaussian mixture', exact: true })).toBeVisible();

@@ -2,6 +2,10 @@
 
 The details behind `/deconvolution`. The page's "How it works" gives the short version.
 
+## The page
+
+The results open with one sentence. With a parametric fit it names the fitted families and their estimates ("Signal X looks like Gamma (k ≈ 3.1, θ ≈ 0.97); noise Y like Laplace (b ≈ 0.42)"), with ≈ for a fitted value and = for one held fixed. Without one (NPMLE only, or a noise regime the parametric fit doesn't cover) it gives the first estimate's mean and standard deviation (in 2D its mean). The tables of likelihoods, distances and intervals sit behind the closed "Fit tables" line, which opens itself when a Bayesian fit adds its columns. The Methods line lists only the methods that work with the current noise.
+
 ## Model
 
 We observe $Z = X + Y$, where the signal $X$ and the noise $Y$ are independent. The density of what we see is the convolution $f_Z = f_X * f_Y$, and in Fourier space the characteristic functions multiply: $\varphi_Z = \varphi_X \varphi_Y$. Deconvolution runs this backwards: from a sample of $Z$, estimate $X$ (and, where possible, $Y$).
@@ -47,7 +51,7 @@ It needs $\varphi_Y \ne 0$, so it is off for uniform noise and other noises whos
 
 ## Less-known noise
 
-The "Noise" setting says how much is known about $Y$. "Known family" is everything above. The other three regimes need less, and each offers the methods that work with it.
+The "Noise assumption" line in the Data box says how much is known about $Y$. "Known family" is everything above. The other three regimes need less, and each offers the methods that work with it.
 
 **Per-point errors.** Each point has its own normal error, $Y_i \sim N(0, \sigma_i^2)$, with $\sigma_i$ known: a second column when uploading ($z, \sigma$; in 2D $x, y, \sigma_x, \sigma_y$ and an optional $\rho$), or drawn uniformly from a range when simulating. The NPMLE's likelihood matrix is already one row per point, so row $i$ simply uses its own $\sigma_i$ (`likelihoodMatrixPerPoint` in `npmle.ts`, `likelihoodMatrix2PerPoint` in `npmle2.ts`); such samples aren't binned. The Gaussian mixture is Extreme Deconvolution in its original form (Bovy, Hogg & Roweis 2011): the E-step's gain and posterior covariance are computed point by point (`gmm.ts`, `gmm2.ts`). The NPMLE posterior works the same way.
 
@@ -86,7 +90,7 @@ Log-likelihoods of grid methods treat $X$ as the point masses on the grid.
 
 ## Two dimensions
 
-The 1D/2D switch moves the whole page to $X, Y \in \mathbb{R}^2$. Uploading two columns switches to 2D on its own.
+"Switch to a 2D model", at the right of the Model title, moves the whole page to $X, Y \in \mathbb{R}^2$. Uploading two columns switches to 2D on its own.
 
 The 2D signals are a correlated Gaussian ($\mu_x, \mu_y, \sigma_x, \sigma_y, \rho$), a mixture of 2–3 of them, independent axes (any two 1D families), and a fringe pattern $(1 + V\cos(\mathbf k\cdot(\mathbf x-\boldsymbol\mu)+\phi))\,\mathcal N(\boldsymbol\mu, \Sigma)$ (`dist2.ts`). The noise is a centred correlated Gaussian or independent continuous axes, so $Z$ always has a density. On the grid, Gaussians are filled by a recurrence along each row: the exponent is quadratic in the column, so each node is two multiplications from its neighbour.
 
