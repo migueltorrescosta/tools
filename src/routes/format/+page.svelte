@@ -8,10 +8,14 @@
 		type ValidationResult
 	} from '#lib/format/validate.js';
 
+	const EXAMPLE = '{\n  "name": "example",\n  "value": 123\n}';
+
 	let content = $state('');
 	let selectedFormat = $state<(typeof formats)[number]['value']>('json');
-	const formatLabel = $derived(
-		formats.find((f) => f.value === selectedFormat)?.label ?? selectedFormat
+	const placeholder = $derived(
+		selectedFormat === 'plaintext'
+			? 'Paste your text here...'
+			: `Paste your ${formats.find((f) => f.value === selectedFormat)?.label} here...`
 	);
 	let copyState = $state<'idle' | 'copied' | 'failed'>('idle');
 	let copyTimer: ReturnType<typeof setTimeout> | undefined;
@@ -36,59 +40,65 @@
 		copyTimer = setTimeout(() => (copyState = 'idle'), 2000);
 	}
 
+	// The example is JSON, so it switches the format to JSON too.
+	function tryExample() {
+		selectedFormat = 'json';
+		content = EXAMPLE;
+	}
+
 	onMount(() => {
-		content = '{\n  "name": "example",\n  "value": 123\n}';
 		hydrated = true;
 		return () => clearTimeout(copyTimer);
 	});
 </script>
 
-<div class="container" data-hydrated={hydrated || undefined}>
+<div class="container stack" data-hydrated={hydrated || undefined}>
 	<PageHeader path="/format" />
 
-	<div class="split-view top">
+	<SegmentedControl legend="Format" options={formats} bind:value={selectedFormat} />
+
+	<Panel title="Content">
+		{#snippet actions()}
+			<Button
+				size="sm"
+				variant={copyState === 'failed' ? 'danger' : 'ghost'}
+				onclick={copyInput}
+				disabled={!content}>{COPY_LABELS[copyState]}</Button
+			>
+		{/snippet}
 		<div class="stack">
-			<SegmentedControl legend="Format" options={formats} bind:value={selectedFormat} />
-
-			<Panel title="Content">
-				{#snippet actions()}
-					<Button
-						size="sm"
-						variant={copyState === 'failed' ? 'danger' : 'ghost'}
-						onclick={copyInput}
-						disabled={!content}>{COPY_LABELS[copyState]}</Button
-					>
+			<Field label="Content" hideLabel>
+				{#snippet children(props)}
+					<textarea
+						{...props}
+						class="control"
+						rows="12"
+						bind:value={content}
+						{placeholder}
+						spellcheck="false"
+					></textarea>
 				{/snippet}
-				<Field label="Content" hideLabel>
-					{#snippet children(props)}
-						<textarea
-							{...props}
-							class="control"
-							rows="12"
-							bind:value={content}
-							placeholder={`Paste your ${formatLabel} here...`}
-							spellcheck="false"
-						></textarea>
-					{/snippet}
-				</Field>
-			</Panel>
-		</div>
+			</Field>
 
-		<Panel title="Validation result">
-			<div role="status" aria-live="polite" aria-label="Validation result">
-				{#if validationResult}
-					<div class="verdict" class:valid={validationResult.valid}>
-						<span class="icon" aria-hidden="true">{validationResult.valid ? '✓' : '✕'}</span>
-						<span data-testid="result-message">{validationResult.message}</span>
-					</div>
-				{:else}
-					<p class="placeholder" data-testid="result-placeholder">
-						Enter content above to validate
-					</p>
+			<div class="result">
+				<div role="status" aria-live="polite" aria-label="Validation result">
+					{#if validationResult}
+						<p class="verdict" class:valid={validationResult.valid}>
+							<span class="icon" aria-hidden="true">{validationResult.valid ? '✓' : '✕'}</span>
+							<span data-testid="result-message">{validationResult.message}</span>
+						</p>
+					{:else}
+						<p class="placeholder" data-testid="result-placeholder">
+							Enter content above to validate
+						</p>
+					{/if}
+				</div>
+				{#if !content}
+					<button type="button" class="example" onclick={tryExample}>Try an example</button>
 				{/if}
 			</div>
-		</Panel>
-	</div>
+		</div>
+	</Panel>
 
 	<details class="how">
 		<summary>How it works</summary>
@@ -104,34 +114,49 @@
 </div>
 
 <style>
-	.top {
-		align-items: start;
+	.result {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: var(--sp-1) var(--sp-3);
 	}
 
+	/* The verdict is its symbol and coloured text, with no box. */
 	.verdict {
 		display: flex;
-		align-items: flex-start;
+		align-items: baseline;
 		gap: var(--sp-2);
-		padding: var(--sp-2) var(--sp-3);
-		border: 1px solid var(--danger);
-		border-radius: var(--radius);
-		background: var(--danger-bg);
+		margin: 0;
 		color: var(--danger-text);
 		word-break: break-word;
 	}
 
 	.verdict.valid {
-		border-color: var(--success);
-		background: var(--success-bg);
 		color: var(--success-text);
 	}
 
 	.icon {
 		font-weight: 700;
+		min-width: 1ch;
 	}
 
 	.placeholder {
 		margin: 0;
 		color: var(--text-muted);
+	}
+
+	/* A link-styled button: it fills the box, it does not navigate. */
+	.example {
+		padding: 0;
+		border: 0;
+		background: none;
+		color: var(--accent);
+		font: inherit;
+		text-decoration: underline;
+		cursor: pointer;
+	}
+
+	.example:hover {
+		text-decoration-thickness: 2px;
 	}
 </style>
