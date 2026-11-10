@@ -2463,7 +2463,8 @@ export const italianModule: LanguageModule = {
 		tense: 'Tempi',
 		answer: 'Risposta',
 		toAnswer: 'da completare',
-		submit: 'Invia',
+		typeMissing: 'Scrivi la forma mancante',
+		check: 'Controlla',
 		correct: 'Giusto',
 		wrong: 'Sbagliato',
 		notQuite: 'Non proprio',
@@ -2472,7 +2473,11 @@ export const italianModule: LanguageModule = {
 		selectToBegin: 'Scegli almeno un verbo e un tempo per iniziare.',
 		noForms: 'Questi tempi non hanno forme per i verbi scelti. Scegli un altro verbo o tempo.',
 		complete: 'Complimenti, hai finito. Ricominciare?',
-		restart: 'Ricomincia'
+		restart: 'Ricomincia',
+		practising: 'Stai esercitando',
+		verbCount: (n) => `${n} ${n === 1 ? 'verbo' : 'verbi'}`,
+		tenseCount: (n) => `${n} ${n === 1 ? 'tempo' : 'tempi'}`,
+		change: 'Cambia'
 	},
 	extractConjugation: italianExtractConjugation
 };

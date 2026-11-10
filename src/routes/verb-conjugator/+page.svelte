@@ -122,8 +122,9 @@
 		});
 	});
 
-	let blankTranslation = $derived(
-		currentCard ? (cardLines[currentCard.personIndex]?.translation ?? '') : ''
+	/** The card's heading names what is being practised, e.g. "mettere · condizionale presente". */
+	let cardTitle = $derived(
+		hydrated && currentCard ? `${currentCard.verb} · ${currentCard.tense}` : lang.ui.conjugation
 	);
 
 	// ─── Pool change: pick a new card ────────────────────────────────────────────
@@ -296,15 +297,20 @@
 			options={LANGUAGE_OPTIONS}
 			bind:value={() => selectedLanguageId, switchLanguage}
 		/>
-		<p class="vc-stats" data-testid="stats">
-			{lang.ui.coverage}: {coverage.numerator} / {coverage.denominator}
-			<span aria-hidden="true">·</span>
-			{lang.ui.accuracy}: {accuracy}%
-		</p>
+		{#if session.history.length > 0}
+			<p class="vc-stats" data-testid="stats">
+				{lang.ui.coverage}: {coverage.numerator} / {coverage.denominator}
+				<span aria-hidden="true">·</span>
+				{lang.ui.accuracy}: {accuracy}%
+			</p>
+		{/if}
 	</div>
 
 	<div class="vc-grid" lang={lang.ui.locale}>
-		<Panel title={lang.ui.conjugation}>
+		<Panel title={cardTitle}>
+			{#snippet actions()}
+				{#if hydrated && currentCard}<span class="vc-hint">{lang.ui.typeMissing}</span>{/if}
+			{/snippet}
 			{#if !hydrated}
 				<!-- Same-size placeholder until the saved state is restored, so nothing shifts (CLS) -->
 				<div class="vc-skeleton" aria-hidden="true">
@@ -312,7 +318,6 @@
 						<tbody>
 							{#each lang.PERSON_LABELS as person (person)}
 								<tr>
-									<td class="vc-marker"></td>
 									<td class="vc-translation">&nbsp;</td>
 									<td class="vc-person">{person}</td>
 									<td class="vc-answer">&nbsp;</td>
@@ -322,7 +327,7 @@
 					</table>
 					<div class="vc-input-row">
 						<input class="control verb-input" type="text" disabled />
-						<Button variant="primary" disabled><span>↵</span></Button>
+						<Button variant="primary" disabled>{lang.ui.check}</Button>
 					</div>
 				</div>
 			{:else if hasNoForms}
@@ -338,7 +343,6 @@
 						{#each cardLines as line, i (line.person)}
 							{@const current = i === currentCard.personIndex}
 							<tr data-testid="card-row" data-state={current ? 'current' : undefined}>
-								<td class="vc-marker" aria-hidden="true">{current ? '▸' : ''}</td>
 								<td class="vc-translation">{line.translation}</td>
 								{#if current}
 									<td class="vc-answer" colspan="2"
@@ -360,17 +364,13 @@
 						class="control verb-input"
 						type="text"
 						bind:value={userInput}
-						placeholder={blankTranslation}
 						aria-label="{lang.ui.answer}: {lang.PERSON_LABELS[currentCard.personIndex]}"
 						onkeydown={handleKeydown}
 						spellcheck="false"
 						autocomplete="off"
 					/>
-					<Button
-						variant="primary"
-						aria-label={lang.ui.submit}
-						onclick={handleSubmit}
-						disabled={!userInput.trim()}><span aria-hidden="true">↵</span></Button
+					<Button variant="primary" onclick={handleSubmit} disabled={!userInput.trim()}
+						>{lang.ui.check}</Button
 					>
 				</div>
 			{:else}
@@ -417,41 +417,55 @@
 				</div>
 			{/if}
 		</Panel>
-
-		<Panel>
-			<div class="vc-group" role="group" aria-labelledby="vc-verbs">
-				<h2 id="vc-verbs">{lang.ui.verb}</h2>
-				<div class="cluster vc-chips">
-					{#each ALL_VERBS as verb (verb)}
-						{@const on = selectedVerbs.includes(verb)}
-						<Button
-							size="sm"
-							pressed={on}
-							onclick={() => toggleVerb(verb)}
-							disabled={on && selectedVerbs.length === 1}>{verb}</Button
-						>
-					{/each}
-				</div>
-			</div>
-		</Panel>
-
-		<Panel>
-			<div class="vc-group" role="group" aria-labelledby="vc-tenses">
-				<h2 id="vc-tenses">{lang.ui.tense}</h2>
-				<div class="cluster vc-chips">
-					{#each ALL_TENSES as tense (tense)}
-						{@const on = selectedTenses.includes(tense)}
-						<Button
-							size="sm"
-							pressed={on}
-							onclick={() => toggleTense(tense)}
-							disabled={on && selectedTenses.length === 1}>{tense}</Button
-						>
-					{/each}
-				</div>
-			</div>
-		</Panel>
 	</div>
+
+	<details class="vc-settings" lang={lang.ui.locale}>
+		<summary data-testid="practice-settings">
+			{#if hydrated}
+				<span class="vc-muted"
+					>{lang.ui.practising} <strong>{lang.ui.verbCount(selectedVerbs.length)}</strong>
+					<span aria-hidden="true">·</span>
+					<strong>{lang.ui.tenseCount(selectedTenses.length)}</strong></span
+				>
+				<span class="vc-change">{lang.ui.change}</span>
+			{/if}
+		</summary>
+		<div class="vc-chip-panels">
+			<Panel>
+				<div class="vc-group" role="group" aria-labelledby="vc-verbs">
+					<h2 id="vc-verbs">{lang.ui.verb}</h2>
+					<div class="cluster vc-chips">
+						{#each ALL_VERBS as verb (verb)}
+							{@const on = selectedVerbs.includes(verb)}
+							<Button
+								size="sm"
+								pressed={on}
+								onclick={() => toggleVerb(verb)}
+								disabled={on && selectedVerbs.length === 1}>{verb}</Button
+							>
+						{/each}
+					</div>
+				</div>
+			</Panel>
+
+			<Panel>
+				<div class="vc-group" role="group" aria-labelledby="vc-tenses">
+					<h2 id="vc-tenses">{lang.ui.tense}</h2>
+					<div class="cluster vc-chips">
+						{#each ALL_TENSES as tense (tense)}
+							{@const on = selectedTenses.includes(tense)}
+							<Button
+								size="sm"
+								pressed={on}
+								onclick={() => toggleTense(tense)}
+								disabled={on && selectedTenses.length === 1}>{tense}</Button
+							>
+						{/each}
+					</div>
+				</div>
+			</Panel>
+		</div>
+	</details>
 </div>
 
 <style>
@@ -524,7 +538,11 @@
 	/* Phones: the translation gets its own line above the person and answer */
 	@media (max-width: 480px) {
 		/* Rows share the columns (subgrid), so the person column fits the longest label */
-		.vc-card tbody,
+		.vc-card tbody {
+			display: grid;
+			grid-template-columns: max-content 1fr;
+		}
+
 		.vc-history tbody {
 			display: grid;
 			grid-template-columns: 1.2rem max-content 1fr;
@@ -549,7 +567,14 @@
 			border-bottom: 0;
 		}
 
-		.vc-card .vc-translation,
+		.vc-card .vc-translation {
+			grid-column: 1 / -1;
+			grid-row: 1;
+			min-width: 0;
+			text-align: left;
+			font-size: var(--text-sm);
+		}
+
 		.vc-history .vc-translation {
 			grid-column: 2 / -1;
 			grid-row: 1;
@@ -558,7 +583,6 @@
 			font-size: var(--text-sm);
 		}
 
-		.vc-marker,
 		.vc-mark {
 			grid-column: 1;
 			grid-row: 1 / 3;
@@ -566,17 +590,21 @@
 		}
 
 		.vc-card .vc-person {
-			grid-column: 2;
+			grid-column: 1;
 			grid-row: 2;
 			width: auto;
 		}
 
 		.vc-card .vc-answer {
-			grid-column: 3;
+			grid-column: 2;
 			grid-row: 2;
 		}
 
-		.vc-card tr[data-state='current'] .vc-answer,
+		.vc-card tr[data-state='current'] .vc-answer {
+			grid-column: 1 / -1;
+			grid-row: 2;
+		}
+
 		.vc-history .vc-answer {
 			grid-column: 2 / -1;
 			grid-row: 2;
@@ -587,7 +615,6 @@
 		}
 	}
 
-	.vc-marker,
 	.vc-mark {
 		width: 1%;
 		padding-right: 0;
@@ -599,9 +626,9 @@
 		color: var(--text);
 	}
 
-	.vc-card tr[data-state='current'] .vc-marker {
-		color: var(--accent);
-		box-shadow: inset 3px 0 0 var(--accent);
+	.vc-hint {
+		font-size: var(--text-sm);
+		color: var(--text-muted);
 	}
 
 	.vc-blank {
@@ -683,6 +710,45 @@
 		color: var(--success-text);
 		text-decoration: underline;
 		text-underline-offset: 2px;
+	}
+
+	.vc-settings {
+		margin-top: var(--sp-3);
+	}
+
+	.vc-settings > summary {
+		display: inline-flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--sp-0) var(--sp-2);
+		min-height: var(--control-h-sm);
+		cursor: pointer;
+		list-style: none;
+	}
+
+	.vc-settings > summary::-webkit-details-marker {
+		display: none;
+	}
+
+	.vc-settings strong {
+		color: var(--text);
+		font-weight: 600;
+	}
+
+	.vc-change {
+		color: var(--accent);
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	.vc-settings > summary:hover .vc-change {
+		color: var(--accent-hover);
+	}
+
+	.vc-chip-panels {
+		display: grid;
+		gap: var(--sp-3);
+		margin-top: var(--sp-2);
 	}
 
 	.vc-group h2 {
