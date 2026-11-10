@@ -19,13 +19,13 @@ How tools.mptc.uk looks and why. The owner chose this look in November 2026 from
 
 ## Rules inside a tool
 
-- **The answer first:** a result opens with one plain sentence ("Pizza wins", "Signal X looks like Gamma …"), then its detail. Results stay open; tables may fold, charts don't.
+- **The answer first:** a result opens with its `Answer` (`src/lib/ui/Answer.svelte`): a bold headline that states it ("Pizza wins", "Signal X looks like Gamma …"), then one plain sentence, then its detail. Results stay open; tables may fold, charts don't.
 - **Settings fold, outputs don't:** run settings go behind the one Advanced line in `RunControls` (`fields` with a `summary`; bind `advancedOpen` to open it when a field inside has an error). A tool's preset sits in the Run box (`preset`), right above Run.
 - **Closed lines:** any other fold is a `Fold` (`src/lib/ui/Fold.svelte`): "Label · what it holds", accent label, muted summary. `boxed` gives it Panel chrome, for a whole panel that starts closed.
 - **One main button:** Run turns into Stop while running, and Continue appears only after a stop.
 - **No (i) icons:** where a control needs explaining, use one short visible hint line (a `Field` hint, or the `.hint` class in `src/lib/styles/utilities.css`). Otherwise the explanation goes in How it works.
 - **Messages are text:** `Alert` draws its symbol and coloured text, with no box. Errors sit under the field they concern. Inside an existing live region, or for a line that isn't news, pass `live={false}`.
-- **Actions that read as text** (Change, Try an example, Pause) are `Button variant="link"`.
+- **Actions that read as text** (Change, Try an example, Pause) are `Button variant="link"`; add `tone="muted"` for a quiet one beside a main action (Undo, Start over).
 - **How it works** (`details.how`, styled in `base.css`) is a quiet link at the end of the tool. It holds the method, the credits and the blog links. References stay open below it.
 - **Destructive actions are quiet:** Clear is grey until it is hovered or armed.
 - **Touch:** controls are 36px, and 44px under a coarse pointer (`--control-h`).
