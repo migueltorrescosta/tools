@@ -7,6 +7,7 @@
 		Button,
 		DataTable,
 		Field,
+		Fold,
 		PageHeader,
 		Panel,
 		References,
@@ -79,7 +80,6 @@
 	import TwoD from './lib/TwoD.svelte';
 	import DensityChart, { type Curve, type Stems, type Band } from './lib/DensityChart.svelte';
 	import { REFERENCES } from './lib/references';
-	import Fold from './lib/Fold.svelte';
 	import { fitSentence, fmtValue, massMoments, methodList, type Part } from './lib/answer';
 
 	const METHOD_NAMES: Record<MethodId, string> = {
@@ -1002,7 +1002,7 @@
 							</Field>
 						</div>
 					{/if}
-					<Fold label="Seed and sample download" testId="sample-fold">
+					<Fold label="Seed and sample download" data-testid="sample-fold">
 						<div class="row">
 							<Field label="Seed" error={seedValid ? undefined : 'A whole number ≥ 0.'}>
 								{#snippet children(props)}
@@ -1051,7 +1051,11 @@
 		<h2 class="section">Estimate</h2>
 
 		{#snippet noiseFold()}
-			<Fold label="Noise assumption" value={NOISE_SUMMARY[settings.noise]} testId="noise-fold">
+			<Fold
+				label="Noise assumption"
+				summary={NOISE_SUMMARY[settings.noise]}
+				data-testid="noise-fold"
+			>
 				<Field label="Noise">
 					{#snippet children(props)}
 						<select
@@ -1099,9 +1103,8 @@
 		<Panel>
 			<Fold
 				label="Methods"
-				value={methodList(chosen.map((m) => METHOD_NAMES[m]))}
-				change
-				testId="methods-fold"
+				summary={methodList(chosen.map((m) => METHOD_NAMES[m]))}
+				data-testid="methods-fold"
 			>
 				<fieldset class="methods">
 					<legend class="sr-only">Estimators</legend>
@@ -1258,11 +1261,11 @@
 					{/if}
 					<Fold
 						label="Fit tables"
-						note="likelihood, AIC, BIC{run.truth ? ', error to truth' : ''}{paramRows.length
+						summary="likelihood, AIC, BIC{run.truth ? ', error to truth' : ''}{paramRows.length
 							? ', 95% intervals'
 							: ''}"
 						bind:open={tablesOpen}
-						testId="fit-tables"
+						data-testid="fit-tables"
 					>
 						<DataTable caption="Fits" {columns} {rows} rowKey={(r) => r.method} />
 						{#if !run.truth}<p class="muted">

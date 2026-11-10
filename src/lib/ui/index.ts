@@ -4,6 +4,7 @@ export { default as Axis } from './Axis.svelte';
 export { default as Button } from './Button.svelte';
 export { default as DataTable } from './DataTable.svelte';
 export { default as Field } from './Field.svelte';
+export { default as Fold } from './Fold.svelte';
 export { default as InfoTip } from './InfoTip.svelte';
 export { default as Legend } from './Legend.svelte';
 export { default as Maximizable } from './Maximizable.svelte';

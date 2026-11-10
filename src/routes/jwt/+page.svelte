@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { copyToClipboard } from '#lib/clipboard.js';
-	import { Alert, Button, Field, PageHeader, Panel, Select } from '#lib/ui/index.js';
+	import { Alert, Button, Field, Fold, PageHeader, Panel, Select } from '#lib/ui/index.js';
 	import {
 		SIGNATURE_MISMATCH,
 		algorithmOptions,
@@ -190,66 +190,61 @@
 			</Panel>
 		</div>
 
-		<details class="fold area-verify">
-			<summary>Verify signature<span class="muted-inline"> · with a secret or key</span></summary>
-			<div class="fold-body stack">
-				<Field label={isSymmetric(selectedAlgorithm) ? 'Secret' : 'Key (PEM or JWK)'}>
-					{#snippet children(props)}
-						<div class="cluster secret-row">
-							<input
-								{...props}
-								type={showSecret ? 'text' : 'password'}
-								class="control"
-								autocomplete="off"
-								spellcheck="false"
-								bind:value={secret}
-								placeholder={isSymmetric(selectedAlgorithm)
-									? 'secret'
-									: 'public key verifies, private key signs'}
-							/>
-							<Button
-								pressed={showSecret}
-								aria-controls={props.id}
-								onclick={() => (showSecret = !showSecret)}>Show</Button
-							>
-						</div>
-					{/snippet}
-				</Field>
-
-				{#if changingAlgorithm}
-					<div class="algorithm" bind:this={algorithmBox}>
-						<Select
-							label="Algorithm"
-							options={algorithms}
-							bind:value={() => selectedAlgorithm, selectAlgorithm}
+		<Fold boxed label="Verify signature" summary="with a secret or key" class="area-verify">
+			<Field label={isSymmetric(selectedAlgorithm) ? 'Secret' : 'Key (PEM or JWK)'}>
+				{#snippet children(props)}
+					<div class="cluster secret-row">
+						<input
+							{...props}
+							type={showSecret ? 'text' : 'password'}
+							class="control"
+							autocomplete="off"
+							spellcheck="false"
+							bind:value={secret}
+							placeholder={isSymmetric(selectedAlgorithm)
+								? 'secret'
+								: 'public key verifies, private key signs'}
 						/>
+						<Button
+							pressed={showSecret}
+							aria-controls={props.id}
+							onclick={() => (showSecret = !showSecret)}>Show</Button
+						>
 					</div>
-				{:else}
-					<p class="muted" data-testid="algorithm-text">
-						Algorithm: {selectedAlgorithm}{selectedAlgorithm === tokenAlgorithm
-							? ', from the token header'
-							: ''} ·
-						<button type="button" class="link" onclick={changeAlgorithm}>Change</button>
-					</p>
-				{/if}
+				{/snippet}
+			</Field>
 
-				{#if verification?.status === 'valid'}
-					<Alert tone="success"
-						><span data-testid="signature-status">Signature verified</span></Alert
-					>
-				{:else if verification?.status === 'invalid'}
-					<Alert tone="danger"
-						><span data-testid="signature-status"
-							>{verification.message === SIGNATURE_MISMATCH
-								? `Signature does not match this ${isSymmetric(selectedAlgorithm) ? 'secret' : 'key'}`
-								: verification.message}</span
-						></Alert
-					>
-				{:else if verification}
-					<Alert tone="warning">{verification.message}</Alert>
-				{/if}
-			</div>
-		</details>
+			{#if changingAlgorithm}
+				<div class="algorithm" bind:this={algorithmBox}>
+					<Select
+						label="Algorithm"
+						options={algorithms}
+						bind:value={() => selectedAlgorithm, selectAlgorithm}
+					/>
+				</div>
+			{:else}
+				<p class="muted" data-testid="algorithm-text">
+					Algorithm: {selectedAlgorithm}{selectedAlgorithm === tokenAlgorithm
+						? ', from the token header'
+						: ''} ·
+					<button type="button" class="link" onclick={changeAlgorithm}>Change</button>
+				</p>
+			{/if}
+
+			{#if verification?.status === 'valid'}
+				<Alert tone="success"><span data-testid="signature-status">Signature verified</span></Alert>
+			{:else if verification?.status === 'invalid'}
+				<Alert tone="danger"
+					><span data-testid="signature-status"
+						>{verification.message === SIGNATURE_MISMATCH
+							? `Signature does not match this ${isSymmetric(selectedAlgorithm) ? 'secret' : 'key'}`
+							: verification.message}</span
+					></Alert
+				>
+			{:else if verification}
+				<Alert tone="warning">{verification.message}</Alert>
+			{/if}
+		</Fold>
 
 		<div class="stack area-decoded">
 			<Panel title="Header">
@@ -303,50 +298,47 @@
 		</div>
 	</div>
 
-	<details class="fold encode">
-		<summary>Edit and re-sign this token</summary>
-		<div class="fold-body stack">
-			<p class="muted">Signs with the secret or key under Verify signature.</p>
-			<div class="split-view">
-				<Field label="Header (JSON)" error={headerError || undefined}>
-					{#snippet children(props)}
-						<textarea
-							{...props}
-							class="control"
-							rows="6"
-							bind:value={() => headerJson, editHeader}
-							placeholder={'{"alg": "HS256", "typ": "JWT"}'}
-							spellcheck="false"
-						></textarea>
-					{/snippet}
-				</Field>
-				<Field label="Payload (JSON)" error={payloadError || undefined}>
-					{#snippet children(props)}
-						<textarea
-							{...props}
-							class="control"
-							rows="6"
-							bind:value={payloadJson}
-							placeholder={'{"sub": "1234567890", "name": "John Doe"}'}
-							spellcheck="false"
-						></textarea>
-					{/snippet}
-				</Field>
-			</div>
-			{#if encodeWarnings.length}
-				<Alert tone="warning">
-					{#each encodeWarnings as warning, i (i)}<div>Encode changes this: {warning}</div>{/each}
-				</Alert>
-			{/if}
-			{#if encodeError}<Alert tone="danger">{encodeError}</Alert>{/if}
-			{#if encodeNote}<Alert tone="info">{encodeNote}</Alert>{/if}
-			<div>
-				<Button variant="primary" onclick={encodeToken}
-					>{selectedAlgorithm === 'none' ? 'Encode unsigned' : 'Sign & encode'}</Button
-				>
-			</div>
+	<Fold boxed label="Edit and re-sign this token" class="encode">
+		<p class="muted">Signs with the secret or key under Verify signature.</p>
+		<div class="split-view">
+			<Field label="Header (JSON)" error={headerError || undefined}>
+				{#snippet children(props)}
+					<textarea
+						{...props}
+						class="control"
+						rows="6"
+						bind:value={() => headerJson, editHeader}
+						placeholder={'{"alg": "HS256", "typ": "JWT"}'}
+						spellcheck="false"
+					></textarea>
+				{/snippet}
+			</Field>
+			<Field label="Payload (JSON)" error={payloadError || undefined}>
+				{#snippet children(props)}
+					<textarea
+						{...props}
+						class="control"
+						rows="6"
+						bind:value={payloadJson}
+						placeholder={'{"sub": "1234567890", "name": "John Doe"}'}
+						spellcheck="false"
+					></textarea>
+				{/snippet}
+			</Field>
 		</div>
-	</details>
+		{#if encodeWarnings.length}
+			<Alert tone="warning">
+				{#each encodeWarnings as warning, i (i)}<div>Encode changes this: {warning}</div>{/each}
+			</Alert>
+		{/if}
+		{#if encodeError}<Alert tone="danger">{encodeError}</Alert>{/if}
+		{#if encodeNote}<Alert tone="info">{encodeNote}</Alert>{/if}
+		<div>
+			<Button variant="primary" onclick={encodeToken}
+				>{selectedAlgorithm === 'none' ? 'Encode unsigned' : 'Sign & encode'}</Button
+			>
+		</div>
+	</Fold>
 </div>
 
 <style>
@@ -372,60 +364,13 @@
 		min-width: 0;
 	}
 
-	.area-verify {
+	.top :global(.area-verify) {
 		grid-area: verify;
 	}
 
 	.area-decoded {
 		grid-area: decoded;
 		min-width: 0;
-	}
-
-	/* A closed panel: one row that opens in place. */
-	.fold {
-		min-width: 0;
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		box-shadow: var(--box-shadow);
-	}
-
-	.fold > summary {
-		display: flex;
-		align-items: center;
-		gap: var(--sp-1);
-		min-height: var(--control-h);
-		padding: var(--sp-2) var(--sp-3);
-		cursor: pointer;
-		list-style: none;
-	}
-
-	.fold > summary::-webkit-details-marker {
-		display: none;
-	}
-
-	.fold > summary::before {
-		content: '▸';
-		display: inline-block;
-		width: 1ch;
-		margin-right: var(--sp-1);
-		color: var(--text-muted);
-	}
-
-	.fold[open] > summary::before {
-		content: '▾';
-	}
-
-	.fold > summary:hover {
-		color: var(--accent-hover);
-	}
-
-	.muted-inline {
-		color: var(--text-muted);
-	}
-
-	.fold-body {
-		padding: 0 var(--sp-3) var(--sp-3);
 	}
 
 	.secret-row {
@@ -501,7 +446,7 @@
 		font-weight: 700;
 	}
 
-	.encode {
+	:global(.ui-fold.encode) {
 		margin-top: var(--sp-3);
 	}
 </style>

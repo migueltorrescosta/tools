@@ -107,9 +107,7 @@ test('normal signal plus normal noise is flagged as not identifiable', async ({ 
 test('the methods line names the picked methods and opens onto them', async ({ page }) => {
 	await open(page);
 	const fold = page.getByTestId('methods-fold');
-	await expect(fold.locator('summary')).toHaveText(
-		'Methods: Parametric MLE and NPMLE (grid) · change'
-	);
+	await expect(fold.locator('summary')).toHaveText('Methods · Parametric MLE and NPMLE (grid)');
 	await expect(page.getByTestId('method-gmodel')).toBeHidden();
 	await unfold(page, 'methods-fold');
 	await page.getByTestId('method-gmodel').check();
@@ -423,11 +421,11 @@ test.describe('Noise regimes', () => {
 	test('the noise assumption sits in the Data box and says what it is', async ({ page }) => {
 		await open(page);
 		const summary = page.getByTestId('noise-fold').locator('summary');
-		await expect(summary).toHaveText('Noise assumption: known family, as in the model above');
+		await expect(summary).toHaveText('Noise assumption · known family, as in the model above');
 		await expect(page.getByTestId('noise-regime')).toBeHidden();
 		await unfold(page, 'noise-fold');
 		await page.getByTestId('noise-regime').selectOption('replicates');
-		await expect(summary).toHaveText('Noise assumption: repeated measurements');
+		await expect(summary).toHaveText('Noise assumption · repeated measurements');
 	});
 
 	test('per-point errors run the NPMLE and the Gaussian mixture', async ({ page }) => {

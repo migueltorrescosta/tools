@@ -8,8 +8,7 @@
 	import { MAX_POINTS, polygon } from '#lib/chaos-game/engine.js';
 	import type { Snippet } from 'svelte';
 	import type { GamePoint, Matrix } from '#lib/chaos-game/types.js';
-	import { Button, Field, Panel, ScrollEdges } from '#lib/ui/index.js';
-	import Fold from './Fold.svelte';
+	import { Button, Field, Fold, Panel, ScrollEdges } from '#lib/ui/index.js';
 
 	let {
 		points = $bindable(),
@@ -106,7 +105,7 @@
 <Panel title="Points">
 	<div class="stack">
 		<p class="hint">Click the plot to add a point. Drag a point to move it.</p>
-		<Fold label="Edit points and polygon" bind:open testid="edit-points">
+		<Fold label="Edit points and polygon" bind:open data-testid="edit-points">
 			<div class="builder" data-testid="polygon-builder">
 				<Field label="Sides" error={sidesValid ? undefined : 'Use 3 to 12 sides.'}>
 					{#snippet children(props)}

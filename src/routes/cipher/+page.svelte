@@ -5,6 +5,7 @@
 		Alert,
 		Button,
 		Field,
+		Fold,
 		PageHeader,
 		Panel,
 		SegmentedControl,
@@ -250,11 +251,7 @@
 					<Button type="submit" variant="primary">{verb}</Button>
 				</div>
 
-				<details class="advanced">
-					<summary
-						><span>Advanced <span class="summary">· algorithm {selectedAlgorithm}</span></span
-						></summary
-					>
+				<Fold label="Advanced" summary="algorithm {selectedAlgorithm}" class="advanced">
 					<div class="algorithm">
 						<Select
 							label="Algorithm"
@@ -263,7 +260,7 @@
 							onchange={clearOutputs}
 						/>
 					</div>
-				</details>
+				</Fold>
 			</form>
 		</Panel>
 
@@ -321,19 +318,6 @@
 
 	.algorithm {
 		max-width: 16rem;
-		margin-top: var(--sp-2);
-	}
-
-	.advanced > summary {
-		display: inline-flex;
-		align-items: center;
-		min-height: var(--control-h-sm);
-		color: var(--accent);
-		cursor: pointer;
-	}
-
-	.summary {
-		color: var(--text-muted);
 	}
 
 	.pem {

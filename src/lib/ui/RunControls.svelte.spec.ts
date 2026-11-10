@@ -40,4 +40,9 @@ describe('RunControls', () => {
 		await page.getByText('Advanced').click();
 		await expect.element(page.getByLabelText('Seed')).toBeVisible();
 	});
+
+	it('opens the Advanced line when advancedOpen is set', async () => {
+		render(RunControls, { onrun: () => {}, fields: field, advancedOpen: true });
+		await expect.element(page.getByLabelText('Seed')).toBeVisible();
+	});
 });

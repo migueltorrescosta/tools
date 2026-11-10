@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import Button from './Button.svelte';
+	import Fold from './Fold.svelte';
 	import Panel from './Panel.svelte';
 
 	let {
@@ -14,6 +15,7 @@
 		preset,
 		fields,
 		summary,
+		advancedOpen = $bindable(false),
 		actions,
 		children
 	}: {
@@ -35,6 +37,8 @@
 		fields?: Snippet;
 		/** What the Advanced line holds, e.g. "100,000 samples, seed 2026". */
 		summary?: string;
+		/** Whether the Advanced line is open; bind it to open it when a field inside has an error. */
+		advancedOpen?: boolean;
 		/** Extra buttons after Run or Stop and Continue. */
 		actions?: Snippet;
 		/** Progress, status and errors, below the buttons. */
@@ -63,12 +67,9 @@
 			{@render actions?.()}
 		</div>
 		{#if fields}
-			<details class="ui-run-advanced">
-				<summary
-					>Advanced{#if summary}<span class="ui-run-summary"> · {summary}</span>{/if}</summary
-				>
+			<Fold label="Advanced" {summary} bind:open={advancedOpen} class="ui-run-advanced">
 				<div class="ui-run-fields">{@render fields()}</div>
-			</details>
+			</Fold>
 		{/if}
 		{@render children?.()}
 	</div>
@@ -86,21 +87,10 @@
 		align-items: center;
 		gap: var(--sp-1);
 	}
-	.ui-run-advanced > summary {
-		display: inline-flex;
-		align-items: center;
-		min-height: var(--control-h-sm);
-		color: var(--accent);
-		cursor: pointer;
-	}
-	.ui-run-summary {
-		color: var(--text-muted);
-	}
 	.ui-run-fields {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
 		gap: var(--sp-2) var(--sp-3);
 		max-width: 48rem;
-		margin-top: var(--sp-2);
 	}
 </style>

@@ -5,7 +5,7 @@
 		PartialAnalysis,
 		ValueOfInformation
 	} from '#lib/information-pricing/analysis/index.js';
-	import { Alert, Button, Maximizable, Panel } from '#lib/ui/index.js';
+	import { Alert, Button, Fold, Maximizable, Panel } from '#lib/ui/index.js';
 	import { dash, dataColour, inputColour, linear, linePath, money as makeMoney } from './format';
 	import InputRow from './InputRow.svelte';
 	import LossPlots from './LossPlots.svelte';
@@ -223,10 +223,7 @@
 					{#snippet frame(button)}
 						<Panel title="Policy tree" actions={button}>
 							<div class="stack" style="--gap: var(--sp-2)">
-								<details class="tree-settings" data-testid="tree-settings">
-									<summary
-										>Tree settings<span class="tree-summary">&nbsp;· {treeSummary}</span></summary
-									>
+								<Fold label="Tree settings" summary={treeSummary} data-testid="tree-settings">
 									<form
 										class="tree-fields"
 										onsubmit={(e) => {
@@ -256,7 +253,7 @@
 											>Update tree</Button
 										>
 									</form>
-								</details>
+								</Fold>
 								{@render treePlot(false)}
 							</div>
 						</Panel>
@@ -579,18 +576,7 @@
 		color: var(--text);
 	}
 	/* One closed line, like the Run box's Advanced line. */
-	.tree-settings > summary {
-		display: inline-flex;
-		align-items: center;
-		min-height: var(--control-h-sm);
-		color: var(--accent);
-		cursor: pointer;
-	}
-	.tree-summary {
-		color: var(--text-muted);
-	}
 	.tree-fields {
-		margin-top: var(--sp-2);
 		display: flex;
 		flex-wrap: wrap;
 		align-items: flex-end;

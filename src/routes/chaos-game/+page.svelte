@@ -22,6 +22,7 @@
 		Alert,
 		Button,
 		Field,
+		Fold,
 		PageHeader,
 		Panel,
 		References,
@@ -31,7 +32,6 @@
 	import Plot, { type Frame, type StepView, type TargetImage } from './lib/Plot.svelte';
 	import PointsPanel from './lib/PointsPanel.svelte';
 	import Shapes from './lib/Shapes.svelte';
-	import Fold from './lib/Fold.svelte';
 	import { REFERENCES } from './lib/references';
 
 	/** Jumps a run makes before it stops. */
@@ -584,7 +584,7 @@
 			</PointsPanel>
 
 			<Panel title="Display">
-				<Fold label="Colour and contrast" testid="colour-fold">
+				<Fold label="Colour and contrast" data-testid="colour-fold">
 					<SegmentedControl
 						legend="Colour"
 						options={[

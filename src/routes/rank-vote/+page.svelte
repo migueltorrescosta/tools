@@ -8,6 +8,7 @@
 		Button,
 		DataTable,
 		Field,
+		Fold,
 		PageHeader,
 		Panel,
 		type Column
@@ -493,8 +494,7 @@
 						{answer?.detail ?? 'Send voters the link, then paste the codes they send back.'}
 					</p>
 					{#if answer}
-						<details class="rv-compare">
-							<summary>Compare counting methods</summary>
+						<Fold label="Compare counting methods">
 							<div class="rv-methods">
 								<div class="stack">
 									<DataTable
@@ -557,7 +557,7 @@
 									</p>
 								</div>
 							</div>
-						</details>
+						</Fold>
 					{/if}
 				</div>
 			</Panel>
@@ -581,9 +581,8 @@
 							<span data-testid="vote-count">{plural(votes.length, 'vote')}</span
 							>{#if votes.length}<span data-testid="voter-names">{` · ${voterNames}`}</span>{/if}
 						</p>
-						<details class="rv-edit" bind:open={editVotesOpen}>
-							<summary>Add or edit votes</summary>
-							<div class="stack rv-edit-body">
+						<Fold label="Add or edit votes" bind:open={editVotesOpen}>
+							<div class="stack">
 								<Field
 									label="Votes, one per line"
 									hint="Paste what voters send you. Edit or delete a line to change a vote."
@@ -629,7 +628,7 @@
 									{/if}
 								{/if}
 							</div>
-						</details>
+						</Fold>
 					</div>
 				</Panel>
 			</div>
@@ -819,22 +818,6 @@
 	}
 
 	/* A disclosure line with its triangle, tall enough to tap */
-	.rv-compare > summary,
-	.rv-edit > summary {
-		width: fit-content;
-		padding: var(--sp-1) 0;
-		color: var(--accent);
-		cursor: pointer;
-	}
-
-	.rv-compare[open] > summary {
-		margin-bottom: var(--sp-2);
-	}
-
-	.rv-edit-body {
-		margin-top: var(--sp-2);
-	}
-
 	.rv-paste {
 		width: 100%;
 		min-height: 8rem;

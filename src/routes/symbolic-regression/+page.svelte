@@ -58,6 +58,7 @@
 		Alert,
 		Button,
 		Field,
+		Fold,
 		PageHeader,
 		Panel,
 		RunControls,
@@ -864,8 +865,7 @@
 									<dd data-testid="r2">{fmt(selectedEntry.valR2)}</dd>
 								</div>
 							</dl>
-							<details class="more" data-testid="more-metrics">
-								<summary>More metrics <span class="muted">· MSE, RMSE, score</span></summary>
+							<Fold label="More metrics" summary="MSE, RMSE, score" data-testid="more-metrics">
 								<dl class="metrics">
 									{#each MORE_METRICS as [key, label] (key)}
 										<div>
@@ -874,7 +874,7 @@
 										</div>
 									{/each}
 								</dl>
-							</details>
+							</Fold>
 							<div class="cluster copy-row">
 								<Button size="sm" onclick={copy}>Copy</Button>
 								<select
@@ -1111,27 +1111,6 @@
 	.operators-error {
 		flex-basis: 100%;
 		font-size: var(--text-sm);
-	}
-	/*
-	 * Block, not inline-flex: the summary's " · values" then wraps as text under the label
-	 * instead of as a box beside it. The Advanced line in the narrow Run column needs the same.
-	 */
-	.more > summary,
-	.sr-page :global(.ui-run-advanced > summary) {
-		display: block;
-		padding-block: var(--sp-1);
-	}
-	/* Svelte drops the leading space inside RunControls' summary span */
-	.sr-page :global(.ui-run-summary) {
-		margin-inline-start: 0.25em;
-	}
-	.more > summary {
-		color: var(--accent);
-		font-size: var(--text-sm);
-		cursor: pointer;
-	}
-	.more > .metrics {
-		margin-top: var(--sp-1);
 	}
 	.copy-format {
 		width: auto;

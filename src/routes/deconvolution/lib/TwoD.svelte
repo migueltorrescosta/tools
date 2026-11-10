@@ -5,6 +5,7 @@
 		Button,
 		DataTable,
 		Field,
+		Fold,
 		Panel,
 		RunControls,
 		type Column
@@ -48,7 +49,6 @@
 	import DensityChart, { type Band, type Curve, type Stems } from './DensityChart.svelte';
 	import Dist2Editor from './Dist2Editor.svelte';
 	import Heatmap from './Heatmap.svelte';
-	import Fold from './Fold.svelte';
 	import { fitSentence, fmtValue, massMoments, methodList, type Part } from './answer';
 	import { family } from '#lib/deconvolution/families.js';
 
@@ -629,7 +629,7 @@
 					{/snippet}
 				</Field>
 			</div>
-			<Fold label="Seed and sample download" testId="sample-fold">
+			<Fold label="Seed and sample download" data-testid="sample-fold">
 				<div class="row">
 					<Field label="Seed" error={seedValid ? undefined : 'A whole number ≥ 0.'}>
 						{#snippet children(props)}
@@ -727,10 +727,10 @@
 {#snippet noiseFold()}
 	<Fold
 		label="Noise assumption"
-		value={settings.noise2 === 'perPoint'
+		summary={settings.noise2 === 'perPoint'
 			? 'per-point errors'
 			: 'known family, as in the model above'}
-		testId="noise-fold"
+		data-testid="noise-fold"
 	>
 		<Field label="Noise">
 			{#snippet children(props)}
@@ -801,9 +801,8 @@
 <Panel>
 	<Fold
 		label="Methods"
-		value={methodList(chosen.map((m) => NAMES[m]))}
-		change
-		testId="methods-fold"
+		summary={methodList(chosen.map((m) => NAMES[m]))}
+		data-testid="methods-fold"
 	>
 		<fieldset class="methods">
 			<legend class="sr-only">Estimators</legend>
@@ -930,11 +929,11 @@
 			{/if}
 			<Fold
 				label="Fit tables"
-				note="likelihood, AIC, BIC{run.truth ? ', error to truth' : ''}{paramRows.length
+				summary="likelihood, AIC, BIC{run.truth ? ', error to truth' : ''}{paramRows.length
 					? ', 95% intervals'
 					: ''}"
 				bind:open={tablesOpen}
-				testId="fit-tables"
+				data-testid="fit-tables"
 			>
 				<DataTable caption="Fits" {columns} {rows} rowKey={(r) => r.method} />
 				{#if !run.truth}<p class="muted">

@@ -51,6 +51,7 @@
 		Alert,
 		Button,
 		Field,
+		Fold,
 		PageHeader,
 		Panel,
 		RunControls,
@@ -352,16 +353,12 @@
 	const advancedErrors = $derived(errors.filter((e) => inAdvanced(e.field)).length);
 	const setupErrors = $derived(errors.length - advancedErrors);
 	let setupOpen = $state(false);
-	/** A node inside RunControls' Advanced fold, to open it from here. */
-	let advancedNode = $state<HTMLElement>();
+	let advancedOpen = $state(false);
 	$effect(() => {
 		if (setupErrors > 0) setupOpen = true;
 	});
 	$effect(() => {
-		if (advancedErrors > 0 && advancedNode) {
-			const fold = advancedNode.closest('details');
-			if (fold) fold.open = true;
-		}
+		if (advancedErrors > 0) advancedOpen = true;
 	});
 
 	// --- One-line summaries of what each fold holds ---
@@ -471,10 +468,11 @@
 				oncontinue={resume}
 				{canContinue}
 				summary={advancedSummary}
+				bind:advancedOpen
 				preset={presetPicker}
 			>
 				{#snippet fields()}
-					<section class="adv" data-testid="noise" bind:this={advancedNode}>
+					<section class="adv" data-testid="noise">
 						<h3>Noise</h3>
 						<p class="muted">Rates in units of 1/t. The MZI's particles get the same noise.</p>
 						<label class="toggle wide">
@@ -659,9 +657,13 @@
 			</RunControls>
 
 			<Panel>
-				<details class="fold" data-testid="setup-fold" bind:open={setupOpen}>
-					<summary>Customise setup <span class="fold-summary">· {setupSummary}</span></summary>
-					<div class="stack fold-body">
+				<Fold
+					label="Customise setup"
+					summary={setupSummary}
+					data-testid="setup-fold"
+					bind:open={setupOpen}
+				>
+					<div class="stack">
 						<div class="grid-2">
 							<Field label="System particles" error={errorFor('nS')}>
 								{#snippet children(props)}
@@ -892,14 +894,14 @@
 							</Field>
 						{/if}
 					</div>
-				</details>
+				</Fold>
 			</Panel>
 		</div>
 
 		<div class="stack results">
 			<p class="sr-only" role="status">{announcement}</p>
 			<Panel>
-				<details class="fold rules-fold" data-testid="rules-fold">
+				<details class="rules-fold" data-testid="rules-fold">
 					<summary
 						><span class="badge" class:kept={broken.length === 0} data-testid="fair-test"
 							><span aria-hidden="true">{broken.length === 0 ? '✓' : '✕'}</span>
@@ -963,9 +965,8 @@
 							{/if}
 						</div>
 						{#if metrics}
-							<details class="fold" data-testid="more-ratios">
-								<summary>More ratios <span class="fold-summary">· {moreRatios}</span></summary>
-								<div class="fold-body">
+							<Fold label="More ratios" summary={moreRatios} data-testid="more-ratios">
+								<div>
 									<div class="tiles">
 										<div class="tile">
 											<span class="tile-label"><T id="Rfixed" /></span>
@@ -1000,7 +1001,7 @@
 										</div>
 									</div>
 								</div>
-							</details>
+							</Fold>
 						{/if}
 
 						<div class="plots">
@@ -1260,20 +1261,9 @@
 		color: var(--success-text);
 		background: var(--success-bg);
 	}
-	/* A closed line that says what it holds: "Customise setup · 1 + 1 particles, …". */
-	.fold > summary {
-		padding-block: var(--sp-1);
-		color: var(--accent);
-		cursor: pointer;
-	}
-	.fold-summary {
-		color: var(--text-muted);
-	}
-	.fold-body {
-		margin-top: var(--sp-3);
-	}
 	.rules-fold > summary {
-		color: var(--text);
+		padding-block: var(--sp-1);
+		cursor: pointer;
 	}
 	.rules-fold > summary .badge {
 		min-width: 0;
