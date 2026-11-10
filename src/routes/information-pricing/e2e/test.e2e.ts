@@ -988,6 +988,13 @@ test('maximized interactions: scatter readout and VoI legend hover', async ({ pa
 
 test('the maximize buttons wait for their pending sections', async ({ page }) => {
 	await open(page, link(small('airline-share-buyback', 1_000_000)));
+	await runButton(page).click();
+	await expect(page.getByTestId('run-status')).toHaveAttribute('data-done', '1', {
+		timeout: 60_000
+	});
+	// Update tree regrows only the tree, so the rest stays up while it's pending. On a first run
+	// the tree worker can finish before the rest, leaving no moment to check.
+	await page.getByRole('textbox', { name: 'Max depth' }).fill('3');
 	// Checked every frame: the tree may be pending only briefly
 	const pendingTree = page.waitForFunction(
 		() => {
@@ -1002,9 +1009,9 @@ test('the maximize buttons wait for their pending sections', async ({ page }) =>
 		null,
 		{ polling: 'raf', timeout: 30_000 }
 	);
-	await runButton(page).click();
+	await page.getByRole('button', { name: 'Update tree' }).click();
 	await pendingTree;
-	await expect(page.getByTestId('run-status')).toHaveAttribute('data-done', '1', {
+	await expect(page.getByTestId('run-status')).toHaveAttribute('data-done', '2', {
 		timeout: 60_000
 	});
 	await expect(page.getByRole('button', { name: 'Maximize Policy tree' })).toBeEnabled();
