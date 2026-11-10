@@ -17,7 +17,7 @@ The baseline is a Mach-Zehnder interferometer (MZI) with $H_{\rm MZI}=\omega\,J_
 3. **Equal time.** Both schemes hold for t.
 4. **Equal noise on every particle.** The ancilla carries the system's noise. A clean ancilla breaks it.
 
-Nobody measures or feeds back during the hold. The accounting overrides under Advanced each break one rule on purpose, and the fair-test line above the results says so.
+Nobody measures or feeds back during the hold. The accounting overrides under Advanced each break one rule on purpose, and the fair-test line at the top of the Answer box says so.
 
 ## Metrics
 

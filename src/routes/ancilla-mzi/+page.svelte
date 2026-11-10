@@ -248,6 +248,8 @@
 		return out;
 	});
 	const controlEntries = $derived(runSetup ? activeControls(runSetup) : []);
+	/** The Details box shows once the run has a baseline or a best scheme; until then How it works ends the Answer box. */
+	const hasDetails = $derived(mzi !== null || best !== null);
 
 	// --- Persistence and URL ---
 	const storage = browserStorage();
@@ -655,10 +657,8 @@
 					</div>
 				{/if}
 				{#if runError}<Alert tone="danger">{runError}</Alert>{/if}
-			</RunControls>
-
-			<Panel>
 				<Fold
+					class="setup-fold"
 					label="Customise setup"
 					summary={setupSummary}
 					data-testid="setup-fold"
@@ -896,12 +896,12 @@
 						{/if}
 					</div>
 				</Fold>
-			</Panel>
+			</RunControls>
 		</div>
 
 		<div class="stack results">
-			<p class="sr-only" role="status">{announcement}</p>
-			<Panel>
+			<Panel title="Answer">
+				<p class="sr-only" role="status">{announcement}</p>
 				<details class="rules-fold" data-testid="rules-fold">
 					<summary
 						><span class="badge" class:kept={broken.length === 0} data-testid="fair-test"
@@ -926,16 +926,13 @@
 						</li>
 					</ul>
 				</details>
-			</Panel>
-
-			<Panel title="Results">
 				{#if !snapshot}
 					<p class="muted placeholder">
 						Pick a preset, then press Run. The MZI baseline comes first, then seeds keep running
 						until you press Stop.
 					</p>
 				{:else}
-					<div class="stack">
+					<div class="stack answer">
 						{#if fromSaved}
 							<Alert tone="info">Saved result from your last finished run.</Alert>
 						{/if}
@@ -1004,26 +1001,31 @@
 							</Fold>
 						{/if}
 
-						<div class="plots">
-							<ConvergencePlot
-								testId="convergence"
-								traces={shownTraces}
-								{refs}
-								bestSeeds={{
-									setup: snapshot.best.setup?.seed ?? null,
-									companion: snapshot.best.companion?.seed ?? null
-								}}
-							/>
-							{#if best}
-								<ControlsPlot
-									testId="controls"
-									entries={controlEntries}
-									values={best.params}
-									saturated={best.saturated}
-								/>
-							{/if}
-						</div>
+						<ConvergencePlot
+							testId="convergence"
+							traces={shownTraces}
+							{refs}
+							bestSeeds={{
+								setup: snapshot.best.setup?.seed ?? null,
+								companion: snapshot.best.companion?.seed ?? null
+							}}
+						/>
+					</div>
+				{/if}
+				{#if !hasDetails}<div class="how-line"><Description /></div>{/if}
+			</Panel>
 
+			{#if snapshot && hasDetails}
+				<Panel title="Details">
+					<div class="stack">
+						{#if best}
+							<ControlsPlot
+								testId="controls"
+								entries={controlEntries}
+								values={best.params}
+								saturated={best.saturated}
+							/>
+						{/if}
 						<div class="details-grid">
 							{#if mzi}
 								<div class="table-wrap">
@@ -1110,13 +1112,12 @@
 								</div>
 							{/if}
 						</div>
+						<div class="how-line"><Description /></div>
 					</div>
-				{/if}
-			</Panel>
+				</Panel>
+			{/if}
 		</div>
 	</div>
-
-	<Description />
 </div>
 
 <style>
@@ -1130,22 +1131,7 @@
 			grid-template-columns: minmax(320px, 400px) minmax(0, 1fr);
 		}
 	}
-	/* One column on phones: Run, then the rules line and Results, then the setup. */
-	@media (max-width: 959.98px) {
-		.inputs,
-		.results {
-			display: contents;
-		}
-		.inputs > :global(*) {
-			order: 2;
-		}
-		.inputs > :global(:first-child) {
-			order: 0;
-		}
-		.results > :global(*) {
-			order: 1;
-		}
-	}
+	/* One column on phones: Setup and run, then Answer, then Details. */
 	.inputs,
 	.results {
 		min-width: 0;
@@ -1291,19 +1277,18 @@
 		font-size: var(--text-md);
 		font-weight: 600;
 	}
+	/* The other ratios: plain label and value pairs, no frames. */
 	.tiles {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr));
-		gap: var(--sp-2);
+		gap: var(--sp-3);
+		padding-top: var(--sp-2);
 	}
 	.tile {
 		display: flex;
 		flex-direction: column;
-		gap: var(--sp-1);
-		padding: var(--sp-2) var(--sp-3);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		background: var(--surface-2);
+		gap: var(--sp-0);
+		min-width: 0;
 	}
 	.tile-label {
 		font-size: var(--text-sm);
@@ -1333,36 +1318,51 @@
 		color: var(--success-text);
 		background: var(--success-bg);
 	}
-	.plots,
 	.details-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
 		gap: var(--sp-3);
 		align-items: start;
 	}
-	.table-wrap {
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		overflow: hidden;
-	}
+	/* Tables keep their row lines, no frame. */
 	.table-wrap table {
 		width: 100%;
 		border-collapse: collapse;
 		font-size: var(--text-sm);
 	}
 	caption {
-		padding: var(--sp-1) var(--sp-2);
+		padding: var(--sp-1) 0;
 		text-align: left;
 		font-weight: 600;
-		background: var(--surface-2);
 	}
 	.table-wrap th,
 	.table-wrap td {
-		padding: var(--sp-0) var(--sp-2);
+		padding: var(--sp-0) 0;
 		height: 28px;
 		border-top: 1px solid var(--border);
 		text-align: left;
 		font-weight: 400;
+	}
+	.table-wrap td.num {
+		padding-left: var(--sp-2);
+	}
+	/* Customise setup closes the Run box, after a hairline. */
+	.layout :global(.setup-fold) {
+		margin-top: var(--sp-1);
+		padding-top: var(--sp-3);
+		border-top: 1px solid var(--border);
+	}
+	/* How it works is the last line of the last box, after a hairline. */
+	.how-line {
+		margin-top: var(--sp-3);
+		padding-top: var(--sp-2);
+		border-top: 1px solid var(--border);
+	}
+	.how-line :global(details.how) {
+		margin-top: 0;
+	}
+	.answer {
+		margin-top: var(--sp-2);
 	}
 	.num {
 		text-align: right !important;

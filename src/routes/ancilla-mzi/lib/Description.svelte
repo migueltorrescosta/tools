@@ -12,10 +12,11 @@
 		counts as significant when R is at least 1 + max(0.01, 3 δR).
 	</p>
 	<p>
-		The line above the results says whether all four fairness rules hold; open it for each rule.
-		Advanced holds the noise on each register, the accounting overrides (each breaks one rule on
-		purpose) and the optimiser's precision and speed: Strang steps M per hold, rounds and iterations
-		per seed, see-saw iterations for the MZI's input, the number of workers and the first seed.
+		The Fair test line at the top of the Answer says whether all four fairness rules hold; open it
+		for each rule. Advanced holds the noise on each register, the accounting overrides (each breaks
+		one rule on purpose) and the optimiser's precision and speed: Strang steps M per hold, rounds
+		and iterations per seed, see-saw iterations for the MZI's input, the number of workers and the
+		first seed.
 	</p>
 	<p>
 		The model, the rules and the metrics are in the
