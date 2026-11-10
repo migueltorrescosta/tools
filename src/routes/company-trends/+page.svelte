@@ -3,7 +3,7 @@
 	import datasetJson from './data/companies.json';
 	import TrendsChart from './TrendsChart.svelte';
 	import { tick } from 'svelte';
-	import { Alert, Button, PageHeader, ScrollEdges, Select } from '#lib/ui/index.js';
+	import { Alert, Button, Fold, PageHeader, ScrollEdges, Select } from '#lib/ui/index.js';
 	import { loadDataset } from '#lib/company-trends/schema.js';
 	import {
 		companyTypes,
@@ -271,8 +271,12 @@
 			</div>
 		{/if}
 
-		<details class="how" data-testid="table-view">
-			<summary>Data table · {quarter} · {currency}</summary>
+		<Fold
+			label="Data table"
+			summary="{quarter} · {currency}"
+			class="ct-table"
+			data-testid="table-view"
+		>
 			<div class="ct-table-wrap">
 				<table>
 					<thead>
@@ -317,7 +321,7 @@
 					</tbody>
 				</table>
 			</div>
-		</details>
+		</Fold>
 	{/if}
 
 	<details class="how" data-testid="how">
@@ -580,6 +584,10 @@
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
 		color: var(--text-muted);
+	}
+
+	:global(.ui-fold.ct-table) {
+		margin-top: var(--sp-4);
 	}
 
 	.ct-table-wrap {
