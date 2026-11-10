@@ -49,6 +49,14 @@ async function addInput(page: Page, family: string) {
 	await page.getByRole('button', { name: 'Add input' }).click();
 	await page.getByRole('menuitem', { name: family, exact: true }).click();
 }
+/** A text field, opening the closed settings line (Advanced, Tree settings) that holds it. */
+async function field(page: Page, name: string): Promise<Locator> {
+	const box = page.getByRole('textbox', { name, includeHidden: true });
+	const closed = page.locator('details:not([open])', { has: box });
+	if (await closed.count()) await closed.locator('> summary').click();
+	await expect(box).toBeVisible();
+	return box;
+}
 const runButton = (page: Page) => page.getByRole('button', { name: 'Run', exact: true });
 const steps = (page: Page) => page.getByRole('list', { name: 'Steps' });
 const stepButton = (page: Page, name: 'Setup' | 'Results') =>
@@ -61,6 +69,23 @@ async function savedSeed(page: Page): Promise<number | null> {
 		`${PREFIX}model`
 	);
 }
+
+test('the Run box holds the preset, Run and one closed settings line', async ({ page }) => {
+	await open(page);
+	const box = page.locator('section', { has: runButton(page) });
+	await expect(box.getByTestId('preset')).toBeVisible();
+	const presetBox = (await preset(page).boundingBox())!;
+	const runBox = (await runButton(page).boundingBox())!;
+	expect(presetBox.y + presetBox.height).toBeLessThanOrEqual(runBox.y);
+	await expect(box.getByTestId('stop')).toHaveCount(0);
+	await expect(box.getByRole('button', { name: 'Add scenarios' })).toHaveCount(0);
+	await expect(box.getByTestId('download-csv')).toHaveCount(0);
+	await expect(box.locator('details summary')).toHaveText(
+		/^Advanced\s*·\s*100,000 samples, seed 2026$/
+	);
+	await expect(page.getByRole('textbox', { name: 'Samples' })).toBeHidden();
+	await expect(await field(page, 'Samples')).toHaveValue('100000');
+});
 
 test('choosing a preset fills the editor; an edit shows Custom', async ({ page }) => {
 	await open(page);
@@ -77,15 +102,15 @@ test('choosing a preset fills the editor; an edit shows Custom', async ({ page }
 	);
 	await expect(page.getByLabel('Unit')).toHaveValue('M€');
 
-	await page.getByRole('textbox', { name: 'Seed' }).fill('7');
+	await (await field(page, 'Seed')).fill('7');
 	await expect(preset(page)).toHaveValue('custom');
 	await expect(preset(page).locator('option:checked')).toHaveText('Custom');
 });
 
 test('add and remove an input', async ({ page }) => {
 	await open(page);
-	// No distribution select: a row's family is fixed once added
-	await expect(page.getByTestId('setup').locator('select')).toHaveCount(1);
+	// No distribution select: a row's family is fixed once added (the preset is in the Run box)
+	await expect(page.getByTestId('setup').locator('select')).toHaveCount(0);
 	await addInput(page, 'Triangular');
 	await expect(inputRows(page)).toHaveCount(5);
 	await expect(page.getByRole('menu')).toBeHidden();
@@ -244,10 +269,10 @@ test('any edit marks the results stale; Run clears the marker', async ({ page })
 	await open(page, link(small('distribution-centre')));
 	await expect(page.getByTestId('stale')).toHaveCount(0);
 	await press(page, 'Run', 1);
-	await page.getByRole('textbox', { name: 'Seed' }).fill('3');
+	await (await field(page, 'Seed')).fill('3');
 	await expect(page.getByTestId('stale')).toBeVisible();
 	// Undoing the edit makes the results current again
-	await page.getByRole('textbox', { name: 'Seed' }).fill('2026');
+	await (await field(page, 'Seed')).fill('2026');
 	await expect(page.getByTestId('stale')).toHaveCount(0);
 	await stepButton(page, 'Setup').click();
 	await page.getByRole('textbox', { name: 'mean of input P' }).fill('0.5');
@@ -265,7 +290,7 @@ test('the copied share link restores the model in a fresh browser', async ({
 	await open(page);
 	await preset(page).selectOption('airline-share-buyback');
 	await page.getByRole('textbox', { name: 'Symbol of input K' }).fill('Km');
-	await page.getByRole('textbox', { name: 'Seed' }).fill('99');
+	await (await field(page, 'Seed')).fill('99');
 	const copy = page.getByRole('button', { name: 'Copy share link (the model, never results)' });
 	await expect(copy).toHaveAttribute('data-url', /#m=/);
 	// The link follows the last edit
@@ -279,7 +304,7 @@ test('the copied share link restores the model in a fresh browser', async ({
 	const other = await fresh.newPage();
 	await other.goto(url);
 	await expect(other.locator('div.container[data-hydrated]')).toBeVisible();
-	await expect(other.getByRole('textbox', { name: 'Seed' })).toHaveValue('99');
+	await expect(other.getByRole('textbox', { name: 'Seed', includeHidden: true })).toHaveValue('99');
 	await expect(other.getByTestId('input-row')).toHaveCount(7);
 	await expect(other.getByRole('combobox', { name: 'Formula for Rev' })).toHaveValue('Km*p');
 	await expect(other.getByTestId('preset')).toHaveValue('custom');
@@ -290,16 +315,30 @@ test('the copied share link restores the model in a fresh browser', async ({
 	await fresh.close();
 });
 
-test('Setup sections explain themselves; References list fifteen links', async ({ page }) => {
+test('Setup explains itself in hints and How it works; References list fifteen links', async ({
+	page
+}) => {
 	await open(page);
 	const setup = page.getByTestId('setup');
-	for (const name of ['inputs', 'intermediates', 'decisions', 'the dataflow']) {
-		const tip = setup.getByRole('button', { name: `About ${name}`, exact: true });
-		await expect(tip).toBeVisible();
-		await tip.focus();
-		await expect(page.getByRole('tooltip').filter({ visible: true })).not.toBeEmpty();
-		await tip.blur();
-	}
+	// No (i) tips: short visible hints, the rest in How it works
+	await expect(page.getByRole('button', { name: /^About / })).toHaveCount(0);
+	await expect(setup).toContainText('Pick Fixed for a number you already know.');
+	await expect(setup).toContainText('Click a box to find its row.');
+	const how = page.getByTestId('how');
+	await expect(how).not.toHaveAttribute('open');
+	await how.locator('summary').click();
+	for (const text of [
+		'What is it worth to know before you decide?',
+		'Intermediates are named formulas',
+		'Decisions are the options you choose between',
+		'Scenarios (CSV) downloads every one',
+		'share of profit spread'
+	])
+		await expect(how).toContainText(text);
+	await expect(how.getByRole('link', { name: 'Pricing Information' })).toHaveAttribute(
+		'href',
+		'https://blog.mptc.uk/posts/Pricing-Information'
+	);
 	const refs = page.getByRole('region', { name: 'References' });
 	await expect(refs.getByRole('link')).toHaveCount(15);
 });
@@ -491,7 +530,8 @@ test('a bad link shows an error and falls back to the default preset', async ({ 
 
 test('Download scenarios writes a header and one row per scenario', async ({ page }) => {
 	await open(page, link(small('distribution-centre', 500)));
-	await expect(page.getByTestId('download-csv')).toBeDisabled();
+	// Hidden until there are scenarios to download
+	await expect(page.getByTestId('download-csv')).toHaveCount(0);
 	await press(page, 'Run', 1);
 	const download = page.waitForEvent('download');
 	await page.getByTestId('download-csv').click();
@@ -517,11 +557,11 @@ test('Download scenarios writes a header and one row per scenario', async ({ pag
 test('autosave restores the model after a reload; Clear saved data resets it', async ({ page }) => {
 	await open(page);
 	await preset(page).selectOption('blank');
-	await page.getByRole('textbox', { name: 'Seed' }).fill('5');
+	await (await field(page, 'Seed')).fill('5');
 	await expect.poll(() => savedSeed(page)).toBe(5);
 
 	await open(page);
-	await expect(page.getByRole('textbox', { name: 'Seed' })).toHaveValue('5');
+	await expect(page.getByRole('textbox', { name: 'Seed', includeHidden: true })).toHaveValue('5');
 	await expect(inputRows(page)).toHaveCount(1);
 	await expect(reward(page)).toHaveValue('d*X');
 
@@ -531,7 +571,9 @@ test('autosave restores the model after a reload; Clear saved data resets it', a
 	await expect(page).toHaveURL(/\/information-pricing$/);
 	await expect(page.locator('div.container[data-hydrated]')).toBeVisible();
 	await expect(preset(page)).toHaveValue('distribution-centre');
-	await expect(page.getByRole('textbox', { name: 'Seed' })).toHaveValue('2026');
+	await expect(page.getByRole('textbox', { name: 'Seed', includeHidden: true })).toHaveValue(
+		'2026'
+	);
 	await expect(inputRows(page)).toHaveCount(4);
 	await expect.poll(() => savedSeed(page)).toBe(2026);
 	// A reload now opens the default too
@@ -675,7 +717,11 @@ test('the value-of-information chart: tight log decades under a dashed EVPI ceil
 test('the policy tree defaults to max depth 2', async ({ page }) => {
 	await open(page, link(small('airline-share-buyback')));
 	await press(page, 'Run', 1);
-	await expect(page.getByRole('textbox', { name: 'Max depth' })).toHaveValue('2');
+	await expect(page.getByTestId('tree-settings').locator('summary')).toHaveText(
+		'Tree settings · depth 2, smallest group 1%'
+	);
+	await expect(page.getByRole('textbox', { name: 'Max depth' })).toBeHidden();
+	await expect(await field(page, 'Max depth')).toHaveValue('2');
 	const levels = await page
 		.getByTestId('policy-tree')
 		.locator('text.split-label')
@@ -713,7 +759,7 @@ test('results: inputs sorted by value of information, names in the tree, max dep
 	expect(await splits.count()).toBeGreaterThan(1);
 	for (const label of await splits.allTextContents()) expect(names).toContain(label);
 
-	await page.getByRole('textbox', { name: 'Max depth' }).fill('1');
+	await (await field(page, 'Max depth')).fill('1');
 	await page.getByRole('button', { name: 'Update tree' }).click();
 	await expect(page.getByTestId('run-status')).toHaveAttribute('data-done', '2', {
 		timeout: 20_000
@@ -744,9 +790,13 @@ test('a big run shows results as they come: spinners, then the full analysis; Up
 	const pending = page.getByTestId('results').getByTestId('pending');
 	await expect(pending.first()).toBeVisible();
 	await expect(pending.first()).toHaveAttribute('aria-busy', 'true');
+	// One main button: Stop replaces Run while running
+	await expect(page.getByTestId('stop')).toBeVisible();
+	await expect(page.getByTestId('run')).toHaveCount(0);
+	await expect(page.getByTestId('continue')).toHaveCount(0);
 	// CSV and Add scenarios wait for the complete run
-	await expect(page.getByTestId('download-csv')).toBeDisabled();
-	await expect(page.getByRole('button', { name: 'Add scenarios' })).toBeDisabled();
+	await expect(page.getByTestId('download-csv')).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'Add scenarios' })).toHaveCount(0);
 
 	await expect(page.getByTestId('run-status')).toHaveAttribute('data-done', '1', {
 		timeout: 60_000
@@ -757,9 +807,12 @@ test('a big run shows results as they come: spinners, then the full analysis; Up
 	await expect(page.getByTestId('voi-scatter')).toBeVisible();
 	await expect(page.getByTestId('input-voi-row').first()).toHaveAttribute('data-savings', /\d/);
 	await expect(page.getByTestId('download-csv')).toBeEnabled();
+	await expect(page.getByRole('button', { name: 'Add scenarios' })).toBeEnabled();
+	await expect(page.getByTestId('stop')).toHaveCount(0);
+	await expect(runButton(page)).toBeEnabled();
 
 	// Update tree: only the tree box is pending
-	await page.getByRole('textbox', { name: 'Max depth' }).fill('3');
+	await (await field(page, 'Max depth')).fill('3');
 	const onlyTree = page.waitForFunction(() => {
 		const all = document.querySelectorAll('[data-testid="results"] [data-testid="pending"]');
 		const tree = document.querySelectorAll('[data-testid="tree-box"] [data-testid="pending"]');
@@ -826,16 +879,13 @@ for (const id of ['distribution-centre', 'airline-share-buyback'] as const) {
 		await expect(scatter).toContainText('Right: matters for the decision. Up: moves your profit.');
 		const points = scatter.getByTestId('scatter-point');
 		await expect(points).toHaveCount(BEST.find(([p]) => p === id)![2]);
-		// Points are labelled with input names; each axis explains itself in an info tip
+		// Points are labelled with input names; each axis is named in the caption
 		const labels = await scatter.getByTestId('scatter-label').allTextContents();
 		expect(labels).toHaveLength(await points.count());
 		for (const l of labels) expect(l.length).toBeGreaterThan(2);
-		await expect(
-			scatter.getByRole('button', { name: 'About value of knowing it first' })
-		).toBeVisible();
-		await expect(
-			scatter.getByRole('button', { name: 'About share of profit spread' })
-		).toBeVisible();
+		await expect(scatter).toContainText('Across: value of knowing it first');
+		await expect(scatter).toContainText('Up: share of profit spread');
+		await expect(scatter.getByRole('button', { name: /^About / })).toHaveCount(0);
 		const bounds = async (axis: 'x' | 'y') =>
 			(await scatter.getAttribute(`data-${axis}-bounds`))!.split(',').map(Number);
 		const [xlo, xhi] = await bounds('x');
@@ -994,7 +1044,7 @@ test('the maximize buttons wait for their pending sections', async ({ page }) =>
 	});
 	// Update tree regrows only the tree, so the rest stays up while it's pending. On a first run
 	// the tree worker can finish before the rest, leaving no moment to check.
-	await page.getByRole('textbox', { name: 'Max depth' }).fill('3');
+	await (await field(page, 'Max depth')).fill('3');
 	// Checked every frame: the tree may be pending only briefly
 	const pendingTree = page.waitForFunction(
 		() => {

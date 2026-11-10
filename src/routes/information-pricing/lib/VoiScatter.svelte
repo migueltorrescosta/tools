@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { InfoTip } from '#lib/ui/index.js';
 	import { Axis } from '#lib/ui/index.js';
 	import {
 		decades,
@@ -99,17 +98,8 @@
 	<figcaption>
 		Right: matters for the decision. Up: moves your profit.
 		<span class="axes">
-			<span
-				>Across: value of knowing it first <InfoTip label="value of knowing it first"
-					>How much better your decision gets, on average, if you learn this input before choosing.</InfoTip
-				></span
-			>
-			<span
-				>Up: share of profit spread <InfoTip label="share of profit spread"
-					>How much of the ups and downs in your profit, under the recommended decision, come from
-					this input alone. 100 % means it explains all of them.</InfoTip
-				></span
-			>
+			<span>Across: value of knowing it first</span>
+			<span>Up: share of profit spread</span>
 		</span>
 	</figcaption>
 	<div

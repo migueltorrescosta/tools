@@ -97,6 +97,11 @@
 
 	const errors = $derived(treeErrors(tree));
 	const valid = $derived(treeValid(tree));
+	const pct = (v: number) => (Number.isFinite(v) ? `${v.toLocaleString('en')}%` : '?');
+	/** The closed Tree settings line. */
+	const treeSummary = $derived(
+		`depth ${Number.isFinite(tree.maxDepth) ? tree.maxDepth : '?'}, smallest group ${pct(tree.minLeafPercent)}`
+	);
 	const treeChanged = $derived(
 		tree.maxDepth !== applied.maxDepth ||
 			tree.minLeafPercent !== applied.minLeafPercent ||
@@ -218,35 +223,40 @@
 					{#snippet frame(button)}
 						<Panel title="Policy tree" actions={button}>
 							<div class="stack" style="--gap: var(--sp-2)">
-								<form
-									class="tree-settings"
-									onsubmit={(e) => {
-										e.preventDefault();
-										if (valid && treeChanged && !busy) onretree();
-									}}
-								>
-									<NumberInput
-										label="Max depth"
-										value={tree.maxDepth}
-										onchange={(v) => (tree.maxDepth = v)}
-										error={errors.maxDepth}
-									/>
-									<NumberInput
-										label="Min leaf (%)"
-										value={tree.minLeafPercent}
-										onchange={(v) => (tree.minLeafPercent = v)}
-										error={errors.minLeafPercent}
-									/>
-									<NumberInput
-										label="Min impurity decrease"
-										value={tree.minImpurityDecrease}
-										onchange={(v) => (tree.minImpurityDecrease = v)}
-										error={errors.minImpurityDecrease}
-									/>
-									<Button size="sm" type="submit" disabled={!valid || !treeChanged || busy}
-										>Update tree</Button
+								<details class="tree-settings" data-testid="tree-settings">
+									<summary
+										>Tree settings<span class="tree-summary">&nbsp;· {treeSummary}</span></summary
 									>
-								</form>
+									<form
+										class="tree-fields"
+										onsubmit={(e) => {
+											e.preventDefault();
+											if (valid && treeChanged && !busy) onretree();
+										}}
+									>
+										<NumberInput
+											label="Max depth"
+											value={tree.maxDepth}
+											onchange={(v) => (tree.maxDepth = v)}
+											error={errors.maxDepth}
+										/>
+										<NumberInput
+											label="Min leaf (%)"
+											value={tree.minLeafPercent}
+											onchange={(v) => (tree.minLeafPercent = v)}
+											error={errors.minLeafPercent}
+										/>
+										<NumberInput
+											label="Min impurity decrease"
+											value={tree.minImpurityDecrease}
+											onchange={(v) => (tree.minImpurityDecrease = v)}
+											error={errors.minImpurityDecrease}
+										/>
+										<Button size="sm" type="submit" disabled={!valid || !treeChanged || busy}
+											>Update tree</Button
+										>
+									</form>
+								</details>
 								{@render treePlot(false)}
 							</div>
 						</Panel>
@@ -568,19 +578,31 @@
 		font-weight: 500;
 		color: var(--text);
 	}
-	.tree-settings {
+	/* One closed line, like the Run box's Advanced line. */
+	.tree-settings > summary {
+		display: inline-flex;
+		align-items: center;
+		min-height: var(--control-h-sm);
+		color: var(--accent);
+		cursor: pointer;
+	}
+	.tree-summary {
+		color: var(--text-muted);
+	}
+	.tree-fields {
+		margin-top: var(--sp-2);
 		display: flex;
 		flex-wrap: wrap;
 		align-items: flex-end;
 		gap: var(--sp-2);
 	}
 	/* Each field as wide as its label, growing to share the row; they wrap in a narrow column. */
-	.tree-settings :global(.ui-field) {
+	.tree-fields :global(.ui-field) {
 		flex: 1 1 auto;
 		min-width: 4.5rem;
 		max-width: 10rem;
 	}
-	.tree-settings :global(.ui-field label) {
+	.tree-fields :global(.ui-field label) {
 		font-size: var(--text-xs);
 		white-space: nowrap;
 	}
