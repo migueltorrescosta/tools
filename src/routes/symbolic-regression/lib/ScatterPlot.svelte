@@ -153,10 +153,13 @@
 </figure>
 
 <style>
+	/* A box like any other on the page, so the plot reads against its own surface, not the grid. */
 	.plot {
 		margin: 0;
+		background: var(--surface);
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
+		box-shadow: var(--box-shadow);
 		padding: var(--sp-2);
 		min-width: 0;
 	}

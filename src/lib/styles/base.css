@@ -10,11 +10,14 @@ html {
 	-webkit-text-size-adjust: 100%;
 }
 
-body {
-	margin: 0;
-	min-height: 100vh;
-	display: flex;
-	flex-direction: column;
+/* The paper is fixed to the window, so the boxes scroll over it. A fixed layer
+   rather than background-attachment: fixed, which iOS Safari ignores. */
+body::before {
+	content: '';
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
 	/* Millimetre paper: a fine line every 8px and a darker one every 40px. */
 	background:
 		linear-gradient(var(--grid-strong) 1px, transparent 1px) 0 0 / 40px 40px,
@@ -22,6 +25,14 @@ body {
 		linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 8px 8px,
 		linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 8px 8px,
 		var(--bg);
+}
+
+body {
+	margin: 0;
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	background: var(--bg);
 	color: var(--text);
 	font-family: var(--font-sans);
 	font-size: var(--text-md);
