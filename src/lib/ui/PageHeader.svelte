@@ -3,6 +3,7 @@
 	import { routes } from '#lib/routes.js';
 	import { headerActions } from './header-actions.svelte.js';
 
+	// eslint-disable-next-line svelte/no-unused-props -- children goes once every tool moved its subtitle into How it works
 	let {
 		path,
 		actions
