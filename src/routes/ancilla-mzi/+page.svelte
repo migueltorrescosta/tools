@@ -49,6 +49,7 @@
 	} from '#lib/ancilla-mzi/types.js';
 	import {
 		Alert,
+		Answer,
 		Button,
 		Field,
 		Fold,
@@ -943,10 +944,9 @@
 								>The setup has changed since this run. Press Run to rerun it.</Alert
 							>
 						{/if}
-						<div class="verdict" data-testid="verdict">
-							{#if metrics}
-								<p class="verdict-head">
-									<span>{fmt(metrics.R, 3)}× the best MZI</span>
+						{#if metrics}
+							<Answer headline="{fmt(metrics.R, 3)}× the best MZI" data-testid="verdict">
+								{#snippet extra()}
 									<span
 										class="sig"
 										class:pass={metrics.significant}
@@ -955,15 +955,15 @@
 										><span aria-hidden="true">{metrics.significant ? '✓' : '✕'}</span>
 										{metrics.significant ? 'Significant' : 'Not significant'}</span
 									>
-								</p>
-								<p>
-									R = <span data-testid="metric-R">{fmt(metrics.R)}</span>, δR =
-									<span data-testid="metric-deltaR">{fmt(metrics.deltaR, 2)}</span>: {verdictTail}
-								</p>
-							{:else}
-								<p class="muted">Working out the MZI baseline and the first seed…</p>
-							{/if}
-						</div>
+								{/snippet}
+								R = <span data-testid="metric-R">{fmt(metrics.R)}</span>, δR =
+								<span data-testid="metric-deltaR">{fmt(metrics.deltaR, 2)}</span>: {verdictTail}
+							</Answer>
+						{:else}
+							<p class="muted" data-testid="verdict">
+								Working out the MZI baseline and the first seed…
+							</p>
+						{/if}
 						{#if metrics}
 							<Fold label="More ratios" summary={moreRatios} data-testid="more-ratios">
 								<div>
@@ -1290,27 +1290,6 @@
 	.adv h3 {
 		font-size: var(--text-md);
 		font-weight: 600;
-	}
-	.verdict {
-		display: flex;
-		flex-direction: column;
-		gap: var(--sp-1);
-		padding: var(--sp-3);
-		border: 1px solid var(--border-strong);
-		border-radius: var(--radius);
-		background: var(--surface-2);
-	}
-	.verdict-head {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: var(--sp-2);
-		font-size: var(--text-xl);
-		font-weight: 600;
-		font-variant-numeric: tabular-nums;
-	}
-	.verdict-head .sig {
-		font-size: var(--text-sm);
 	}
 	.tiles {
 		display: grid;

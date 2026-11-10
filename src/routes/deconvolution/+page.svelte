@@ -4,6 +4,7 @@
 	import { goto } from '$app/navigation';
 	import {
 		Alert,
+		Answer,
 		Button,
 		DataTable,
 		Field,
@@ -1226,15 +1227,18 @@
 							: ''}."
 					/>
 					{#if answer?.kind === 'fit'}
-						<p class="answer" data-testid="answer">
-							Signal X looks like <strong>{answer.x}</strong>{#if answer.noise}; noise Y {answer
-									.noise.verb} <strong>{answer.noise.text}</strong>{/if}.
-						</p>
+						{#if answer.noise}
+							<Answer headline="Signal X looks like {answer.x}" data-testid="answer">
+								Noise Y {answer.noise.verb === 'like' ? 'looks like' : 'is held at'}
+								{answer.noise.text}.
+							</Answer>
+						{:else}
+							<Answer headline="Signal X looks like {answer.x}" data-testid="answer" />
+						{/if}
 					{:else if answer}
-						<p class="answer" data-testid="answer">
-							By {answer.method}, signal X has mean ≈ <strong>{answer.mean}</strong> and standard
-							deviation ≈ <strong>{answer.sd}</strong>.
-						</p>
+						<Answer headline="Signal X has mean ≈ {answer.mean}" data-testid="answer">
+							By {answer.method}, with standard deviation ≈ {answer.sd}.
+						</Answer>
 					{/if}
 					{#each run.failures as f (f.method)}
 						<Alert tone="warning">{METHOD_NAMES[f.method]} failed: {f.message}</Alert>
@@ -1489,9 +1493,6 @@
 	.method > span {
 		display: flex;
 		flex-direction: column;
-	}
-	.answer {
-		margin: 0;
 	}
 	.noise-select {
 		max-width: 22rem;

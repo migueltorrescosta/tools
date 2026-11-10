@@ -2,6 +2,7 @@
 	import type { Snippet } from 'svelte';
 	import {
 		Alert,
+		Answer,
 		Button,
 		DataTable,
 		Field,
@@ -896,14 +897,18 @@
 				{/each}
 			</div>
 			{#if answer?.kind === 'fit'}
-				<p class="answer" data-testid="answer">
-					Signal X looks like <strong>{answer.x}</strong>{#if answer.noise}; noise Y {answer.noise
-							.verb} <strong>{answer.noise.text}</strong>{/if}.
-				</p>
+				{#if answer.noise}
+					<Answer headline="Signal X looks like {answer.x}" data-testid="answer">
+						Noise Y {answer.noise.verb === 'like' ? 'looks like' : 'is held at'}
+						{answer.noise.text}.
+					</Answer>
+				{:else}
+					<Answer headline="Signal X looks like {answer.x}" data-testid="answer" />
+				{/if}
 			{:else if answer}
-				<p class="answer" data-testid="answer">
-					By {answer.method}, signal X has its mean at <strong>{answer.mean}</strong>.
-				</p>
+				<Answer headline="Signal X has its mean at {answer.mean}" data-testid="answer">
+					Estimated by {answer.method}.
+				</Answer>
 			{/if}
 			{#each run.failures as f (f.method)}
 				<Alert tone="warning">{NAMES[f.method]} failed: {f.message}</Alert>
@@ -1082,9 +1087,6 @@
 	.method > span {
 		display: flex;
 		flex-direction: column;
-	}
-	.answer {
-		margin: 0;
 	}
 	.noise-select {
 		max-width: 22rem;

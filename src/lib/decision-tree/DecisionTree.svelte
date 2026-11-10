@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { SvelteSet } from 'svelte/reactivity';
 	import { tick } from 'svelte';
-	import { Button } from '#lib/ui/index.js';
+	import { Answer, Button } from '#lib/ui/index.js';
 	import { computeRows, selectAnswer } from './graph';
 	import type { DecisionGraph, TraversalPath } from './types';
 
@@ -85,7 +85,7 @@
 				{/if}
 			</div>
 		{:else if row.type === 'result'}
-			<p class="result-card" data-testid="result">{row.node.result}</p>
+			<Answer class="result" headline={row.node.result} data-testid="result" />
 		{/if}
 	{/each}
 </div>
@@ -122,17 +122,8 @@
 	}
 
 	/* The result ends the journey: the recommendation alone, centred and larger */
-	.result-card {
-		max-width: 100%;
-		margin: var(--sp-3) 0 0;
-		padding: var(--sp-4) var(--sp-6);
-		background: var(--accent-bg);
-		border: 1px solid var(--accent);
-		border-radius: var(--radius);
-		font-size: var(--text-xl);
-		font-weight: 600;
-		text-align: center;
-		color: var(--text);
+	:global(.ui-answer.result) {
+		margin-top: var(--sp-3);
 	}
 
 	/* Change and Start over are quiet links, so they never read as one more answer */

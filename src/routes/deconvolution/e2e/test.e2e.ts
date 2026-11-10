@@ -85,7 +85,7 @@ test('the parametric fit recovers a simulated model', async ({ page }) => {
 	await run(page);
 	// The answer comes first, in one sentence; the tables wait behind their closed line.
 	await expect(page.getByTestId('answer')).toContainText(
-		/Signal X looks like Gamma \(k ≈ [\d.]+, θ ≈ [\d.]+\); noise Y like Laplace \(b ≈ [\d.]+\)\./
+		/Signal X looks like Gamma \(k ≈ [\d.]+, θ ≈ [\d.]+\)\s*Noise Y looks like\s+Laplace \(b ≈ [\d.]+\)\./
 	);
 	await expect(page.getByTestId('fit-tables')).not.toHaveAttribute('open');
 	expect(Math.abs((await fitted(page, 'X', 'k')) - 3)).toBeLessThan(0.8);
@@ -353,7 +353,7 @@ test.describe('2D', () => {
 		await run(page);
 		await expect(page.getByTestId('map-npmle')).toBeVisible();
 		await expect(page.getByTestId('answer')).toContainText(
-			/By NPMLE \(64 × 64 grid\), signal X has its mean at \(-?[\d.]+, -?[\d.]+\)\./
+			/Signal X has its mean at \(-?[\d.]+, -?[\d.]+\)\s*Estimated by NPMLE \(64 × 64 grid\)\./
 		);
 		await unfold(page, 'fit-tables');
 		await expect(page.getByText('Sliced W₁ and L₁ need the true signal')).toBeVisible();
@@ -450,7 +450,7 @@ test.describe('Noise regimes', () => {
 		await run(page);
 		// Without a parametric fit, the answer reads the estimate's mean and spread.
 		await expect(page.getByTestId('answer')).toContainText(
-			/By Phase \(symmetric noise\), signal X has mean ≈ [\d.]+ and standard\s+deviation ≈ [\d.]+\./
+			/Signal X has mean ≈ [\d.]+\s*By Phase \(symmetric noise\), with standard deviation ≈ [\d.]+\./
 		);
 		await unfold(page, 'fit-tables');
 		const table = page.getByRole('table', { name: 'Fits' });

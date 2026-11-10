@@ -5,6 +5,7 @@
 	import CopyIconButton from './lib/CopyIconButton.svelte';
 	import {
 		Alert,
+		Answer,
 		Button,
 		DataTable,
 		Field,
@@ -488,11 +489,14 @@
 		<div class="stack">
 			<h2 class="rv-ballot-title">{election.title}</h2>
 
-			<Panel title={answer?.headline ?? 'No votes yet'} level={3}>
+			<Panel>
 				<div class="stack">
-					<p class="rv-answer" role="status" data-testid="answer">
-						{answer?.detail ?? 'Send voters the link, then paste the codes they send back.'}
-					</p>
+					<Answer headline={answer?.headline ?? 'No votes yet'} level={3}>
+						<span role="status" data-testid="answer"
+							>{answer?.detail ??
+								'Send voters the link, then paste the codes they send back.'}</span
+						>
+					</Answer>
 					{#if answer}
 						<Fold label="Compare counting methods">
 							<div class="rv-methods">
@@ -805,7 +809,6 @@
 		font-size: var(--text-xl);
 	}
 
-	.rv-answer,
 	.rv-status-line {
 		margin: 0;
 	}

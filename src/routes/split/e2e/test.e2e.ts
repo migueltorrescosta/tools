@@ -52,9 +52,8 @@ async function startTwo(page: Page) {
 /** One card per person on the final screen. */
 const finalRows = (page: Page) => page.getByTestId('final-person');
 
-/** The result's answer: the "Who pays whom" lines. */
-const paymentLines = (page: Page) =>
-	page.getByRole('region', { name: 'Who pays whom' }).getByRole('listitem');
+/** The result's answer: the "Who pays whom" lines (one payment is the headline itself). */
+const paymentLines = (page: Page) => page.getByTestId('payment');
 
 /**
  * Two people: the answer is one payment, and the person cards below list
@@ -63,7 +62,7 @@ const paymentLines = (page: Page) =>
 async function expectOnePayment(page: Page) {
 	await expect(finalRows(page)).toHaveCount(2);
 	await expect(paymentLines(page)).toHaveCount(1);
-	await expect(paymentLines(page)).toHaveText(/^(Alice|Bob) pays (Alice|Bob) \d[\d\s]*\s€$/);
+	await expect(paymentLines(page)).toHaveText(/^(Alice|Bob) pays (Alice|Bob) \d[\d\s]*\s€\s*$/);
 	await expect(finalRows(page).getByText(/€|Pay|Receive/)).toHaveCount(0);
 }
 
@@ -137,7 +136,7 @@ test('Asset Splitting - picks on different groups certify the split', async ({ p
 	// The answer comes first: one concrete payment, the amount the board showed.
 	await expectOnePayment(page);
 	const payments = paymentLines(page);
-	await expect(payments).toHaveText(/^Alice pays Bob \d[\d\s]*\s€$/);
+	await expect(payments).toHaveText(/^Alice pays Bob \d[\d\s]*\s€\s*$/);
 	expect(signedAmount('Pay ' + (await payments.innerText()))).toBe(boardPay);
 	const answer = (await page.getByRole('region', { name: 'Who pays whom' }).boundingBox())!;
 	const owners = (await page.getByRole('region', { name: 'Who gets what' }).boundingBox())!;

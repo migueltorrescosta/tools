@@ -3,6 +3,7 @@ import { createRawSnippet } from 'svelte';
 import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import Alert from './Alert.svelte';
+import Answer from './Answer.svelte';
 import Button from './Button.svelte';
 import DataTable from './DataTable.svelte';
 import Maximizable from './Maximizable.svelte';
@@ -104,6 +105,14 @@ describe('Alert', () => {
 		await expect.element(page.getByRole('alert')).toHaveTextContent('Bad token');
 		render(Alert, { tone: 'success', children: text('Valid') });
 		await expect.element(page.getByRole('status')).toHaveTextContent('Valid');
+	});
+});
+
+describe('Answer', () => {
+	it('states the headline, as a heading when given a level, then the sentence', async () => {
+		render(Answer, { headline: 'Pizza wins', level: 3, children: text('It beats every choice.') });
+		await expect.element(page.getByRole('heading', { level: 3 })).toHaveTextContent('Pizza wins');
+		await expect.element(page.getByText('It beats every choice.')).toBeVisible();
 	});
 });
 

@@ -1,7 +1,16 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { browserStorage, createPersistGate, readJson } from '#lib/persist-gate.js';
-	import { Alert, Button, Field, PageHeader, Panel, References, Stepper } from '#lib/ui/index.js';
+	import {
+		Alert,
+		Answer,
+		Button,
+		Field,
+		PageHeader,
+		Panel,
+		References,
+		Stepper
+	} from '#lib/ui/index.js';
 	import {
 		bestFallback,
 		initState,
@@ -392,6 +401,15 @@
 
 	const edited = $derived(final !== null && editOwner.some((o, k) => o !== final!.owner[k]));
 	const payments = $derived(final ? whoPaysWhom(final.balances) : []);
+	const paymentLine = (pay: (typeof payments)[number]) =>
+		`${people[pay.from].name} pays ${people[pay.to].name} ${fmt(pay.amount)}`;
+	const paymentsHeadline = $derived(
+		payments.length === 0
+			? 'No payments needed'
+			: payments.length === 1
+				? paymentLine(payments[0])
+				: `${payments.length} payments settle it`
+	);
 </script>
 
 <svelte:window onkeydown={onKeydown} />
@@ -679,18 +697,22 @@
 						>Changed: check with everyone. Amounts update after the re-check.</Alert
 					>
 				{:else}
-					<section class="payments" aria-labelledby="payments-heading">
-						<h3 id="payments-heading">Who pays whom</h3>
-						{#if payments.length > 0}
-							<ul>
-								{#each payments as pay, i (i)}
-									<li>{people[pay.from].name} pays {people[pay.to].name} {fmt(pay.amount)}</li>
-								{/each}
-							</ul>
-						{:else}
-							<p>No payments needed.</p>
-						{/if}
-					</section>
+					<Answer
+						role="region"
+						aria-label="Who pays whom"
+						headline={paymentsHeadline}
+						data-testid={payments.length === 1 ? 'payment' : undefined}
+					>
+						{#snippet extra()}
+							{#if payments.length > 1}
+								<ul class="payments">
+									{#each payments as pay, i (i)}
+										<li data-testid="payment">{paymentLine(pay)}</li>
+									{/each}
+								</ul>
+							{/if}
+						{/snippet}
+					</Answer>
 					{#if final.fallback}
 						<p class="hint">
 							This is the best split found so far, so someone may still prefer another group.
@@ -906,21 +928,13 @@
 		margin: 0;
 	}
 
-	/* The result's answer: who pays whom, large and bold, above the detail. */
-	.payments h3,
 	.owners h3 {
 		margin: 0 0 var(--sp-1);
 		font-size: var(--text-lg);
 	}
 
-	.payments ul,
-	.payments p {
+	.payments {
 		margin: 0;
-		font-size: var(--text-xl);
-		font-weight: 700;
-	}
-
-	.payments ul {
 		padding-left: var(--sp-4);
 	}
 
