@@ -24,6 +24,7 @@ async function seedSingleCardSet(page: Page) {
 
 const stats = (page: Page) => page.getByTestId('stats');
 const historyRows = (page: Page) => page.getByTestId('history').getByRole('row');
+const settings = (page: Page) => page.getByTestId('practice-settings');
 const answerBox = (page: Page) =>
 	page.getByRole('textbox', { name: /^(Risposta|Respuesta|Resposta): .+$/ });
 
@@ -46,7 +47,14 @@ async function answerCurrentCardCorrectly(page: Page) {
 test('Verb conjugator - correct answer is recorded and survives reload', async ({ page }) => {
 	await seedSingleCardSet(page);
 	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Verb Conjugator');
-	await expect(stats(page)).toContainText('Copertura: 0 / 6');
+	// Before any answer the toolbar shows only the language switch
+	await expect(stats(page)).toHaveCount(0);
+	// The card names what is being practised
+	await expect(page.getByRole('heading', { level: 2 }).first()).toHaveText(
+		'essere · indicativo presente'
+	);
+	await expect(page.getByText('Scrivi la forma mancante')).toBeVisible();
+	expect(await answerBox(page).getAttribute('placeholder')).toBeNull();
 
 	await answerCurrentCardCorrectly(page);
 	await expect(historyRows(page)).toHaveCount(1);
@@ -81,10 +89,12 @@ test('Verb conjugator - switching language keeps the Italian session', async ({ 
 	await expect(stats(page)).toContainText('Copertura: 1 / 6');
 
 	await page.getByRole('radio', { name: 'Español' }).check();
-	await expect(stats(page)).toContainText('Cobertura: 0 /');
+	// No Spanish answers yet, so no stats line
+	await expect(stats(page)).toHaveCount(0);
 	await expect(page.getByText('Aún no hay intentos.')).toBeVisible();
 	// All interface text follows the practised language
-	await expect(page.getByRole('button', { name: 'Enviar' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Comprobar' })).toBeVisible();
+	await expect(settings(page)).toContainText('Practicas');
 	await expect(page.locator('.vc-grid')).toHaveAttribute('lang', 'es');
 
 	await page.getByRole('radio', { name: 'Italiano' }).check();
@@ -95,17 +105,22 @@ test('Verb conjugator - switching language keeps the Italian session', async ({ 
 test('Verb conjugator - selected language survives reload', async ({ page }) => {
 	await seedSingleCardSet(page);
 	await page.getByRole('radio', { name: 'Português' }).check();
-	await expect(stats(page)).toContainText('Cobertura');
+	await expect(page.getByRole('button', { name: 'Verificar' })).toBeVisible();
 
 	await page.reload();
 	await load(page);
 	await expect(page.getByRole('radio', { name: 'Português' })).toBeChecked();
-	await expect(stats(page)).toContainText('Cobertura');
+	await expect(page.getByRole('button', { name: 'Verificar' })).toBeVisible();
 });
 
 test('Verb conjugator - verb and tense chips expose pressed state', async ({ page }) => {
 	await seedSingleCardSet(page);
+	// The chips sit behind one closed summary line
+	await expect(settings(page)).toContainText('Stai esercitando 1 verbo · 1 tempo');
 	const verbs = page.getByRole('group', { name: 'Verbi' });
+	await expect(verbs).toBeHidden();
+	await page.getByText('Cambia', { exact: true }).click();
+	await expect(verbs).toBeVisible();
 	const essere = verbs.getByRole('button', { name: 'essere', exact: true });
 	await expect(essere).toHaveAttribute('aria-pressed', 'true');
 	// The last selected verb cannot be turned off
@@ -116,7 +131,7 @@ test('Verb conjugator - verb and tense chips expose pressed state', async ({ pag
 	await avere.click();
 	await expect(avere).toHaveAttribute('aria-pressed', 'true');
 	await expect(essere).toBeEnabled();
-	await expect(stats(page)).toContainText('Copertura: 0 / 12');
+	await expect(settings(page)).toContainText('2 verbi · 1 tempo');
 
 	const tenses = page.getByRole('group', { name: 'Tempi' });
 	await expect(
@@ -127,7 +142,7 @@ test('Verb conjugator - verb and tense chips expose pressed state', async ({ pag
 test('Verb conjugator - answer input and submit button have accessible names', async ({ page }) => {
 	await seedSingleCardSet(page);
 	await expect(answerBox(page)).toBeVisible();
-	await expect(page.getByRole('button', { name: 'Invia' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Controlla' })).toBeVisible();
 });
 
 test('Verb conjugator - imperative never asks for io and shows a dash', async ({ page }) => {
@@ -141,10 +156,15 @@ test('Verb conjugator - imperative never asks for io and shows a dash', async ({
 	await page.reload();
 	await load(page);
 
-	await expect(stats(page)).toContainText('Copertura: 0 / 5');
 	const ioRow = page.getByTestId('card-row').first();
 	await expect(ioRow).not.toHaveAttribute('data-state', 'current');
 	await expect(ioRow).toContainText('—');
+
+	// Coverage counts the five forms that exist
+	const i = await blankIndex(page);
+	await answerBox(page).fill(`${PERSONS[i]} xyz`);
+	await answerBox(page).press('Enter');
+	await expect(stats(page)).toContainText('Copertura: 0 / 5');
 });
 
 test('Verb conjugator - card stays readable at phone width', async ({ page }) => {
