@@ -13,13 +13,10 @@
 
 	let {
 		derivation,
-		selected = $bindable(),
-		fit = true
+		selected = $bindable()
 	}: {
 		derivation: Derivation;
 		selected: Selection;
-		/** Shrink the graph to the width of its box instead of scrolling. */
-		fit?: boolean;
 	} = $props();
 
 	const uid = $props.id();
@@ -54,11 +51,9 @@
 	);
 	const layout = $derived(laidOut.latest ?? null);
 
-	/** Fit to width shrinks the whole graph into the box; 100% scrolls instead. */
+	/** A graph wider than its box shrinks to fit the width. */
 	let boxWidth = $state(0);
-	const scale = $derived(
-		layout && fit && boxWidth > 0 ? Math.min(1, (boxWidth - 2) / layout.width) : 1
-	);
+	const scale = $derived(layout && boxWidth > 0 ? Math.min(1, (boxWidth - 2) / layout.width) : 1);
 
 	/** The selection and everything it touches, to highlight. */
 	const lit = $derived.by(() => {
@@ -157,7 +152,7 @@
 					<span class="dg-title">
 						{node.title}
 						{#if node.correction}<span class="dg-flag" title="Corrected">corrected</span>{/if}
-						{#if node.added}<span class="dg-flag added" title="Not in the paper">added</span>{/if}
+						{#if node.added}<span class="dg-flag" title="Not in the paper">added</span>{/if}
 					</span>
 					<Tex html={node.html} />
 				</button>
@@ -314,18 +309,12 @@
 		font-weight: 600;
 	}
 
+	/* Quiet words, so the teal accent stays the only colour in the graph. */
 	.dg-flag {
-		padding: 0 var(--sp-1);
 		font-size: var(--text-xs);
-		font-weight: 500;
-		color: var(--warning-text);
-		background: var(--warning-bg);
-		border-radius: var(--radius-sm);
-	}
-
-	.dg-flag.added {
-		color: var(--info-text);
-		background: var(--info-bg);
+		font-weight: 400;
+		font-style: italic;
+		color: var(--text-muted);
 	}
 
 	/* At least 24 px tall, so the fact is an easy target at 100%. */
@@ -349,8 +338,9 @@
 		color: inherit;
 	}
 
+	/* A corrected fact gets a grey outline, not a colour, like the node tags. */
 	.dg-label.corrected {
-		border-color: var(--warning);
+		border-color: var(--border-strong);
 	}
 
 	.dg-label:hover,
