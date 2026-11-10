@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, type Snippet } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import {
@@ -7,7 +7,6 @@
 		Button,
 		DataTable,
 		Field,
-		InfoTip,
 		PageHeader,
 		Panel,
 		References,
@@ -80,6 +79,8 @@
 	import TwoD from './lib/TwoD.svelte';
 	import DensityChart, { type Curve, type Stems, type Band } from './lib/DensityChart.svelte';
 	import { REFERENCES } from './lib/references';
+	import Fold from './lib/Fold.svelte';
+	import { fitSentence, fmtValue, massMoments, methodList, type Part } from './lib/answer';
 
 	const METHOD_NAMES: Record<MethodId, string> = {
 		mle: 'Parametric MLE',
@@ -98,6 +99,12 @@
 		gmm: 'X as a mix of 1–6 normals, picked by BIC. Normal noise only.',
 		phase: 'Reads X from the data’s phase; the noise only needs to be symmetric.',
 		kotlarski: 'Uses two or more readings of each X to recover both X and the noise.'
+	};
+	const NOISE_SUMMARY: Record<NoiseRegime, string> = {
+		known: 'known family, as in the model above',
+		perPoint: 'per-point errors',
+		symmetric: 'symmetric, unknown shape',
+		replicates: 'repeated measurements'
 	};
 	// Phase would land on the eighth colour, the grey of the histogram: it takes the ninth.
 	const methodColour = (m: MethodId) => dataColour(m === 'phase' ? 8 : METHODS.indexOf(m) + 1);
@@ -451,7 +458,7 @@
 				...dist(mleOnGrid),
 				note:
 					r.identifiability.flat || r.identifiability.boundary.length
-						? 'Not identifiable: see below'
+						? 'Not identifiable: see the warning'
 						: ''
 			});
 		}
@@ -662,6 +669,43 @@
 		`${d.label} of ${d.role === 'signal' ? 'X' : 'Y'}${d.component === null ? '' : ` (component ${d.component + 1})`}`;
 	const runGrids = $derived(run?.grids ?? []);
 
+	/** The results' opening sentence: the parametric fit's families, or a grid estimate's mean and spread. */
+	const answer = $derived.by(() => {
+		if (!run) return null;
+		if (run.mle) {
+			const { x, y, params } = run.mle;
+			const of = (role: 'signal' | 'noise', component: number | null = null) =>
+				params.filter((p) => p.role === role && (component === null || p.component === component));
+			let signal: Part[];
+			if (x.family === 'mixture') {
+				const total = x.components.reduce((a, c) => a + c.weight, 0);
+				signal = x.components.map((c, i) => ({
+					name: family(c.family).name,
+					weight: c.weight / total,
+					params: of('signal', i)
+				}));
+			} else signal = [{ name: family(x.family).name, params: of('signal') }];
+			return {
+				kind: 'fit' as const,
+				...fitSentence(signal, { name: family(y.family).name, params: of('noise') })
+			};
+		}
+		const g = run.grids[0];
+		if (!g) return null;
+		const m = massMoments(run.grid.x0, run.grid.h, g.mass);
+		return {
+			kind: 'moments' as const,
+			method: METHOD_NAMES[g.method],
+			mean: fmtValue(m.mean),
+			sd: fmtValue(m.sd)
+		};
+	});
+	/** The fit tables open themselves when the Bayesian fit adds its columns. */
+	let tablesOpen = $state(false);
+	$effect(() => {
+		if (bayes) tablesOpen = true;
+	});
+
 	// --- Compare X families ---
 	let comparing = $state(false);
 	let compareRows = $state.raw<
@@ -831,43 +875,26 @@
 				onClear={clearAll}
 				description="the settings, never your data or results"
 			/>{/snippet}
-		We only see Z = X + Y: a signal X blurred by noise Y. Simulate it, or bring your own data, and estimate
-		the signal and the noise. Everything runs in your browser.
 	</PageHeader>
 
 	{#if linkError}<Alert tone="warning">{linkError}</Alert>{/if}
 
-	<details class="how" data-testid="how">
-		<summary>How it works</summary>
-		<p>
-			Pick a signal and a noise, and see what you would observe. Then press Run to estimate them
-			back from the sample. The parametric fit needs you to name both families. The other methods
-			take any shape of signal but use the noise as given.
-		</p>
-		<p>
-			One sample can't tell every signal from its noise: two normals only show their summed
-			variance. The fit says when that happens. The details are in the
-			<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/deconvolution.md">docs</a>.
-		</p>
-	</details>
-
-	<SegmentedControl
-		legend="Dimension"
-		options={[
-			{ value: '1', label: '1D' },
-			{ value: '2', label: '2D' }
-		]}
-		bind:value={() => String(settings.dim), (v) => (settings.dim = v === '2' ? 2 : 1)}
-	/>
-
-	{#snippet dataPanel()}
-		<DataSource bind:source={settings.source} bind:uploaded onparsed={followUpload} />
+	{#snippet dataPanel(extra: Snippet)}
+		<DataSource bind:source={settings.source} bind:uploaded onparsed={followUpload}
+			>{@render extra()}</DataSource
+		>
 	{/snippet}
 
 	{#if settings.dim === 2}
 		<TwoD bind:settings {uploaded} {getPool} {dataPanel} {download} />
 	{:else}
 		<Panel title="Model">
+			{#snippet actions()}<button
+					type="button"
+					class="dim-switch"
+					onclick={() => (settings.dim = 2)}
+					data-testid="dim-switch">Switch to a 2D model</button
+				>{/snippet}
 			<div class="model">
 				<div class="controls">
 					<Field label="Preset">
@@ -903,19 +930,6 @@
 									step="1"
 									bind:value={settings.n}
 									data-testid="n"
-									{...props}
-								/>
-							{/snippet}
-						</Field>
-						<Field label="Seed" error={seedValid ? undefined : 'A whole number ≥ 0.'}>
-							{#snippet children(props)}
-								<input
-									class="control"
-									type="number"
-									min="0"
-									step="1"
-									bind:value={settings.seed}
-									data-testid="seed"
 									{...props}
 								/>
 							{/snippet}
@@ -988,16 +1002,33 @@
 							</Field>
 						</div>
 					{/if}
-					{#if simulation}
-						<div>
-							<Button
-								size="sm"
-								variant="secondary"
-								onclick={() => download('deconvolution-sample.csv', simulationCsv(simulation))}
-								data-testid="export">Download the sample (CSV)</Button
-							>
+					<Fold label="Seed and sample download" testId="sample-fold">
+						<div class="row">
+							<Field label="Seed" error={seedValid ? undefined : 'A whole number ≥ 0.'}>
+								{#snippet children(props)}
+									<input
+										class="control"
+										type="number"
+										min="0"
+										step="1"
+										bind:value={settings.seed}
+										data-testid="seed"
+										{...props}
+									/>
+								{/snippet}
+							</Field>
 						</div>
-					{/if}
+						{#if simulation}
+							<div>
+								<Button
+									size="sm"
+									variant="secondary"
+									onclick={() => download('deconvolution-sample.csv', simulationCsv(simulation))}
+									data-testid="export">Download the sample (CSV)</Button
+								>
+							</div>
+						{/if}
+					</Fold>
 				</div>
 				<div class="plot">
 					{#if modelView}
@@ -1019,138 +1050,140 @@
 
 		<h2 class="section">Estimate</h2>
 
-		{@render dataPanel()}
-		{#if uploadWarning}
-			<Alert tone="warning">{uploadWarning}</Alert>
-		{/if}
-
-		<Panel title="Noise regime" level={3}>
-			<Field label="Noise">
-				{#snippet children(props)}
-					<select
-						class="control"
-						data-testid="noise-regime"
-						bind:value={settings.noise}
-						onchange={() => {
-							const regime = settings.noise;
-							const allowed = REGIME_METHODS[regime];
-							if (!settings.methods.some((m) => allowed.includes(m))) {
-								settings.methods = [...new Set([...settings.methods, allowed[0]])].sort(
-									(a, b) => METHODS.indexOf(a) - METHODS.indexOf(b)
-								);
-							}
-						}}
-						{...props}
-					>
-						<option value="known">Known family</option>
-						<option value="perPoint">Per-point errors</option>
-						<option value="symmetric">Symmetric, unknown shape</option>
-						<option value="replicates">Repeated measurements</option>
-					</select>
-				{/snippet}
-			</Field>
-			{#if settings.noise === 'known'}
-				<p class="muted">The noise's family is the one in the model above.</p>
-			{:else if settings.noise === 'perPoint'}
-				<p class="muted">
-					Each point has its own normal error σᵢ (a second column when you upload).
-				</p>
-			{:else if settings.noise === 'symmetric'}
-				<p class="muted">
-					Only that the noise is symmetric about 0; X must have no symmetric part.
-				</p>
-			{:else if settings.noise === 'replicates'}
-				<p class="muted">Each row holds 2–5 readings of the same X (columns when you upload).</p>
+		{#snippet noiseFold()}
+			<Fold label="Noise assumption" value={NOISE_SUMMARY[settings.noise]} testId="noise-fold">
+				<Field label="Noise">
+					{#snippet children(props)}
+						<select
+							class="control noise-select"
+							data-testid="noise-regime"
+							bind:value={settings.noise}
+							onchange={() => {
+								const regime = settings.noise;
+								const allowed = REGIME_METHODS[regime];
+								if (!settings.methods.some((m) => allowed.includes(m))) {
+									settings.methods = [...new Set([...settings.methods, allowed[0]])].sort(
+										(a, b) => METHODS.indexOf(a) - METHODS.indexOf(b)
+									);
+								}
+							}}
+							{...props}
+						>
+							<option value="known">Known family</option>
+							<option value="perPoint">Per-point errors</option>
+							<option value="symmetric">Symmetric, unknown shape</option>
+							<option value="replicates">Repeated measurements</option>
+						</select>
+					{/snippet}
+				</Field>
+				{#if settings.noise === 'known'}
+					<p class="muted">The noise's family is the one in the model above.</p>
+				{:else if settings.noise === 'perPoint'}
+					<p class="muted">
+						Each point has its own normal error σᵢ (a second column when you upload).
+					</p>
+				{:else if settings.noise === 'symmetric'}
+					<p class="muted">
+						Only that the noise is symmetric about 0; X must have no symmetric part.
+					</p>
+				{:else if settings.noise === 'replicates'}
+					<p class="muted">Each row holds 2–5 readings of the same X (columns when you upload).</p>
+				{/if}
+			</Fold>
+			{#if uploadWarning}
+				<Alert tone="warning">{uploadWarning}</Alert>
 			{/if}
-		</Panel>
+		{/snippet}
+		{@render dataPanel(noiseFold)}
 
-		<Panel title="Methods" level={3}>
-			<fieldset class="methods">
-				<legend class="sr-only">Estimators</legend>
-				{#each METHODS as m (m)}
-					<label class="method" class:off={!!reasons[m]}>
-						<input
-							type="checkbox"
-							checked={settings.methods.includes(m)}
-							disabled={!!reasons[m]}
-							onchange={(e) => toggle(m, e.currentTarget.checked)}
-							data-testid="method-{m}"
-						/>
-						<span>
-							<strong>{METHOD_NAMES[m]}</strong>
-							<span class="muted">{reasons[m] ?? METHOD_HINTS[m]}</span>
-						</span>
-					</label>
-				{/each}
-			</fieldset>
-			{#if settings.noise === 'known'}
-				<div class="row">
+		<Panel>
+			<Fold
+				label="Methods"
+				value={methodList(chosen.map((m) => METHOD_NAMES[m]))}
+				change
+				testId="methods-fold"
+			>
+				<fieldset class="methods">
+					<legend class="sr-only">Estimators</legend>
+					{#each METHODS.filter((m) => !reasons[m]) as m (m)}
+						<label class="method">
+							<input
+								type="checkbox"
+								checked={settings.methods.includes(m)}
+								onchange={(e) => toggle(m, e.currentTarget.checked)}
+								data-testid="method-{m}"
+							/>
+							<span>
+								<strong>{METHOD_NAMES[m]}</strong>
+								<span class="muted">{METHOD_HINTS[m]}</span>
+							</span>
+						</label>
+					{/each}
+				</fieldset>
+				{#if settings.noise === 'known'}
 					<label class="check">
 						<input type="checkbox" bind:checked={settings.fitNoise} data-testid="fit-noise" />
 						The parametric fit also fits the noise
 					</label>
+					<SegmentedControl
+						legend="Noise used by the other methods"
+						options={[
+							{ value: 'entered', label: 'As entered' },
+							{ value: 'fitted', label: 'From the parametric fit', disabled: !settings.fitNoise }
+						]}
+						bind:value={settings.noiseFor}
+					/>
+				{/if}
+				<div class="row">
+					{#if settings.methods.includes('gmodel')}
+						<Field label="g-modeling spline df">
+							{#snippet children(props)}
+								<input
+									class="control"
+									type="number"
+									min="2"
+									max="12"
+									step="1"
+									bind:value={settings.df}
+									{...props}
+								/>
+							{/snippet}
+						</Field>
+						<Field label="g-modeling penalty c₀" hint="Larger values give a smoother signal.">
+							{#snippet children(props)}
+								<input
+									class="control"
+									type="number"
+									min="0"
+									max="1000"
+									step="any"
+									bind:value={settings.c0}
+									{...props}
+								/>
+							{/snippet}
+						</Field>
+					{/if}
+					{#if settings.methods.includes('kernel')}
+						<Field label="Kernel bandwidth" hint="Leave empty for the default rule.">
+							{#snippet children(props)}
+								<input
+									class="control"
+									type="number"
+									min="0"
+									step="any"
+									value={settings.bandwidth ?? ''}
+									oninput={(e) => {
+										const v = e.currentTarget.value;
+										settings.bandwidth = v === '' ? null : Number(v) > 0 ? Number(v) : null;
+									}}
+									data-testid="bandwidth"
+									{...props}
+								/>
+							{/snippet}
+						</Field>
+					{/if}
 				</div>
-				<SegmentedControl
-					legend="Noise used by the other methods"
-					options={[
-						{ value: 'entered', label: 'As entered' },
-						{ value: 'fitted', label: 'From the parametric fit', disabled: !settings.fitNoise }
-					]}
-					bind:value={settings.noiseFor}
-				/>
-			{/if}
-			<div class="row">
-				{#if settings.methods.includes('gmodel')}
-					<Field label="g-modeling spline df">
-						{#snippet children(props)}
-							<input
-								class="control"
-								type="number"
-								min="2"
-								max="12"
-								step="1"
-								bind:value={settings.df}
-								{...props}
-							/>
-						{/snippet}
-					</Field>
-					<Field label="g-modeling penalty c₀">
-						{#snippet info()}<InfoTip label="About the penalty"
-								>Larger values give a smoother signal.</InfoTip
-							>{/snippet}
-						{#snippet children(props)}
-							<input
-								class="control"
-								type="number"
-								min="0"
-								max="1000"
-								step="any"
-								bind:value={settings.c0}
-								{...props}
-							/>
-						{/snippet}
-					</Field>
-				{/if}
-				{#if settings.methods.includes('kernel')}
-					<Field label="Kernel bandwidth" hint="Leave empty for the default rule.">
-						{#snippet children(props)}
-							<input
-								class="control"
-								type="number"
-								min="0"
-								step="any"
-								value={settings.bandwidth ?? ''}
-								oninput={(e) => {
-									const v = e.currentTarget.value;
-									settings.bandwidth = v === '' ? null : Number(v) > 0 ? Number(v) : null;
-								}}
-								data-testid="bandwidth"
-								{...props}
-							/>
-						{/snippet}
-					</Field>
-				{/if}
-			</div>
+			</Fold>
 		</Panel>
 
 		<RunControls
@@ -1190,13 +1223,20 @@
 							? ', with the true X'
 							: ''}."
 					/>
+					{#if answer?.kind === 'fit'}
+						<p class="answer" data-testid="answer">
+							Signal X looks like <strong>{answer.x}</strong>{#if answer.noise}; noise Y {answer
+									.noise.verb} <strong>{answer.noise.text}</strong>{/if}.
+						</p>
+					{:else if answer}
+						<p class="answer" data-testid="answer">
+							By {answer.method}, signal X has mean ≈ <strong>{answer.mean}</strong> and standard
+							deviation ≈ <strong>{answer.sd}</strong>.
+						</p>
+					{/if}
 					{#each run.failures as f (f.method)}
 						<Alert tone="warning">{METHOD_NAMES[f.method]} failed: {f.message}</Alert>
 					{/each}
-					<DataTable caption="Fits" {columns} {rows} rowKey={(r) => r.method} />
-					{#if !run.truth}<p class="muted">
-							W₁ and L₁ need the true signal, so they show for simulated data only.
-						</p>{/if}
 					{#if flat}
 						<Alert tone="warning">
 							<span data-testid="identifiability">
@@ -1216,14 +1256,27 @@
 							</span>
 						</Alert>
 					{/if}
-					{#if paramRows.length}
-						<DataTable
-							caption="Parametric fit"
-							columns={paramColumns}
-							rows={paramRows}
-							rowKey={(r) => r.id}
-						/>
-					{/if}
+					<Fold
+						label="Fit tables"
+						note="likelihood, AIC, BIC{run.truth ? ', error to truth' : ''}{paramRows.length
+							? ', 95% intervals'
+							: ''}"
+						bind:open={tablesOpen}
+						testId="fit-tables"
+					>
+						<DataTable caption="Fits" {columns} {rows} rowKey={(r) => r.method} />
+						{#if !run.truth}<p class="muted">
+								W₁ and L₁ need the true signal, so they show for simulated data only.
+							</p>{/if}
+						{#if paramRows.length}
+							<DataTable
+								caption="Parametric fit"
+								columns={paramColumns}
+								rows={paramRows}
+								rowKey={(r) => r.id}
+							/>
+						{/if}
+					</Fold>
 
 					<Posteriors
 						pool={getPool}
@@ -1355,6 +1408,20 @@
 		{/if}
 	{/if}
 
+	<details class="how" data-testid="how">
+		<summary>How it works</summary>
+		<p>
+			Pick a signal and a noise, and see what you would observe. Then press Run to estimate them
+			back from the sample. The parametric fit needs you to name both families. The other methods
+			take any shape of signal but use the noise as given.
+		</p>
+		<p>
+			One sample can't tell every signal from its noise: two normals only show their summed
+			variance. The fit says when that happens. The details are in the
+			<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/deconvolution.md">docs</a>.
+		</p>
+	</details>
+
 	<Panel title="References" level={2}>
 		<References references={REFERENCES} />
 	</Panel>
@@ -1421,8 +1488,25 @@
 		display: flex;
 		flex-direction: column;
 	}
-	.method.off strong {
-		color: var(--text-muted);
+	.answer {
+		margin: 0;
+	}
+	.noise-select {
+		max-width: 22rem;
+	}
+	.dim-switch {
+		min-height: var(--control-h-sm);
+		padding: 0;
+		border: 0;
+		background: none;
+		font: inherit;
+		color: var(--accent);
+		text-decoration: underline;
+		text-underline-offset: 3px;
+		cursor: pointer;
+	}
+	.dim-switch:hover {
+		color: var(--accent-hover);
 	}
 	.check {
 		display: flex;
