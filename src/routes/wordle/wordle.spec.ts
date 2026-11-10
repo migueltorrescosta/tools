@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import rawSolutionTree from '#lib/wordle-solution.js';
 
 import {
-	answerMessage,
 	colorName,
 	cycleColor,
 	cycleTile,
@@ -14,6 +13,7 @@ import {
 	NO_MATCH_MESSAGE,
 	OPENER,
 	setTile,
+	solvedMessage,
 	step,
 	tileLabel,
 	undoLast,
@@ -660,11 +660,10 @@ describe('Solution tree consistency with Wordle scoring', () => {
 	});
 });
 
-describe('answerMessage', () => {
-	it('names the remaining word in upper case and says how to finish', () => {
-		expect(answerMessage('waive')).toBe(
-			'Answer: WAIVE. Play it, mark every tile green and Submit.'
-		);
+describe('solvedMessage', () => {
+	it('states the number of guesses in one sentence', () => {
+		expect(solvedMessage(1)).toBe('Solved in 1.');
+		expect(solvedMessage(4)).toBe('Solved in 4.');
 	});
 });
 
