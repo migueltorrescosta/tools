@@ -61,9 +61,13 @@ describe.each(timelines.map((t) => [t.id] as const))('events/%s.json', (id) => {
 		const bad: string[] = [];
 		for (const e of events) {
 			expect(typeof e.id).toBe('number');
-			for (const key of ['emoji', 'title', 'description'] as const) {
+			// Public holidays leave out a description that would only repeat the title.
+			const required =
+				id === 'public-holidays' ? ['emoji', 'title'] : ['emoji', 'title', 'description'];
+			for (const key of required as ('emoji' | 'title' | 'description')[]) {
 				if (typeof e[key] !== 'string' || e[key].length === 0) bad.push(`${e.id}.${key} missing`);
 			}
+			if ('description' in e && !e.description) bad.push(`${e.id}.description empty`);
 			for (const [key, value] of Object.entries(e)) {
 				if (typeof value === 'string' && value !== value.trim()) bad.push(`${e.id}.${key}`);
 			}

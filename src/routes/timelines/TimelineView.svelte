@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { Button } from '#lib/ui/index.js';
 	import { formatShortDate, isPast, type TimelineEvent, type YearGroup } from './timelines';
@@ -12,13 +13,41 @@
 
 	let { groups, rich, now = new Date() }: Props = $props();
 
-	const TOOLTIP_ID = 'timeline-event-tooltip';
-
 	// The first upcoming event, when past events precede it: a "Today" row goes before it and the
 	// events above it are muted. A timeline wholly in the past or future has no such split.
 	const events = $derived(groups.flatMap((group) => group.events));
 	const upcomingIndex = $derived(events.findIndex((event) => !isPast(event.date, now)));
 	const firstUpcomingId = $derived(upcomingIndex > 0 ? events[upcomingIndex].id : undefined);
+
+	// Past events fold into one button, so the list opens on Today and the next event.
+	let showEarlier = $state(false);
+	const earlier = $derived(events.filter((event) => past(event)));
+	const earlierFolded = $derived(earlier.length > 0 && !showEarlier);
+	const earlierYears = $derived.by(() => {
+		if (earlier.length === 0) return '';
+		const first = earlier[0].date.slice(0, 4);
+		const last = earlier[earlier.length - 1].date.slice(0, 4);
+		return first === last ? first : `${first}–${last}`;
+	});
+	const shownGroups = $derived(
+		earlierFolded
+			? groups
+					.map((g) => ({ year: g.year, events: g.events.filter((e) => !past(e)) }))
+					.filter((g) => g.events.length > 0)
+			: groups
+	);
+
+	let list = $state<HTMLElement>();
+	async function revealEarlier() {
+		showEarlier = true;
+		await tick();
+		// The button is gone; focus moves to the first revealed event instead of the page top.
+		const first = list?.querySelector<HTMLElement>('[data-testid="timeline-event"]');
+		if (first) {
+			first.tabIndex = -1;
+			first.focus();
+		}
+	}
 
 	// Long timelines (public holidays: over 1,300 rows) open only the year of the next event, or
 	// the last year when all are past; the other years open on request.
@@ -32,41 +61,20 @@
 	function past(event: TimelineEvent): boolean {
 		return firstUpcomingId !== undefined && isPast(event.date, now);
 	}
-
-	// The full description popup for plain rows, whose inline description is cut to one line.
-	// It is anchored to the row that was hovered, focused or tapped, so touch and keyboard users
-	// reach it too.
-	let tooltip = $state<{ eventId: number; x: number; y: number; content: string } | null>(null);
-
-	function showTooltip(row: HTMLElement, event: TimelineEvent) {
-		const rect = row.getBoundingClientRect();
-		tooltip = {
-			eventId: event.id,
-			x: rect.left + rect.width / 2,
-			y: rect.top - 8,
-			content: event.description
-		};
-	}
-
-	function hideTooltip() {
-		tooltip = null;
-	}
-
-	function onWindowKeydown(e: KeyboardEvent) {
-		if (e.key === 'Escape') hideTooltip();
-	}
-
-	function describedBy(event: TimelineEvent): string | undefined {
-		return tooltip?.eventId === event.id ? TOOLTIP_ID : undefined;
-	}
 </script>
 
-<!-- The popup is position: fixed where its row was when it opened; scrolling or resizing
-     would detach it from the row, so it closes instead. -->
-<svelte:window onscroll={hideTooltip} onresize={hideTooltip} onkeydown={onWindowKeydown} />
-
-<ol class="tl-years" aria-label="Events by year">
-	{#each groups as group (group.year)}
+<ol class="tl-years" aria-label="Events by year" bind:this={list}>
+	{#if earlierFolded}
+		<li class="tl-year">
+			<span></span>
+			<div class="tl-list tl-folded">
+				<Button size="sm" onclick={revealEarlier}>
+					Show {earlier.length} earlier {earlier.length === 1 ? 'event' : 'events'} ({earlierYears})
+				</Button>
+			</div>
+		</li>
+	{/if}
+	{#each shownGroups as group (group.year)}
 		<li class="tl-year">
 			<h2 class="tl-year-label"><time datetime={String(group.year)}>{group.year}</time></h2>
 			{#if shownYears && !shownYears.has(group.year)}
@@ -81,80 +89,36 @@
 						{#if event.id === firstUpcomingId}
 							<li class="tl-today" data-testid="timeline-today">Today</li>
 						{/if}
-						{#if rich}
-							<li class="tl-event" class:past={past(event)} data-testid="timeline-event">
-								<p class="tl-line">
-									<span class="tl-emoji" aria-hidden="true">{event.emoji}</span>
-									{#if event.url}
-										<a href={event.url} target="_blank" rel="noopener noreferrer" class="tl-title"
-											>{event.title}</a
-										>
-									{:else}
-										<span class="tl-title">{event.title}</span>
-									{/if}
-									<span class="tl-desc">— {event.conceptDescription || event.description}</span>
-								</p>
-								{#if event.valueAdd}
-									<p class="tl-impact">✦ {event.valueAdd}</p>
-								{/if}
-							</li>
-						{:else}
-							<!-- The row only tracks hover and focus for the popup; the button and link inside
-						     are the interactive parts. -->
-							<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-							<li
-								class="tl-event"
-								class:past={past(event)}
-								data-testid="timeline-event"
-								onmouseenter={(e) => showTooltip(e.currentTarget, event)}
-								onmouseleave={hideTooltip}
-								onfocusin={(e) => showTooltip(e.currentTarget, event)}
-								onfocusout={hideTooltip}
-							>
-								<button
-									type="button"
-									class="tl-info"
-									aria-describedby={describedBy(event)}
-									onclick={(e) =>
-										showTooltip(e.currentTarget.parentElement ?? e.currentTarget, event)}
-								>
-									<span class="tl-emoji" aria-hidden="true">{event.emoji}</span>
-									<time class="tl-date" datetime={event.date}>{formatShortDate(event.date)}</time>
-									{#if !event.url}
-										<span class="tl-title">{event.title}</span>
-									{/if}
-								</button>
+						<li class="tl-event" class:past={past(event)} data-testid="timeline-event">
+							<span class="tl-emoji" aria-hidden="true">{event.emoji}</span>
+							{#if !rich}
+								<time class="tl-date" datetime={event.date}>{formatShortDate(event.date)}</time>
+							{/if}
+							<!-- One inline flow: the description wraps under the title, not beside it. -->
+							<p class="tl-line">
 								{#if event.url}
-									<a
-										href={event.url}
-										target="_blank"
-										rel="noopener noreferrer"
-										class="tl-title"
-										aria-describedby={describedBy(event)}>{event.title}</a
+									<a href={event.url} target="_blank" rel="noopener noreferrer" class="tl-title"
+										>{event.title}<span class="tl-out" aria-hidden="true">↗</span></a
 									>
+								{:else}
+									<span class="tl-title">{event.title}</span>
 								{/if}
-								<span class="tl-desc">{event.description}</span>
-							</li>
-						{/if}
+								{#if rich}
+									<span class="tl-desc">— {event.conceptDescription || event.description}</span>
+								{:else if event.description}
+									<span class="tl-desc">{event.description}</span>
+								{/if}
+							</p>
+							{#if rich && event.valueAdd}
+								<p class="tl-impact">✦ {event.valueAdd}</p>
+							{/if}
+						</li>
 					{/each}
 				</ol>
 			{/if}
 		</li>
 	{/each}
 </ol>
-
-<!-- Rendered once at view level, position: fixed, to escape the container's overflow clipping -->
-{#if tooltip}
-	<div
-		id={TOOLTIP_ID}
-		role="tooltip"
-		class="tl-tooltip"
-		style:left="{tooltip.x}px"
-		style:top="{tooltip.y}px"
-	>
-		{tooltip.content}
-	</div>
-{/if}
 
 <style>
 	.tl-years,
@@ -192,99 +156,39 @@
 		min-width: 0;
 	}
 
-	/* Plain rows flow into as many columns as fit; rich rows take the full width. */
-	.tl-list:not(.rich) {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr));
-		column-gap: var(--sp-4);
-	}
-
-	.tl-list.tl-folded {
-		display: block;
-	}
-
+	/* One column in date order: emoji, date, then the title and description as one wrapping line. */
 	.tl-event {
-		min-width: 0;
-		font-size: var(--text-sm);
-	}
-
-	.tl-list:not(.rich) .tl-event {
-		display: flex;
-		align-items: center;
-		gap: var(--sp-2);
-		min-height: 24px;
-		padding: 0 var(--sp-1);
+		display: grid;
+		grid-template-columns: 1.5em 3.75rem minmax(0, 1fr);
+		column-gap: var(--sp-2);
+		align-items: baseline;
+		padding: var(--sp-0) var(--sp-1);
 		border-radius: var(--radius-sm);
-		white-space: nowrap;
+		font-size: var(--text-sm);
+		line-height: 1.45;
 	}
 
-	.tl-list:not(.rich) .tl-event:hover,
-	.tl-list:not(.rich) .tl-event:focus-within {
-		background: var(--surface-2);
+	.tl-event:focus {
+		outline: none;
+	}
+
+	.tl-event:focus-visible {
+		outline: 2px solid var(--focus-ring);
 	}
 
 	.tl-list.rich .tl-event {
-		padding: var(--sp-1) 0;
+		grid-template-columns: 1.5em minmax(0, 1fr);
+		padding: var(--sp-1);
 	}
 
 	.tl-list.rich .tl-event + .tl-event {
 		border-top: 1px solid var(--border);
 	}
 
-	/* Reset button chrome: the button only makes the row focusable and tappable. */
-	.tl-info {
-		display: inline-flex;
-		align-items: center;
-		gap: var(--sp-2);
-		flex: 0 1 auto;
-		min-width: 0;
-		min-height: 24px;
-		padding: 0;
-		background: none;
-		border: none;
-		text-align: left;
-		cursor: pointer;
-	}
-
-	/* A link title sits beside the button, which then holds only the icon and date. */
-	.tl-info:has(+ a) {
-		flex-shrink: 0;
-	}
-
 	.tl-date {
-		flex-shrink: 0;
-		min-width: 3.5rem;
 		color: var(--text-muted);
 		font-variant-numeric: tabular-nums;
-	}
-
-	.tl-title {
-		font-weight: 500;
-		color: var(--text);
-	}
-
-	a.tl-title {
-		color: var(--accent);
-	}
-
-	.tl-list:not(.rich) .tl-title {
-		flex: 0 1 auto;
-		min-width: 0;
-		line-height: 24px;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.tl-desc,
-	.tl-impact {
-		color: var(--text-muted);
-	}
-
-	.tl-list:not(.rich) .tl-desc {
-		flex: 1 1 0;
-		min-width: 5em;
-		overflow: hidden;
-		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.tl-line,
@@ -292,12 +196,32 @@
 		margin: 0;
 	}
 
-	.tl-emoji {
-		flex-shrink: 0;
+	/* Titles are plain text; the ↗ says it links out and the underline appears on hover. */
+	.tl-title {
+		margin-right: var(--sp-1);
+		font-weight: 500;
+		color: var(--text);
+		text-decoration: none;
+	}
+
+	a.tl-title:hover {
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	.tl-out {
+		margin-left: var(--sp-0);
+		font-size: var(--text-xs);
+		color: var(--text-muted);
+	}
+
+	.tl-desc,
+	.tl-impact {
+		color: var(--text-muted);
 	}
 
 	.tl-impact {
-		padding-left: 1.6em;
+		grid-column: 2;
 	}
 
 	/* Past events are muted; the Today row above the first upcoming one marks the split
@@ -308,7 +232,6 @@
 	}
 
 	.tl-today {
-		grid-column: 1 / -1;
 		display: flex;
 		align-items: center;
 		gap: var(--sp-2);
@@ -324,33 +247,15 @@
 		border-top: 2px solid var(--accent);
 	}
 
-	.tl-tooltip {
-		position: fixed;
-		transform: translate(-50%, -100%);
-		z-index: 60;
-		max-width: min(22rem, 90vw);
-		padding: var(--sp-1) var(--sp-2);
-		background: var(--surface);
-		border: 1px solid var(--border-strong);
-		border-radius: var(--radius);
-		font-size: var(--text-sm);
-		color: var(--text);
-		pointer-events: none;
-	}
-
-	/* Narrow rows have no room for the description; the popup shows it instead. */
 	@media (max-width: 30rem) {
-		.tl-list:not(.rich) .tl-desc {
-			display: none;
-		}
-
 		.tl-year {
 			grid-template-columns: 2.5rem minmax(0, 1fr);
 			gap: var(--sp-1);
 		}
 
-		.tl-impact {
-			padding-left: 0;
+		.tl-event {
+			grid-template-columns: 1.5em 3.25rem minmax(0, 1fr);
+			column-gap: var(--sp-1);
 		}
 	}
 </style>

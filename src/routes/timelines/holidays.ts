@@ -100,7 +100,7 @@ export interface HolidayOptions {
 	validTo?: number;
 	/** Customary day off, not a statutory public holiday. Marked in the title. */
 	deFacto?: boolean;
-	/** Sentence that replaces the default description for this holiday. */
+	/** A sentence shown under the holiday, for what its title cannot say. */
 	note?: string;
 }
 
@@ -746,17 +746,13 @@ export function holidayLabel([name, , options]: HolidayEntry): string {
 	return options?.deFacto ? name + DE_FACTO_MARKER : name;
 }
 
-function describe(country: string, entries: HolidayEntry[]): string {
-	const statutory = entries.filter(([, , o]) => !o?.deFacto && !o?.note).map(([n]) => n);
-	const sentences = statutory.length
-		? [`${statutory.join(' / ')}, public holiday in ${country}.`]
-		: [];
-	for (const [name, , o] of entries) {
-		if (o?.note) sentences.push(o.note);
-		else if (o?.deFacto)
-			sentences.push(`${name}: customary day off in ${country}, not a statutory public holiday.`);
-	}
-	return sentences.join(' ');
+/**
+ * The notes of a holiday event, or undefined when it has none: the title already names the
+ * country and the holiday, and "(de facto)" is explained in How it works.
+ */
+function describe(entries: HolidayEntry[]): string | undefined {
+	const notes = entries.flatMap(([, , o]) => (o?.note ? [o.note] : []));
+	return notes.length ? notes.join(' ') : undefined;
 }
 
 /**
@@ -789,11 +785,15 @@ export function generateHolidays(fromYear: number, toYear: number): TimelineEven
 				? -1
 				: 1
 	);
-	return sorted.map((e, i) => ({
-		id: HOLIDAY_ID_BASE + i,
-		emoji: e.country.emoji,
-		date: e.date,
-		title: `${e.country.country}: ${e.entries.map(holidayLabel).join(' / ')}`,
-		description: describe(e.country.country, e.entries)
-	}));
+	return sorted.map((e, i) => {
+		const event: TimelineEvent = {
+			id: HOLIDAY_ID_BASE + i,
+			emoji: e.country.emoji,
+			date: e.date,
+			title: `${e.country.country}: ${e.entries.map(holidayLabel).join(' / ')}`
+		};
+		const description = describe(e.entries);
+		if (description) event.description = description;
+		return event;
+	});
 }
