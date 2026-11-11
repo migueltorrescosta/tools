@@ -15,7 +15,7 @@ How tools.mptc.uk looks and why. The owner chose this look in November 2026 from
 - **Top bar** (`src/routes/+layout.svelte`): the breadcrumb "Tools / Tool name", the tool's own actions (Share and Clear from `PageHeader`'s `actions`, drawn in the bar through `headerActions` in `src/lib/ui/header-actions.svelte.ts`), then the three-way theme switch (`ThemeSwitch`).
 - **No title row:** `PageHeader` keeps the h1 for screen readers only. Credits and blog links go in How it works.
 - **Theme:** Light, Match device and Dark (`setMode` in `src/lib/theme.svelte.ts`). Match device clears the saved choice. The build keeps `light-dark()` as written (`build.cssTarget` in `vite.config.ts`). Lowered, it would ignore the switch.
-- **Homepage:** one sheet of groups, plus a filter. While you type, the matches show as one list, Enter opens the first, and `/` jumps to the filter.
+- **Homepage:** two boxes: a find box (intro, filter) that stays in view, beside the list box on a wide screen and above it on a phone; the list box holds the groups in two columns, the matches, or the no-match line. While you type, the matches show as one list, Enter opens the first, and `/` jumps to the filter.
 
 ## Rules inside a tool
 

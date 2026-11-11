@@ -2,6 +2,8 @@
 	import { resolve } from '$app/paths';
 	import { goto } from '$app/navigation';
 	import { routes, TOOL_GROUPS } from '#lib/routes.js';
+	import { Panel } from '#lib/ui/index.js';
+	import { proto } from '#lib/proto/proto.svelte.js';
 
 	const groups = TOOL_GROUPS.map((group) => ({
 		group,
@@ -23,6 +25,9 @@
 	const flatten = $derived(words.length > 0);
 	const count = $derived(flat.length);
 
+	// Height of the find box, so a jump link on a phone lands below it (it sticks at the top).
+	let findH = $state(0);
+
 	let input: HTMLInputElement | undefined = $state();
 	function onKey(e: KeyboardEvent) {
 		if (e.key === 'Enter' && flat[0]) goto(resolve(flat[0].path));
@@ -42,77 +47,104 @@
 </svelte:head>
 <svelte:window onkeydown={onWindowKey} />
 
-<div class="container">
+<div class="container home" style:--find-h="{findH}px">
 	<h1 class="sr-only">Tools</h1>
-	<p class="intro">Small tools that run in your browser.</p>
 
-	<div class="filter-row">
-		<label class="sr-only" for="tool-filter">Filter tools</label>
-		<input
-			id="tool-filter"
-			class="filter"
-			type="search"
-			placeholder="Filter tools  ( / )"
-			autocomplete="off"
-			bind:this={input}
-			bind:value={query}
-			onkeydown={onKey}
-		/>
-		{#if words.length}
-			<span class="filter-count" role="status">{count} of {routes.length}</span>
-		{/if}
+	<div class="find" bind:clientHeight={findH}>
+		<Panel>
+			<p class="intro">Small tools that run in your browser.</p>
+			<label class="sr-only" for="tool-filter">Filter tools</label>
+			<input
+				id="tool-filter"
+				class="filter"
+				type="search"
+				placeholder="Filter tools  ( / )"
+				autocomplete="off"
+				bind:this={input}
+				bind:value={query}
+				onkeydown={onKey}
+			/>
+			{#if words.length}
+				<p class="filter-count" role="status">{count} of {routes.length}</p>
+			{:else if proto.home === 'cplus'}
+				<nav class="jump" aria-label="Groups">
+					{#each groups as { group, id } (group)}
+						<a href="#{id}">{group}</a>
+					{/each}
+				</nav>
+			{/if}
+		</Panel>
 	</div>
 
-	{#if count === 0}
-		<p class="empty">No tool matches “{query.trim()}”. Try a shorter word.</p>
-	{:else if flatten}
-		<ul class="tools-list sheet flat">
-			{#each flat as route, i (route.path)}
-				<li>
-					<a class="tool" class:first={i === 0} href={resolve(route.path)}>
-						<span class="tool-name">{route.name}</span>
-						<span class="tool-desc">{route.description}</span>
-						{#if i === 0}<span class="enter" aria-hidden="true">Enter ↵</span>{/if}
-					</a>
-				</li>
-			{/each}
-		</ul>
-	{:else}
-		<div class="sheet groups">
-			{#each shown as { group, id, tools } (group)}
-				<section class="tools-group" aria-labelledby={id}>
-					<h2 {id}>{group}</h2>
-					<ul class="tools-list">
-						{#each tools as route (route.path)}
-							<li>
-								<a class="tool" href={resolve(route.path)}>
-									<span class="tool-name">{route.name}</span>
-									<span class="tool-desc">{route.description}</span>
-								</a>
-							</li>
-						{/each}
-					</ul>
-				</section>
-			{/each}
-		</div>
-	{/if}
+	<Panel>
+		{#if count === 0}
+			<p class="empty">No tool matches “{query.trim()}”. Try a shorter word.</p>
+		{:else if flatten}
+			<ul class="tools-list flat">
+				{#each flat as route, i (route.path)}
+					<li>
+						<a class="tool" class:first={i === 0} href={resolve(route.path)}>
+							<span class="tool-name">{route.name}</span>
+							<span class="tool-desc">{route.description}</span>
+							{#if i === 0}<span class="enter" aria-hidden="true">Enter ↵</span>{/if}
+						</a>
+					</li>
+				{/each}
+			</ul>
+		{:else}
+			<div class="groups">
+				{#each shown as { group, id, tools } (group)}
+					<section class="tools-group" aria-labelledby={id}>
+						<h2 {id}>{group}</h2>
+						<ul class="tools-list">
+							{#each tools as route (route.path)}
+								<li>
+									<a class="tool" href={resolve(route.path)}>
+										<span class="tool-name">{route.name}</span>
+										<span class="tool-desc">{route.description}</span>
+									</a>
+								</li>
+							{/each}
+						</ul>
+					</section>
+				{/each}
+			</div>
+		{/if}
+	</Panel>
 </div>
 
 <style>
+	/* Two boxes: the find box (intro, filter, count) and the list box. On a wide screen the
+	   find box is a narrow column beside the list; on a phone it sits on top. Either way it
+	   stays in view while the list scrolls. */
+	.home {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-3);
+	}
+	.find {
+		position: sticky;
+		top: var(--topbar-h);
+		z-index: 5;
+	}
+	@media (min-width: 48rem) {
+		.home {
+			display: grid;
+			grid-template-columns: 17rem minmax(0, 1fr);
+			gap: var(--sp-4);
+			align-items: start;
+		}
+		.find {
+			top: calc(var(--topbar-h) + var(--sp-2));
+		}
+	}
 	.intro {
-		margin: var(--sp-2) 0 var(--sp-4);
+		margin: 0 0 var(--sp-3);
 		font-size: 1.05rem;
 		color: var(--text);
 	}
-	.filter-row {
-		display: flex;
-		align-items: center;
-		gap: var(--sp-3);
-		margin-bottom: var(--sp-4);
-	}
 	.filter {
 		width: 100%;
-		max-width: 26rem;
 		min-height: 40px;
 		padding: 0 var(--sp-3);
 		border: 1px solid var(--border-strong);
@@ -122,19 +154,39 @@
 		font-size: 1rem;
 	}
 	.filter-count {
+		margin: var(--sp-2) 0 0;
 		color: var(--text-muted);
 		font-size: var(--text-sm);
-		white-space: nowrap;
+	}
+	.jump {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-1);
+		margin-top: var(--sp-3);
+		padding-top: var(--sp-3);
+		border-top: 1px solid var(--border);
+		font-size: var(--text-md);
+	}
+	@media (max-width: 47.99rem) {
+		.jump {
+			flex-direction: row;
+			flex-wrap: wrap;
+			gap: var(--sp-1) var(--sp-4);
+			margin-top: var(--sp-2);
+			padding-top: var(--sp-2);
+		}
+		.tools-group {
+			scroll-margin-top: calc(var(--topbar-h) + var(--find-h) + var(--sp-3));
+		}
+	}
+	@media (min-width: 48rem) {
+		.tools-group {
+			scroll-margin-top: calc(var(--topbar-h) + var(--sp-2));
+		}
 	}
 	.empty {
+		margin: 0;
 		color: var(--text-muted);
-	}
-	.sheet {
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		box-shadow: var(--box-shadow);
-		padding: var(--sp-4) var(--sp-5);
 	}
 	@media (min-width: 64rem) {
 		.groups {
@@ -188,12 +240,6 @@
 		color: var(--text-muted);
 		font-size: var(--text-md);
 	}
-	.sheet.flat {
-		padding: var(--sp-2) var(--sp-3);
-	}
-	.flat .tool {
-		margin: 0;
-	}
 	.flat .tool.first {
 		background: var(--accent-bg);
 	}
@@ -204,13 +250,5 @@
 		color: var(--text-muted);
 		font-family: var(--font-mono);
 		font-size: var(--text-xs);
-	}
-	@media (max-width: 40rem) {
-		.sheet {
-			margin: 0 calc(-1 * var(--sp-4));
-			border-inline: 0;
-			border-radius: 0;
-			padding: var(--sp-3) var(--sp-4);
-		}
 	}
 </style>
