@@ -678,6 +678,7 @@
 	<div class="layout" class:has-plots={front.length > 0}>
 		<div class="stack inputs">
 			<RunControls
+				title="Setup"
 				onrun={start}
 				{running}
 				disabled={!built || operators.length === 0}

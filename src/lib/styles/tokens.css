@@ -45,13 +45,13 @@
 
 	/* Status: -text on -bg is at least 4.5:1 */
 	--success: light-dark(#1a7f37, #3fb950);
-	--success-text: light-dark(#116329, #3fb950);
+	--success-text: light-dark(#116329, #56d364);
 	--success-bg: light-dark(#dafbe1, #12261a);
 	--warning: light-dark(#9a6700, #d29922);
-	--warning-text: light-dark(#7d4e00, #d29922);
+	--warning-text: light-dark(#7d4e00, #e3b341);
 	--warning-bg: light-dark(#fff8c5, #2a2110);
 	--danger: light-dark(#cf222e, #f85149);
-	--danger-text: light-dark(#a40e26, #f85149);
+	--danger-text: light-dark(#a40e26, #ff8a80);
 	--danger-bg: light-dark(#ffebe9, #2d1517);
 	/* Fills for a good → bad scale (mix them with color-mix in oklab);
 	   --text on either, and on any mix of the two, is at least 4.5:1. */

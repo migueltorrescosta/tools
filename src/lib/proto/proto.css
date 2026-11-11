@@ -63,3 +63,10 @@ html:root[style*='color-scheme: dark'] :is(.ui-panel, .sheet, .ui-fold.boxed) {
 :root[data-sreq='s175'] {
 	--sr-eq-scale: 1.75;
 }
+
+/* The prototype button floats bottom left: keep the footer clear of it on phones. */
+@media (max-width: 40rem) {
+	html:root .footer {
+		padding-bottom: 64px;
+	}
+}

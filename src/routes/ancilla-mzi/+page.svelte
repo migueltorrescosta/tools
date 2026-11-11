@@ -463,6 +463,7 @@
 	<div class="layout">
 		<div class="stack inputs">
 			<RunControls
+				title="Setup and run"
 				onrun={start}
 				{running}
 				disabled={errors.length > 0}

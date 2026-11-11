@@ -6,6 +6,7 @@
 
 	let {
 		onrun,
+		title = 'Run',
 		running = false,
 		disabled = false,
 		describedby,
@@ -21,6 +22,8 @@
 	}: {
 		/** Starts a fresh run. */
 		onrun: () => void;
+		/** The box's title, when it holds more than the run (e.g. "Setup"). */
+		title?: string;
 		running?: boolean;
 		/** Disables Run (for example while the inputs have errors). */
 		disabled?: boolean;
@@ -46,7 +49,7 @@
 	} = $props();
 </script>
 
-<Panel title="Run">
+<Panel {title}>
 	<div class="ui-run">
 		{#if preset}<div class="ui-run-preset">{@render preset()}</div>{/if}
 		<div class="ui-run-buttons">
