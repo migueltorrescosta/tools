@@ -290,27 +290,19 @@
 <div class="container" data-hydrated={hydrated || undefined}>
 	<PageHeader path="/verb-conjugator" />
 
-	<div class="vc-toolbar" lang={lang.ui.locale}>
-		<SegmentedControl
-			legend={lang.ui.language}
-			hideLegend
-			options={LANGUAGE_OPTIONS}
-			bind:value={() => selectedLanguageId, switchLanguage}
-		/>
-		{#if session.history.length > 0}
-			<p class="vc-stats" data-testid="stats">
-				{lang.ui.coverage}: {coverage.numerator} / {coverage.denominator}
-				<span aria-hidden="true">·</span>
-				{lang.ui.accuracy}: {accuracy}%
-			</p>
-		{/if}
-	</div>
-
 	<div class="vc-grid" lang={lang.ui.locale}>
-		<Panel title={cardTitle}>
-			{#snippet actions()}
+		<!-- The card: language, what is practised, the table, the answer and its feedback -->
+		<Panel>
+			<SegmentedControl
+				legend={lang.ui.language}
+				hideLegend
+				options={LANGUAGE_OPTIONS}
+				bind:value={() => selectedLanguageId, switchLanguage}
+			/>
+			<div class="vc-head">
+				<h2 class="vc-title">{cardTitle}</h2>
 				{#if hydrated && currentCard}<span class="vc-hint">{lang.ui.typeMissing}</span>{/if}
-			{/snippet}
+			</div>
 			{#if !hydrated}
 				<!-- Same-size placeholder until the saved state is restored, so nothing shifts (CLS) -->
 				<div class="vc-skeleton" aria-hidden="true">
@@ -394,6 +386,13 @@
 		</Panel>
 
 		<Panel title={lang.ui.history}>
+			{#if session.history.length > 0}
+				<p class="vc-stats" data-testid="stats">
+					{lang.ui.coverage}: {coverage.numerator} / {coverage.denominator}
+					<span aria-hidden="true">·</span>
+					{lang.ui.accuracy}: {accuracy}%
+				</p>
+			{/if}
 			{#if session.history.length === 0}
 				<p class="vc-empty">{lang.ui.noAttempts}</p>
 			{:else}
@@ -420,6 +419,7 @@
 	</div>
 
 	<Fold
+		boxed
 		label={lang.ui.practice}
 		summary={hydrated
 			? `${lang.ui.verbCount(selectedVerbs.length)}, ${lang.ui.tenseCount(selectedTenses.length)}`
@@ -428,58 +428,68 @@
 		lang={lang.ui.locale}
 		data-testid="practice-settings"
 	>
-		<div class="vc-chip-panels">
-			<Panel>
-				<div class="vc-group" role="group" aria-labelledby="vc-verbs">
-					<h2 id="vc-verbs">{lang.ui.verb}</h2>
-					<div class="cluster vc-chips">
-						{#each ALL_VERBS as verb (verb)}
-							{@const on = selectedVerbs.includes(verb)}
-							<Button
-								size="sm"
-								pressed={on}
-								onclick={() => toggleVerb(verb)}
-								disabled={on && selectedVerbs.length === 1}>{verb}</Button
-							>
-						{/each}
-					</div>
-				</div>
-			</Panel>
+		<div class="vc-group" role="group" aria-labelledby="vc-verbs">
+			<h2 id="vc-verbs">{lang.ui.verb}</h2>
+			<div class="cluster vc-chips">
+				{#each ALL_VERBS as verb (verb)}
+					{@const on = selectedVerbs.includes(verb)}
+					<Button
+						size="sm"
+						pressed={on}
+						onclick={() => toggleVerb(verb)}
+						disabled={on && selectedVerbs.length === 1}>{verb}</Button
+					>
+				{/each}
+			</div>
+		</div>
 
-			<Panel>
-				<div class="vc-group" role="group" aria-labelledby="vc-tenses">
-					<h2 id="vc-tenses">{lang.ui.tense}</h2>
-					<div class="cluster vc-chips">
-						{#each ALL_TENSES as tense (tense)}
-							{@const on = selectedTenses.includes(tense)}
-							<Button
-								size="sm"
-								pressed={on}
-								onclick={() => toggleTense(tense)}
-								disabled={on && selectedTenses.length === 1}>{tense}</Button
-							>
-						{/each}
-					</div>
-				</div>
-			</Panel>
+		<div class="vc-group" role="group" aria-labelledby="vc-tenses">
+			<h2 id="vc-tenses">{lang.ui.tense}</h2>
+			<div class="cluster vc-chips">
+				{#each ALL_TENSES as tense (tense)}
+					{@const on = selectedTenses.includes(tense)}
+					<Button
+						size="sm"
+						pressed={on}
+						onclick={() => toggleTense(tense)}
+						disabled={on && selectedTenses.length === 1}>{tense}</Button
+					>
+				{/each}
+			</div>
 		</div>
 	</Fold>
 </div>
 
 <style>
-	.vc-toolbar {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: space-between;
-		gap: var(--sp-2) var(--sp-4);
-		margin-bottom: var(--sp-3);
-	}
-
 	.vc-stats {
-		margin: 0;
+		margin: 0 0 var(--sp-2);
 		font-size: var(--text-sm);
 		color: var(--text-muted);
+	}
+
+	/* The card's title sits under the language picker, styled like a Panel title */
+	.vc-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: var(--sp-1) var(--sp-3);
+		margin: var(--sp-4) 0 var(--sp-3);
+	}
+
+	.vc-title {
+		margin: 0;
+		font-size: var(--text-lg);
+		font-weight: 600;
+	}
+
+	.vc-title::after {
+		content: '';
+		display: block;
+		width: var(--sp-5);
+		height: var(--sp-0);
+		margin-top: calc(var(--sp-1) + var(--sp-0));
+		background: var(--accent);
 	}
 
 	.vc-grid {
@@ -714,9 +724,9 @@
 		margin-top: var(--sp-3);
 	}
 
-	.vc-chip-panels {
-		display: grid;
-		gap: var(--sp-3);
+	.vc-group + .vc-group {
+		padding-top: var(--sp-3);
+		border-top: 1px solid var(--border);
 	}
 
 	.vc-group h2 {

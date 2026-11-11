@@ -47,7 +47,7 @@ async function answerCurrentCardCorrectly(page: Page) {
 test('Verb conjugator - correct answer is recorded and survives reload', async ({ page }) => {
 	await seedSingleCardSet(page);
 	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Verb Conjugator');
-	// Before any answer the toolbar shows only the language switch
+	// Before any answer History shows no stats line
 	await expect(stats(page)).toHaveCount(0);
 	// The card names what is being practised
 	await expect(page.getByRole('heading', { level: 2 }).first()).toHaveText(
@@ -177,4 +177,24 @@ test('Verb conjugator - card stays readable at phone width', async ({ page }) =>
 	const translation = page.locator('.vc-card .vc-translation').first();
 	const width = await translation.evaluate((el) => el.getBoundingClientRect().width);
 	expect(width).toBeGreaterThan(150);
+});
+
+test('Verb conjugator - three boxes: card with its language, History with its stats, Pratica', async ({
+	page
+}) => {
+	await seedSingleCardSet(page);
+	await answerCurrentCardCorrectly(page);
+	const boxes = page.locator('.ui-panel, .ui-fold.boxed');
+	await expect(boxes).toHaveCount(3);
+	await expect(boxes.nth(0).getByRole('radio', { name: 'Italiano' })).toBeVisible();
+	await expect(boxes.nth(0).getByRole('heading', { level: 2 })).toHaveText(
+		'essere · indicativo presente'
+	);
+	await expect(boxes.nth(1).getByTestId('stats')).toContainText('Copertura: 1 / 6');
+	await expect(boxes.nth(1).getByTestId('history')).toBeVisible();
+	await expect(boxes.nth(2)).toHaveAttribute('data-testid', 'practice-settings');
+	// No box inside a box
+	await expect(
+		page.locator(':is(.ui-panel, .ui-fold.boxed) :is(.ui-panel, .ui-fold.boxed)')
+	).toHaveCount(0);
 });
