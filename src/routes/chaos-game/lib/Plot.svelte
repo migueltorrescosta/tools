@@ -296,8 +296,8 @@
 		position: relative;
 		width: min(100%, 80vh);
 		margin: 0 auto;
+		/* A sunken well inside the Game box, with no frame of its own */
 		background: var(--sunken);
-		border: 1px solid var(--border);
 		border-radius: var(--radius);
 		overflow: hidden;
 		touch-action: none;
