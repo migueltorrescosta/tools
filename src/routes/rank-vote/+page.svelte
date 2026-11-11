@@ -36,6 +36,10 @@
 		type TallyResult,
 		type IRVResult
 	} from '#lib/rank-vote.js';
+	import { proto } from '#lib/proto/proto.svelte.js';
+
+	/** Review prototype: 'flat' puts every line in a box and draws no box inside a box. */
+	let flat = $derived(proto.rv === 'flat');
 
 	// --- State ---
 	type Mode = 'create' | 'vote' | 'tally' | 'error';
@@ -353,6 +357,37 @@
 	>
 </svelte:head>
 
+{#snippet howItWorks()}
+	<details class="how">
+		<summary>How it works</summary>
+		<p>
+			Ranked-choice voting. Create a ballot and share the vote link. Each voter ranks the choices
+			and sends you back a short vote code. Paste the codes into Votes, one per line, and the page
+			counts them four ways. The answer at the top is the choice that beats every other head to
+			head, or the instant-runoff winner when no choice does.
+		</p>
+		<p>
+			A line can be a name and a code ("Ana 0Z"), a code alone, or a whole message a voter sent: the
+			page finds the code in it and checks it against this ballot. Lines without a name are called
+			Voter 1, Voter 2 and so on, and a later line for the same name replaces the earlier vote. The
+			ballot lives in the link, and the votes stay in this browser.
+		</p>
+		<p>
+			How each count works is in the
+			<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/rank-vote.md">docs</a>.
+			This tool is forked from
+			<a href="https://tools.jonathandemirgian.com/rank-vote.html" target="_blank" rel="noopener"
+				>tools.jonathandemirgian.com/rank-vote.html</a
+			>.
+		</p>
+	</details>
+{/snippet}
+
+<!-- In the flat layout How it works is the last lines of the last box, under a hairline -->
+{#snippet howInBox()}
+	{#if flat}<div class="rv-how">{@render howItWorks()}</div>{/if}
+{/snippet}
+
 <div class="rv-toast" class:shown={toastVisible} role="status">
 	{toastVisible ? toastMessage : ''}
 </div>
@@ -425,41 +460,39 @@
 							Create ballot
 						</Button>
 					</div>
+					{@render howInBox()}
 				</div>
 			</Panel>
 		</div>
 	{/if}
 
 	{#if mode === 'vote' && election}
-		<div class="rv-vote stack">
-			<div class="rv-title-row">
-				<Button href={'#tally=' + encodedBallot} variant="ghost" size="sm">← Tally</Button>
-				<h2>{election.title}</h2>
-			</div>
+		{@const ballot = election}
+		{#snippet voteBody()}
 			<p class="hint">Rank the choices in your preferred order.</p>
 
-			<ol class="rv-ranking" aria-label="Your ranking">
+			<ol class="rv-ranking" class:rv-plain={flat} aria-label="Your ranking">
 				{#each ranking as choiceIdx, r (choiceIdx)}
 					<li class="rv-rank-row">
 						<span class="rv-rank-num" aria-hidden="true">{r + 1}.</span>
 						<div class="rv-choice-row">
 							<span class="rv-choice-text" data-testid="ranked-choice"
-								>{election.choices[choiceIdx]}</span
+								>{ballot.choices[choiceIdx]}</span
 							>
 							<Button
 								size="sm"
 								variant="ghost"
 								class="rv-arrow"
 								disabled={r === 0}
-								aria-label="Move up: {election.choices[choiceIdx]}"
+								aria-label="Move up: {ballot.choices[choiceIdx]}"
 								onclick={() => moveUp(r)}>↑</Button
 							>
 							<Button
 								size="sm"
 								variant="ghost"
 								class="rv-arrow"
-								disabled={r === election.choices.length - 1}
-								aria-label="Move down: {election.choices[choiceIdx]}"
+								disabled={r === ballot.choices.length - 1}
+								aria-label="Move down: {ballot.choices[choiceIdx]}"
 								onclick={() => moveDown(r)}>↓</Button
 							>
 						</div>
@@ -476,20 +509,41 @@
 						>{currentVoteCode}</output
 					>) to whoever shared this link.
 				</p>
-				{#if copiedMessage && copiedMessage === voteMessage(election.title, currentVoteCode)}
+				{#if copiedMessage && copiedMessage === voteMessage(ballot.title, currentVoteCode)}
 					<Alert tone="success">
 						Copied “{copiedMessage}”. Paste it in a message to whoever shared the link.
 					</Alert>
 				{/if}
 			</div>
-		</div>
+		{/snippet}
+		{#snippet backToTally()}
+			<Button href={'#tally=' + encodedBallot} variant="ghost" size="sm">← Tally</Button>
+		{/snippet}
+		{#if flat}
+			<div class="rv-vote">
+				<Panel title={ballot.title} actions={backToTally}>
+					<div class="stack">
+						{@render voteBody()}
+						{@render howInBox()}
+					</div>
+				</Panel>
+			</div>
+		{:else}
+			<div class="rv-vote stack">
+				<div class="rv-title-row">
+					{@render backToTally()}
+					<h2>{ballot.title}</h2>
+				</div>
+				{@render voteBody()}
+			</div>
+		{/if}
 	{/if}
 
 	{#if mode === 'tally' && election}
-		<div class="stack">
-			<h2 class="rv-ballot-title">{election.title}</h2>
+		<div class="stack" class:rv-flat={flat}>
+			{#if !flat}<h2 class="rv-ballot-title">{election.title}</h2>{/if}
 
-			<Panel>
+			<Panel title={flat ? election.title : undefined}>
 				<div class="stack">
 					<Answer headline={answer?.headline ?? 'No votes yet'} level={3}>
 						<span role="status" data-testid="answer"
@@ -631,6 +685,7 @@
 								{/if}
 							</div>
 						</Fold>
+						{@render howInBox()}
 					</div>
 				</Panel>
 			</div>
@@ -638,7 +693,7 @@
 	{/if}
 
 	{#if mode === 'error'}
-		<div class="stack rv-error">
+		{#snippet errorBody()}
 			<Alert tone="danger">
 				<strong>Invalid ballot link</strong>
 				<p>This link appears to be corrupted or invalid.</p>
@@ -646,32 +701,22 @@
 			<div>
 				<Button href="#create" variant="primary">Create a new ballot</Button>
 			</div>
-		</div>
+		{/snippet}
+		{#if flat}
+			<div class="rv-error">
+				<Panel>
+					<div class="stack">
+						{@render errorBody()}
+						{@render howInBox()}
+					</div>
+				</Panel>
+			</div>
+		{:else}
+			<div class="stack rv-error">{@render errorBody()}</div>
+		{/if}
 	{/if}
 
-	<details class="how">
-		<summary>How it works</summary>
-		<p>
-			Ranked-choice voting. Create a ballot and share the vote link. Each voter ranks the choices
-			and sends you back a short vote code. Paste the codes into Votes, one per line, and the page
-			counts them four ways. The answer at the top is the choice that beats every other head to
-			head, or the instant-runoff winner when no choice does.
-		</p>
-		<p>
-			A line can be a name and a code ("Ana 0Z"), a code alone, or a whole message a voter sent: the
-			page finds the code in it and checks it against this ballot. Lines without a name are called
-			Voter 1, Voter 2 and so on, and a later line for the same name replaces the earlier vote. The
-			ballot lives in the link, and the votes stay in this browser.
-		</p>
-		<p>
-			How each count works is in the
-			<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/rank-vote.md">docs</a>.
-			This tool is forked from
-			<a href="https://tools.jonathandemirgian.com/rank-vote.html" target="_blank" rel="noopener"
-				>tools.jonathandemirgian.com/rank-vote.html</a
-			>.
-		</p>
-	</details>
+	{#if !flat}{@render howItWorks()}{/if}
 </div>
 
 <style>
@@ -846,6 +891,41 @@
 		cursor: pointer;
 		color: var(--text-muted);
 		margin-bottom: var(--sp-1);
+	}
+
+	/* Flat layout (review prototype): the method tables lose their frames and stay
+	   plain ruled tables under their captions; the ranked choices are plain rows. */
+	.rv-flat :global(.ui-table-wrap) {
+		border: 0;
+		border-radius: 0;
+	}
+
+	.rv-flat :global(.ui-table-wrap caption) {
+		padding-left: 0;
+	}
+
+	.rv-plain {
+		gap: 0;
+		border-top: 1px solid var(--border);
+	}
+
+	.rv-plain .rv-rank-row {
+		border-bottom: 1px solid var(--border);
+	}
+
+	.rv-plain .rv-choice-row {
+		background: none;
+		border: 0;
+		border-radius: 0;
+		padding-left: var(--sp-1);
+	}
+
+	.rv-how {
+		border-top: 1px solid var(--border);
+	}
+
+	.rv-how :global(details.how) {
+		margin-top: var(--sp-1);
 	}
 
 	/* Error */
