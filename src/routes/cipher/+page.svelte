@@ -149,143 +149,140 @@
 <div class="container" data-hydrated={hydrated || undefined}>
 	<PageHeader path="/cipher" />
 
-	<div class="stack">
-		<Panel>
-			<form
-				class="stack"
-				novalidate
-				onsubmit={(e) => {
-					e.preventDefault();
-					run();
-				}}
-			>
-				<SegmentedControl
-					legend="Mode"
-					hideLegend
-					options={MODES}
-					bind:value={
-						() => mode,
-						(next) => {
-							mode = next;
-							clearOutputs();
-						}
+	<Panel>
+		<form
+			class="stack"
+			novalidate
+			onsubmit={(e) => {
+				e.preventDefault();
+				run();
+			}}
+		>
+			<SegmentedControl
+				legend="Mode"
+				hideLegend
+				options={MODES}
+				bind:value={
+					() => mode,
+					(next) => {
+						mode = next;
+						clearOutputs();
 					}
-				/>
+				}
+			/>
 
-				{#if kind === 'passphrase'}
-					<Field label="Password" error={keyError}>
-						{#snippet children(props)}
-							<div class="with-button">
-								<input
-									class="control"
-									type="text"
-									{...props}
-									bind:value={password}
-									oninput={() => (keyError = '')}
-									placeholder="Enter a password"
-									autocomplete="off"
-									spellcheck="false"
-								/>
-								<Button onclick={generatePassword}>Generate</Button>
-							</div>
-						{/snippet}
-					</Field>
-				{:else if kind === 'keypair'}
-					{#if mode === 'encrypt'}
-						<Field
-							label="Public key"
-							error={keyError}
-							hint="Keep the private key of the pair (under Decrypt): without it the message is lost."
-						>
-							{#snippet children(props)}
-								<textarea
-									class="control pem"
-									{...props}
-									bind:value={publicKeyPem}
-									oninput={() => (keyError = '')}
-									placeholder="-----BEGIN PUBLIC KEY-----"
-									spellcheck="false"
-								></textarea>
-							{/snippet}
-						</Field>
-					{:else}
-						<Field label="Private key" error={keyError}>
-							{#snippet children(props)}
-								<textarea
-									class="control pem"
-									{...props}
-									bind:value={privateKeyPem}
-									oninput={() => (keyError = '')}
-									placeholder="-----BEGIN PRIVATE KEY-----"
-									spellcheck="false"
-								></textarea>
-							{/snippet}
-						</Field>
-					{/if}
-					<div class="cluster">
-						<Button size="sm" onclick={generateRsaKeys}>Generate key pair</Button>
-					</div>
-					{#if rsaKeyError}
-						<Alert tone="danger">{rsaKeyError}</Alert>
-					{/if}
-				{:else}
-					<p class="hint">{selectedAlgorithm} is an encoding, not encryption: it needs no key.</p>
-				{/if}
-
-				<Field label="Message" error={messageError}>
+			{#if kind === 'passphrase'}
+				<Field label="Password" error={keyError}>
 					{#snippet children(props)}
-						<textarea
-							class="control text"
-							{...props}
-							bind:value={message}
-							oninput={() => (messageError = '')}
-							placeholder={mode === 'encrypt'
-								? 'The message to encrypt'
-								: 'The encrypted message to decrypt'}
-							spellcheck="false"
-						></textarea>
+						<div class="with-button">
+							<input
+								class="control"
+								type="text"
+								{...props}
+								bind:value={password}
+								oninput={() => (keyError = '')}
+								placeholder="Enter a password"
+								autocomplete="off"
+								spellcheck="false"
+							/>
+							<Button onclick={generatePassword}>Generate</Button>
+						</div>
 					{/snippet}
 				</Field>
-
+			{:else if kind === 'keypair'}
+				{#if mode === 'encrypt'}
+					<Field
+						label="Public key"
+						error={keyError}
+						hint="Keep the private key of the pair (under Decrypt): without it the message is lost."
+					>
+						{#snippet children(props)}
+							<textarea
+								class="control pem"
+								{...props}
+								bind:value={publicKeyPem}
+								oninput={() => (keyError = '')}
+								placeholder="-----BEGIN PUBLIC KEY-----"
+								spellcheck="false"
+							></textarea>
+						{/snippet}
+					</Field>
+				{:else}
+					<Field label="Private key" error={keyError}>
+						{#snippet children(props)}
+							<textarea
+								class="control pem"
+								{...props}
+								bind:value={privateKeyPem}
+								oninput={() => (keyError = '')}
+								placeholder="-----BEGIN PRIVATE KEY-----"
+								spellcheck="false"
+							></textarea>
+						{/snippet}
+					</Field>
+				{/if}
 				<div class="cluster">
-					<Button type="submit" variant="primary">{verb}</Button>
+					<Button size="sm" onclick={generateRsaKeys}>Generate key pair</Button>
 				</div>
+				{#if rsaKeyError}
+					<Alert tone="danger">{rsaKeyError}</Alert>
+				{/if}
+			{:else}
+				<p class="hint">{selectedAlgorithm} is an encoding, not encryption: it needs no key.</p>
+			{/if}
 
-				<Fold label="Advanced" summary="algorithm {selectedAlgorithm}" class="advanced">
-					<div class="algorithm">
-						<Select
-							label="Algorithm"
-							options={algorithms}
-							bind:value={selectedAlgorithm}
-							onchange={clearOutputs}
-						/>
-					</div>
-				</Fold>
-			</form>
-		</Panel>
+			<Field label="Message" error={messageError}>
+				{#snippet children(props)}
+					<textarea
+						class="control text"
+						{...props}
+						bind:value={message}
+						oninput={() => (messageError = '')}
+						placeholder={mode === 'encrypt'
+							? 'The message to encrypt'
+							: 'The encrypted message to decrypt'}
+						spellcheck="false"
+					></textarea>
+				{/snippet}
+			</Field>
+
+			<div class="cluster">
+				<Button type="submit" variant="primary">{verb}</Button>
+			</div>
+
+			<Fold label="Advanced" summary="algorithm {selectedAlgorithm}" class="advanced">
+				<div class="algorithm">
+					<Select
+						label="Algorithm"
+						options={algorithms}
+						bind:value={selectedAlgorithm}
+						onchange={clearOutputs}
+					/>
+				</div>
+			</Fold>
+		</form>
 
 		{#if result || resultError}
-			<div data-testid="result-panel">
-				<Panel title="Result">
-					{#snippet actions()}
-						{#if result}
-							<Button
-								size="sm"
-								variant={copyStatus === 'failed' ? 'danger' : 'ghost'}
-								onclick={copyResult}>{COPY_LABEL[copyStatus]}</Button
-							>
-						{/if}
-					{/snippet}
-					{#if resultError}
-						<Alert tone="danger"><span data-testid="result-error">{resultError}</span></Alert>
-					{:else}
-						<output class="out" aria-live="polite" aria-label="Result">{result}</output>
+			<section class="part" data-testid="result-panel" aria-labelledby="result-heading">
+				<div class="part-head">
+					<h2 id="result-heading" class="part-heading">Result</h2>
+					{#if result}
+						<Button
+							size="sm"
+							variant={copyStatus === 'failed' ? 'danger' : 'ghost'}
+							onclick={copyResult}>{COPY_LABEL[copyStatus]}</Button
+						>
 					{/if}
-				</Panel>
-			</div>
+				</div>
+				{#if resultError}
+					<Alert tone="danger"><span data-testid="result-error">{resultError}</span></Alert>
+				{:else}
+					<output class="out" aria-live="polite" aria-label="Result">{result}</output>
+				{/if}
+			</section>
 		{/if}
 
-		<details class="how">
+		<details class="how last">
 			<summary>How it works</summary>
 			<p>
 				Everything runs in your browser; nothing you type is sent anywhere. AES-GCM (the default)
@@ -302,10 +299,53 @@
 				Base64, Hex and ROT13 are encodings, not encryption: anyone can reverse them without a key.
 			</p>
 		</details>
-	</div>
+	</Panel>
 </div>
 
 <style>
+	/* The Result and How it works parts of the one box, each under a hairline. */
+	.part,
+	.how.last {
+		margin-top: var(--sp-3);
+		padding-top: var(--sp-3);
+		border-top: 1px solid var(--border);
+	}
+
+	.part {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-2);
+	}
+
+	.part-head {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--sp-2);
+	}
+
+	.part-head > :global(:last-child:not(:first-child)) {
+		margin-left: auto;
+	}
+
+	/* Same as a Panel title: body size over a short accent rule. */
+	.part-heading {
+		font-size: var(--text-lg);
+		font-weight: 600;
+	}
+
+	.part-heading::after {
+		content: '';
+		display: block;
+		width: 24px;
+		height: 2px;
+		margin-top: 6px;
+		background: var(--accent);
+	}
+
+	.how.last > :global(:last-child) {
+		margin-bottom: 0;
+	}
+
 	.with-button {
 		display: flex;
 		gap: var(--sp-2);

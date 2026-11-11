@@ -271,3 +271,22 @@ test('Copy reports a rejected clipboard write', async ({ page }) => {
 	await u.copy.click();
 	await expect(u.copy).toHaveText('Copy failed');
 });
+
+test('everything sits in one box, with How it works as its last line', async ({ page }) => {
+	const u = ui(page);
+	const box = page.locator('.ui-panel');
+	const how = page.locator('details.how');
+	await expect(box).toHaveCount(1);
+	await expect(box.locator('details.how')).toHaveCount(1);
+	await expect(box.locator('.ui-panel-body > :last-child')).toHaveClass(/\bhow\b/);
+	await pickAlgorithm(page, 'Hex');
+	await u.message.fill('hi');
+	await u.encrypt.click();
+	await expect(u.result).toHaveText('6869');
+	await expect(box).toHaveCount(1);
+	await expect(box.getByTestId('result-panel')).toBeVisible();
+	await expect(box.locator('.ui-panel-body > :last-child')).toHaveClass(/\bhow\b/);
+	const resultBox = await u.resultPanel.boundingBox();
+	const howBox = await how.boundingBox();
+	expect(howBox!.y).toBeGreaterThan(resultBox!.y + resultBox!.height - 1);
+});
