@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { SvelteSet } from 'svelte/reactivity';
-	import { tick } from 'svelte';
+	import { tick, type Snippet } from 'svelte';
 	import { Answer, Button } from '#lib/ui/index.js';
 	import { computeRows, selectAnswer } from './graph';
 	import type { DecisionGraph, TraversalPath } from './types';
@@ -8,11 +8,18 @@
 	interface Props {
 		graph: DecisionGraph;
 		path?: TraversalPath;
+		/** The end of the last line, beside Start over (the page's How it works). */
+		end?: Snippet;
 	}
 
-	let { graph, path = $bindable([]) }: Props = $props();
+	let { graph, path = $bindable([]), end }: Props = $props();
 
 	const rows = $derived(computeRows(graph, path));
+	// The recommendation leads; the questions follow as the path that led to it
+	const result = $derived.by(() => {
+		const last = rows[rows.length - 1];
+		return last?.type === 'result' ? last.node.result : undefined;
+	});
 
 	// Answered questions show only the chosen answer; Change adds their depth here to show them all
 	const reopened = new SvelteSet<number>();
@@ -51,6 +58,13 @@
 	}
 </script>
 
+{#if result !== undefined}
+	<div class="recommendation">
+		<p class="recommendation-label">Recommendation</p>
+		<Answer headline={result} data-testid="result" />
+	</div>
+{/if}
+
 <div class="decision-tree-rows" bind:this={container}>
 	{#each rows as row (row.index)}
 		{#if row.type === 'question'}
@@ -84,50 +98,84 @@
 					>
 				{/if}
 			</div>
-		{:else if row.type === 'result'}
-			<Answer class="result" headline={row.node.result} data-testid="result" />
 		{/if}
 	{/each}
 </div>
 
 <p class="sr-only" role="status">{announcement}</p>
 
-{#if path.length > 0}
-	<div class="restart-row">
-		<Button variant="link" tone="muted" onclick={restart}>Start over</Button>
+{#if path.length > 0 || end}
+	<div class="last-line">
+		{#if path.length > 0}
+			<Button variant="link" tone="muted" onclick={restart}>Start over</Button>
+		{/if}
+		{@render end?.()}
 	</div>
 {/if}
 
 <style>
+	/* The answer first: a small muted label over the headline, then a rule */
+	.recommendation {
+		padding-bottom: var(--sp-3);
+		margin-bottom: var(--sp-3);
+		border-bottom: 1px solid var(--border);
+	}
+
+	.recommendation-label {
+		margin: 0;
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+	}
+
+	/* The path: each question on the left, its answers on the right */
 	.decision-tree-rows {
-		display: flex;
-		flex-direction: column;
+		display: grid;
+		grid-template-columns: fit-content(18rem) minmax(0, 1fr);
 		align-items: center;
-		gap: var(--sp-2);
-		margin-bottom: var(--sp-4);
+		gap: var(--sp-2) var(--sp-4);
 	}
 
 	.question-prompt {
-		margin-top: var(--sp-2);
+		margin: 0;
 		font-size: var(--text-lg);
-		text-align: center;
 	}
 
 	.answer-row {
 		display: flex;
 		flex-wrap: wrap;
-		justify-content: center;
 		align-items: center;
 		gap: var(--sp-2);
+		min-width: 0;
 	}
 
-	/* The result ends the journey: the recommendation alone, centred and larger */
-	:global(.ui-answer.result) {
-		margin-top: var(--sp-3);
+	/* On a phone each question sits above its answers */
+	@media (max-width: 40rem) {
+		.decision-tree-rows {
+			grid-template-columns: minmax(0, 1fr);
+			gap: var(--sp-1);
+		}
+		.answer-row:not(:last-child) {
+			margin-bottom: var(--sp-2);
+		}
 	}
 
-	.restart-row {
+	/* Start over and How it works side by side, after a rule */
+	.last-line {
 		display: flex;
-		justify-content: center;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: var(--sp-1) var(--sp-4);
+		padding-top: var(--sp-2);
+		margin-top: var(--sp-3);
+		border-top: 1px solid var(--border);
+	}
+
+	.last-line :global(details.how) {
+		margin-top: 0;
+	}
+
+	/* Opened, How it works takes the full width below Start over */
+	.last-line :global(details.how[open]) {
+		flex-basis: 100%;
 	}
 </style>

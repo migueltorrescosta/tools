@@ -49,6 +49,12 @@ test.describe('Decision Tree E2E', () => {
 		await answer(page, 2, 'Yes');
 		await expect(result(page)).toHaveText('Battery EV');
 		await expect(answerRows(page)).toHaveCount(3);
+
+		// The answer first: the recommendation sits above the path that led to it
+		await expect(page.getByText('Recommendation', { exact: true })).toBeVisible();
+		const resultBox = await result(page).boundingBox();
+		const firstQuestion = await questions(page).first().boundingBox();
+		expect(resultBox!.y).toBeLessThan(firstQuestion!.y);
 	});
 
 	test('changing a previous answer removes downstream rows', async ({ page }) => {
