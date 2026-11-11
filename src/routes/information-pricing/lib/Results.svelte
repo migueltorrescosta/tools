@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import type {
 		GroupTable,
 		InputDensity,
@@ -26,7 +27,9 @@
 		tree = $bindable(),
 		applied,
 		busy,
-		onretree
+		onretree,
+		flat = false,
+		footer
 	}: {
 		/** The analysis so far: the value of information and the tree may still be computing. */
 		analysis: PartialAnalysis;
@@ -46,6 +49,10 @@
 		/** True while the engine works; tree updates wait. */
 		busy: boolean;
 		onretree: () => void;
+		/** Review prototype: one Results box whose parts are plain sections, no box inside a box. */
+		flat?: boolean;
+		/** Shown last in the Results box when flat: How it works and References. */
+		footer?: Snippet;
 	} = $props();
 
 	const summary = $derived(analysis.summary);
@@ -164,7 +171,21 @@
 	</div>
 {/snippet}
 
-<div class="stack results" data-testid="results">
+{#snippet part(title: string, content: Snippet, button?: Snippet)}
+	{#if flat}
+		<section class="part" aria-label={title}>
+			<div class="part-head">
+				<h3>{title}</h3>
+				{#if button}{@render button()}{/if}
+			</div>
+			{@render content()}
+		</section>
+	{:else}
+		<Panel {title} actions={button}>{@render content()}</Panel>
+	{/if}
+{/snippet}
+
+{#snippet headline()}
 	<dl class="headline" data-testid="headline">
 		<div>
 			<dt>Best decision</dt>
@@ -185,110 +206,135 @@
 			<dd data-testid="worst">{money.format(summary.expectedLoss[summary.worst])}</dd>
 		</div>
 	</dl>
+{/snippet}
 
+{#snippet inputsContent()}{@render inputsPlot(false)}{/snippet}
+
+{#snippet lossesContent()}
+	<div class="stack" style="--gap: var(--sp-3)">
+		{#each LOSS_PARTS as [part, title] (part)}
+			<Maximizable {title}>
+				{#snippet plot(maximized: boolean)}
+					<LossPlots
+						distributions={analysis.distributions}
+						{decisions}
+						{money}
+						{part}
+						{maximized}
+					/>
+				{/snippet}
+			</Maximizable>
+		{/each}
+	</div>
+{/snippet}
+
+{#snippet treeContent()}
+	<div class="stack" style="--gap: var(--sp-2)">
+		<Fold label="Tree settings" summary={treeSummary} data-testid="tree-settings">
+			<form
+				class="tree-fields"
+				onsubmit={(e) => {
+					e.preventDefault();
+					if (valid && treeChanged && !busy) onretree();
+				}}
+			>
+				<NumberInput
+					label="Max depth"
+					value={tree.maxDepth}
+					onchange={(v) => (tree.maxDepth = v)}
+					error={errors.maxDepth}
+				/>
+				<NumberInput
+					label="Min leaf (%)"
+					value={tree.minLeafPercent}
+					onchange={(v) => (tree.minLeafPercent = v)}
+					error={errors.minLeafPercent}
+				/>
+				<NumberInput
+					label="Min impurity decrease"
+					value={tree.minImpurityDecrease}
+					onchange={(v) => (tree.minImpurityDecrease = v)}
+					error={errors.minImpurityDecrease}
+				/>
+				<Button size="sm" type="submit" disabled={!valid || !treeChanged || busy}
+					>Update tree</Button
+				>
+			</form>
+		</Fold>
+		{@render treePlot(false)}
+	</div>
+{/snippet}
+
+{#snippet voiContent()}
+	{#if voi}
+		<div class="stack" style="--gap: var(--sp-3)" bind:clientHeight={voiH}>
+			<Maximizable title="Savings by number of bins">
+				{#snippet plot(maximized: boolean)}
+					<VoiChart
+						{voi}
+						inputs={names}
+						{money}
+						evpi={summary.expectedLoss[summary.best]}
+						{maximized}
+					/>
+				{/snippet}
+			</Maximizable>
+			<Maximizable title="Value of knowing first vs share of profit spread">
+				{#snippet plot(maximized: boolean)}
+					<VoiScatter {points} {money} {maximized} />
+				{/snippet}
+			</Maximizable>
+		</div>
+	{:else}
+		<Pending label="Computing the value of information…" height={voiH} />
+	{/if}
+{/snippet}
+
+{#snippet columns()}
 	<div class="columns">
 		<div class="column">
-			<div data-testid="inputs-box">
+			<div class="slot" data-testid="inputs-box">
 				<Maximizable title="Inputs by value of information" plot={inputsPlot}>
 					{#snippet frame(button)}
-						<Panel title="Inputs by value of information" actions={button}>
-							{@render inputsPlot(false)}
-						</Panel>
+						{@render part('Inputs by value of information', inputsContent, button)}
 					{/snippet}
 				</Maximizable>
 			</div>
-			<div data-testid="losses-box">
-				<Panel title="Loss distributions">
-					<div class="stack" style="--gap: var(--sp-3)">
-						{#each LOSS_PARTS as [part, title] (part)}
-							<Maximizable {title}>
-								{#snippet plot(maximized: boolean)}
-									<LossPlots
-										distributions={analysis.distributions}
-										{decisions}
-										{money}
-										{part}
-										{maximized}
-									/>
-								{/snippet}
-							</Maximizable>
-						{/each}
-					</div>
-				</Panel>
+			<div class="slot" data-testid="losses-box">
+				{@render part('Loss distributions', lossesContent)}
 			</div>
 		</div>
 		<div class="column">
-			<div data-testid="tree-box">
+			<div class="slot" data-testid="tree-box">
 				<Maximizable title="Policy tree" plot={treePlot} disabled={!analysis.tree}>
 					{#snippet frame(button)}
-						<Panel title="Policy tree" actions={button}>
-							<div class="stack" style="--gap: var(--sp-2)">
-								<Fold label="Tree settings" summary={treeSummary} data-testid="tree-settings">
-									<form
-										class="tree-fields"
-										onsubmit={(e) => {
-											e.preventDefault();
-											if (valid && treeChanged && !busy) onretree();
-										}}
-									>
-										<NumberInput
-											label="Max depth"
-											value={tree.maxDepth}
-											onchange={(v) => (tree.maxDepth = v)}
-											error={errors.maxDepth}
-										/>
-										<NumberInput
-											label="Min leaf (%)"
-											value={tree.minLeafPercent}
-											onchange={(v) => (tree.minLeafPercent = v)}
-											error={errors.minLeafPercent}
-										/>
-										<NumberInput
-											label="Min impurity decrease"
-											value={tree.minImpurityDecrease}
-											onchange={(v) => (tree.minImpurityDecrease = v)}
-											error={errors.minImpurityDecrease}
-										/>
-										<Button size="sm" type="submit" disabled={!valid || !treeChanged || busy}
-											>Update tree</Button
-										>
-									</form>
-								</Fold>
-								{@render treePlot(false)}
-							</div>
-						</Panel>
+						{@render part('Policy tree', treeContent, button)}
 					{/snippet}
 				</Maximizable>
 			</div>
-			<div data-testid="voi-box">
-				<Panel title="Value of information">
-					{#if voi}
-						<div class="stack" style="--gap: var(--sp-3)" bind:clientHeight={voiH}>
-							<Maximizable title="Savings by number of bins">
-								{#snippet plot(maximized: boolean)}
-									<VoiChart
-										{voi}
-										inputs={names}
-										{money}
-										evpi={summary.expectedLoss[summary.best]}
-										{maximized}
-									/>
-								{/snippet}
-							</Maximizable>
-							<Maximizable title="Value of knowing first vs share of profit spread">
-								{#snippet plot(maximized: boolean)}
-									<VoiScatter {points} {money} {maximized} />
-								{/snippet}
-							</Maximizable>
-						</div>
-					{:else}
-						<Pending label="Computing the value of information…" height={voiH} />
-					{/if}
-				</Panel>
+			<div class="slot" data-testid="voi-box">
+				{@render part('Value of information', voiContent)}
 			</div>
 		</div>
 	</div>
-</div>
+{/snippet}
+
+{#if flat}
+	<div class="results flat" data-testid="results">
+		<Panel title="Results">
+			<div class="stack">
+				{@render headline()}
+				{@render columns()}
+				{#if footer}<div class="footer">{@render footer()}</div>{/if}
+			</div>
+		</Panel>
+	</div>
+{:else}
+	<div class="stack results" data-testid="results">
+		<div class="headline-box"><Panel>{@render headline()}</Panel></div>
+		{@render columns()}
+	</div>
+{/if}
 
 {#snippet treePlot(maximized: boolean)}
 	{#if !analysis.tree}
@@ -340,9 +386,13 @@
 				aria-labelledby="intermediates-voi-heading{maximized ? '-max' : ''}"
 				data-testid="intermediates-box"
 			>
-				<h3 id="intermediates-voi-heading{maximized ? '-max' : ''}">
+				<svelte:element
+					this={flat ? 'h4' : 'h3'}
+					class="sub"
+					id="intermediates-voi-heading{maximized ? '-max' : ''}"
+				>
 					Intermediates by value of information
-				</h3>
+				</svelte:element>
 				<p class="note">
 					Worked out from the inputs, so their value overlaps with the inputs' and doesn't add up
 					with them.
@@ -392,10 +442,45 @@
 		align-items: baseline;
 		gap: var(--sp-1) var(--sp-5);
 		margin: 0;
+	}
+	/* Today: the headline is a slim box of its own. */
+	.headline-box :global(.ui-panel-body) {
 		padding: var(--sp-2) var(--sp-3);
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
+	}
+	/* Flat: the parts are sections of the one Results box, split by hairlines. */
+	.flat .headline {
+		padding-bottom: var(--sp-3);
+		border-bottom: 1px solid var(--border);
+	}
+	.flat .slot + .slot,
+	.flat .footer {
+		padding-top: var(--sp-3);
+		border-top: 1px solid var(--border);
+	}
+	@container (max-width: 63.99rem) {
+		.flat .column + .column {
+			padding-top: var(--sp-3);
+			border-top: 1px solid var(--border);
+		}
+	}
+	.part {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-2);
+		min-width: 0;
+	}
+	.part-head {
+		display: flex;
+		align-items: center;
+		gap: var(--sp-2);
+	}
+	.part-head h3 {
+		margin: 0;
+		font-size: var(--text-md);
+		font-weight: 600;
+	}
+	.flat .footer :global(.references) {
+		margin-top: var(--sp-3);
 	}
 	.headline div {
 		display: flex;
@@ -550,7 +635,7 @@
 		padding-top: var(--sp-3);
 		border-top: 2px solid var(--border-strong);
 	}
-	.intermediates h3 {
+	.intermediates .sub {
 		margin: 0;
 		font-size: var(--text-sm);
 		font-weight: 600;
