@@ -160,6 +160,23 @@ test('Volt - bar links are at least 24px tall', async ({ page }) => {
 	expect(Math.min(...heights)).toBeGreaterThanOrEqual(24);
 });
 
+test('Volt - the axis spans the mandates on screen: a country, then former mandates too', async ({
+	page
+}) => {
+	await page.setViewportSize({ width: 1280, height: 900 });
+	await open(page);
+	const years = page.locator('.volt-year');
+	const firstAllCountries = Number(await years.first().textContent());
+	await pick(page, 'Netherlands');
+	const firstNow = Number(await years.first().textContent());
+	expect(firstNow).toBeGreaterThan(firstAllCountries);
+	await page.getByLabel('Show former mandates').check();
+	const firstAll = Number(await years.first().textContent());
+	expect(firstAll).toBeLessThanOrEqual(firstNow);
+	await page.getByLabel('Show former mandates').uncheck();
+	await expect(years.first()).toHaveText(String(firstNow));
+});
+
 for (const width of [375, 1280]) {
 	test(`Volt - year markers line up with bars at ${width}px`, async ({ page }) => {
 		await page.setViewportSize({ width, height: 900 });

@@ -23,10 +23,6 @@
 
 	const officials: Politician[] = electedOfficials;
 
-	// The axis always spans every mandate, so it stays put when former ones are hidden
-	const timeline = timelineRange(officials);
-	const { minYear, yearRange } = timeline;
-
 	// Server render uses the data date; the client switches to the real date on mount
 	let now = $state(parseDate(DATA_AS_OF));
 	let hydrated = $state(false);
@@ -34,7 +30,6 @@
 		now = fractionalYear(new Date());
 		hydrated = true;
 	});
-	const todayPct = $derived(timelinePercent(now, timeline));
 
 	// 'all', the EU flag (MEPs) or a country flag present in the data
 	let filterCountry = $state('all');
@@ -46,6 +41,15 @@
 
 	const shown = $derived(visibleMandates(officials, now, showFormer));
 	const filteredCountries = $derived(filterGroups(shown, filterCountry));
+	// The axis spans the mandates on screen, after the country filter and the former toggle
+	// (owner, 2026-11-11), so their bars use the width; it widens again when more show.
+	const onScreen = $derived(
+		Object.values(filteredCountries).flatMap((groups) => groups.flatMap((g) => g.politicians))
+	);
+	const timeline = $derived(timelineRange(onScreen.length ? onScreen : officials));
+	const minYear = $derived(timeline.minYear);
+	const yearRange = $derived(timeline.yearRange);
+	const todayPct = $derived(timelinePercent(now, timeline));
 
 	// Options count what is on show, for every country, whichever one is picked
 	const stats = $derived(computeStats(shown, officials));

@@ -426,7 +426,7 @@
 	/>
 
 	{#if phase === 'setup'}
-		<div class="split-view">
+		<div class="split-view setup">
 			<Panel title="People">
 				<div class="stack">
 					{#if people.length > 0}
@@ -1237,5 +1237,9 @@
 		.group {
 			transition: none;
 		}
+	}
+	/* Setup's boxes size to their content (owner, 2026-11-11): People ends after its list. */
+	.setup {
+		align-items: start;
 	}
 </style>
