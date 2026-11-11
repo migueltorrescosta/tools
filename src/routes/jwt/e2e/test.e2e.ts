@@ -14,7 +14,6 @@ function ui(page: Page) {
 		encode: page.getByRole('button', { name: /encode/i }),
 		status: page.getByTestId('signature-status'),
 		algorithmText: page.getByTestId('algorithm-text'),
-		openVerify: () => page.locator('summary').filter({ hasText: 'Verify signature' }).click(),
 		openEncode: () =>
 			page.locator('summary').filter({ hasText: 'Edit and re-sign this token' }).click(),
 		changeAlgorithm: () => page.getByRole('button', { name: 'Change' }).click()
@@ -39,12 +38,11 @@ test('decodes the default sample token into the panels', async ({ page }) => {
 	await expect(u.payload).toContainText(/Issued \d+ years ago \(18 Jan 2018, 01:30 UTC\)/);
 });
 
-test('verify and encode start closed and open in place', async ({ page }) => {
+test('verify is open beside the token and encode starts closed', async ({ page }) => {
 	const u = ui(page);
-	await expect(u.secret).toBeHidden();
-	await expect(u.headerJson).toBeHidden();
-	await u.openVerify();
+	await expect(page.getByRole('heading', { level: 3, name: 'Verify signature' })).toBeVisible();
 	await expect(u.secret).toBeVisible();
+	await expect(u.headerJson).toBeHidden();
 	await expect(u.algorithmText).toHaveText('Algorithm: HS256, from the token header · Change');
 	// No signature line repeating the token, and no result until a secret is typed
 	await expect(page.getByText('Signature', { exact: true })).toHaveCount(0);
@@ -52,6 +50,24 @@ test('verify and encode start closed and open in place', async ({ page }) => {
 	await u.openEncode();
 	await expect(u.headerJson).toBeVisible();
 	await expect(u.encode).toBeVisible();
+});
+
+test('two boxes: Token with every input, Decoded with header and payload', async ({ page }) => {
+	const u = ui(page);
+	await u.openEncode();
+	const boxes = page.locator('main .ui-panel');
+	await expect(boxes).toHaveCount(2);
+	await expect(page.locator('main .ui-fold.boxed')).toHaveCount(0);
+	const [token, decoded] = [boxes.nth(0), boxes.nth(1)];
+	await expect(token.getByRole('heading', { level: 2 })).toHaveText('Token');
+	await expect(decoded.getByRole('heading', { level: 2 })).toHaveText('Decoded');
+	await expect(token.locator('.ui-panel')).toHaveCount(0);
+	await expect(decoded.locator('.ui-panel')).toHaveCount(0);
+	for (const field of [u.token, u.secret, u.headerJson, u.payloadJson, u.encode])
+		await expect(token.locator(field)).toHaveCount(1);
+	await expect(decoded.locator(u.header)).toHaveCount(1);
+	await expect(decoded.locator(u.payload)).toHaveCount(1);
+	await expect(token.getByText('Signs with the secret or key above.')).toBeVisible();
 });
 
 test('an expired token says so in one red line, with the issue time below', async ({ page }) => {
@@ -90,7 +106,6 @@ test('a malformed paste shows one plain message and keeps the Encode editors', a
 
 test('verifies the sample with its secret and rejects a wrong one', async ({ page }) => {
 	const u = ui(page);
-	await u.openVerify();
 	await u.secret.fill(SAMPLE_SECRET);
 	await expect(u.status).toHaveText('Signature verified');
 	await u.secret.fill('x');
@@ -100,7 +115,6 @@ test('verifies the sample with its secret and rejects a wrong one', async ({ pag
 test('ENCODE signs the edited payload into the token and it verifies', async ({ page }) => {
 	const u = ui(page);
 	await expect(u.payload).toContainText('John Doe');
-	await u.openVerify();
 	await u.secret.fill(SAMPLE_SECRET);
 	await u.openEncode();
 	await u.payloadJson.fill('{\n  "sub": "42",\n  "name": "Jane Roe"\n}');
@@ -125,7 +139,6 @@ test('ENCODE rejects a non-object payload with a visible error', async ({ page }
 
 test('an unsigned alg none token shows the unsigned banner', async ({ page }) => {
 	const u = ui(page);
-	await u.openVerify();
 	await u.changeAlgorithm();
 	await expect(u.algorithm).toBeFocused();
 	await u.algorithm.selectOption('none');
@@ -138,7 +151,6 @@ test('an unsigned alg none token shows the unsigned banner', async ({ page }) =>
 test('ENCODE keeps an edited header alg and typ and the select follows it', async ({ page }) => {
 	const u = ui(page);
 	await expect(u.payload).toContainText('John Doe');
-	await u.openVerify();
 	await u.openEncode();
 	await u.headerJson.fill('{"alg":"none","typ":"at+jwt"}');
 	await expect(u.algorithmText).toHaveText('Algorithm: none · Change');
@@ -152,7 +164,6 @@ test('ENCODE keeps an edited header alg and typ and the select follows it', asyn
 test('choosing an algorithm rewrites the header alg', async ({ page }) => {
 	const u = ui(page);
 	await expect(u.payload).toContainText('John Doe');
-	await u.openVerify();
 	await u.changeAlgorithm();
 	await u.algorithm.selectOption('RS256');
 	await u.openEncode();
@@ -163,7 +174,6 @@ test('an unknown header alg gets its own option and a warning', async ({ page })
 	const u = ui(page);
 	const header = Buffer.from('{"alg":"ES256K"}').toString('base64url');
 	await u.token.fill(`${header}.e30.sig`);
-	await u.openVerify();
 	await expect(u.algorithmText).toHaveText('Algorithm: ES256K, from the token header · Change');
 	await u.changeAlgorithm();
 	await expect(u.algorithm).toHaveValue('ES256K');
@@ -172,7 +182,6 @@ test('an unknown header alg gets its own option and a warning', async ({ page })
 
 test('the secret is masked until revealed and copy buttons are named', async ({ page }) => {
 	const u = ui(page);
-	await u.openVerify();
 	await expect(u.secret).toHaveAttribute('type', 'password');
 	await page.getByRole('button', { name: 'Show', pressed: false }).click();
 	await expect(u.secret).toHaveAttribute('type', 'text');

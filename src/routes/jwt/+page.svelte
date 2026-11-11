@@ -161,216 +161,224 @@
 <div class="container" data-hydrated={hydrated || undefined}>
 	<PageHeader path="/jwt" />
 
+	<!-- Everything you type on the left, what the token decodes to on the right;
+	     on a phone the decoded result follows the inputs. -->
 	<div class="top">
-		<div class="area-token">
-			<Panel title="Encoded token">
-				<div class="stack">
-					<Field label="Encoded token" hideLabel>
+		<Panel title="Token">
+			<div class="stack">
+				<Field label="Encoded token" hideLabel>
+					{#snippet children(props)}
+						<textarea
+							{...props}
+							class="control token"
+							rows="4"
+							bind:value={token}
+							placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+							spellcheck="false"
+						></textarea>
+					{/snippet}
+				</Field>
+				{#if tokenError}<Alert tone="danger">{tokenError}</Alert>{/if}
+				{#if signatureError}<Alert tone="danger">{signatureError}</Alert>{/if}
+				{#if unsignedBanner}<Alert tone="danger">{unsignedBanner}</Alert>{/if}
+				{#if decodeWarnings.length}
+					<Alert tone="warning">
+						{#each decodeWarnings as warning, i (i)}<div>{warning}</div>{/each}
+					</Alert>
+				{/if}
+
+				<section class="stack sub" aria-labelledby="verify-heading">
+					<h3 id="verify-heading">Verify signature</h3>
+					<Field label={isSymmetric(selectedAlgorithm) ? 'Secret' : 'Key (PEM or JWK)'}>
+						{#snippet children(props)}
+							<div class="cluster secret-row">
+								<input
+									{...props}
+									type={showSecret ? 'text' : 'password'}
+									class="control"
+									autocomplete="off"
+									spellcheck="false"
+									bind:value={secret}
+									placeholder={isSymmetric(selectedAlgorithm)
+										? 'secret'
+										: 'public key verifies, private key signs'}
+								/>
+								<Button
+									pressed={showSecret}
+									aria-controls={props.id}
+									onclick={() => (showSecret = !showSecret)}>Show</Button
+								>
+							</div>
+						{/snippet}
+					</Field>
+
+					{#if changingAlgorithm}
+						<div class="algorithm" bind:this={algorithmBox}>
+							<Select
+								label="Algorithm"
+								options={algorithms}
+								bind:value={() => selectedAlgorithm, selectAlgorithm}
+							/>
+						</div>
+					{:else}
+						<p class="hint" data-testid="algorithm-text">
+							Algorithm: {selectedAlgorithm}{selectedAlgorithm === tokenAlgorithm
+								? ', from the token header'
+								: ''} ·
+							<Button variant="link" onclick={changeAlgorithm}>Change</Button>
+						</p>
+					{/if}
+
+					{#if verification?.status === 'valid'}
+						<Alert tone="success"
+							><span data-testid="signature-status">Signature verified</span></Alert
+						>
+					{:else if verification?.status === 'invalid'}
+						<Alert tone="danger"
+							><span data-testid="signature-status"
+								>{verification.message === SIGNATURE_MISMATCH
+									? `Signature does not match this ${isSymmetric(selectedAlgorithm) ? 'secret' : 'key'}`
+									: verification.message}</span
+							></Alert
+						>
+					{:else if verification}
+						<Alert tone="warning">{verification.message}</Alert>
+					{/if}
+				</section>
+
+				<Fold label="Edit and re-sign this token">
+					<p class="hint">Signs with the secret or key above.</p>
+					<Field label="Header (JSON)" error={headerError || undefined}>
 						{#snippet children(props)}
 							<textarea
 								{...props}
-								class="control token"
-								rows="4"
-								bind:value={token}
-								placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+								class="control"
+								rows="6"
+								bind:value={() => headerJson, editHeader}
+								placeholder={'{"alg": "HS256", "typ": "JWT"}'}
 								spellcheck="false"
 							></textarea>
 						{/snippet}
 					</Field>
-					{#if tokenError}<Alert tone="danger">{tokenError}</Alert>{/if}
-					{#if signatureError}<Alert tone="danger">{signatureError}</Alert>{/if}
-					{#if unsignedBanner}<Alert tone="danger">{unsignedBanner}</Alert>{/if}
-					{#if decodeWarnings.length}
+					<Field label="Payload (JSON)" error={payloadError || undefined}>
+						{#snippet children(props)}
+							<textarea
+								{...props}
+								class="control"
+								rows="6"
+								bind:value={payloadJson}
+								placeholder={'{"sub": "1234567890", "name": "John Doe"}'}
+								spellcheck="false"
+							></textarea>
+						{/snippet}
+					</Field>
+					{#if encodeWarnings.length}
 						<Alert tone="warning">
-							{#each decodeWarnings as warning, i (i)}<div>{warning}</div>{/each}
+							{#each encodeWarnings as warning, i (i)}<div>
+									Encode changes this: {warning}
+								</div>{/each}
 						</Alert>
 					{/if}
-					{#if copyStatus}<p class="hint" role="status">{copyStatus}</p>{/if}
-				</div>
-			</Panel>
-		</div>
-
-		<Fold boxed label="Verify signature" summary="with a secret or key" class="area-verify">
-			<Field label={isSymmetric(selectedAlgorithm) ? 'Secret' : 'Key (PEM or JWK)'}>
-				{#snippet children(props)}
-					<div class="cluster secret-row">
-						<input
-							{...props}
-							type={showSecret ? 'text' : 'password'}
-							class="control"
-							autocomplete="off"
-							spellcheck="false"
-							bind:value={secret}
-							placeholder={isSymmetric(selectedAlgorithm)
-								? 'secret'
-								: 'public key verifies, private key signs'}
-						/>
-						<Button
-							pressed={showSecret}
-							aria-controls={props.id}
-							onclick={() => (showSecret = !showSecret)}>Show</Button
+					{#if encodeError}<Alert tone="danger">{encodeError}</Alert>{/if}
+					{#if encodeNote}<Alert tone="info">{encodeNote}</Alert>{/if}
+					<div>
+						<Button variant="primary" onclick={encodeToken}
+							>{selectedAlgorithm === 'none' ? 'Encode unsigned' : 'Sign & encode'}</Button
 						>
 					</div>
-				{/snippet}
-			</Field>
+				</Fold>
+			</div>
+		</Panel>
 
-			{#if changingAlgorithm}
-				<div class="algorithm" bind:this={algorithmBox}>
-					<Select
-						label="Algorithm"
-						options={algorithms}
-						bind:value={() => selectedAlgorithm, selectAlgorithm}
-					/>
-				</div>
-			{:else}
-				<p class="hint" data-testid="algorithm-text">
-					Algorithm: {selectedAlgorithm}{selectedAlgorithm === tokenAlgorithm
-						? ', from the token header'
-						: ''} ·
-					<Button variant="link" onclick={changeAlgorithm}>Change</Button>
-				</p>
-			{/if}
+		<Panel title="Decoded">
+			<div class="stack">
+				<section class="sub" aria-labelledby="header-heading">
+					<div class="sub-head">
+						<h3 id="header-heading">Header</h3>
+						<Button
+							size="sm"
+							variant="ghost"
+							aria-label="Copy header JSON"
+							disabled={!decodedHeaderJson}
+							onclick={() => copy('Header', decodedHeaderJson)}>Copy</Button
+						>
+					</div>
+					<div data-testid="decoded-header">
+						{#if decodedHeaderJson}
+							<pre>{decodedHeaderJson}</pre>
+						{:else}
+							<p class="hint">No token to decode</p>
+						{/if}
+					</div>
+				</section>
 
-			{#if verification?.status === 'valid'}
-				<Alert tone="success"><span data-testid="signature-status">Signature verified</span></Alert>
-			{:else if verification?.status === 'invalid'}
-				<Alert tone="danger"
-					><span data-testid="signature-status"
-						>{verification.message === SIGNATURE_MISMATCH
-							? `Signature does not match this ${isSymmetric(selectedAlgorithm) ? 'secret' : 'key'}`
-							: verification.message}</span
-					></Alert
-				>
-			{:else if verification}
-				<Alert tone="warning">{verification.message}</Alert>
-			{/if}
-		</Fold>
-
-		<div class="stack area-decoded">
-			<Panel title="Header">
-				{#snippet actions()}
-					<Button
-						size="sm"
-						variant="ghost"
-						aria-label="Copy header JSON"
-						disabled={!decodedHeaderJson}
-						onclick={() => copy('Header', decodedHeaderJson)}>Copy</Button
-					>
-				{/snippet}
-				<div data-testid="decoded-header">
-					{#if decodedHeaderJson}
-						<pre>{decodedHeaderJson}</pre>
-					{:else}
-						<p class="hint">No token to decode</p>
-					{/if}
-				</div>
-			</Panel>
-
-			<Panel title="Payload">
-				{#snippet actions()}
-					<Button
-						size="sm"
-						variant="ghost"
-						aria-label="Copy payload JSON"
-						disabled={!decodedPayloadJson}
-						onclick={() => copy('Payload', decodedPayloadJson)}>Copy</Button
-					>
-				{/snippet}
-				<div class="stack" data-testid="decoded-payload">
-					{#if decodedPayloadJson}
-						<pre>{decodedPayloadJson}</pre>
-					{:else}
-						<p class="hint">No token to decode</p>
-					{/if}
-					{#if claims.length}
-						<div class="claims">
-							{#each claims as claim, i (i)}
-								{#if claim.tone === 'muted'}
-									<p class="hint">{claim.text}</p>
-								{:else}
-									<Alert tone={claim.tone} live={false}>{claim.text}</Alert>
-								{/if}
-							{/each}
-						</div>
-					{/if}
-				</div>
-			</Panel>
-		</div>
+				<section class="sub" aria-labelledby="payload-heading">
+					<div class="sub-head">
+						<h3 id="payload-heading">Payload</h3>
+						<Button
+							size="sm"
+							variant="ghost"
+							aria-label="Copy payload JSON"
+							disabled={!decodedPayloadJson}
+							onclick={() => copy('Payload', decodedPayloadJson)}>Copy</Button
+						>
+					</div>
+					<div class="stack" data-testid="decoded-payload">
+						{#if decodedPayloadJson}
+							<pre>{decodedPayloadJson}</pre>
+						{:else}
+							<p class="hint">No token to decode</p>
+						{/if}
+						{#if claims.length}
+							<div class="claims">
+								{#each claims as claim, i (i)}
+									{#if claim.tone === 'muted'}
+										<p class="hint">{claim.text}</p>
+									{:else}
+										<Alert tone={claim.tone} live={false}>{claim.text}</Alert>
+									{/if}
+								{/each}
+							</div>
+						{/if}
+					</div>
+				</section>
+				{#if copyStatus}<p class="hint" role="status">{copyStatus}</p>{/if}
+			</div>
+		</Panel>
 	</div>
-
-	<Fold boxed label="Edit and re-sign this token" class="encode">
-		<p class="hint">Signs with the secret or key under Verify signature.</p>
-		<div class="split-view">
-			<Field label="Header (JSON)" error={headerError || undefined}>
-				{#snippet children(props)}
-					<textarea
-						{...props}
-						class="control"
-						rows="6"
-						bind:value={() => headerJson, editHeader}
-						placeholder={'{"alg": "HS256", "typ": "JWT"}'}
-						spellcheck="false"
-					></textarea>
-				{/snippet}
-			</Field>
-			<Field label="Payload (JSON)" error={payloadError || undefined}>
-				{#snippet children(props)}
-					<textarea
-						{...props}
-						class="control"
-						rows="6"
-						bind:value={payloadJson}
-						placeholder={'{"sub": "1234567890", "name": "John Doe"}'}
-						spellcheck="false"
-					></textarea>
-				{/snippet}
-			</Field>
-		</div>
-		{#if encodeWarnings.length}
-			<Alert tone="warning">
-				{#each encodeWarnings as warning, i (i)}<div>Encode changes this: {warning}</div>{/each}
-			</Alert>
-		{/if}
-		{#if encodeError}<Alert tone="danger">{encodeError}</Alert>{/if}
-		{#if encodeNote}<Alert tone="info">{encodeNote}</Alert>{/if}
-		<div>
-			<Button variant="primary" onclick={encodeToken}
-				>{selectedAlgorithm === 'none' ? 'Encode unsigned' : 'Sign & encode'}</Button
-			>
-		</div>
-	</Fold>
 </div>
 
 <style>
-	/* Token and Verify on the left, Header and Payload on the right; on a phone the decoded
-	   result comes right under the token and Verify follows it. */
 	.top {
 		display: grid;
 		gap: var(--sp-3);
-		grid-template-areas: 'token' 'decoded' 'verify';
 		align-items: start;
 	}
 
 	@media (min-width: 720px) {
 		.top {
 			grid-template-columns: 1fr 1fr;
-			grid-template-rows: auto 1fr;
-			grid-template-areas: 'token decoded' 'verify decoded';
 		}
 	}
 
-	.area-token {
-		grid-area: token;
+	/* Sub-sections of a box: a plain h3, no accent rule, spaced from what comes before */
+	.sub {
 		min-width: 0;
+		padding-top: var(--sp-2);
 	}
 
-	.top :global(.area-verify) {
-		grid-area: verify;
+	h3 {
+		font-size: var(--text-md);
+		font-weight: 600;
+		margin: 0;
 	}
 
-	.area-decoded {
-		grid-area: decoded;
-		min-width: 0;
+	.sub-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--sp-2);
+		margin-bottom: var(--sp-1);
 	}
 
 	.secret-row {
@@ -403,9 +411,5 @@
 		flex-direction: column;
 		gap: var(--sp-1);
 		font-size: var(--text-sm);
-	}
-
-	:global(.ui-fold.encode) {
-		margin-top: var(--sp-3);
 	}
 </style>
