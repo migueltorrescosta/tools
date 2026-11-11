@@ -54,8 +54,15 @@ async function castVote(page: Page, voteURL: string, row: 1 | 2) {
 
 /** Replace the paste box's text, opening "Add or edit votes" first when it is closed. */
 async function pasteVotes(page: Page, text: string) {
+	// Wait for the tally to load: it opens the box itself when there are no votes yet, and a
+	// click that races it would close the box again (CI lost that race on a slower runner).
+	await expect(page.getByTestId('vote-count')).toBeVisible();
+	const fold = page.locator('details').filter({ hasText: 'Add or edit votes' });
+	if (!(await fold.evaluate((d) => (d as HTMLDetailsElement).open))) {
+		await fold.getByText('Add or edit votes').click();
+	}
 	const box = page.getByLabel('Votes, one per line');
-	if (!(await box.isVisible())) await page.getByText('Add or edit votes').click();
+	await expect(box).toBeVisible();
 	await box.fill(text);
 }
 
