@@ -221,3 +221,37 @@ test('Volt - at phone width the location gutter stays visible while the timeline
 	await scroll.evaluate((el) => el.scrollTo({ left: el.scrollWidth }));
 	await expect(edges).not.toHaveClass(/more-right/);
 });
+
+const box = (page: Page, title: string) =>
+	page.locator('.ui-panel').filter({ has: page.getByRole('heading', { level: 2, name: title }) });
+
+test('Volt - on a desktop the Filter box sits beside the Mandates box and stays in view', async ({
+	page
+}) => {
+	await page.setViewportSize({ width: 1440, height: 900 });
+	await open(page);
+	const filter = box(page, 'Filter');
+	const mandates = box(page, 'Mandates');
+	await expect(filter.getByRole('combobox', { name: 'Country' })).toBeVisible();
+	await expect(filter.getByRole('checkbox', { name: 'Show former mandates' })).toBeVisible();
+	await expect(filter.getByRole('list', { name: 'Key' })).toBeVisible();
+	await expect(mandates.getByTestId('volt-timeline')).toBeVisible();
+	await expect(mandates.getByText('How it works')).toBeAttached();
+	const f = (await filter.boundingBox())!;
+	const m = (await mandates.boundingBox())!;
+	expect(f.x + f.width).toBeLessThanOrEqual(m.x);
+	expect(Math.abs(f.y - m.y)).toBeLessThanOrEqual(1);
+
+	await page.mouse.wheel(0, 1500);
+	await expect.poll(async () => (await filter.boundingBox())?.y ?? -1).toBeGreaterThanOrEqual(0);
+	await expect(filter).toBeInViewport();
+});
+
+test('Volt - on a phone the Filter box comes before the Mandates box', async ({ page }) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await open(page);
+	const f = (await box(page, 'Filter').boundingBox())!;
+	const m = (await box(page, 'Mandates').boundingBox())!;
+	expect(f.y + f.height).toBeLessThanOrEqual(m.y);
+	await expect(box(page, 'Mandates').getByTestId('volt-list')).toBeVisible();
+});
