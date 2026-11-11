@@ -9,24 +9,27 @@
 
 	/* Workbench paper (owner, rounds 1-4 of the 2026-11 redesign; docs/design.md):
 	   kraft paper with a millimetre grid in light, blueprint navy in dark. Boxes
-	   are cool white on kraft and darker than the page (ink wells) on navy, so
-	   they stand apart from the ground in both. */
+	   are glass over it (--box-* below). */
 
 	/* Surfaces */
 	--bg: light-dark(oklch(0.925 0.03 75), oklch(0.25 0.07 258));
 	--surface: light-dark(oklch(0.99 0.004 250), oklch(0.19 0.06 258));
 	--surface-2: light-dark(oklch(0.955 0.008 250), oklch(0.23 0.06 258));
 	--sunken: light-dark(oklch(1 0 0), oklch(0.16 0.05 258));
-	/* The page's grid: fine lines every 8px, a darker one every 40px (base.css). */
-	--grid: light-dark(oklch(0.45 0.05 60 / 0.09), oklch(1 0 0 / 0.07));
-	--grid-strong: light-dark(oklch(0.45 0.05 60 / 0.17), oklch(1 0 0 / 0.13));
-	/* A box's lift: a soft shadow on kraft, an inner shadow for an ink well.
-	   light-dark() takes only colours, so each theme blanks the other's layers. */
+	/* The page's grid: one line every 5 mm (20px, base.css). */
+	--grid: light-dark(oklch(0.45 0.05 60 / 0.17), oklch(1 0 0 / 0.13));
+	/* Boxes (Panel, a boxed Fold): glass, 40% opaque with a light blur, in both
+	   themes. The owner's pick from the 2026-11 review (values g40b4 and d40b4):
+	   cool white on kraft, a lighter navy on navy, with a bright hairline edge.
+	   --surface stays opaque for controls, which are not boxes. */
+	--box-bg: light-dark(oklch(0.99 0.004 250 / 0.4), oklch(0.42 0.07 258 / 0.4));
+	--box-edge: light-dark(oklch(1 0 0 / 0.8), oklch(1 0 0 / 0.24));
+	--box-blur: blur(4px);
+	/* A box's lift: a soft shadow on kraft, none on navy (light-dark() takes only
+	   colours, so the dark theme blanks the layers). */
 	--shadow-near: light-dark(oklch(0.35 0.04 60 / 0.14), transparent);
 	--shadow-far: light-dark(oklch(0.35 0.04 60 / 0.08), transparent);
-	--shadow-inset: light-dark(transparent, oklch(0 0 0 / 0.45));
-	--box-shadow:
-		0 1px 2px var(--shadow-near), 0 6px 18px var(--shadow-far), inset 0 2px 8px var(--shadow-inset);
+	--box-shadow: 0 1px 2px var(--shadow-near), 0 6px 18px var(--shadow-far);
 
 	/* Text */
 	--text: light-dark(oklch(0.24 0.02 60), oklch(0.96 0.01 250));

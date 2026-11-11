@@ -1233,34 +1233,6 @@
 		margin-right: var(--sp-1);
 	}
 
-	/* Review prototype, "flat": no box inside the box. Each group or person is a plain column
-	   under a hairline; the hairline carries the demand state the card border carried. */
-	:global(:root[data-split='flat']) .groups {
-		column-gap: var(--sp-4);
-		row-gap: var(--sp-4);
-	}
-
-	:global(:root[data-split='flat']) .group {
-		padding: var(--sp-2) 0 var(--sp-1);
-		background: none;
-		border: 0;
-		border-top: 1px solid var(--border);
-		border-radius: 0;
-		outline-offset: var(--sp-1);
-	}
-
-	:global(:root[data-split='flat']) .group.over {
-		border-top: 2px solid var(--warning);
-	}
-
-	:global(:root[data-split='flat']) .group.unclaimed {
-		border-top: 1px dashed var(--border-strong);
-	}
-
-	:global(:root[data-split='flat']) .group.drop-over {
-		background: var(--accent-bg);
-	}
-
 	@media (prefers-reduced-motion: reduce) {
 		.group {
 			transition: none;

@@ -8,8 +8,6 @@
 	import { onMount } from 'svelte';
 	import { routes } from '#lib/routes.js';
 	import ThemeSwitch from '#lib/ui/ThemeSwitch.svelte';
-	import ProtoPanel from '#lib/proto/ProtoPanel.svelte';
-	import '#lib/proto/proto.css';
 	import { headerActions } from '#lib/ui/header-actions.svelte.js';
 
 	let { children } = $props();
@@ -45,7 +43,6 @@
 	{@render children()}
 </main>
 
-<ProtoPanel />
 <footer class="footer">
 	<p>
 		Runs in your browser · No guarantees · <a href="mailto:tools-feedback@mptc.uk">Feedback</a>

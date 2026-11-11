@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Alert, Answer, Button, PageHeader, Panel } from '#lib/ui/index.js';
-	import { proto } from '#lib/proto/proto.svelte.js';
 	import solutionTree from '#lib/wordle-solution.js';
 	import {
 		cycleTile as cycleResultTile,
@@ -178,12 +177,6 @@
 				{/if}
 			</div>
 
-			{#if proto.wordle === 'hint' && !gameOver}
-				<p class="hint" data-testid="hint">
-					Tap a tile to cycle black, yellow, green, or press 1, 2, 3.
-				</p>
-			{/if}
-
 			<p class="nyt">
 				<a href="https://www.nytimes.com/games/wordle/index.html" target="_blank" rel="noopener"
 					>Play today’s Wordle on nytimes.com ↗</a
@@ -291,12 +284,7 @@
 		max-width: 14rem;
 	}
 
-	.hint,
 	.nyt {
 		margin: var(--sp-3) 0 0;
-	}
-
-	.hint + .nyt {
-		margin-top: var(--sp-1);
 	}
 </style>

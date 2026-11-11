@@ -1083,25 +1083,3 @@ for (const colorScheme of ['light', 'dark'] as const) {
 		}
 	});
 }
-
-test('flat prototype: one Model box, then Run and one Results box with the answer first', async ({
-	page
-}) => {
-	await page.addInitScript(() => localStorage.setItem('proto2', JSON.stringify({ ip: 'flat' })));
-	await open(page, link(small('distribution-centre')));
-	const boxes = page.locator('main .ui-panel');
-	// Setup: Run and Model; How it works and References are the last lines of Model
-	await expect(boxes).toHaveCount(2);
-	const model = page.locator('.ui-panel', { has: page.locator('#inputs-heading') });
-	await expect(model.locator('#dataflow-heading')).toBeVisible();
-	await expect(model.getByTestId('how')).toBeVisible();
-	await press(page, 'Run', 1);
-	await expect(boxes).toHaveCount(2);
-	const results = page.locator('.ui-panel', { has: page.getByTestId('headline') });
-	await expect(results.getByRole('heading', { name: 'Results' })).toBeVisible();
-	await expect(results.getByTestId('best-decision')).not.toBeEmpty();
-	for (const id of ['inputs-box', 'losses-box', 'tree-box', 'voi-box'])
-		await expect(results.getByTestId(id).locator('svg').first()).toBeVisible();
-	await expect(results.getByRole('region', { name: 'References' })).toBeVisible();
-	await expect(results.locator('.ui-panel')).toHaveCount(0);
-});

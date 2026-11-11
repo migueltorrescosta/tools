@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onDestroy, onMount, type Snippet } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { createAnalyser, type Analyser } from '#lib/information-pricing/analyser.js';
@@ -48,7 +48,6 @@
 		ShareActions,
 		Stepper
 	} from '#lib/ui/index.js';
-	import { proto } from '#lib/proto/proto.svelte.js';
 	import { defaultWorkerCount } from '#lib/worker-pool.js';
 	import DataflowGraph from './lib/DataflowGraph.svelte';
 	import DecisionsEditor from './lib/DecisionsEditor.svelte';
@@ -72,11 +71,6 @@
 	import NumberInput from './lib/NumberInput.svelte';
 	import { REFERENCES } from './lib/references';
 	import Results from './lib/Results.svelte';
-
-	/** Review prototype: 'flat' puts each step in one box, with no box inside a box. */
-	const flat = $derived(proto.ip === 'flat');
-	/** The Setup tables in the first column; the second holds intermediates and the dataflow. */
-	const LEFT = ['inputs', 'decisions'] as const;
 
 	// --- Model ---
 	const initial = presetModel(DEFAULT_PRESET);
@@ -419,81 +413,7 @@
 	{/if}
 {/snippet}
 
-{#snippet notices()}
-	{#if problems.length > 0}
-		<div id="run-reason" class="notice" data-testid="run-reason">
-			<Alert tone="warning">
-				Fix the model to run:
-				<ul class="problems">
-					{#each problems.slice(0, 8) as p, i (i)}<li>{p}</li>{/each}
-					{#if problems.length > 8}<li>…and {problems.length - 8} more.</li>{/if}
-				</ul>
-			</Alert>
-		</div>
-	{/if}
-	{#if runError}<div class="notice">
-			<Alert tone="danger">The run failed: {runError}</Alert>
-		</div>{/if}
-{/snippet}
-
-{#snippet footer()}
-	<HowItWorks />
-	<References references={REFERENCES} />
-{/snippet}
-
-{#snippet card(editor: 'inputs' | 'decisions' | 'intermediates')}
-	{#if editor === 'inputs'}
-		<InputsEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
-	{:else if editor === 'decisions'}
-		<DecisionsEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
-	{:else}
-		<IntermediatesEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
-	{/if}
-{/snippet}
-
-{#snippet dataflowSection(button: Snippet)}
-	<section class="dataflow" aria-labelledby="dataflow-heading">
-		<div class="section-head">
-			<h3 id="dataflow-heading">Dataflow</h3>
-			{@render button()}
-		</div>
-		<p class="hint">Click a box to find its row.</p>
-		{@render flow(false)}
-	</section>
-{/snippet}
-
-{#snippet tables()}
-	{#each errors.filter((e) => e.where.kind === 'model') as e, i (i)}
-		<Alert tone="warning">{e.message}</Alert>
-	{/each}
-	<div class="tables">
-		<div class="column">
-			{#each LEFT as editor (editor)}
-				<div class="card">
-					{#if flat}{@render card(editor)}{:else}<Panel>{@render card(editor)}</Panel>{/if}
-				</div>
-			{/each}
-		</div>
-		<div class="column">
-			<div class="card">
-				{#if flat}{@render card('intermediates')}{:else}<Panel
-						>{@render card('intermediates')}</Panel
-					>{/if}
-			</div>
-			<div class="card">
-				<Maximizable title="Dataflow" plot={flow}>
-					{#snippet frame(button)}
-						{#if flat}{@render dataflowSection(button)}{:else}<Panel
-								>{@render dataflowSection(button)}</Panel
-							>{/if}
-					{/snippet}
-				</Maximizable>
-			</div>
-		</div>
-	</div>
-{/snippet}
-
-<div class="container ip" class:flat data-hydrated={hydrated || undefined}>
+<div class="container ip" data-hydrated={hydrated || undefined}>
 	<PageHeader path="/information-pricing">
 		{#snippet actions()}<ShareActions
 				url={shareUrl}
@@ -502,7 +422,7 @@
 			/>{/snippet}
 	</PageHeader>
 
-	{#if linkError && !flat}
+	{#if linkError}
 		<div class="link-error" data-testid="link-error">
 			<Alert tone="danger">Couldn't open that link: {linkError} Showing the default model.</Alert>
 		</div>
@@ -589,16 +509,6 @@
 				{/if}
 				{#if stale}<span class="stale" data-testid="stale">Out of date, run again</span>{/if}
 			</div>
-			{#if flat}
-				{#if linkError}
-					<div data-testid="link-error">
-						<Alert tone="danger"
-							>Couldn't open that link: {linkError} Showing the default model.</Alert
-						>
-					</div>
-				{/if}
-				{@render notices()}
-			{/if}
 			<p id="add-hint" class="sr-only">
 				{#if hasScenarios}Appends {count(model.samples || 0)} to the {count(scenarioCount)} scenarios
 					you have.{:else}Run first.{/if}
@@ -606,20 +516,69 @@
 		</RunControls>
 	</div>
 
-	{#if !flat}{@render notices()}{/if}
+	{#if problems.length > 0}
+		<div id="run-reason" class="notice" data-testid="run-reason">
+			<Alert tone="warning">
+				Fix the model to run:
+				<ul class="problems">
+					{#each problems.slice(0, 8) as p, i (i)}<li>{p}</li>{/each}
+					{#if problems.length > 8}<li>…and {problems.length - 8} more.</li>{/if}
+				</ul>
+			</Alert>
+		</div>
+	{/if}
+	{#if runError}<div class="notice">
+			<Alert tone="danger">The run failed: {runError}</Alert>
+		</div>{/if}
 
 	{#if step === 0}
 		<div class="setup" data-testid="setup">
-			{#if flat}
-				<Panel title="Model">
-					<div class="stack">
-						{@render tables()}
-						<div class="footer">{@render footer()}</div>
+			{#each errors.filter((e) => e.where.kind === 'model') as e, i (i)}
+				<Alert tone="warning">{e.message}</Alert>
+			{/each}
+			<div class="tables">
+				<div class="column">
+					<div class="card">
+						<Panel>
+							<InputsEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
+						</Panel>
 					</div>
-				</Panel>
-			{:else}
-				{@render tables()}
-			{/if}
+					<div class="card">
+						<Panel>
+							<DecisionsEditor bind:model bind:ids {errors} onrename={rename} selected={picked} />
+						</Panel>
+					</div>
+				</div>
+				<div class="column">
+					<div class="card">
+						<Panel>
+							<IntermediatesEditor
+								bind:model
+								bind:ids
+								{errors}
+								onrename={rename}
+								selected={picked}
+							/>
+						</Panel>
+					</div>
+					<div class="card">
+						<Maximizable title="Dataflow" plot={flow}>
+							{#snippet frame(button)}
+								<Panel>
+									<section class="dataflow" aria-labelledby="dataflow-heading">
+										<div class="section-head">
+											<h3 id="dataflow-heading">Dataflow</h3>
+											{@render button()}
+										</div>
+										<p class="hint">Click a box to find its row.</p>
+										{@render flow(false)}
+									</section>
+								</Panel>
+							{/snippet}
+						</Maximizable>
+					</div>
+				</div>
+			</div>
 		</div>
 	{:else if analysis && runModel}
 		<Results
@@ -633,23 +592,17 @@
 			applied={appliedTree}
 			busy={running}
 			onretree={retree}
-			{flat}
-			footer={flat ? footer : undefined}
 		/>
-	{:else if flat}
-		{@render footer()}
 	{/if}
 
-	{#if !flat}{@render footer()}{/if}
+	<HowItWorks />
+	<References references={REFERENCES} />
 </div>
 
 <style>
 	.link-error,
 	.notice {
 		margin-bottom: var(--sp-3);
-	}
-	.flat .notice {
-		margin-bottom: 0;
 	}
 
 	.run {
@@ -739,28 +692,13 @@
 			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 		}
 	}
-	/* Each table is a Panel (today), or a plain section of the one Model box (flat). */
+	/* Each table is a Panel. */
 	.card {
 		container-type: inline-size;
 		min-width: 0;
 	}
 	.card :global(.ui-panel-body) {
 		padding: var(--sp-2) var(--sp-3) var(--sp-3);
-	}
-	/* Flat: sections of one box, split by hairlines. */
-	.flat .card + .card,
-	.flat .footer {
-		padding-top: var(--sp-3);
-		border-top: 1px solid var(--border);
-	}
-	@container (max-width: 63.99rem) {
-		.flat .column + .column {
-			padding-top: var(--sp-3);
-			border-top: 1px solid var(--border);
-		}
-	}
-	.flat .footer :global(.references) {
-		margin-top: var(--sp-3);
 	}
 	.setup :global(.section) {
 		--gap: var(--sp-2);

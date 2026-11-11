@@ -1235,8 +1235,7 @@
 		display: flex;
 		align-items: center;
 		gap: var(--sp-2);
-		/* --sr-eq-scale: the equation size the owner is trying out (proto.sreq) */
-		font-size: calc(var(--sr-eq-scale, 1) * var(--text-xl));
+		font-size: var(--text-xl);
 		overflow-x: auto;
 	}
 	.copy-row {
@@ -1347,8 +1346,10 @@
 		font-size: var(--text-xs);
 		color: var(--text-muted);
 	}
+	/* The pills' equations are twice the chip text (owner, 2026-11 review), so they read
+	   at a glance; a long one scrolls inside its pill. */
 	.row-eq {
-		font-size: calc(var(--sr-eq-scale, 1) * var(--text-sm));
+		font-size: calc(2 * var(--text-sm));
 		min-width: 0;
 		overflow: auto hidden;
 	}

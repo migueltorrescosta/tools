@@ -56,15 +56,3 @@ test('Index - tapping a tool navigates to it', async ({ page }) => {
 		.click();
 	await expect(page).toHaveURL(/\/jwt$/);
 });
-
-test('Index - the cplus prototype lists the groups as jump links', async ({ page }) => {
-	await page.addInitScript(() => localStorage.setItem('proto2', JSON.stringify({ home: 'cplus' })));
-	await page.goto('/', { waitUntil: 'networkidle' });
-	const jump = page.getByRole('navigation', { name: 'Groups' });
-	await expect(jump.getByRole('link')).toHaveText([...TOOL_GROUPS]);
-	await expect(page.getByRole('main').getByRole('listitem')).toHaveCount(routes.length);
-	await jump.getByRole('link', { name: TOOL_GROUPS[3] }).click();
-	await expect(page).toHaveURL(/#group-/);
-	await page.getByRole('searchbox', { name: 'Filter tools' }).fill('vote');
-	await expect(jump).toHaveCount(0);
-});

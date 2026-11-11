@@ -73,10 +73,18 @@
 	}
 
 	.boxed {
-		background: var(--surface);
-		border: 1px solid var(--border);
+		background: var(--box-bg);
+		border: 1px solid var(--box-edge);
 		border-radius: var(--radius);
 		box-shadow: var(--box-shadow);
+		-webkit-backdrop-filter: var(--box-blur);
+		backdrop-filter: var(--box-blur);
+		position: relative;
+	}
+	/* The blur makes each box its own stacking layer, so a menu or tooltip that spills out
+	   would sit under the next box: lift the box the pointer or focus is in. */
+	.boxed:is(:hover, :focus-within) {
+		z-index: 1;
 	}
 	.boxed > summary {
 		width: auto;

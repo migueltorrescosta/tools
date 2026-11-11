@@ -45,7 +45,6 @@ test('Wordle Solver - page loads correctly', async ({ page }) => {
 	// No colour key and no How it works: the owner's pick has no help text, only the NYT link
 	await expect(page.getByRole('list', { name: 'Legend' })).toHaveCount(0);
 	await expect(page.locator('details.how')).toHaveCount(0);
-	await expect(page.getByTestId('hint')).toHaveCount(0);
 	const nyt = page.getByRole('link', { name: 'Play today’s Wordle on nytimes.com ↗' });
 	await expect(nyt).toHaveAttribute('href', 'https://www.nytimes.com/games/wordle/index.html');
 	await expect(nyt).toHaveAttribute('target', '_blank');
@@ -250,20 +249,4 @@ test('Wordle Solver - untouched all-black row submits as BBBBB', async ({ page }
 	}
 	await expect(resultRows(page)).toHaveText('RAISE');
 	await expect(inputRow(page)).toHaveText('MULCH');
-});
-
-test('Wordle Solver - hint variant shows one hint line and still plays', async ({ page }) => {
-	await page.addInitScript(() =>
-		localStorage.setItem('proto2', JSON.stringify({ wordle: 'hint' }))
-	);
-	await open(page);
-
-	const hint = page.locator('.ui-panel').getByTestId('hint');
-	await expect(hint).toHaveText('Tap a tile to cycle black, yellow, green, or press 1, 2, 3.');
-	await expect(page.getByRole('link', { name: /nytimes\.com/ })).toBeVisible();
-	await expect(page.locator('.ui-panel')).toHaveCount(1);
-
-	await submit(page).click();
-	await expect(inputRow(page)).toHaveText('MULCH');
-	await expect(resultRows(page)).toHaveCount(1);
 });

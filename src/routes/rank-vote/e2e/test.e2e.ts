@@ -247,30 +247,3 @@ test('page heading and the QR dialog: Esc closes it and focus returns to the tri
 	await expect(dialog).toBeHidden();
 	await expect(trigger).toBeFocused();
 });
-
-test('flat layout (review prototype): every page is one box set, and the answer still renders', async ({
-	page
-}) => {
-	await page.addInitScript(() => localStorage.setItem('proto2', JSON.stringify({ rv: 'flat' })));
-	const { voteURL } = await createBallot(page);
-	// The ballot title is the result box's title, and How it works sits inside the Votes box
-	await expect(page.locator('.ui-panel').first().getByRole('heading', { level: 2 })).toHaveText(
-		'Lunch'
-	);
-	await expect(
-		page.locator('.ui-panel', { hasText: 'Add or edit votes' }).getByText('How it works')
-	).toBeVisible();
-
-	const code = await castVote(page, voteURL, 1);
-	// The vote page is one box: title, choices, Send and How it works
-	const voteBox = page.locator('.ui-panel');
-	await expect(voteBox).toHaveCount(1);
-	await expect(voteBox.getByRole('heading', { level: 2 })).toHaveText('Lunch');
-	await expect(voteBox.getByText('How it works')).toBeVisible();
-
-	await voteBox.getByRole('link', { name: '← Tally' }).click();
-	await pasteVotes(page, `Ann ${code}`);
-	await expect(answerHeading(page)).toHaveText('Sushi wins');
-	await page.getByText('Compare counting methods').click();
-	await expect(fptpFirstCells(page).nth(1)).toHaveText('Sushi');
-});

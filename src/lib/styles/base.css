@@ -20,8 +20,8 @@ body::before {
 	pointer-events: none;
 	/* 5 mm paper: one line every 20px (owner, round 5). */
 	background:
-		linear-gradient(var(--grid-strong) 1px, transparent 1px) 0 0 / 20px 20px,
-		linear-gradient(90deg, var(--grid-strong) 1px, transparent 1px) 0 0 / 20px 20px,
+		linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 20px 20px,
+		linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 20px 20px,
 		var(--bg);
 }
 

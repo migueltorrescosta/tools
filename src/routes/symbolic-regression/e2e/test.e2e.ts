@@ -587,28 +587,32 @@ test('three boxes: Run holds the data, How it works closes the last box', async 
 	await expect(page.getByTestId('how')).toHaveCount(1);
 });
 
-test('equation size variant: 1.75× scales the equations and nothing overflows on a phone', async ({
+test('the equation pills are twice the chip text and nothing overflows on a phone', async ({
 	page
 }) => {
 	await page.setViewportSize({ width: 390, height: 844 });
-	await page.addInitScript(() => localStorage.setItem('proto2', JSON.stringify({ sreq: 's175' })));
 	await open(page);
 	await loadExample(page, /Kepler/);
 	await runUntilFront(page, 2);
 	await stopSearch(page);
 
-	const equation = page.getByTestId('equation');
-	await expect(equation.locator('.katex-html')).toBeVisible();
-	const [size, base] = await equation.evaluate((el) => {
-		const probe = document.createElement('span');
-		probe.style.fontSize = 'var(--text-xl)';
-		document.body.append(probe);
-		const px = parseFloat(getComputedStyle(probe).fontSize);
-		probe.remove();
-		return [parseFloat(getComputedStyle(el).fontSize), px];
-	});
-	expect(size).toBeCloseTo(base * 1.75, 1);
-	await expect(frontRows(page).first().getByTestId('row-equation')).toBeVisible();
+	const pill = frontRows(page).first().getByRole('button');
+	await expect(pill.getByTestId('row-equation')).toBeVisible();
+	const [eq, chip] = await pill.evaluate((el) => [
+		parseFloat(getComputedStyle(el.querySelector('.row-eq')!).fontSize),
+		parseFloat(getComputedStyle(el).fontSize)
+	]);
+	expect(eq).toBeCloseTo(2 * chip, 1);
+	// The main equation stays at its own size, not doubled
+	const main = await page
+		.getByTestId('equation')
+		.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+	expect(main).toBeLessThan(eq);
+	// Every pill fits the screen, and the page has no sideways scroll
+	const rights = await frontRows(page).evaluateAll((els) =>
+		els.map((el) => el.getBoundingClientRect().right)
+	);
+	for (const right of rights) expect(right).toBeLessThanOrEqual(390);
 	const overflow = await page.evaluate(
 		() => document.documentElement.scrollWidth - document.documentElement.clientWidth
 	);

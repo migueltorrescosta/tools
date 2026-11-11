@@ -3,7 +3,6 @@
 	import { goto } from '$app/navigation';
 	import { routes, TOOL_GROUPS } from '#lib/routes.js';
 	import { Panel } from '#lib/ui/index.js';
-	import { proto } from '#lib/proto/proto.svelte.js';
 
 	const groups = TOOL_GROUPS.map((group) => ({
 		group,
@@ -25,9 +24,6 @@
 	const flatten = $derived(words.length > 0);
 	const count = $derived(flat.length);
 
-	// Height of the find box, so a jump link on a phone lands below it (it sticks at the top).
-	let findH = $state(0);
-
 	let input: HTMLInputElement | undefined = $state();
 	function onKey(e: KeyboardEvent) {
 		if (e.key === 'Enter' && flat[0]) goto(resolve(flat[0].path));
@@ -47,10 +43,10 @@
 </svelte:head>
 <svelte:window onkeydown={onWindowKey} />
 
-<div class="container home" style:--find-h="{findH}px">
+<div class="container home">
 	<h1 class="sr-only">Tools</h1>
 
-	<div class="find" bind:clientHeight={findH}>
+	<div class="find">
 		<Panel>
 			<p class="intro">Small tools that run in your browser.</p>
 			<label class="sr-only" for="tool-filter">Filter tools</label>
@@ -66,12 +62,6 @@
 			/>
 			{#if words.length}
 				<p class="filter-count" role="status">{count} of {routes.length}</p>
-			{:else if proto.home === 'cplus'}
-				<nav class="jump" aria-label="Groups">
-					{#each groups as { group, id } (group)}
-						<a href="#{id}">{group}</a>
-					{/each}
-				</nav>
 			{/if}
 		</Panel>
 	</div>
@@ -157,32 +147,6 @@
 		margin: var(--sp-2) 0 0;
 		color: var(--text-muted);
 		font-size: var(--text-sm);
-	}
-	.jump {
-		display: flex;
-		flex-direction: column;
-		gap: var(--sp-1);
-		margin-top: var(--sp-3);
-		padding-top: var(--sp-3);
-		border-top: 1px solid var(--border);
-		font-size: var(--text-md);
-	}
-	@media (max-width: 47.99rem) {
-		.jump {
-			flex-direction: row;
-			flex-wrap: wrap;
-			gap: var(--sp-1) var(--sp-4);
-			margin-top: var(--sp-2);
-			padding-top: var(--sp-2);
-		}
-		.tools-group {
-			scroll-margin-top: calc(var(--topbar-h) + var(--find-h) + var(--sp-3));
-		}
-	}
-	@media (min-width: 48rem) {
-		.tools-group {
-			scroll-margin-top: calc(var(--topbar-h) + var(--sp-2));
-		}
 	}
 	.empty {
 		margin: 0;
