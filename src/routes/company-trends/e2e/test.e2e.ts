@@ -247,3 +247,23 @@ test('Company trends - on a phone the chart opens at the large companies, with a
 	await expect(page.locator('.ui-scroll-edges')).toHaveClass(/more-left/);
 	await expect(page.locator('.ui-scroll-edges')).not.toHaveClass(/more-right/);
 });
+
+test('Company trends - three boxes: chart, companies and currency, data and method', async ({
+	page
+}) => {
+	await open(page);
+	const boxes = page.locator('.ui-panel');
+	await expect(boxes).toHaveCount(3);
+	await expect(boxes.getByRole('heading', { level: 2 })).toHaveText([
+		'Chart',
+		'Companies and currency',
+		'Data and method'
+	]);
+	await expect(boxes.nth(0).getByTestId('trends-chart')).toBeVisible();
+	await expect(boxes.nth(1).getByRole('combobox', { name: 'Display currency' })).toBeVisible();
+	await boxes.nth(1).getByRole('button', { name: '+ Add company' }).click();
+	await expect(boxes.nth(1).getByRole('group', { name: 'All companies' })).toBeVisible();
+	await expect(boxes.nth(2).getByTestId('table-view')).toBeVisible();
+	await expect(boxes.nth(2).getByTestId('how')).toBeVisible();
+	await expect(page.locator('.ui-panel .ui-panel')).toHaveCount(0);
+});

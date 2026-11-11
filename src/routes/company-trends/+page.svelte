@@ -3,7 +3,7 @@
 	import datasetJson from './data/companies.json';
 	import TrendsChart from './TrendsChart.svelte';
 	import { tick } from 'svelte';
-	import { Alert, Button, Fold, PageHeader, ScrollEdges, Select } from '#lib/ui/index.js';
+	import { Alert, Button, Fold, PageHeader, Panel, ScrollEdges, Select } from '#lib/ui/index.js';
 	import { loadDataset } from '#lib/company-trends/schema.js';
 	import {
 		companyTypes,
@@ -133,244 +133,256 @@
 <div class="container" data-hydrated={hydrated || undefined}>
 	<PageHeader path="/company-trends" />
 
-	{#if errors.length > 0}
-		<Alert tone="danger">
-			<strong>Dataset validation errors</strong>
-			<ul class="ct-errors">
-				{#each errors as error (error)}
-					<li>{error}</li>
-				{/each}
+	{#snippet how()}
+		<details class="how" data-testid="how">
+			<summary>How it works</summary>
+			<p>
+				The chart plots revenue (log scale) against operating margin for each company, from 2000 to
+				the last reported quarter, in {currency}. Add or remove companies below the chart, then
+				press Play or drag the quarter slider. Figures are fiscal-year totals; quarters in between
+				are estimated. USD and GBP use the
+				<a href={dataset.meta.fxSource} target="_blank" rel="noreferrer">ECB</a> average rate of each
+				fiscal year.
+			</p>
+			<p>
+				The exact method is in the
+				<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/company-trends.md"
+					>docs</a
+				>.
+			</p>
+			<p>
+				Up to {PALETTE_SIZE} companies each get their own colour; with more, each industry gets one colour.
+				The tooltip gives each point's quality. Other marks on the chart:
+			</p>
+			<ul class="ct-marks ct-marks-how">
+				<li>
+					<svg width="14" height="14" aria-hidden="true"
+						><circle cx="7" cy="7" r="2" class="ct-mark-interp" /></svg
+					>a small dot is an interpolated quarter (log-linear between annual figures)
+				</li>
+				<li>
+					<svg width="24" height="14" aria-hidden="true"
+						><line x1="1" y1="7" x2="23" y2="7" class="ct-mark-gap" /></svg
+					>a dashed line is a data gap (missing years)
+				</li>
+				<li>
+					<svg width="14" height="14" aria-hidden="true"
+						><path d="M3,4L11,4L7,12Z" class="ct-mark-offscale" /></svg
+					>a triangle is an off-scale margin (below −200%), pinned to the edge
+				</li>
 			</ul>
-		</Alert>
-	{:else if companies.length === 0}
-		<Alert>
-			<strong>Empty dataset.</strong> Company curation is in progress. Nothing to chart yet.
-		</Alert>
-	{:else}
-		<div class="ct-controls">
-			<div class="cluster ct-time">
-				<Button onclick={togglePlay} data-testid="play"
-					><span aria-hidden="true">{playing ? '❚❚' : '▶'}</span>{playing
-						? 'Pause'
-						: 'Play'}</Button
-				>
-				<label class="ct-slider">
-					<span>Quarter</span>
-					<input
-						type="range"
-						min="0"
-						max={lastQi}
-						step="1"
-						bind:value={qi}
-						oninput={() => (playing = false)}
-						aria-valuetext={quarter}
-						data-testid="quarter-slider"
-					/>
-				</label>
-				<output class="ct-quarter" data-testid="quarter-label">{quarter}</output>
-				<div class="ct-currency">
-					<Select label="Display currency" hideLabel options={CURRENCIES} bind:value={currency} />
+		</details>
+	{/snippet}
+
+	<div class="stack">
+		{#if errors.length > 0}
+			<Panel>
+				<Alert tone="danger">
+					<strong>Dataset validation errors</strong>
+					<ul class="ct-errors">
+						{#each errors as error (error)}
+							<li>{error}</li>
+						{/each}
+					</ul>
+				</Alert>
+				{@render how()}
+			</Panel>
+		{:else if companies.length === 0}
+			<Panel>
+				<Alert>
+					<strong>Empty dataset.</strong> Company curation is in progress. Nothing to chart yet.
+				</Alert>
+				{@render how()}
+			</Panel>
+		{:else}
+			<Panel title="Chart">
+				<div class="cluster ct-time">
+					<Button onclick={togglePlay} data-testid="play"
+						><span aria-hidden="true">{playing ? '❚❚' : '▶'}</span>{playing
+							? 'Pause'
+							: 'Play'}</Button
+					>
+					<label class="ct-slider">
+						<span>Quarter</span>
+						<input
+							type="range"
+							min="0"
+							max={lastQi}
+							step="1"
+							bind:value={qi}
+							oninput={() => (playing = false)}
+							aria-valuetext={quarter}
+							data-testid="quarter-slider"
+						/>
+					</label>
+					<output class="ct-quarter" data-testid="quarter-label">{quarter}</output>
 				</div>
-			</div>
-		</div>
 
-		<!-- On a narrow screen the 820 px chart scrolls sideways, opening at the large companies -->
-		<ScrollEdges startAtEnd data-testid="chart-scroll">
-			{#snippet hint()}<p class="ct-note ct-scroll-hint" data-testid="scroll-hint">
-					Scroll sideways for smaller revenues.
-				</p>{/snippet}
-			<TrendsChart trails={visibleTrails} {qi} {quarter} {currency} {colors} {domain} />
-		</ScrollEdges>
-		<ul class="ct-marks" aria-label="Chart marks">
-			<li>
-				<svg width="14" height="14" aria-hidden="true"
-					><circle cx="7" cy="7" r="4" class="ct-mark-reported" /></svg
-				>reported
-			</li>
-			<li>
-				<svg width="14" height="14" aria-hidden="true"
-					><circle cx="7" cy="7" r="4" class="ct-mark-estimated" /></svg
-				>estimated (private company, press reports)
-			</li>
-		</ul>
-
-		<div class="ct-chips" role="group" aria-label="Companies">
-			<ul class="ct-chip-list">
-				{#each chosen as company (company.id)}
-					<li class="ct-chip" data-testid="company-chip">
-						<span
-							class="ct-swatch"
-							style="--c: {colors.get(company.id)}"
-							aria-hidden="true"
-							data-testid="company-swatch"
-						></span>{company.name}<button
-							type="button"
-							class="ct-chip-remove"
-							aria-label="Remove {company.name}"
-							onclick={() => (selectedIds = selectedIds.filter((id) => id !== company.id))}
-							><span aria-hidden="true">×</span></button
-						>
+				<!-- On a narrow screen the 820 px chart scrolls sideways, opening at the large companies -->
+				<ScrollEdges startAtEnd data-testid="chart-scroll">
+					{#snippet hint()}<p class="ct-note ct-scroll-hint" data-testid="scroll-hint">
+							Scroll sideways for smaller revenues.
+						</p>{/snippet}
+					<TrendsChart trails={visibleTrails} {qi} {quarter} {currency} {colors} {domain} />
+				</ScrollEdges>
+				<ul class="ct-marks" aria-label="Chart marks">
+					<li>
+						<svg width="14" height="14" aria-hidden="true"
+							><circle cx="7" cy="7" r="4" class="ct-mark-reported" /></svg
+						>reported
 					</li>
-				{/each}
-			</ul>
-			<span class="ct-add" bind:this={addButton}>
-				<Button
-					size="sm"
-					variant="ghost"
-					aria-expanded={pickerOpen}
-					aria-controls="ct-picker"
-					onclick={() => (pickerOpen ? closePicker() : (pickerOpen = true))}>+ Add company</Button
-				>
-			</span>
-		</div>
-		{#if chosen.length === 0}
-			<p class="ct-note ct-empty">No companies chosen. Add one to draw it.</p>
-		{/if}
+					<li>
+						<svg width="14" height="14" aria-hidden="true"
+							><circle cx="7" cy="7" r="4" class="ct-mark-estimated" /></svg
+						>estimated (private company, press reports)
+					</li>
+				</ul>
+			</Panel>
 
-		{#if pickerOpen}
-			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-			<div
-				class="ct-picker"
-				id="ct-picker"
-				role="group"
-				aria-label="All companies"
-				onkeydown={(e) => {
-					if (e.key === 'Escape') closePicker();
-				}}
-			>
-				<div class="ct-picker-head">
-					<Button size="sm" onclick={() => (selectedIds = companies.map((c) => c.id))}>All</Button>
-					<Button size="sm" onclick={() => (selectedIds = [])}>None</Button>
-					<Button size="sm" variant="ghost" class="ct-done" onclick={closePicker}>Done</Button>
+			<Panel title="Companies and currency">
+				<div class="ct-chips-row">
+					<div class="ct-chips" role="group" aria-label="Companies">
+						<ul class="ct-chip-list">
+							{#each chosen as company (company.id)}
+								<li class="ct-chip" data-testid="company-chip">
+									<span
+										class="ct-swatch"
+										style="--c: {colors.get(company.id)}"
+										aria-hidden="true"
+										data-testid="company-swatch"
+									></span>{company.name}<button
+										type="button"
+										class="ct-chip-remove"
+										aria-label="Remove {company.name}"
+										onclick={() => (selectedIds = selectedIds.filter((id) => id !== company.id))}
+										><span aria-hidden="true">×</span></button
+									>
+								</li>
+							{/each}
+						</ul>
+						<span class="ct-add" bind:this={addButton}>
+							<Button
+								size="sm"
+								variant="ghost"
+								aria-expanded={pickerOpen}
+								aria-controls="ct-picker"
+								onclick={() => (pickerOpen ? closePicker() : (pickerOpen = true))}
+								>+ Add company</Button
+							>
+						</span>
+					</div>
+					<div class="ct-currency">
+						<Select label="Display currency" hideLabel options={CURRENCIES} bind:value={currency} />
+					</div>
 				</div>
-				<div class="ct-groups">
-					{#each companiesByType as group (group.type)}
-						<div class="ct-company-group" role="group" aria-labelledby="ct-group-{group.type}">
-							<div class="ct-company-group-title">
-								<span id="ct-group-{group.type}">{group.type}</span>
-								<Button
-									variant="link"
-									aria-label="All {group.type}"
-									onclick={() => addAll(group.companies.map((c) => c.id))}>All</Button
-								>
-							</div>
-							{#each group.companies as company (company.id)}
-								<label class="ct-check">
-									<input
-										type="checkbox"
-										value={company.id}
-										checked={selectedIds.includes(company.id)}
-										onchange={() => (selectedIds = toggle(selectedIds, company.id))}
-									/>
-									{company.name}
-								</label>
+				{#if chosen.length === 0}
+					<p class="ct-note ct-empty">No companies chosen. Add one to draw it.</p>
+				{/if}
+
+				{#if pickerOpen}
+					<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+					<div
+						class="ct-picker"
+						id="ct-picker"
+						role="group"
+						aria-label="All companies"
+						onkeydown={(e) => {
+							if (e.key === 'Escape') closePicker();
+						}}
+					>
+						<div class="ct-picker-head">
+							<Button size="sm" onclick={() => (selectedIds = companies.map((c) => c.id))}
+								>All</Button
+							>
+							<Button size="sm" onclick={() => (selectedIds = [])}>None</Button>
+							<Button size="sm" variant="ghost" class="ct-done" onclick={closePicker}>Done</Button>
+						</div>
+						<div class="ct-groups">
+							{#each companiesByType as group (group.type)}
+								<div class="ct-company-group" role="group" aria-labelledby="ct-group-{group.type}">
+									<div class="ct-company-group-title">
+										<span id="ct-group-{group.type}">{group.type}</span>
+										<Button
+											variant="link"
+											aria-label="All {group.type}"
+											onclick={() => addAll(group.companies.map((c) => c.id))}>All</Button
+										>
+									</div>
+									{#each group.companies as company (company.id)}
+										<label class="ct-check">
+											<input
+												type="checkbox"
+												value={company.id}
+												checked={selectedIds.includes(company.id)}
+												onchange={() => (selectedIds = toggle(selectedIds, company.id))}
+											/>
+											{company.name}
+										</label>
+									{/each}
+								</div>
 							{/each}
 						</div>
-					{/each}
-				</div>
-			</div>
+					</div>
+				{/if}
+			</Panel>
+
+			<Panel title="Data and method">
+				<Fold label="Data table" summary="{quarter} · {currency}" data-testid="table-view">
+					<div class="ct-table-wrap">
+						<table>
+							<thead>
+								<tr>
+									<th scope="col">Company</th>
+									<th scope="col">Quarter</th>
+									<th scope="col">Quality</th>
+									<th scope="col" class="ct-num">Revenue</th>
+									<th scope="col" class="ct-num">Op. expenses</th>
+									<th scope="col" class="ct-num">Op. income</th>
+									<th scope="col" class="ct-num">Op. margin</th>
+									<th scope="col">Source</th>
+								</tr>
+							</thead>
+							<tbody>
+								{#each tableRows as row (row.trail.company.id)}
+									<tr>
+										<td>{row.trail.company.name}</td>
+										<td>{row.point.quarter}</td>
+										<td>{row.point.quality}</td>
+										<td class="ct-num">{formatMoney(row.point.revenue, currency)}</td>
+										<td class="ct-num">{formatMoney(row.point.expenses, currency)}</td>
+										<td class="ct-num">{formatMoney(row.point.operatingIncome, currency)}</td>
+										<td class="ct-num"
+											>{row.point.margin === null ? '—' : formatPercent(row.point.margin, 1)}</td
+										>
+										<td class="ct-source">
+											{#if row.point.quality === 'interpolated'}interpolated between{/if}
+											{#each pointSources(row.trail, row.point) as s, i (s.quarter)}
+												{#if i > 0}and{/if}
+												{#if s.sourceUrl}
+													<a href={s.sourceUrl} target="_blank" rel="noreferrer" title={s.source}
+														>{row.point.quality === 'interpolated' ? s.quarter : s.source}</a
+													>
+												{:else}
+													<span title={s.source}>{s.quarter}</span>
+												{/if}
+											{/each}
+										</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+				</Fold>
+				{@render how()}
+			</Panel>
 		{/if}
-
-		<Fold
-			label="Data table"
-			summary="{quarter} · {currency}"
-			class="ct-table"
-			data-testid="table-view"
-		>
-			<div class="ct-table-wrap">
-				<table>
-					<thead>
-						<tr>
-							<th scope="col">Company</th>
-							<th scope="col">Quarter</th>
-							<th scope="col">Quality</th>
-							<th scope="col" class="ct-num">Revenue</th>
-							<th scope="col" class="ct-num">Op. expenses</th>
-							<th scope="col" class="ct-num">Op. income</th>
-							<th scope="col" class="ct-num">Op. margin</th>
-							<th scope="col">Source</th>
-						</tr>
-					</thead>
-					<tbody>
-						{#each tableRows as row (row.trail.company.id)}
-							<tr>
-								<td>{row.trail.company.name}</td>
-								<td>{row.point.quarter}</td>
-								<td>{row.point.quality}</td>
-								<td class="ct-num">{formatMoney(row.point.revenue, currency)}</td>
-								<td class="ct-num">{formatMoney(row.point.expenses, currency)}</td>
-								<td class="ct-num">{formatMoney(row.point.operatingIncome, currency)}</td>
-								<td class="ct-num"
-									>{row.point.margin === null ? '—' : formatPercent(row.point.margin, 1)}</td
-								>
-								<td class="ct-source">
-									{#if row.point.quality === 'interpolated'}interpolated between{/if}
-									{#each pointSources(row.trail, row.point) as s, i (s.quarter)}
-										{#if i > 0}and{/if}
-										{#if s.sourceUrl}
-											<a href={s.sourceUrl} target="_blank" rel="noreferrer" title={s.source}
-												>{row.point.quality === 'interpolated' ? s.quarter : s.source}</a
-											>
-										{:else}
-											<span title={s.source}>{s.quarter}</span>
-										{/if}
-									{/each}
-								</td>
-							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
-		</Fold>
-	{/if}
-
-	<details class="how" data-testid="how">
-		<summary>How it works</summary>
-		<p>
-			The chart plots revenue (log scale) against operating margin for each company, from 2000 to
-			the last reported quarter, in {currency}. Add or remove companies below the chart, then press
-			Play or drag the quarter slider. Figures are fiscal-year totals; quarters in between are
-			estimated. USD and GBP use the
-			<a href={dataset.meta.fxSource} target="_blank" rel="noreferrer">ECB</a> average rate of each fiscal
-			year.
-		</p>
-		<p>
-			The exact method is in the
-			<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/company-trends.md">docs</a
-			>.
-		</p>
-		<p>
-			Up to {PALETTE_SIZE} companies each get their own colour; with more, each industry gets one colour.
-			The tooltip gives each point's quality. Other marks on the chart:
-		</p>
-		<ul class="ct-marks ct-marks-how">
-			<li>
-				<svg width="14" height="14" aria-hidden="true"
-					><circle cx="7" cy="7" r="2" class="ct-mark-interp" /></svg
-				>a small dot is an interpolated quarter (log-linear between annual figures)
-			</li>
-			<li>
-				<svg width="24" height="14" aria-hidden="true"
-					><line x1="1" y1="7" x2="23" y2="7" class="ct-mark-gap" /></svg
-				>a dashed line is a data gap (missing years)
-			</li>
-			<li>
-				<svg width="14" height="14" aria-hidden="true"
-					><path d="M3,4L11,4L7,12Z" class="ct-mark-offscale" /></svg
-				>a triangle is an off-scale margin (below −200%), pinned to the edge
-			</li>
-		</ul>
-	</details>
+	</div>
 </div>
 
 <style>
 	.ct-errors {
 		margin: var(--sp-1) 0 0;
 		padding-left: var(--sp-4);
-	}
-
-	.ct-controls {
-		margin-bottom: var(--sp-3);
 	}
 
 	.ct-currency :global(select) {
@@ -382,6 +394,7 @@
 
 	.ct-time {
 		--gap: var(--sp-2) var(--sp-3);
+		margin-bottom: var(--sp-3);
 	}
 
 	.ct-slider {
@@ -488,12 +501,24 @@
 		stroke-dasharray: 3 4;
 	}
 
+	/* The chips wrap on the left; the currency stays at the right of the first line. */
+	.ct-chips-row {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--sp-3);
+	}
+
 	.ct-chips {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
 		gap: var(--sp-2);
-		margin-top: var(--sp-3);
+		flex: 1;
+		min-width: 0;
+	}
+
+	.ct-currency {
+		flex: none;
 	}
 
 	.ct-chip-list {
@@ -543,13 +568,11 @@
 		margin: var(--sp-2) 0 0;
 	}
 
+	/* The full list opens inline in the same box, under a hairline. */
 	.ct-picker {
-		margin-top: var(--sp-2);
-		padding: var(--sp-3);
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		box-shadow: var(--box-shadow);
+		margin-top: var(--sp-3);
+		padding-top: var(--sp-3);
+		border-top: 1px solid var(--border);
 	}
 
 	.ct-picker-head {
@@ -584,10 +607,6 @@
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
 		color: var(--text-muted);
-	}
-
-	:global(.ui-fold.ct-table) {
-		margin-top: var(--sp-4);
 	}
 
 	.ct-table-wrap {

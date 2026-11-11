@@ -388,9 +388,6 @@
 		display: block;
 		width: 100%;
 		height: auto;
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
 		cursor: crosshair;
 		font-family: var(--font-sans);
 	}
