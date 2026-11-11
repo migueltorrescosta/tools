@@ -5,7 +5,7 @@
 	import { browserStorage, createPersistGate } from '#lib/persist-gate.js';
 	import { buildGraph, encodePath, restorePath } from '#lib/decision-tree/graph.js';
 	import DecisionTree from '#lib/decision-tree/DecisionTree.svelte';
-	import { PageHeader } from '#lib/ui/index.js';
+	import { PageHeader, Panel } from '#lib/ui/index.js';
 	import { validateGraph } from '#lib/decision-tree/validation.js';
 	import rawTreeData from '#lib/decision-tree/data/tree.json';
 	import type { DecisionGraph, TraversalPath, RawTree } from '#lib/decision-tree/types.js';
@@ -81,18 +81,32 @@
 <div class="container" data-hydrated={hydrated || undefined}>
 	<PageHeader path="/decision-tree" />
 
-	<DecisionTree {graph} bind:path={traversalPath} />
-
-	<details class="how">
-		<summary>How it works</summary>
-		<p>
-			Pick a guide, then answer one question at a time. Each answer opens the next question, until
-			you reach a recommendation. Change an earlier answer to take another branch: the questions
-			after it are cleared.
-		</p>
-		<p>
-			Your answers are saved in this browser and in the page address, so you can come back later or
-			share the link.
-		</p>
-	</details>
+	<div class="tree-box">
+		<Panel>
+			<DecisionTree {graph} bind:path={traversalPath}>
+				{#snippet end()}
+					<details class="how">
+						<summary>How it works</summary>
+						<p>
+							Pick a guide, then answer one question at a time. Each answer opens the next question,
+							until you reach a recommendation. Change an earlier answer to take another branch: the
+							questions after it are cleared.
+						</p>
+						<p>
+							Your answers are saved in this browser and in the page address, so you can come back
+							later or share the link.
+						</p>
+					</details>
+				{/snippet}
+			</DecisionTree>
+		</Panel>
+	</div>
 </div>
+
+<style>
+	/* One centred box: the recommendation, the path to it, then Start over and How it works */
+	.tree-box {
+		max-width: 48rem;
+		margin-inline: auto;
+	}
+</style>
