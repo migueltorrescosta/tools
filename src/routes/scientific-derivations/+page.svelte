@@ -4,7 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { PAPERS } from '#lib/scientific-derivations/index.js';
 	import { renderProse } from '#lib/scientific-derivations/prose.js';
-	import { PageHeader, Select } from '#lib/ui/index.js';
+	import { PageHeader, Panel, Select } from '#lib/ui/index.js';
 	import DerivationGraph, { type Selection } from './lib/DerivationGraph.svelte';
 	import DetailPanel from './lib/DetailPanel.svelte';
 
@@ -73,61 +73,67 @@
 <div class="container sd-page" data-hydrated={hydrated || undefined}>
 	<PageHeader path="/scientific-derivations" />
 
-	<div class="sd-pickers">
-		<Select
-			label="Paper"
-			options={paperOptions}
-			bind:value={paperId}
-			onchange={choosePaper}
-			data-testid="paper"
-		/>
-		<Select
-			label="Derivation"
-			options={derivationOptions}
-			bind:value={derivationId}
-			onchange={chooseDerivation}
-			data-testid="derivation"
-		/>
-	</div>
+	<Panel>
+		<div class="sd-pickers">
+			<Select
+				label="Paper"
+				options={paperOptions}
+				bind:value={paperId}
+				onchange={choosePaper}
+				data-testid="paper"
+			/>
+			<Select
+				label="Derivation"
+				options={derivationOptions}
+				bind:value={derivationId}
+				onchange={chooseDerivation}
+				data-testid="derivation"
+			/>
+		</div>
 
-	<p class="sd-paper">
-		{paper.authors}, <a href={paper.url} target="_blank" rel="noopener">{paper.title}</a>,
-		{paper.venue}. {paper.numbering}
-	</p>
+		<section class="sd-intro" aria-labelledby="sd-title">
+			<h2 id="sd-title">
+				{derivation.title} <span class="sd-section">{derivation.section}</span>
+			</h2>
+			<!-- eslint-disable-next-line svelte/no-at-html-tags -- escaped prose with KaTeX -->
+			<p>{@html renderProse(derivation.summary)}</p>
+		</section>
+	</Panel>
 
-	<section class="sd-intro" aria-labelledby="sd-title">
-		<h2 id="sd-title">
-			{derivation.title} <span class="sd-section">{derivation.section}</span>
-		</h2>
-		<!-- eslint-disable-next-line svelte/no-at-html-tags -- escaped prose with KaTeX -->
-		<p>{@html renderProse(derivation.summary)}</p>
-	</section>
+	<Panel>
+		<ul class="sd-key" aria-label="Key">
+			<li><span class="sd-swatch assumption" aria-hidden="true"></span>Assumption</li>
+			<li><span class="sd-swatch result" aria-hidden="true"></span>Result</li>
+		</ul>
+		{#key derivation.id}
+			<DerivationGraph {derivation} bind:selected />
+		{/key}
 
-	<ul class="sd-key" aria-label="Key">
-		<li><span class="sd-swatch assumption" aria-hidden="true"></span>Assumption</li>
-		<li><span class="sd-swatch result" aria-hidden="true"></span>Result</li>
-	</ul>
-	{#key derivation.id}
-		<DerivationGraph {derivation} bind:selected />
-	{/key}
+		<div class="sd-end">
+			<details class="how">
+				<summary>How it works</summary>
+				<p>
+					Key derivations of scientific papers as graphs: equations are nodes, and the facts that
+					connect them are edges.
+				</p>
+				<p>
+					Select an equation or a fact for its details. Dashed boxes are assumptions and bold boxes
+					are results. The words "corrected" and "added" mark steps that were corrected or that are
+					not in the paper.
+				</p>
+			</details>
+			<p class="sd-paper">
+				{paper.authors}, <a href={paper.url} target="_blank" rel="noopener">{paper.title}</a>,
+				{paper.venue}. {paper.numbering}
+			</p>
+		</div>
+	</Panel>
+
 	{#if selected}
 		<aside class="sd-drawer" aria-label="Details" tabindex="-1" bind:this={drawer}>
 			<DetailPanel {paper} {derivation} bind:selected onopen={open} />
 		</aside>
 	{/if}
-
-	<details class="how">
-		<summary>How it works</summary>
-		<p>
-			Key derivations of scientific papers as graphs: equations are nodes, and the facts that
-			connect them are edges.
-		</p>
-		<p>
-			Select an equation or a fact for its details. Dashed boxes are assumptions and bold boxes are
-			results. The words "corrected" and "added" mark steps that were corrected or that are not in
-			the paper.
-		</p>
-	</details>
 </div>
 
 <style>
@@ -138,8 +144,19 @@
 		margin-bottom: var(--sp-2);
 	}
 
+	/* How it works and the paper reference close the graph box, under a hairline. */
+	.sd-end {
+		margin-top: var(--sp-3);
+		padding-top: var(--sp-3);
+		border-top: 1px solid var(--border);
+	}
+
+	.sd-end :global(details.how) {
+		margin-top: 0;
+	}
+
 	.sd-paper {
-		margin: 0;
+		margin: var(--sp-2) 0 0;
 		font-size: var(--text-sm);
 		color: var(--text-muted);
 	}
@@ -152,7 +169,7 @@
 	}
 
 	.sd-intro {
-		margin: var(--sp-3) 0;
+		margin-top: var(--sp-2);
 	}
 
 	.sd-intro h2 {
@@ -169,6 +186,9 @@
 	/* Complex graphs need every pixel: this page ignores the shared content cap. */
 	.sd-page {
 		max-width: none;
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-3);
 	}
 
 	/* A key to the two box styles, drawn like the graph's own boxes. */
@@ -214,9 +234,6 @@
 		z-index: 10;
 		width: min(26rem, 100vw);
 		overflow-y: auto;
-		background: var(--bg);
-		border-left: 1px solid var(--border);
-		box-shadow: -4px 0 16px rgb(0 0 0 / 0.15);
 		animation: sd-slide 0.15s ease-out;
 	}
 
@@ -229,9 +246,9 @@
 		outline-offset: -2px;
 	}
 
+	/* The details Panel is the sheet itself: full height, square to the screen edges. */
 	.sd-drawer > :global(.ui-panel) {
 		min-height: 100%;
-		border: none;
 		border-radius: 0;
 	}
 

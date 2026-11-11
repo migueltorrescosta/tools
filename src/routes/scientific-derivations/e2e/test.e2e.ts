@@ -133,3 +133,21 @@ test('the second paper opens with its own derivations', async ({ page }) => {
 	await expect(page).toHaveURL(/paper=shannon-communication/);
 	await expect(page.getByTestId('node-telegraph')).toBeVisible();
 });
+
+test('everything sits in two boxes, and the open details are a third', async ({ page }) => {
+	await open(page);
+	const main = page.getByRole('main');
+	const boxes = main.locator('.ui-panel');
+	await expect(boxes).toHaveCount(2);
+	await expect(boxes.nth(0).getByTestId('paper')).toBeVisible();
+	await expect(boxes.nth(0).getByRole('heading', { level: 2 })).toBeVisible();
+	const graphBox = boxes.nth(1);
+	await expect(graphBox.getByRole('list', { name: 'Key' })).toBeVisible();
+	await expect(graphBox.getByTestId('graph')).toBeVisible();
+	await expect(graphBox.locator('details.how')).toBeVisible();
+	await expect(graphBox.getByRole('link', { name: paper.title })).toBeVisible();
+	await expect(main.locator('.ui-panel .ui-panel')).toHaveCount(0);
+	await page.getByTestId('node-gksl').click();
+	await expect(page.locator('aside.sd-drawer > .ui-panel')).toBeVisible();
+	await expect(page.locator('.ui-panel')).toHaveCount(3);
+});

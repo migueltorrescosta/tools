@@ -185,9 +185,6 @@
 		position: relative;
 		overflow: auto;
 		max-width: 100%;
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
 	}
 
 	.dg-loading {
