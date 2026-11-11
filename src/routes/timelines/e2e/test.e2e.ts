@@ -106,6 +106,12 @@ test('Timelines - verify URL parameter', async ({ page }) => {
 	// The chosen topic is checked and its description shows under the chips
 	await expect(topic(page, 'Elections')).toBeChecked();
 	await expect(page.getByText(/^National elections across European countries/)).toBeVisible();
+
+	// Two boxes: the topic rail (chips, description, How it works) and the events.
+	const rail = page.locator('section').filter({ has: topics(page) });
+	await expect(rail.getByText(/^National elections across European countries/)).toBeVisible();
+	await expect(rail.getByText('How it works', { exact: true })).toBeVisible();
+	await expect(page.locator('section').filter({ has: events(page).first() })).toHaveCount(1);
 });
 
 test('Timelines - LLM breakthroughs shows rich rows', async ({ page }) => {
