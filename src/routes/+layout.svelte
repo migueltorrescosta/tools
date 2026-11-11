@@ -28,7 +28,19 @@
 		<a
 			class="home"
 			href={resolve('/')}
-			aria-current={page.url.pathname === resolve('/') ? 'page' : undefined}>Tools</a
+			aria-current={page.url.pathname === resolve('/') ? 'page' : undefined}
+			><svg
+				class="home-icon"
+				viewBox="0 0 24 24"
+				width="20"
+				height="20"
+				aria-hidden="true"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"><path d="M3 11 12 4l9 7M5 10v10h5v-6h4v6h5V10" /></svg
+			><span class="home-text">Tools</span></a
 		>
 		{#if current}<span class="crumb" aria-hidden="true">/</span><span class="crumb-name"
 				>{current.name}</span
@@ -92,6 +104,34 @@
 
 	.home:hover {
 		color: var(--accent);
+	}
+
+	.home-icon {
+		display: none;
+	}
+
+	/* Phones: a home icon instead of "Tools /", so the tool's name keeps its room (owner, 2026-11-11). */
+	@media (max-width: 40rem) {
+		.home {
+			display: grid;
+			place-items: center;
+			min-width: 44px;
+			min-height: 44px;
+		}
+		.home-icon {
+			display: block;
+		}
+		.home-text {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			clip-path: inset(50%);
+			white-space: nowrap;
+		}
+		.crumb {
+			display: none;
+		}
 	}
 
 	.crumb {

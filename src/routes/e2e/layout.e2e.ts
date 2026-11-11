@@ -45,13 +45,25 @@ test('Layout - a picked theme survives reloads and OS changes, until Match devic
 	expect(await bodyBg(page)).toBe(DARK_BG);
 });
 
-test('Layout - the theme switch stays on screen at 320px', async ({ page }) => {
+test('Layout - on a phone the theme is one button that opens the three choices', async ({
+	page
+}) => {
 	await page.setViewportSize({ width: 320, height: 640 });
+	await page.emulateMedia({ colorScheme: 'light' });
 	await page.goto('/rank-vote');
 	await page.locator('nav[data-hydrated]').waitFor();
-	const box = await page.getByRole('group', { name: 'Theme' }).boundingBox();
+	const toggle = page.getByRole('button', { name: 'Theme: Match device' });
+	const box = await toggle.boundingBox();
 	expect(box && box.x + box.width).toBeLessThanOrEqual(320);
 	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+	await expect(page.getByRole('link', { name: 'Tools' })).toBeVisible();
+	await expect(page.getByRole('navigation', { name: 'Site' })).toContainText('Rank Vote');
+
+	await toggle.click();
+	await page.getByRole('button', { name: 'Dark' }).click();
+	expect(await bodyBg(page)).toBe(DARK_BG);
+	await expect(page.getByRole('button', { name: 'Theme: Dark' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Light', exact: true })).toHaveCount(0);
 });
 
 test('Layout - the saved theme applies before any app script runs', async ({ page }) => {
