@@ -20,6 +20,13 @@ async function open(page: Page, query = '') {
 		await fold.evaluate((d) => ((d as HTMLDetailsElement).open = true));
 }
 
+/** A box on the page, found by its title. */
+function box(page: Page, title: string) {
+	return page.locator('.ui-panel', {
+		has: page.getByRole('heading', { name: title, exact: true })
+	});
+}
+
 async function savedKeys(page: Page): Promise<string[]> {
 	return page.evaluate(
 		(prefix) => Object.keys(localStorage).filter((k) => k.startsWith(prefix)),
@@ -201,6 +208,15 @@ test('Run, Stop and Continue with live updates', async ({ page }) => {
 	await page.getByTestId('stop').click();
 	await expect(page.getByTestId('continue')).toBeEnabled({ timeout: 2000 });
 	await expect(page.getByTestId('run')).toBeEnabled();
+	// Answer holds the verdict and convergence; Details holds the controls, both tables and How it works last
+	const answerBox = box(page, 'Answer');
+	const detailsBox = box(page, 'Details');
+	await expect(answerBox.getByTestId('rules-fold')).toBeVisible();
+	await expect(answerBox.getByTestId('verdict')).toBeVisible();
+	await expect(answerBox.getByTestId('convergence')).toBeVisible();
+	for (const id of ['controls', 'mzi-details', 'best-details', 'how'])
+		await expect(detailsBox.getByTestId(id)).toBeVisible();
+	await expect(answerBox.getByTestId('how')).toHaveCount(0);
 	await expect(page.getByTestId('stop')).toHaveCount(0);
 	const stopped = await seeds(page);
 
@@ -271,7 +287,9 @@ test('Clear saved data removes the saved setup and result', async ({ page }) => 
 	await expect(page.getByTestId('metric-R')).toHaveCount(0);
 });
 
-test('on a phone, Results follow Run and the setup and Advanced start folded', async ({ page }) => {
+test('on a phone, the Answer follows Setup and run, and the folds start closed', async ({
+	page
+}) => {
 	await page.setViewportSize({ width: 390, height: 844 });
 	await page.goto('/ancilla-mzi');
 	await expect(hydrated(page)).toBeVisible();
@@ -282,13 +300,17 @@ test('on a phone, Results follow Run and the setup and Advanced start folded', a
 	const y = async (box: Promise<{ y: number } | null>) => (await box)?.y ?? 0;
 	const preset = await y(page.getByTestId('preset').boundingBox());
 	const run = await y(page.getByTestId('run').boundingBox());
-	const results = await y(
-		page.getByRole('heading', { name: 'Results', exact: true }).boundingBox()
-	);
 	const setup = await y(page.getByTestId('setup-fold').boundingBox());
+	const answer = await y(page.getByRole('heading', { name: 'Answer', exact: true }).boundingBox());
+	const fair = await y(page.getByTestId('rules-fold').boundingBox());
 	expect(preset).toBeLessThan(run);
-	expect(run).toBeLessThan(results);
-	expect(results).toBeLessThan(setup);
+	// Customise setup closes the Run box; the Answer box opens with the fair test line
+	expect(run).toBeLessThan(setup);
+	expect(setup).toBeLessThan(answer);
+	expect(answer).toBeLessThan(fair);
+	// Before a run, How it works ends the Answer box (no Details box yet)
+	await expect(page.getByRole('heading', { name: 'Details', exact: true })).toHaveCount(0);
+	await expect(box(page, 'Answer').getByTestId('how')).toHaveCount(1);
 });
 
 test('a fold opens by itself when a setting inside it is wrong', async ({ page }) => {

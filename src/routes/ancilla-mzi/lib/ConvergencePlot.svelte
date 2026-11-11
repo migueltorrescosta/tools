@@ -252,11 +252,9 @@
 </figure>
 
 <style>
+	/* Plain content of its box: no frame of its own. */
 	.plot {
 		margin: 0;
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		padding: var(--sp-2);
 		min-width: 0;
 	}
 	figcaption {
