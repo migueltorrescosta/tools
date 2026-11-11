@@ -12,11 +12,22 @@ async function open(page: Page, query = '') {
 	await expect(hydrated(page)).toBeVisible();
 }
 
-/** Open the collapsed Example datasets section and load one. */
+/** Load one of the example datasets under the file picker. */
 async function loadExample(page: Page, name: RegExp) {
-	const examples = page.getByTestId('examples');
-	if ((await examples.getAttribute('open')) === null) await examples.locator('summary').click();
-	await examples.getByRole('button', { name }).click();
+	await page.getByTestId('examples').getByRole('button', { name }).click();
+}
+
+/** Open the Run box's Advanced line, which holds the run settings. */
+async function openAdvanced(page: Page) {
+	const advanced = page.locator('details.ui-run-advanced');
+	if ((await advanced.getAttribute('open')) === null) await advanced.locator('summary').click();
+}
+
+/** Show every equation in the list, not only the simplest, best and most accurate. */
+async function showAllEquations(page: Page) {
+	const button = page.getByTestId('show-all');
+	if ((await button.count()) > 0 && /Show all/.test((await button.textContent()) ?? ''))
+		await button.click();
 }
 
 /** The selected equation as text. */
@@ -27,6 +38,11 @@ async function selectedText(page: Page): Promise<string> {
 /** The equation list's rows (one button each). */
 function frontRows(page: Page) {
 	return page.getByTestId('front').getByRole('listitem');
+}
+
+/** How many equations the front holds: one Pareto point each. */
+function frontSize(page: Page) {
+	return page.getByTestId('pareto-plot').getByRole('button').count();
 }
 
 /** The plot point of a complexity. */
@@ -43,6 +59,7 @@ async function bestR2(page: Page): Promise<number> {
 
 /** Every front entry as its text equation and validation R². */
 async function frontEquations(page: Page): Promise<{ text: string; r2: number }[]> {
+	await showAllEquations(page);
 	const out: { text: string; r2: number }[] = [];
 	for (const row of await frontRows(page).getByRole('button').all()) {
 		const complexity = await row.getAttribute('data-complexity');
@@ -79,7 +96,7 @@ async function shareUrl(page: Page): Promise<string> {
 /** Run a search and wait until the front has `rows` rows. */
 async function runUntilFront(page: Page, rows = 2) {
 	await page.getByRole('button', { name: 'Run', exact: true }).click();
-	await expect.poll(() => frontRows(page).count(), { timeout: 15000 }).toBeGreaterThanOrEqual(rows);
+	await expect.poll(() => frontSize(page), { timeout: 15000 }).toBeGreaterThanOrEqual(rows);
 }
 
 async function stopSearch(page: Page) {
@@ -212,7 +229,12 @@ test('Stop and Continue resume the search', async ({ page }) => {
 	await open(page);
 	await loadExample(page, /Newton/);
 	await runUntilFront(page);
+	// One main button: Run turns into Stop while running
+	await expect(page.getByRole('button', { name: 'Run', exact: true })).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'Continue' })).toHaveCount(0);
 	await stopSearch(page);
+	await expect(page.getByRole('button', { name: 'Stop' })).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'Run', exact: true })).toBeVisible();
 	const progress = page.getByTestId('progress');
 	const before = Number((await progress.textContent())?.match(/(\d+) iterations/)?.[1]);
 	await page.getByRole('button', { name: 'Continue' }).click();
@@ -223,7 +245,7 @@ test('Stop and Continue resume the search', async ({ page }) => {
 	await stopSearch(page);
 });
 
-test('the front plot: integer complexity ticks, hover tooltips, and info tips', async ({
+test('the front plot: integer complexity ticks, hover tooltips, and How it works', async ({
 	page
 }) => {
 	await open(page);
@@ -240,6 +262,7 @@ test('the front plot: integer complexity ticks, hover tooltips, and info tips', 
 	expect(yTicks.slice(0, 3)).toEqual(['0', '0.9', '0.99']);
 	for (const t of yTicks) expect(t).toMatch(/^0(\.9+)?$/);
 	// Points sit at their complexity, not their rank
+	await showAllEquations(page);
 	const complexities = await plot
 		.getByRole('button')
 		.evaluateAll((els) => els.map((el) => Number(el.getAttribute('data-complexity'))));
@@ -256,13 +279,43 @@ test('the front plot: integer complexity ticks, hover tooltips, and info tips', 
 	await expect(tip).toContainText('Train MSE');
 	await expect(tip.locator('.katex-html')).toBeVisible();
 
-	await page.getByRole('button', { name: 'About complexity' }).first().focus();
-	await expect(
-		page.getByRole('tooltip').filter({ hasText: 'Nodes in the expression tree' }).first()
-	).toBeVisible();
+	// No (i) icons: the explanations sit in How it works
+	await expect(page.getByRole('button', { name: /^About / })).toHaveCount(0);
+	const how = page.getByTestId('how');
+	await how.locator('summary').click();
+	await expect(how).toContainText('Nodes in the expression tree');
+	await expect(how).toContainText('Everything runs in your browser');
 });
 
-test('clicking a Pareto point selects that equation; copy buttons copy each format', async ({
+test('the result shows two metrics and three equations; the rest fold', async ({ page }) => {
+	await open(page);
+	await loadExample(page, /Kepler/);
+	await runUntilFront(page, 5);
+	await stopSearch(page);
+
+	const metrics = page.getByTestId('metrics');
+	await expect(metrics.locator('dt')).toHaveText(['Complexity', 'Validation R²']);
+	const more = page.getByTestId('more-metrics');
+	await expect(more).not.toHaveAttribute('open');
+	await more.locator('summary').click();
+	await expect(more).toContainText('Validation RMSE');
+	await expect(more).toContainText('Score');
+
+	const total = await frontSize(page);
+	const chips = page.getByTestId('front').getByRole('button');
+	// The simplest, the best and the most accurate (fewer when they coincide)
+	const shown = await chips.count();
+	expect(shown).toBeLessThanOrEqual(3);
+	expect(shown).toBeLessThan(total);
+	await expect(chips.first()).toHaveAttribute('data-complexity', '1');
+	await expect(page.getByTestId('front').getByTestId('best')).toHaveCount(1);
+	await page.getByRole('button', { name: `Show all ${total} equations` }).click();
+	await expect(chips).toHaveCount(total);
+	await page.getByRole('button', { name: 'Show fewer' }).click();
+	await expect(chips).toHaveCount(shown);
+});
+
+test('clicking a Pareto point selects that equation; Copy copies each format', async ({
 	page,
 	context
 }) => {
@@ -273,10 +326,12 @@ test('clicking a Pareto point selects that equation; copy buttons copy each form
 	await stopSearch(page);
 
 	const first = page.getByTestId('pareto-plot').getByRole('button').first();
-	const id = Number(await first.getAttribute('data-id'));
 	await first.click();
 	await expect(first).toHaveAttribute('aria-pressed', 'true');
-	const row = frontRows(page).nth(id);
+	// The selected equation is always in the list
+	const row = frontRows(page).filter({
+		has: page.locator(`[data-complexity="${await first.getAttribute('data-complexity')}"]`)
+	});
 	await expect(row.getByRole('button')).toHaveAttribute('aria-pressed', 'true');
 	await expect(page.getByTestId('front').getByRole('button', { pressed: true })).toHaveCount(1);
 	const text = (await row.getByRole('button').getAttribute('data-equation')) ?? '';
@@ -290,14 +345,22 @@ test('clicking a Pareto point selects that equation; copy buttons copy each form
 		.last()
 		.click();
 	const clip = () => page.evaluate(() => navigator.clipboard.readText());
-	await page.getByRole('button', { name: 'Text', exact: true }).click();
+	const format = page.getByLabel('Copy format');
+	const copyButton = page.getByRole('button', { name: 'Copy', exact: true });
+	await expect(format.locator('option:checked')).toHaveText('as text');
+	await copyButton.click();
 	await expect.poll(clip).toBe(await selectedText(page));
-	await page.getByRole('button', { name: 'LaTeX' }).click();
+	await expect(page.getByTestId('copied')).toHaveText('Copied as text');
+	await format.selectOption({ label: 'as LaTeX' });
+	await copyButton.click();
 	await expect.poll(clip).toContain('\\mathrm{a\\_AU}');
-	await page.getByRole('button', { name: 'Python' }).click();
+	await format.selectOption({ label: 'as Python' });
+	await copyButton.click();
 	await expect.poll(clip).toMatch(/a_AU/);
-	await page.getByRole('button', { name: 'JavaScript' }).click();
+	await format.selectOption({ label: 'as JavaScript' });
+	await copyButton.click();
 	await expect.poll(clip).toMatch(/a_AU/);
+	await expect(page.getByTestId('copied')).toHaveText('Copied as JavaScript');
 	// The copied JS evaluates to the predictions' scale at a = 1 AU, T ≈ 1 year
 	const js = await clip();
 	// Evaluated here, not in the page: the page's CSP has no 'unsafe-eval'
@@ -305,14 +368,39 @@ test('clicking a Pareto point selects that equation; copy buttons copy each form
 	expect(atEarth).toBeGreaterThan(0);
 });
 
-test('example datasets start collapsed and a loaded one is labelled', async ({ page }) => {
+test('example datasets show as buttons and a loaded one is labelled', async ({ page }) => {
 	await open(page);
 	const examples = page.getByTestId('examples');
-	await expect(examples).not.toHaveAttribute('open');
-	await expect(examples.getByRole('button', { name: /Kepler/ })).toBeHidden();
+	await expect(examples).toContainText('No CSV? Try an example:');
+	await expect(examples.getByRole('button')).toHaveText([
+		"Kepler's third law",
+		"Newton's gravity (noisy)",
+		'Parcel prices (categorical)'
+	]);
 	await loadExample(page, /Kepler/);
 	await expect(page.getByTestId('data-status')).toContainText("Example dataset Kepler's third law");
-	await expect(examples).not.toHaveAttribute('open');
+	await expect(examples.getByRole('button')).toHaveCount(3);
+});
+
+test('run settings sit behind one Advanced line that names their values', async ({ page }) => {
+	await open(page);
+	const advanced = page.locator('details.ui-run-advanced');
+	await expect(advanced).not.toHaveAttribute('open');
+	await expect(page.getByLabel('Seed')).toBeHidden();
+	await expect(advanced.locator('summary')).toContainText('seed 1');
+	await expect(advanced.locator('summary')).toContainText('% validation');
+	await openAdvanced(page);
+	for (const label of ['Time budget (s)', 'Seed', 'Workers', 'Validation (%)'])
+		await expect(page.getByLabel(label, { exact: true })).toBeVisible();
+	await page.getByLabel('Seed').fill('7');
+	await expect(advanced.locator('summary')).toContainText('seed 7');
+
+	// No operators: Run is disabled and the reason sits under the operators
+	await loadExample(page, /Kepler/);
+	for (const box of await page.getByRole('checkbox', { name: /^Operator / }).all())
+		await box.uncheck();
+	await expect(page.getByRole('button', { name: 'Run', exact: true })).toBeDisabled();
+	await expect(page.locator('#operators-error')).toHaveText(/Pick at least one operator/);
 });
 
 test('hovering an equation previews it in every plot; leaving restores the selection', async ({
@@ -392,6 +480,7 @@ test('share URL restores settings and the example, and never carries data', asyn
 }) => {
 	await open(page);
 	await loadExample(page, /Kepler/);
+	await openAdvanced(page);
 	await page.getByLabel('Seed').fill('42');
 	await page.getByLabel('Time budget (s)').fill('15');
 	await page.getByRole('checkbox', { name: 'Operator cos' }).check();
@@ -405,6 +494,7 @@ test('share URL restores settings and the example, and never carries data', asyn
 	await other.goto(url);
 	await expect(hydrated(other)).toBeVisible();
 	await expect(other.getByTestId('data-status')).toContainText('rows');
+	await openAdvanced(other);
 	await expect(other.getByLabel('Seed')).toHaveValue('42');
 	await expect(other.getByLabel('Time budget (s)')).toHaveValue('15');
 	await expect(other.getByRole('checkbox', { name: 'Operator cos' })).toBeChecked();
@@ -434,6 +524,7 @@ test('saved data survives a reload; Clear saved data removes it and resets the p
 		mimeType: 'text/csv',
 		buffer: Buffer.from('u,v\n1,2\n2,4\n3,6\n')
 	});
+	await openAdvanced(page);
 	await page.getByLabel('Seed').fill('9');
 	await expect.poll(() => savedKeys(page)).toContain(`${PREFIX}dataset`);
 
@@ -476,4 +567,54 @@ test('50,000 rows × 20 columns load, stay responsive and search', async ({ page
 	await expect(mode(page, 'c5', 'Exclude')).toBeChecked();
 	await runUntilFront(page, 1);
 	await stopSearch(page);
+});
+
+test('three boxes: Run holds the data, How it works closes the last box', async ({ page }) => {
+	await open(page);
+	const boxes = page.getByRole('main').locator('.ui-panel');
+	// Before a run: Run (with the data) and Results; How it works ends Results
+	await expect(boxes).toHaveCount(2);
+	await expect(boxes.first().getByTestId('data')).toBeVisible();
+	await expect(boxes.last().getByTestId('how')).toBeVisible();
+
+	await loadExample(page, /Kepler/);
+	await runUntilFront(page, 2);
+	await stopSearch(page);
+	// After a run: the Plots box joins, and How it works moves to its end
+	await expect(boxes).toHaveCount(3);
+	await expect(page.getByTestId('plots').locator('.ui-panel')).toContainText('Complexity');
+	await expect(page.getByTestId('plots').getByTestId('how')).toBeVisible();
+	await expect(page.getByTestId('how')).toHaveCount(1);
+});
+
+test('the equation pills are twice the chip text and nothing overflows on a phone', async ({
+	page
+}) => {
+	await page.setViewportSize({ width: 390, height: 844 });
+	await open(page);
+	await loadExample(page, /Kepler/);
+	await runUntilFront(page, 2);
+	await stopSearch(page);
+
+	const pill = frontRows(page).first().getByRole('button');
+	await expect(pill.getByTestId('row-equation')).toBeVisible();
+	const [eq, chip] = await pill.evaluate((el) => [
+		parseFloat(getComputedStyle(el.querySelector('.row-eq')!).fontSize),
+		parseFloat(getComputedStyle(el).fontSize)
+	]);
+	expect(eq).toBeCloseTo(2 * chip, 1);
+	// The main equation stays at its own size, not doubled
+	const main = await page
+		.getByTestId('equation')
+		.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+	expect(main).toBeLessThan(eq);
+	// Every pill fits the screen, and the page has no sideways scroll
+	const rights = await frontRows(page).evaluateAll((els) =>
+		els.map((el) => el.getBoundingClientRect().right)
+	);
+	for (const right of rights) expect(right).toBeLessThanOrEqual(390);
+	const overflow = await page.evaluate(
+		() => document.documentElement.scrollWidth - document.documentElement.clientWidth
+	);
+	expect(overflow).toBeLessThanOrEqual(0);
 });

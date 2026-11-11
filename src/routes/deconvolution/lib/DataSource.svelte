@@ -1,17 +1,21 @@
 <script lang="ts">
-	import { Alert, Field, Panel, SegmentedControl } from '#lib/ui/index.js';
+	import type { Snippet } from 'svelte';
+	import { Alert, Field, SegmentedControl } from '#lib/ui/index.js';
 	import { parseSample, type ParsedSample } from '#lib/deconvolution/upload.js';
 
 	/** Where the estimate's data comes from: the simulated sample or an upload (one or two columns). */
 	let {
 		source = $bindable(),
 		uploaded = $bindable(),
-		onparsed
+		onparsed,
+		children
 	}: {
 		source: 'simulated' | 'uploaded';
 		uploaded: ParsedSample | null;
 		/** Called with each successful parse, so the page can follow its dimension. */
 		onparsed?: (p: ParsedSample) => void;
+		/** The noise assumption and any warning about the data, at the end of the box. */
+		children?: Snippet;
 	} = $props();
 
 	let text = $state('');
@@ -45,7 +49,7 @@
 	}
 </script>
 
-<Panel title="Data" level={3}>
+<div class="stack">
 	<SegmentedControl
 		legend="Data to estimate from"
 		options={[
@@ -58,7 +62,7 @@
 		<div class="upload">
 			<Field
 				label="CSV or text file"
-				hint="One column of numbers, or more: the Noise setting says what extra columns hold. A header line is fine."
+				hint="One column of numbers, or more: the noise assumption below says what extra columns hold. A header line is fine."
 			>
 				{#snippet children(props)}
 					<input
@@ -87,7 +91,7 @@
 				{#if uploaded.error}
 					<Alert tone="danger">{uploaded.error}</Alert>
 				{:else}
-					<p class="muted" data-testid="upload-status">
+					<p class="hint" data-testid="upload-status">
 						{uploaded.data.length.toLocaleString('en')}
 						{uploaded.width >= 3
 							? `${uploaded.width} columns`
@@ -107,22 +111,19 @@
 					</Alert>
 				{/if}
 			{/if}
-			<p class="muted">Your data stays in this browser and isn't saved.</p>
+			<p class="hint">Your data stays in this browser and isn't saved.</p>
 		</div>
 	{/if}
-</Panel>
+	{@render children?.()}
+</div>
 
 <style>
+	.stack,
 	.upload {
 		display: flex;
 		flex-direction: column;
 		gap: var(--sp-2);
 		min-width: 0;
-	}
-	.muted {
-		color: var(--text-muted);
-		font-size: var(--text-sm);
-		margin: 0;
 	}
 	.paste {
 		font-family: var(--font-mono);

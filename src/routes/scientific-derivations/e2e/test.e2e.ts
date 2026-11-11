@@ -70,18 +70,14 @@ test('an imported result links to the derivation it comes from', async ({ page }
 	await expect(page).toHaveURL(/derivation=gksl-from-stochastic/);
 });
 
-test('fit to width shrinks a wide graph; 100% restores it', async ({ page }) => {
+test('a wide graph always shrinks to fit the width', async ({ page }) => {
 	await page.setViewportSize({ width: 1000, height: 900 });
 	await open(page, '?derivation=dark-state');
-	const canvas = page.locator('.dg-canvas');
-	await expect(canvas).toHaveAttribute('style', /scale\(/);
-	await page.getByText('100%').click();
-	await expect(canvas).not.toHaveAttribute('style', /scale\(/);
+	await expect(page.locator('.dg-canvas')).toHaveAttribute('style', /scale\(/);
+	await expect(page.getByText('Fit to width')).toHaveCount(0);
 });
 
-test('fit to width fits the widest graph on a phone, with fact labels at least 24 px tall', async ({
-	page
-}) => {
+test('the widest graph fits on a phone without scrolling sideways', async ({ page }) => {
 	await page.setViewportSize({ width: 390, height: 844 });
 	await open(page, '?derivation=dark-state');
 	const graph = page.getByTestId('graph');
@@ -89,14 +85,23 @@ test('fit to width fits the widest graph on a phone, with fact labels at least 2
 	const canvas = (await page.locator('.dg-size').boundingBox())!;
 	expect(canvas.width).toBeLessThanOrEqual(box.width);
 	expect(await graph.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(0);
-	// At 100% the graph scrolls, and the label targets keep their full size
-	await page.getByText('100%').click();
-	expect(await graph.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
-	await expect(page.locator('.ui-scroll-edges')).toHaveClass(/more-right/);
-	const heights = await page
-		.locator('.dg-label')
-		.evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height));
-	expect(Math.min(...heights)).toBeGreaterThanOrEqual(24);
+});
+
+test('the heading names the derivation and its section, and a key explains the boxes', async ({
+	page
+}) => {
+	await open(page);
+	const heading = page.getByRole('heading', { level: 2 });
+	await expect(heading).toHaveText(`${paper.derivations[0].title} ${paper.derivations[0].section}`);
+	const key = page.getByRole('list', { name: 'Key' });
+	await expect(key).toContainText('Assumption');
+	await expect(key).toContainText('Result');
+});
+
+test('How it works explains the graph', async ({ page }) => {
+	await open(page);
+	await page.getByText('How it works').click();
+	await expect(page.locator('details.how')).toContainText('equations are nodes');
 });
 
 test('the details drawer takes focus and returns it to its opener', async ({ page }) => {
@@ -127,4 +132,22 @@ test('the second paper opens with its own derivations', async ({ page }) => {
 	await expect(page.getByTestId('derivation')).toHaveValue('noiseless-capacity');
 	await expect(page).toHaveURL(/paper=shannon-communication/);
 	await expect(page.getByTestId('node-telegraph')).toBeVisible();
+});
+
+test('everything sits in two boxes, and the open details are a third', async ({ page }) => {
+	await open(page);
+	const main = page.getByRole('main');
+	const boxes = main.locator('.ui-panel');
+	await expect(boxes).toHaveCount(2);
+	await expect(boxes.nth(0).getByTestId('paper')).toBeVisible();
+	await expect(boxes.nth(0).getByRole('heading', { level: 2 })).toBeVisible();
+	const graphBox = boxes.nth(1);
+	await expect(graphBox.getByRole('list', { name: 'Key' })).toBeVisible();
+	await expect(graphBox.getByTestId('graph')).toBeVisible();
+	await expect(graphBox.locator('details.how')).toBeVisible();
+	await expect(graphBox.getByRole('link', { name: paper.title })).toBeVisible();
+	await expect(main.locator('.ui-panel .ui-panel')).toHaveCount(0);
+	await page.getByTestId('node-gksl').click();
+	await expect(page.locator('aside.sd-drawer > .ui-panel')).toBeVisible();
+	await expect(page.locator('.ui-panel')).toHaveCount(3);
 });

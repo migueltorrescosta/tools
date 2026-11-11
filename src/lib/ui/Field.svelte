@@ -11,7 +11,6 @@
 		error,
 		hideLabel = false,
 		id = `field-${uid}`,
-		info,
 		children
 	}: {
 		label: string;
@@ -20,8 +19,6 @@
 		/** Keep the label for screen readers only, when the context already names the control. */
 		hideLabel?: boolean;
 		id?: string;
-		/** Shown after the label, e.g. an `InfoTip` explaining the field. */
-		info?: Snippet;
 		/** Render the control and spread `props` on it, e.g. `<input class="control" {...props} />`. */
 		children: Snippet<[ControlProps]>;
 	} = $props();
@@ -32,11 +29,7 @@
 </script>
 
 <div class="ui-field">
-	{#if info && !hideLabel}
-		<span class="ui-label-row"><label for={id}>{label}</label>{@render info()}</span>
-	{:else}
-		<label for={id} class:sr-only={hideLabel}>{label}</label>
-	{/if}
+	<label for={id} class:sr-only={hideLabel}>{label}</label>
 	{@render children({
 		id,
 		'aria-describedby': describedBy,
@@ -47,12 +40,6 @@
 </div>
 
 <style>
-	.ui-label-row {
-		display: inline-flex;
-		align-items: center;
-		gap: var(--sp-0);
-	}
-
 	.ui-field {
 		display: flex;
 		flex-direction: column;

@@ -17,7 +17,6 @@ A collection of small browser tools built with SvelteKit 2, Svelte 5 and TypeScr
 | `/verb-conjugator`     | Verb Conjugator     | Italian, Spanish and Portuguese conjugation drills with spaced recall.            |
 | `/decision-tree`       | Decision Tree       | Walk a question tree one answer at a time, with shareable paths.                  |
 | `/company-trends`      | Company Trends      | Animated log-log revenue vs operating margin for 43 companies since 2000, in EUR. |
-| `/warhammer-simulator` | Warhammer Simulator | Monte Carlo duel odds for Warhammer: The Old World.                               |
 | `/symbolic-regression` | Symbolic Regression | Fit interpretable equations to a CSV, with a Pareto front of accuracy vs size.    |
 | `/ancilla-mzi`         | Ancilla vs MZI      | Noisy ancilla-assisted interferometry against a fairly counted MZI.               |
 | `/information-pricing` | Information Pricing | Expected opportunity loss and the value of information for a simulated decision.  |

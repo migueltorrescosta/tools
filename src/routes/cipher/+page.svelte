@@ -1,7 +1,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { copyToClipboard } from '#lib/clipboard.js';
-	import { Alert, Button, Field, PageHeader, Panel, Select } from '#lib/ui/index.js';
+	import {
+		Alert,
+		Button,
+		Field,
+		Fold,
+		PageHeader,
+		Panel,
+		SegmentedControl,
+		Select
+	} from '#lib/ui/index.js';
 	import {
 		ALGORITHMS,
 		decrypt as decryptWith,
@@ -14,25 +23,34 @@
 		importPublicKeyPem,
 		keyKind,
 		randomKey,
-		type Algorithm
+		type Algorithm,
+		type CipherKeys
 	} from '#lib/cipher.js';
 
+	type Mode = 'encrypt' | 'decrypt';
+	const MODES = [
+		{ value: 'encrypt', label: 'Encrypt' },
+		{ value: 'decrypt', label: 'Decrypt' }
+	] as const;
+
+	let mode = $state<Mode>('encrypt');
 	let selectedAlgorithm = $state<Algorithm>('AES-GCM');
-	let encryptionKey = $state('');
-	let decryptionKey = $state('');
-	let inputText = $state('');
-	let encryptedText = $state('');
-	let decryptedText = $state('');
-	let encryptionError = $state('');
-	let decryptionError = $state('');
+	let password = $state('');
 	let publicKeyPem = $state('');
 	let privateKeyPem = $state('');
+	let message = $state('');
+
+	/** The last result, or the error that replaced it. Hidden while both are empty. */
+	let result = $state('');
+	let resultError = $state('');
+	/** Errors about one field, shown under it. */
+	let keyError = $state('');
+	let messageError = $state('');
 	let rsaKeyError = $state('');
 
 	let hydrated = $state(false);
 	onMount(() => (hydrated = true));
 
-	type OutputPanel = 'encrypted' | 'decrypted';
 	type CopyStatus = 'idle' | 'copied' | 'failed';
 	const COPY_LABEL: Record<CopyStatus, string> = {
 		idle: 'Copy',
@@ -40,82 +58,60 @@
 		failed: 'Copy failed'
 	};
 	const COPY_FEEDBACK_MS = 1500;
-	let copyStatus = $state<Record<OutputPanel, CopyStatus>>({
-		encrypted: 'idle',
-		decrypted: 'idle'
-	});
-	const copyTimers: Partial<Record<OutputPanel, ReturnType<typeof setTimeout>>> = {};
+	let copyStatus = $state<CopyStatus>('idle');
+	let copyTimer: ReturnType<typeof setTimeout> | undefined;
 
 	const kind = $derived(keyKind(selectedAlgorithm));
-	const canCopyEncrypted = $derived(!encryptionError && encryptedText !== '');
-	const canCopyDecrypted = $derived(!decryptionError && decryptedText !== '');
-
+	const verb = $derived(mode === 'encrypt' ? 'Encrypt' : 'Decrypt');
 	const algorithms = ALGORITHMS.map((alg) => ({ value: alg, label: alg }));
 
-	async function encrypt(text: string, algorithm: Algorithm, key: string): Promise<string> {
-		if (!text) {
-			throw new Error('Input text is required');
+	/** The keys this mode needs, or a field error saying what is missing. */
+	async function readKeys(): Promise<CipherKeys | undefined> {
+		if (kind === 'passphrase') {
+			if (password) return { passphrase: password };
+			keyError =
+				mode === 'encrypt' ? 'Enter a password' : 'Enter the password it was encrypted with';
+			return undefined;
 		}
-
-		if (algorithm === 'RSA-OAEP') {
-			if (!publicKeyPem.trim()) {
-				throw new Error('A public key is required: generate a key pair or paste a PEM public key');
-			}
-			return encryptWith(text, algorithm, { publicKey: await importPublicKeyPem(publicKeyPem) });
+		if (kind === 'none') return {};
+		const pem = mode === 'encrypt' ? publicKeyPem : privateKeyPem;
+		if (!pem.trim()) {
+			keyError =
+				mode === 'encrypt'
+					? 'Enter a public key, or generate a key pair'
+					: 'Enter the private key of the pair';
+			return undefined;
 		}
-
-		if (!key && keyKind(algorithm) === 'passphrase') {
-			throw new Error('Encryption key is required');
-		}
-
-		return encryptWith(text, algorithm, { passphrase: key });
-	}
-
-	async function decrypt(text: string, algorithm: Algorithm, key: string): Promise<string> {
-		if (!text) {
-			throw new Error('Encrypted text is required');
-		}
-
-		if (algorithm === 'RSA-OAEP') {
-			if (!privateKeyPem.trim()) {
-				throw new Error('A private key is required: paste the PEM private key of the pair');
-			}
-			return decryptWith(text, algorithm, {
-				privateKey: await importPrivateKeyPem(privateKeyPem)
-			});
-		}
-
-		if (!key && keyKind(algorithm) === 'passphrase') {
-			throw new Error('Decryption key is required');
-		}
-
-		return decryptWith(text, algorithm, { passphrase: key });
-	}
-
-	async function encryptText() {
-		encryptionError = '';
-		encryptedText = '';
-
 		try {
-			encryptedText = await encrypt(inputText, selectedAlgorithm, encryptionKey);
+			return mode === 'encrypt'
+				? { publicKey: await importPublicKeyPem(pem) }
+				: { privateKey: await importPrivateKeyPem(pem) };
 		} catch (e) {
-			encryptionError = errorMessage(e, 'Encryption failed');
+			keyError = errorMessage(e, 'This key could not be read');
+			return undefined;
 		}
 	}
 
-	async function decryptText() {
-		decryptionError = '';
-		decryptedText = '';
-
+	async function run() {
+		clearOutputs();
+		if (!message) {
+			messageError = mode === 'encrypt' ? 'Enter a message' : 'Enter the encrypted message';
+		}
+		const keys = await readKeys();
+		if (!keys || messageError) return;
 		try {
-			decryptedText = await decrypt(inputText, selectedAlgorithm, decryptionKey);
+			result =
+				mode === 'encrypt'
+					? await encryptWith(message, selectedAlgorithm, keys)
+					: await decryptWith(message, selectedAlgorithm, keys);
 		} catch (e) {
-			decryptionError = errorMessage(e, 'Decryption failed');
+			resultError = errorMessage(e, mode === 'encrypt' ? 'Encryption failed' : 'Decryption failed');
 		}
 	}
 
 	async function generateRsaKeys() {
 		rsaKeyError = '';
+		keyError = '';
 		try {
 			const pair = await generateRsaKeyPair();
 			publicKeyPem = await exportPublicKeyPem(pair.publicKey);
@@ -125,42 +121,136 @@
 		}
 	}
 
-	/** Outputs belong to the algorithm that produced them, so a switch clears them. */
+	function generatePassword() {
+		password = randomKey();
+		keyError = '';
+	}
+
+	/** A result belongs to the mode and algorithm that produced it, so switching either clears it. */
 	function clearOutputs() {
-		encryptedText = '';
-		decryptedText = '';
-		encryptionError = '';
-		decryptionError = '';
+		result = '';
+		resultError = '';
+		keyError = '';
+		messageError = '';
 	}
 
-	function useEncryptedAsInput() {
-		inputText = encryptedText;
-	}
-
-	async function copyOutput(panel: OutputPanel, text: string) {
-		clearTimeout(copyTimers[panel]);
+	async function copyResult() {
+		clearTimeout(copyTimer);
 		try {
-			await copyToClipboard(text);
-			copyStatus[panel] = 'copied';
+			await copyToClipboard(result);
+			copyStatus = 'copied';
 		} catch {
-			copyStatus[panel] = 'failed';
+			copyStatus = 'failed';
 		}
-		copyTimers[panel] = setTimeout(() => (copyStatus[panel] = 'idle'), COPY_FEEDBACK_MS);
-	}
-
-	function generateExampleKeys() {
-		const key = randomKey();
-		encryptionKey = key;
-		decryptionKey = key;
+		copyTimer = setTimeout(() => (copyStatus = 'idle'), COPY_FEEDBACK_MS);
 	}
 </script>
 
 <div class="container" data-hydrated={hydrated || undefined}>
 	<PageHeader path="/cipher" />
 
-	<div class="split-view">
-		<Panel title="Input">
-			<div class="stack">
+	<Panel>
+		<form
+			class="stack"
+			novalidate
+			onsubmit={(e) => {
+				e.preventDefault();
+				run();
+			}}
+		>
+			<SegmentedControl
+				legend="Mode"
+				hideLegend
+				options={MODES}
+				bind:value={
+					() => mode,
+					(next) => {
+						mode = next;
+						clearOutputs();
+					}
+				}
+			/>
+
+			{#if kind === 'passphrase'}
+				<Field label="Password" error={keyError}>
+					{#snippet children(props)}
+						<div class="with-button">
+							<input
+								class="control"
+								type="text"
+								{...props}
+								bind:value={password}
+								oninput={() => (keyError = '')}
+								placeholder="Enter a password"
+								autocomplete="off"
+								spellcheck="false"
+							/>
+							<Button onclick={generatePassword}>Generate</Button>
+						</div>
+					{/snippet}
+				</Field>
+			{:else if kind === 'keypair'}
+				{#if mode === 'encrypt'}
+					<Field
+						label="Public key"
+						error={keyError}
+						hint="Keep the private key of the pair (under Decrypt): without it the message is lost."
+					>
+						{#snippet children(props)}
+							<textarea
+								class="control pem"
+								{...props}
+								bind:value={publicKeyPem}
+								oninput={() => (keyError = '')}
+								placeholder="-----BEGIN PUBLIC KEY-----"
+								spellcheck="false"
+							></textarea>
+						{/snippet}
+					</Field>
+				{:else}
+					<Field label="Private key" error={keyError}>
+						{#snippet children(props)}
+							<textarea
+								class="control pem"
+								{...props}
+								bind:value={privateKeyPem}
+								oninput={() => (keyError = '')}
+								placeholder="-----BEGIN PRIVATE KEY-----"
+								spellcheck="false"
+							></textarea>
+						{/snippet}
+					</Field>
+				{/if}
+				<div class="cluster">
+					<Button size="sm" onclick={generateRsaKeys}>Generate key pair</Button>
+				</div>
+				{#if rsaKeyError}
+					<Alert tone="danger">{rsaKeyError}</Alert>
+				{/if}
+			{:else}
+				<p class="hint">{selectedAlgorithm} is an encoding, not encryption: it needs no key.</p>
+			{/if}
+
+			<Field label="Message" error={messageError}>
+				{#snippet children(props)}
+					<textarea
+						class="control text"
+						{...props}
+						bind:value={message}
+						oninput={() => (messageError = '')}
+						placeholder={mode === 'encrypt'
+							? 'The message to encrypt'
+							: 'The encrypted message to decrypt'}
+						spellcheck="false"
+					></textarea>
+				{/snippet}
+			</Field>
+
+			<div class="cluster">
+				<Button type="submit" variant="primary">{verb}</Button>
+			</div>
+
+			<Fold label="Advanced" summary="algorithm {selectedAlgorithm}" class="advanced">
 				<div class="algorithm">
 					<Select
 						label="Algorithm"
@@ -169,158 +259,105 @@
 						onchange={clearOutputs}
 					/>
 				</div>
+			</Fold>
+		</form>
 
-				{#if kind === 'keypair'}
-					<div class="keys">
-						<Field label="Public key (PEM, encrypts)">
-							{#snippet children(props)}
-								<textarea
-									class="control pem"
-									{...props}
-									bind:value={publicKeyPem}
-									placeholder="-----BEGIN PUBLIC KEY-----"
-									spellcheck="false"
-								></textarea>
-							{/snippet}
-						</Field>
-						<Field label="Private key (PEM, decrypts)">
-							{#snippet children(props)}
-								<textarea
-									class="control pem"
-									{...props}
-									bind:value={privateKeyPem}
-									placeholder="-----BEGIN PRIVATE KEY-----"
-									spellcheck="false"
-								></textarea>
-							{/snippet}
-						</Field>
-					</div>
-					<p class="note">
-						Encrypt uses the public key; decrypt needs the matching private key. Save the private
-						key: without it the ciphertext cannot be recovered. A 2048-bit key encrypts at most 190
-						bytes of UTF-8 text.
-					</p>
-					{#if rsaKeyError}
-						<Alert tone="danger">{rsaKeyError}</Alert>
+		{#if result || resultError}
+			<section class="part" data-testid="result-panel" aria-labelledby="result-heading">
+				<div class="part-head">
+					<h2 id="result-heading" class="part-heading">Result</h2>
+					{#if result}
+						<Button
+							size="sm"
+							variant={copyStatus === 'failed' ? 'danger' : 'ghost'}
+							onclick={copyResult}>{COPY_LABEL[copyStatus]}</Button
+						>
 					{/if}
-					<div class="cluster">
-						<Button size="sm" onclick={generateRsaKeys}>Generate key pair</Button>
-					</div>
-				{:else if kind === 'passphrase'}
-					<div class="keys">
-						<Field label="Encryption key">
-							{#snippet children(props)}
-								<input
-									class="control"
-									type="text"
-									{...props}
-									bind:value={encryptionKey}
-									placeholder="Enter encryption key"
-								/>
-							{/snippet}
-						</Field>
-						<Field label="Decryption key">
-							{#snippet children(props)}
-								<input
-									class="control"
-									type="text"
-									{...props}
-									bind:value={decryptionKey}
-									placeholder="Enter decryption key"
-								/>
-							{/snippet}
-						</Field>
-					</div>
-					<div class="cluster">
-						<Button size="sm" onclick={generateExampleKeys}>Generate random keys</Button>
-					</div>
-				{:else}
-					<p class="note">{selectedAlgorithm} is an encoding, not encryption: it needs no key.</p>
-				{/if}
-
-				<Field label="Text" hint="Encrypt and Decrypt both read this.">
-					{#snippet children(props)}
-						<textarea
-							class="control text"
-							{...props}
-							bind:value={inputText}
-							placeholder="Plaintext to encrypt, or ciphertext to decrypt"
-							spellcheck="false"
-						></textarea>
-					{/snippet}
-				</Field>
-
-				<div class="cluster">
-					<Button variant="primary" onclick={encryptText}>Encrypt</Button>
-					<Button onclick={decryptText}>Decrypt</Button>
 				</div>
-			</div>
-		</Panel>
+				{#if resultError}
+					<Alert tone="danger"><span data-testid="result-error">{resultError}</span></Alert>
+				{:else}
+					<output class="out" aria-live="polite" aria-label="Result">{result}</output>
+				{/if}
+			</section>
+		{/if}
 
-		<div class="stack">
-			<div data-testid="encrypted-panel">
-				<Panel title="Encrypted">
-					{#snippet actions()}
-						<Button
-							size="sm"
-							variant="ghost"
-							disabled={!canCopyEncrypted}
-							title="Copy the ciphertext into Text so Decrypt can read it"
-							onclick={useEncryptedAsInput}>Use as input</Button
-						>
-						<Button
-							size="sm"
-							variant={copyStatus.encrypted === 'failed' ? 'danger' : 'ghost'}
-							disabled={!canCopyEncrypted}
-							onclick={() => copyOutput('encrypted', encryptedText)}
-							>{COPY_LABEL[copyStatus.encrypted]}</Button
-						>
-					{/snippet}
-					{#if encryptionError}
-						<Alert tone="danger"><span data-testid="encrypted-error">{encryptionError}</span></Alert
-						>
-					{/if}
-					<output class="out" aria-live="polite" aria-label="Encrypted">{encryptedText}</output>
-					{#if !encryptedText && !encryptionError}
-						<p class="placeholder">Encrypted message will appear here</p>
-					{/if}
-				</Panel>
-			</div>
-
-			<div data-testid="decrypted-panel">
-				<Panel title="Decrypted">
-					{#snippet actions()}
-						<Button
-							size="sm"
-							variant={copyStatus.decrypted === 'failed' ? 'danger' : 'ghost'}
-							disabled={!canCopyDecrypted}
-							onclick={() => copyOutput('decrypted', decryptedText)}
-							>{COPY_LABEL[copyStatus.decrypted]}</Button
-						>
-					{/snippet}
-					{#if decryptionError}
-						<Alert tone="danger"><span data-testid="decrypted-error">{decryptionError}</span></Alert
-						>
-					{/if}
-					<output class="out" aria-live="polite" aria-label="Decrypted">{decryptedText}</output>
-					{#if !decryptedText && !decryptionError}
-						<p class="placeholder">Decrypted message will appear here</p>
-					{/if}
-				</Panel>
-			</div>
-		</div>
-	</div>
+		<details class="how last">
+			<summary>How it works</summary>
+			<p>
+				Everything runs in your browser; nothing you type is sent anywhere. AES-GCM (the default)
+				and AES-CBC turn the password into a 256-bit key with PBKDF2-SHA-256 over a random salt
+				(600,000 rounds), then encrypt with a random IV. The result is <code>v1:</code> followed by the
+				salt, IV and ciphertext in Base64, so the same password decrypts it anywhere.
+			</p>
+			<p>
+				RSA-OAEP uses a key pair: the public key encrypts and only the matching private key
+				decrypts. Generate key pair makes a 2048-bit pair (SHA-256), which encrypts at most 190
+				bytes of UTF-8 text.
+			</p>
+			<p>
+				Base64, Hex and ROT13 are encodings, not encryption: anyone can reverse them without a key.
+			</p>
+		</details>
+	</Panel>
 </div>
 
 <style>
-	.algorithm {
-		max-width: 16rem;
+	/* The Result and How it works parts of the one box, each under a hairline. */
+	.part,
+	.how.last {
+		margin-top: var(--sp-3);
+		padding-top: var(--sp-3);
+		border-top: 1px solid var(--border);
 	}
 
-	.keys {
-		display: grid;
-		gap: var(--sp-3);
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+	.part {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-2);
+	}
+
+	.part-head {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--sp-2);
+	}
+
+	.part-head > :global(:last-child:not(:first-child)) {
+		margin-left: auto;
+	}
+
+	/* Same as a Panel title: body size over a short accent rule. */
+	.part-heading {
+		font-size: var(--text-lg);
+		font-weight: 600;
+	}
+
+	.part-heading::after {
+		content: '';
+		display: block;
+		width: 24px;
+		height: 2px;
+		margin-top: 6px;
+		background: var(--accent);
+	}
+
+	.how.last > :global(:last-child) {
+		margin-bottom: 0;
+	}
+
+	.with-button {
+		display: flex;
+		gap: var(--sp-2);
+	}
+
+	.with-button input {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.algorithm {
+		max-width: 16rem;
 	}
 
 	.pem {
@@ -331,13 +368,6 @@
 
 	.text {
 		min-height: 6rem;
-	}
-
-	.note,
-	.placeholder {
-		margin: 0;
-		font-size: var(--text-sm);
-		color: var(--text-muted);
 	}
 
 	.out {

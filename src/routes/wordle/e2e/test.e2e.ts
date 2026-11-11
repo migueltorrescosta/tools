@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 /** Load the solver and wait until it has hydrated, so clicks are not lost. */
 async function open(page: Page) {
 	await page.goto('/wordle');
-	await expect(page.locator('.wordle-panel[data-hydrated]')).toBeVisible();
+	await expect(page.locator('.wordle[data-hydrated]')).toBeVisible();
 }
 
 /** The editable row of five tiles for the next guess. */
@@ -23,6 +23,10 @@ function message(page: Page) {
 	return page.getByTestId('message');
 }
 
+function instruction(page: Page) {
+	return page.getByTestId('instruction');
+}
+
 function submit(page: Page) {
 	return page.getByRole('button', { name: 'Submit', exact: true });
 }
@@ -34,14 +38,21 @@ test('Wordle Solver - page loads correctly', async ({ page }) => {
 	await expect(page).toHaveTitle('Wordle Solver');
 	await expect(inputRow(page)).toBeVisible();
 
-	// The legend names each colour in text
-	const legend = page.getByRole('list', { name: 'Legend' });
-	await expect(legend).toBeVisible();
-	await expect(legend.getByRole('listitem')).toHaveText([
-		/Black: not in the word/,
-		/Yellow: wrong position/,
-		/Green: right position/
-	]);
+	// One line above the tiles names the word to play and the step
+	await expect(instruction(page)).toHaveText(
+		'Play RAISE in Wordle, then tap each tile below to match.'
+	);
+	// No colour key and no How it works: the owner's pick has no help text, only the NYT link
+	await expect(page.getByRole('list', { name: 'Legend' })).toHaveCount(0);
+	await expect(page.locator('details.how')).toHaveCount(0);
+	const nyt = page.getByRole('link', { name: 'Play today’s Wordle on nytimes.com ↗' });
+	await expect(nyt).toHaveAttribute('href', 'https://www.nytimes.com/games/wordle/index.html');
+	await expect(nyt).toHaveAttribute('target', '_blank');
+	await expect(nyt).toHaveAttribute('rel', 'noopener');
+	// Everything sits in the one box
+	await expect(page.locator('.ui-panel')).toHaveCount(1);
+	await expect(page.locator('.ui-panel').getByTestId('instruction')).toBeVisible();
+	await expect(page.locator('.ui-panel').getByRole('link', { name: /nytimes/ })).toBeVisible();
 });
 
 test('Wordle Solver - keyboard input functionality', async ({ page }) => {
@@ -90,6 +101,8 @@ test('Wordle Solver - happy path suggests the next word and records history up t
 	await submit(page).click();
 	await expect(inputRow(page)).toHaveText('MULCH');
 	await expect(resultRows(page)).toHaveCount(1);
+	// The instruction follows the round
+	await expect(instruction(page)).toContainText('Play MULCH in Wordle');
 
 	// MULCH scored BYYBB: the tree suggests FLUNK
 	await tiles.nth(1).press('y');
@@ -114,10 +127,13 @@ test('Wordle Solver - happy path suggests the next word and records history up t
 		await tiles.nth(i).press('g');
 	}
 	await submit(page).click();
-	await expect(message(page)).toHaveText('CONGRATULATIONS');
-	await expect(page.getByRole('button', { name: 'Start New Game' })).toBeVisible();
-	// The input row is gone once the game is won: no placeholder glyphs, nothing to click.
+	await expect(message(page)).toHaveText('Solved in 3.');
+	await expect(page.getByRole('button', { name: 'New game' })).toBeVisible();
+	await expect(submit(page)).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'Undo' })).toBeVisible();
+	// The input row and its instruction are gone once the game is won: nothing to click.
 	await expect(inputRow(page)).toHaveCount(0);
+	await expect(instruction(page)).toHaveCount(0);
 });
 
 test('Wordle Solver - reaching a leaf names the answer and GGGGG confirms it', async ({ page }) => {
@@ -134,13 +150,22 @@ test('Wordle Solver - reaching a leaf names the answer and GGGGG confirms it', a
 	await tiles.nth(1).press('y');
 	await submit(page).click();
 	await expect(inputRow(page)).toHaveText('WAIVE');
-	await expect(message(page)).toContainText('Answer: WAIVE');
+	await expect(instruction(page)).toHaveText(
+		'Answer: WAIVE. Play it, mark every tile green and Submit.'
+	);
+	await expect(message(page)).toHaveCount(0);
 	await expect(submit(page)).toBeVisible();
 
 	for (let i = 0; i < 5; i++) await tiles.nth(i).press('g');
 	await submit(page).click();
-	await expect(message(page)).toHaveText('CONGRATULATIONS');
+	await expect(message(page)).toHaveText('Solved in 3.');
 	await expect(tileInputs(page)).toHaveCount(0);
+
+	// Undo from the win brings back the answer row and its instruction
+	await page.getByRole('button', { name: 'Undo' }).click();
+	await expect(message(page)).toHaveCount(0);
+	await expect(inputRow(page)).toHaveText('WAIVE');
+	await expect(instruction(page)).toContainText('Answer: WAIVE');
 });
 
 test('Wordle Solver - tiles expose letter, position and colour to assistive tech', async ({
@@ -156,7 +181,7 @@ test('Wordle Solver - tiles expose letter, position and colour to assistive tech
 	await expect(page.getByRole('img', { name: 'A, position 2: yellow' })).toBeVisible();
 });
 
-test('Wordle Solver - restart game button appears on game over', async ({ page }) => {
+test('Wordle Solver - new game button appears on game over', async ({ page }) => {
 	await open(page);
 
 	// Trigger game over by winning: two clicks per tile turn every tile green
@@ -167,9 +192,9 @@ test('Wordle Solver - restart game button appears on game over', async ({ page }
 	}
 
 	await submit(page).click();
-	await expect(message(page)).toHaveText('CONGRATULATIONS');
+	await expect(message(page)).toHaveText('Solved in 1.');
 
-	const restartBtn = page.getByRole('button', { name: 'Start New Game' });
+	const restartBtn = page.getByRole('button', { name: 'New game' });
 	await expect(restartBtn).toBeVisible();
 
 	await restartBtn.click();
@@ -188,7 +213,7 @@ test('Wordle Solver - unmatched pattern keeps the row editable', async ({ page }
 	}
 	await submit(page).click();
 	await expect(message(page)).toContainText('no words');
-	await expect(page.getByRole('button', { name: 'Start New Game' })).toHaveCount(0);
+	await expect(page.getByRole('button', { name: 'New game' })).toHaveCount(0);
 
 	// Fix the tiles back to black and resubmit
 	for (let i = 0; i < 5; i++) {

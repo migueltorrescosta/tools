@@ -1,9 +1,11 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { copyToClipboard } from '#lib/clipboard.js';
-	import { Alert, Button, Field, PageHeader, Panel, Select } from '#lib/ui/index.js';
+	import { Alert, Button, Field, Fold, PageHeader, Panel, Select } from '#lib/ui/index.js';
 	import {
+		SIGNATURE_MISMATCH,
 		algorithmOptions,
+		claimLines,
 		describeClaims,
 		headerJsonAlg,
 		isSymmetric,
@@ -36,20 +38,24 @@
 	let verification = $state<VerifyResult | null>(null);
 	// Bumped per verification so a slow earlier result cannot overwrite a newer one
 	let verifySeq = 0;
-	let signatureResult = $state('');
 	let signatureError = $state('');
 	let decodeWarnings = $state<string[]>([]);
 	let decodedPayload = $state<JsonObject | undefined>(undefined);
 	let unsignedBanner = $state('');
 	let now = $state(Date.now());
 	let showSecret = $state(false);
+	// The alg the token's header names, so the Algorithm line can say where its value came from
+	let tokenAlgorithm = $state<string | null>(null);
+	// The Algorithm line turns into the menu once Change is pressed
+	let changingAlgorithm = $state(false);
+	let algorithmBox = $state<HTMLElement>();
 	let copyStatus = $state('');
 	let hydrated = $state(false);
 	// An unknown header alg (e.g. ES256K) gets its own option so the select never shows a blank
 	const algorithms = $derived(
 		algorithmOptions(selectedAlgorithm).map((alg) => ({ value: alg, label: alg }))
 	);
-	const claims = $derived(describeClaims(decodedPayload, now));
+	const claims = $derived(claimLines(describeClaims(decodedPayload, now)));
 	// What ENCODE would change: JSON.parse rounds big integers and drops duplicate keys
 	const encodeWarnings = $derived([
 		...jsonWarnings(headerJson).map((w) => `Header: ${w}`),
@@ -71,12 +77,12 @@
 			headerError = '';
 			payloadError = '';
 		}
-		signatureResult = bad ? '' : view.signature;
 		signatureError = bad ? '' : view.signatureError;
 		decodeWarnings = view.warnings;
 		decodedPayload = view.payload;
 		unsignedBanner = view.unsigned;
 		copyStatus = '';
+		tokenAlgorithm = view.alg;
 		if (view.alg) selectedAlgorithm = view.alg;
 	}
 
@@ -84,6 +90,12 @@
 	function selectAlgorithm(alg: string) {
 		selectedAlgorithm = alg;
 		headerJson = withHeaderAlg(headerJson, alg);
+	}
+
+	async function changeAlgorithm() {
+		changingAlgorithm = true;
+		await tick();
+		algorithmBox?.querySelector('select')?.focus();
 	}
 
 	function editHeader(text: string) {
@@ -149,153 +161,93 @@
 <div class="container" data-hydrated={hydrated || undefined}>
 	<PageHeader path="/jwt" />
 
-	<div class="split-view top">
-		<div class="stack">
-			<Panel title="Encoded token">
-				<div class="stack">
-					<Field label="Encoded token" hideLabel>
+	<!-- Everything you type on the left, what the token decodes to on the right;
+	     on a phone the decoded result follows the inputs. -->
+	<div class="top">
+		<Panel title="Token">
+			<div class="stack">
+				<Field label="Encoded token" hideLabel>
+					{#snippet children(props)}
+						<textarea
+							{...props}
+							class="control token"
+							rows="4"
+							bind:value={token}
+							placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+							spellcheck="false"
+						></textarea>
+					{/snippet}
+				</Field>
+				{#if tokenError}<Alert tone="danger">{tokenError}</Alert>{/if}
+				{#if signatureError}<Alert tone="danger">{signatureError}</Alert>{/if}
+				{#if unsignedBanner}<Alert tone="danger">{unsignedBanner}</Alert>{/if}
+				{#if decodeWarnings.length}
+					<Alert tone="warning">
+						{#each decodeWarnings as warning, i (i)}<div>{warning}</div>{/each}
+					</Alert>
+				{/if}
+
+				<section class="stack sub" aria-labelledby="verify-heading">
+					<h3 id="verify-heading">Verify signature</h3>
+					<Field label={isSymmetric(selectedAlgorithm) ? 'Secret' : 'Key (PEM or JWK)'}>
 						{#snippet children(props)}
-							<textarea
-								{...props}
-								class="control token"
-								rows="4"
-								bind:value={token}
-								placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-								spellcheck="false"
-							></textarea>
+							<div class="cluster secret-row">
+								<input
+									{...props}
+									type={showSecret ? 'text' : 'password'}
+									class="control"
+									autocomplete="off"
+									spellcheck="false"
+									bind:value={secret}
+									placeholder={isSymmetric(selectedAlgorithm)
+										? 'secret'
+										: 'public key verifies, private key signs'}
+								/>
+								<Button
+									pressed={showSecret}
+									aria-controls={props.id}
+									onclick={() => (showSecret = !showSecret)}>Show</Button
+								>
+							</div>
 						{/snippet}
 					</Field>
-					{#if tokenError}<Alert tone="danger">{tokenError}</Alert>{/if}
-					{#if unsignedBanner}<Alert tone="danger">{unsignedBanner}</Alert>{/if}
-					{#if decodeWarnings.length}
-						<Alert tone="warning">
-							{#each decodeWarnings as warning, i (i)}<div>{warning}</div>{/each}
-						</Alert>
+
+					{#if changingAlgorithm}
+						<div class="algorithm" bind:this={algorithmBox}>
+							<Select
+								label="Algorithm"
+								options={algorithms}
+								bind:value={() => selectedAlgorithm, selectAlgorithm}
+							/>
+						</div>
+					{:else}
+						<p class="hint" data-testid="algorithm-text">
+							Algorithm: {selectedAlgorithm}{selectedAlgorithm === tokenAlgorithm
+								? ', from the token header'
+								: ''} ·
+							<Button variant="link" onclick={changeAlgorithm}>Change</Button>
+						</p>
 					{/if}
-					{#if copyStatus}<p class="muted" role="status">{copyStatus}</p>{/if}
-				</div>
-			</Panel>
-
-			<Panel title="Verify signature">
-				<div class="stack">
-					<div class="verify-row">
-						<Field label={isSymmetric(selectedAlgorithm) ? 'Secret' : 'Key (PEM or JWK)'}>
-							{#snippet children(props)}
-								<div class="cluster secret-row">
-									<input
-										{...props}
-										type={showSecret ? 'text' : 'password'}
-										class="control"
-										autocomplete="off"
-										spellcheck="false"
-										bind:value={secret}
-										placeholder={isSymmetric(selectedAlgorithm)
-											? 'secret'
-											: 'public key verifies, private key signs'}
-									/>
-									<Button
-										pressed={showSecret}
-										aria-controls={props.id}
-										onclick={() => (showSecret = !showSecret)}>Show</Button
-									>
-								</div>
-							{/snippet}
-						</Field>
-						<Select
-							label="Algorithm"
-							options={algorithms}
-							bind:value={() => selectedAlgorithm, selectAlgorithm}
-						/>
-					</div>
-
-					<div>
-						<p class="sig-label">Signature</p>
-						<code class="signature" data-testid="signature-value"
-							>{signatureResult || 'Not available'}</code
-						>
-						{#if signatureError}<p class="error-text">{signatureError}</p>{/if}
-					</div>
 
 					{#if verification?.status === 'valid'}
 						<Alert tone="success"
-							><span data-testid="signature-status">Signature Verified</span></Alert
+							><span data-testid="signature-status">Signature verified</span></Alert
 						>
 					{:else if verification?.status === 'invalid'}
-						<Alert tone="danger">
-							<div data-testid="signature-status">Signature Invalid</div>
-							<div>{verification.message}</div>
-						</Alert>
+						<Alert tone="danger"
+							><span data-testid="signature-status"
+								>{verification.message === SIGNATURE_MISMATCH
+									? `Signature does not match this ${isSymmetric(selectedAlgorithm) ? 'secret' : 'key'}`
+									: verification.message}</span
+							></Alert
+						>
 					{:else if verification}
 						<Alert tone="warning">{verification.message}</Alert>
 					{/if}
-				</div>
-			</Panel>
-		</div>
+				</section>
 
-		<div class="stack">
-			<Panel title="Header">
-				{#snippet actions()}
-					<Button
-						size="sm"
-						variant="ghost"
-						aria-label="Copy header JSON"
-						disabled={!decodedHeaderJson}
-						onclick={() => copy('Header', decodedHeaderJson)}>Copy</Button
-					>
-				{/snippet}
-				<div data-testid="decoded-header">
-					{#if decodedHeaderJson}
-						<pre>{decodedHeaderJson}</pre>
-					{:else}
-						<p class="muted">No token to decode</p>
-					{/if}
-				</div>
-			</Panel>
-
-			<Panel title="Payload">
-				{#snippet actions()}
-					<Button
-						size="sm"
-						variant="ghost"
-						aria-label="Copy payload JSON"
-						disabled={!decodedPayloadJson}
-						onclick={() => copy('Payload', decodedPayloadJson)}>Copy</Button
-					>
-				{/snippet}
-				<div class="stack" data-testid="decoded-payload">
-					{#if decodedPayloadJson}
-						<pre>{decodedPayloadJson}</pre>
-					{:else}
-						<p class="muted">No token to decode</p>
-					{/if}
-					{#if claims.expired}
-						<Alert tone="danger">Expired</Alert>
-					{:else if claims.notYetValid}
-						<Alert tone="danger">Not yet valid (nbf)</Alert>
-					{/if}
-					{#if claims.issuedInFuture}
-						<Alert tone="warning">Issued in the future (iat)</Alert>
-					{/if}
-					{#if claims.times.length || claims.errors.length}
-						<ul class="claims">
-							{#each claims.times as claim (claim.name)}
-								<li>{claim.name}: {claim.iso} ({claim.relative})</li>
-							{/each}
-							{#each claims.errors as error, i (i)}
-								<li class="error-text">{error}</li>
-							{/each}
-						</ul>
-					{/if}
-				</div>
-			</Panel>
-		</div>
-	</div>
-
-	<div class="encode">
-		<Panel title="Encode">
-			<div class="stack">
-				<p class="muted">Edit the header and payload, then sign with the key above.</p>
-				<div class="split-view">
+				<Fold label="Edit and re-sign this token">
+					<p class="hint">Signs with the secret or key above.</p>
 					<Field label="Header (JSON)" error={headerError || undefined}>
 						{#snippet children(props)}
 							<textarea
@@ -320,19 +272,77 @@
 							></textarea>
 						{/snippet}
 					</Field>
-				</div>
-				{#if encodeWarnings.length}
-					<Alert tone="warning">
-						{#each encodeWarnings as warning, i (i)}<div>Encode changes this: {warning}</div>{/each}
-					</Alert>
-				{/if}
-				{#if encodeError}<Alert tone="danger">{encodeError}</Alert>{/if}
-				{#if encodeNote}<Alert tone="info">{encodeNote}</Alert>{/if}
-				<div>
-					<Button variant="primary" onclick={encodeToken}
-						>{selectedAlgorithm === 'none' ? 'Encode unsigned' : 'Sign & encode'}</Button
-					>
-				</div>
+					{#if encodeWarnings.length}
+						<Alert tone="warning">
+							{#each encodeWarnings as warning, i (i)}<div>
+									Encode changes this: {warning}
+								</div>{/each}
+						</Alert>
+					{/if}
+					{#if encodeError}<Alert tone="danger">{encodeError}</Alert>{/if}
+					{#if encodeNote}<Alert tone="info">{encodeNote}</Alert>{/if}
+					<div>
+						<Button variant="primary" onclick={encodeToken}
+							>{selectedAlgorithm === 'none' ? 'Encode unsigned' : 'Sign & encode'}</Button
+						>
+					</div>
+				</Fold>
+			</div>
+		</Panel>
+
+		<Panel title="Decoded">
+			<div class="stack">
+				<section class="sub" aria-labelledby="header-heading">
+					<div class="sub-head">
+						<h3 id="header-heading">Header</h3>
+						<Button
+							size="sm"
+							variant="ghost"
+							aria-label="Copy header JSON"
+							disabled={!decodedHeaderJson}
+							onclick={() => copy('Header', decodedHeaderJson)}>Copy</Button
+						>
+					</div>
+					<div data-testid="decoded-header">
+						{#if decodedHeaderJson}
+							<pre>{decodedHeaderJson}</pre>
+						{:else}
+							<p class="hint">No token to decode</p>
+						{/if}
+					</div>
+				</section>
+
+				<section class="sub" aria-labelledby="payload-heading">
+					<div class="sub-head">
+						<h3 id="payload-heading">Payload</h3>
+						<Button
+							size="sm"
+							variant="ghost"
+							aria-label="Copy payload JSON"
+							disabled={!decodedPayloadJson}
+							onclick={() => copy('Payload', decodedPayloadJson)}>Copy</Button
+						>
+					</div>
+					<div class="stack" data-testid="decoded-payload">
+						{#if decodedPayloadJson}
+							<pre>{decodedPayloadJson}</pre>
+						{:else}
+							<p class="hint">No token to decode</p>
+						{/if}
+						{#if claims.length}
+							<div class="claims">
+								{#each claims as claim, i (i)}
+									{#if claim.tone === 'muted'}
+										<p class="hint">{claim.text}</p>
+									{:else}
+										<Alert tone={claim.tone} live={false}>{claim.text}</Alert>
+									{/if}
+								{/each}
+							</div>
+						{/if}
+					</div>
+				</section>
+				{#if copyStatus}<p class="hint" role="status">{copyStatus}</p>{/if}
 			</div>
 		</Panel>
 	</div>
@@ -340,14 +350,35 @@
 
 <style>
 	.top {
+		display: grid;
+		gap: var(--sp-3);
 		align-items: start;
 	}
 
-	.verify-row {
-		display: grid;
-		grid-template-columns: 1fr minmax(8rem, 10rem);
-		gap: var(--sp-3);
-		align-items: start;
+	@media (min-width: 720px) {
+		.top {
+			grid-template-columns: 1fr 1fr;
+		}
+	}
+
+	/* Sub-sections of a box: a plain h3, no accent rule, spaced from what comes before */
+	.sub {
+		min-width: 0;
+		padding-top: var(--sp-2);
+	}
+
+	h3 {
+		font-size: var(--text-md);
+		font-weight: 600;
+		margin: 0;
+	}
+
+	.sub-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--sp-2);
+		margin-bottom: var(--sp-1);
 	}
 
 	.secret-row {
@@ -359,8 +390,11 @@
 		min-width: 0;
 	}
 
+	.algorithm {
+		max-width: 12rem;
+	}
+
 	.token,
-	.signature,
 	pre {
 		font-family: var(--font-mono);
 		font-size: var(--text-sm);
@@ -372,35 +406,10 @@
 		white-space: pre-wrap;
 	}
 
-	.signature {
-		display: block;
-		color: var(--text);
-	}
-
-	.sig-label {
-		margin: 0 0 var(--sp-1);
-		font-size: var(--text-sm);
-		font-weight: 500;
-	}
-
-	.muted,
 	.claims {
-		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-1);
 		font-size: var(--text-sm);
-		color: var(--text-muted);
-	}
-
-	.claims {
-		padding-left: var(--sp-4);
-	}
-
-	.error-text {
-		margin: 0;
-		font-size: var(--text-sm);
-		color: var(--danger-text);
-	}
-
-	.encode {
-		margin-top: var(--sp-3);
 	}
 </style>

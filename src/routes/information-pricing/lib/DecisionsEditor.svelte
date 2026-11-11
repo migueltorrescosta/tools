@@ -2,7 +2,7 @@
 	import { DECISION_NODE, REWARD_NODE } from '#lib/information-pricing/dataflow.js';
 	import { decisionLabels, type ModelError } from '#lib/information-pricing/model.js';
 	import type { Model } from '#lib/information-pricing/types.js';
-	import { Button, Field, InfoTip } from '#lib/ui/index.js';
+	import { Button, Field } from '#lib/ui/index.js';
 	import { declaredSymbols, errorAt, freshIds, type RowIds } from './editor';
 	import FormulaInput from './FormulaInput.svelte';
 	import NumberInput from './NumberInput.svelte';
@@ -55,9 +55,6 @@
 <section class="stack section" aria-labelledby="decisions-heading">
 	<div class="section-head">
 		<h3 id="decisions-heading">Decisions</h3>
-		<InfoTip label="decisions"
-			>The options you choose between, how each one is labelled, and the reward to maximise.</InfoTip
-		>
 	</div>
 	<div
 		class="stack decision"

@@ -215,11 +215,9 @@
 </figure>
 
 <style>
+	/* Plain content of the page's Plots box: no chrome of its own. */
 	.plot {
 		margin: 0;
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		padding: var(--sp-2);
 		min-width: 0;
 	}
 	figcaption {

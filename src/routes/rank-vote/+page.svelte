@@ -1,12 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import QRCode from 'qrcode';
-	import { copyToClipboard as copyToClipboardLib } from '#lib/clipboard.js';
+	import { copyToClipboard } from '#lib/clipboard.js';
+	import CopyIconButton from './lib/CopyIconButton.svelte';
 	import {
 		Alert,
+		Answer,
 		Button,
 		DataTable,
 		Field,
+		Fold,
 		PageHeader,
 		Panel,
 		type Column
@@ -14,23 +17,22 @@
 	import {
 		MIN_CHOICES,
 		MAX_CHOICES,
-		cb32Normalize,
 		computeChecksum,
 		encodeElection,
 		decodeElection,
-		decodeVote,
 		encodeVote,
 		hasDuplicateChoices,
 		parseStoredVotes,
-		voteCodeWidth as codeLength,
+		parseVoteLines,
+		voteMessage,
 		votesStorageKey,
-		colorStyle,
+		votesToText,
+		winnerSummary,
 		tallyResults,
 		tallyFPTP,
 		tallyIRV,
 		tallyCondorcet,
 		type Election,
-		type Vote,
 		type TallyResult,
 		type IRVResult
 	} from '#lib/rank-vote.js';
@@ -43,7 +45,9 @@
 	let election = $state<Election | null>(null);
 	let encodedBallot = $state('');
 	let ranking = $state<number[]>([]);
-	let votes = $state<Vote[]>([]);
+	/** The paste box: one vote per line. The votes are read from it. */
+	let votesText = $state('');
+	let editVotesOpen = $state(false);
 	let toastMessage = $state('');
 	let toastVisible = $state(false);
 	let qrDialog = $state<HTMLDialogElement>();
@@ -62,15 +66,7 @@
 		}, 2000);
 	}
 
-	// --- Clipboard ---
-	async function copyToClipboard(text: string, successMsg: string) {
-		try {
-			await copyToClipboardLib(text);
-			showToast(successMsg);
-		} catch {
-			showToast('Could not copy — check clipboard permissions');
-		}
-	}
+	const copyFailed = () => showToast('Could not copy. Check clipboard permissions.');
 
 	// --- Ballot validation ---
 	let duplicateChoices = $derived(
@@ -134,7 +130,8 @@
 		mode = 'tally';
 		election = { v: 1, title: trimmedTitle, choices: trimmedChoices, cs };
 		encodedBallot = encoded;
-		votes = [];
+		votesText = '';
+		editVotesOpen = true;
 		window.location.hash = '#tally=' + encoded;
 	}
 
@@ -152,85 +149,77 @@
 		}
 	}
 
-	function copyCode() {
-		if (election) {
-			copyToClipboard(encodeVote(ranking, election.cs), 'Vote code copied');
-		}
-	}
+	// --- Send my vote: the share sheet where there is one, else copy the message ---
+	let copiedMessage = $state('');
 
-	// --- Vote entry form ---
-	let voteNameInput = $state('');
-	let voteCodeInput = $state('');
-	let voteFormInvalid = $state(false);
-
-	function handleVoteSubmit(e: Event) {
-		e.preventDefault();
+	async function sendVote() {
 		if (!election) return;
-
-		const name = voteNameInput.trim();
-		const code = cb32Normalize(voteCodeInput.trim());
-
-		if (!name || !decodeVote(code, election.choices.length, election.cs)) {
-			voteFormInvalid = true;
-			return;
+		const text = voteMessage(election.title, currentVoteCode);
+		if (navigator.share) {
+			try {
+				await navigator.share({ text });
+				return;
+			} catch (e) {
+				if (e instanceof DOMException && e.name === 'AbortError') return;
+			}
 		}
-
-		// Check for duplicate name
-		if (votes.some((v) => v.name === name)) {
-			votes = votes.filter((v) => v.name !== name);
-			showToast(`Replaced previous vote from ${name}`);
+		try {
+			await copyToClipboard(text);
+			copiedMessage = text;
+		} catch {
+			copyFailed();
 		}
-
-		votes = [...votes, { name, code }];
-		saveVotes();
-		voteNameInput = '';
-		voteCodeInput = '';
-		voteFormInvalid = false;
-	}
-
-	function removeVote(name: string) {
-		votes = votes.filter((v) => v.name !== name);
-		saveVotes();
-		if (expandedVotes.has(name)) toggleVote(name);
 	}
 
 	// --- Saved votes (per election, so a reload or vote-page visit keeps them) ---
+	// The paste box text is saved as typed, unrecognised lines included; the
+	// votes are saved too, in the format older versions of the page read.
+	const textStorageKey = (cs: string) => `rank-vote:votes-text:${cs}`;
+
 	function saveVotes() {
 		if (!election) return;
 		try {
+			localStorage.setItem(textStorageKey(election.cs), votesText);
 			localStorage.setItem(votesStorageKey(election.cs), JSON.stringify(votes));
 		} catch {
 			// Storage unavailable (private mode, quota): votes stay in memory only
 		}
 	}
 
-	function loadVotes(e: { cs: string; choices: string[] }): Vote[] {
+	function loadVotesText(e: { cs: string; choices: string[] }): string {
 		try {
-			return parseStoredVotes(localStorage.getItem(votesStorageKey(e.cs)), e.choices.length, e.cs);
+			const text = localStorage.getItem(textStorageKey(e.cs));
+			if (text !== null) return text;
+			return votesToText(
+				parseStoredVotes(localStorage.getItem(votesStorageKey(e.cs)), e.choices.length, e.cs)
+			);
 		} catch {
-			return [];
+			return '';
 		}
 	}
 
-	// --- Expandable vote details (keyed by voter name, unique in the list) ---
-	let expandedVotes = $state<Set<string>>(new Set());
+	let parsed = $derived(
+		election
+			? parseVoteLines(votesText, election.choices.length, election.cs)
+			: { votes: [], unrecognised: [], replaced: [] }
+	);
+	let votes = $derived(parsed.votes);
 
-	function toggleVote(name: string) {
-		const newSet = new Set(expandedVotes);
-		if (newSet.has(name)) {
-			newSet.delete(name);
-		} else {
-			newSet.add(name);
-		}
-		expandedVotes = newSet;
-	}
+	const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+	/** "Ana, Ben and 3 more": the names after the vote count. */
+	let voterNames = $derived(
+		votes.length <= 8
+			? votes.map((v) => v.name).join(', ')
+			: `${votes
+					.slice(0, 6)
+					.map((v) => v.name)
+					.join(', ')} and ${votes.length - 6} more`
+	);
 
 	// --- Computed values ---
 	let currentVoteCode = $derived(
 		election && ranking.length > 0 ? encodeVote(ranking, election.cs) : ''
 	);
-
-	let voteCodeWidth = $derived(election ? codeLength(election.choices.length) : 0);
 
 	// Results for each voting mechanism
 	let resultsFPTP = $derived<TallyResult>(
@@ -300,8 +289,7 @@
 		})
 	);
 
-	/** Choices ranked first by Borda count, for the results announcement. */
-	let bordaLeaders = $derived(resultsBorda.results.filter((r) => r.rank === 1).map((r) => r.text));
+	let answer = $derived(winnerSummary(resultsCondorcet, resultsIRV));
 
 	// --- Init ---
 	onMount(() => {
@@ -343,8 +331,8 @@
 					ranking = [...Array(decodedElection.choices.length).keys()];
 				} else {
 					mode = 'tally';
-					votes = loadVotes(decodedElection);
-					expandedVotes = new Set();
+					votesText = loadVotesText(decodedElection);
+					editVotesOpen = !votesText.trim();
 				}
 			});
 		}
@@ -374,7 +362,7 @@
 	{#if qrDataUrl}
 		<img src={qrDataUrl} alt="QR code of the vote link" width="200" height="200" />
 	{:else}
-		<p class="rv-muted">QR generation failed. Copy the link instead.</p>
+		<p class="hint">QR generation failed. Copy the link instead.</p>
 	{/if}
 	<form method="dialog">
 		<Button type="submit">Close</Button>
@@ -382,7 +370,7 @@
 </dialog>
 
 <div class="container" data-hydrated={hydrated || undefined}>
-	<PageHeader path="/rank-vote">Ranked-choice voting</PageHeader>
+	<PageHeader path="/rank-vote" />
 
 	{#if mode === 'create'}
 		<div class="rv-create">
@@ -448,13 +436,13 @@
 				<Button href={'#tally=' + encodedBallot} variant="ghost" size="sm">← Tally</Button>
 				<h2>{election.title}</h2>
 			</div>
-			<p class="rv-muted">Rank the choices in your preferred order.</p>
+			<p class="hint">Rank the choices in your preferred order.</p>
 
 			<ol class="rv-ranking" aria-label="Your ranking">
 				{#each ranking as choiceIdx, r (choiceIdx)}
 					<li class="rv-rank-row">
 						<span class="rv-rank-num" aria-hidden="true">{r + 1}.</span>
-						<div class="rv-swatch-row" style={colorStyle(choiceIdx)}>
+						<div class="rv-choice-row">
 							<span class="rv-choice-text" data-testid="ranked-choice"
 								>{election.choices[choiceIdx]}</span
 							>
@@ -479,12 +467,20 @@
 				{/each}
 			</ol>
 
-			<div class="rv-code-row">
-				<span>Your vote code:</span>
-				<output class="rv-code" data-testid="vote-code" aria-label="Your vote code"
-					>{currentVoteCode}</output
-				>
-				<Button variant="primary" onclick={copyCode}>Copy vote code</Button>
+			<div class="rv-send">
+				<div>
+					<Button variant="primary" onclick={sendVote}>Send my vote</Button>
+				</div>
+				<p class="hint">
+					Sends your vote code (<output class="rv-code" data-testid="vote-code"
+						>{currentVoteCode}</output
+					>) to whoever shared this link.
+				</p>
+				{#if copiedMessage && copiedMessage === voteMessage(election.title, currentVoteCode)}
+					<Alert tone="success">
+						Copied “{copiedMessage}”. Paste it in a message to whoever shared the link.
+					</Alert>
+				{/if}
 			</div>
 		</div>
 	{/if}
@@ -493,188 +489,151 @@
 		<div class="stack">
 			<h2 class="rv-ballot-title">{election.title}</h2>
 
-			<div class="split-view rv-tally-top">
-				<Panel title="Share" level={3}>
-					<div class="stack">
-						<Field label="Vote link" hint="Send this to voters; each sends back a vote code.">
-							{#snippet children(props)}
-								<input
-									class="control rv-mono"
-									type="text"
-									readonly
-									value={getVoteURL()}
-									{...props}
-								/>
-							{/snippet}
-						</Field>
-						<div class="cluster">
-							<Button onclick={() => copyToClipboard(getVoteURL(), 'Link copied')}>Copy</Button>
-							<Button onclick={() => openQRDialog(getVoteURL())}>QR code</Button>
-							<Button href={getVoteURL()} target="_blank" rel="noopener">Vote yourself</Button>
-						</div>
-					</div>
-				</Panel>
-
-				<Panel title="Enter votes" level={3}>
-					<div class="stack">
-						<form class="rv-vote-form" onsubmit={handleVoteSubmit}>
-							<Field label="Name">
-								{#snippet children(props)}
-									<input
-										class="control"
-										type="text"
-										{...props}
-										bind:value={voteNameInput}
-										required
-									/>
-								{/snippet}
-							</Field>
-							<Field label="Vote code">
-								{#snippet children(props)}
-									<input
-										class="control rv-mono rv-code-input"
-										type="text"
-										{...props}
-										aria-invalid={voteFormInvalid}
-										bind:value={voteCodeInput}
-										oninput={() => (voteFormInvalid = false)}
-										required
-										minlength={voteCodeWidth}
-										maxlength={voteCodeWidth}
-										autocapitalize="characters"
-										autocorrect="off"
-										spellcheck="false"
-									/>
-								{/snippet}
-							</Field>
-							<Button type="submit" variant="primary">Add</Button>
-						</form>
-						{#if voteFormInvalid}
-							<Alert tone="danger">
-								Invalid code for this ballot. Check for typos: codes are {voteCodeWidth} characters.
-							</Alert>
-						{/if}
-						{#if votes.length === 0}
-							<p class="rv-muted">No votes yet</p>
-						{:else}
-							<ul class="rv-votes" aria-label="Entered votes">
-								{#each votes as vote (vote.name)}
-									{@const expanded = expandedVotes.has(vote.name)}
-									<li class="rv-vote-entry">
-										<div class="rv-vote-head">
-											<button
-												type="button"
-												class="rv-vote-toggle"
-												onclick={() => toggleVote(vote.name)}
-												aria-expanded={expanded}
-											>
-												<span class="rv-vote-name" data-testid="vote-name">{vote.name}</span>
-												<span class="rv-mono rv-chip">{vote.code}</span>
-												<span class="rv-caret" class:open={expanded} aria-hidden="true">▾</span>
-											</button>
-											<Button
-												size="sm"
-												variant="ghost"
-												aria-label="Remove vote from {vote.name}"
-												onclick={() => removeVote(vote.name)}>×</Button
-											>
-										</div>
-										{#if expanded}
-											{@const perm = decodeVote(vote.code, election.choices.length, election.cs)}
-											<ol class="rv-vote-detail">
-												{#each perm ?? [] as choiceIdx, r (choiceIdx)}
-													<li class="rv-swatch-row" style={colorStyle(choiceIdx)}>
-														<span class="rv-detail-rank">{r + 1}.</span>
-														<span class="rv-choice-text">{election.choices[choiceIdx]}</span>
-													</li>
-												{/each}
-											</ol>
-										{/if}
-									</li>
-								{/each}
-							</ul>
-						{/if}
-					</div>
-				</Panel>
-			</div>
-
-			<Panel title="Results" level={3}>
+			<Panel>
 				<div class="stack">
-					<p class="rv-muted" role="status">
-						<span data-testid="vote-count"
-							>{resultsBorda.valid} vote{resultsBorda.valid === 1 ? '' : 's'}</span
-						>{#if resultsBorda.valid > 0}<span class="sr-only"
-								>. Borda count leader: {bordaLeaders.join(', ')}</span
-							>{/if}
-					</p>
-					{#if resultsBorda.valid > 0}
-						<div class="rv-methods">
-							<div class="stack">
-								<DataTable
-									caption="First Past The Post"
-									columns={resultColumns}
-									rows={fptpRows}
-									rowKey={(r) => r.index}
-								/>
-							</div>
-							<div class="stack">
-								<DataTable
-									caption="Instant Runoff"
-									columns={resultColumns}
-									rows={irvRows}
-									rowKey={(r) => r.index}
-								/>
-								{#if resultsIRV.rounds.length > 1}
-									<details class="rv-rounds">
-										<summary>Rounds</summary>
-										<DataTable
-											caption="Instant Runoff votes per round"
-											hideCaption
-											columns={roundColumns}
-											rows={roundRows}
-											rowKey={(r) => r.index}
-										/>
-									</details>
-								{/if}
-								{#if resultsIRV.tie}
-									<p class="rv-note">
-										Tie: {resultsIRV.tie.map((i) => election?.choices[i]).join(', ')}. An
-										elimination tie could not be broken and the winner depends on how it is
-										resolved.
-									</p>
-								{/if}
-							</div>
-							<div class="stack">
-								<DataTable
-									caption="Borda Count"
-									columns={resultColumns}
-									rows={bordaRows}
-									rowKey={(r) => r.index}
-								/>
-							</div>
-							<div class="stack">
-								<DataTable
-									caption="Copeland (pairwise)"
-									columns={resultColumns}
-									rows={copelandRows}
-									rowKey={(r) => r.index}
-								/>
-								<p class="rv-note">
-									{#if resultsCondorcet.condorcetWinner !== null}
-										Condorcet winner: {election?.choices[resultsCondorcet.condorcetWinner]}
-									{:else if resultsCondorcet.cycle}
-										No Condorcet winner (cycle)
-									{:else}
-										No Condorcet winner (pairwise tie)
+					<Answer headline={answer?.headline ?? 'No votes yet'} level={3}>
+						<span role="status" data-testid="answer"
+							>{answer?.detail ??
+								'Send voters the link, then paste the codes they send back.'}</span
+						>
+					</Answer>
+					{#if answer}
+						<Fold label="Compare counting methods">
+							<div class="rv-methods">
+								<div class="stack">
+									<DataTable
+										caption="First Past The Post"
+										columns={resultColumns}
+										rows={fptpRows}
+										rowKey={(r) => r.index}
+									/>
+								</div>
+								<div class="stack">
+									<DataTable
+										caption="Instant Runoff"
+										columns={resultColumns}
+										rows={irvRows}
+										rowKey={(r) => r.index}
+									/>
+									{#if resultsIRV.rounds.length > 1}
+										<details class="rv-rounds">
+											<summary>Rounds</summary>
+											<DataTable
+												caption="Instant Runoff votes per round"
+												hideCaption
+												columns={roundColumns}
+												rows={roundRows}
+												rowKey={(r) => r.index}
+											/>
+										</details>
 									{/if}
-								</p>
+									{#if resultsIRV.tie}
+										<p class="rv-note">
+											Tie: {resultsIRV.tie.map((i) => election?.choices[i]).join(', ')}. An
+											elimination tie could not be broken and the winner depends on how it is
+											resolved.
+										</p>
+									{/if}
+								</div>
+								<div class="stack">
+									<DataTable
+										caption="Borda Count"
+										columns={resultColumns}
+										rows={bordaRows}
+										rowKey={(r) => r.index}
+									/>
+								</div>
+								<div class="stack">
+									<DataTable
+										caption="Copeland (pairwise)"
+										columns={resultColumns}
+										rows={copelandRows}
+										rowKey={(r) => r.index}
+									/>
+									<p class="rv-note">
+										{#if resultsCondorcet.condorcetWinner !== null}
+											Condorcet winner: {election?.choices[resultsCondorcet.condorcetWinner]}
+										{:else if resultsCondorcet.cycle}
+											No Condorcet winner (cycle)
+										{:else}
+											No Condorcet winner (pairwise tie)
+										{/if}
+									</p>
+								</div>
 							</div>
-						</div>
-					{:else}
-						<p class="rv-muted">Add votes to see results.</p>
+						</Fold>
 					{/if}
 				</div>
 			</Panel>
+
+			<div class="split-view rv-tally-top">
+				<Panel title="Share" level={3}>
+					<div class="stack">
+						<p class="hint">Send voters this link. Each one sends you back a short vote code.</p>
+						<div class="cluster">
+							<CopyIconButton text={getVoteURL()} label="Copy vote link" onerror={copyFailed} />
+							<Button onclick={() => openQRDialog(getVoteURL())}>QR code</Button>
+						</div>
+					</div>
+				</Panel>
+
+				<Panel title="Votes" level={3}>
+					<div class="stack">
+						<p class="hint">
+							<span data-testid="vote-count">{plural(votes.length, 'vote')}</span
+							>{#if votes.length}<span data-testid="voter-names">{` · ${voterNames}`}</span>{/if}
+						</p>
+						<Fold label="Add or edit votes" bind:open={editVotesOpen}>
+							<div class="stack">
+								<Field
+									label="Votes, one per line"
+									hint="Paste what voters send you. Edit or delete a line to change a vote."
+								>
+									{#snippet children(props)}
+										<textarea
+											class="control rv-mono rv-paste"
+											rows={Math.max(5, votesText.split('\n').length + 1)}
+											{...props}
+											bind:value={votesText}
+											oninput={saveVotes}
+											placeholder="Ana 0Z"
+											autocapitalize="off"
+											spellcheck="false"
+										></textarea>
+									{/snippet}
+								</Field>
+								{#if votesText.trim()}
+									{#if parsed.unrecognised.length}
+										<Alert tone="warning">
+											<p class="rv-status-line" data-testid="paste-status">
+												{plural(votes.length, 'vote')} read · {plural(
+													parsed.unrecognised.length,
+													'line'
+												)} not recognised ({parsed.unrecognised.length === 1 ? 'line' : 'lines'}
+												{parsed.unrecognised.map((u) => u.line).join(', ')})
+											</p>
+											<ul class="rv-bad-lines">
+												{#each parsed.unrecognised as u (u.line)}
+													<li><span class="hint">Line {u.line}:</span> {u.text}</li>
+												{/each}
+											</ul>
+										</Alert>
+									{:else}
+										<p class="hint" data-testid="paste-status">
+											{plural(votes.length, 'vote')} read
+										</p>
+									{/if}
+									{#if parsed.replaced.length}
+										<p class="hint">
+											A later line replaces the earlier vote from {parsed.replaced.join(', ')}.
+										</p>
+									{/if}
+								{/if}
+							</div>
+						</Fold>
+					</div>
+				</Panel>
+			</div>
 		</div>
 	{/if}
 
@@ -693,22 +652,26 @@
 	<details class="how">
 		<summary>How it works</summary>
 		<p>
-			Create a ballot and share the vote link. Each voter ranks the choices and sends you their vote
-			code. Enter each name and code on the tally page to see the results counted four ways.
+			Ranked-choice voting. Create a ballot and share the vote link. Each voter ranks the choices
+			and sends you back a short vote code. Paste the codes into Votes, one per line, and the page
+			counts them four ways. The answer at the top is the choice that beats every other head to
+			head, or the instant-runoff winner when no choice does.
+		</p>
+		<p>
+			A line can be a name and a code ("Ana 0Z"), a code alone, or a whole message a voter sent: the
+			page finds the code in it and checks it against this ballot. Lines without a name are called
+			Voter 1, Voter 2 and so on, and a later line for the same name replaces the earlier vote. The
+			ballot lives in the link, and the votes stay in this browser.
 		</p>
 		<p>
 			How each count works is in the
 			<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/rank-vote.md">docs</a>.
+			This tool is forked from
+			<a href="https://tools.jonathandemirgian.com/rank-vote.html" target="_blank" rel="noopener"
+				>tools.jonathandemirgian.com/rank-vote.html</a
+			>.
 		</p>
 	</details>
-
-	<p class="rv-credit">
-		Tool forked from <a
-			href="https://tools.jonathandemirgian.com/rank-vote.html"
-			target="_blank"
-			rel="noopener">tools.jonathandemirgian.com/rank-vote.html</a
-		>
-	</p>
 </div>
 
 <style>
@@ -717,15 +680,10 @@
 		margin: 0;
 	}
 
-	.rv-muted,
 	.rv-note {
 		margin: 0;
-		font-size: var(--text-sm);
-		color: var(--text-muted);
-	}
-
-	.rv-note {
 		font-size: var(--text-xs);
+		color: var(--text-muted);
 	}
 
 	.rv-mono {
@@ -776,8 +734,7 @@
 	}
 
 	.rv-ranking,
-	.rv-vote-detail,
-	.rv-votes {
+	.rv-bad-lines {
 		list-style: none;
 		margin: 0;
 		padding: 0;
@@ -802,8 +759,8 @@
 		color: var(--text-muted);
 	}
 
-	/* A choice with its colour as a left line (the colour never carries meaning alone) */
-	.rv-swatch-row {
+	/* A choice: a plain bordered row, like the other rows on the site */
+	.rv-choice-row {
 		display: flex;
 		align-items: center;
 		gap: var(--sp-2);
@@ -813,7 +770,6 @@
 		padding: 0 var(--sp-1) 0 var(--sp-3);
 		background: var(--surface);
 		border: 1px solid var(--border);
-		border-left: 4px var(--choice-line, solid) var(--choice-color);
 		border-radius: var(--radius);
 	}
 
@@ -825,7 +781,7 @@
 		white-space: nowrap;
 	}
 
-	.rv-swatch-row :global(.rv-arrow) {
+	.rv-choice-row :global(.rv-arrow) {
 		min-width: var(--control-h-sm);
 		font-size: var(--text-lg);
 	}
@@ -834,22 +790,18 @@
 		align-items: start;
 	}
 
-	.rv-code-row {
+	.rv-send {
 		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: var(--sp-2);
+		flex-direction: column;
+		gap: var(--sp-1);
+		margin-top: var(--sp-2);
 	}
 
 	.rv-code {
 		font-family: var(--font-mono);
-		font-size: var(--text-lg);
 		font-weight: 700;
-		letter-spacing: 0.1em;
-		padding: var(--sp-1) var(--sp-2);
-		background: var(--sunken);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
+		letter-spacing: 0.05em;
+		color: var(--text);
 	}
 
 	/* Tally */
@@ -857,93 +809,26 @@
 		font-size: var(--text-xl);
 	}
 
-	.rv-vote-form {
-		display: grid;
-		grid-template-columns: 1fr 8rem auto;
-		align-items: end;
-		gap: var(--sp-2);
+	.rv-status-line {
+		margin: 0;
 	}
 
-	.rv-code-input {
-		text-transform: uppercase;
-		letter-spacing: 0.1em;
+	/* A disclosure line with its triangle, tall enough to tap */
+	.rv-paste {
+		width: 100%;
+		min-height: 8rem;
+		resize: vertical;
 	}
 
-	.rv-votes {
-		gap: var(--sp-1);
-		max-height: 250px;
-		overflow-y: auto;
-	}
-
-	.rv-vote-entry {
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
-		background: var(--surface-2);
-	}
-
-	.rv-vote-head {
-		display: flex;
-		align-items: center;
-		padding-right: var(--sp-1);
-	}
-
-	.rv-vote-toggle {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		align-items: center;
-		gap: var(--sp-2);
-		min-height: var(--control-h);
-		padding: 0 var(--sp-3);
-		border: none;
-		background: none;
-		color: inherit;
-		font: inherit;
-		text-align: left;
-		cursor: pointer;
-		border-radius: var(--radius);
-	}
-
-	.rv-vote-name {
-		flex: 1;
-		font-weight: 500;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.rv-chip {
-		font-size: var(--text-xs);
-		padding: var(--sp-0) var(--sp-1);
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-sm);
-		letter-spacing: 0.05em;
-	}
-
-	.rv-caret {
-		color: var(--text-muted);
-	}
-
-	.rv-caret.open {
-		transform: rotate(180deg);
-	}
-
-	.rv-vote-detail {
+	.rv-bad-lines {
 		gap: var(--sp-0);
-		padding: 0 var(--sp-2) var(--sp-2);
+		margin-top: var(--sp-1);
 		font-size: var(--text-sm);
+		overflow-wrap: anywhere;
 	}
 
-	.rv-vote-detail .rv-swatch-row {
-		min-height: 0;
-		padding: var(--sp-0) var(--sp-2);
-	}
-
-	.rv-detail-rank {
-		min-width: 2ch;
-		font-weight: 600;
-		color: var(--text-muted);
+	.rv-bad-lines .hint {
+		font-size: inherit;
 	}
 
 	.rv-methods {
@@ -1015,22 +900,5 @@
 		display: block;
 		margin: 0 auto var(--sp-3);
 		border: 1px solid var(--border);
-	}
-
-	.rv-credit {
-		margin: var(--sp-4) 0 0;
-		font-size: var(--text-xs);
-		color: var(--text-muted);
-	}
-
-	@media (max-width: 480px) {
-		.rv-vote-form {
-			grid-template-columns: 1fr 1fr;
-		}
-
-		.rv-vote-form > :global(.ui-btn) {
-			grid-column: 1 / -1;
-			justify-self: start;
-		}
 	}
 </style>

@@ -3,7 +3,7 @@
 	width: 100%;
 	max-width: var(--content-max);
 	margin: 0 auto;
-	padding: var(--sp-3) var(--sp-4);
+	padding: var(--sp-2) var(--sp-4) var(--sp-4);
 	flex: 1;
 }
 
@@ -18,6 +18,13 @@
 	clip: rect(0, 0, 0, 0);
 	white-space: nowrap;
 	border: 0;
+}
+
+/* A one-line hint under a control or heading, in place of an (i) icon. */
+.hint {
+	margin: 0;
+	font-size: var(--text-sm);
+	color: var(--text-muted);
 }
 
 /* Vertical rhythm: children separated by --gap. */

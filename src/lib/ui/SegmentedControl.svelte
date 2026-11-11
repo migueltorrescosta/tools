@@ -92,6 +92,13 @@
 		user-select: none;
 	}
 
+	/* Airy spacing would wrap five short segments on a phone */
+	@media (max-width: 40rem) {
+		label {
+			padding: 0 var(--sp-2);
+		}
+	}
+
 	label:hover {
 		background: var(--surface-2);
 	}

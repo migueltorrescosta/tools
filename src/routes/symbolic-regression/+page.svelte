@@ -58,7 +58,7 @@
 		Alert,
 		Button,
 		Field,
-		InfoTip,
+		Fold,
 		PageHeader,
 		Panel,
 		RunControls,
@@ -222,9 +222,7 @@
 		pendingCategorical = columns?.categorical ?? ex.categorical ?? [];
 		if (ex.operators) operators = [...ex.operators];
 		loadCsv(ex.csv, ex.name, ex.id);
-		examplesOpen = false;
 	}
-	let examplesOpen = $state(false);
 
 	async function loadFile(file: File) {
 		const text = await file.text();
@@ -375,18 +373,38 @@
 	const hue = (t: number) =>
 		`color-mix(in oklch, var(--success) ${Math.round(t * 100)}%, var(--danger))`;
 	const colors = $derived(shades.map(hue));
-	const tints = $derived(shades.map((t) => `color-mix(in oklab, ${hue(t)} 30%, var(--surface))`));
 	const equationsTex = $derived(
 		front.map((f) => renderTex(toLatex(f.expr, frontNames, frontLevels)))
 	);
+	/** Inline mode with display-size fractions, so a long equation wraps at = and between terms. */
 	const selectedTex = $derived(
 		selectedEntry
 			? renderTex(
-					`${toLatex({ kind: 'var', index: 0 }, [frontTarget])} = ${toLatex(selectedEntry.expr, frontNames, frontLevels)}`,
-					true
+					`\\displaystyle ${toLatex({ kind: 'var', index: 0 }, [frontTarget])} = ${toLatex(selectedEntry.expr, frontNames, frontLevels)}`
 				)
 			: ''
 	);
+	/** Index of the lowest validation MSE, ties going to the simpler equation. */
+	const mostAccurate = $derived(
+		front.reduce((best, f, i) => (best < 0 || f.valMse < front[best].valMse ? i : best), -1)
+	);
+	/** The list shows all equations, or only the simplest, the best, the most accurate and the selected one. */
+	let showAllEquations = $state(false);
+	const shownEquations = $derived(
+		front
+			.map((f, i) => ({ f, i }))
+			.filter(
+				({ i }) =>
+					showAllEquations || i === 0 || i === recommended || i === mostAccurate || i === selected
+			)
+	);
+	/** Shown under the selected equation; the rest sit behind More metrics. */
+	const MORE_METRICS = [
+		['trainMse', 'Train MSE'],
+		['valMse', 'Validation MSE'],
+		['valRmse', 'Validation RMSE'],
+		['score', 'Score']
+	] as const;
 	const METRICS = [
 		['trainMse', 'Train MSE'],
 		['valMse', 'Validation MSE'],
@@ -449,13 +467,20 @@
 	}
 
 	// --- Copy ---
+	const COPY_FORMATS = {
+		text: { label: 'as text', format: toText },
+		latex: { label: 'as LaTeX', format: toLatex },
+		python: { label: 'as Python', format: toPython },
+		js: { label: 'as JavaScript', format: toJavaScript }
+	} as const;
+	let copyFormat = $state<keyof typeof COPY_FORMATS>('text');
 	let copied = $state('');
-	async function copy(kind: 'text' | 'latex' | 'python' | 'js') {
+	async function copy() {
 		if (!selectedEntry) return;
-		const f = { text: toText, latex: toLatex, python: toPython, js: toJavaScript }[kind];
+		const { label, format } = COPY_FORMATS[copyFormat];
 		try {
-			await copyToClipboard(f(selectedEntry.expr, frontNames, frontLevels));
-			copied = kind;
+			await copyToClipboard(format(selectedEntry.expr, frontNames, frontLevels));
+			copied = `Copied ${label}`;
 		} catch {
 			copied = '';
 		}
@@ -614,6 +639,16 @@
 				: ''
 	);
 
+	const advancedSummary = $derived(
+		[
+			`${timeBudgetSec} s`,
+			`seed ${seed}`,
+			`${workers} worker${workers === 1 ? '' : 's'}`,
+			`${operators.length} operator${operators.length === 1 ? '' : 's'}`,
+			`${validationPercent}% validation`
+		].join(', ')
+	);
+
 	function fmt(v: number): string {
 		return Number.isFinite(v) ? formatNumber(v) : '—';
 	}
@@ -626,8 +661,7 @@
 				onClear={clearAll}
 				description="settings only, never your data"
 			/>{/snippet}
-		Fit compact, interpretable equations to a CSV. Everything runs in your browser.</PageHeader
-	>
+	</PageHeader>
 
 	{#snippet metricsTip(i: number)}
 		{@const f = front[i]}
@@ -644,12 +678,15 @@
 	<div class="layout" class:has-plots={front.length > 0}>
 		<div class="stack inputs">
 			<RunControls
+				title="Setup"
 				onrun={start}
 				{running}
 				disabled={!built || operators.length === 0}
+				describedby={operators.length === 0 ? 'operators-error' : undefined}
 				onstop={stop}
 				oncontinue={resume}
 				{canContinue}
+				summary={advancedSummary}
 			>
 				{#snippet fields()}
 					<Field label="Time budget (s)">
@@ -674,12 +711,44 @@
 							/>
 						{/snippet}
 					</Field>
+					<Field label="Validation (%)">
+						{#snippet children(props)}
+							<input
+								class="control"
+								type="number"
+								min="5"
+								max="50"
+								bind:value={validationPercent}
+								{...props}
+							/>
+						{/snippet}
+					</Field>
+					<fieldset
+						class="checks"
+						aria-describedby={operators.length === 0 ? 'operators-error' : undefined}
+					>
+						<legend>Operators</legend>
+						{#each ALL_OPERATORS as op (op)}
+							<label class="check" class:unary={UNARY_OPS.includes(op as never)}>
+								<input
+									type="checkbox"
+									checked={operators.includes(op)}
+									onchange={(e) => toggleOperator(op, e.currentTarget.checked)}
+									aria-label="Operator {op}"
+								/>
+								{OPERATOR_LABELS[op]}
+							</label>
+						{/each}
+						{#if operators.length === 0}
+							<div class="operators-error" id="operators-error">
+								<Alert tone="danger">Pick at least one operator.</Alert>
+							</div>
+						{/if}
+					</fieldset>
 				{/snippet}
 				<p class="muted" data-testid="progress">{progressText}</p>
 				{#if runError}<Alert tone="danger">{runError}</Alert>{/if}
-			</RunControls>
-			<Panel title="Data">
-				<div class="stack">
+				<div class="stack data" data-testid="data">
 					<div
 						class="dropzone"
 						class:dragging
@@ -698,18 +767,15 @@
 							<input type="file" accept=".csv,.tsv,.txt,text/csv" onchange={onFileInput} />
 						</label>
 					</div>
-					<details class="examples" bind:open={examplesOpen} data-testid="examples">
-						<summary>Example datasets</summary>
-						<ul>
-							{#each EXAMPLES as ex (ex.id)}
-								<li>
-									<Button size="sm" onclick={() => loadExample(ex.id)}>{ex.name}</Button>
-									<span class="muted">{ex.description}</span>
-								</li>
-							{/each}
-						</ul>
-					</details>
 					{#if loadError}<Alert tone="danger">{loadError}</Alert>{/if}
+					<div class="examples" data-testid="examples">
+						<p class="muted" id="examples-label">No CSV? Try an example:</p>
+						<div class="cluster examples-list" role="group" aria-labelledby="examples-label">
+							{#each EXAMPLES as ex (ex.id)}
+								<Button size="sm" onclick={() => loadExample(ex.id)}>{ex.name}</Button>
+							{/each}
+						</div>
+					</div>
 					{#if parsed}
 						<p class="status" data-testid="data-status">
 							{#if exampleId}Example dataset{/if}
@@ -744,11 +810,7 @@
 							{/snippet}
 						</Field>
 						<fieldset class="columns" data-testid="inputs">
-							<legend>
-								<span class="legend-row"
-									>Inputs <InfoTip label="input modes">{GLOSSARY.inputs}</InfoTip></span
-								>
-							</legend>
+							<legend>Inputs</legend>
 							<div class="column-list">
 								{#each columns as c (c.index)}
 									{#if c.index !== targetIndex && modes[c.index] !== undefined}
@@ -771,41 +833,7 @@
 						</fieldset>
 					{/if}
 				</div>
-			</Panel>
-
-			<Panel title="Settings">
-				<div class="stack">
-					<fieldset class="checks">
-						<legend>Operators</legend>
-						{#each ALL_OPERATORS as op (op)}
-							<label class="check" class:unary={UNARY_OPS.includes(op as never)}>
-								<input
-									type="checkbox"
-									checked={operators.includes(op)}
-									onchange={(e) => toggleOperator(op, e.currentTarget.checked)}
-									aria-label="Operator {op}"
-								/>
-								{OPERATOR_LABELS[op]}
-							</label>
-						{/each}
-					</fieldset>
-					<div class="settings-grid">
-						<Field label="Validation (%)">
-							{#snippet info()}<InfoTip label="validation">{GLOSSARY.validation}</InfoTip>{/snippet}
-							{#snippet children(props)}
-								<input
-									class="control"
-									type="number"
-									min="5"
-									max="50"
-									bind:value={validationPercent}
-									{...props}
-								/>
-							{/snippet}
-						</Field>
-					</div>
-				</div>
-			</Panel>
+			</RunControls>
 		</div>
 
 		<div class="results">
@@ -828,24 +856,36 @@
 							</div>
 							<dl class="metrics" data-testid="metrics">
 								<div>
-									<dt>Complexity <InfoTip label="complexity">{GLOSSARY.complexity}</InfoTip></dt>
+									<dt>Complexity</dt>
 									<dd>{selectedEntry.complexity}</dd>
 								</div>
-								{#each METRICS as [key, label] (key)}
-									<div>
-										<dt>{label} <InfoTip {label}>{GLOSSARY[key]}</InfoTip></dt>
-										<dd data-testid={key === 'valR2' ? 'r2' : undefined}>
-											{fmt(selectedEntry[key])}
-										</dd>
-									</div>
-								{/each}
+								<div>
+									<dt>Validation R²</dt>
+									<dd data-testid="r2">{fmt(selectedEntry.valR2)}</dd>
+								</div>
 							</dl>
+							<Fold label="More metrics" summary="MSE, RMSE, score" data-testid="more-metrics">
+								<dl class="metrics">
+									{#each MORE_METRICS as [key, label] (key)}
+										<div>
+											<dt>{label}</dt>
+											<dd>{fmt(selectedEntry[key])}</dd>
+										</div>
+									{/each}
+								</dl>
+							</Fold>
 							<div class="cluster copy-row">
-								<span class="muted">Copy as</span>
-								<Button size="sm" onclick={() => copy('text')}>Text</Button>
-								<Button size="sm" onclick={() => copy('latex')}>LaTeX</Button>
-								<Button size="sm" onclick={() => copy('python')}>Python</Button>
-								<Button size="sm" onclick={() => copy('js')}>JavaScript</Button>
+								<Button size="sm" onclick={copy}>Copy</Button>
+								<select
+									class="control copy-format"
+									aria-label="Copy format"
+									bind:value={copyFormat}
+									data-testid="copy-format"
+								>
+									{#each Object.entries(COPY_FORMATS) as [value, { label }] (value)}
+										<option {value}>{label}</option>
+									{/each}
+								</select>
 								<Button
 									size="sm"
 									onclick={downloadCsv}
@@ -856,30 +896,19 @@
 									>Download CSV</Button
 								>
 								<span class="copied" role="status"
-									>{#if copied}<span data-testid="copied">Copied {copied}</span>{/if}</span
+									>{#if copied}<span data-testid="copied">{copied}</span>{/if}</span
 								>
 							</div>
 						{/if}
 
-						<div class="front-head">
-							<h3>
-								Equations by complexity <InfoTip label="complexity">{GLOSSARY.complexity}</InfoTip>
-							</h3>
-							<span class="r2-legend">
-								<span aria-hidden="true">R² 0</span><span class="ramp"></span><span
-									aria-hidden="true">1</span
-								>
-								<InfoTip label="colour">{GLOSSARY.colour}</InfoTip>
-							</span>
-						</div>
+						<h3 class="front-head">Equations by complexity</h3>
 						<ol class="chips" data-testid="front">
-							{#each front as f, i (f.complexity)}
+							{#each shownEquations as { f, i } (f.complexity)}
 								<li>
 									<button
 										type="button"
 										class="chip"
 										class:selected={i === selected}
-										style:background={tints[i]}
 										aria-pressed={i === selected}
 										aria-label="Select the equation of complexity {f.complexity}{i === recommended
 											? ' (best)'
@@ -915,79 +944,118 @@
 								</li>
 							{/each}
 						</ol>
+						{#if showAllEquations || shownEquations.length < front.length}
+							<div>
+								<Button
+									size="sm"
+									onclick={() => (showAllEquations = !showAllEquations)}
+									data-testid="show-all"
+									>{showAllEquations ? 'Show fewer' : `Show all ${front.length} equations`}</Button
+								>
+							</div>
+						{/if}
 					</div>
 				{/if}
+				{#if front.length === 0}{@render how()}{/if}
 			</Panel>
 		</div>
 
 		{#if front.length > 0}
-			<aside class="plots" aria-label="Plots" data-testid="plots">
-				<p class="muted plots-for" data-testid="plots-for">
-					{#if plotEntry}Complexity {plotEntry.complexity}{previewed !== null
-							? ' (preview)'
-							: ''}{/if}
-				</p>
-				<FrontPlot
-					{front}
-					{colors}
-					{selected}
-					{recommended}
-					height={PLOT_H}
-					highlighted={previewed}
-					onSelect={(i) => (selected = i)}
-					onHover={(i) => (previewed = i)}
-					tooltip={metricsTip}
-				/>
-				<ScatterPlot
-					title="Predicted vs actual (validation)"
-					testId="predicted-plot"
-					height={PLOT_H}
-					points={predictedPoints}
-					xLabel="Actual {frontTarget}"
-					yLabel="Predicted"
-					identityLine
-				/>
-				<ScatterPlot
-					title="{frontTarget} against {frontNames[plotInput] ?? ''}"
-					testId="input-plot"
-					height={PLOT_H}
-					points={inputPoints.actual}
-					overlay={inputPoints.predicted}
-					pointsLabel="Actual"
-					overlayLabel="Predicted"
-					xLabel={frontNames[plotInput] ?? ''}
-					yLabel={frontTarget}
-				>
-					{#snippet caption()}
-						{frontTarget} against
-						<select
-							class="control input-select"
-							aria-label="Plot against input"
-							bind:value={plotInput}
+			<div class="plots" data-testid="plots">
+				<Panel title="Plots">
+					<div class="plot-stack">
+						<p class="muted plots-for" data-testid="plots-for">
+							{#if plotEntry}Complexity {plotEntry.complexity}{previewed !== null
+									? ' (preview)'
+									: ''}{/if}
+						</p>
+						<FrontPlot
+							{front}
+							{colors}
+							{selected}
+							{recommended}
+							height={PLOT_H}
+							highlighted={previewed}
+							onSelect={(i) => (selected = i)}
+							onHover={(i) => (previewed = i)}
+							tooltip={metricsTip}
+						/>
+						<ScatterPlot
+							title="Predicted vs actual (validation)"
+							testId="predicted-plot"
+							height={PLOT_H}
+							points={predictedPoints}
+							xLabel="Actual {frontTarget}"
+							yLabel="Predicted"
+							identityLine
+						/>
+						<ScatterPlot
+							title="{frontTarget} against {frontNames[plotInput] ?? ''}"
+							testId="input-plot"
+							height={PLOT_H}
+							points={inputPoints.actual}
+							overlay={inputPoints.predicted}
+							pointsLabel="Actual"
+							overlayLabel="Predicted"
+							xLabel={frontNames[plotInput] ?? ''}
+							yLabel={frontTarget}
 						>
-							{#each frontNames as name, i (i)}<option value={i}>{name}</option>{/each}
-						</select>
-					{/snippet}
-				</ScatterPlot>
-			</aside>
+							{#snippet caption()}
+								{frontTarget} against
+								<select
+									class="control input-select"
+									aria-label="Plot against input"
+									bind:value={plotInput}
+								>
+									{#each frontNames as name, i (i)}<option value={i}>{name}</option>{/each}
+								</select>
+							{/snippet}
+						</ScatterPlot>
+					</div>
+					{@render how()}
+				</Panel>
+			</div>
 		{/if}
 	</div>
+</div>
 
-	<details class="how">
+{#snippet how()}
+	<details class="how" data-testid="how">
 		<summary>How it works</summary>
 		<p>
-			Load a CSV or pick an example, choose the column to predict and the inputs, then press Run.
-			The search keeps the most accurate equation at each size. The one marked best balances
-			accuracy against size. Select an equation or a point on the plot to inspect it.
+			Fit compact, interpretable equations to a CSV. Load a CSV or pick an example, choose the
+			column to predict and the inputs, then press Run. The search keeps the most accurate equation
+			at each size. The one marked best balances accuracy against size. Select an equation or a
+			point on the plot to inspect it.
 		</p>
+		<dl class="glossary">
+			<dt>Inputs</dt>
+			<dd>{GLOSSARY.inputs}</dd>
+			<dt>Validation</dt>
+			<dd>{GLOSSARY.validation}</dd>
+			<dt>Complexity</dt>
+			<dd>{GLOSSARY.complexity}</dd>
+			<dt>Validation R²</dt>
+			<dd>{GLOSSARY.valR2}</dd>
+			<dt>Train and validation MSE</dt>
+			<dd>{GLOSSARY.trainMse} {GLOSSARY.valMse}</dd>
+			<dt>Validation RMSE</dt>
+			<dd>{GLOSSARY.valRmse}</dd>
+			<dt>Score</dt>
+			<dd>{GLOSSARY.score}</dd>
+			<dt>Best</dt>
+			<dd>{GLOSSARY.best}</dd>
+			<dt>Plot colours</dt>
+			<dd>{GLOSSARY.colour}</dd>
+		</dl>
 		<p>
-			Your data stays in your browser. The details are in the
+			Everything runs in your browser, and your data stays there. The details are in the
 			<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/symbolic-regression.md"
 				>docs</a
 			>.
 		</p>
 	</details>
-</div>
+{/snippet}
 
 <style>
 	.sr-page {
@@ -1015,6 +1083,9 @@
 			grid-column: 3;
 			position: sticky;
 			top: calc(var(--topbar-h) + var(--sp-2));
+		}
+		/* The box itself scrolls, so its edges stay whole */
+		.plots > :global(.ui-panel) {
 			max-height: calc(100vh - var(--topbar-h) - var(--sp-3));
 			overflow-y: auto;
 		}
@@ -1024,10 +1095,22 @@
 	.plots {
 		min-width: 0;
 	}
-	.plots {
+	.plot-stack {
 		display: flex;
 		flex-direction: column;
-		gap: var(--sp-2);
+		gap: var(--sp-3);
+	}
+	/* The Data part of the Setup box, after a hairline */
+	.data {
+		padding-top: var(--sp-3);
+		border-top: 1px solid var(--border);
+	}
+	/* How it works closes the last box, after a hairline */
+	.how {
+		margin-top: var(--sp-4);
+		padding-top: var(--sp-2);
+		border-top: 1px solid var(--border);
+		container-type: inline-size;
 	}
 	.plots-for {
 		min-height: 1lh;
@@ -1039,24 +1122,48 @@
 		padding-block: 0;
 		font-size: var(--text-sm);
 	}
-	.examples summary {
-		cursor: pointer;
+	.examples {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-1);
+	}
+	.examples-list {
+		--gap: var(--sp-1);
+	}
+	.operators-error {
+		flex-basis: 100%;
 		font-size: var(--text-sm);
+	}
+	.copy-format {
+		width: auto;
+		min-height: var(--control-h-sm);
+		padding-block: 0;
+		font-size: var(--text-sm);
+	}
+	.front-head {
+		margin: 0;
+		font-size: var(--text-sm);
+		font-weight: 600;
+	}
+	.glossary {
+		display: grid;
+		grid-template-columns: max-content minmax(0, 1fr);
+		gap: var(--sp-1) var(--sp-3);
+	}
+	.glossary dt {
+		color: var(--text);
 		font-weight: 500;
 	}
-	.examples ul {
-		display: flex;
-		flex-direction: column;
-		gap: var(--sp-2);
-		margin: var(--sp-2) 0 0;
-		padding: 0;
-		list-style: none;
+	.glossary dd {
+		margin: 0;
 	}
-	.examples li {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: var(--sp-0);
+	@container (max-width: 600px) {
+		.glossary {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.glossary dd {
+			margin-bottom: var(--sp-1);
+		}
 	}
 	.muted {
 		color: var(--text-muted);
@@ -1065,15 +1172,8 @@
 	p {
 		margin: 0;
 	}
-	.dropzone {
-		border: 1px dashed var(--border-strong);
-		border-radius: var(--radius);
-		padding: var(--sp-2) var(--sp-3);
-		background: var(--sunken);
-	}
+	/* A plain line; dropping a file on it still works, and only the background marks the drag */
 	.dropzone.dragging {
-		border-color: var(--accent);
-		border-style: solid;
 		background: var(--accent-bg);
 	}
 	.file-label {
@@ -1090,7 +1190,9 @@
 	.status {
 		font-size: var(--text-sm);
 	}
+	/* The operators take the Advanced grid's full width */
 	.checks {
+		grid-column: 1 / -1;
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--sp-1);
@@ -1126,15 +1228,6 @@
 		margin: 0;
 		accent-color: var(--accent);
 	}
-	.check.disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
-	.settings-grid {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: var(--sp-2) var(--sp-3);
-	}
 	.placeholder {
 		padding: var(--sp-4) 0;
 	}
@@ -1147,10 +1240,6 @@
 	}
 	.copy-row {
 		--gap: var(--sp-1);
-	}
-	.mono {
-		font-family: var(--font-mono);
-		font-size: var(--text-sm);
 	}
 	.copied {
 		margin-left: var(--sp-1);
@@ -1178,11 +1267,6 @@
 		margin-bottom: var(--sp-1);
 		font-size: var(--text-sm);
 		font-weight: 500;
-	}
-	.legend-row {
-		display: inline-flex;
-		align-items: center;
-		gap: var(--sp-0);
 	}
 	.column :global(legend) {
 		font-weight: 400;
@@ -1216,39 +1300,6 @@
 		margin: 0;
 		font-family: var(--font-mono);
 	}
-	.front-head {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: space-between;
-		align-items: center;
-		gap: var(--sp-1);
-	}
-	.front-head h3 {
-		display: inline-flex;
-		align-items: center;
-		margin: 0;
-		font-size: var(--text-sm);
-		font-weight: 600;
-	}
-	.r2-legend {
-		display: inline-flex;
-		align-items: center;
-		gap: var(--sp-1);
-		color: var(--text-muted);
-		font-family: var(--font-mono);
-		font-size: var(--text-xs);
-	}
-	.ramp {
-		width: 4rem;
-		height: 10px;
-		border: 1px solid var(--border);
-		border-radius: var(--radius-sm);
-		background: linear-gradient(
-			in oklch to right,
-			color-mix(in oklab, var(--danger) 30%, var(--surface)),
-			color-mix(in oklab, var(--success) 30%, var(--surface))
-		);
-	}
 	.chips {
 		display: flex;
 		flex-wrap: wrap;
@@ -1272,6 +1323,7 @@
 		padding: var(--sp-0) var(--sp-2);
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
+		background: var(--surface);
 		color: var(--text);
 		text-align: left;
 		cursor: pointer;
@@ -1280,6 +1332,7 @@
 		border-color: var(--border-strong);
 	}
 	.chip.selected {
+		background: var(--accent-bg);
 		border-color: var(--accent);
 		box-shadow: 0 0 0 1px var(--accent);
 	}
@@ -1293,7 +1346,10 @@
 		font-size: var(--text-xs);
 		color: var(--text-muted);
 	}
+	/* The pills' equations are twice the chip text (owner, 2026-11 review), so they read
+	   at a glance; a long one scrolls inside its pill. */
 	.row-eq {
+		font-size: calc(2 * var(--text-sm));
 		min-width: 0;
 		overflow: auto hidden;
 	}

@@ -4,7 +4,7 @@ The definitions behind `/information-pricing`. The page's "How it works" gives t
 
 ## Model
 
-Describe what you don't know as inputs with a distribution (Fixed for what you do know), add in-between formulas (intermediates), then list your options (decisions) and a reward formula for them. Run draws many scenarios and scores every option in each one. Add scenarios appends more draws to the ones you have.
+Describe what you don't know as inputs with a distribution (Fixed for what you do know), add in-between formulas (intermediates), then list your options (decisions) and a reward formula for them. Run draws many scenarios and scores every option in each one. Add scenarios appends more draws to the ones you have. The preset, Run and the run settings (samples and seed, behind the Advanced line) sit together in the Run box; Add scenarios and the scenarios CSV appear next to the run's status once a run has finished.
 
 ## Expected opportunity loss
 

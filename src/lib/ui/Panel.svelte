@@ -28,34 +28,47 @@
 </section>
 
 <style>
+	/* A box on the paper: its title in body size over a short accent rule, no header band. */
 	.ui-panel {
-		background: var(--surface);
-		border: 1px solid var(--border);
+		background: var(--box-bg);
+		border: 1px solid var(--box-edge);
 		border-radius: var(--radius);
+		box-shadow: var(--box-shadow);
+		-webkit-backdrop-filter: var(--box-blur);
+		backdrop-filter: var(--box-blur);
+		position: relative;
 		min-width: 0;
 	}
-
+	/* The blur makes each box its own stacking layer, so a menu or tooltip that spills out
+	   would sit under the next box: lift the box the pointer or focus is in. */
+	.ui-panel:is(:hover, :focus-within) {
+		z-index: 1;
+	}
 	.ui-panel-head {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		gap: var(--sp-2);
-		min-height: 36px;
-		padding: var(--sp-1) var(--sp-3);
-		border-bottom: 1px solid var(--border);
+		/* Airy (owner, 2026-11-11): 24px from the box's edge. */
+		padding: 24px 24px 0;
 	}
-
 	.ui-panel-heading {
-		font-size: var(--text-sm);
+		font-size: var(--text-lg);
 		font-weight: 600;
 	}
-
+	.ui-panel-heading::after {
+		content: '';
+		display: block;
+		width: 24px;
+		height: 2px;
+		margin-top: 6px;
+		background: var(--accent);
+	}
 	.ui-panel-actions {
 		display: flex;
 		gap: var(--sp-1);
 		margin-left: auto;
 	}
-
 	.ui-panel-body {
-		padding: var(--sp-3);
+		padding: var(--sp-4) 24px 24px;
 	}
 </style>

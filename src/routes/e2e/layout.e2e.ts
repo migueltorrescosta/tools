@@ -1,11 +1,12 @@
 import { expect, test } from '@playwright/test';
 
-const LIGHT_BG = 'rgb(246, 247, 249)';
-const DARK_BG = 'rgb(17, 19, 24)';
+// --bg in tokens.css, as the browser reports it.
+const LIGHT_BG = 'oklch(0.975 0.01 250)';
+const DARK_BG = 'oklch(0.15 0.01 250)';
 const bodyBg = (page: import('@playwright/test').Page) =>
 	page.evaluate(() => getComputedStyle(document.body).backgroundColor);
 
-test('Layout - follows the OS theme until toggled', async ({ page }) => {
+test('Layout - matches the device until a theme is picked', async ({ page }) => {
 	await page.emulateMedia({ colorScheme: 'dark' });
 	await page.goto('/');
 	await page.locator('nav[data-hydrated]').waitFor();
@@ -13,20 +14,56 @@ test('Layout - follows the OS theme until toggled', async ({ page }) => {
 
 	await page.emulateMedia({ colorScheme: 'light' });
 	expect(await bodyBg(page)).toBe(LIGHT_BG);
-	await expect(page.getByRole('button', { name: 'Switch to dark theme' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Match device theme' })).toHaveAttribute(
+		'aria-pressed',
+		'true'
+	);
 });
 
-test('Layout - a toggled theme survives reloads and OS changes', async ({ page }) => {
+test('Layout - a picked theme survives reloads and OS changes, until Match device', async ({
+	page
+}) => {
 	await page.emulateMedia({ colorScheme: 'dark' });
 	await page.goto('/');
 	await page.locator('nav[data-hydrated]').waitFor();
-	await page.getByRole('button', { name: 'Switch to light theme' }).click();
+	await page.getByRole('button', { name: 'Light theme' }).click();
 	expect(await bodyBg(page)).toBe(LIGHT_BG);
+	await expect(page.locator('meta[name="theme-color"]').first()).toHaveAttribute(
+		'content',
+		'#f9a870'
+	);
 
 	await page.reload({ waitUntil: 'networkidle' });
 	await page.emulateMedia({ colorScheme: 'dark' });
 	expect(await bodyBg(page)).toBe(LIGHT_BG);
-	await expect(page.getByRole('button', { name: 'Switch to dark theme' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Light theme' })).toHaveAttribute(
+		'aria-pressed',
+		'true'
+	);
+
+	await page.getByRole('button', { name: 'Match device theme' }).click();
+	expect(await bodyBg(page)).toBe(DARK_BG);
+});
+
+test('Layout - on a phone the theme is one button that opens the three choices', async ({
+	page
+}) => {
+	await page.setViewportSize({ width: 320, height: 640 });
+	await page.emulateMedia({ colorScheme: 'light' });
+	await page.goto('/rank-vote');
+	await page.locator('nav[data-hydrated]').waitFor();
+	const toggle = page.getByRole('button', { name: 'Theme: Match device' });
+	const box = await toggle.boundingBox();
+	expect(box && box.x + box.width).toBeLessThanOrEqual(320);
+	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+	await expect(page.getByRole('link', { name: 'Tools' })).toBeVisible();
+	await expect(page.getByRole('navigation', { name: 'Site' })).toContainText('Rank Vote');
+
+	await toggle.click();
+	await page.getByRole('button', { name: 'Dark' }).click();
+	expect(await bodyBg(page)).toBe(DARK_BG);
+	await expect(page.getByRole('button', { name: 'Theme: Dark' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Light', exact: true })).toHaveCount(0);
 });
 
 test('Layout - the saved theme applies before any app script runs', async ({ page }) => {
@@ -50,14 +87,12 @@ test('Layout - skip link moves focus to the main content', async ({ page }) => {
 	await expect(page.getByRole('main')).toBeFocused();
 });
 
-test('Layout - the tool switcher and home link navigate', async ({ page }) => {
-	await page.goto('/');
-	await page.locator('nav[data-hydrated]').waitFor();
-	await page.getByRole('combobox', { name: 'Jump to tool' }).selectOption({ label: 'JWT Parser' });
-	await expect(page).toHaveURL(/\/jwt$/);
-	await expect(page.getByRole('combobox', { name: 'Jump to tool' })).toHaveValue('/jwt');
-
-	await page.getByRole('navigation', { name: 'Site' }).getByRole('link', { name: 'Tools' }).click();
+test('Layout - the breadcrumb names the tool and links home', async ({ page }) => {
+	await page.goto('/jwt');
+	const nav = page.getByRole('navigation', { name: 'Site' });
+	await expect(nav).toContainText('JWT Parser');
+	await expect(page.getByRole('heading', { level: 1, name: 'JWT Parser' })).toBeAttached();
+	await nav.getByRole('link', { name: 'Tools' }).click();
 	await expect(page).toHaveURL(/\/$/);
 });
 

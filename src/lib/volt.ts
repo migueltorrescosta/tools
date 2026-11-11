@@ -132,10 +132,15 @@ export type Stats = {
 	byCountry: Record<string, number>;
 };
 
-export function computeStats(politicians: Politician[]): Stats {
+// `countriesFrom` lists the countries to count even when none of `politicians` is from them,
+// so a country with no one in office still appears in the filter (with 0)
+export function computeStats(
+	politicians: Politician[],
+	countriesFrom: Politician[] = politicians
+): Stats {
 	const people = politicians.filter((p) => !isGroupEntry(p));
 	const byCountry: Record<string, number> = {};
-	for (const p of politicians) byCountry[p.country] ??= 0;
+	for (const p of countriesFrom) byCountry[p.country] ??= 0;
 	for (const p of people) byCountry[p.country]++;
 	return {
 		total: people.length,
@@ -147,15 +152,16 @@ export function computeStats(politicians: Politician[]): Stats {
 
 export type SummaryBar = { filter: string; label: string; flag: string; count: number };
 
-// Filter buttons derived from the data: All, one per country present (by label), then MEPs
+// Filter options derived from the data: all countries, one per country present (by label),
+// then the European Parliament (MEPs of every country)
 export function summaryBars(stats: Stats): SummaryBar[] {
 	const countries = Object.entries(stats.byCountry)
 		.map(([flag, count]) => ({ filter: flag, label: countryLabel(flag), flag, count }))
 		.sort((a, b) => a.label.localeCompare(b.label));
 	return [
-		{ filter: 'all', label: 'All', flag: '🌍', count: stats.total },
+		{ filter: 'all', label: 'All countries', flag: '🌍', count: stats.total },
 		...countries,
-		{ filter: EU_FLAG, label: 'MEPs', flag: EU_FLAG, count: stats.meps }
+		{ filter: EU_FLAG, label: 'European Parliament', flag: EU_FLAG, count: stats.meps }
 	];
 }
 
@@ -167,6 +173,15 @@ export function fractionalYear(d: Date): number {
 // A mandate is former once its (exclusive) end date has passed
 export function isFormer(p: Politician, now: number): boolean {
 	return parseDate(p.endDate) <= now;
+}
+
+// The mandates on show: those still running, or every mandate when former ones are shown
+export function visibleMandates(
+	politicians: Politician[],
+	now: number,
+	showFormer: boolean
+): Politician[] {
+	return showFormer ? politicians : politicians.filter((p) => !isFormer(p, now));
 }
 
 export function describeMandate(p: Politician, now: number): string {

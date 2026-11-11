@@ -24,7 +24,7 @@ export const FORMATS = [
 	{ value: 'yaml', label: 'YAML' },
 	{ value: 'xml', label: 'XML' },
 	{ value: 'markdown', label: 'Markdown' },
-	{ value: 'plaintext', label: 'Plain Text' }
+	{ value: 'plaintext', label: 'Text' }
 ] as const;
 
 export function validateJson(text: string): ValidationResult {

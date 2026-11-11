@@ -1,9 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
 	MAX_CHOICES,
-	PALETTE_SIZE,
-	choiceColor,
-	colorStyle,
 	b64uEncode,
 	b64uDecode,
 	cb32Encode,
@@ -18,6 +15,10 @@ import {
 	hasDuplicateChoices,
 	isValidCode,
 	parseStoredVotes,
+	parseVoteLines,
+	voteMessage,
+	votesToText,
+	winnerSummary,
 	permToInt,
 	intToPerm,
 	factorial,
@@ -741,12 +742,114 @@ describe('Rank Vote - Tally Methods', () => {
 	});
 });
 
-describe('choice colours', () => {
-	it('cycles the shared data palette and dashes the repeats', () => {
-		expect(choiceColor(0)).toBe('var(--data-1)');
-		expect(choiceColor(PALETTE_SIZE - 1)).toBe('var(--data-12)');
-		expect(choiceColor(PALETTE_SIZE)).toBe('var(--data-1)');
-		expect(colorStyle(0)).toBe('--choice-color:var(--data-1);--choice-line:solid');
-		expect(colorStyle(MAX_CHOICES - 1)).toBe('--choice-color:var(--data-2);--choice-line:dashed');
+describe('Rank Vote - Paste box', () => {
+	// Three choices: two-character codes
+	const code = (perm: number[]) => encodeVote(perm, CS);
+
+	it('reads "Name code" lines and saved votes round-trip through the text', () => {
+		const votes: Vote[] = [
+			{ name: 'Ana', code: code([0, 1, 2]) },
+			{ name: 'Ben Smith', code: code([2, 1, 0]) }
+		];
+		const parsed = parseVoteLines(votesToText(votes), 3, CS);
+		expect(parsed.votes).toEqual(votes);
+		expect(parsed.unrecognised).toEqual([]);
+	});
+
+	it('reads the voter message whole, with or without a chat prefix', () => {
+		const c = code([1, 0, 2]);
+		const message = voteMessage('Lunch: Friday', c);
+		const parsed = parseVoteLines(`${message}\nAna: ${message}\n[10:32] Ben - ${message}`, 3, CS);
+		expect(parsed.votes).toEqual([
+			{ name: 'Voter 1', code: c },
+			{ name: 'Ana', code: c },
+			{ name: '[10:32] Ben', code: c }
+		]);
+	});
+
+	it('accepts a bare code, lowercase and look-alikes, and names it Voter N', () => {
+		const c = code([2, 0, 1]);
+		const parsed = parseVoteLines(`\n  ${c.toLowerCase()}  \n\nCat ${c}`, 3, CS);
+		expect(parsed.votes).toEqual([
+			{ name: 'Voter 1', code: c },
+			{ name: 'Cat', code: c }
+		]);
+	});
+
+	it('lists lines without a valid code by line number', () => {
+		const c = code([0, 1, 2]);
+		const typo = (c[0] === '0' ? '1' : '0') + c.slice(1);
+		const parsed = parseVoteLines(`Ana ${c}\nthanks!\nBen ${typo}`, 3, CS);
+		expect(parsed.votes.map((v) => v.name)).toEqual(['Ana']);
+		expect(parsed.unrecognised).toEqual([
+			{ line: 2, text: 'thanks!' },
+			{ line: 3, text: `Ben ${typo}` }
+		]);
+	});
+
+	it('a later line for the same name replaces the earlier vote', () => {
+		const first = code([0, 1, 2]);
+		const second = code([2, 1, 0]);
+		const parsed = parseVoteLines(`Ana ${first}\nBen ${first}\nAna ${second}`, 3, CS);
+		expect(parsed.votes).toEqual([
+			{ name: 'Ben', code: first },
+			{ name: 'Ana', code: second }
+		]);
+		expect(parsed.replaced).toEqual(['Ana']);
+	});
+});
+
+describe('Rank Vote - Answer sentence', () => {
+	const summary = (choices: string[], perms: number[][]) => {
+		const votes = votesFromPerms(perms);
+		return winnerSummary(tallyCondorcet(choices, votes, CS), tallyIRV(choices, votes, CS));
+	};
+
+	it('is null without votes', () => {
+		expect(summary(['A', 'B'], [])).toBeNull();
+	});
+
+	it('names the Condorcet winner', () => {
+		expect(
+			summary(
+				['A', 'B', 'C'],
+				[
+					[1, 0, 2],
+					[1, 2, 0],
+					[0, 1, 2]
+				]
+			)
+		).toEqual({
+			headline: 'B wins',
+			detail: 'B beats every other choice head to head.'
+		});
+	});
+
+	it('falls back to instant runoff in a cycle', () => {
+		// A>B>C x4, B>C>A x3, C>A>B x2: A beats B, B beats C, C beats A.
+		// Instant runoff drops C, whose ballots go to A.
+		const perms = [
+			...Array(4).fill([0, 1, 2]),
+			...Array(3).fill([1, 2, 0]),
+			...Array(2).fill([2, 0, 1])
+		];
+		expect(summary(['A', 'B', 'C'], perms)).toEqual({
+			headline: 'A wins',
+			detail:
+				'No choice beats every other head to head, so instant runoff decides: A wins after 2 rounds.'
+		});
+	});
+
+	it('says there is no clear winner when instant runoff ties', () => {
+		const result = summary(
+			['A', 'B', 'C'],
+			[
+				[0, 1, 2],
+				[1, 2, 0],
+				[2, 0, 1]
+			]
+		);
+		expect(result?.headline).toBe('No clear winner');
+		expect(result?.detail).toContain('tie between A, B and C');
 	});
 });

@@ -31,7 +31,10 @@ export interface UILabels {
 	answer: string;
 	/** Screen-reader text for the blank on the card */
 	toAnswer: string;
-	submit: string;
+	/** Hint beside the card's verb and tense heading */
+	typeMissing: string;
+	/** The button that checks the typed answer */
+	check: string;
 	correct: string;
 	wrong: string;
 	notQuite: string;
@@ -41,6 +44,12 @@ export interface UILabels {
 	noForms: string;
 	complete: string;
 	restart: string;
+	/** Label of the closed practice settings line, e.g. "Practice" */
+	practice: string;
+	/** "25 verbs", with the right plural */
+	verbCount: (n: number) => string;
+	/** "5 tenses", with the right plural */
+	tenseCount: (n: number) => string;
 }
 
 export interface LanguageModule {

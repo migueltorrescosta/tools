@@ -5,26 +5,18 @@
 	import favicon from '#lib/assets/favicon.svg';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import type { RouteId } from '$app/types';
-	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
-	import { routes, TOOL_GROUPS } from '#lib/routes.js';
-	import ThemeToggle from '#lib/ui/ThemeToggle.svelte';
+	import { routes } from '#lib/routes.js';
+	import ThemeSwitch from '#lib/ui/ThemeSwitch.svelte';
+	import { headerActions } from '#lib/ui/header-actions.svelte.js';
 
 	let { children } = $props();
 
-	// e2e waits on this before using the switcher, whose handler only exists once hydrated.
+	// e2e waits on this before using the bar's controls, whose handlers only exist once hydrated.
 	let hydrated = $state(false);
 	onMount(() => (hydrated = true));
 
-	const current = $derived(
-		routes.find((route) => page.url.pathname === resolve(route.path))?.path ?? ''
-	);
-
-	function jumpTo(event: Event & { currentTarget: HTMLSelectElement }) {
-		const path = event.currentTarget.value as RouteId | '';
-		if (path) goto(resolve(path));
-	}
+	const current = $derived(routes.find((route) => page.url.pathname === resolve(route.path)));
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
@@ -36,21 +28,26 @@
 		<a
 			class="home"
 			href={resolve('/')}
-			aria-current={page.url.pathname === resolve('/') ? 'page' : undefined}>Tools</a
+			aria-current={page.url.pathname === resolve('/') ? 'page' : undefined}
+			><svg
+				class="home-icon"
+				viewBox="0 0 24 24"
+				width="20"
+				height="20"
+				aria-hidden="true"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"><path d="M3 11 12 4l9 7M5 10v10h5v-6h4v6h5V10" /></svg
+			><span class="home-text">Tools</span></a
 		>
-		<label class="sr-only" for="tool-switcher">Jump to tool</label>
-		<select id="tool-switcher" class="control switcher" value={current} onchange={jumpTo}>
-			<option value="" disabled>Jump to tool…</option>
-			{#each TOOL_GROUPS as group (group)}
-				<optgroup label={group}>
-					{#each routes.filter((route) => route.group === group) as route (route.path)}
-						<option value={route.path}>{route.name}</option>
-					{/each}
-				</optgroup>
-			{/each}
-		</select>
+		{#if current}<span class="crumb" aria-hidden="true">/</span><span class="crumb-name"
+				>{current.name}</span
+			>{/if}
 		<span class="spacer"></span>
-		<ThemeToggle />
+		{#if headerActions.snippet}<div class="bar-actions">{@render headerActions.snippet()}</div>{/if}
+		<ThemeSwitch />
 	</nav>
 </header>
 
@@ -60,9 +57,7 @@
 
 <footer class="footer">
 	<p>
-		Everything runs in your browser. No guarantees of correctness; use at your own risk.
-		Suggestions:
-		<a href="mailto:tools-feedback@mptc.uk">tools-feedback@mptc.uk</a>
+		Runs in your browser · No guarantees · <a href="mailto:tools-feedback@mptc.uk">Feedback</a>
 	</p>
 </footer>
 
@@ -86,14 +81,17 @@
 		position: sticky;
 		top: 0;
 		z-index: 50;
-		background: var(--surface);
-		border-bottom: 1px solid var(--border);
+		/* Frosted glass over the dawn gradient, like the boxes. */
+		background: var(--box-bg);
+		-webkit-backdrop-filter: var(--box-blur);
+		backdrop-filter: var(--box-blur);
+		border-bottom: 1px solid var(--box-edge);
 	}
 
 	.topbar-inner {
 		display: flex;
 		align-items: center;
-		gap: var(--sp-3);
+		gap: var(--sp-2);
 		max-width: var(--content-max);
 		height: var(--topbar-h);
 		margin: 0 auto;
@@ -111,10 +109,47 @@
 		color: var(--accent);
 	}
 
-	.switcher {
-		width: auto;
-		max-width: 16rem;
-		min-height: var(--control-h-sm);
+	.home-icon {
+		display: none;
+	}
+
+	/* Phones: a home icon instead of "Tools /", so the tool's name keeps its room (owner, 2026-11-11). */
+	@media (max-width: 40rem) {
+		.home {
+			display: grid;
+			place-items: center;
+			min-width: 44px;
+			min-height: 44px;
+		}
+		.home-icon {
+			display: block;
+		}
+		.home-text {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			clip-path: inset(50%);
+			white-space: nowrap;
+		}
+		.crumb {
+			display: none;
+		}
+	}
+
+	.crumb {
+		color: var(--text-muted);
+	}
+	.crumb-name {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-size: var(--text-lg);
+	}
+	.bar-actions {
+		flex: none;
+		display: flex;
 	}
 
 	.spacer {
@@ -133,7 +168,6 @@
 
 	.footer {
 		padding: var(--sp-3) var(--sp-4);
-		border-top: 1px solid var(--border);
 		color: var(--text-muted);
 		font-size: var(--text-xs);
 		text-align: center;

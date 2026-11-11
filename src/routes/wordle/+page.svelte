@@ -1,18 +1,17 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Button, PageHeader } from '#lib/ui/index.js';
+	import { Alert, Answer, Button, PageHeader, Panel } from '#lib/ui/index.js';
 	import solutionTree from '#lib/wordle-solution.js';
 	import {
-		answerMessage,
 		cycleTile as cycleResultTile,
 		getTileColor,
 		newAttempt,
 		OPENER,
 		setTile,
+		solvedMessage,
 		step,
 		tileLabel,
 		undoLast,
-		WIN_MESSAGE,
 		type Attempt,
 		type SolutionTree,
 		type TileColor
@@ -24,11 +23,13 @@
 	let visited = $state<SolutionTree[]>([]);
 	let nextAttempt = $state<Attempt>(newAttempt(OPENER));
 	let message = $state('');
-	let messageKind = $state<'error' | 'success' | 'info'>('error');
+	let messageKind = $state<'error' | 'solved'>('error');
 	/** Set once the page is interactive, so e2e tests can wait for hydration. */
 	let hydrated = $state(false);
 	onMount(() => (hydrated = true));
 	let gameOver = $state(false);
+	/** The tree is down to one word: the next guess is the answer, still to be confirmed. */
+	let answerKnown = $derived(!gameOver && Object.keys(currentSolutionTree).length === 0);
 
 	function showMessage(text: string, kind: typeof messageKind = 'error') {
 		message = text;
@@ -36,7 +37,6 @@
 	}
 
 	const STATE_NAMES = { B: 'absent', Y: 'present', G: 'correct' } as const;
-	const MESSAGE_ICONS = { error: '✕', success: '✓', info: 'ℹ' } as const;
 
 	function cycleTile(index: number) {
 		nextAttempt = { ...nextAttempt, result: cycleResultTile(nextAttempt.result, index) };
@@ -82,12 +82,12 @@
 
 		if (outcome.won) {
 			// The input row is hidden once the game is over, so it needs no word.
-			showMessage(WIN_MESSAGE, 'success');
+			showMessage(solvedMessage(history.length), 'solved');
 			return;
 		}
 
 		nextAttempt = newAttempt(outcome.word.toUpperCase());
-		showMessage(outcome.solved ? answerMessage(outcome.word) : '', 'info');
+		showMessage('');
 	}
 
 	function undoLastRow() {
@@ -112,29 +112,35 @@
 </script>
 
 <div class="container">
-	<PageHeader path="/wordle">
-		<a href="https://blog.mptc.uk/posts/Wordle" target="_blank" rel="noreferrer"
-			>First written up on the blog</a
-		>
-	</PageHeader>
+	<PageHeader path="/wordle" />
 
-	<div class="wordle-panel" data-hydrated={hydrated || undefined}>
-		<div class="board">
-			{#each history as attempt (attempt.word)}
-				<div class="guess" data-testid="result-row">
-					{#each Array(5) as _, i}
-						{@const color = getTileColor(attempt.result, i)}
-						<span
-							class="cell"
-							data-state={STATE_NAMES[color]}
-							role="img"
-							aria-label={tileLabel(attempt.word[i], i, color)}>{attempt.word[i]}</span
-						>
-					{/each}
-				</div>
-			{/each}
+	<div class="wordle" data-hydrated={hydrated || undefined}>
+		<Panel>
+			{#if !gameOver}
+				<p class="instruction" data-testid="instruction">
+					{#if answerKnown}
+						Answer: <strong>{nextAttempt.word}</strong>. Play it, mark every tile green and Submit.
+					{:else}
+						Play <strong>{nextAttempt.word}</strong> in Wordle, then tap each tile below to match.
+					{/if}
+				</p>
+			{/if}
 
-			<div class="current">
+			<div class="board">
+				{#each history as attempt (attempt.word)}
+					<div class="guess" data-testid="result-row">
+						{#each Array(5) as _, i}
+							{@const color = getTileColor(attempt.result, i)}
+							<span
+								class="cell"
+								data-state={STATE_NAMES[color]}
+								role="img"
+								aria-label={tileLabel(attempt.word[i], i, color)}>{attempt.word[i]}</span
+							>
+						{/each}
+					</div>
+				{/each}
+
 				{#if !gameOver}
 					<div class="guess" role="group" aria-label="Next guess">
 						{#each Array(5) as _, i}
@@ -145,76 +151,50 @@
 								data-state={STATE_NAMES[color]}
 								onclick={() => cycleTile(i)}
 								onkeydown={(e) => handleTileKeydown(e, i)}
-								aria-label={tileLabel(nextAttempt.word[i], i, color)}
-								title="Click to cycle: Black (not in word) → Yellow → Green. Keys: 1/B=Black, 2/Y=Yellow, 3/G=Green, Arrow keys to navigate"
-								>{nextAttempt.word[i]}</button
+								aria-label={tileLabel(nextAttempt.word[i], i, color)}>{nextAttempt.word[i]}</button
 							>
 						{/each}
 					</div>
 				{/if}
-				<div class="cluster">
-					{#if gameOver}
-						<Button onclick={restartGame}>Start New Game</Button>
-					{:else}
-						<Button variant="primary" onclick={handleResultSubmission}>Submit</Button>
-					{/if}
-					{#if history.length > 0}
-						<Button onclick={undoLastRow}>Undo</Button>
-					{/if}
-				</div>
 			</div>
-			{#if !gameOver}
-				<p class="tile-hint">Click tiles to match Wordle's colours, then Submit.</p>
-			{/if}
-		</div>
 
-		<div role="status">
-			{#if message}
-				<p class="message {messageKind}">
-					<span aria-hidden="true">{MESSAGE_ICONS[messageKind]}</span>
-					<span data-testid="message">{message}</span>
-				</p>
-			{/if}
-		</div>
+			<div role="status" class="message">
+				{#if message && messageKind === 'error'}
+					<Alert tone="danger" live={false}><span data-testid="message">{message}</span></Alert>
+				{:else if message}
+					<Answer headline={message} data-testid="message" />
+				{/if}
+			</div>
+
+			<div class="actions">
+				{#if gameOver}
+					<Button variant="primary" onclick={restartGame}>New game</Button>
+				{:else}
+					<Button variant="primary" class="submit" onclick={handleResultSubmission}>Submit</Button>
+				{/if}
+				{#if history.length > 0}
+					<Button variant="link" tone="muted" onclick={undoLastRow}>Undo</Button>
+				{/if}
+			</div>
+
+			<p class="nyt">
+				<a href="https://www.nytimes.com/games/wordle/index.html" target="_blank" rel="noopener"
+					>Play today’s Wordle on nytimes.com ↗</a
+				>
+			</p>
+		</Panel>
 	</div>
-
-	<ul class="key" aria-label="Legend">
-		<li>
-			<span class="cell" data-state="absent" aria-hidden="true">B</span> Black: not in the word
-		</li>
-		<li>
-			<span class="cell" data-state="present" aria-hidden="true">Y</span> Yellow: wrong position
-		</li>
-		<li>
-			<span class="cell" data-state="correct" aria-hidden="true">G</span> Green: right position
-		</li>
-	</ul>
-
-	<details class="how">
-		<summary>How it works</summary>
-		<p>
-			Play a guess in Wordle, click the tiles here to match its colours, then press Submit. The tool
-			shows the next word. Open with RAISE and play every suggestion as shown. Some suggestions are
-			probes, not answers, and Hard Mode may reject some.
-		</p>
-		<p>
-			Keys 1, 2 and 3 set the focused tile to black, yellow or green; the arrow keys move between
-			tiles. The details are in the
-			<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/wordle.md">docs</a>.
-		</p>
-	</details>
 </div>
 
 <style>
-	.wordle-panel {
+	/* The box hugs the board instead of spanning the page. */
+	.wordle {
 		width: fit-content;
-		overflow: visible;
-		margin: 0;
 		max-width: 100%;
-		padding: var(--sp-3);
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
+	}
+
+	.instruction {
+		margin: 0 0 var(--sp-2);
 	}
 
 	.board {
@@ -226,13 +206,6 @@
 	.guess {
 		display: flex;
 		gap: var(--sp-1);
-	}
-
-	.current {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: var(--sp-2) var(--sp-4);
 	}
 
 	.cell {
@@ -294,68 +267,24 @@
 		border-color: var(--text);
 	}
 
-	.tile-hint {
-		margin: var(--sp-1) 0 0;
-		font-size: var(--text-sm);
-		color: var(--text-muted);
+	.message > :global(*) {
+		margin: var(--sp-2) 0 0;
 	}
 
-	.message {
-		display: flex;
-		gap: var(--sp-2);
-		margin: var(--sp-3) 0 0;
-		padding: var(--sp-2) var(--sp-3);
-		border: 1px solid;
-		border-radius: var(--radius);
-		font-weight: 600;
-	}
-
-	.message.error {
-		background: var(--danger-bg);
-		border-color: var(--danger);
-		color: var(--danger-text);
-	}
-
-	.message.success {
-		background: var(--success-bg);
-		border-color: var(--success);
-		color: var(--success-text);
-	}
-
-	.message.info {
-		background: var(--info-bg);
-		border-color: var(--info);
-		color: var(--info-text);
-	}
-
-	.key {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--sp-2) var(--sp-4);
-		margin: var(--sp-3) 0 0;
-		padding: 0;
-		list-style: none;
-		font-size: var(--text-sm);
-		color: var(--text-muted);
-	}
-
-	.key li {
+	.actions {
 		display: flex;
 		align-items: center;
-		gap: var(--sp-2);
+		gap: var(--sp-4);
+		margin-top: var(--sp-3);
 	}
 
-	.key .cell {
-		width: 28px;
-		height: 28px;
-		font-size: var(--text-sm);
+	/* Submit is the wide main button; Undo is a quiet link beside it. */
+	.actions :global(.submit) {
+		flex: 1;
+		max-width: 14rem;
 	}
 
-	.how p {
-		margin: 0 0 var(--sp-2);
-	}
-
-	.how p:last-child {
-		margin-bottom: 0;
+	.nyt {
+		margin: var(--sp-3) 0 0;
 	}
 </style>

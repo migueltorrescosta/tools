@@ -12,11 +12,10 @@ export const OPENER = 'RAISE';
 export const WIN_RESULT = 'GGGGG';
 export const INVALID_RESULT_MESSAGE = 'This is not a valid result. Please try again.';
 export const NO_MATCH_MESSAGE = 'There are no words satisfying all the results listed. Try again?';
-export const WIN_MESSAGE = 'CONGRATULATIONS';
 
-/** Shown when the tree is down to one word: the user still has to play it and confirm GGGGG. */
-export function answerMessage(word: string): string {
-	return `Answer: ${word.toUpperCase()}. Play it, mark every tile green and Submit.`;
+/** The answer sentence once the user confirms GGGGG: "Solved in 3." */
+export function solvedMessage(guesses: number): string {
+	return `Solved in ${guesses}.`;
 }
 
 const COLORS: TileColor[] = ['B', 'Y', 'G'];

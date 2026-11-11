@@ -3,9 +3,9 @@
 	import { browserStorage, createPersistGate, readJson } from '#lib/persist-gate.js';
 	import {
 		Alert,
+		Answer,
 		Button,
 		Field,
-		InfoTip,
 		PageHeader,
 		Panel,
 		References,
@@ -58,6 +58,12 @@
 		description: string;
 		price: number;
 	}
+	/** The add-item form: the price field starts empty. */
+	interface NewItem {
+		id: number;
+		description: string;
+		price: number | null;
+	}
 	interface Person {
 		id: number;
 		name: string;
@@ -79,14 +85,14 @@
 			people = saved.people;
 			items = saved.items;
 			newPerson = { id: saved.nextPersonId, name: '' };
-			newItem = { id: saved.nextItemId, description: '', price: 0 };
+			newItem = { id: saved.nextItemId, description: '', price: null };
 		}
 		persist.open();
 		hydrated = true;
 	});
 
 	let items = $state<Item[]>([]);
-	let newItem = $state<Item>({ id: 0, description: '', price: 0 });
+	let newItem = $state<NewItem>({ id: 0, description: '', price: null });
 	let people = $state<Person[]>([]);
 	let newPerson = $state<Person>({ id: 0, name: '' });
 	let itemMsg = $state<string | null>(null);
@@ -107,9 +113,12 @@
 	function addItem(e: Event) {
 		e.preventDefault();
 		itemMsg = itemError(newItem.description, newItem.price);
-		if (itemMsg) return;
-		items = [...items, { ...newItem, description: newItem.description.trim() }];
-		newItem = { id: newItem.id + 1, description: '', price: 0 };
+		if (itemMsg || newItem.price === null) return;
+		items = [
+			...items,
+			{ id: newItem.id, description: newItem.description.trim(), price: newItem.price }
+		];
+		newItem = { id: newItem.id + 1, description: '', price: null };
 		descInput?.focus();
 	}
 
@@ -164,7 +173,9 @@
 	const itemOrder = $derived(
 		byPriceDesc(items.map((item, k) => ({ k, price: item.price }))).map((x) => x.k)
 	);
-	const boardMax = $derived(proposal ? maxAbsRounded(proposal.transfers) : 0);
+	/** Whole-euro amounts on the board, rounded so they sum to 0, the same ones the result shows. */
+	const boardAmounts = $derived(proposal ? roundedBalances(proposal.transfers) : []);
+	const boardMax = $derived(maxAbsRounded(boardAmounts));
 	const onGroup = $derived(chipsOn(placements, n));
 	const unplaced = $derived(placements.flatMap((g, i) => (g === null ? [i] : [])));
 	const groupDemand = $derived(demand(placements, n));
@@ -184,6 +195,7 @@
 
 	function showProposal(next: Proposal) {
 		proposal = next;
+		armBack = false;
 		placements = Array(n).fill(null);
 		selected = null;
 		announcement = '';
@@ -217,6 +229,14 @@
 	function backToSetup() {
 		phase = 'setup';
 		engine = null;
+		armBack = false;
+	}
+
+	/** Rounds board: with rounds behind it, Back to setup asks once before discarding them. */
+	let armBack = $state(false);
+	function onBack() {
+		if (rounds.length > 0 && !armBack) armBack = true;
+		else backToSetup();
 	}
 
 	async function completeRound() {
@@ -234,8 +254,9 @@
 	}
 
 	function finish(p: Proposal, holder: number[], isFallback: boolean) {
-		const { owner, owed } = finalSplit(p, holder);
-		final = { owner, balances: roundedBalances(owed), fallback: isFallback };
+		// Round per group, as the board did, so the result shows the board's amounts.
+		const { owner, owed } = finalSplit({ ...p, transfers: roundedBalances(p.transfers) }, holder);
+		final = { owner, balances: owed, fallback: isFallback };
 		editOwner = [...owner];
 		selected = null;
 		selectedItem = null;
@@ -380,17 +401,21 @@
 
 	const edited = $derived(final !== null && editOwner.some((o, k) => o !== final!.owner[k]));
 	const payments = $derived(final ? whoPaysWhom(final.balances) : []);
-	const finalMax = $derived(final ? maxAbsRounded(final.balances) : 0);
+	const paymentLine = (pay: (typeof payments)[number]) =>
+		`${people[pay.from].name} pays ${people[pay.to].name} ${fmt(pay.amount)}`;
+	const paymentsHeadline = $derived(
+		payments.length === 0
+			? 'No payments needed'
+			: payments.length === 1
+				? paymentLine(payments[0])
+				: `${payments.length} payments settle it`
+	);
 </script>
 
 <svelte:window onkeydown={onKeydown} />
 
 <div class="container" data-hydrated={hydrated || undefined}>
-	<PageHeader path="/split">
-		<a href="https://blog.mptc.uk/posts/Asset-Division" target="_blank" rel="noreferrer"
-			>First written up on the blog</a
-		>
-	</PageHeader>
+	<PageHeader path="/split" />
 
 	<Stepper
 		current={step}
@@ -401,10 +426,8 @@
 	/>
 
 	{#if phase === 'setup'}
-		<div class="split-view">
+		<div class="split-view setup">
 			<Panel title="People">
-				{#snippet actions()}<InfoTip label="people">Everyone who shares the assets.</InfoTip
-					>{/snippet}
 				<div class="stack">
 					{#if people.length > 0}
 						<ul class="pills" aria-label="People">
@@ -422,8 +445,6 @@
 								</li>
 							{/each}
 						</ul>
-					{:else}
-						<p class="note">No people yet.</p>
 					{/if}
 					<form class="add-form" onsubmit={addPerson} novalidate>
 						<Field label="Person name">
@@ -434,7 +455,6 @@
 									{...props}
 									bind:this={nameInput}
 									bind:value={newPerson.name}
-									placeholder="Name"
 									aria-invalid={personMsg ? 'true' : undefined}
 									aria-describedby={personMsg ? 'person-error' : undefined}
 								/>
@@ -449,10 +469,6 @@
 			</Panel>
 
 			<Panel title="Items">
-				{#snippet actions()}<InfoTip label="items"
-						>Your best guess of each item's price. It only sets the starting split; people's picks
-						decide the rest.</InfoTip
-					>{/snippet}
 				<div class="stack">
 					{#if items.length > 0}
 						<ul class="pills" aria-label="Items">
@@ -470,8 +486,6 @@
 								</li>
 							{/each}
 						</ul>
-					{:else}
-						<p class="note">No items yet.</p>
 					{/if}
 					<form class="add-form" onsubmit={addItem} novalidate>
 						<Field label="Item description">
@@ -482,14 +496,13 @@
 									{...props}
 									bind:this={descInput}
 									bind:value={newItem.description}
-									placeholder="Description"
 									aria-invalid={itemMsg ? 'true' : undefined}
 									aria-describedby={itemMsg ? 'item-error' : undefined}
 								/>
 							{/snippet}
 						</Field>
 						<div class="price">
-							<Field label="Item price (€)">
+							<Field label="Rough price (€)">
 								{#snippet children(props)}
 									<input
 										class="control"
@@ -498,7 +511,6 @@
 										step="any"
 										{...props}
 										bind:value={newItem.price}
-										placeholder="Price"
 										aria-invalid={itemMsg ? 'true' : undefined}
 										aria-describedby={itemMsg ? 'item-error' : undefined}
 									/>
@@ -510,26 +522,21 @@
 					{#if itemMsg}
 						<div id="item-error"><Alert tone="danger">{itemMsg}</Alert></div>
 					{/if}
+					<div class="cluster">
+						<Button
+							variant="primary"
+							disabled={startMsg !== null}
+							aria-describedby={startMsg ? 'start-error' : undefined}
+							onclick={toStart}>Start</Button
+						>
+						{#if startMsg}<p id="start-error" class="hint">{startMsg}</p>{/if}
+					</div>
+					{@render how()}
 				</div>
 			</Panel>
 		</div>
-
-		<div class="cluster start">
-			<Button
-				variant="primary"
-				disabled={startMsg !== null}
-				aria-describedby={startMsg ? 'start-error' : undefined}
-				onclick={toStart}>Start</Button
-			>
-			{#if startMsg}<p id="start-error" class="note">{startMsg}</p>{/if}
-		</div>
 	{:else if phase === 'start'}
 		<Panel title="Start">
-			{#snippet actions()}<InfoTip label="the start"
-					>Tap your initials on each item you'd like. Several people can want the same item. The
-					amounts compare what you picked with a fair share; shared items count for everyone who
-					picked them. The rounds settle the real split.</InfoTip
-				>{/snippet}
 			<div class="stack" aria-busy={busy}>
 				<ul class="bars" aria-label="Rough amounts">
 					{#each people as p, i (p.id)}
@@ -558,7 +565,7 @@
 					{/each}
 				</ul>
 
-				<p class="note" data-testid="claim-hint">
+				<p class="hint" data-testid="claim-hint">
 					Tap your initials on each item you want.{anyClaim ? '' : ' Nothing is picked yet.'}
 				</p>
 				<ul class="pills" aria-label="Items to claim">
@@ -590,15 +597,21 @@
 					>
 					<Button onclick={backToSetup} disabled={busy}>Back to setup</Button>
 				</div>
+				{@render how()}
 			</div>
 		</Panel>
 	{:else if phase === 'round' && proposal}
 		<Panel title="Round {rounds.length + 1}">
-			{#snippet actions()}<InfoTip label="rounds"
-					>Drag your chip to the group you'd take at these amounts. When everyone picks a different
-					group, you're done. Back to setup discards all rounds.</InfoTip
-				>{/snippet}
 			<div class="stack" aria-busy={busy}>
+				<p class="instruction">
+					Drag your name onto the group you'd take at these amounts. You're done when everyone picks
+					a different group.
+				</p>
+				<div class="drop" data-testid="split-unplaced" aria-label="Not placed yet" role="group">
+					{#each unplaced as i (people[i].id)}{@render personCard(i)}{/each}
+					{#if unplaced.length === 0}<p class="hint">Everyone has picked.</p>{/if}
+				</div>
+
 				{#if fallback}
 					<Alert tone="warning">
 						<div class="stack">
@@ -635,22 +648,22 @@
 								></button>
 							{/if}
 							<div class="group-head">
-								<h3 id="group-{gi}-heading">Group {gi + 1}</h3>
+								<h3
+									id="group-{gi}-heading"
+									class="settlement"
+									style:color={amountColour(boardAmounts[gi], fairShare, boardMax)}
+								>
+									{paymentLabel(boardAmounts[gi], fmt)}
+								</h3>
 								{#if tag}<span class="tag {tag}"
 										>{tag === 'over' ? 'Over-demanded' : 'Unclaimed'}</span
 									>{/if}
 							</div>
-							<p
-								class="settlement"
-								style:color={amountColour(proposal.transfers[gi], fairShare, boardMax)}
-							>
-								{paymentLabel(proposal.transfers[gi], fmt)}
-							</p>
 							<ul class="items">
 								{#each itemOrder.filter((k) => g.includes(k)) as k (k)}<li class="pill">
 										{items[k].description}
 									</li>{/each}
-								{#if g.length === 0}<li class="note">(empty)</li>{/if}
+								{#if g.length === 0}<li class="hint">(empty)</li>{/if}
 							</ul>
 							<div class="drop">
 								{#each onGroup[gi] ?? [] as i (people[i].id)}{@render personCard(i)}{/each}
@@ -659,110 +672,112 @@
 					{/each}
 				</div>
 
-				<div class="unplaced" data-testid="split-unplaced">
-					<p class="unplaced-label">Unplaced</p>
-					<div class="drop centred">
-						{#each unplaced as i (people[i].id)}{@render personCard(i)}{/each}
-						{#if unplaced.length === 0}<p class="note">Everyone has picked.</p>{/if}
-					</div>
-				</div>
-
 				<p class="sr-only" aria-live="polite" data-testid="split-announce">{announcement}</p>
 
 				<div class="cluster">
 					<Button variant="primary" disabled={!ready || busy} onclick={completeRound}
 						>{busy ? 'Updating…' : 'Complete round'}</Button
 					>
-					<Button onclick={backToSetup} disabled={busy}>Back to setup</Button>
+					<Button
+						variant={armBack ? 'danger' : 'secondary'}
+						onclick={onBack}
+						onblur={() => (armBack = false)}
+						disabled={busy}
+						>{armBack
+							? `Discard ${rounds.length} ${rounds.length === 1 ? 'round' : 'rounds'} and go back`
+							: 'Back to setup'}</Button
+					>
 				</div>
+				{@render how()}
 			</div>
 		</Panel>
 	{:else if phase === 'final' && final}
 		<Panel title="Everyone keeps their own group">
-			{#snippet actions()}<InfoTip label="the final split"
-					>{final?.fallback
-						? 'The best split found so far, so someone may still prefer another group.'
-						: 'At these amounts, nobody would rather swap.'} Drag items between people to try a change,
-					then check it with everyone again.</InfoTip
-				>{/snippet}
 			<div class="stack" aria-busy={busy}>
-				<div class="groups">
-					{#each people as p, i (p.id)}
-						<section
-							class="group"
-							class:targetable={selectedItem !== null || drag?.kind === 'item'}
-							class:drop-over={drag?.kind === 'item' && drag.target === i}
-							style:--person={personColour(i)}
-							data-testid="final-person"
-							aria-labelledby="final-{i}-heading"
-							bind:this={personEls[i]}
-						>
-							{#if selectedItem !== null && editOwner[selectedItem] !== i}
-								<!-- Tap/keyboard fallback for dragging (WCAG 2.5.7). -->
-								<button
-									type="button"
-									class="card-target"
-									aria-label="Give {items[selectedItem].description} to {p.name}"
-									onclick={() => selectedItem !== null && give(selectedItem, i)}
-								></button>
-							{/if}
-							<h3 id="final-{i}-heading">
-								<span class="dot" aria-hidden="true"></span>{p.name}
-							</h3>
-							{#if !edited}
-								<p
-									class="settlement"
-									style:color={amountColour(final.balances[i], fairShare, finalMax)}
-								>
-									{paymentLabel(final.balances[i], fmt)}
-								</p>
-							{/if}
-							<ul class="items">
-								{#each itemOrder as k (items[k].id)}
-									{#if editOwner[k] === i}
-										<li>
-											<button
-												type="button"
-												class="pill draggable"
-												class:lifted={isLifted('item', k)}
-												style:transform={drag && isLifted('item', k)
-													? `translate(${drag.dx}px, ${drag.dy}px)`
-													: undefined}
-												aria-pressed={selectedItem === k}
-												disabled={busy}
-												onclick={() => onPick('item', k)}
-												onpointerdown={(e) => onPointerDown(e, 'item', k)}
-												onpointermove={onPointerMove}
-												onpointerup={onPointerUp}
-												onpointercancel={cancelDrag}>{items[k].description}</button
-											>
-										</li>
-									{/if}
-								{/each}
-								{#if !editOwner.includes(i)}<li class="note">(none)</li>{/if}
-							</ul>
-						</section>
-					{/each}
-				</div>
-				<p class="sr-only" aria-live="polite" data-testid="final-announce">{announcement}</p>
 				{#if edited}
 					<Alert tone="warning"
 						>Changed: check with everyone. Amounts update after the re-check.</Alert
 					>
 				{:else}
-					<section class="payments" aria-labelledby="payments-heading">
-						<h3 id="payments-heading">Who pays whom</h3>
-						{#if payments.length > 0}
-							<ul>
-								{#each payments as pay, i (i)}
-									<li>{people[pay.from].name} pays {people[pay.to].name} {fmt(pay.amount)}</li>
-								{/each}
-							</ul>
-						{:else}
-							<p class="note">No payments needed.</p>
-						{/if}
-					</section>
+					<Answer
+						role="region"
+						aria-label="Who pays whom"
+						headline={paymentsHeadline}
+						data-testid={payments.length === 1 ? 'payment' : undefined}
+					>
+						{#snippet extra()}
+							{#if payments.length > 1}
+								<ul class="payments">
+									{#each payments as pay, i (i)}
+										<li data-testid="payment">{paymentLine(pay)}</li>
+									{/each}
+								</ul>
+							{/if}
+						{/snippet}
+					</Answer>
+					{#if final.fallback}
+						<p class="hint">
+							This is the best split found so far, so someone may still prefer another group.
+						</p>
+					{/if}
 				{/if}
+				<section class="owners" aria-labelledby="owners-heading">
+					<h3 id="owners-heading">Who gets what</h3>
+					<p class="hint">
+						Drag items between people to try a different split, then check it with everyone again.
+					</p>
+					<div class="groups">
+						{#each people as p, i (p.id)}
+							<section
+								class="group"
+								class:targetable={selectedItem !== null || drag?.kind === 'item'}
+								class:drop-over={drag?.kind === 'item' && drag.target === i}
+								style:--person={personColour(i)}
+								data-testid="final-person"
+								aria-labelledby="final-{i}-heading"
+								bind:this={personEls[i]}
+							>
+								{#if selectedItem !== null && editOwner[selectedItem] !== i}
+									<!-- Tap/keyboard fallback for dragging (WCAG 2.5.7). -->
+									<button
+										type="button"
+										class="card-target"
+										aria-label="Give {items[selectedItem].description} to {p.name}"
+										onclick={() => selectedItem !== null && give(selectedItem, i)}
+									></button>
+								{/if}
+								<h3 id="final-{i}-heading">
+									<span class="dot" aria-hidden="true"></span>{p.name}
+								</h3>
+								<ul class="items">
+									{#each itemOrder as k (items[k].id)}
+										{#if editOwner[k] === i}
+											<li>
+												<button
+													type="button"
+													class="pill draggable"
+													class:lifted={isLifted('item', k)}
+													style:transform={drag && isLifted('item', k)
+														? `translate(${drag.dx}px, ${drag.dy}px)`
+														: undefined}
+													aria-pressed={selectedItem === k}
+													disabled={busy}
+													onclick={() => onPick('item', k)}
+													onpointerdown={(e) => onPointerDown(e, 'item', k)}
+													onpointermove={onPointerMove}
+													onpointerup={onPointerUp}
+													onpointercancel={cancelDrag}>{items[k].description}</button
+												>
+											</li>
+										{/if}
+									{/each}
+									{#if !editOwner.includes(i)}<li class="hint">(none)</li>{/if}
+								</ul>
+							</section>
+						{/each}
+					</div>
+				</section>
+				<p class="sr-only" aria-live="polite" data-testid="final-announce">{announcement}</p>
 				<div class="cluster">
 					{#if edited}
 						<Button variant="primary" disabled={busy} onclick={recheck}
@@ -772,20 +787,39 @@
 					{/if}
 					<Button disabled={busy} onclick={backToSetup}>Start over</Button>
 				</div>
+				{@render how()}
 			</div>
 		</Panel>
 	{/if}
+</div>
 
+<!-- How it works closes the last box of every step. -->
+{#snippet how()}
 	<details class="how">
 		<summary>How it works</summary>
 		<p>
-			Add the people and the items with their prices. Everyone taps the items they want. Each round
-			then proposes groups of items with payments; pick the group you'd take. When everyone picks a
-			different group, the split is fair.
+			Add everyone who shares the assets, and each item with a rough price. The price is your best
+			guess: it only sets the starting split, and people's picks decide the rest.
+		</p>
+		<p>
+			At the start, everyone taps their initials on each item they'd like. Several people can want
+			the same item. The rough amounts compare what each person picked with a fair share; a shared
+			item counts for everyone who picked it.
+		</p>
+		<p>
+			Each round then proposes groups of items, each with an amount to pay or receive, and everyone
+			picks the group they'd take. When everyone picks a different group, nobody would rather swap,
+			so the split is fair. After a set number of rounds the tool offers the best split it has
+			found. Back to setup keeps the people and items but discards the rounds.
+		</p>
+		<p>
+			<a href="https://blog.mptc.uk/posts/Asset-Division" target="_blank" rel="noreferrer"
+				>First written up on the blog</a
+			>
 		</p>
 		<References references={REFERENCES} />
 	</details>
-</div>
+{/snippet}
 
 {#snippet personCard(i: number)}
 	<button
@@ -808,17 +842,6 @@
 {/snippet}
 
 <style>
-	.note {
-		margin: 0;
-		font-size: var(--text-sm);
-		color: var(--text-muted);
-	}
-
-	/* Info tip right next to the panel title, not pushed to the far right. */
-	.container :global(.ui-panel-actions) {
-		margin-left: 0;
-	}
-
 	.pills {
 		display: flex;
 		flex-wrap: wrap;
@@ -903,19 +926,33 @@
 		flex: 0 1 8rem;
 	}
 
-	.start {
-		margin-top: var(--sp-3);
+	/* Inside a box the stack's gap spaces How it works. */
+	.how {
+		margin-top: 0;
 	}
 
-	.payments h3 {
+	.instruction {
+		margin: 0;
+	}
+
+	.owners h3 {
 		margin: 0 0 var(--sp-1);
-		font-size: var(--text-md);
+		font-size: var(--text-lg);
 	}
 
-	.payments ul {
+	.payments {
 		margin: 0;
 		padding-left: var(--sp-4);
-		font-size: var(--text-sm);
+	}
+
+	.owners {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-1);
+	}
+
+	.owners .groups {
+		margin-top: var(--sp-1);
 	}
 
 	.groups {
@@ -1011,10 +1048,10 @@
 		outline-offset: 2px;
 	}
 
-	.settlement {
-		margin: 0;
-		font-size: var(--text-sm);
-		font-weight: 600;
+	/* A round card's heading: what taking this group costs or pays. */
+	.group h3.settlement {
+		font-size: var(--text-xl);
+		font-weight: 700;
 	}
 
 	.items {
@@ -1034,18 +1071,6 @@
 		gap: var(--sp-2);
 		min-height: var(--control-h);
 		margin-top: var(--sp-1);
-	}
-
-	.drop.centred {
-		justify-content: center;
-		margin-top: 0;
-	}
-
-	.unplaced {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--sp-1);
 	}
 
 	.bars {
@@ -1156,13 +1181,6 @@
 		box-shadow: inset 0 0 0 1px var(--surface);
 	}
 
-	.unplaced-label {
-		margin: 0;
-		font-size: var(--text-xs);
-		font-weight: 600;
-		color: var(--text-muted);
-	}
-
 	.chip-btn {
 		align-self: flex-start;
 		display: inline-flex;
@@ -1219,5 +1237,9 @@
 		.group {
 			transition: none;
 		}
+	}
+	/* Setup's boxes size to their content (owner, 2026-11-11): People ends after its list. */
+	.setup {
+		align-items: start;
 	}
 </style>

@@ -86,12 +86,6 @@ export const routes: ToolRoute[] = [
 		group: 'Data and politics'
 	},
 	{
-		path: '/warhammer-simulator',
-		name: 'Warhammer Simulator',
-		description: 'Estimate who wins a Warhammer duel.',
-		group: 'Science and simulation'
-	},
-	{
 		path: '/symbolic-regression',
 		name: 'Symbolic Regression',
 		description: 'Find short equations that fit your CSV.',

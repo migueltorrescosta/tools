@@ -2,11 +2,12 @@
 	import type { Snippet } from 'svelte';
 	import {
 		Alert,
+		Answer,
 		Button,
 		DataTable,
 		Field,
+		Fold,
 		Panel,
-		RunControls,
 		type Column
 	} from '#lib/ui/index.js';
 	import { dataColour } from '#lib/plot.js';
@@ -34,6 +35,7 @@
 	import type { ParamPosterior } from '#lib/deconvolution/bayes.js';
 	import { posteriorCells, posteriorColumns, type PosteriorCells } from './chains';
 	import Posteriors from './Posteriors.svelte';
+	import RunLine from './RunLine.svelte';
 	import { supportGrid2 } from '#lib/deconvolution/npmle2.js';
 	import { bands, histogram, simulate2, simulate2PerPoint } from '#lib/deconvolution/sample.js';
 	import {
@@ -48,6 +50,8 @@
 	import DensityChart, { type Band, type Curve, type Stems } from './DensityChart.svelte';
 	import Dist2Editor from './Dist2Editor.svelte';
 	import Heatmap from './Heatmap.svelte';
+	import { fitSentence, fmtValue, massMoments, methodList, type Part } from './answer';
+	import { family } from '#lib/deconvolution/families.js';
 
 	/** The 2D model, estimate and results. The page owns the settings, the data panel and the pool. */
 	let {
@@ -55,12 +59,16 @@
 		uploaded,
 		getPool,
 		dataPanel,
+		tail,
 		download
 	}: {
 		settings: Settings;
 		uploaded: ParsedSample | null;
 		getPool: () => EstimatePool;
-		dataPanel: Snippet;
+		/** The page's data box, given the noise assumption to show inside it. */
+		dataPanel: Snippet<[Snippet]>;
+		/** How it works and the references: the last lines of the Results box. */
+		tail: Snippet;
 		download: (name: string, text: string) => void;
 	} = $props();
 
@@ -343,7 +351,7 @@
 				...dist(mleMass),
 				note:
 					r.identifiability.flat || r.identifiability.boundary.length
-						? 'Not identifiable: see below'
+						? 'Not identifiable: see the warning'
 						: ''
 			});
 		}
@@ -403,6 +411,49 @@
 		...(bayes ? posteriorColumns<ParamRow>() : [])
 	]);
 	const id = $derived(run?.mle?.identifiability ?? null);
+
+	/** A 2D family's name in the results' opening sentence. */
+	function name2(spec: Spec2): string {
+		if (spec.family === 'product')
+			return `${family(spec.x.family).name} × ${family(spec.y.family).name}`;
+		return { gauss2: 'Correlated Gaussian', fringe2: 'Fringe pattern', mixture2: 'Gaussian' }[
+			spec.family
+		];
+	}
+	/** The results' opening sentence: the parametric fit's families, or a grid estimate's means. */
+	const answer = $derived.by(() => {
+		if (!run) return null;
+		if (run.mle) {
+			const { x, y, params } = run.mle;
+			const of = (role: 'signal' | 'noise', component: number | null = null) =>
+				params.filter((p) => p.role === role && (component === null || p.component === component));
+			let signal: Part[];
+			if (x.family === 'mixture2') {
+				const total = x.components.reduce((a, c) => a + c.weight, 0);
+				signal = x.components.map((c, i) => ({
+					name: 'Gaussian',
+					weight: c.weight / total,
+					params: of('signal', i)
+				}));
+			} else signal = [{ name: name2(x), params: of('signal') }];
+			return {
+				kind: 'fit' as const,
+				...fitSentence(signal, { name: name2(y), params: of('noise') })
+			};
+		}
+		const g = run.grids[0];
+		if (!g) return null;
+		const mean = ([0, 1] as const).map((axis) => {
+			const m = marginal(g, axis);
+			return fmtValue(massMoments(m.grid.x0, m.grid.h, m.mass).mean);
+		});
+		return { kind: 'moments' as const, method: NAMES[g.method], mean: `(${mean.join(', ')})` };
+	});
+	/** The fit tables open themselves when the Bayesian fit adds its columns. */
+	let tablesOpen = $state(false);
+	$effect(() => {
+		if (bayes) tablesOpen = true;
+	});
 	const of = (d: { label: string; role: 'signal' | 'noise'; component: number | null }) =>
 		`${d.label} of ${d.role === 'signal' ? 'X' : 'Y'}${d.component === null ? '' : ` (component ${d.component + 1})`}`;
 	// --- Bootstrap (Gaussian mixture only: the NPMLE gives point masses) ---
@@ -533,7 +584,12 @@
 </script>
 
 <Panel title="Model">
-	<div class="model">
+	{#snippet actions()}<Button
+			variant="link"
+			onclick={() => (settings.dim = 1)}
+			data-testid="dim-switch">Switch to a 1D model</Button
+		>{/snippet}
+	<div class="setup">
 		<div class="controls">
 			<Field label="Preset">
 				{#snippet children(props)}
@@ -575,48 +631,52 @@
 						/>
 					{/snippet}
 				</Field>
-				<Field label="Seed" error={seedValid ? undefined : 'A whole number ≥ 0.'}>
-					{#snippet children(props)}
-						<input
-							class="control"
-							type="number"
-							min="0"
-							step="1"
-							bind:value={settings.seed}
-							data-testid="seed"
-							{...props}
-						/>
-					{/snippet}
-				</Field>
 			</div>
-			{#if sample}
-				<div>
-					<Button
-						size="sm"
-						variant="secondary"
-						onclick={() =>
-							download(
-								'deconvolution-sample-2d.csv',
-								sample.cov
-									? columnsCsv(
-											['x', 'y', 'sx', 'sy'],
-											[
-												sample.xs,
-												sample.ys,
-												sample.cov.map((c) => Math.sqrt(c[0])),
-												sample.cov.map((c) => Math.sqrt(c[2]))
-											]
-										)
-									: columnsCsv(['x', 'y'], [sample.xs, sample.ys])
-							)}
-						data-testid="export">Download the sample (CSV)</Button
-					>
+			<Fold label="Seed and sample download" data-testid="sample-fold">
+				<div class="row">
+					<Field label="Seed" error={seedValid ? undefined : 'A whole number ≥ 0.'}>
+						{#snippet children(props)}
+							<input
+								class="control"
+								type="number"
+								min="0"
+								step="1"
+								bind:value={settings.seed}
+								data-testid="seed"
+								{...props}
+							/>
+						{/snippet}
+					</Field>
 				</div>
-			{/if}
+				{#if sample}
+					<div>
+						<Button
+							size="sm"
+							variant="secondary"
+							onclick={() =>
+								download(
+									'deconvolution-sample-2d.csv',
+									sample.cov
+										? columnsCsv(
+												['x', 'y', 'sx', 'sy'],
+												[
+													sample.xs,
+													sample.ys,
+													sample.cov.map((c) => Math.sqrt(c[0])),
+													sample.cov.map((c) => Math.sqrt(c[2]))
+												]
+											)
+										: columnsCsv(['x', 'y'], [sample.xs, sample.ys])
+								)}
+							data-testid="export">Download the sample (CSV)</Button
+						>
+					</div>
+				{/if}
+			</Fold>
 		</div>
 		<div class="plots">
 			{#if modelView}
-				<div class="maps">
+				<div class="maps model-maps">
 					<Heatmap
 						title="Signal X"
 						grid={modelView.grid}
@@ -659,130 +719,146 @@
 					{/each}
 				</div>
 			{:else}
-				<p class="muted">Fix the parameters to see the distributions.</p>
+				<p class="hint">Fix the parameters to see the distributions.</p>
 			{/if}
 		</div>
+
+		<h2 class="section">Estimate</h2>
+
+		{#snippet noiseFold()}
+			<Fold
+				label="Noise assumption"
+				summary={settings.noise2 === 'perPoint'
+					? 'per-point errors'
+					: 'known family, as in the model above'}
+				data-testid="noise-fold"
+			>
+				<Field label="Noise">
+					{#snippet children(props)}
+						<select
+							class="control noise-select"
+							bind:value={settings.noise2}
+							onchange={() => {
+								if (!settings.methods2.some((m) => !reasons[m])) settings.methods2 = ['npmle'];
+							}}
+							data-testid="noise2-regime"
+							{...props}
+						>
+							<option value="known">Known family</option>
+							<option value="perPoint">Per-point errors</option>
+						</select>
+					{/snippet}
+				</Field>
+				<p class="hint">
+					{settings.noise2 === 'perPoint'
+						? 'Each point has its own Gaussian error (columns x, y, σx, σy and an optional ρ when you upload).'
+						: 'The noise’s family is the one in the model above.'}
+				</p>
+				{#if settings.noise2 === 'perPoint' && settings.source === 'simulated'}
+					<div class="row">
+						<Field label="σ from">
+							{#snippet children(props)}
+								<input
+									class="control"
+									type="number"
+									min="0.01"
+									step="0.05"
+									bind:value={settings.sigmaRange[0]}
+									data-testid="sigma2-lo"
+									{...props}
+								/>
+							{/snippet}
+						</Field>
+						<Field label="to">
+							{#snippet children(props)}
+								<input
+									class="control"
+									type="number"
+									min="0.01"
+									step="0.05"
+									bind:value={settings.sigmaRange[1]}
+									data-testid="sigma2-hi"
+									{...props}
+								/>
+							{/snippet}
+						</Field>
+					</div>
+					<p class="hint">
+						Each axis of each point gets normal noise with its own σ; the noise model above isn’t
+						used.
+					</p>
+				{/if}
+			</Fold>
+			{#if settings.noise2 === 'perPoint' && settings.source === 'uploaded' && uploaded && !uploaded.error && !uploadedCov}
+				<Alert tone="warning"
+					>Per-point errors need four or five columns: x, y, σx, σy (positive) and an optional ρ.</Alert
+				>
+			{/if}
+			{#if settings.source === 'uploaded' && uploaded && !uploaded.error && uploaded.dim !== 2 && settings.noise2 === 'known'}
+				<Alert tone="warning">This data has one column: switch to 1D to use it.</Alert>
+			{/if}
+		{/snippet}
+		{@render dataPanel(noiseFold)}
+
+		<Fold
+			label="Methods"
+			summary={methodList(chosen.map((m) => NAMES[m]))}
+			data-testid="methods-fold"
+		>
+			<fieldset class="methods">
+				<legend class="sr-only">Estimators</legend>
+				{#each METHODS2.filter((m) => !reasons[m]) as m (m)}
+					<label class="method">
+						<input
+							type="checkbox"
+							checked={settings.methods2.includes(m)}
+							onchange={(e) => toggle(m, e.currentTarget.checked)}
+							data-testid="method2-{m}"
+						/>
+						<span>
+							<strong>{NAMES[m]}</strong>
+							<span class="hint">{HINTS[m]}</span>
+						</span>
+					</label>
+				{/each}
+			</fieldset>
+			<p class="hint">g-modeling and kernel deconvolution are 1D only.</p>
+			{#if settings.noise2 === 'known'}
+				<label class="check">
+					<input type="checkbox" bind:checked={settings.fitNoise2} data-testid="fit-noise2" />
+					The parametric fit also fits the noise
+				</label>
+				<p class="hint">The NPMLE and the mixture use the noise as entered.</p>
+			{/if}
+		</Fold>
+
+		<RunLine
+			onrun={start}
+			{running}
+			disabled={!canRun || chainsRunning}
+			describedby="run2-why"
+			onstop={stop}
+		>
+			{#if !data}
+				<p id="run2-why" class="hint">
+					{settings.source === 'uploaded'
+						? 'Add two-column data above first.'
+						: 'Fix the model first.'}
+				</p>
+			{:else if chosen.length === 0}
+				<p id="run2-why" class="hint">Pick at least one method.</p>
+			{/if}
+			{#if running}<p class="hint" role="status">Fitting…</p>{/if}
+			{#if runError}<Alert tone="danger">{runError}</Alert>{/if}
+			{#if run && !running}<p class="hint" role="status" data-testid="run-status">
+					Done in {(run.ms / 1000).toFixed(1)} s on {run.xs.length.toLocaleString('en')} points.
+				</p>{/if}
+		</RunLine>
 	</div>
 </Panel>
 
-<h2 class="section">Estimate</h2>
-
-{@render dataPanel()}
-{#if settings.source === 'uploaded' && uploaded && !uploaded.error && uploaded.dim !== 2 && settings.noise2 === 'known'}
-	<Alert tone="warning">This data has one column: switch to 1D to use it.</Alert>
-{/if}
-
-<Panel title="Methods" level={3}>
-	<Field label="Noise">
-		{#snippet children(props)}
-			<select
-				class="control"
-				bind:value={settings.noise2}
-				onchange={() => {
-					if (!settings.methods2.some((m) => !reasons[m])) settings.methods2 = ['npmle'];
-				}}
-				data-testid="noise2-regime"
-				{...props}
-			>
-				<option value="known">Known family</option>
-				<option value="perPoint">Per-point errors</option>
-			</select>
-		{/snippet}
-	</Field>
-	<p class="muted">
-		{settings.noise2 === 'perPoint'
-			? 'Each point has its own Gaussian error (columns x, y, σx, σy and an optional ρ when you upload).'
-			: 'The noise’s family is the one in the model above.'}
-	</p>
-	{#if settings.noise2 === 'perPoint' && settings.source === 'simulated'}
-		<div class="row">
-			<Field label="σ from">
-				{#snippet children(props)}
-					<input
-						class="control"
-						type="number"
-						min="0.01"
-						step="0.05"
-						bind:value={settings.sigmaRange[0]}
-						data-testid="sigma2-lo"
-						{...props}
-					/>
-				{/snippet}
-			</Field>
-			<Field label="to">
-				{#snippet children(props)}
-					<input
-						class="control"
-						type="number"
-						min="0.01"
-						step="0.05"
-						bind:value={settings.sigmaRange[1]}
-						data-testid="sigma2-hi"
-						{...props}
-					/>
-				{/snippet}
-			</Field>
-		</div>
-		<p class="muted">
-			Each axis of each point gets normal noise with its own σ; the noise model above isn’t used.
-		</p>
-	{/if}
-	{#if settings.noise2 === 'perPoint' && settings.source === 'uploaded' && uploaded && !uploaded.error && !uploadedCov}
-		<Alert tone="warning"
-			>Per-point errors need four or five columns: x, y, σx, σy (positive) and an optional ρ.</Alert
-		>
-	{/if}
-	<fieldset class="methods">
-		<legend class="sr-only">Estimators</legend>
-		{#each METHODS2 as m (m)}
-			<label class="method" class:off={!!reasons[m]}>
-				<input
-					type="checkbox"
-					checked={settings.methods2.includes(m)}
-					disabled={!!reasons[m]}
-					onchange={(e) => toggle(m, e.currentTarget.checked)}
-					data-testid="method2-{m}"
-				/>
-				<span>
-					<strong>{NAMES[m]}</strong>
-					<span class="muted">{reasons[m] ?? HINTS[m]}</span>
-				</span>
-			</label>
-		{/each}
-	</fieldset>
-	<p class="muted">g-modeling and kernel deconvolution are 1D only.</p>
-	{#if settings.noise2 === 'known'}
-		<label class="check">
-			<input type="checkbox" bind:checked={settings.fitNoise2} data-testid="fit-noise2" />
-			The parametric fit also fits the noise
-		</label>
-		<p class="muted">The NPMLE and the mixture use the noise as entered.</p>
-	{/if}
-</Panel>
-
-<RunControls
-	onrun={start}
-	{running}
-	disabled={!canRun || chainsRunning}
-	describedby="run2-why"
-	onstop={stop}
->
-	{#if !data}
-		<p id="run2-why" class="muted">
-			{settings.source === 'uploaded' ? 'Add two-column data above first.' : 'Fix the model first.'}
-		</p>
-	{:else if chosen.length === 0}
-		<p id="run2-why" class="muted">Pick at least one method.</p>
-	{/if}
-	{#if running}<p class="muted" role="status">Fitting…</p>{/if}
-	{#if runError}<Alert tone="danger">{runError}</Alert>{/if}
-	{#if run && !running}<p class="muted" role="status" data-testid="run-status">
-			Done in {(run.ms / 1000).toFixed(1)} s on {run.xs.length.toLocaleString('en')} points.
-		</p>{/if}
-</RunControls>
-
-{#if run}
-	<Panel title="Results" level={3}>
+<Panel title="Results">
+	{#if run}
 		<div class="results" data-testid="results">
 			<div class="maps">
 				{#if truthMass}
@@ -824,13 +900,23 @@
 					/>
 				{/each}
 			</div>
+			{#if answer?.kind === 'fit'}
+				{#if answer.noise}
+					<Answer headline="Signal X looks like {answer.x}" data-testid="answer">
+						Noise Y {answer.noise.verb === 'like' ? 'looks like' : 'is held at'}
+						{answer.noise.text}.
+					</Answer>
+				{:else}
+					<Answer headline="Signal X looks like {answer.x}" data-testid="answer" />
+				{/if}
+			{:else if answer}
+				<Answer headline="Signal X has its mean at {answer.mean}" data-testid="answer">
+					Estimated by {answer.method}.
+				</Answer>
+			{/if}
 			{#each run.failures as f (f.method)}
 				<Alert tone="warning">{NAMES[f.method]} failed: {f.message}</Alert>
 			{/each}
-			<DataTable caption="Fits" {columns} {rows} rowKey={(r) => r.method} />
-			{#if !run.truth}<p class="muted">
-					Sliced W₁ and L₁ need the true signal, so they show for simulated data only.
-				</p>{/if}
 			{#if id?.flat}
 				<Alert tone="warning">
 					<span data-testid="identifiability">
@@ -849,14 +935,27 @@
 					</span>
 				</Alert>
 			{/if}
-			{#if paramRows.length}
-				<DataTable
-					caption="Parametric fit"
-					columns={paramColumns}
-					rows={paramRows}
-					rowKey={(r) => r.id}
-				/>
-			{/if}
+			<Fold
+				label="Fit tables"
+				summary="likelihood, AIC, BIC{run.truth ? ', error to truth' : ''}{paramRows.length
+					? ', 95% intervals'
+					: ''}"
+				bind:open={tablesOpen}
+				data-testid="fit-tables"
+			>
+				<DataTable caption="Fits" {columns} {rows} rowKey={(r) => r.method} />
+				{#if !run.truth}<p class="hint">
+						Sliced W₁ and L₁ need the true signal, so they show for simulated data only.
+					</p>{/if}
+				{#if paramRows.length}
+					<DataTable
+						caption="Parametric fit"
+						columns={paramColumns}
+						rows={paramRows}
+						rowKey={(r) => r.id}
+					/>
+				{/if}
+			</Fold>
 			<Posteriors
 				pool={getPool}
 				seed={settings.seed}
@@ -891,8 +990,8 @@
 			/>
 			{#if !run.cov && run.grids.some((g) => g.method === 'gmm')}
 				<div class="subsection">
-					<h4>Bootstrap bands</h4>
-					<p class="muted">
+					<h3>Bootstrap bands</h3>
+					<p class="hint">
 						Refits the Gaussian mixture on resampled data and shades where 90% of its marginals
 						fall.
 					</p>
@@ -918,25 +1017,24 @@
 							data-testid="bootstrap2">Run bootstrap</Button
 						>
 						<Button variant="danger" onclick={stop} disabled={!booting}>Stop</Button>
-						{#if booting}<span class="muted" role="status">{bootDone} / {settings.bootstrapB}</span
+						{#if booting}<span class="hint" role="status">{bootDone} / {settings.bootstrapB}</span
 							>{/if}
 					</div>
 				</div>
 			{/if}
 		</div>
-	</Panel>
-{/if}
+	{:else}
+		<p class="hint">Press Run to estimate the signal from the data.</p>
+	{/if}
+	{@render tail()}
+</Panel>
 
 <style>
-	.model {
-		display: grid;
-		grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
-		gap: var(--sp-4);
-	}
-	@media (max-width: 52rem) {
-		.model {
-			grid-template-columns: minmax(0, 1fr);
-		}
+	.setup {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-3);
+		min-width: 0;
 	}
 	.controls,
 	.plots,
@@ -951,6 +1049,10 @@
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
 		gap: var(--sp-2);
+	}
+	/* The Setup column is narrow: two model maps to a row. */
+	.model-maps {
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 10rem), 1fr));
 	}
 	.marginals {
 		display: grid;
@@ -968,11 +1070,23 @@
 		gap: var(--sp-1);
 		align-items: center;
 	}
+	/* Estimate opens the second half of the Setup box, under a hairline, titled like the box. */
 	.section {
 		margin: var(--sp-2) 0 0;
+		padding-top: var(--sp-3);
+		border-top: 1px solid var(--border);
 		font-size: var(--text-lg);
+		font-weight: 600;
 	}
-	.subsection h4 {
+	.section::after {
+		content: '';
+		display: block;
+		width: 24px;
+		height: 2px;
+		margin-top: 6px;
+		background: var(--accent);
+	}
+	.subsection h3 {
 		margin: var(--sp-2) 0 0;
 		font-size: var(--text-md);
 	}
@@ -993,17 +1107,12 @@
 		display: flex;
 		flex-direction: column;
 	}
-	.method.off strong {
-		color: var(--text-muted);
+	.noise-select {
+		max-width: 22rem;
 	}
 	.check {
 		display: flex;
 		gap: var(--sp-1);
 		align-items: center;
-	}
-	.muted {
-		color: var(--text-muted);
-		font-size: var(--text-sm);
-		margin: 0;
 	}
 </style>

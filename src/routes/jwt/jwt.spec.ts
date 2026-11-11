@@ -5,8 +5,10 @@ import {
 	base64UrlEncode,
 	base64UrlEncodeBytes,
 	decodeJwt,
+	claimLines,
 	describeClaims,
 	formatRelative,
+	formatUtc,
 	encodeJwt,
 	inspectJson,
 	jsonWarnings,
@@ -673,5 +675,41 @@ describe('signJwt', () => {
 		const t = await signJwt({ alg: 'none' }, { sub: 'x' }, 'ignored', 'none');
 		expect(t).toBe(encodeJwt({ alg: 'none' }, { sub: 'x' }));
 		expect(t.endsWith('.')).toBe(true);
+	});
+});
+
+describe('claimLines', () => {
+	// 2026-10-08T12:00:00Z
+	const NOW = Date.UTC(2026, 9, 8, 12) as number;
+	const NOW_S = NOW / 1000;
+
+	it('formats a NumericDate in UTC, the same in every locale', () => {
+		expect(formatUtc(1700003600)).toBe('14 Nov 2023, 23:13 UTC');
+		expect(formatUtc(1516239022)).toBe('18 Jan 2018, 01:30 UTC');
+	});
+
+	it('states an expired token in red and its issue time as information', () => {
+		const c = describeClaims({ iat: 1516239022, exp: 1700003600 }, NOW);
+		expect(claimLines(c)).toEqual([
+			{ text: 'Expired 2 years ago (14 Nov 2023, 23:13 UTC)', tone: 'danger' },
+			{ text: 'Issued 8 years ago (18 Jan 2018, 01:30 UTC)', tone: 'muted' }
+		]);
+	});
+
+	it('describes a token that is valid now as information', () => {
+		const c = describeClaims({ exp: NOW_S + 300, nbf: NOW_S - 60 }, NOW);
+		expect(claimLines(c)).toEqual([
+			{ text: 'Expires in 5 minutes (8 Oct 2026, 12:05 UTC)', tone: 'muted' },
+			{ text: 'Valid from 1 minute ago (8 Oct 2026, 11:59 UTC)', tone: 'muted' }
+		]);
+	});
+
+	it('flags a token not valid yet, one issued in the future, and bad claims', () => {
+		const c = describeClaims({ nbf: NOW_S + 86400 * 3, iat: NOW_S + 10, exp: 'soon' }, NOW);
+		expect(claimLines(c)).toEqual([
+			{ text: 'Not valid yet, starts in 3 days (11 Oct 2026, 12:00 UTC)', tone: 'danger' },
+			{ text: 'Issued in the future, in 10 seconds (8 Oct 2026, 12:00 UTC)', tone: 'warning' },
+			{ text: 'exp must be a NumericDate (seconds since 1970), got "soon"', tone: 'danger' }
+		]);
 	});
 });

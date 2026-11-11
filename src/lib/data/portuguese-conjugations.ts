@@ -1262,7 +1262,8 @@ export const portugueseModule: LanguageModule = {
 		tense: 'Tempos',
 		answer: 'Resposta',
 		toAnswer: 'por responder',
-		submit: 'Enviar',
+		typeMissing: 'Escreva a forma em falta',
+		check: 'Verificar',
 		correct: 'Certo',
 		wrong: 'Errado',
 		notQuite: 'Não exatamente',
@@ -1271,7 +1272,10 @@ export const portugueseModule: LanguageModule = {
 		selectToBegin: 'Escolha pelo menos um verbo e um tempo para começar.',
 		noForms: 'Estes tempos não têm formas para os verbos escolhidos. Escolha outro verbo ou tempo.',
 		complete: 'Parabéns, terminou. Recomeçar?',
-		restart: 'Recomeçar'
+		restart: 'Recomeçar',
+		practice: 'Prática',
+		verbCount: (n) => `${n} ${n === 1 ? 'verbo' : 'verbos'}`,
+		tenseCount: (n) => `${n} ${n === 1 ? 'tempo' : 'tempos'}`
 	},
 	extractConjugation: portugueseExtractConjugation
 };

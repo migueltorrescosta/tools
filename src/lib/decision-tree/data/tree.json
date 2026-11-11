@@ -1,6 +1,6 @@
 {
 	"nodes": [
-		{ "id": "root", "type": "question", "content": "What do you want to do today?" },
+		{ "id": "root", "type": "question", "content": "Pick a guide" },
 
 		{ "id": "c_q1", "type": "question", "content": "What matters most?" },
 		{ "id": "c_q3", "type": "question", "content": "Track driving?" },
@@ -120,9 +120,9 @@
 		{ "id": "u_cd", "type": "result", "content": "Candelas (cd)" }
 	],
 	"edges": [
-		{ "sourceId": "root", "targetId": "c_q1", "label": "Choose a car" },
-		{ "sourceId": "root", "targetId": "r_q1", "label": "Religion" },
-		{ "sourceId": "root", "targetId": "u_q", "label": "Pick a unit" },
+		{ "sourceId": "root", "targetId": "c_q1", "label": "Which car to buy" },
+		{ "sourceId": "root", "targetId": "r_q1", "label": "Which religion fits you" },
+		{ "sourceId": "root", "targetId": "u_q", "label": "Which unit to measure in" },
 
 		{ "sourceId": "c_q1", "targetId": "c_q7", "label": "Low running cost or emissions" },
 		{ "sourceId": "c_q1", "targetId": "c_q3", "label": "Fun / Performance" },

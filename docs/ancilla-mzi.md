@@ -17,7 +17,7 @@ The baseline is a Mach-Zehnder interferometer (MZI) with $H_{\rm MZI}=\omega\,J_
 3. **Equal time.** Both schemes hold for t.
 4. **Equal noise on every particle.** The ancilla carries the system's noise. A clean ancilla breaks it.
 
-Nobody measures or feeds back during the hold. The overrides under Accounting each break one rule on purpose, and the Rules panel says so.
+Nobody measures or feeds back during the hold. The accounting overrides under Advanced each break one rule on purpose, and the fair-test line at the top of the Answer box says so.
 
 ## Metrics
 
@@ -26,7 +26,7 @@ Nobody measures or feeds back during the hold. The overrides under Accounting ea
 - $R_{\rm std}$: against the MZI's best standard input (product, NOON, twin-Fock or one-axis twisted), each at its own window.
 - $\delta R=\frac{|\mathcal F_{2M}-\mathcal F_M|}{\mathcal F_M}+\frac{\mathcal F_1-\mathcal F_2}{\mathcal F_1}$: the change when the best optimum is rerun at $2M$ Strang steps instead of $M$, plus the gap between the two best seeds. Call a gain real when $R\ge1+\max(0.01,\,3\,\delta R)$.
 - $R_{\rm int}=\mathcal F^{\rm setup}/\mathcal F^{\rm companion}$: the same setup with $\alpha=0$, optimised alongside. Shown only when the setup has a coupling.
-- Readouts: $F_{J_z}=|\partial_\omega\langle J_z\rangle|^2/\mathrm{Var}(J_z)$ on S, a weighted joint $J_z$ on both registers, and parity $\Pi=\prod_k\sigma_z^{(k)}$, each after its best final rotation. The tiles show the best readout ratio and the attained fraction $F_{\rm readout}/\mathcal F_Q$. These are simple collective readouts (one rotation per register), so they can fall far below the QFI for entangled optima.
+- Readouts: $F_{J_z}=|\partial_\omega\langle J_z\rangle|^2/\mathrm{Var}(J_z)$ on S, a weighted joint $J_z$ on both registers, and parity $\Pi=\prod_k\sigma_z^{(k)}$, each after its best final rotation. Under More ratios, the page shows the best readout ratio and the attained fraction $F_{\rm readout}/\mathcal F_Q$. These are simple collective readouts (one rotation per register), so they can fall far below the QFI for entangled optima.
 - Bounds, drawn on the convergence plot: the noiseless $\mathcal F_Q\le\Big(\int_0^T\|\partial_\omega H\|_s\,dt\Big)^2$, and for $\sigma_z$ dephasing the parallel channel-extension bound $\max_{t'\le t}\,N\,t'^2\,\frac{\eta^2}{1-\eta^2}$ with $\eta=e^{-\gamma t'}$. It bounds parallel schemes only: controlled, sequential schemes like the ancilla's may exceed it.
 
 ## Noise

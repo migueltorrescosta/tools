@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { PageHeader, ScrollEdges } from '#lib/ui/index.js';
+	import { Button, PageHeader, Panel, ScrollEdges } from '#lib/ui/index.js';
 	import electedOfficials from '#lib/data/elected_officials.json';
 	import {
 		barGeometry,
@@ -17,13 +17,11 @@
 		summaryBars,
 		timelinePercent,
 		timelineRange,
+		visibleMandates,
 		type Politician
 	} from '#lib/volt.js';
 
 	const officials: Politician[] = electedOfficials;
-
-	const timeline = timelineRange(officials);
-	const { minYear, maxYear, yearRange } = timeline;
 
 	// Server render uses the data date; the client switches to the real date on mount
 	let now = $state(parseDate(DATA_AS_OF));
@@ -32,16 +30,34 @@
 		now = fractionalYear(new Date());
 		hydrated = true;
 	});
-	const todayPct = $derived(timelinePercent(now, timeline));
 
 	// 'all', the EU flag (MEPs) or a country flag present in the data
 	let filterCountry = $state('all');
+	let showFormer = $state(false);
+	// Phones open on the list; the timeline is one tap away. Desktop always shows the timeline.
+	let phoneView = $state<'list' | 'timeline'>('list');
+	// Once the timeline scrolls sideways, bars pass under the location gutter, which then needs a fill
+	let scrolled = $state(false);
 
-	const filteredCountries = $derived(filterGroups(officials, filterCountry));
+	const shown = $derived(visibleMandates(officials, now, showFormer));
+	const filteredCountries = $derived(filterGroups(shown, filterCountry));
+	// The axis spans the mandates on screen, after the country filter and the former toggle
+	// (owner, 2026-11-11), so their bars use the width; it widens again when more show.
+	const onScreen = $derived(
+		Object.values(filteredCountries).flatMap((groups) => groups.flatMap((g) => g.politicians))
+	);
+	const timeline = $derived(timelineRange(onScreen.length ? onScreen : officials));
+	const minYear = $derived(timeline.minYear);
+	const yearRange = $derived(timeline.yearRange);
+	const todayPct = $derived(timelinePercent(now, timeline));
 
-	// Buttons always show unfiltered counts, so other countries never read as empty
-	const stats = computeStats(officials);
-	const bars = summaryBars(stats);
+	// Options count what is on show, for every country, whichever one is picked
+	const stats = $derived(computeStats(shown, officials));
+	const options = $derived(summaryBars(stats));
+	const hasGroups = computeStats(officials).groupEntries > 0;
+
+	const personCount = (positions: { politicians: Politician[] }[]) =>
+		positions.reduce((sum, g) => sum + g.politicians.filter((p) => !isGroupEntry(p)).length, 0);
 
 	// One bar per mandate, stacked in its location row: at least 24px tall (WCAG 2.5.8)
 	const BAR_H = 24;
@@ -49,169 +65,343 @@
 </script>
 
 <div class="container" data-hydrated={hydrated || undefined}>
-	<PageHeader path="/volt">
-		Current and former elected politicians of the pan-European party Volt Europa · Data as of {DATA_AS_OF}
-	</PageHeader>
+	<PageHeader path="/volt" />
 
-	<!-- One of many: native radios, so arrow keys move the choice; styled as chips -->
-	<div class="volt-filters cluster" role="radiogroup" aria-label="Filter by country">
-		{#each bars as bar (bar.filter)}
-			{@const checked = filterCountry === bar.filter}
-			<label class="volt-chip" class:checked>
-				<input
-					type="radio"
-					name="volt-filter"
-					value={bar.filter}
-					aria-label="{bar.label}, {bar.count} representatives"
-					bind:group={filterCountry}
-				/>
-				<span class="volt-check" aria-hidden="true">{checked ? '✓' : ''}</span>
-				<span aria-hidden="true">{bar.flag}</span>
-				{bar.label}
-				<span class="volt-chip-count">{bar.count}</span>
-			</label>
-		{/each}
-	</div>
-	{#if stats.groupEntries > 0}
-		<p class="volt-note">
-			Counts are named individuals; {stats.groupEntries} hatched rows stand for a council group of unknown
-			size and are not counted.
-		</p>
-	{/if}
-
-	<!-- On phones the right edge fades while the timeline scrolls further right -->
-	<ScrollEdges fade data-testid="volt-scroll">
-		<div class="volt-inner">
-			<div class="volt-axis">
-				<div class="volt-axis-gutter"></div>
-				<div class="volt-axis-track">
-					{#if todayPct !== null}
-						<span class="volt-today-label" style="left: {todayPct}%">Today</span>
-					{/if}
-					<div class="volt-years">
-						{#each Array(yearRange) as _, i (i)}
-							<span class="volt-year">{minYear + i}</span>
+	<div class="volt-layout">
+		<div class="volt-filter">
+			<Panel title="Filter">
+				<div class="volt-select">
+					<label for="volt-country">Country</label>
+					<select id="volt-country" class="control" bind:value={filterCountry}>
+						{#each options as option (option.filter)}
+							<option value={option.filter}>{option.label} ({option.count})</option>
 						{/each}
-					</div>
+					</select>
+				</div>
+				<label class="volt-former-toggle">
+					<input type="checkbox" bind:checked={showFormer} />
+					Show former mandates
+				</label>
+				<ul class="volt-key" aria-label="Key">
+					<li><span class="volt-sample" aria-hidden="true"></span>In office</li>
+					{#if showFormer}
+						<li><span class="volt-sample former" aria-hidden="true"></span>Former</li>
+					{/if}
+					{#if hasGroups}
+						<li title="Not counted in the totals">
+							<span class="volt-sample group-entry" aria-hidden="true"></span>
+							Council group, size unknown<span class="sr-only">, not counted in the totals</span>
+						</li>
+					{/if}
+				</ul>
+			</Panel>
+		</div>
+
+		<Panel title="Mandates">
+			<div class="volt-views" class:show-timeline={phoneView === 'timeline'}>
+				<div class="volt-view-bar">
+					<span>{showFormer ? 'In office now and before' : 'In office now'}</span>
+					<Button
+						size="sm"
+						onclick={() => (phoneView = phoneView === 'list' ? 'timeline' : 'list')}
+						data-testid="volt-view-toggle"
+					>
+						{phoneView === 'list' ? 'Timeline view' : 'List view'}
+					</Button>
+				</div>
+
+				<!-- The phone list: who holds which seat, grouped by country and place -->
+				<div class="volt-list" data-testid="volt-list">
+					{#each Object.entries(filteredCountries) as [country, positions] (country)}
+						<section class="volt-country">
+							<h3 class="volt-country-head">
+								<span aria-hidden="true">{country}</span>
+								{countryLabel(country)}
+								<span class="volt-country-count">{personCount(positions)}</span>
+							</h3>
+							{#each positions as group (group.location)}
+								<div class="volt-list-place">
+									<h4>{group.location}</h4>
+									<ul>
+										{#each group.politicians as p (`${p.name}|${p.position}|${p.startDate}`)}
+											<li class:former={isFormer(p, now)}>
+												<a href={p.url} target="_blank" rel="noopener noreferrer">{p.name}</a>
+												· {p.position}{#if isFormer(p, now)}
+													· former, until {p.endDate}{/if}
+											</li>
+										{/each}
+									</ul>
+								</div>
+							{:else}
+								<p class="volt-empty">{@render emptyText()}</p>
+							{/each}
+						</section>
+					{/each}
+				</div>
+
+				<!-- On phones the right edge fades while the timeline scrolls further right -->
+				<div
+					class="volt-timeline-view"
+					class:scrolled
+					onscrollcapture={(e) => (scrolled = (e.target as HTMLElement).scrollLeft > 1)}
+				>
+					<ScrollEdges fade data-testid="volt-scroll">
+						<div class="volt-inner">
+							<div class="volt-axis">
+								<div class="volt-axis-gutter"></div>
+								<div class="volt-axis-track">
+									{#if todayPct !== null}
+										<span class="volt-today-label" style="left: {todayPct}%">Today</span>
+									{/if}
+									<div class="volt-years">
+										{#each Array(yearRange) as _, i (i)}
+											<span class="volt-year">{minYear + i}</span>
+										{/each}
+									</div>
+								</div>
+							</div>
+
+							<div class="volt-countries" data-testid="volt-timeline">
+								{#each Object.entries(filteredCountries) as [country, positions] (country)}
+									{@const color = countryColor(country)}
+									<section class="volt-country" data-testid="volt-country" style="--bar: {color}">
+										<h3 class="volt-country-head">
+											<span aria-hidden="true">{country}</span>
+											{countryLabel(country)}
+											<span class="volt-country-count">{personCount(positions)}</span>
+										</h3>
+										{#each positions as group (group.location)}
+											<div class="volt-row">
+												<div class="volt-location"><span>{group.location}</span></div>
+												<div
+													class="volt-track"
+													style="height: {group.politicians.length * BAR_STRIDE -
+														(BAR_STRIDE - BAR_H)}px;"
+												>
+													{#if todayPct !== null}
+														<div
+															class="volt-today"
+															style="left: {todayPct}%"
+															aria-hidden="true"
+														></div>
+													{/if}
+													{#each group.politicians as p, idx (`${p.name}|${p.position}|${p.startDate}`)}
+														{@const { left, width } = barGeometry(p, timeline)}
+														{@const summary = describeMandate(p, now)}
+														<a
+															href={p.url}
+															target="_blank"
+															rel="noopener noreferrer"
+															class="volt-bar"
+															class:former={isFormer(p, now)}
+															class:group-entry={isGroupEntry(p)}
+															data-testid="volt-bar"
+															style="left: {left}%; width: {width}%; top: {idx * BAR_STRIDE}px;"
+															title={summary}
+															aria-label={summary}
+														>
+															{p.name} ({p.position})
+														</a>
+													{/each}
+												</div>
+											</div>
+										{:else}
+											<p class="volt-empty">{@render emptyText()}</p>
+										{/each}
+									</section>
+								{/each}
+							</div>
+						</div>
+					</ScrollEdges>
 				</div>
 			</div>
 
-			<div class="volt-countries" data-testid="volt-timeline">
-				{#each Object.entries(filteredCountries) as [country, positions] (country)}
-					{@const color = countryColor(country)}
-					{@const totalCount = positions.reduce(
-						(sum, g) => sum + g.politicians.filter((p) => !isGroupEntry(p)).length,
-						0
-					)}
-					<section class="volt-country" data-testid="volt-country" style="--bar: {color}">
-						<h2 class="volt-country-head">
-							<span aria-hidden="true">{country}</span>
-							{countryLabel(country)}
-							<span class="volt-country-count">{totalCount}</span>
-						</h2>
-						{#each positions as group (group.location)}
-							<div class="volt-row">
-								<div class="volt-location"><span>{group.location}</span></div>
-								<div
-									class="volt-track"
-									style="height: {group.politicians.length * BAR_STRIDE - (BAR_STRIDE - BAR_H)}px;"
-								>
-									{#if todayPct !== null}
-										<div class="volt-today" style="left: {todayPct}%" aria-hidden="true"></div>
-									{/if}
-									{#each group.politicians as p, idx (`${p.name}|${p.position}|${p.startDate}`)}
-										{@const { left, width } = barGeometry(p, timeline)}
-										{@const summary = describeMandate(p, now)}
-										<a
-											href={p.url}
-											target="_blank"
-											rel="noopener noreferrer"
-											class="volt-bar"
-											class:former={isFormer(p, now)}
-											class:group-entry={isGroupEntry(p)}
-											data-testid="volt-bar"
-											style="left: {left}%; width: {width}%; top: {idx * BAR_STRIDE}px;"
-											title={summary}
-											aria-label={summary}
-										>
-											{p.name} ({p.position})
-										</a>
-									{/each}
-								</div>
-							</div>
-						{:else}
-							<p class="volt-empty">No representatives recorded for this filter.</p>
-						{/each}
-					</section>
-				{/each}
-			</div>
-		</div>
-	</ScrollEdges>
+			<details class="how">
+				<summary>How it works</summary>
+				<p>
+					This page lists the current and former elected politicians of the pan-European party Volt
+					Europa. The data was last checked against official sources on {DATA_AS_OF}.
+				</p>
+				<p>
+					Each bar is one mandate, from its start date to its end date, and links to an official
+					source. A mandate is former once its end date has passed; an end date given as a bare year
+					means 1 January of that year. Former mandates are hidden until you tick Show former
+					mandates.
+				</p>
+				<p>
+					Counts are named individuals. Hatched rows stand for a council group of unknown size and
+					are not counted. The European Parliament option shows the MEPs of every country.
+				</p>
+			</details>
+		</Panel>
+	</div>
 </div>
 
+{#snippet emptyText()}
+	{#if showFormer}
+		No representatives recorded for this filter.
+	{:else}
+		No one in office here now. Tick Show former mandates to see past ones.
+	{/if}
+{/snippet}
+
 <style>
-	.volt-filters {
-		--gap: var(--sp-1);
+	/* Two boxes: a narrow Filter that stays in view beside the wide Mandates, stacked on narrow screens */
+	.volt-layout {
+		display: grid;
+		gap: var(--sp-3);
 	}
 
-	.volt-chip {
-		position: relative;
+	@media (min-width: 900px) {
+		.volt-layout {
+			grid-template-columns: 280px minmax(0, 1fr);
+			align-items: start;
+		}
+
+		.volt-filter {
+			position: sticky;
+			top: calc(var(--topbar-h) + var(--sp-2));
+			z-index: 8;
+		}
+	}
+
+	.volt-select {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-1);
+		min-width: 0;
+	}
+
+	.volt-select label {
+		font-size: var(--text-sm);
+		font-weight: 500;
+	}
+
+	.volt-select select {
+		width: 100%;
+		min-width: 0;
+	}
+
+	.volt-former-toggle {
 		display: inline-flex;
 		align-items: center;
 		gap: var(--sp-1);
 		min-height: var(--control-h-sm);
-		padding: 0 var(--sp-2);
-		border: 1px solid var(--border-strong);
-		border-radius: var(--radius);
-		background: var(--surface);
+		margin-top: var(--sp-2);
 		font-size: var(--text-sm);
-		font-weight: 500;
-		white-space: nowrap;
 		cursor: pointer;
 	}
 
-	.volt-chip:hover {
-		background: var(--surface-2);
-	}
-
-	.volt-chip.checked {
-		background: var(--accent-bg);
-		border-color: var(--accent);
-		color: var(--accent);
-	}
-
-	.volt-chip input {
-		position: absolute;
-		inset: 0;
+	.volt-former-toggle input {
+		width: 18px;
+		height: 18px;
 		margin: 0;
-		opacity: 0;
-		cursor: pointer;
+		accent-color: var(--accent);
 	}
 
-	.volt-chip:has(input:focus-visible) {
-		outline: 2px solid var(--focus-ring);
-		outline-offset: 2px;
-	}
-
-	/* A check mark, so the choice does not rest on colour alone */
-	.volt-check {
-		display: none;
-		font-weight: 700;
-	}
-
-	.volt-chip.checked .volt-check {
-		display: inline;
-	}
-
-	.volt-chip-count {
-		color: var(--text-muted);
-		font-variant-numeric: tabular-nums;
-	}
-
-	.volt-note {
-		margin: var(--sp-1) 0 var(--sp-3);
+	/* The key: small sample bars drawn like the real ones */
+	.volt-key {
+		--bar: var(--accent);
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-1);
+		margin: var(--sp-2) 0 0;
+		padding: 0;
+		list-style: none;
 		font-size: var(--text-xs);
 		color: var(--text-muted);
+	}
+
+	.volt-key li {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--sp-1);
+	}
+
+	.volt-sample {
+		width: 22px;
+		height: 12px;
+		background: color-mix(in srgb, var(--bar) 22%, var(--surface));
+		border: 1px solid var(--bar);
+		border-left-width: 4px;
+		border-radius: var(--radius-sm);
+	}
+
+	.volt-sample.former {
+		filter: grayscale(1);
+		border-style: dashed;
+	}
+
+	.volt-sample.group-entry {
+		background: repeating-linear-gradient(
+			135deg,
+			color-mix(in srgb, var(--bar) 15%, var(--surface)) 0 4px,
+			color-mix(in srgb, var(--bar) 35%, var(--surface)) 4px 6px
+		);
+	}
+
+	/* Desktop: the timeline only. Phones: the list, or the timeline once asked for. */
+	.volt-view-bar,
+	.volt-list {
+		display: none;
+	}
+
+	.volt-view-bar {
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--sp-2);
+		margin-bottom: var(--sp-2);
+		font-size: var(--text-sm);
+		color: var(--text-muted);
+	}
+
+	.volt-list {
+		flex-direction: column;
+	}
+
+	.volt-list-place {
+		padding: var(--sp-1) 0 var(--sp-2);
+		border-top: 1px solid var(--border);
+	}
+
+	.volt-list-place h4 {
+		margin: 0 0 var(--sp-0);
+		font-size: var(--text-sm);
+		font-weight: 400;
+		color: var(--text-muted);
+	}
+
+	.volt-list-place ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.volt-list-place li {
+		padding: var(--sp-0) 0;
+		line-height: 1.5;
+	}
+
+	.volt-list-place li.former {
+		color: var(--text-muted);
+	}
+
+	.volt-list-place a {
+		color: var(--text);
+	}
+
+	@media (max-width: 600px) {
+		.volt-view-bar {
+			display: flex;
+		}
+
+		.volt-views:not(.show-timeline) .volt-list {
+			display: flex;
+		}
+
+		.volt-views:not(.show-timeline) .volt-timeline-view {
+			display: none;
+		}
 	}
 
 	/* Axis and rows share one min-width and one location gutter, so years sit over the tracks.
@@ -232,7 +422,6 @@
 		position: sticky;
 		left: 0;
 		z-index: 7;
-		background: var(--bg);
 	}
 
 	.volt-axis-track {
@@ -267,13 +456,22 @@
 	.volt-countries {
 		display: flex;
 		flex-direction: column;
-		gap: var(--sp-2);
 	}
 
-	.volt-country {
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
+	/* Countries are plain sections of the Mandates box, split by a heavier rule */
+	.volt-country + .volt-country {
+		margin-top: var(--sp-2);
+		border-top: 2px solid var(--border);
+	}
+
+	/* Bars pass under the sticky gutter only once the timeline has scrolled sideways. The fill is
+	   opaque and close to the box glass (surface over paper in light, a lift of the paper in dark). */
+	.scrolled .volt-axis-gutter,
+	.scrolled .volt-location {
+		background: light-dark(
+			color-mix(in oklab, var(--surface) 50%, var(--bg)),
+			color-mix(in oklab, var(--text) 13%, var(--bg))
+		);
 	}
 
 	.volt-country-head {
@@ -283,7 +481,7 @@
 		display: flex;
 		align-items: baseline;
 		gap: var(--sp-1);
-		padding: var(--sp-1) var(--sp-3);
+		padding: var(--sp-1) 0;
 		font-size: var(--text-md);
 	}
 
@@ -307,8 +505,7 @@
 		align-self: stretch;
 		display: flex;
 		align-items: center;
-		background: var(--surface);
-		padding: 0 var(--sp-3);
+		padding: 0 var(--sp-3) 0 0;
 		font-size: var(--text-sm);
 	}
 
@@ -365,16 +562,16 @@
 		position: absolute;
 		top: calc(-1 * var(--sp-0));
 		bottom: calc(-1 * var(--sp-0));
-		width: 2px;
-		margin-left: -1px;
-		background: var(--accent);
+		/* Thin and muted, but in front of the bars so it marks every row */
+		width: 1px;
+		background: color-mix(in srgb, var(--accent) 55%, transparent);
 		z-index: 6;
 		pointer-events: none;
 	}
 
 	.volt-empty {
 		margin: 0;
-		padding: var(--sp-1) var(--sp-3);
+		padding: var(--sp-1) 0;
 		font-size: var(--text-sm);
 		color: var(--text-muted);
 	}
@@ -387,7 +584,7 @@
 
 		.volt-location {
 			font-size: var(--text-xs);
-			padding: 0 var(--sp-2);
+			padding: 0 var(--sp-2) 0 0;
 		}
 	}
 

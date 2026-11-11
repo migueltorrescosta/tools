@@ -5,7 +5,7 @@
 		PartialAnalysis,
 		ValueOfInformation
 	} from '#lib/information-pricing/analysis/index.js';
-	import { Alert, Button, Maximizable, Panel } from '#lib/ui/index.js';
+	import { Alert, Button, Fold, Maximizable, Panel } from '#lib/ui/index.js';
 	import { dash, dataColour, inputColour, linear, linePath, money as makeMoney } from './format';
 	import InputRow from './InputRow.svelte';
 	import LossPlots from './LossPlots.svelte';
@@ -97,6 +97,11 @@
 
 	const errors = $derived(treeErrors(tree));
 	const valid = $derived(treeValid(tree));
+	const pct = (v: number) => (Number.isFinite(v) ? `${v.toLocaleString('en')}%` : '?');
+	/** The closed Tree settings line. */
+	const treeSummary = $derived(
+		`depth ${Number.isFinite(tree.maxDepth) ? tree.maxDepth : '?'}, smallest group ${pct(tree.minLeafPercent)}`
+	);
 	const treeChanged = $derived(
 		tree.maxDepth !== applied.maxDepth ||
 			tree.minLeafPercent !== applied.minLeafPercent ||
@@ -160,26 +165,30 @@
 {/snippet}
 
 <div class="stack results" data-testid="results">
-	<dl class="headline" data-testid="headline">
-		<div>
-			<dt>Best decision</dt>
-			<dd>
-				<span
-					class="swatch"
-					style="background: {dataColour(summary.best)}"
-					data-testid="best-swatch"
-				></span><span data-testid="best-decision">{decisions[summary.best]}</span>
-			</dd>
-		</div>
-		<div>
-			<dt>Expected value of perfect information</dt>
-			<dd data-testid="price">{money.format(summary.expectedLoss[summary.best])}</dd>
-		</div>
-		<div class="small">
-			<dt>Worst ({decisions[summary.worst]}) loses</dt>
-			<dd data-testid="worst">{money.format(summary.expectedLoss[summary.worst])}</dd>
-		</div>
-	</dl>
+	<div class="headline-box">
+		<Panel>
+			<dl class="headline" data-testid="headline">
+				<div>
+					<dt>Best decision</dt>
+					<dd>
+						<span
+							class="swatch"
+							style="background: {dataColour(summary.best)}"
+							data-testid="best-swatch"
+						></span><span data-testid="best-decision">{decisions[summary.best]}</span>
+					</dd>
+				</div>
+				<div>
+					<dt>Expected value of perfect information</dt>
+					<dd data-testid="price">{money.format(summary.expectedLoss[summary.best])}</dd>
+				</div>
+				<div class="small">
+					<dt>Worst ({decisions[summary.worst]}) loses</dt>
+					<dd data-testid="worst">{money.format(summary.expectedLoss[summary.worst])}</dd>
+				</div>
+			</dl>
+		</Panel>
+	</div>
 
 	<div class="columns">
 		<div class="column">
@@ -218,35 +227,37 @@
 					{#snippet frame(button)}
 						<Panel title="Policy tree" actions={button}>
 							<div class="stack" style="--gap: var(--sp-2)">
-								<form
-									class="tree-settings"
-									onsubmit={(e) => {
-										e.preventDefault();
-										if (valid && treeChanged && !busy) onretree();
-									}}
-								>
-									<NumberInput
-										label="Max depth"
-										value={tree.maxDepth}
-										onchange={(v) => (tree.maxDepth = v)}
-										error={errors.maxDepth}
-									/>
-									<NumberInput
-										label="Min leaf (%)"
-										value={tree.minLeafPercent}
-										onchange={(v) => (tree.minLeafPercent = v)}
-										error={errors.minLeafPercent}
-									/>
-									<NumberInput
-										label="Min impurity decrease"
-										value={tree.minImpurityDecrease}
-										onchange={(v) => (tree.minImpurityDecrease = v)}
-										error={errors.minImpurityDecrease}
-									/>
-									<Button size="sm" type="submit" disabled={!valid || !treeChanged || busy}
-										>Update tree</Button
+								<Fold label="Tree settings" summary={treeSummary} data-testid="tree-settings">
+									<form
+										class="tree-fields"
+										onsubmit={(e) => {
+											e.preventDefault();
+											if (valid && treeChanged && !busy) onretree();
+										}}
 									>
-								</form>
+										<NumberInput
+											label="Max depth"
+											value={tree.maxDepth}
+											onchange={(v) => (tree.maxDepth = v)}
+											error={errors.maxDepth}
+										/>
+										<NumberInput
+											label="Min leaf (%)"
+											value={tree.minLeafPercent}
+											onchange={(v) => (tree.minLeafPercent = v)}
+											error={errors.minLeafPercent}
+										/>
+										<NumberInput
+											label="Min impurity decrease"
+											value={tree.minImpurityDecrease}
+											onchange={(v) => (tree.minImpurityDecrease = v)}
+											error={errors.minImpurityDecrease}
+										/>
+										<Button size="sm" type="submit" disabled={!valid || !treeChanged || busy}
+											>Update tree</Button
+										>
+									</form>
+								</Fold>
 								{@render treePlot(false)}
 							</div>
 						</Panel>
@@ -385,10 +396,10 @@
 		align-items: baseline;
 		gap: var(--sp-1) var(--sp-5);
 		margin: 0;
+	}
+	/* The headline is a slim box of its own. */
+	.headline-box :global(.ui-panel-body) {
 		padding: var(--sp-2) var(--sp-3);
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
 	}
 	.headline div {
 		display: flex;
@@ -568,19 +579,20 @@
 		font-weight: 500;
 		color: var(--text);
 	}
-	.tree-settings {
+	/* One closed line, like the Run box's Advanced line. */
+	.tree-fields {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: flex-end;
 		gap: var(--sp-2);
 	}
 	/* Each field as wide as its label, growing to share the row; they wrap in a narrow column. */
-	.tree-settings :global(.ui-field) {
+	.tree-fields :global(.ui-field) {
 		flex: 1 1 auto;
 		min-width: 4.5rem;
 		max-width: 10rem;
 	}
-	.tree-settings :global(.ui-field label) {
+	.tree-fields :global(.ui-field label) {
 		font-size: var(--text-xs);
 		white-space: nowrap;
 	}

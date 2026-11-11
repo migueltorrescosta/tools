@@ -7,36 +7,58 @@
 :root {
 	color-scheme: light dark;
 
-	/* Surfaces */
-	--bg: light-dark(#f6f7f9, #111318);
-	--surface: light-dark(#ffffff, #1a1d23);
-	--surface-2: light-dark(#eef1f4, #22262d);
-	--sunken: light-dark(#ffffff, #0d0f13);
+	/* Dawn horizon (owner, 2026-11-11; docs/design.md): a warm-to-cool sweep behind glass boxes.
+	   Peach at the top and blue at the bottom of the window, neutral between, so the colour never
+	   sits behind the content (base.css paints it on a fixed layer). The glass recipe follows Apple's
+	   and Microsoft's material guidance: a tinted fill that mostly hides the background (54% light,
+	   49% dark), an 18px blur with a mild saturate, a hairline edge and an inner top highlight. */
+
+	/* Background */
+	--bg: light-dark(oklch(0.975 0.01 250), oklch(0.15 0.01 250));
+	/* The gradient: peach at the top left, blue at the bottom right, neutral through the middle;
+	   in dark, it deepens only near the bottom of the window (--bg-floor). */
+	--bg-start: light-dark(oklch(0.8 0.12 55), oklch(0.38 0.07 45));
+	--bg-mid: light-dark(oklch(0.95 0.02 250), oklch(0.27 0.02 250));
+	--bg-end: light-dark(oklch(0.78 0.11 230), oklch(0.36 0.08 230));
+	--bg-floor: light-dark(transparent, oklch(0.12 0.01 250 / 0.9));
+
+	/* Opaque surfaces for controls (inputs, buttons, menus); boxes use --box-* below. */
+	--surface: light-dark(#ffffff, #17181d);
+	--surface-2: light-dark(#f5f2ef, #1e1f25);
+	--sunken: light-dark(#ffffff, #101115);
+
+	/* Boxes (Panel, a boxed Fold, the homepage boxes, the top bar): glass. */
+	--box-bg: light-dark(rgb(255 255 255 / 0.54), rgb(18 20 26 / 0.49));
+	--box-edge: light-dark(rgb(120 60 20 / 0.1), rgb(255 255 255 / 0.09));
+	--box-blur: blur(18px) saturate(1.25);
+	--box-highlight: light-dark(rgb(255 255 255 / 0.75), rgb(255 255 255 / 0.05));
+	--box-shadow-colour: light-dark(rgb(80 40 10 / 0.07), rgb(0 0 0 / 0.5));
+	--box-shadow: inset 0 1px 0 var(--box-highlight), 0 10px 30px var(--box-shadow-colour);
 
 	/* Text */
-	--text: light-dark(#1b1f24, #e6e8eb);
-	--text-muted: light-dark(#57606a, #9aa4b1);
+	--text: light-dark(#1c1917, #f1efec);
+	--text-muted: light-dark(#57534e, #a8a29e);
 
 	/* Borders: --border is decorative, --border-strong outlines controls (3:1) */
-	--border: light-dark(#d0d7de, #353a43);
-	--border-strong: light-dark(#818b98, #6e7681);
+	--border: light-dark(#e7e1db, rgb(255 255 255 / 0.1));
+	--border-strong: light-dark(#958b82, #78716c);
 
-	/* Accent */
-	--accent: light-dark(#0e7490, #22d3ee);
-	--accent-hover: light-dark(#155e75, #67e8f9);
-	--on-accent: light-dark(#ffffff, #0b1215);
-	--accent-bg: light-dark(#e6f6f9, #0f262b);
+	/* Accent: dawn orange */
+	--accent: light-dark(#c2410c, #fb923c);
+	--accent-hover: light-dark(#9a3412, #fdba74);
+	--on-accent: light-dark(#ffffff, #15130f);
+	--accent-bg: light-dark(#fdeee5, #3b1d0e);
 	--focus-ring: var(--accent);
 
 	/* Status: -text on -bg is at least 4.5:1 */
 	--success: light-dark(#1a7f37, #3fb950);
-	--success-text: light-dark(#116329, #3fb950);
+	--success-text: light-dark(#116329, #56d364);
 	--success-bg: light-dark(#dafbe1, #12261a);
 	--warning: light-dark(#9a6700, #d29922);
-	--warning-text: light-dark(#7d4e00, #d29922);
+	--warning-text: light-dark(#7d4e00, #e3b341);
 	--warning-bg: light-dark(#fff8c5, #2a2110);
 	--danger: light-dark(#cf222e, #f85149);
-	--danger-text: light-dark(#a40e26, #f85149);
+	--danger-text: light-dark(#a40e26, #ff8a80);
 	--danger-bg: light-dark(#ffebe9, #2d1517);
 	/* Fills for a good → bad scale (mix them with color-mix in oklab);
 	   --text on either, and on any mix of the two, is at least 4.5:1. */
@@ -95,30 +117,31 @@
 	--text-md: 0.875rem;
 	--text-lg: 1rem;
 	--text-xl: 1.25rem;
-	--leading: 1.45;
+	--leading: 1.55;
 
 	/* Spacing: 4px grid */
 	--sp-0: 2px;
 	--sp-1: 4px;
 	--sp-2: 8px;
-	--sp-3: 12px;
-	--sp-4: 16px;
-	--sp-5: 24px;
+	/* Airy (owner, 2026-11-11): the middle steps are roomier than a strict 4px grid. */
+	--sp-3: 16px;
+	--sp-4: 20px;
+	--sp-5: 32px;
 	--sp-6: 32px;
 
 	/* Controls */
-	--control-h: 32px;
-	--control-h-sm: 28px;
+	--control-h: 36px;
+	--control-h-sm: 32px;
 	--radius: 6px;
 	--radius-sm: 4px;
-	--topbar-h: 44px;
-	--content-max: 1400px;
+	--topbar-h: 48px;
+	--content-max: 72rem;
 }
 
 @media (pointer: coarse) {
 	:root {
-		--control-h: 40px;
-		--control-h-sm: 36px;
+		--control-h: 44px;
+		--control-h-sm: 40px;
 	}
 }
 
@@ -126,5 +149,13 @@
 	:root {
 		--border: var(--border-strong);
 		--text-muted: var(--text);
+	}
+}
+
+/* Less transparency asked for: the glass turns solid and stops blurring. */
+@media (prefers-reduced-transparency: reduce) {
+	:root {
+		--box-bg: light-dark(#ffffff, #17181d);
+		--box-blur: none;
 	}
 }

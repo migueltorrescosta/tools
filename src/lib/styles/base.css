@@ -10,6 +10,28 @@ html {
 	-webkit-text-size-adjust: 100%;
 }
 
+/* The background is fixed to the window, so the boxes scroll over it. A fixed layer
+   rather than background-attachment: fixed, which iOS Safari ignores. */
+body::before {
+	content: '';
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	/* Dawn horizon: a diagonal from peach to blue, neutral where the content sits, over a floor
+	   that darkens only the bottom of the window. */
+	background:
+		linear-gradient(180deg, transparent 78%, var(--bg-floor) 100%),
+		linear-gradient(
+			in oklch 135deg,
+			var(--bg-start) 0%,
+			color-mix(in oklch, var(--bg-start) 50%, var(--bg-mid)) 35%,
+			var(--bg-mid) 50%,
+			color-mix(in oklch, var(--bg-end) 50%, var(--bg-mid)) 65%,
+			var(--bg-end) 100%
+		);
+}
+
 body {
 	margin: 0;
 	min-height: 100vh;
@@ -122,29 +144,33 @@ table {
 	overflow: visible;
 }
 
-/* Collapsible help: <details class="how"><summary>How it works</summary>…</details> */
+/* How it works: a quiet link at the end of a tool that opens its explanation,
+   credits and blog links in place. <details class="how"><summary>How it works</summary>…</details> */
 details.how {
 	margin-top: var(--sp-4);
-	border: 1px solid var(--border);
-	border-radius: var(--radius);
-	background: var(--surface);
 }
 
 details.how > summary {
-	min-height: var(--control-h);
-	padding: var(--sp-1) var(--sp-3);
-	/* list-item keeps the native disclosure triangle. */
-	display: list-item;
-	align-content: center;
-	font-weight: 600;
+	display: inline-flex;
+	align-items: center;
+	min-height: var(--control-h-sm);
+	color: var(--accent);
+	text-decoration: underline;
+	text-underline-offset: 3px;
 	cursor: pointer;
+	list-style: none;
 }
 
-details.how[open] > summary {
-	border-bottom: 1px solid var(--border);
+details.how > summary::-webkit-details-marker {
+	display: none;
+}
+
+details.how > summary:hover {
+	color: var(--accent-hover);
 }
 
 details.how > :not(summary) {
-	margin: var(--sp-3);
+	max-width: 70ch;
+	margin: var(--sp-2) 0;
 	color: var(--text-muted);
 }

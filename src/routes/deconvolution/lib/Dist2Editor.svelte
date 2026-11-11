@@ -177,9 +177,9 @@
 		gap: var(--sp-2);
 	}
 	.component {
-		border: 1px solid var(--border);
-		border-radius: var(--radius-sm);
-		padding: var(--sp-2);
+		border: 0;
+		border-top: 1px solid var(--border);
+		padding: var(--sp-2) 0 0;
 		margin: 0;
 		display: flex;
 		flex-direction: column;
@@ -189,6 +189,6 @@
 	legend {
 		font-size: var(--text-xs);
 		color: var(--text-muted);
-		padding: 0 var(--sp-1);
+		padding: 0 var(--sp-1) 0 0;
 	}
 </style>

@@ -6,7 +6,19 @@ async function open(page: Page) {
 	await expect(page.locator('.container[data-hydrated]')).toBeVisible();
 }
 
-const industries = (page: Page) => page.getByRole('group', { name: 'Industries' });
+/** Open the full company list below the chips. */
+async function openPicker(page: Page) {
+	await page.getByRole('button', { name: '+ Add company' }).click();
+	return page.getByRole('group', { name: 'All companies' });
+}
+
+/** Show only the named company. */
+async function only(page: Page, name: string) {
+	const picker = await openPicker(page);
+	await picker.getByRole('button', { name: 'None', exact: true }).click();
+	await picker.getByRole('checkbox', { name, exact: true }).check();
+	await picker.getByRole('button', { name: 'Done' }).click();
+}
 
 test('Company trends - homepage card links to the tool', async ({ page }) => {
 	await page.goto('/', { waitUntil: 'networkidle' });
@@ -21,8 +33,19 @@ test('Company trends - renders the chart at the last quarter with default compan
 	await open(page);
 	await expect(page.getByTestId('trends-chart')).toBeVisible();
 	await expect(page.getByRole('alert')).toHaveCount(0);
-	const heads = page.getByTestId('head-dot');
-	expect(await heads.count()).toBeGreaterThan(5);
+	await expect(page.getByTestId('head-dot')).toHaveCount(6);
+	await expect(page.getByTestId('company-chip')).toHaveText([
+		/Anthropic/,
+		/Tesla/,
+		/Coca-Cola/,
+		/ExxonMobil/,
+		/Apple/,
+		/NVIDIA/
+	]);
+	// The marks key keeps only reported and estimated; the rest is in How it works.
+	await expect(page.getByRole('list', { name: 'Chart marks' }).getByRole('listitem')).toHaveCount(
+		2
+	);
 	await expect(page.getByTestId('quarter-label')).toHaveText(/^20\d\dQ[1-4]$/);
 });
 
@@ -46,34 +69,53 @@ test('Company trends - play advances the quarter', async ({ page }) => {
 	await page.getByRole('button', { name: /Play|Pause/ }).click();
 });
 
-test('Company trends - checkboxes and type filter control visible companies', async ({ page }) => {
+test('Company trends - chips and the company list control visible companies', async ({ page }) => {
 	await open(page);
-	await page.getByRole('button', { name: 'None', exact: true }).click();
-	await expect(page.getByTestId('head-dot')).toHaveCount(0);
+	await page.getByRole('button', { name: 'Remove Tesla' }).click();
+	await expect(page.getByTestId('head-dot')).toHaveCount(5);
+	await expect(page.getByTestId('company-chip')).toHaveCount(5);
 
-	await page.getByRole('checkbox', { name: 'Apple' }).check();
+	const picker = await openPicker(page);
+	await expect(page.getByRole('button', { name: '+ Add company' })).toHaveAttribute(
+		'aria-expanded',
+		'true'
+	);
+	await picker.getByRole('button', { name: 'None', exact: true }).click();
+	await expect(page.getByTestId('head-dot')).toHaveCount(0);
+	await expect(page.getByTestId('company-chip')).toHaveCount(0);
+
+	await picker.getByRole('checkbox', { name: 'Apple' }).check();
 	await expect(page.getByRole('button', { name: /^Apple, \d{4}Q[1-4]$/ })).toHaveCount(1);
-	await expect(page.getByTestId('head-dot')).toHaveCount(1);
+	await expect(page.getByTestId('company-chip')).toHaveText([/Apple/]);
 
-	await industries(page).getByRole('checkbox', { name: 'tech', exact: true }).uncheck();
-	await expect(page.getByTestId('head-dot')).toHaveCount(0);
+	// An industry's All ticks every company in it, keeping the ones already chosen.
+	await picker.getByRole('button', { name: 'All automotive' }).click();
+	const automotive = picker.getByRole('group', { name: 'automotive', exact: true });
+	const count = await automotive.getByRole('checkbox').count();
+	await expect(page.getByTestId('head-dot')).toHaveCount(count + 1);
+
+	// Escape closes the list and returns focus to the button.
+	await page.keyboard.press('Escape');
+	await expect(picker).toHaveCount(0);
+	await expect(page.getByRole('button', { name: '+ Add company' })).toBeFocused();
 });
 
 test('Company trends - currency selector relabels axes', async ({ page }) => {
 	await open(page);
 	const chart = page.getByTestId('trends-chart');
 	await expect(chart).toContainText('€');
-	await page.getByRole('radio', { name: 'USD', exact: true }).check();
+	const currency = page.getByRole('combobox', { name: 'Display currency' });
+	await expect(currency.getByRole('option')).toHaveText(['€ EUR', '$ USD', '£ GBP']);
+	await currency.selectOption('USD');
 	await expect(chart).toContainText('Revenue (trailing 12 months, USD, log scale)');
 	await expect(chart).toContainText('$');
-	await page.getByRole('radio', { name: 'GBP', exact: true }).check();
+	await currency.selectOption('GBP');
 	await expect(chart).toContainText('£');
 });
 
 test('Company trends - tooltip shows provenance and pins with a source link', async ({ page }) => {
 	await open(page);
-	await page.getByRole('button', { name: 'None', exact: true }).click();
-	await page.getByRole('checkbox', { name: 'Apple' }).check();
+	await only(page, 'Apple');
 	const head = page.getByTestId('head-dot').first();
 	await head.hover({ force: true });
 	const tooltip = page.getByTestId('trends-tooltip');
@@ -86,15 +128,14 @@ test('Company trends - tooltip shows provenance and pins with a source link', as
 
 test('Company trends - a pinned tooltip follows a currency switch', async ({ page }) => {
 	await open(page);
-	await page.getByRole('button', { name: 'None', exact: true }).click();
-	await page.getByRole('checkbox', { name: 'Apple' }).check();
+	await only(page, 'Apple');
 	// Pin from the keyboard: focus the company's head and press Enter.
 	await page.getByRole('button', { name: /^Apple, / }).focus();
 	await page.keyboard.press('Enter');
 	const tooltip = page.getByTestId('trends-tooltip');
 	await expect(tooltip.getByRole('button', { name: 'Close' })).toBeFocused();
 
-	await page.getByRole('radio', { name: 'USD', exact: true }).check();
+	await page.getByRole('combobox', { name: 'Display currency' }).selectOption('USD');
 	const table = page.getByTestId('table-view');
 	await table.getByText(/^Data table/).click();
 	const row = table.getByRole('row', { name: /Apple/ });
@@ -112,11 +153,10 @@ test('Company trends - a pinned tooltip closes when its company is deselected', 
 	page
 }) => {
 	await open(page);
-	await page.getByRole('button', { name: 'None', exact: true }).click();
-	await page.getByRole('checkbox', { name: 'Apple' }).check();
+	await only(page, 'Apple');
 	await page.getByTestId('head-dot').first().click({ force: true });
 	await expect(page.getByTestId('trends-tooltip')).toBeVisible();
-	await page.getByRole('checkbox', { name: 'Apple' }).uncheck();
+	await page.getByRole('button', { name: 'Remove Apple' }).click();
 	await expect(page.getByTestId('trends-tooltip')).toHaveCount(0);
 });
 
@@ -155,34 +195,35 @@ async function trailColors(page: import('@playwright/test').Page) {
 
 test('Company trends - a single industry gets one colour per company', async ({ page }) => {
 	await open(page);
-	await page.getByRole('button', { name: 'All', exact: true }).click();
-	for (const box of await industries(page).getByRole('checkbox').all()) {
-		if ((await box.getAttribute('value')) !== 'tech') await box.uncheck();
-	}
-	await expect(page.getByTestId('color-mode')).toHaveText('Coloured by company');
+	const picker = await openPicker(page);
+	await picker.getByRole('button', { name: 'None', exact: true }).click();
+	await picker.getByRole('button', { name: 'All tech' }).click();
 	const colors = await trailColors(page);
 	expect(colors.length).toBeGreaterThan(5);
 	expect(new Set(colors.map((c) => c.color)).size).toBe(colors.length);
-	await expect(page.getByTestId('company-swatch')).toHaveCount(colors.length);
+	// Each chip's dot matches its company's trail.
+	const swatches = await page
+		.getByTestId('company-swatch')
+		.evaluateAll((dots) => dots.map((d) => getComputedStyle(d).backgroundColor));
+	expect(new Set(swatches)).toEqual(new Set(colors.map((c) => c.color)));
 });
 
 test('Company trends - large selections colour by industry', async ({ page }) => {
 	await open(page);
-	await page.getByRole('button', { name: 'All', exact: true }).click();
-	await expect(page.getByTestId('color-mode')).toContainText('Coloured by industry');
+	const picker = await openPicker(page);
+	await picker.getByRole('button', { name: 'All', exact: true }).click();
 	const colors = await trailColors(page);
+	expect(colors.length).toBeGreaterThan(12);
 	const byType = new Map<string | null, Set<string>>();
 	for (const c of colors) byType.set(c.type, (byType.get(c.type) ?? new Set()).add(c.color));
 	for (const set of byType.values()) expect(set.size).toBe(1);
-	await expect(page.getByTestId('company-swatch')).toHaveCount(0);
 });
 
 test('Company trends - off-scale margins are pinned with a true-value tooltip', async ({
 	page
 }) => {
 	await open(page);
-	await page.getByRole('button', { name: 'None', exact: true }).click();
-	await page.getByRole('checkbox', { name: 'Tesla' }).check();
+	await only(page, 'Tesla');
 	await page.getByTestId('quarter-slider').fill('36');
 	const head = page.getByTestId('offscale-head');
 	await expect(head).toHaveCount(1);
@@ -205,4 +246,24 @@ test('Company trends - on a phone the chart opens at the large companies, with a
 		.toBeLessThanOrEqual(1);
 	await expect(page.locator('.ui-scroll-edges')).toHaveClass(/more-left/);
 	await expect(page.locator('.ui-scroll-edges')).not.toHaveClass(/more-right/);
+});
+
+test('Company trends - three boxes: chart, companies and currency, data and method', async ({
+	page
+}) => {
+	await open(page);
+	const boxes = page.locator('.ui-panel');
+	await expect(boxes).toHaveCount(3);
+	await expect(boxes.getByRole('heading', { level: 2 })).toHaveText([
+		'Chart',
+		'Companies and currency',
+		'Data and method'
+	]);
+	await expect(boxes.nth(0).getByTestId('trends-chart')).toBeVisible();
+	await expect(boxes.nth(1).getByRole('combobox', { name: 'Display currency' })).toBeVisible();
+	await boxes.nth(1).getByRole('button', { name: '+ Add company' }).click();
+	await expect(boxes.nth(1).getByRole('group', { name: 'All companies' })).toBeVisible();
+	await expect(boxes.nth(2).getByTestId('table-view')).toBeVisible();
+	await expect(boxes.nth(2).getByTestId('how')).toBeVisible();
+	await expect(page.locator('.ui-panel .ui-panel')).toHaveCount(0);
 });
