@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 /** Load the solver and wait until it has hydrated, so clicks are not lost. */
 async function open(page: Page) {
 	await page.goto('/wordle');
-	await expect(page.locator('.wordle-panel[data-hydrated]')).toBeVisible();
+	await expect(page.locator('.wordle[data-hydrated]')).toBeVisible();
 }
 
 /** The editable row of five tiles for the next guess. */
@@ -42,17 +42,18 @@ test('Wordle Solver - page loads correctly', async ({ page }) => {
 	await expect(instruction(page)).toHaveText(
 		'Play RAISE in Wordle, then tap each tile below to match.'
 	);
-	// The colour key now lives in How it works, not under the board
+	// No colour key and no How it works: the owner's pick has no help text, only the NYT link
 	await expect(page.getByRole('list', { name: 'Legend' })).toHaveCount(0);
-	const how = page.locator('details.how');
-	await how.getByText('How it works').click();
-	await expect(how).toContainText('black (not in the word)');
-	await expect(how).toContainText('yellow (in the word, wrong position)');
-	await expect(how).toContainText('green');
-	await expect(how.getByRole('link', { name: 'first written up on the blog' })).toHaveAttribute(
-		'href',
-		'https://blog.mptc.uk/posts/Wordle'
-	);
+	await expect(page.locator('details.how')).toHaveCount(0);
+	await expect(page.getByTestId('hint')).toHaveCount(0);
+	const nyt = page.getByRole('link', { name: 'Play today’s Wordle on nytimes.com ↗' });
+	await expect(nyt).toHaveAttribute('href', 'https://www.nytimes.com/games/wordle/index.html');
+	await expect(nyt).toHaveAttribute('target', '_blank');
+	await expect(nyt).toHaveAttribute('rel', 'noopener');
+	// Everything sits in the one box
+	await expect(page.locator('.ui-panel')).toHaveCount(1);
+	await expect(page.locator('.ui-panel').getByTestId('instruction')).toBeVisible();
+	await expect(page.locator('.ui-panel').getByRole('link', { name: /nytimes/ })).toBeVisible();
 });
 
 test('Wordle Solver - keyboard input functionality', async ({ page }) => {
@@ -249,4 +250,20 @@ test('Wordle Solver - untouched all-black row submits as BBBBB', async ({ page }
 	}
 	await expect(resultRows(page)).toHaveText('RAISE');
 	await expect(inputRow(page)).toHaveText('MULCH');
+});
+
+test('Wordle Solver - hint variant shows one hint line and still plays', async ({ page }) => {
+	await page.addInitScript(() =>
+		localStorage.setItem('proto2', JSON.stringify({ wordle: 'hint' }))
+	);
+	await open(page);
+
+	const hint = page.locator('.ui-panel').getByTestId('hint');
+	await expect(hint).toHaveText('Tap a tile to cycle black, yellow, green, or press 1, 2, 3.');
+	await expect(page.getByRole('link', { name: /nytimes\.com/ })).toBeVisible();
+	await expect(page.locator('.ui-panel')).toHaveCount(1);
+
+	await submit(page).click();
+	await expect(inputRow(page)).toHaveText('MULCH');
+	await expect(resultRows(page)).toHaveCount(1);
 });
