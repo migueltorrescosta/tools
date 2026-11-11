@@ -245,6 +245,30 @@ test('the NPMLE posterior draws its mean and a credible band', async ({ page }) 
 	await expect(chart.locator('path.band')).toBeVisible();
 });
 
+test('the page is two boxes: setup with Run, then results ending in How it works and the references', async ({
+	page
+}) => {
+	await open(page);
+	const boxes = page.getByRole('main').locator('.ui-panel');
+	await expect(boxes).toHaveCount(2);
+	const [setup, results] = [boxes.nth(0), boxes.nth(1)];
+	await expect(setup.getByRole('heading', { name: 'Estimate' })).toBeVisible();
+	await expect(setup.getByTestId('noise-fold')).toBeVisible();
+	await expect(setup.getByTestId('methods-fold')).toBeVisible();
+	await expect(setup.getByTestId('run')).toBeVisible();
+	await expect(results.getByText('Press Run to estimate the signal from the data.')).toBeVisible();
+	await expect(results.getByTestId('how')).toBeVisible();
+	await expect(results.getByRole('heading', { name: 'References' })).toBeVisible();
+	await run(page);
+	await expect(boxes).toHaveCount(2);
+	await expect(results.getByTestId('results')).toBeVisible();
+	await page.getByRole('button', { name: 'Switch to a 2D model' }).click();
+	await expect(page.getByTestId('map-z')).toBeVisible();
+	await expect(boxes).toHaveCount(2);
+	await expect(boxes.nth(0).getByTestId('run')).toBeVisible();
+	await expect(boxes.nth(1).getByTestId('how')).toBeVisible();
+});
+
 test('Run turns into Stop while fitting', async ({ page }) => {
 	test.setTimeout(120_000);
 	await open(page);
@@ -418,7 +442,7 @@ test.describe('2D', () => {
 });
 
 test.describe('Noise regimes', () => {
-	test('the noise assumption sits in the Data box and says what it is', async ({ page }) => {
+	test('the noise assumption sits under Estimate and says what it is', async ({ page }) => {
 		await open(page);
 		const summary = page.getByTestId('noise-fold').locator('summary');
 		await expect(summary).toHaveText('Noise assumption · known family, as in the model above');

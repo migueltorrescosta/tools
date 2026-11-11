@@ -12,7 +12,6 @@
 		PageHeader,
 		Panel,
 		References,
-		RunControls,
 		SegmentedControl,
 		ShareActions,
 		type Column
@@ -79,6 +78,7 @@
 	import DistEditor from './lib/DistEditor.svelte';
 	import DataSource from './lib/DataSource.svelte';
 	import TwoD from './lib/TwoD.svelte';
+	import RunLine from './lib/RunLine.svelte';
 	import DensityChart, { type Curve, type Stems, type Band } from './lib/DensityChart.svelte';
 	import { REFERENCES } from './lib/references';
 	import { fitSentence, fmtValue, massMoments, methodList, type Part } from './lib/answer';
@@ -886,551 +886,564 @@
 		>
 	{/snippet}
 
-	{#if settings.dim === 2}
-		<TwoD bind:settings {uploaded} {getPool} {dataPanel} {download} />
-	{:else}
-		<Panel title="Model">
-			{#snippet actions()}<Button
-					variant="link"
-					onclick={() => (settings.dim = 2)}
-					data-testid="dim-switch">Switch to a 2D model</Button
-				>{/snippet}
-			<div class="model">
-				<div class="controls">
-					<Field label="Preset">
-						{#snippet children(props)}
-							<select
-								class="control"
-								value=""
-								onchange={(e) => {
-									applyPreset(e.currentTarget.value);
-									e.currentTarget.value = '';
-								}}
-								data-testid="preset"
-								{...props}
-							>
-								<option value="" disabled>Load a preset…</option>
-								{#each PRESETS as p (p.id)}<option value={p.id}>{p.name}</option>{/each}
-							</select>
-						{/snippet}
-					</Field>
-					<DistEditor bind:spec={settings.x} role="signal" testId="x" />
-					<DistEditor bind:spec={settings.y as DistSpec} role="noise" testId="y" />
-					<div class="row">
-						<Field
-							label="Sample size n"
-							error={nValid ? undefined : `Between ${MIN_N} and ${MAX_N.toLocaleString('en')}.`}
-						>
-							{#snippet children(props)}
-								<input
-									class="control"
-									type="number"
-									min={MIN_N}
-									max={MAX_N}
-									step="1"
-									bind:value={settings.n}
-									data-testid="n"
-									{...props}
-								/>
-							{/snippet}
-						</Field>
-					</div>
-					{#if settings.noise === 'perPoint'}
-						<div class="row">
-							<Field
-								label="σ from"
-								error={settings.sigmaRange[0] > 0 ? undefined : 'Must be positive.'}
-							>
-								{#snippet children(props)}
-									<input
-										class="control"
-										type="number"
-										min="0.01"
-										max={settings.sigmaRange[1]}
-										step="0.05"
-										bind:value={settings.sigmaRange[0]}
-										data-testid="sigma-lo"
-										{...props}
-									/>
-								{/snippet}
-							</Field>
-							<Field
-								label="to"
-								error={settings.sigmaRange[1] >= settings.sigmaRange[0]
-									? undefined
-									: 'Must be ≥ σ from.'}
-							>
-								{#snippet children(props)}
-									<input
-										class="control"
-										type="number"
-										min={settings.sigmaRange[0]}
-										max="100"
-										step="0.05"
-										bind:value={settings.sigmaRange[1]}
-										data-testid="sigma-hi"
-										{...props}
-									/>
-								{/snippet}
-							</Field>
-						</div>
-						<p class="hint">
-							Each point gets normal noise with its own σ; the noise model above isn't used.
-						</p>
-					{/if}
-					{#if settings.noise === 'replicates'}
-						<div class="row">
-							<Field
-								label="Readings per X"
-								error={settings.replicates >= MIN_REPLICATES &&
-								settings.replicates <= MAX_REPLICATES
-									? undefined
-									: `Between ${MIN_REPLICATES} and ${MAX_REPLICATES}.`}
-							>
-								{#snippet children(props)}
-									<input
-										class="control"
-										type="number"
-										min={MIN_REPLICATES}
-										max={MAX_REPLICATES}
-										step="1"
-										bind:value={settings.replicates}
-										data-testid="replicates"
-										{...props}
-									/>
-								{/snippet}
-							</Field>
-						</div>
-					{/if}
-					<Fold label="Seed and sample download" data-testid="sample-fold">
-						<div class="row">
-							<Field label="Seed" error={seedValid ? undefined : 'A whole number ≥ 0.'}>
-								{#snippet children(props)}
-									<input
-										class="control"
-										type="number"
-										min="0"
-										step="1"
-										bind:value={settings.seed}
-										data-testid="seed"
-										{...props}
-									/>
-								{/snippet}
-							</Field>
-						</div>
-						{#if simulation}
-							<div>
-								<Button
-									size="sm"
-									variant="secondary"
-									onclick={() => download('deconvolution-sample.csv', simulationCsv(simulation))}
-									data-testid="export">Download the sample (CSV)</Button
-								>
-							</div>
-						{/if}
-					</Fold>
-				</div>
-				<div class="plot">
-					{#if modelView}
-						<DensityChart
-							title="Signal, noise and what we observe"
-							testId="model-chart"
-							xRange={modelView.range}
-							curves={modelView.curves}
-							stems={modelView.stems}
-							histogram={modelView.histogram}
-							summary="Densities of the signal X, the noise Y and the observed Z = X + Y, with a histogram of the simulated sample."
-						/>
-					{:else}
-						<p class="hint">Fix the parameters to see the distributions.</p>
-					{/if}
-				</div>
-			</div>
-		</Panel>
+	{#snippet tail()}
+		<details class="how" data-testid="how">
+			<summary>How it works</summary>
+			<p>
+				Pick a signal and a noise, and see what you would observe. Then press Run to estimate them
+				back from the sample. The parametric fit needs you to name both families. The other methods
+				take any shape of signal but use the noise as given.
+			</p>
+			<p>
+				One sample can't tell every signal from its noise: two normals only show their summed
+				variance. The fit says when that happens. The details are in the
+				<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/deconvolution.md">docs</a
+				>.
+			</p>
+		</details>
+		<References references={REFERENCES} />
+	{/snippet}
 
-		<h2 class="section">Estimate</h2>
-
-		{#snippet noiseFold()}
-			<Fold
-				label="Noise assumption"
-				summary={NOISE_SUMMARY[settings.noise]}
-				data-testid="noise-fold"
-			>
-				<Field label="Noise">
-					{#snippet children(props)}
-						<select
-							class="control noise-select"
-							data-testid="noise-regime"
-							bind:value={settings.noise}
-							onchange={() => {
-								const regime = settings.noise;
-								const allowed = REGIME_METHODS[regime];
-								if (!settings.methods.some((m) => allowed.includes(m))) {
-									settings.methods = [...new Set([...settings.methods, allowed[0]])].sort(
-										(a, b) => METHODS.indexOf(a) - METHODS.indexOf(b)
-									);
-								}
-							}}
-							{...props}
-						>
-							<option value="known">Known family</option>
-							<option value="perPoint">Per-point errors</option>
-							<option value="symmetric">Symmetric, unknown shape</option>
-							<option value="replicates">Repeated measurements</option>
-						</select>
-					{/snippet}
-				</Field>
-				{#if settings.noise === 'known'}
-					<p class="hint">The noise's family is the one in the model above.</p>
-				{:else if settings.noise === 'perPoint'}
-					<p class="hint">
-						Each point has its own normal error σᵢ (a second column when you upload).
-					</p>
-				{:else if settings.noise === 'symmetric'}
-					<p class="hint">
-						Only that the noise is symmetric about 0; X must have no symmetric part.
-					</p>
-				{:else if settings.noise === 'replicates'}
-					<p class="hint">Each row holds 2–5 readings of the same X (columns when you upload).</p>
-				{/if}
-			</Fold>
-			{#if uploadWarning}
-				<Alert tone="warning">{uploadWarning}</Alert>
-			{/if}
-		{/snippet}
-		{@render dataPanel(noiseFold)}
-
-		<Panel>
-			<Fold
-				label="Methods"
-				summary={methodList(chosen.map((m) => METHOD_NAMES[m]))}
-				data-testid="methods-fold"
-			>
-				<fieldset class="methods">
-					<legend class="sr-only">Estimators</legend>
-					{#each METHODS.filter((m) => !reasons[m]) as m (m)}
-						<label class="method">
-							<input
-								type="checkbox"
-								checked={settings.methods.includes(m)}
-								onchange={(e) => toggle(m, e.currentTarget.checked)}
-								data-testid="method-{m}"
-							/>
-							<span>
-								<strong>{METHOD_NAMES[m]}</strong>
-								<span class="hint">{METHOD_HINTS[m]}</span>
-							</span>
-						</label>
-					{/each}
-				</fieldset>
-				{#if settings.noise === 'known'}
-					<label class="check">
-						<input type="checkbox" bind:checked={settings.fitNoise} data-testid="fit-noise" />
-						The parametric fit also fits the noise
-					</label>
-					<SegmentedControl
-						legend="Noise used by the other methods"
-						options={[
-							{ value: 'entered', label: 'As entered' },
-							{ value: 'fitted', label: 'From the parametric fit', disabled: !settings.fitNoise }
-						]}
-						bind:value={settings.noiseFor}
-					/>
-				{/if}
-				<div class="row">
-					{#if settings.methods.includes('gmodel')}
-						<Field label="g-modeling spline df">
+	<div class="split">
+		{#if settings.dim === 2}
+			<TwoD bind:settings {uploaded} {getPool} {dataPanel} {download} {tail} />
+		{:else}
+			<Panel title="Model">
+				{#snippet actions()}<Button
+						variant="link"
+						onclick={() => (settings.dim = 2)}
+						data-testid="dim-switch">Switch to a 2D model</Button
+					>{/snippet}
+				<div class="setup">
+					<div class="controls">
+						<Field label="Preset">
 							{#snippet children(props)}
-								<input
+								<select
 									class="control"
-									type="number"
-									min="2"
-									max="12"
-									step="1"
-									bind:value={settings.df}
-									{...props}
-								/>
-							{/snippet}
-						</Field>
-						<Field label="g-modeling penalty c₀" hint="Larger values give a smoother signal.">
-							{#snippet children(props)}
-								<input
-									class="control"
-									type="number"
-									min="0"
-									max="1000"
-									step="any"
-									bind:value={settings.c0}
-									{...props}
-								/>
-							{/snippet}
-						</Field>
-					{/if}
-					{#if settings.methods.includes('kernel')}
-						<Field label="Kernel bandwidth" hint="Leave empty for the default rule.">
-							{#snippet children(props)}
-								<input
-									class="control"
-									type="number"
-									min="0"
-									step="any"
-									value={settings.bandwidth ?? ''}
-									oninput={(e) => {
-										const v = e.currentTarget.value;
-										settings.bandwidth = v === '' ? null : Number(v) > 0 ? Number(v) : null;
+									value=""
+									onchange={(e) => {
+										applyPreset(e.currentTarget.value);
+										e.currentTarget.value = '';
 									}}
-									data-testid="bandwidth"
+									data-testid="preset"
 									{...props}
-								/>
+								>
+									<option value="" disabled>Load a preset…</option>
+									{#each PRESETS as p (p.id)}<option value={p.id}>{p.name}</option>{/each}
+								</select>
 							{/snippet}
 						</Field>
-					{/if}
-				</div>
-			</Fold>
-		</Panel>
-
-		<RunControls
-			onrun={start}
-			{running}
-			disabled={!canRun || chainsRunning}
-			describedby="run-why"
-			onstop={stop}
-		>
-			{#if !data}
-				<p id="run-why" class="hint">
-					{settings.source === 'uploaded' ? 'Add your data above first.' : 'Fix the model first.'}
-				</p>
-			{:else if chosen.length === 0}
-				<p id="run-why" class="hint">Pick at least one method.</p>
-			{/if}
-			{#if running}<p class="hint" role="status">Fitting…</p>{/if}
-			{#if runError}<Alert tone="danger">{runError}</Alert>{/if}
-			{#if run && !running}<p class="hint" role="status" data-testid="run-status">
-					Done in {(run.ms / 1000).toFixed(1)} s on {run.data.length.toLocaleString('en')} points.
-				</p>{/if}
-		</RunControls>
-
-		{#if run && estimateView}
-			<Panel title="Results" level={3}>
-				<div class="results" data-testid="results">
-					<DensityChart
-						title="Estimated signal over the data"
-						testId="estimate-chart"
-						xRange={estimateView.range}
-						curves={estimateView.curves}
-						stems={estimateView.stems}
-						bands={estimateView.bands}
-						histogram={estimateView.histogram}
-						histogramLabel="Data Z"
-						summary="Each method's estimate of the signal X over a histogram of the data{run.truth
-							? ', with the true X'
-							: ''}."
-					/>
-					{#if answer?.kind === 'fit'}
-						{#if answer.noise}
-							<Answer headline="Signal X looks like {answer.x}" data-testid="answer">
-								Noise Y {answer.noise.verb === 'like' ? 'looks like' : 'is held at'}
-								{answer.noise.text}.
-							</Answer>
-						{:else}
-							<Answer headline="Signal X looks like {answer.x}" data-testid="answer" />
-						{/if}
-					{:else if answer}
-						<Answer headline="Signal X has mean ≈ {answer.mean}" data-testid="answer">
-							By {answer.method}, with standard deviation ≈ {answer.sd}.
-						</Answer>
-					{/if}
-					{#each run.failures as f (f.method)}
-						<Alert tone="warning">{METHOD_NAMES[f.method]} failed: {f.message}</Alert>
-					{/each}
-					{#if flat}
-						<Alert tone="warning">
-							<span data-testid="identifiability">
-								The data can't separate these parameters: {flat.direction.map(of).join(' and ')} trade
-								off against each other. Fix the noise (untick "also fits the noise") or pick families
-								that differ in shape.
-							</span>
-						</Alert>
-					{/if}
-					{#if edges.length}
-						<Alert tone="warning">
-							<span data-testid="boundary">
-								{edges.map(of).join(' and ')} ended at the edge of {edges.length === 1
-									? 'its'
-									: 'their'} range. The data may not pin {edges.length === 1 ? 'it' : 'them'} down: a
-								trade-off with the noise often ends there. Fix the noise and fit again.
-							</span>
-						</Alert>
-					{/if}
-					<Fold
-						label="Fit tables"
-						summary="likelihood, AIC, BIC{run.truth ? ', error to truth' : ''}{paramRows.length
-							? ', 95% intervals'
-							: ''}"
-						bind:open={tablesOpen}
-						data-testid="fit-tables"
-					>
-						<DataTable caption="Fits" {columns} {rows} rowKey={(r) => r.method} />
-						{#if !run.truth}<p class="hint">
-								W₁ and L₁ need the true signal, so they show for simulated data only.
-							</p>{/if}
-						{#if paramRows.length}
-							<DataTable
-								caption="Parametric fit"
-								columns={paramColumns}
-								rows={paramRows}
-								rowKey={(r) => r.id}
-							/>
-						{/if}
-					</Fold>
-
-					<Posteriors
-						pool={getPool}
-						seed={settings.seed}
-						busy={running || booting || comparing}
-						model={run.mle
-							? { dim: 1, input: run.mleInput, fit: { x: run.mle.x, y: run.mle.y } }
-							: null}
-						mixture={run.mle?.x.family === 'mixture'}
-						flat={!!run.mle?.identifiability.flat}
-						params={run.mle?.params ?? []}
-						defaultDraws={1000}
-						npmleTask={runGrids.some((g) => g.method === 'npmle')
-							? (mass, sweeps, seed) => ({
-									kind: 'posterior',
-									data: run!.data,
-									y: run!.noise as SimpleSpec,
-									grid: run!.grid,
-									mass,
-									sweeps,
-									seed,
-									sigma: run!.options.sigma
-								})
-							: null}
-						{npmleBand}
-						priorText="1/300 per point"
-						suffix=""
-						bind:bayes
-						onband={(b) => (npost = b)}
-						onrunning={(r) => (chainsRunning = r)}
-						onerror={(m) => (runError = m)}
-					/>
-
-					{#if run.regime === 'known'}
-						<div class="subsection">
-							<h4>Compare signal families</h4>
-							<p class="hint">
-								Fits every family for X with this noise and ranks them by BIC (lower is better).
-							</p>
-							<div>
-								<Button
-									onclick={compare}
-									disabled={comparing || running || booting || chainsRunning}
-									data-testid="compare"
-								>
-									{comparing ? 'Comparing…' : 'Compare families'}
-								</Button>
-							</div>
-							{#if compareRows.length}
-								<DataTable
-									caption="Signal families by BIC"
-									columns={[
-										{ key: 'family', label: 'X family' },
-										{
-											key: 'logLik',
-											label: 'Log-lik',
-											align: 'right',
-											format: (v) => fmt(v as number, 6)
-										},
-										{ key: 'k', label: 'Params', align: 'right' },
-										{
-											key: 'bic',
-											label: 'BIC',
-											align: 'right',
-											format: (v) => fmt(v as number, 6)
-										},
-										{
-											key: 'delta',
-											label: 'ΔBIC',
-											align: 'right',
-											format: (v) => fmt(v as number, 4)
-										}
-									]}
-									rows={compareRows}
-									rowKey={(r) => r.id}
-								/>
-							{/if}
+						<DistEditor bind:spec={settings.x} role="signal" testId="x" />
+						<DistEditor bind:spec={settings.y as DistSpec} role="noise" testId="y" />
+						<div class="row">
+							<Field
+								label="Sample size n"
+								error={nValid ? undefined : `Between ${MIN_N} and ${MAX_N.toLocaleString('en')}.`}
+							>
+								{#snippet children(props)}
+									<input
+										class="control"
+										type="number"
+										min={MIN_N}
+										max={MAX_N}
+										step="1"
+										bind:value={settings.n}
+										data-testid="n"
+										{...props}
+									/>
+								{/snippet}
+							</Field>
 						</div>
-					{/if}
-
-					{#if runGrids.some((g) => g.method !== 'npmle') && run?.regime === 'known'}
-						<div class="subsection">
-							<h4>Bootstrap bands</h4>
-							<p class="hint">Refits on resampled data and shades where 90% of the refits fall.</p>
+						{#if settings.noise === 'perPoint'}
 							<div class="row">
-								<Field label="Method">
-									{#snippet children(props)}
-										<select
-											class="control"
-											bind:value={bootMethod}
-											data-testid="boot-method"
-											{...props}
-										>
-											{#each runGrids.filter((g) => g.method !== 'npmle') as g (g.method)}<option
-													value={g.method}>{METHOD_NAMES[g.method]}</option
-												>{/each}
-										</select>
-									{/snippet}
-								</Field>
-								<Field label="Resamples B">
+								<Field
+									label="σ from"
+									error={settings.sigmaRange[0] > 0 ? undefined : 'Must be positive.'}
+								>
 									{#snippet children(props)}
 										<input
 											class="control"
 											type="number"
-											min="10"
-											max={MAX_BOOTSTRAP}
-											step="1"
-											bind:value={settings.bootstrapB}
+											min="0.01"
+											max={settings.sigmaRange[1]}
+											step="0.05"
+											bind:value={settings.sigmaRange[0]}
+											data-testid="sigma-lo"
+											{...props}
+										/>
+									{/snippet}
+								</Field>
+								<Field
+									label="to"
+									error={settings.sigmaRange[1] >= settings.sigmaRange[0]
+										? undefined
+										: 'Must be ≥ σ from.'}
+								>
+									{#snippet children(props)}
+										<input
+											class="control"
+											type="number"
+											min={settings.sigmaRange[0]}
+											max="100"
+											step="0.05"
+											bind:value={settings.sigmaRange[1]}
+											data-testid="sigma-hi"
 											{...props}
 										/>
 									{/snippet}
 								</Field>
 							</div>
-							<div class="buttons">
-								<Button
-									onclick={bootstrap}
-									disabled={booting || running || !bootMethod || chainsRunning}
-									data-testid="bootstrap">Run bootstrap</Button
+							<p class="hint">
+								Each point gets normal noise with its own σ; the noise model above isn't used.
+							</p>
+						{/if}
+						{#if settings.noise === 'replicates'}
+							<div class="row">
+								<Field
+									label="Readings per X"
+									error={settings.replicates >= MIN_REPLICATES &&
+									settings.replicates <= MAX_REPLICATES
+										? undefined
+										: `Between ${MIN_REPLICATES} and ${MAX_REPLICATES}.`}
 								>
-								<Button variant="danger" onclick={stop} disabled={!booting}>Stop</Button>
-								{#if booting}<span class="hint" role="status"
-										>{bootDone} / {settings.bootstrapB}</span
-									>{/if}
+									{#snippet children(props)}
+										<input
+											class="control"
+											type="number"
+											min={MIN_REPLICATES}
+											max={MAX_REPLICATES}
+											step="1"
+											bind:value={settings.replicates}
+											data-testid="replicates"
+											{...props}
+										/>
+									{/snippet}
+								</Field>
 							</div>
+						{/if}
+						<Fold label="Seed and sample download" data-testid="sample-fold">
+							<div class="row">
+								<Field label="Seed" error={seedValid ? undefined : 'A whole number ≥ 0.'}>
+									{#snippet children(props)}
+										<input
+											class="control"
+											type="number"
+											min="0"
+											step="1"
+											bind:value={settings.seed}
+											data-testid="seed"
+											{...props}
+										/>
+									{/snippet}
+								</Field>
+							</div>
+							{#if simulation}
+								<div>
+									<Button
+										size="sm"
+										variant="secondary"
+										onclick={() => download('deconvolution-sample.csv', simulationCsv(simulation))}
+										data-testid="export">Download the sample (CSV)</Button
+									>
+								</div>
+							{/if}
+						</Fold>
+					</div>
+					<div class="plot">
+						{#if modelView}
+							<DensityChart
+								title="Signal, noise and what we observe"
+								testId="model-chart"
+								xRange={modelView.range}
+								curves={modelView.curves}
+								stems={modelView.stems}
+								histogram={modelView.histogram}
+								summary="Densities of the signal X, the noise Y and the observed Z = X + Y, with a histogram of the simulated sample."
+							/>
+						{:else}
+							<p class="hint">Fix the parameters to see the distributions.</p>
+						{/if}
+					</div>
+
+					<h2 class="section">Estimate</h2>
+
+					{#snippet noiseFold()}
+						<Fold
+							label="Noise assumption"
+							summary={NOISE_SUMMARY[settings.noise]}
+							data-testid="noise-fold"
+						>
+							<Field label="Noise">
+								{#snippet children(props)}
+									<select
+										class="control noise-select"
+										data-testid="noise-regime"
+										bind:value={settings.noise}
+										onchange={() => {
+											const regime = settings.noise;
+											const allowed = REGIME_METHODS[regime];
+											if (!settings.methods.some((m) => allowed.includes(m))) {
+												settings.methods = [...new Set([...settings.methods, allowed[0]])].sort(
+													(a, b) => METHODS.indexOf(a) - METHODS.indexOf(b)
+												);
+											}
+										}}
+										{...props}
+									>
+										<option value="known">Known family</option>
+										<option value="perPoint">Per-point errors</option>
+										<option value="symmetric">Symmetric, unknown shape</option>
+										<option value="replicates">Repeated measurements</option>
+									</select>
+								{/snippet}
+							</Field>
+							{#if settings.noise === 'known'}
+								<p class="hint">The noise's family is the one in the model above.</p>
+							{:else if settings.noise === 'perPoint'}
+								<p class="hint">
+									Each point has its own normal error σᵢ (a second column when you upload).
+								</p>
+							{:else if settings.noise === 'symmetric'}
+								<p class="hint">
+									Only that the noise is symmetric about 0; X must have no symmetric part.
+								</p>
+							{:else if settings.noise === 'replicates'}
+								<p class="hint">
+									Each row holds 2–5 readings of the same X (columns when you upload).
+								</p>
+							{/if}
+						</Fold>
+						{#if uploadWarning}
+							<Alert tone="warning">{uploadWarning}</Alert>
+						{/if}
+					{/snippet}
+					{@render dataPanel(noiseFold)}
+
+					<Fold
+						label="Methods"
+						summary={methodList(chosen.map((m) => METHOD_NAMES[m]))}
+						data-testid="methods-fold"
+					>
+						<fieldset class="methods">
+							<legend class="sr-only">Estimators</legend>
+							{#each METHODS.filter((m) => !reasons[m]) as m (m)}
+								<label class="method">
+									<input
+										type="checkbox"
+										checked={settings.methods.includes(m)}
+										onchange={(e) => toggle(m, e.currentTarget.checked)}
+										data-testid="method-{m}"
+									/>
+									<span>
+										<strong>{METHOD_NAMES[m]}</strong>
+										<span class="hint">{METHOD_HINTS[m]}</span>
+									</span>
+								</label>
+							{/each}
+						</fieldset>
+						{#if settings.noise === 'known'}
+							<label class="check">
+								<input type="checkbox" bind:checked={settings.fitNoise} data-testid="fit-noise" />
+								The parametric fit also fits the noise
+							</label>
+							<SegmentedControl
+								legend="Noise used by the other methods"
+								options={[
+									{ value: 'entered', label: 'As entered' },
+									{
+										value: 'fitted',
+										label: 'From the parametric fit',
+										disabled: !settings.fitNoise
+									}
+								]}
+								bind:value={settings.noiseFor}
+							/>
+						{/if}
+						<div class="row">
+							{#if settings.methods.includes('gmodel')}
+								<Field label="g-modeling spline df">
+									{#snippet children(props)}
+										<input
+											class="control"
+											type="number"
+											min="2"
+											max="12"
+											step="1"
+											bind:value={settings.df}
+											{...props}
+										/>
+									{/snippet}
+								</Field>
+								<Field label="g-modeling penalty c₀" hint="Larger values give a smoother signal.">
+									{#snippet children(props)}
+										<input
+											class="control"
+											type="number"
+											min="0"
+											max="1000"
+											step="any"
+											bind:value={settings.c0}
+											{...props}
+										/>
+									{/snippet}
+								</Field>
+							{/if}
+							{#if settings.methods.includes('kernel')}
+								<Field label="Kernel bandwidth" hint="Leave empty for the default rule.">
+									{#snippet children(props)}
+										<input
+											class="control"
+											type="number"
+											min="0"
+											step="any"
+											value={settings.bandwidth ?? ''}
+											oninput={(e) => {
+												const v = e.currentTarget.value;
+												settings.bandwidth = v === '' ? null : Number(v) > 0 ? Number(v) : null;
+											}}
+											data-testid="bandwidth"
+											{...props}
+										/>
+									{/snippet}
+								</Field>
+							{/if}
 						</div>
-					{/if}
+					</Fold>
+
+					<RunLine
+						onrun={start}
+						{running}
+						disabled={!canRun || chainsRunning}
+						describedby="run-why"
+						onstop={stop}
+					>
+						{#if !data}
+							<p id="run-why" class="hint">
+								{settings.source === 'uploaded'
+									? 'Add your data above first.'
+									: 'Fix the model first.'}
+							</p>
+						{:else if chosen.length === 0}
+							<p id="run-why" class="hint">Pick at least one method.</p>
+						{/if}
+						{#if running}<p class="hint" role="status">Fitting…</p>{/if}
+						{#if runError}<Alert tone="danger">{runError}</Alert>{/if}
+						{#if run && !running}<p class="hint" role="status" data-testid="run-status">
+								Done in {(run.ms / 1000).toFixed(1)} s on {run.data.length.toLocaleString('en')} points.
+							</p>{/if}
+					</RunLine>
 				</div>
 			</Panel>
+
+			<Panel title="Results">
+				{#if run && estimateView}
+					<div class="results" data-testid="results">
+						<DensityChart
+							title="Estimated signal over the data"
+							testId="estimate-chart"
+							xRange={estimateView.range}
+							curves={estimateView.curves}
+							stems={estimateView.stems}
+							bands={estimateView.bands}
+							histogram={estimateView.histogram}
+							histogramLabel="Data Z"
+							summary="Each method's estimate of the signal X over a histogram of the data{run.truth
+								? ', with the true X'
+								: ''}."
+						/>
+						{#if answer?.kind === 'fit'}
+							{#if answer.noise}
+								<Answer headline="Signal X looks like {answer.x}" data-testid="answer">
+									Noise Y {answer.noise.verb === 'like' ? 'looks like' : 'is held at'}
+									{answer.noise.text}.
+								</Answer>
+							{:else}
+								<Answer headline="Signal X looks like {answer.x}" data-testid="answer" />
+							{/if}
+						{:else if answer}
+							<Answer headline="Signal X has mean ≈ {answer.mean}" data-testid="answer">
+								By {answer.method}, with standard deviation ≈ {answer.sd}.
+							</Answer>
+						{/if}
+						{#each run.failures as f (f.method)}
+							<Alert tone="warning">{METHOD_NAMES[f.method]} failed: {f.message}</Alert>
+						{/each}
+						{#if flat}
+							<Alert tone="warning">
+								<span data-testid="identifiability">
+									The data can't separate these parameters: {flat.direction.map(of).join(' and ')} trade
+									off against each other. Fix the noise (untick "also fits the noise") or pick families
+									that differ in shape.
+								</span>
+							</Alert>
+						{/if}
+						{#if edges.length}
+							<Alert tone="warning">
+								<span data-testid="boundary">
+									{edges.map(of).join(' and ')} ended at the edge of {edges.length === 1
+										? 'its'
+										: 'their'} range. The data may not pin {edges.length === 1 ? 'it' : 'them'} down:
+									a trade-off with the noise often ends there. Fix the noise and fit again.
+								</span>
+							</Alert>
+						{/if}
+						<Fold
+							label="Fit tables"
+							summary="likelihood, AIC, BIC{run.truth ? ', error to truth' : ''}{paramRows.length
+								? ', 95% intervals'
+								: ''}"
+							bind:open={tablesOpen}
+							data-testid="fit-tables"
+						>
+							<DataTable caption="Fits" {columns} {rows} rowKey={(r) => r.method} />
+							{#if !run.truth}<p class="hint">
+									W₁ and L₁ need the true signal, so they show for simulated data only.
+								</p>{/if}
+							{#if paramRows.length}
+								<DataTable
+									caption="Parametric fit"
+									columns={paramColumns}
+									rows={paramRows}
+									rowKey={(r) => r.id}
+								/>
+							{/if}
+						</Fold>
+
+						<Posteriors
+							pool={getPool}
+							seed={settings.seed}
+							busy={running || booting || comparing}
+							model={run.mle
+								? { dim: 1, input: run.mleInput, fit: { x: run.mle.x, y: run.mle.y } }
+								: null}
+							mixture={run.mle?.x.family === 'mixture'}
+							flat={!!run.mle?.identifiability.flat}
+							params={run.mle?.params ?? []}
+							defaultDraws={1000}
+							npmleTask={runGrids.some((g) => g.method === 'npmle')
+								? (mass, sweeps, seed) => ({
+										kind: 'posterior',
+										data: run!.data,
+										y: run!.noise as SimpleSpec,
+										grid: run!.grid,
+										mass,
+										sweeps,
+										seed,
+										sigma: run!.options.sigma
+									})
+								: null}
+							{npmleBand}
+							priorText="1/300 per point"
+							suffix=""
+							bind:bayes
+							onband={(b) => (npost = b)}
+							onrunning={(r) => (chainsRunning = r)}
+							onerror={(m) => (runError = m)}
+						/>
+
+						{#if run.regime === 'known'}
+							<div class="subsection">
+								<h3>Compare signal families</h3>
+								<p class="hint">
+									Fits every family for X with this noise and ranks them by BIC (lower is better).
+								</p>
+								<div>
+									<Button
+										onclick={compare}
+										disabled={comparing || running || booting || chainsRunning}
+										data-testid="compare"
+									>
+										{comparing ? 'Comparing…' : 'Compare families'}
+									</Button>
+								</div>
+								{#if compareRows.length}
+									<DataTable
+										caption="Signal families by BIC"
+										columns={[
+											{ key: 'family', label: 'X family' },
+											{
+												key: 'logLik',
+												label: 'Log-lik',
+												align: 'right',
+												format: (v) => fmt(v as number, 6)
+											},
+											{ key: 'k', label: 'Params', align: 'right' },
+											{
+												key: 'bic',
+												label: 'BIC',
+												align: 'right',
+												format: (v) => fmt(v as number, 6)
+											},
+											{
+												key: 'delta',
+												label: 'ΔBIC',
+												align: 'right',
+												format: (v) => fmt(v as number, 4)
+											}
+										]}
+										rows={compareRows}
+										rowKey={(r) => r.id}
+									/>
+								{/if}
+							</div>
+						{/if}
+
+						{#if runGrids.some((g) => g.method !== 'npmle') && run?.regime === 'known'}
+							<div class="subsection">
+								<h3>Bootstrap bands</h3>
+								<p class="hint">
+									Refits on resampled data and shades where 90% of the refits fall.
+								</p>
+								<div class="row">
+									<Field label="Method">
+										{#snippet children(props)}
+											<select
+												class="control"
+												bind:value={bootMethod}
+												data-testid="boot-method"
+												{...props}
+											>
+												{#each runGrids.filter((g) => g.method !== 'npmle') as g (g.method)}<option
+														value={g.method}>{METHOD_NAMES[g.method]}</option
+													>{/each}
+											</select>
+										{/snippet}
+									</Field>
+									<Field label="Resamples B">
+										{#snippet children(props)}
+											<input
+												class="control"
+												type="number"
+												min="10"
+												max={MAX_BOOTSTRAP}
+												step="1"
+												bind:value={settings.bootstrapB}
+												{...props}
+											/>
+										{/snippet}
+									</Field>
+								</div>
+								<div class="buttons">
+									<Button
+										onclick={bootstrap}
+										disabled={booting || running || !bootMethod || chainsRunning}
+										data-testid="bootstrap">Run bootstrap</Button
+									>
+									<Button variant="danger" onclick={stop} disabled={!booting}>Stop</Button>
+									{#if booting}<span class="hint" role="status"
+											>{bootDone} / {settings.bootstrapB}</span
+										>{/if}
+								</div>
+							</div>
+						{/if}
+					</div>
+				{:else}
+					<p class="hint">Press Run to estimate the signal from the data.</p>
+				{/if}
+				{@render tail()}
+			</Panel>
 		{/if}
-	{/if}
-
-	<details class="how" data-testid="how">
-		<summary>How it works</summary>
-		<p>
-			Pick a signal and a noise, and see what you would observe. Then press Run to estimate them
-			back from the sample. The parametric fit needs you to name both families. The other methods
-			take any shape of signal but use the noise as given.
-		</p>
-		<p>
-			One sample can't tell every signal from its noise: two normals only show their summed
-			variance. The fit says when that happens. The details are in the
-			<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/deconvolution.md">docs</a>.
-		</p>
-	</details>
-
-	<Panel title="References" level={2}>
-		<References references={REFERENCES} />
-	</Panel>
+	</div>
 </div>
 
 <style>
@@ -1439,15 +1452,28 @@
 		flex-direction: column;
 		gap: var(--sp-3);
 	}
-	.model {
+	/* Setup beside Results (2 : 3); on narrow screens they stack, Setup first. */
+	.split {
 		display: grid;
-		grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
-		gap: var(--sp-4);
+		grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+		gap: var(--sp-3);
+		align-items: start;
 	}
-	@media (max-width: 52rem) {
-		.model {
+	@media (max-width: 60rem) {
+		.split {
 			grid-template-columns: minmax(0, 1fr);
 		}
+	}
+	/* Tables are plain content of the Results box: no frame of their own. */
+	.split :global(.ui-table-wrap) {
+		border: 0;
+		border-radius: 0;
+	}
+	.setup {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-3);
+		min-width: 0;
 	}
 	.controls,
 	.upload,
@@ -1469,11 +1495,23 @@
 		gap: var(--sp-1);
 		align-items: center;
 	}
+	/* Estimate opens the second half of the Setup box, under a hairline, titled like the box. */
 	.section {
 		margin: var(--sp-2) 0 0;
+		padding-top: var(--sp-3);
+		border-top: 1px solid var(--border);
 		font-size: var(--text-lg);
+		font-weight: 600;
 	}
-	.subsection h4 {
+	.section::after {
+		content: '';
+		display: block;
+		width: 24px;
+		height: 2px;
+		margin-top: 6px;
+		background: var(--accent);
+	}
+	.subsection h3 {
 		margin: var(--sp-2) 0 0;
 		font-size: var(--text-md);
 	}

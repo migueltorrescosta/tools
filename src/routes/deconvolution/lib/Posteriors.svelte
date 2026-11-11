@@ -166,7 +166,7 @@
 
 {#if model}
 	<div class="subsection">
-		<h4>Bayesian fit</h4>
+		<h3>Bayesian fit</h3>
 		<p class="hint">
 			Samples the parametric model's posterior under an objective (Jeffreys) prior: 4 chains, half
 			of each spent warming up. Credible intervals behave better than the 95% intervals near a
@@ -224,7 +224,7 @@
 
 {#if npmleTask}
 	<div class="subsection">
-		<h4>NPMLE posterior</h4>
+		<h3>NPMLE posterior</h3>
 		<p class="hint">
 			Samples the grid masses under a Dirichlet prior with {priorText} and shades where 90% of the draws
 			fall, with the noise the other methods used.
@@ -250,7 +250,7 @@
 		gap: var(--sp-2);
 		min-width: 0;
 	}
-	.subsection h4 {
+	.subsection h3 {
 		margin: var(--sp-2) 0 0;
 		font-size: var(--text-md);
 	}

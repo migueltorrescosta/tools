@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { Alert, Field, Panel, SegmentedControl } from '#lib/ui/index.js';
+	import { Alert, Field, SegmentedControl } from '#lib/ui/index.js';
 	import { parseSample, type ParsedSample } from '#lib/deconvolution/upload.js';
 
 	/** Where the estimate's data comes from: the simulated sample or an upload (one or two columns). */
@@ -49,76 +49,73 @@
 	}
 </script>
 
-<Panel title="Data" level={3}>
-	<div class="stack">
-		<SegmentedControl
-			legend="Data to estimate from"
-			options={[
-				{ value: 'simulated', label: 'Simulated sample' },
-				{ value: 'uploaded', label: 'Your data' }
-			]}
-			bind:value={source}
-		/>
-		{#if source === 'uploaded'}
-			<div class="upload">
-				<Field
-					label="CSV or text file"
-					hint="One column of numbers, or more: the noise assumption below says what extra columns hold. A header line is fine."
-				>
-					{#snippet children(props)}
-						<input
-							class="control"
-							type="file"
-							accept=".csv,.txt,.tsv,text/csv,text/plain"
-							onchange={onFile}
-							data-testid="file"
-							{...props}
-						/>
-					{/snippet}
-				</Field>
-				<Field label="Or paste numbers">
-					{#snippet children(props)}
-						<textarea
-							class="control paste"
-							rows="4"
-							value={text}
-							oninput={(e) => parse(e.currentTarget.value)}
-							data-testid="paste"
-							{...props}
-						></textarea>
-					{/snippet}
-				</Field>
-				{#if uploaded}
-					{#if uploaded.error}
-						<Alert tone="danger">{uploaded.error}</Alert>
-					{:else}
-						<p class="hint" data-testid="upload-status">
-							{uploaded.data.length.toLocaleString('en')}
-							{uploaded.width >= 3
-								? `${uploaded.width} columns`
-								: uploaded.dim === 2
-									? 'points (2 columns)'
-									: 'numbers'}{name ? ` from ${name}` : ''}{uploaded.header
-								? ', header skipped'
-								: ''}.
-						</p>
-					{/if}
-					{#if uploaded.invalidCount}
-						<Alert tone="warning">
-							Skipped {uploaded.invalidCount} line{uploaded.invalidCount === 1 ? '' : 's'} that didn't
-							match:
-							{uploaded.invalid
-								.map((r) => `line ${r.line} (“${r.text}”)`)
-								.join(', ')}{uploaded.invalidCount > uploaded.invalid.length ? ', …' : ''}.
-						</Alert>
-					{/if}
+<div class="stack">
+	<SegmentedControl
+		legend="Data to estimate from"
+		options={[
+			{ value: 'simulated', label: 'Simulated sample' },
+			{ value: 'uploaded', label: 'Your data' }
+		]}
+		bind:value={source}
+	/>
+	{#if source === 'uploaded'}
+		<div class="upload">
+			<Field
+				label="CSV or text file"
+				hint="One column of numbers, or more: the noise assumption below says what extra columns hold. A header line is fine."
+			>
+				{#snippet children(props)}
+					<input
+						class="control"
+						type="file"
+						accept=".csv,.txt,.tsv,text/csv,text/plain"
+						onchange={onFile}
+						data-testid="file"
+						{...props}
+					/>
+				{/snippet}
+			</Field>
+			<Field label="Or paste numbers">
+				{#snippet children(props)}
+					<textarea
+						class="control paste"
+						rows="4"
+						value={text}
+						oninput={(e) => parse(e.currentTarget.value)}
+						data-testid="paste"
+						{...props}
+					></textarea>
+				{/snippet}
+			</Field>
+			{#if uploaded}
+				{#if uploaded.error}
+					<Alert tone="danger">{uploaded.error}</Alert>
+				{:else}
+					<p class="hint" data-testid="upload-status">
+						{uploaded.data.length.toLocaleString('en')}
+						{uploaded.width >= 3
+							? `${uploaded.width} columns`
+							: uploaded.dim === 2
+								? 'points (2 columns)'
+								: 'numbers'}{name ? ` from ${name}` : ''}{uploaded.header
+							? ', header skipped'
+							: ''}.
+					</p>
 				{/if}
-				<p class="hint">Your data stays in this browser and isn't saved.</p>
-			</div>
-		{/if}
-		{@render children?.()}
-	</div>
-</Panel>
+				{#if uploaded.invalidCount}
+					<Alert tone="warning">
+						Skipped {uploaded.invalidCount} line{uploaded.invalidCount === 1 ? '' : 's'} that didn't match:
+						{uploaded.invalid
+							.map((r) => `line ${r.line} (“${r.text}”)`)
+							.join(', ')}{uploaded.invalidCount > uploaded.invalid.length ? ', …' : ''}.
+					</Alert>
+				{/if}
+			{/if}
+			<p class="hint">Your data stays in this browser and isn't saved.</p>
+		</div>
+	{/if}
+	{@render children?.()}
+</div>
 
 <style>
 	.stack,
