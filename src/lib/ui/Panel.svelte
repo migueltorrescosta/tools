@@ -48,7 +48,8 @@
 		display: flex;
 		align-items: flex-start;
 		gap: var(--sp-2);
-		padding: var(--sp-3) var(--sp-3) 0;
+		/* Airy (owner, 2026-11-11): 24px from the box's edge. */
+		padding: 24px 24px 0;
 	}
 	.ui-panel-heading {
 		font-size: var(--text-lg);
@@ -68,6 +69,6 @@
 		margin-left: auto;
 	}
 	.ui-panel-body {
-		padding: var(--sp-3);
+		padding: var(--sp-4) 24px 24px;
 	}
 </style>

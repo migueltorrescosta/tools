@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
 
 // --bg in tokens.css, as the browser reports it.
-const LIGHT_BG = 'oklch(0.925 0.03 75)';
-const DARK_BG = 'oklch(0.25 0.07 258)';
+const LIGHT_BG = 'oklch(0.975 0.01 250)';
+const DARK_BG = 'oklch(0.15 0.01 250)';
 const bodyBg = (page: import('@playwright/test').Page) =>
 	page.evaluate(() => getComputedStyle(document.body).backgroundColor);
 
@@ -30,7 +30,7 @@ test('Layout - a picked theme survives reloads and OS changes, until Match devic
 	expect(await bodyBg(page)).toBe(LIGHT_BG);
 	await expect(page.locator('meta[name="theme-color"]').first()).toHaveAttribute(
 		'content',
-		'#f2e4d1'
+		'#ffead8'
 	);
 
 	await page.reload({ waitUntil: 'networkidle' });

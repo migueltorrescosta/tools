@@ -2,13 +2,14 @@
 
 How tools.mptc.uk looks and why. The owner chose this look in November 2026 from renders of the real site (bead w-06a). The colours, sizes and spaces are tokens in `src/lib/styles/tokens.css`, and each page is built from the components in `src/lib/ui`. This page gives the rules those files can't state on their own.
 
-## The look: workbench paper
+## The look: dawn horizon
 
-- **Paper:** kraft with a 5 mm grid in light, blueprint navy with a pale grid in dark (`--bg`, `--grid`). It is fixed to the window and the boxes scroll over it (`body::before` in `src/lib/styles/base.css`).
-- **Glass boxes:** every box is 40% opaque with a light 4px blur, in both themes: cool white on kraft, a lighter navy on navy, with a bright hairline edge (`--box-bg`, `--box-edge`, `--box-blur`, `--box-shadow` in `tokens.css`; the owner's pick of November 2026). Controls keep the opaque `--surface`.
-- **Accent:** one teal (`--accent`). It marks links, the main button, focus and the picked option, and nothing else. Status colours (`--success`, `--warning`, `--danger`) mark states. A colour that carries no meaning (decorative stripes, a tint per item) is left out.
+- **Background:** a warm-to-cool sweep, peach at the top of the window and blue at the bottom, neutral between, where the content sits (`--bg`, `--bg-top`, `--bg-bottom`). It is fixed to the window and the boxes scroll over it (`body::before` in `src/lib/styles/base.css`). No grid.
+- **Glass boxes:** every box and the top bar are tinted glass that mostly hides the gradient (66% opaque in light, 60% in dark), blurred 18px with a hairline edge, an inner top highlight and a soft shadow (`--box-*` in `tokens.css`). The recipe follows Apple's and Microsoft's material guidance: text never sits on the raw gradient. Asked for less transparency, the boxes turn solid. Controls keep the opaque `--surface`.
+- **Space:** airy. Boxes have 24px of padding, the middle spacing steps are 16, 20 and 32px, and the reading column is 64rem.
+- **Accent:** one dawn orange (`--accent`). It marks links, the main button, focus and the picked option, and nothing else. Status colours (`--success`, `--warning`, `--danger`) mark states. A colour that carries no meaning (decorative stripes, a tint per item) is left out.
 - **Type:** the system font everywhere. Monospace only for code and values people copy.
-- **Section titles:** `Panel` titles are body size over a short teal rule, with no header band.
+- **Section titles:** `Panel` titles are body size over a short accent rule, with no header band.
 
 ## The frame
 

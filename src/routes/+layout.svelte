@@ -81,8 +81,11 @@
 		position: sticky;
 		top: 0;
 		z-index: 50;
-		background: var(--bg);
-		border-bottom: 1px solid var(--border);
+		/* Frosted glass over the dawn gradient, like the boxes. */
+		background: var(--box-bg);
+		-webkit-backdrop-filter: var(--box-blur);
+		backdrop-filter: var(--box-blur);
+		border-bottom: 1px solid var(--box-edge);
 	}
 
 	.topbar-inner {

@@ -10,7 +10,7 @@ html {
 	-webkit-text-size-adjust: 100%;
 }
 
-/* The paper is fixed to the window, so the boxes scroll over it. A fixed layer
+/* The background is fixed to the window, so the boxes scroll over it. A fixed layer
    rather than background-attachment: fixed, which iOS Safari ignores. */
 body::before {
 	content: '';
@@ -18,11 +18,13 @@ body::before {
 	inset: 0;
 	z-index: -1;
 	pointer-events: none;
-	/* 5 mm paper: one line every 20px (owner, round 5). */
-	background:
-		linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 20px 20px,
-		linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 20px 20px,
-		var(--bg);
+	/* Dawn horizon: peach at the top, blue at the bottom, neutral between, where the content sits. */
+	background: linear-gradient(
+		in oklch 180deg,
+		var(--bg-top) 0%,
+		var(--bg) 35% 70%,
+		var(--bg-bottom) 100%
+	);
 }
 
 body {
