@@ -16,9 +16,9 @@ async function open(page: Page, hash = '') {
 	await ready(page);
 }
 
-/** Opens the closed "Edit points and polygon" line. */
+/** Opens the closed Advanced line, which holds the points and the colours. */
 async function openEditing(page: Page) {
-	await page.getByTestId('edit-points').locator('summary').click();
+	await page.getByTestId('advanced').locator('summary').click();
 	await expect(page.getByTestId('points-table')).toBeVisible();
 }
 
@@ -58,13 +58,14 @@ test.describe('chaos game', () => {
 			.toBeGreaterThan(paused);
 	});
 
-	test('points and colour settings start folded', async ({ page }) => {
+	test('points and colour settings start folded behind one Advanced line', async ({ page }) => {
 		await open(page);
 		await expect(page.getByText('Click the plot to add a point.')).toBeVisible();
 		await expect(page.getByTestId('points-table')).toBeHidden();
 		await expect(page.getByRole('radio', { name: 'Density' })).toBeHidden();
-		await page.getByTestId('colour-fold').locator('summary').click();
+		await openEditing(page);
 		await expect(page.getByLabel('Contrast')).toBeVisible();
+		await expect(page.getByRole('radio', { name: 'Density' })).toBeVisible();
 		await expect(page.getByRole('radio', { name: 'Custom' })).toHaveCount(0);
 	});
 
@@ -117,7 +118,7 @@ test.describe('chaos game', () => {
 		await expect(page.getByRole('radio', { name: 'Any point' })).toBeChecked();
 	});
 
-	test('a link with a custom rule opens the editing fold', async ({ page }) => {
+	test('a link with a custom rule opens the Advanced line', async ({ page }) => {
 		await open(page);
 		await openEditing(page);
 		await page.getByTestId('custom-toggle').check();

@@ -86,7 +86,7 @@
 
 <section class="shapes" aria-labelledby="shapes-heading">
 	<div class="head">
-		<h2 id="shapes-heading">Shapes</h2>
+		<h3 id="shapes-heading">Shapes</h3>
 		<label class="check"
 			><input type="checkbox" checked={mode} onchange={setMode} data-testid="challenge-mode" /> Challenge
 			mode</label
@@ -150,7 +150,7 @@
 		gap: var(--sp-1) var(--sp-3);
 	}
 
-	h2 {
+	h3 {
 		margin: 0;
 		font-size: var(--text-lg);
 		font-weight: 600;
@@ -186,6 +186,7 @@
 		flex: 0 0 6.5rem;
 	}
 
+	/* No card frame: the thumbnail and its name; the picked one gets an accent ring */
 	.card {
 		display: flex;
 		flex-direction: column;
@@ -194,22 +195,29 @@
 		width: 100%;
 		height: 100%;
 		padding: var(--sp-1);
-		border: 1px solid var(--border-strong);
+		border: 0;
 		border-radius: var(--radius);
-		background: var(--sunken);
+		background: none;
 		color: var(--text);
 		font-size: var(--text-xs);
 		cursor: pointer;
 	}
 
-	.card:hover {
-		background: var(--surface-2);
+	.card canvas {
+		border-radius: var(--radius);
 	}
 
-	.card.active {
-		border-color: var(--accent);
-		background: var(--accent-bg);
-		box-shadow: inset 0 0 0 1px var(--accent);
+	.card:hover span {
+		color: var(--accent);
+	}
+
+	.card.active canvas {
+		box-shadow: 0 0 0 2px var(--accent);
+	}
+
+	.card.active span {
+		color: var(--accent);
+		font-weight: 600;
 	}
 
 	.card:focus-visible {

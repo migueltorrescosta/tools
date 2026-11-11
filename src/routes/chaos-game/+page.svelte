@@ -437,203 +437,215 @@
 	<span class="sr-only" bind:this={probe} aria-hidden="true"></span>
 
 	<div class="layout">
-		<div class="plot-col">
-			<Plot
-				{points}
-				bind:selected
-				{view}
-				width={side}
-				height={side}
-				frame={frame && frame.width === side && !error ? frame : null}
-				target={challenge ? target : null}
-				steps={stepView}
-				label={plotLabel}
-				onadd={addPoint}
-				onmove={movePoint}
-				onremove={removePoint}
-				onresize={resize}
-			/>
-			<div class="run-row" data-testid="steps">
-				{#if !stepping}
-					<p class="progress" data-testid="progress" data-jumps={jumps}>
-						{fmtJumps(jumps)} jumps{running ? '…' : ''}
-					</p>
-					<div class="links">
-						{#if running || canResume}
-							<Button variant="link" size="sm" onclick={pauseOrResume} data-testid="pause"
-								>{running ? 'Pause' : 'Resume'}</Button
-							>
-						{/if}
-						<Button
-							variant="link"
-							size="sm"
-							onclick={startSteps}
-							disabled={!!error}
-							data-testid="step-start">Step through</Button
-						>
-					</div>
-				{:else}
-					<p class="progress" aria-live="polite" data-testid="step-text">
-						{#if stepView?.to === null || stepView?.to === undefined}
-							The orange dot is the start.
-						{:else}
-							Jump {stepCount}: towards point {stepView.to + 1}.
-						{/if}
-					</p>
-					<div class="links">
-						<Button
-							variant="link"
-							size="sm"
-							onclick={nextStep}
-							disabled={playing}
-							data-testid="step-next">Next jump</Button
-						>
-						<Button variant="link" size="sm" onclick={togglePlay} aria-pressed={playing}
-							>{playing ? 'Pause' : 'Play'}</Button
-						>
-						<Button variant="link" size="sm" onclick={endSteps} data-testid="step-end">Done</Button>
-					</div>
-				{/if}
-			</div>
-			{#if setupError || runError}<Alert tone="danger">{setupError || runError}</Alert>{/if}
-			<Shapes
-				challenges={CHALLENGES}
-				bind:active={challenge}
-				bind:mode={challengeMode}
-				{score}
-				ink={targetInk}
-				onload={(c) => load(c.setup)}
-				onanswer={showAnswer}
-			/>
-		</div>
-
-		<div class="controls-col stack">
-			<Panel title="Jumps">
-				<div class="stack">
-					<Field label="Jump ratio" error={ratioValid ? undefined : 'Use a ratio between 0 and 1.'}>
-						{#snippet children(props)}
-							<div class="ratio">
-								<input
-									type="range"
-									min="0.01"
-									max="0.99"
-									step="0.01"
-									bind:value={ratio}
-									aria-label="Jump ratio slider"
-								/>
-								<input
-									class="control"
-									type="number"
-									min="0.01"
-									max="0.99"
-									step="0.01"
-									bind:value={ratio}
-									{...props}
-									data-testid="ratio"
-								/>
-							</div>
-						{/snippet}
-					</Field>
-					<div class="cluster">
-						<Button size="sm" onclick={() => (ratio = 0.5)} pressed={ratio === 0.5}>½</Button>
-						<Button size="sm" onclick={() => (ratio = 2 / 3)} pressed={ratio === 2 / 3}>⅔</Button>
-						{#if touching !== null}
+		<Panel title="Game">
+			<div class="game">
+				<Plot
+					{points}
+					bind:selected
+					{view}
+					width={side}
+					height={side}
+					frame={frame && frame.width === side && !error ? frame : null}
+					target={challenge ? target : null}
+					steps={stepView}
+					label={plotLabel}
+					onadd={addPoint}
+					onmove={movePoint}
+					onremove={removePoint}
+					onresize={resize}
+				/>
+				<div class="run-row" data-testid="steps">
+					{#if !stepping}
+						<p class="progress" data-testid="progress" data-jumps={jumps}>
+							{fmtJumps(jumps)} jumps{running ? '…' : ''}
+						</p>
+						<div class="links">
+							{#if running || canResume}
+								<Button variant="link" size="sm" onclick={pauseOrResume} data-testid="pause"
+									>{running ? 'Pause' : 'Resume'}</Button
+								>
+							{/if}
 							<Button
+								variant="link"
 								size="sm"
-								onclick={() => (ratio = touching)}
-								pressed={ratio === touching}
-								data-testid="touching">Copies touch ({touching.toFixed(3)})</Button
+								onclick={startSteps}
+								disabled={!!error}
+								data-testid="step-start">Step through</Button
 							>
-						{/if}
-					</div>
-					<SegmentedControl legend="Next point" options={RULES} bind:value={ruleMode} />
+						</div>
+					{:else}
+						<p class="progress" aria-live="polite" data-testid="step-text">
+							{#if stepView?.to === null || stepView?.to === undefined}
+								The orange dot is the start.
+							{:else}
+								Jump {stepCount}: towards point {stepView.to + 1}.
+							{/if}
+						</p>
+						<div class="links">
+							<Button
+								variant="link"
+								size="sm"
+								onclick={nextStep}
+								disabled={playing}
+								data-testid="step-next">Next jump</Button
+							>
+							<Button variant="link" size="sm" onclick={togglePlay} aria-pressed={playing}
+								>{playing ? 'Pause' : 'Play'}</Button
+							>
+							<Button variant="link" size="sm" onclick={endSteps} data-testid="step-end"
+								>Done</Button
+							>
+						</div>
+					{/if}
 				</div>
-			</Panel>
+				<p class="hint">Click the plot to add a point. Drag a point to move it.</p>
+				{#if setupError || runError}<Alert tone="danger">{setupError || runError}</Alert>{/if}
+				<Shapes
+					challenges={CHALLENGES}
+					bind:active={challenge}
+					bind:mode={challengeMode}
+					{score}
+					ink={targetInk}
+					onload={(c) => load(c.setup)}
+					onanswer={showAnswer}
+				/>
+			</div>
+		</Panel>
 
-			<PointsPanel bind:points bind:selected bind:open={editOpen} {ratio}>
-				{#snippet extra()}
-					<div class="custom">
-						<label class="check"
-							><input
-								type="checkbox"
-								checked={ruleMode === 'custom'}
-								onchange={(e) => (ruleMode = e.currentTarget.checked ? 'custom' : 'any')}
-								data-testid="custom-toggle"
-							/> Custom next-point rule</label
-						>
-						{#if ruleMode === 'custom'}
-							<Field
-								label="Forbidden steps"
-								hint="Steps on from the last point's number: 0 is the same point, 1 the next one."
-								error={customError || undefined}
-							>
-								{#snippet children(props)}
-									<input
-										class="control"
-										bind:value={customRule}
-										{...props}
-										data-testid="custom-rule"
-									/>
-								{/snippet}
-							</Field>
-						{/if}
-					</div>
-				{/snippet}
-			</PointsPanel>
-
-			<Panel title="Display">
-				<Fold label="Colour and contrast" data-testid="colour-fold">
-					<SegmentedControl
-						legend="Colour"
-						options={[
-							{ value: 'density', label: 'Density' },
-							{ value: 'point', label: 'By point' }
-						]}
-						bind:value={colour}
-					/>
-					<Field label="Contrast">
-						{#snippet children(props)}
+		<Panel title="Settings">
+			<div class="stack">
+				<Field label="Jump ratio" error={ratioValid ? undefined : 'Use a ratio between 0 and 1.'}>
+					{#snippet children(props)}
+						<div class="ratio">
 							<input
 								type="range"
-								min={GAMMA_RANGE.min}
-								max={GAMMA_RANGE.max}
-								step="0.1"
-								bind:value={gamma}
-								{...props}
+								min="0.01"
+								max="0.99"
+								step="0.01"
+								bind:value={ratio}
+								aria-label="Jump ratio slider"
 							/>
+							<input
+								class="control"
+								type="number"
+								min="0.01"
+								max="0.99"
+								step="0.01"
+								bind:value={ratio}
+								{...props}
+								data-testid="ratio"
+							/>
+						</div>
+					{/snippet}
+				</Field>
+				<div class="cluster">
+					<Button size="sm" onclick={() => (ratio = 0.5)} pressed={ratio === 0.5}>½</Button>
+					<Button size="sm" onclick={() => (ratio = 2 / 3)} pressed={ratio === 2 / 3}>⅔</Button>
+					{#if touching !== null}
+						<Button
+							size="sm"
+							onclick={() => (ratio = touching)}
+							pressed={ratio === touching}
+							data-testid="touching">Copies touch ({touching.toFixed(3)})</Button
+						>
+					{/if}
+				</div>
+				<SegmentedControl legend="Next point" options={RULES} bind:value={ruleMode} />
+
+				<Fold
+					label="Advanced"
+					summary="points, polygon, rule, colour"
+					bind:open={editOpen}
+					data-testid="advanced"
+				>
+					<PointsPanel bind:points bind:selected onreveal={() => (editOpen = true)} {ratio}>
+						{#snippet extra()}
+							<div class="custom">
+								<label class="check"
+									><input
+										type="checkbox"
+										checked={ruleMode === 'custom'}
+										onchange={(e) => (ruleMode = e.currentTarget.checked ? 'custom' : 'any')}
+										data-testid="custom-toggle"
+									/> Custom next-point rule</label
+								>
+								{#if ruleMode === 'custom'}
+									<Field
+										label="Forbidden steps"
+										hint="Steps on from the last point's number: 0 is the same point, 1 the next one."
+										error={customError || undefined}
+									>
+										{#snippet children(props)}
+											<input
+												class="control"
+												bind:value={customRule}
+												{...props}
+												data-testid="custom-rule"
+											/>
+										{/snippet}
+									</Field>
+								{/if}
+							</div>
 						{/snippet}
-					</Field>
+					</PointsPanel>
+
+					<div class="section">
+						<h3>Colour and contrast</h3>
+						<SegmentedControl
+							legend="Colour"
+							options={[
+								{ value: 'density', label: 'Density' },
+								{ value: 'point', label: 'By point' }
+							]}
+							bind:value={colour}
+						/>
+						<Field label="Contrast">
+							{#snippet children(props)}
+								<input
+									type="range"
+									min={GAMMA_RANGE.min}
+									max={GAMMA_RANGE.max}
+									step="0.1"
+									bind:value={gamma}
+									{...props}
+								/>
+							{/snippet}
+						</Field>
+					</div>
 				</Fold>
-			</Panel>
-		</div>
+
+				<details class="how" data-testid="how">
+					<summary>How it works</summary>
+					<p>
+						Pick some points and jump part of the way to a random one, over and over. Fractals
+						appear. Start anywhere. Pick one of the points at random and jump a fraction of the way
+						towards it, the jump ratio. Repeat millions of times and mark where you land. With three
+						points and a ratio of one half you get the Sierpinski triangle.
+					</p>
+					<p>
+						Rules about which point can come next, weights and per-point turns or matrices make many
+						more shapes. Contrast brings out faint regions. Step through shows the first jumps one
+						at a time.
+					</p>
+					<p>
+						A click on a shape loads it. With Challenge mode on, a click starts a try instead: the
+						shape shows faintly behind your game and the match ignores position and size. The first
+						ten shapes are from the original blog post.
+					</p>
+					<p>
+						From the blog post
+						<a href="https://blog.mptc.uk/posts/Strange-Attractors">Strange Attractors</a>. The
+						details are in the
+						<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/chaos-game.md"
+							>docs</a
+						>.
+					</p>
+				</details>
+
+				<References references={REFERENCES} />
+			</div>
+		</Panel>
 	</div>
-
-	<details class="how" data-testid="how">
-		<summary>How it works</summary>
-		<p>
-			Pick some points and jump part of the way to a random one, over and over. Fractals appear.
-			Start anywhere. Pick one of the points at random and jump a fraction of the way towards it,
-			the jump ratio. Repeat millions of times and mark where you land. With three points and a
-			ratio of one half you get the Sierpinski triangle.
-		</p>
-		<p>
-			Rules about which point can come next, weights and per-point turns or matrices make many more
-			shapes. Contrast brings out faint regions. Step through shows the first jumps one at a time.
-		</p>
-		<p>
-			A click on a shape loads it. With Challenge mode on, a click starts a try instead: the shape
-			shows faintly behind your game and the match ignores position and size. The first ten shapes
-			are from the original blog post.
-		</p>
-		<p>
-			From the blog post
-			<a href="https://blog.mptc.uk/posts/Strange-Attractors">Strange Attractors</a>. The details
-			are in the
-			<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/chaos-game.md">docs</a>.
-		</p>
-	</details>
-
-	<References references={REFERENCES} />
 </div>
 
 <style>
@@ -643,27 +655,38 @@
 		margin-bottom: var(--sp-3);
 	}
 
+	/* Game and Settings side by side; on a phone, Game comes first */
 	@media (min-width: 960px) {
 		.layout {
 			grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
 			align-items: start;
 		}
-
-		.plot-col {
-			position: sticky;
-			top: calc(var(--topbar-h) + var(--sp-3));
-		}
 	}
 
-	.plot-col {
+	.game {
 		display: flex;
 		flex-direction: column;
 		gap: var(--sp-3);
 		min-width: 0;
 	}
 
-	.controls-col {
-		min-width: 0;
+	.game .hint {
+		margin: 0;
+	}
+
+	/* A sub-section of the Advanced line, under a hairline */
+	.section {
+		display: flex;
+		flex-direction: column;
+		gap: var(--sp-2);
+		padding-top: var(--sp-3);
+		border-top: 1px solid var(--border);
+	}
+
+	h3 {
+		margin: 0;
+		font-size: var(--text-lg);
+		font-weight: 600;
 	}
 
 	.progress {
@@ -719,5 +742,14 @@
 
 	.how p {
 		margin: var(--sp-1) 0;
+	}
+
+	/* How it works and References are the box's last lines, a little apart from the settings */
+	.stack > :global(details.how) {
+		margin-top: var(--sp-2);
+	}
+
+	.stack > :global(.references) {
+		margin-top: 0;
 	}
 </style>
