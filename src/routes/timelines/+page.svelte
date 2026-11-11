@@ -81,68 +81,120 @@
 <div class="container">
 	<PageHeader path="/timelines" />
 
-	<!-- One of many: native radios, so arrow keys move the choice; styled as chips -->
-	<div class="tl-topics" role="radiogroup" aria-label="Timeline" aria-describedby="tl-topic-desc">
-		{#each timelines as timeline (timeline.id)}
-			<label class="tl-chip" class:checked={selectedTimelineId === timeline.id}>
-				<input
-					type="radio"
-					name="tl-topic"
-					value={timeline.id}
-					bind:group={selectedTimelineId}
-					onchange={handleTimelineChange}
-				/>
-				<span aria-hidden="true">{timeline.emoji}</span>
-				{timeline.label}
-			</label>
-		{/each}
-	</div>
-	<p class="tl-topic-desc" id="tl-topic-desc">{description}</p>
+	<div class="tl-layout">
+		<!-- The topic rail: stays in place beside the events on wide screens, stacks on top on phones -->
+		<div class="tl-rail">
+			<Panel>
+				<!-- One of many: native radios, so arrow keys move the choice; styled as chips -->
+				<div
+					class="tl-topics"
+					role="radiogroup"
+					aria-label="Timeline"
+					aria-describedby="tl-topic-desc"
+				>
+					{#each timelines as timeline (timeline.id)}
+						<label class="tl-chip" class:checked={selectedTimelineId === timeline.id}>
+							<input
+								type="radio"
+								name="tl-topic"
+								value={timeline.id}
+								bind:group={selectedTimelineId}
+								onchange={handleTimelineChange}
+							/>
+							<span aria-hidden="true">{timeline.emoji}</span>
+							{timeline.label}
+						</label>
+					{/each}
+				</div>
+				<p class="tl-topic-desc" id="tl-topic-desc">{description}</p>
 
-	<Panel>
-		{#if loading}
-			<p class="tl-status" role="status">
-				<span class="tl-spinner" aria-hidden="true"></span>
-				Loading events…
-			</p>
-		{:else if loadError}
-			<Alert tone="danger">
-				<div class="tl-error">
-					Could not load this timeline.
+				<details class="how">
+					<summary>How it works</summary>
+					<p>
+						Each topic is a list of dated events, sorted by date and grouped by year. A Today line
+						marks where the past ends; the events before it fold into one button, so the list opens
+						on what comes next. Linked titles (↗) open their source in a new tab.
+					</p>
+					<p>
+						Public holidays are the nationwide ones of each EU member state, computed per year from
+						the rules in law. Regional holidays are left out. A holiday marked “⁠(de facto)⁠” is a
+						customary day off, kept by custom or collective agreements, not a statutory public
+						holiday. The longest lists open only the current year; the other years open on request.
+					</p>
+				</details>
+			</Panel>
+		</div>
+
+		<Panel>
+			{#if loading}
+				<p class="tl-status" role="status">
+					<span class="tl-spinner" aria-hidden="true"></span>
+					Loading events…
+				</p>
+			{:else if loadError}
+				<!-- Text with its Retry, no box of its own -->
+				<div class="tl-status">
+					<Alert tone="danger">Could not load this timeline.</Alert>
 					<Button size="sm" onclick={handleTimelineChange}>Retry</Button>
 				</div>
-			</Alert>
-		{:else if filteredEvents.length > 0}
-			<!-- Keyed, so a new timeline opens folded again -->
-			{#key yearGroups}
-				<TimelineView groups={yearGroups} rich={isRichContent} />
-			{/key}
-		{:else}
-			<p class="tl-status">No events in this timeline</p>
-		{/if}
-	</Panel>
-
-	<details class="how">
-		<summary>How it works</summary>
-		<p>
-			Each topic is a list of dated events, sorted by date and grouped by year. A Today line marks
-			where the past ends; the events before it fold into one button, so the list opens on what
-			comes next. Linked titles (↗) open their source in a new tab.
-		</p>
-		<p>
-			Public holidays are the nationwide ones of each EU member state, computed per year from the
-			rules in law. Regional holidays are left out. A holiday marked “⁠(de facto)⁠” is a customary
-			day off, kept by custom or collective agreements, not a statutory public holiday. The longest
-			lists open only the current year; the other years open on request.
-		</p>
-	</details>
+			{:else if filteredEvents.length > 0}
+				<!-- Keyed, so a new timeline opens folded again -->
+				{#key yearGroups}
+					<TimelineView groups={yearGroups} rich={isRichContent} />
+				{/key}
+			{:else}
+				<p class="tl-status">No events in this timeline</p>
+			{/if}
+		</Panel>
+	</div>
 </div>
 
 <style>
+	/* Two boxes: the topic rail (15rem) beside the events; stacked on narrow screens. */
+	.tl-layout {
+		display: grid;
+		grid-template-columns: 15rem minmax(0, 1fr);
+		align-items: start;
+		gap: var(--sp-4);
+	}
+
+	/* The rail stays in place while the events scroll; an open How it works scrolls inside it. */
+	.tl-rail {
+		position: sticky;
+		top: calc(var(--topbar-h) + var(--sp-2));
+		min-width: 0;
+	}
+
+	.tl-rail :global(.ui-panel) {
+		max-height: calc(100dvh - var(--topbar-h) - var(--sp-4));
+		overflow-y: auto;
+	}
+
 	.tl-topics {
 		display: flex;
-		flex-wrap: wrap;
+		flex-direction: column;
 		gap: var(--sp-2);
+	}
+
+	@media (max-width: 47.99rem) {
+		.tl-layout {
+			grid-template-columns: minmax(0, 1fr);
+			gap: var(--sp-3);
+		}
+
+		.tl-rail {
+			position: static;
+		}
+
+		.tl-rail :global(.ui-panel) {
+			max-height: none;
+			overflow: visible;
+		}
+
+		.tl-topics {
+			flex-direction: row;
+			flex-wrap: wrap;
+		}
 	}
 
 	.tl-chip {
@@ -187,26 +239,26 @@
 
 	.tl-topic-desc {
 		min-height: 1.5em;
-		margin: var(--sp-2) 0 var(--sp-3);
+		margin: var(--sp-3) 0 0;
+		padding-bottom: var(--sp-3);
+		border-bottom: 1px solid var(--border);
 		font-size: var(--text-sm);
 		color: var(--text-muted);
 	}
 
+	.tl-rail .how {
+		margin-top: var(--sp-2);
+	}
+
 	.tl-status {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: center;
 		justify-content: center;
 		gap: var(--sp-2);
 		min-height: 8rem;
 		margin: 0;
 		color: var(--text-muted);
-	}
-
-	.tl-error {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: var(--sp-2);
 	}
 
 	/* Static under reduced motion: base.css cuts animations to one instant iteration. */
