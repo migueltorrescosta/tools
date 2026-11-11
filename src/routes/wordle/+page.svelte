@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Alert, Answer, Button, PageHeader } from '#lib/ui/index.js';
+	import { Alert, Answer, Button, PageHeader, Panel } from '#lib/ui/index.js';
+	import { proto } from '#lib/proto/proto.svelte.js';
 	import solutionTree from '#lib/wordle-solution.js';
 	import {
 		cycleTile as cycleResultTile,
@@ -114,103 +115,89 @@
 <div class="container">
 	<PageHeader path="/wordle" />
 
-	<div class="wordle-panel" data-hydrated={hydrated || undefined}>
-		{#if !gameOver}
-			<p class="instruction" data-testid="instruction">
-				{#if answerKnown}
-					Answer: <strong>{nextAttempt.word}</strong>. Play it, mark every tile green and Submit.
-				{:else}
-					Play <strong>{nextAttempt.word}</strong> in Wordle, then tap each tile below to match.
-				{/if}
-			</p>
-		{/if}
-
-		<div class="board">
-			{#each history as attempt (attempt.word)}
-				<div class="guess" data-testid="result-row">
-					{#each Array(5) as _, i}
-						{@const color = getTileColor(attempt.result, i)}
-						<span
-							class="cell"
-							data-state={STATE_NAMES[color]}
-							role="img"
-							aria-label={tileLabel(attempt.word[i], i, color)}>{attempt.word[i]}</span
-						>
-					{/each}
-				</div>
-			{/each}
-
+	<div class="wordle" data-hydrated={hydrated || undefined}>
+		<Panel>
 			{#if !gameOver}
-				<div class="guess" role="group" aria-label="Next guess">
-					{#each Array(5) as _, i}
-						{@const color = getTileColor(nextAttempt.result, i)}
-						<button
-							type="button"
-							class="cell cell-input"
-							data-state={STATE_NAMES[color]}
-							onclick={() => cycleTile(i)}
-							onkeydown={(e) => handleTileKeydown(e, i)}
-							aria-label={tileLabel(nextAttempt.word[i], i, color)}>{nextAttempt.word[i]}</button
-						>
-					{/each}
-				</div>
+				<p class="instruction" data-testid="instruction">
+					{#if answerKnown}
+						Answer: <strong>{nextAttempt.word}</strong>. Play it, mark every tile green and Submit.
+					{:else}
+						Play <strong>{nextAttempt.word}</strong> in Wordle, then tap each tile below to match.
+					{/if}
+				</p>
 			{/if}
-		</div>
 
-		<div role="status" class="message">
-			{#if message && messageKind === 'error'}
-				<Alert tone="danger" live={false}><span data-testid="message">{message}</span></Alert>
-			{:else if message}
-				<Answer headline={message} data-testid="message" />
-			{/if}
-		</div>
+			<div class="board">
+				{#each history as attempt (attempt.word)}
+					<div class="guess" data-testid="result-row">
+						{#each Array(5) as _, i}
+							{@const color = getTileColor(attempt.result, i)}
+							<span
+								class="cell"
+								data-state={STATE_NAMES[color]}
+								role="img"
+								aria-label={tileLabel(attempt.word[i], i, color)}>{attempt.word[i]}</span
+							>
+						{/each}
+					</div>
+				{/each}
 
-		<div class="actions">
-			{#if gameOver}
-				<Button variant="primary" onclick={restartGame}>New game</Button>
-			{:else}
-				<Button variant="primary" class="submit" onclick={handleResultSubmission}>Submit</Button>
+				{#if !gameOver}
+					<div class="guess" role="group" aria-label="Next guess">
+						{#each Array(5) as _, i}
+							{@const color = getTileColor(nextAttempt.result, i)}
+							<button
+								type="button"
+								class="cell cell-input"
+								data-state={STATE_NAMES[color]}
+								onclick={() => cycleTile(i)}
+								onkeydown={(e) => handleTileKeydown(e, i)}
+								aria-label={tileLabel(nextAttempt.word[i], i, color)}>{nextAttempt.word[i]}</button
+							>
+						{/each}
+					</div>
+				{/if}
+			</div>
+
+			<div role="status" class="message">
+				{#if message && messageKind === 'error'}
+					<Alert tone="danger" live={false}><span data-testid="message">{message}</span></Alert>
+				{:else if message}
+					<Answer headline={message} data-testid="message" />
+				{/if}
+			</div>
+
+			<div class="actions">
+				{#if gameOver}
+					<Button variant="primary" onclick={restartGame}>New game</Button>
+				{:else}
+					<Button variant="primary" class="submit" onclick={handleResultSubmission}>Submit</Button>
+				{/if}
+				{#if history.length > 0}
+					<Button variant="link" tone="muted" onclick={undoLastRow}>Undo</Button>
+				{/if}
+			</div>
+
+			{#if proto.wordle === 'hint' && !gameOver}
+				<p class="hint" data-testid="hint">
+					Tap a tile to cycle black, yellow, green, or press 1, 2, 3.
+				</p>
 			{/if}
-			{#if history.length > 0}
-				<Button variant="link" tone="muted" onclick={undoLastRow}>Undo</Button>
-			{/if}
-		</div>
+
+			<p class="nyt">
+				<a href="https://www.nytimes.com/games/wordle/index.html" target="_blank" rel="noopener"
+					>Play today’s Wordle on nytimes.com ↗</a
+				>
+			</p>
+		</Panel>
 	</div>
-
-	<details class="how">
-		<summary>How it works</summary>
-		<p>
-			Play a guess in Wordle, tap the tiles here to match its colours, then press Submit. Each tap
-			cycles a tile from black (not in the word) to yellow (in the word, wrong position) to green
-			(right position). Yellow tiles carry a ~ and green tiles a ✓, so the colours never stand
-			alone. The tool then shows the next word.
-		</p>
-		<p>
-			Open with RAISE and play every suggestion as shown. Some suggestions are probes, not answers,
-			and Hard Mode may reject some.
-		</p>
-		<p>
-			Keys 1, 2 and 3 (or B, Y and G) set the focused tile to black, yellow or green; the arrow keys
-			move between tiles. The details are in the
-			<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/wordle.md">docs</a>, and
-			the solver was
-			<a href="https://blog.mptc.uk/posts/Wordle" target="_blank" rel="noreferrer"
-				>first written up on the blog</a
-			>.
-		</p>
-	</details>
 </div>
 
 <style>
-	.wordle-panel {
+	/* The box hugs the board instead of spanning the page. */
+	.wordle {
 		width: fit-content;
-		overflow: visible;
-		margin: 0;
 		max-width: 100%;
-		padding: var(--sp-3);
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius);
 	}
 
 	.instruction {
@@ -304,11 +291,12 @@
 		max-width: 14rem;
 	}
 
-	.how p {
-		margin: 0 0 var(--sp-2);
+	.hint,
+	.nyt {
+		margin: var(--sp-3) 0 0;
 	}
 
-	.how p:last-child {
-		margin-bottom: 0;
+	.hint + .nyt {
+		margin-top: var(--sp-1);
 	}
 </style>
