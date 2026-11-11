@@ -55,8 +55,6 @@
 <div class="container stack" data-hydrated={hydrated || undefined}>
 	<PageHeader path="/format" />
 
-	<SegmentedControl legend="Format" options={formats} bind:value={selectedFormat} />
-
 	<Panel title="Content">
 		{#snippet actions()}
 			<Button
@@ -67,6 +65,8 @@
 			>
 		{/snippet}
 		<div class="stack">
+			<SegmentedControl legend="Format" options={formats} bind:value={selectedFormat} />
+
 			<Field label="Content" hideLabel>
 				{#snippet children(props)}
 					<textarea
@@ -97,19 +97,18 @@
 				{/if}
 			</div>
 		</div>
+		<details class="how tail">
+			<summary>How it works</summary>
+			<p>
+				Pick a format and paste your text. The checker shows the first problem it finds, with its
+				line and column.
+			</p>
+			<p>
+				The rules for each format are in the
+				<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/format.md">docs</a>.
+			</p>
+		</details>
 	</Panel>
-
-	<details class="how">
-		<summary>How it works</summary>
-		<p>
-			Pick a format and paste your text. The checker shows the first problem it finds, with its line
-			and column.
-		</p>
-		<p>
-			The rules for each format are in the
-			<a href="https://github.com/migueltorrescosta/tools/blob/main/docs/format.md">docs</a>.
-		</p>
-	</details>
 </div>
 
 <style>
@@ -118,6 +117,12 @@
 		flex-wrap: wrap;
 		align-items: baseline;
 		gap: var(--sp-1) var(--sp-3);
+	}
+
+	/* The last lines of the box, under a hairline */
+	.tail {
+		padding-top: var(--sp-3);
+		border-top: 1px solid var(--border);
 	}
 
 	.placeholder {

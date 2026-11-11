@@ -118,3 +118,13 @@ test('JSON errors carry a single line and column', async ({ page }) => {
 	await u.content.fill('{\n  "a": 1,\n  "b": x\n}');
 	await expect(u.result).toHaveText("Invalid JSON at line 3, column 8: Unexpected token 'x'");
 });
+
+test('the picker, the result and How it works sit in the one Content box', async ({ page }) => {
+	const box = page.locator('.ui-panel');
+	await expect(box).toHaveCount(1);
+	await expect(box.getByRole('group', { name: 'Format' })).toBeVisible();
+	await expect(box.getByRole('status', { name: 'Validation result' })).toBeVisible();
+	const how = box.getByText('How it works', { exact: true });
+	await how.click();
+	await expect(box.getByRole('link', { name: 'docs' })).toBeVisible();
+});
