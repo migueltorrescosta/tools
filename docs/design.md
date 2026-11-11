@@ -4,9 +4,9 @@ How tools.mptc.uk looks and why. The owner chose this look in November 2026 from
 
 ## The look: dawn horizon
 
-- **Background:** a warm-to-cool sweep, peach at the top of the window and blue at the bottom, neutral between, where the content sits (`--bg`, `--bg-top`, `--bg-bottom`). It is fixed to the window and the boxes scroll over it (`body::before` in `src/lib/styles/base.css`). No grid.
-- **Glass boxes:** every box and the top bar are tinted glass that mostly hides the gradient (66% opaque in light, 60% in dark), blurred 18px with a hairline edge, an inner top highlight and a soft shadow (`--box-*` in `tokens.css`). The recipe follows Apple's and Microsoft's material guidance: text never sits on the raw gradient. Asked for less transparency, the boxes turn solid. Controls keep the opaque `--surface`.
-- **Space:** airy. Boxes have 24px of padding, the middle spacing steps are 16, 20 and 32px, and the reading column is 64rem.
+- **Background:** a strong warm-to-cool diagonal, peach in the top-left corner and blue in the bottom-right, neutral through the middle, where the content sits (`--bg-start`, `--bg-mid`, `--bg-end`). In dark, a floor deepens only the bottom fifth of the window (`--bg-floor`); dark stays fairly light above it. It is fixed to the window and the boxes scroll over it (`body::before` in `src/lib/styles/base.css`). No grid.
+- **Glass boxes:** every box and the top bar are tinted glass that mostly hides the gradient (54% opaque in light, 49% in dark), blurred 18px with a hairline edge, an inner top highlight and a soft shadow (`--box-*` in `tokens.css`). The recipe follows Apple's and Microsoft's material guidance: text never sits on the raw gradient. Asked for less transparency, the boxes turn solid. Controls keep the opaque `--surface`.
+- **Space:** airy. Boxes have 24px of padding, the middle spacing steps are 16, 20 and 32px, and the reading column is 72rem.
 - **Accent:** one dawn orange (`--accent`). It marks links, the main button, focus and the picked option, and nothing else. Status colours (`--success`, `--warning`, `--danger`) mark states. A colour that carries no meaning (decorative stripes, a tint per item) is left out.
 - **Type:** the system font everywhere. Monospace only for code and values people copy.
 - **Section titles:** `Panel` titles are body size over a short accent rule, with no header band.

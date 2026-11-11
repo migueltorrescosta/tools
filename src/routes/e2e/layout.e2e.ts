@@ -30,7 +30,7 @@ test('Layout - a picked theme survives reloads and OS changes, until Match devic
 	expect(await bodyBg(page)).toBe(LIGHT_BG);
 	await expect(page.locator('meta[name="theme-color"]').first()).toHaveAttribute(
 		'content',
-		'#ffead8'
+		'#f9a870'
 	);
 
 	await page.reload({ waitUntil: 'networkidle' });

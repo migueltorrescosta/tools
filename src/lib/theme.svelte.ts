@@ -8,8 +8,8 @@ export type Mode = Theme | 'system';
 
 export const THEME_KEY = 'theme';
 
-/** --bg-top of each theme in tokens.css (the top of the dawn gradient), for the browser bar; keep in sync with src/app.html. */
-export const THEME_COLOURS: Record<Theme, string> = { light: '#ffead8', dark: '#2a140c' };
+/** --bg-start of each theme in tokens.css (the top-left corner of the dawn gradient), for the browser bar; keep in sync with src/app.html. */
+export const THEME_COLOURS: Record<Theme, string> = { light: '#f9a870', dark: '#613521' };
 
 const DARK_QUERY = '(prefers-color-scheme: dark)';
 
