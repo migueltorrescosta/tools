@@ -31,11 +31,11 @@ test('every context and every situation lays out', async ({ page }) => {
 	}
 });
 
-test('a situation draws only its institutions', async ({ page }) => {
+test('a situation lights its institutions on the full map', async ({ page }) => {
 	await open(page, '?context=portugal&route=lost-job');
 	await expect(page.getByTestId('route')).toHaveValue('lost-job');
-	await expect(page.getByTestId('node-iefp')).toBeVisible();
-	await expect(page.getByTestId('node-assembleia-da-republica')).toHaveCount(0);
+	await expect(page.getByTestId('node-iefp')).not.toHaveClass(/dim/);
+	await expect(page.getByTestId('node-assembleia-da-republica')).toHaveClass(/dim/);
 	// Its relations carry labels without a selection.
 	await expect(page.getByTestId('edge-iefp-partners-iss')).toBeVisible();
 });

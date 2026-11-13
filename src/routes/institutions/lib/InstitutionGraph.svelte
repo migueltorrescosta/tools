@@ -28,7 +28,7 @@
 		selected: Selection;
 		/** Relation families left out of the drawing. */
 		hidden: Set<Family>;
-		/** A route's institutions in order: draw only them, numbered, with every label. */
+		/** A route's institutions in order: numbered and lit, with their relations labelled. */
 		steps?: string[];
 		/** Shrink the map to the width of its box; otherwise draw it full size and scroll. */
 		fit: boolean;
@@ -37,11 +37,10 @@
 	const uid = $props.id();
 
 	const step = $derived(steps && new Map(steps.map((id, i) => [id, i + 1])));
-	const nodes = $derived(context.institutions.filter((i) => !step || step.has(i.id)));
+	const nodes = $derived(context.institutions);
 	const edges = $derived(
 		context.relations
 			.filter((r) => !hidden.has(FAMILY[r.kind]))
-			.filter((r) => !step || (step.has(r.from) && step.has(r.to)))
 			.map((r) => ({ ...r, id: relationId(r), family: FAMILY[r.kind] }))
 	);
 	const names = $derived(Object.fromEntries(nodes.map((n) => [n.id, n.acronym ?? n.name])));
@@ -51,24 +50,33 @@
 	const height = $state<Record<string, number>>({});
 
 	const request = $derived.by(() => {
-		// A route's labels get room in the layout; on the full map, with over a hundred relations,
-		// they would triple its width, so the selection's labels sit over the map instead.
-		const sized = [...nodes.map((n) => n.id), ...(step ? edges.map((e) => e.id) : [])];
-		if (!sized.every((id) => width[id] > 0 && height[id] > 0)) return undefined;
-		const size = (id: string) => ({ width: width[id], height: height[id] });
+		if (!nodes.every((n) => width[n.id] > 0 && height[n.id] > 0)) return undefined;
 		return {
-			nodes: Object.fromEntries(nodes.map((n) => [n.id, size(n.id)])),
-			edges: edges.map((e) => {
-				const label = step ? size(e.id) : undefined;
-				return UPWARD.has(e.kind)
-					? { id: e.id, from: e.to, to: e.from, label }
-					: { id: e.id, from: e.from, to: e.to, label };
-			})
+			nodes: Object.fromEntries(
+				nodes.map((n) => [n.id, { width: width[n.id], height: height[n.id] }])
+			),
+			// Labels take no room: with over a hundred relations they would triple the width, so
+			// the lit ones sit over the map instead.
+			edges: edges.map((e) =>
+				UPWARD.has(e.kind)
+					? { id: e.id, from: e.to, to: e.from }
+					: { id: e.id, from: e.from, to: e.to }
+			)
 		};
 	});
 	const laidOut = new AsyncLayout(
 		() => request,
-		(r) => layoutGraph(r.nodes, r.edges, { nodeGap: 16, rowGap: 48 })
+		// Compact: few boxes per row and tight, shared edge routes keep the map about a screen wide.
+		(r) =>
+			layoutGraph(r.nodes, r.edges, {
+				nodeGap: 16,
+				rowGap: 48,
+				maxPerRow: 4,
+				edgeGap: 3,
+				mergeEdges: true,
+				// Seventy boxes and their many edges take seconds at the default 100 passes.
+				thoroughness: 7
+			})
 	);
 	const layout = $derived(laidOut.latest ?? null);
 
@@ -91,13 +99,6 @@
 			rest -= l;
 		}
 		return points[0] ?? { x: 0, y: 0 };
-	}
-
-	/** A label's centre: the room the layout left for it, else the middle of its arrow. */
-	function labelAt(e: (typeof edges)[number]) {
-		const laid = layout?.edges[e.id];
-		if (!laid) return undefined;
-		return step ? laid.label : midpoint(route(e));
 	}
 
 	let boxWidth = $state(0);
@@ -123,9 +124,16 @@
 		}
 		return ids;
 	});
-	const dim = (id: string) => lit.size > 0 && !lit.has(id);
-	/** On the full map only the selection's relations carry a label; a route labels them all. */
-	const labelled = $derived(step ? edges : edges.filter((e) => lit.has(e.id)));
+	/** A route's steps and the relations between them. */
+	const onRoute = $derived.by(() => {
+		const ids = new Set(step?.keys());
+		for (const e of edges) if (step?.has(e.from) && step.has(e.to)) ids.add(e.id);
+		return ids;
+	});
+	/** What stays bright: the selection and its neighbours, else the route, else everything. */
+	const bright = $derived(lit.size ? lit : step ? onRoute : null);
+	const dim = (id: string) => bright !== null && !bright.has(id);
+	const labelled = $derived(bright ? edges.filter((e) => bright.has(e.id)) : []);
 
 	function select(type: 'node' | 'edge', id: string) {
 		selected = selected?.id === id ? null : { type, id };
@@ -226,7 +234,7 @@
 			{/each}
 
 			{#each labelled as edge (edge.id)}
-				{@const p = labelAt(edge)}
+				{@const p = layout?.edges[edge.id] && midpoint(route(edge))}
 				<button
 					type="button"
 					class="ig-label"
@@ -234,8 +242,6 @@
 					aria-pressed={selected?.id === edge.id}
 					data-testid="edge-{edge.id}"
 					style={p ? `left:${p.x}px;top:${p.y}px` : 'visibility:hidden'}
-					bind:offsetWidth={width[edge.id]}
-					bind:offsetHeight={height[edge.id]}
 					onclick={() => select('edge', edge.id)}
 				>
 					{edge.label}
@@ -341,7 +347,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		max-width: 12rem;
+		max-width: 8.5rem;
 		padding: var(--sp-1) var(--sp-3);
 		background: none;
 		border: 0;

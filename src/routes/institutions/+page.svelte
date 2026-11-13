@@ -176,7 +176,7 @@
 				{/each}
 			</ul>
 		</div>
-		{#key `${context.id}/${routeId}`}
+		{#key context.id}
 			<InstitutionGraph
 				{context}
 				{hidden}
@@ -194,8 +194,8 @@
 					of a box give its kind; the colour and dashes of an arrow give the kind of relation.
 				</p>
 				<p>
-					Select a box or a label for its details. Pick a situation to see only the bodies involved,
-					in order. Turn relation kinds on or off with the buttons above the map.
+					Select a box or a label for its details. Pick a situation to light up the bodies involved,
+					numbered in order. Turn relation kinds on or off with the buttons above the map.
 				</p>
 			</details>
 			<p class="in-asof">Facts checked on {context.asOf}. Each detail lists its sources.</p>
