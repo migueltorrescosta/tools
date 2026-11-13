@@ -86,6 +86,12 @@ export const routes: ToolRoute[] = [
 		group: 'Data and politics'
 	},
 	{
+		path: '/institutions',
+		name: 'Institutions',
+		description: 'Who does what across the EU, Portugal and the AI industry.',
+		group: 'Data and politics'
+	},
+	{
 		path: '/symbolic-regression',
 		name: 'Symbolic Regression',
 		description: 'Find short equations that fit your CSV.',
