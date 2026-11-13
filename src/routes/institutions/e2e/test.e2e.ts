@@ -5,6 +5,11 @@ async function open(page: Page, query = '') {
 	await page.goto(`/institutions${query}`);
 	// The first visit on a cold dev server waits for Vite to optimise ELK.
 	await expect(page.getByRole('main').locator('[data-hydrated]')).toBeVisible({ timeout: 15000 });
+	await laidOut(page);
+}
+
+/** A 70-box map takes seconds to lay out on a slow runner. */
+async function laidOut(page: Page) {
 	await expect(page.getByTestId('graph')).toHaveAttribute('data-ready', '', { timeout: 15000 });
 }
 
@@ -19,11 +24,11 @@ test('every context and every situation lays out', async ({ page }) => {
 	for (const context of CONTEXTS) {
 		await page.getByTestId('context').selectOption(context.id);
 		await expect(page).toHaveURL(new RegExp(`context=${context.id}`));
-		await expect(page.getByTestId('graph')).toHaveAttribute('data-ready', '');
+		await laidOut(page);
 		await expect(page.getByTestId(`node-${context.institutions[0].id}`)).toBeVisible();
 		for (const route of context.routes) {
 			await page.getByTestId('route').selectOption(route.id);
-			await expect(page.getByTestId('graph')).toHaveAttribute('data-ready', '');
+			await laidOut(page);
 			await expect(page.getByTestId('steps').getByRole('listitem')).toHaveCount(route.steps.length);
 			for (const step of route.steps)
 				await expect(page.getByTestId(`node-${step.id}`)).toBeVisible();
