@@ -3,16 +3,16 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { CONTEXTS, relationId } from '#lib/institutions/index.js';
-	import { FAMILY_STYLE, KIND_STYLE, shapePath, type Family } from '#lib/institutions/style.js';
-	import { PageHeader, Panel, SegmentedControl, Select } from '#lib/ui/index.js';
+	import { FAMILY_STYLE, KIND_STYLE, shapePath } from '#lib/institutions/style.js';
+	import { PageHeader, Panel, Select } from '#lib/ui/index.js';
 	import InstitutionGraph, { type Selection } from './lib/InstitutionGraph.svelte';
 	import DetailPanel from './lib/DetailPanel.svelte';
 
 	let contextId = $state(CONTEXTS[0].id);
 	let routeId = $state('');
 	let selected = $state<Selection>(null);
-	let hidden = $state(new Set<Family>());
-	let zoom = $state<'fit' | 'full'>('fit');
+	/** Institution kinds and relation families turned off in the key. */
+	let hidden = $state(new Set<string>());
 	let hydrated = $state(false);
 
 	const context = $derived(CONTEXTS.find((c) => c.id === contextId) ?? CONTEXTS[0]);
@@ -48,9 +48,9 @@
 		writeUrl();
 	}
 
-	function toggle(family: Family) {
+	function toggle(key: string) {
 		const next = new Set(hidden);
-		if (!next.delete(family)) next.add(family);
+		if (!next.delete(key)) next.add(key);
 		hidden = next;
 	}
 
@@ -128,25 +128,25 @@
 
 	<Panel>
 		<div class="in-key">
-			<SegmentedControl
-				legend="Zoom"
-				options={[
-					{ value: 'fit', label: 'Fit' },
-					{ value: 'full', label: '100%' }
-				]}
-				bind:value={zoom}
-			/>
-			<ul aria-label="Institution kinds">
+			<ul aria-label="Institutions to show">
 				{#each kinds as [kind, style] (kind)}
 					<li>
-						<svg viewBox="0 0 30 16" aria-hidden="true"
-							><path
-								d={shapePath(style.shape, 15, 8, 28, 14)}
-								class="in-swatch"
-								style:--kind="var({style.colour})"
-								stroke-dasharray={style.dashed ? '4 2' : undefined}
-							/></svg
-						>{style.label}
+						<button
+							type="button"
+							class="in-toggle"
+							aria-pressed={!hidden.has(kind)}
+							data-testid="kind-{kind}"
+							onclick={() => toggle(kind)}
+						>
+							<svg viewBox="0 0 30 16" aria-hidden="true"
+								><path
+									d={shapePath(style.shape, 15, 8, 28, 14)}
+									class="in-swatch"
+									style:--kind="var({style.colour})"
+									stroke-dasharray={style.dashed ? '4 2' : undefined}
+								/></svg
+							>{style.label}
+						</button>
 					</li>
 				{/each}
 			</ul>
@@ -155,10 +155,10 @@
 					<li>
 						<button
 							type="button"
-							class="in-family"
-							aria-pressed={!hidden.has(family as Family)}
+							class="in-toggle"
+							aria-pressed={!hidden.has(family)}
 							data-testid="family-{family}"
-							onclick={() => toggle(family as Family)}
+							onclick={() => toggle(family)}
 						>
 							<svg viewBox="0 0 24 10" aria-hidden="true"
 								><line
@@ -177,13 +177,7 @@
 			</ul>
 		</div>
 		{#key context.id}
-			<InstitutionGraph
-				{context}
-				{hidden}
-				steps={route?.steps.map((s) => s.id)}
-				fit={zoom === 'fit'}
-				bind:selected
-			/>
+			<InstitutionGraph {context} {hidden} steps={route?.steps.map((s) => s.id)} bind:selected />
 		{/key}
 
 		<div class="in-end">
@@ -195,7 +189,8 @@
 				</p>
 				<p>
 					Select a box or a label for its details. Pick a situation to light up the bodies involved,
-					numbered in order. Turn relation kinds on or off with the buttons above the map.
+					numbered in order. Turn kinds of institution or relation on or off with the buttons above
+					the map.
 				</p>
 			</details>
 			<p class="in-asof">Facts checked on {context.asOf}. Each detail lists its sources.</p>
@@ -294,7 +289,7 @@
 		stroke-width: 1.5;
 	}
 
-	.in-family {
+	.in-toggle {
 		display: flex;
 		align-items: center;
 		gap: var(--sp-1);
@@ -308,14 +303,14 @@
 		cursor: pointer;
 	}
 
-	.in-family[aria-pressed='false'] {
+	.in-toggle[aria-pressed='false'] {
 		color: var(--text-muted);
 		text-decoration: line-through;
 		background: none;
 		border-style: dashed;
 	}
 
-	.in-family[aria-pressed='false'] svg {
+	.in-toggle[aria-pressed='false'] svg {
 		opacity: 0.35;
 	}
 

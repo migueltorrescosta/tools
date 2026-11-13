@@ -10,8 +10,7 @@
 		KIND_STYLE,
 		SYMMETRIC,
 		UPWARD,
-		shapePath,
-		type Family
+		shapePath
 	} from '#lib/institutions/style.js';
 	import { AsyncLayout } from '#lib/async-layout.svelte.js';
 	import { edgePath, layoutGraph } from '#lib/graph-layout.js';
@@ -21,26 +20,24 @@
 		context,
 		selected = $bindable(),
 		hidden,
-		steps,
-		fit
+		steps
 	}: {
 		context: Context;
 		selected: Selection;
-		/** Relation families left out of the drawing. */
-		hidden: Set<Family>;
+		/** Institution kinds and relation families left out of the drawing. */
+		hidden: Set<string>;
 		/** A route's institutions in order: numbered and lit, with their relations labelled. */
 		steps?: string[];
-		/** Shrink the map to the width of its box; otherwise draw it full size and scroll. */
-		fit: boolean;
 	} = $props();
 
 	const uid = $props.id();
 
 	const step = $derived(steps && new Map(steps.map((id, i) => [id, i + 1])));
-	const nodes = $derived(context.institutions);
+	const nodes = $derived(context.institutions.filter((i) => !hidden.has(i.kind)));
+	const shown = $derived(new Set(nodes.map((n) => n.id)));
 	const edges = $derived(
 		context.relations
-			.filter((r) => !hidden.has(FAMILY[r.kind]))
+			.filter((r) => !hidden.has(FAMILY[r.kind]) && shown.has(r.from) && shown.has(r.to))
 			.map((r) => ({ ...r, id: relationId(r), family: FAMILY[r.kind] }))
 	);
 	const names = $derived(Object.fromEntries(nodes.map((n) => [n.id, n.acronym ?? n.name])));
@@ -102,9 +99,7 @@
 	}
 
 	let boxWidth = $state(0);
-	const scale = $derived(
-		fit && layout && boxWidth > 0 ? Math.min(1, (boxWidth - 2) / layout.width) : 1
-	);
+	const scale = $derived(layout && boxWidth > 0 ? Math.min(1, (boxWidth - 2) / layout.width) : 1);
 
 	/** The selection and everything it touches. */
 	const lit = $derived.by(() => {

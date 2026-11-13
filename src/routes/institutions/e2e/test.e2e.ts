@@ -79,3 +79,16 @@ test('a relation family can be hidden', async ({ page }) => {
 	await expect(family).toHaveAttribute('aria-pressed', 'false');
 	await expect(page.getByTestId('edge-iefp-partners-iss')).toHaveCount(0);
 });
+
+test('a kind of institution can be hidden, with its relations', async ({ page }) => {
+	await open(page, '?context=portugal');
+	const kind = page.getByTestId('kind-court');
+	await kind.click();
+	await expect(kind).toHaveAttribute('aria-pressed', 'false');
+	await laidOut(page);
+	await expect(page.getByTestId('node-constitutional-court')).toHaveCount(0);
+	await expect(page.getByTestId('node-iefp')).toBeVisible();
+	await kind.click();
+	await laidOut(page);
+	await expect(page.getByTestId('node-constitutional-court')).toBeVisible();
+});
