@@ -13,19 +13,26 @@ async function laidOut(page: Page) {
 	await expect(page.getByTestId('graph')).toHaveAttribute('data-ready', '', { timeout: 15000 });
 }
 
-test('opens the first context', async ({ page }) => {
+test('opens the first part of the first context', async ({ page }) => {
 	await open(page);
 	await expect(page.getByTestId('context')).toHaveValue(CONTEXTS[0].id);
+	await expect(page.getByTestId('part')).toHaveValue(CONTEXTS[0].parts[0].id);
 	await expect(page.getByTestId('node-european-commission')).toBeVisible();
+	// Only the part is drawn.
+	await expect(page.getByTestId('node-unesco')).toHaveCount(0);
 });
 
-test('every context and every situation lays out', async ({ page }) => {
+test('every part and every situation lays out', async ({ page }) => {
 	await open(page);
 	for (const context of CONTEXTS) {
 		await page.getByTestId('context').selectOption(context.id);
 		await expect(page).toHaveURL(new RegExp(`context=${context.id}`));
-		await laidOut(page);
-		await expect(page.getByTestId(`node-${context.institutions[0].id}`)).toBeVisible();
+		for (const part of context.parts) {
+			await page.getByTestId('part').selectOption(part.id);
+			await expect(page).toHaveURL(new RegExp(`part=${part.id}`));
+			await laidOut(page);
+			await expect(page.getByTestId(`node-${part.ids[0]}`)).toBeVisible();
+		}
 		for (const route of context.routes) {
 			await page.getByTestId('route').selectOption(route.id);
 			await laidOut(page);
@@ -36,17 +43,25 @@ test('every context and every situation lays out', async ({ page }) => {
 	}
 });
 
-test('a situation lights its institutions on the full map', async ({ page }) => {
+test('the whole map is still on offer', async ({ page }) => {
+	await open(page, '?context=ai-industry&part=all');
+	await expect(page.getByTestId('part')).toHaveValue('');
+	await expect(page.getByTestId('node-asml')).toBeVisible();
+	await expect(page.getByTestId('node-frontier-model-forum')).toBeVisible();
+});
+
+test('a situation opens its part and lights its institutions', async ({ page }) => {
 	await open(page, '?context=portugal&route=lost-job');
 	await expect(page.getByTestId('route')).toHaveValue('lost-job');
+	await expect(page.getByTestId('part')).toHaveValue('work');
 	await expect(page.getByTestId('node-iefp')).not.toHaveClass(/dim/);
-	await expect(page.getByTestId('node-assembleia-da-republica')).toHaveClass(/dim/);
+	await expect(page.getByTestId('node-igfss')).toHaveClass(/dim/);
 	// Its relations carry labels without a selection.
 	await expect(page.getByTestId('edge-iefp-partners-iss')).toBeVisible();
 });
 
 test('a node shows its details, and links to its relations and overlaps', async ({ page }) => {
-	await open(page, '?context=portugal');
+	await open(page, '?context=portugal&part=work');
 	await page.getByTestId('node-iefp').click();
 	await expect(page.getByTestId('node-iefp')).toHaveAttribute('aria-pressed', 'true');
 	const detail = page.getByTestId('detail');
@@ -61,8 +76,21 @@ test('a node shows its details, and links to its relations and overlaps', async 
 	await expect(detail).toHaveCount(0);
 });
 
+test('a link to a body outside the part moves to a part that holds it', async ({ page }) => {
+	await open(page, '?context=portugal&part=work');
+	await page.getByTestId('node-aima').click();
+	await page
+		.getByTestId('detail')
+		.getByRole('button', { name: 'UNEF', exact: true })
+		.first()
+		.click();
+	await expect(page.getByTestId('part')).toHaveValue('borders');
+	await laidOut(page);
+	await expect(page.getByTestId('node-psp-unef')).toHaveAttribute('aria-pressed', 'true');
+});
+
 test('a shared institution switches context', async ({ page }) => {
-	await open(page, '?context=ai-industry');
+	await open(page, '?context=ai-industry&part=governments');
 	await page.getByTestId('node-european-commission').click();
 	await page.getByTestId('detail').getByRole('button', { name: 'EU and international' }).click();
 	await expect(page.getByTestId('context')).toHaveValue('eu-international');
@@ -80,15 +108,14 @@ test('a relation family can be hidden', async ({ page }) => {
 	await expect(page.getByTestId('edge-iefp-partners-iss')).toHaveCount(0);
 });
 
-test('a kind of institution can be hidden, with its relations', async ({ page }) => {
-	await open(page, '?context=portugal');
+test('a kind of institution hides in place, without a new layout', async ({ page }) => {
+	await open(page, '?context=portugal&part=justice');
+	const at = await page.getByTestId('node-at').boundingBox();
 	const kind = page.getByTestId('kind-court');
 	await kind.click();
 	await expect(kind).toHaveAttribute('aria-pressed', 'false');
-	await laidOut(page);
-	await expect(page.getByTestId('node-constitutional-court')).toHaveCount(0);
-	await expect(page.getByTestId('node-iefp')).toBeVisible();
+	await expect(page.getByTestId('node-constitutional-court')).toBeHidden();
+	expect(await page.getByTestId('node-at').boundingBox()).toEqual(at);
 	await kind.click();
-	await laidOut(page);
 	await expect(page.getByTestId('node-constitutional-court')).toBeVisible();
 });

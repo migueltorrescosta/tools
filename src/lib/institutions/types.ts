@@ -73,7 +73,15 @@ export interface Relation {
 	sources: string[];
 }
 
-/** A common situation, walked through as a path of institutions. */
+/** A themed part of a context, drawn on its own: a smaller map is faster and easier to read. */
+export interface Part {
+	id: string;
+	title: string;
+	/** Its institutions; a body may sit in several parts. */
+	ids: string[];
+}
+
+/** A common situation, walked through as a path of institutions inside one part. */
 export interface Route {
 	id: string;
 	/** The situation, e.g. "I lost my job". */
@@ -89,6 +97,7 @@ export interface Context {
 	asOf: string;
 	institutions: Institution[];
 	relations: Relation[];
+	parts: Part[];
 	routes: Route[];
 }
 

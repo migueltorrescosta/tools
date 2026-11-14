@@ -19,12 +19,15 @@
 	let {
 		context,
 		selected = $bindable(),
+		part,
 		hidden,
 		steps
 	}: {
 		context: Context;
 		selected: Selection;
-		/** Institution kinds and relation families left out of the drawing. */
+		/** The institutions to lay out; all of them when absent. */
+		part?: string[];
+		/** Institution kinds and relation families hidden in place: the layout ignores them. */
 		hidden: Set<string>;
 		/** A route's institutions in order: numbered and lit, with their relations labelled. */
 		steps?: string[];
@@ -33,13 +36,21 @@
 	const uid = $props.id();
 
 	const step = $derived(steps && new Map(steps.map((id, i) => [id, i + 1])));
-	const nodes = $derived(context.institutions.filter((i) => !hidden.has(i.kind)));
-	const shown = $derived(new Set(nodes.map((n) => n.id)));
-	const edges = $derived(
+	/** What the layout places: the part's institutions and the relations among them. */
+	const nodes = $derived(
+		part ? context.institutions.filter((i) => part.includes(i.id)) : context.institutions
+	);
+	const placed = $derived(new Set(nodes.map((n) => n.id)));
+	const links = $derived(
 		context.relations
-			.filter((r) => !hidden.has(FAMILY[r.kind]) && shown.has(r.from) && shown.has(r.to))
+			.filter((r) => placed.has(r.from) && placed.has(r.to))
 			.map((r) => ({ ...r, id: relationId(r), family: FAMILY[r.kind] }))
 	);
+	/** What is drawn: hiding a kind or family keeps everything else where it is. */
+	const edges = $derived.by(() => {
+		const gone = new Set(nodes.filter((n) => hidden.has(n.kind)).map((n) => n.id));
+		return links.filter((e) => !hidden.has(e.family) && !gone.has(e.from) && !gone.has(e.to));
+	});
 	const names = $derived(Object.fromEntries(nodes.map((n) => [n.id, n.acronym ?? n.name])));
 
 	// Rendered sizes, measured in the browser; the layout waits until every box has one.
@@ -54,7 +65,7 @@
 			),
 			// Labels take no room: with over a hundred relations they would triple the width, so
 			// the lit ones sit over the map instead.
-			edges: edges.map((e) =>
+			edges: links.map((e) =>
 				UPWARD.has(e.kind)
 					? { id: e.id, from: e.to, to: e.from }
 					: { id: e.id, from: e.from, to: e.to }
@@ -194,7 +205,7 @@
 							marker-end={SYMMETRIC.has(edge.kind) ? undefined : `url(#${uid}-${edge.family})`}
 						/>
 					{/each}
-					{#each nodes.filter((n) => layout.nodes[n.id]) as node (node.id)}
+					{#each nodes.filter((n) => layout.nodes[n.id] && !hidden.has(n.kind)) as node (node.id)}
 						{@const style = KIND_STYLE[node.kind]}
 						{@const p = layout.nodes[node.id]}
 						<path
@@ -214,6 +225,7 @@
 					type="button"
 					class="ig-node shape-{KIND_STYLE[node.kind].shape}"
 					class:dim={dim(node.id)}
+					class:gone={hidden.has(node.kind)}
 					aria-pressed={selected?.id === node.id}
 					data-testid="node-{node.id}"
 					style={position(node.id)}
@@ -324,6 +336,11 @@
 
 	.dim {
 		opacity: 0.25;
+	}
+
+	/* Hidden in place: still measured, so the layout keeps its spot. */
+	.ig-node.gone {
+		visibility: hidden;
 	}
 
 	.ig-node,

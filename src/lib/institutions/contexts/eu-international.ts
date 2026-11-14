@@ -2999,6 +2999,131 @@ export const euInternational: Context = {
 			sources: ['https://www.eurojust.europa.eu/about-us']
 		}
 	],
+	parts: [
+		{
+			id: 'eu-institutions',
+			title: 'EU institutions',
+			ids: [
+				'european-union',
+				'european-council',
+				'council-of-the-eu',
+				'european-commission',
+				'european-parliament',
+				'cjeu',
+				'general-court',
+				'european-court-of-auditors',
+				'ecb',
+				'eib',
+				'european-ombudsman',
+				'dg-rtd',
+				'dg-cnect',
+				'national-courts',
+				'schengen-area'
+			]
+		},
+		{
+			id: 'eu-funding',
+			title: 'EU funding',
+			ids: [
+				'european-commission',
+				'european-parliament',
+				'council-of-the-eu',
+				'european-court-of-auditors',
+				'eib',
+				'dg-rtd',
+				'dg-cnect',
+				'horizon-europe',
+				'erc',
+				'eic',
+				'digital-europe-programme',
+				'cohesion-funds',
+				'recovery-and-resilience-facility',
+				'chips-ju',
+				'rea',
+				'ercea',
+				'eismea',
+				'hadea'
+			]
+		},
+		{
+			id: 'eu-agencies',
+			title: 'EU agencies: borders, security, data, health',
+			ids: [
+				'european-commission',
+				'european-parliament',
+				'cjeu',
+				'frontex',
+				'national-border-police',
+				'euaa',
+				'unhcr',
+				'iom',
+				'europol',
+				'eurojust',
+				'eppo',
+				'olaf',
+				'enisa',
+				'ema',
+				'eu-ai-office',
+				'edpb',
+				'edps',
+				'national-dpas',
+				'schengen-area'
+			]
+		},
+		{
+			id: 'courts-rights',
+			title: 'Courts, prosecutors and rights',
+			ids: [
+				'cjeu',
+				'general-court',
+				'national-courts',
+				'council-of-europe',
+				'ecthr',
+				'european-ombudsman',
+				'icj',
+				'icc',
+				'pca',
+				'un-human-rights-council',
+				'ohchr',
+				'eppo',
+				'olaf',
+				'eurojust',
+				'european-union',
+				'united-nations',
+				'united-states-government'
+			]
+		},
+		{
+			id: 'un-global',
+			title: 'UN and global bodies',
+			ids: [
+				'united-nations',
+				'un-general-assembly',
+				'un-security-council',
+				'un-secretariat',
+				'icj',
+				'un-human-rights-council',
+				'ohchr',
+				'unhcr',
+				'iom',
+				'who',
+				'unesco',
+				'itu',
+				'wipo',
+				'ilo',
+				'imf',
+				'world-bank',
+				'wto',
+				'oecd',
+				'nato',
+				'osce',
+				'united-states-government',
+				'european-union',
+				'icc',
+				'pca'
+			]
+		}
+	],
 	routes: [
 		{
 			id: 'horizon-grant',

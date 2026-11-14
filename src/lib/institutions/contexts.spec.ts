@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CONTEXTS, relationId } from './index';
+import { CONTEXTS, partOf, relationId } from './index';
 
 const unique = (xs: string[]) => new Set(xs).size === xs.length;
 const isUrl = (s: string) => /^https:\/\/[^\s]+$/.test(s);
@@ -63,6 +63,28 @@ describe('contexts', () => {
 						expect(known.has(o.with), `${i.id} overlaps ${o.with}`).toBe(true);
 						expect(o.with).not.toBe(i.id);
 					}
+			});
+
+			it('splits into parts that cover every institution, each small enough to read', () => {
+				expect(unique(context.parts.map((p) => p.id))).toBe(true);
+				for (const part of context.parts) {
+					expect(unique(part.ids), part.id).toBe(true);
+					expect(part.ids.length, part.id).toBeLessThanOrEqual(26);
+					for (const id of part.ids) expect(known.has(id), `${part.id}: ${id}`).toBe(true);
+				}
+				const covered = new Set(context.parts.flatMap((p) => p.ids));
+				for (const id of ids) expect(covered.has(id), id).toBe(true);
+			});
+
+			it('fits every route inside one part', () => {
+				for (const route of context.routes)
+					expect(
+						partOf(
+							context,
+							route.steps.map((s) => s.id)
+						),
+						route.id
+					).toBeDefined();
 			});
 
 			it('walks routes through known institutions', () => {

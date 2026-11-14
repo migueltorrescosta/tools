@@ -2986,6 +2986,140 @@ export const portugal: Context = {
 			]
 		}
 	],
+	parts: [
+		{
+			id: 'state',
+			title: 'State and government',
+			ids: [
+				'president-of-the-republic',
+				'assembleia-da-republica',
+				'portugal-government',
+				'council-of-state',
+				'ministry-finance',
+				'ministry-justice',
+				'ministry-internal-administration',
+				'ministry-labour-social-security',
+				'ministry-education-science-innovation',
+				'ministry-economy-cohesion',
+				'ministry-state-reform',
+				'ministry-presidency',
+				'constitutional-court',
+				'ombudsman',
+				'municipalities',
+				'freguesias',
+				'ccdrs',
+				'azores',
+				'madeira',
+				'european-union',
+				'european-commission'
+			]
+		},
+		{
+			id: 'justice',
+			title: 'Courts and justice',
+			ids: [
+				'constitutional-court',
+				'supreme-court-of-justice',
+				'courts-of-appeal',
+				'comarca-courts',
+				'supreme-administrative-court',
+				'central-administrative-courts',
+				'administrative-tax-courts',
+				'court-of-auditors',
+				'julgados-de-paz',
+				'caad',
+				'public-prosecution',
+				'superior-council-magistracy',
+				'bar-association',
+				'ombudsman',
+				'ministry-justice',
+				'at',
+				'cjeu',
+				'ecthr',
+				'eppo',
+				'assembleia-da-republica',
+				'president-of-the-republic'
+			]
+		},
+		{
+			id: 'borders',
+			title: 'Borders, migration and identity',
+			ids: [
+				'ministry-internal-administration',
+				'aima',
+				'psp',
+				'psp-unef',
+				'gnr',
+				'pj',
+				'irn',
+				'frontex',
+				'at',
+				'iss',
+				'arte',
+				'lojas-do-cidadao',
+				'ministry-justice',
+				'ministry-state-reform',
+				'public-prosecution'
+			]
+		},
+		{
+			id: 'work',
+			title: 'Work and social security',
+			ids: [
+				'ministry-labour-social-security',
+				'iefp',
+				'iss',
+				'igfss',
+				'act',
+				'dgert',
+				'cite',
+				'comarca-courts',
+				'at',
+				'aima'
+			]
+		},
+		{
+			id: 'money',
+			title: 'Taxes and public money',
+			ids: [
+				'ministry-finance',
+				'ministry-economy-cohesion',
+				'ministry-education-science-innovation',
+				'at',
+				'igf',
+				'court-of-auditors',
+				'ai2',
+				'adc',
+				'portugal-2030',
+				'compete-2030',
+				'prr',
+				'recuperar-portugal',
+				'ptrr-agency',
+				'european-commission',
+				'european-court-of-auditors',
+				'ccdrs',
+				'portugal-government'
+			]
+		},
+		{
+			id: 'regulators',
+			title: 'Regulators',
+			ids: [
+				'banco-de-portugal',
+				'cmvm',
+				'asf',
+				'anacom',
+				'cnpd',
+				'erc-media',
+				'competition-authority',
+				'edpb',
+				'portugal-government',
+				'assembleia-da-republica',
+				'ministry-finance',
+				'european-commission'
+			]
+		}
+	],
 	routes: [
 		{
 			id: 'lost-job',

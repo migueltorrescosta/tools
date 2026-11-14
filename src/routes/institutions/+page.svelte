@@ -2,13 +2,15 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { CONTEXTS, relationId } from '#lib/institutions/index.js';
+	import { CONTEXTS, holds, partOf, relationId } from '#lib/institutions/index.js';
 	import { FAMILY_STYLE, KIND_STYLE, shapePath } from '#lib/institutions/style.js';
 	import { PageHeader, Panel, Select } from '#lib/ui/index.js';
 	import InstitutionGraph, { type Selection } from './lib/InstitutionGraph.svelte';
 	import DetailPanel from './lib/DetailPanel.svelte';
 
 	let contextId = $state(CONTEXTS[0].id);
+	/** The part on the map; '' draws the whole context. */
+	let partId = $state(CONTEXTS[0].parts[0].id);
 	let routeId = $state('');
 	let selected = $state<Selection>(null);
 	/** Institution kinds and relation families turned off in the key. */
@@ -16,37 +18,74 @@
 	let hydrated = $state(false);
 
 	const context = $derived(CONTEXTS.find((c) => c.id === contextId) ?? CONTEXTS[0]);
+	const part = $derived(context.parts.find((p) => p.id === partId));
 	const route = $derived(context.routes.find((r) => r.id === routeId));
 
 	const contextOptions = CONTEXTS.map((c) => ({ value: c.id, label: c.title }));
+	const partOptions = $derived([
+		...context.parts.map((p) => ({ value: p.id, label: p.title })),
+		{ value: '', label: 'Whole map (slower to draw)' }
+	]);
 	const routeOptions = $derived([
-		{ value: '', label: 'None: the whole map' },
+		{ value: '', label: 'None' },
 		...context.routes.map((r) => ({ value: r.id, label: r.title }))
 	]);
 
-	/** The kinds this context uses, in legend order. */
+	/** The kinds on the map, in legend order. */
 	const kinds = $derived(
-		Object.entries(KIND_STYLE).filter(([k]) => context.institutions.some((i) => i.kind === k))
+		Object.entries(KIND_STYLE).filter(([k]) =>
+			context.institutions.some((i) => i.kind === k && (!part || part.ids.includes(i.id)))
+		)
 	);
+
+	const steps = (r: { steps: { id: string }[] }) => r.steps.map((s) => s.id);
 
 	function writeUrl() {
 		const url = new URL(page.url.href);
 		url.searchParams.set('context', context.id);
+		url.searchParams.set('part', part?.id ?? 'all');
 		if (route) url.searchParams.set('route', route.id);
 		else url.searchParams.delete('route');
 		goto(url, { shallow: true, replace: true, state: page.state });
 	}
 
 	function chooseContext() {
+		partId = context.parts[0].id;
 		routeId = '';
 		selected = null;
 		writeUrl();
 	}
 
-	function chooseRoute() {
+	function choosePart() {
+		if (route && part && !holds(part, steps(route))) routeId = '';
 		selected = null;
 		writeUrl();
 	}
+
+	// A situation opens the part that holds it, unless the whole map is on.
+	function chooseRoute() {
+		if (route && part) partId = partOf(context, steps(route))!.id;
+		selected = null;
+		writeUrl();
+	}
+
+	// Selecting a body outside the part (from the details panel) moves to a part that holds it.
+	$effect(() => {
+		if (!part || !selected) return;
+		const ends =
+			selected.type === 'node'
+				? [selected.id]
+				: (() => {
+						const r = context.relations.find((r) => relationId(r) === selected!.id);
+						return r ? [r.from, r.to] : [];
+					})();
+		if (holds(part, ends)) return;
+		const next = partOf(context, ends) ?? partOf(context, ends.slice(-1));
+		if (!next) return;
+		partId = next.id;
+		if (route && !holds(next, steps(route))) routeId = '';
+		writeUrl();
+	});
 
 	function toggle(key: string) {
 		const next = new Set(hidden);
@@ -56,6 +95,7 @@
 
 	function switchTo(id: string, node: string) {
 		contextId = id;
+		partId = partOf(context, [node])!.id;
 		routeId = '';
 		writeUrl();
 		selected = { type: 'node', id: node };
@@ -77,7 +117,11 @@
 		const params = new URLSearchParams(page.url.search);
 		const fromUrl = CONTEXTS.find((c) => c.id === params.get('context'));
 		if (fromUrl) contextId = fromUrl.id;
-		routeId = context.routes.find((r) => r.id === params.get('route'))?.id ?? '';
+		const p = params.get('part');
+		partId = p === 'all' ? '' : (context.parts.find((x) => x.id === p) ?? context.parts[0]).id;
+		const r = context.routes.find((r) => r.id === params.get('route'));
+		routeId = r?.id ?? '';
+		if (r && part && !holds(part, steps(r))) partId = partOf(context, steps(r))!.id;
 		hydrated = true;
 	});
 </script>
@@ -95,6 +139,13 @@
 				bind:value={contextId}
 				onchange={chooseContext}
 				data-testid="context"
+			/>
+			<Select
+				label="Part"
+				options={partOptions}
+				bind:value={partId}
+				onchange={choosePart}
+				data-testid="part"
 			/>
 			<Select
 				label="Situation"
@@ -176,8 +227,14 @@
 				{/each}
 			</ul>
 		</div>
-		{#key context.id}
-			<InstitutionGraph {context} {hidden} steps={route?.steps.map((s) => s.id)} bind:selected />
+		{#key `${context.id}/${partId}`}
+			<InstitutionGraph
+				{context}
+				part={part?.ids}
+				{hidden}
+				steps={route && steps(route)}
+				bind:selected
+			/>
 		{/key}
 
 		<div class="in-end">
@@ -186,6 +243,10 @@
 				<p>
 					Each map shows institutions as boxes and how they relate as arrows. The shape and colour
 					of a box give its kind; the colour and dashes of an arrow give the kind of relation.
+				</p>
+				<p>
+					Each context comes in themed parts. Pick a part to see its bodies; links in the details
+					move to the part that holds a body.
 				</p>
 				<p>
 					Select a box or a label for its details. Pick a situation to light up the bodies involved,
@@ -207,7 +268,7 @@
 <style>
 	.in-pickers {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
 		gap: var(--sp-3);
 		margin-bottom: var(--sp-2);
 	}
