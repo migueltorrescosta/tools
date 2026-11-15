@@ -4,77 +4,88 @@
 		"emoji": "📅",
 		"date": "2025-02-18",
 		"title": "Automated MZI Control",
-		"description": "High-precision arbitrary magnitude/phase setting (7-8 bit resolution) for scalable photonic computing."
+		"description": "High-precision arbitrary magnitude/phase setting (7-8 bit resolution) for scalable photonic computing.",
+		"url": "https://arxiv.org/abs/2502.12869"
 	},
 	{
 		"id": 55,
 		"emoji": "📅",
-		"date": "2016-01-01",
+		"date": "2016-09-16",
 		"title": "Consistent Histories Analysis",
-		"description": "Robert Griffiths applies consistent histories formalism to nested MZI—challenges both Vaidman and counterfactual communication proposals."
+		"description": "Robert Griffiths applies the consistent histories formalism to the nested MZI, disagreeing with Vaidman's analysis and agreeing with Li et al.",
+		"url": "https://doi.org/10.1103/PhysRevA.94.032115"
 	},
 	{
 		"id": 77,
 		"emoji": "📅",
 		"date": "2017-04-21",
 		"title": "Disconnected Trajectories Paradox",
-		"description": "Nikolaev shows results explained classically without 'discontinuous trajectories'—challenges Vaidman's interpretation."
+		"description": "Nikolaev argues that the weak-measurement results are explained by classical electrodynamics or standard quantum mechanics with continuous paths, challenging Vaidman's 'discontinuous trajectories' reading.",
+		"url": "https://doi.org/10.1134/S0021364017030110"
 	},
 	{
 		"id": 92,
 		"emoji": "📅",
 		"date": "2003-03-27",
 		"title": "Electronic MZI",
-		"description": "First electronic MZI using edge states in 2D electron gas (QHE regime)—62% visibility, opens path to fractional charge measurement."
+		"description": "First electronic MZI using edge states in 2D electron gas (QHE regime)—62% visibility, opens path to fractional charge measurement.",
+		"url": "https://doi.org/10.1038/nature01503"
 	},
 	{
 		"id": 93,
 		"emoji": "📅",
-		"date": "1993-01-01",
+		"date": "1993-07-01",
 		"title": "Elitzur–Vaidman Bomb Tester",
-		"description": "Introduces interaction-free measurement—detecting object presence without physically interacting, using quantum superposition in MZI."
+		"description": "Introduces interaction-free measurement—detecting object presence without physically interacting, using quantum superposition in MZI.",
+		"url": "https://doi.org/10.1007/BF00736012"
 	},
 	{
 		"id": 104,
 		"emoji": "📅",
-		"date": "1997-01-01",
+		"date": "1995-06-12",
 		"title": "Experimental IFM Realized",
-		"description": "First experimental verification of Elitzur-Vaidman bomb tester using single photons—25% detection efficiency achieved."
+		"description": "Kwiat, Weinfurter, Herzog, Zeilinger and Kasevich give a first experimental demonstration of interaction-free measurement with single photons, in a Michelson-type interferometer.",
+		"url": "https://doi.org/10.1103/PhysRevLett.74.4763"
 	},
 	{
 		"id": 105,
 		"emoji": "📅",
-		"date": "2013-01-01",
+		"date": "2013-12-09",
 		"title": "Experimental Past Detection",
-		"description": "Danon et al. experimentally realize 'past of photon' detection—photons detected at paths they didn't traverse."
+		"description": "Danan, Farfurnik, Bar-Ad and Vaidman experimentally probe the 'past of a photon' in a nested MZI—weak traces appear in paths the photons seemingly did not traverse.",
+		"url": "https://doi.org/10.1103/PhysRevLett.111.240402"
 	},
 	{
 		"id": 121,
 		"emoji": "📅",
 		"date": "2024-07-23",
 		"title": "Fiber Phase Locking",
-		"description": "New method for arbitrary-phase locking in fiber MZIs—enables 99.3% visibility for quantum networks."
+		"description": "New method for arbitrary-phase locking in fiber MZIs—demonstrated with 99.3% (background-subtracted) two-photon interference visibility for quantum networks.",
+		"url": "https://arxiv.org/abs/2407.16433"
 	},
 	{
 		"id": 147,
 		"emoji": "📅",
-		"date": "2017-08-18",
+		"date": "2017-08-04",
 		"title": "Graphene Electronic MZI",
-		"description": "First high-visibility (98%) electronic MZI in graphene using spin/valley-polarized edge channels—robust to dephasing."
+		"description": "First high-visibility (98%) electronic MZI in graphene using spin/valley-polarized edge channels—robust to dephasing.",
+		"url": "https://doi.org/10.1126/sciadv.1700600"
 	},
 	{
 		"id": 152,
 		"emoji": "📅",
 		"date": "2024-05-27",
 		"title": "Heisenberg-Scale Estimation",
-		"description": "Achieves Heisenberg-limited precision for simultaneous two-phase estimation using squeezed + coherent states."
+		"description": "Achieves Heisenberg-limited precision for simultaneous two-phase estimation using squeezed + coherent states.",
+		"url": "https://arxiv.org/abs/2405.17115"
 	},
 	{
 		"id": 153,
 		"emoji": "📅",
 		"date": "2024-07-09",
 		"title": "Higher Order Weak Values",
-		"description": "Recent re-examination of weak value phenomena in nested MZIs—extending path integral frameworks."
+		"description": "Higher-order weak values for paths in nested MZIs—extends the path-integral approach to weak values to sequences of weak measurements.",
+		"url": "https://arxiv.org/abs/2407.06989"
 	},
 	{
 		"id": 199,
@@ -87,50 +98,57 @@
 		"id": 219,
 		"emoji": "📅",
 		"date": "2026-01-21",
-		"title": "Nanoparticle Matter-Wave MZI",
-		"description": "Matter-wave interference with 7,000-atom nanoparticles—macroscopicity μ = 15.5, surpassing previous by order of magnitude."
+		"title": "Nanoparticle Matter-Wave Interferometry",
+		"description": "Matter-wave interference of sodium nanoparticles with over 7,000 atoms in a three-grating interferometer—macroscopicity μ = 15.5, an order of magnitude above previous experiments.",
+		"url": "https://doi.org/10.1038/s41586-025-09917-9"
 	},
 	{
 		"id": 250,
 		"emoji": "📅",
-		"date": "2013-01-01",
+		"date": "2013-05-03",
 		"title": "Past of a Quantum Particle",
-		"description": "Vaidman's weak measurement analysis of nested MZI claims 'discontinuous trajectories'—sparking major foundations debate."
+		"description": "Vaidman's weak measurement analysis of nested MZI claims 'discontinuous trajectories'—sparking major foundations debate.",
+		"url": "https://doi.org/10.1103/PhysRevA.87.052104"
 	},
 	{
 		"id": 287,
 		"emoji": "📅",
 		"date": "2025-03-18",
 		"title": "Quantum Parameter Estimation Limits",
-		"description": "Critical analysis exposing QFI overoptimism in MZI models—proper constraints needed for realistic experiments."
+		"description": "Critical analysis exposing QFI overoptimism in MZI models—proper constraints needed for realistic experiments.",
+		"url": "https://arxiv.org/abs/2503.14306"
 	},
 	{
 		"id": 288,
 		"emoji": "📅",
 		"date": "2013-10-29",
 		"title": "Quantum Trajectories Debate",
-		"description": "Li et al. challenge Vaidman's interpretation—argues results align with standard quantum mechanics. Heated exchange in Phys. Rev. A."
+		"description": "Li, Al-Amri and Zubairy comment on Vaidman's analysis—argue the results align with standard quantum mechanics. Exchange in Phys. Rev. A.",
+		"url": "https://doi.org/10.1103/PhysRevA.88.046102"
 	},
 	{
 		"id": 289,
 		"emoji": "📅",
 		"date": "2026-03-05",
 		"title": "Quantum Wavemetry",
-		"description": "New approach using coherence de Broglie wavelength for superresolution—loss tolerant without N00N states."
+		"description": "Byoung S. Ham proposes coherence de Broglie wavelength superresolution from the Mth-power unitary of an MZI—loss tolerant without N00N states.",
+		"url": "https://arxiv.org/abs/2603.05639"
 	},
 	{
 		"id": 371,
 		"emoji": "📅",
 		"date": "1990-09-10",
 		"title": "Two-Photon Interference",
-		"description": "First demonstration of two-photon interference using entangled photons in MZI, showing quantum non-classical correlations."
+		"description": "Rarity, Tapster et al. demonstrate two-photon interference of entangled photon pairs in a Mach-Zehnder interferometer, showing non-classical correlations.",
+		"url": "https://doi.org/10.1103/PhysRevLett.65.1348"
 	},
 	{
 		"id": 393,
 		"emoji": "📅",
 		"date": "2020-04-01",
 		"title": "Wave-Particle Duality Test",
-		"description": "Breaks traditional V² + D² ≤ 1 limit using weak-measurement MZI—achieving V² + D² ≈ 1.63."
+		"description": "Breaks traditional V² + D² ≤ 1 limit using weak-measurement MZI—achieving V² + D² ≈ 1.63.",
+		"url": "https://doi.org/10.1364/prj.386774"
 	},
 	{
 		"id": 403,
@@ -138,5 +156,21 @@
 		"date": "1891-01-01",
 		"title": "Zehnder's Original Interferometer",
 		"description": "Ludwig Zehnder invents the interferometer (Ein neuer Interferenzrefraktor), pioneering beam-splitter design for measuring refractive index variations."
+	},
+	{
+		"id": 501,
+		"emoji": "📅",
+		"date": "2007-02-16",
+		"title": "Wheeler's Delayed-Choice Experiment",
+		"description": "Jacques et al. realise Wheeler's delayed-choice gedanken experiment with a single-photon MZI whose second beam splitter is inserted or removed after the photon has entered.",
+		"url": "https://doi.org/10.1126/science.1136303"
+	},
+	{
+		"id": 502,
+		"emoji": "📅",
+		"date": "2013-04-23",
+		"title": "Direct Counterfactual Communication Protocol",
+		"description": "Salih, Li, Al-Amri and Zubairy propose direct counterfactual quantum communication using nested MZIs and the quantum Zeno effect.",
+		"url": "https://doi.org/10.1103/PhysRevLett.110.170502"
 	}
 ]

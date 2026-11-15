@@ -236,8 +236,14 @@ describe('data quality', () => {
 		expect(isGroupEntry(person({ name: 'Marian State' }))).toBe(false);
 	});
 
-	// Shared links accepted so far: Köln's is the council group's own team page. Adding new ones fails.
-	const KNOWN_SHARED_URLS = ['https://voltkoeln.de/team'];
+	// Shared links accepted so far: Köln's is the council group's own team page, Darmstadt's the
+	// group's own 2026 announcement of its seven members, Wiesbaden's the city's official final
+	// result. Adding new ones fails.
+	const KNOWN_SHARED_URLS = [
+		'https://voltkoeln.de/team',
+		'https://voltdeutschland.org/darmstadt-fraktion/neuigkeiten/europe-and-local-government-go-hand-in-hand-volt-is-growing-in-darmstadt-and-across-hesse',
+		'https://www.wiesbaden.de/medien/downloads/rathaus/wahlen/8450_04_Endgueltiges-Ergebnis.pdf'
+	];
 
 	it('does not let more than 3 rows share a link beyond the known list', () => {
 		const counts = new Map<string, number>();

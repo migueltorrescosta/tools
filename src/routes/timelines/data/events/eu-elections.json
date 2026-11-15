@@ -104,6 +104,14 @@
 		"url": "https://en.wikipedia.org/wiki/2024_Romanian_presidential_election"
 	},
 	{
+		"id": 2101,
+		"emoji": "🇮🇪",
+		"date": "2024-11-29",
+		"title": "Ireland General Election",
+		"description": "Fianna Fáil wins most seats (48 of 174), ahead of Sinn Féin (39) and Fine Gael (38). Fianna Fáil and Fine Gael renew their coalition with independents, and Micheál Martin returns as Taoiseach.",
+		"url": "https://en.wikipedia.org/wiki/2024_Irish_general_election"
+	},
+	{
 		"id": 2006,
 		"emoji": "🇷🇴",
 		"date": "2024-12-01",
@@ -184,6 +192,14 @@
 		"url": "https://en.wikipedia.org/wiki/2025_Irish_presidential_election"
 	},
 	{
+		"id": 2102,
+		"emoji": "🇳🇱",
+		"date": "2025-10-29",
+		"title": "Netherlands General Election",
+		"description": "Snap election after Geert Wilders pulled the PVV out of the coalition. Rob Jetten's D66 and the PVV tie on 26 of 150 seats, with D66 ahead on votes. Jetten leads a D66–VVD–CDA minority cabinet.",
+		"url": "https://en.wikipedia.org/wiki/2025_Dutch_general_election"
+	},
+	{
 		"id": 269,
 		"emoji": "🇵🇹",
 		"date": "2026-01-18",
@@ -232,6 +248,14 @@
 		"url": "https://en.wikipedia.org/wiki/2026_Bulgarian_parliamentary_election"
 	},
 	{
+		"id": 2103,
+		"emoji": "🇨🇾",
+		"date": "2026-05-24",
+		"title": "Cyprus Parliamentary Election",
+		"description": "DISY remains largest party with 17 of 56 seats, ahead of AKEL (15). Far-right ELAM doubles to 8 seats, level with DIKO; ALMA and Direct Democracy enter with 4 each.",
+		"url": "https://en.wikipedia.org/wiki/2026_Cypriot_legislative_election"
+	},
+	{
 		"id": 132,
 		"emoji": "🇲🇹",
 		"date": "2026-05-30",
@@ -252,15 +276,15 @@
 		"emoji": "🇸🇪",
 		"date": "2026-09-13",
 		"title": "Sweden General Election",
-		"description": "Social Democrats become largest party with 28%. The centre-left opposition wins 176 of 349 seats against 173 for the Tidö parties; Ulf Kristersson resigns and Magdalena Andersson begins government talks.",
-		"url": "https://en.wikipedia.org/wiki/2026_Swedish_general_election"
+		"description": "Social Democrats become largest party with 28%. The centre-left opposition wins 176 of 349 seats against 173 for the Tidö parties, but two prime-ministerial votes failed and government formation is still under way.",
+		"url": "https://en.wikipedia.org/wiki/2026_Swedish_government_formation"
 	},
 	{
 		"id": 2014,
 		"emoji": "🇱🇻",
 		"date": "2026-10-03",
 		"title": "Latvia Parliamentary Election",
-		"description": "Andris Kulbergs's United List becomes largest party with 35.8% and 41 of 100 Saeima seats.",
+		"description": "Andris Kulbergs's United List becomes largest party with 35.8% and 41 of 100 Saeima seats; Latvia First is second with 17. Turnout of 51.8% is the lowest in Latvian history.",
 		"url": "https://en.wikipedia.org/wiki/2026_Latvian_parliamentary_election"
 	},
 	{
@@ -268,7 +292,7 @@
 		"emoji": "🇨🇿",
 		"date": "2026-10-09",
 		"title": "Czech Republic Senate Election",
-		"description": "Scheduled first round (9–10 October) for 27 of the Senate's 81 seats, with runoffs on 16–17 October.",
+		"description": "Governing ANO 2011 wins none of the 27 contested Senate seats. Mayors and Independents (STAN) win 9, ODS 7 and KDU-ČSL 3, after first-round voting on 9–10 October and runoffs on 16–17 October.",
 		"url": "https://en.wikipedia.org/wiki/2026_Czech_Senate_election"
 	},
 	{
@@ -276,7 +300,7 @@
 		"emoji": "🇧🇬",
 		"date": "2026-10-25",
 		"title": "Bulgaria Presidential Election",
-		"description": "Scheduled first round of presidential election; a runoff follows if no candidate wins a majority. Incumbent Iliana Iotova seeks a full term.",
+		"description": "Incumbent Iliana Iotova (independent) leads the 25 October first round with 34.8% and wins the 1 November runoff against Andrey Gurov with 57.6%, becoming the first woman elected president of Bulgaria. First-round turnout of 23% is the lowest in the country's history.",
 		"url": "https://en.wikipedia.org/wiki/2026_Bulgarian_presidential_election"
 	},
 	{
@@ -284,8 +308,8 @@
 		"emoji": "🇪🇸",
 		"date": "2026-11-29",
 		"title": "Spain General Election",
-		"description": "Scheduled snap election to the Congress of Deputies and Senate, called by PM Pedro Sánchez after parliament rejected his housing decrees.",
-		"url": "https://en.wikipedia.org/wiki/Next_Spanish_general_election"
+		"description": "Snap election called on 5 October by PM Pedro Sánchez after Congress rejected his housing decrees; all 350 Congress seats and 209 of 267 Senate seats are at stake.",
+		"url": "https://en.wikipedia.org/wiki/2026_Spanish_general_election"
 	},
 	{
 		"id": 244,
@@ -304,6 +328,14 @@
 		"url": "https://en.wikipedia.org/wiki/2027_French_presidential_election"
 	},
 	{
+		"id": 2104,
+		"emoji": "🇫🇮",
+		"date": "2027-04-18",
+		"title": "Finland Parliamentary Election",
+		"description": "Scheduled election for all 200 seats of the Eduskunta. PM Petteri Orpo's National Coalition leads the current government.",
+		"url": "https://en.wikipedia.org/wiki/2027_Finnish_parliamentary_election"
+	},
+	{
 		"id": 277,
 		"emoji": "🇫🇷",
 		"date": "2027-05-02",
@@ -320,6 +352,22 @@
 		"url": "https://en.wikipedia.org/wiki/Next_Greek_parliamentary_election"
 	},
 	{
+		"id": 2105,
+		"emoji": "🇸🇰",
+		"date": "2027-09-25",
+		"title": "Slovakia Parliamentary Election",
+		"description": "Scheduled National Council election, set for 25 September 2027 according to Speaker Richard Rasi. PM Robert Fico's Smer-led coalition governs.",
+		"url": "https://en.wikipedia.org/wiki/Next_Slovak_parliamentary_election"
+	},
+	{
+		"id": 2106,
+		"emoji": "🇵🇱",
+		"date": "2027-11-11",
+		"title": "Poland Parliamentary Election",
+		"description": "Scheduled Sejm and Senate election, due by 11 November 2027; the President sets the exact date.",
+		"url": "https://en.wikipedia.org/wiki/2027_Polish_parliamentary_election"
+	},
+	{
 		"id": 2016,
 		"emoji": "🇮🇹",
 		"date": "2027-12-22",
@@ -328,12 +376,28 @@
 		"url": "https://en.wikipedia.org/wiki/Next_Italian_general_election"
 	},
 	{
+		"id": 2107,
+		"emoji": "🇨🇿",
+		"date": "2028-01-31",
+		"title": "Czech Republic Presidential Election",
+		"description": "Scheduled direct presidential election, due by January 2028. Incumbent Petr Pavel is eligible for a second term.",
+		"url": "https://en.wikipedia.org/wiki/2028_Czech_presidential_election"
+	},
+	{
 		"id": 263,
 		"emoji": "🇨🇾",
 		"date": "2028-02-29",
 		"title": "Cyprus Presidential Election",
 		"description": "Scheduled presidential election, due in February 2028. Incumbent Nikos Christodoulides is eligible for a second term.",
 		"url": "https://en.wikipedia.org/wiki/2028_Cypriot_presidential_election"
+	},
+	{
+		"id": 2108,
+		"emoji": "🇭🇷",
+		"date": "2028-04-30",
+		"title": "Croatia Parliamentary Election",
+		"description": "Scheduled Sabor election, due by 30 April 2028.",
+		"url": "https://en.wikipedia.org/wiki/Next_Croatian_parliamentary_election"
 	},
 	{
 		"id": 135,
@@ -414,6 +478,14 @@
 		"title": "France Legislative Election",
 		"description": "Scheduled National Assembly election, due by June 2029 unless the Assembly is dissolved earlier.",
 		"url": "https://en.wikipedia.org/wiki/Next_French_legislative_election"
+	},
+	{
+		"id": 2109,
+		"emoji": "🇬🇧",
+		"date": "2029-08-15",
+		"title": "UK General Election",
+		"description": "Scheduled House of Commons election, due by 15 August 2029 unless an earlier election is called.",
+		"url": "https://en.wikipedia.org/wiki/Next_United_Kingdom_general_election"
 	},
 	{
 		"id": 248,

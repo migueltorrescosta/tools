@@ -15,7 +15,7 @@
 		"position": "MdEP",
 		"location": "European Parliament",
 		"country": "🇩🇪",
-		"url": "https://en.wikipedia.org/wiki/Nela_Riehl"
+		"url": "https://www.europarl.europa.eu/meps/en/256964/NELA_RIEHL/home"
 	},
 	{
 		"name": "Kai Tegethoff",
@@ -24,7 +24,7 @@
 		"position": "MdEP",
 		"location": "European Parliament",
 		"country": "🇩🇪",
-		"url": "https://en.wikipedia.org/wiki/Kai_Tegethoff"
+		"url": "https://www.europarl.europa.eu/meps/en/256965/KAI_TEGETHOFF/home"
 	},
 	{
 		"name": "Reinier van Lanschot",
@@ -33,7 +33,7 @@
 		"position": "MEP",
 		"location": "European Parliament",
 		"country": "🇳🇱",
-		"url": "https://en.wikipedia.org/wiki/Reinier_van_Lanschot"
+		"url": "https://www.europarl.europa.eu/meps/en/256978/REINIER_VAN+LANSCHOT/home"
 	},
 	{
 		"name": "Anna Strolenberg",
@@ -42,12 +42,12 @@
 		"position": "MEP",
 		"location": "European Parliament",
 		"country": "🇳🇱",
-		"url": "https://en.wikipedia.org/wiki/Anna_Strolenberg"
+		"url": "https://www.europarl.europa.eu/meps/en/256990/ANNA_STROLENBERG/home"
 	},
 	{
 		"name": "Laurens Dassen",
 		"startDate": "31/03/2021",
-		"endDate": "2030",
+		"endDate": "2029",
 		"position": "Tweede Kamer",
 		"location": "Netherlands",
 		"country": "🇳🇱",
@@ -60,7 +60,7 @@
 		"position": "Eerste Kamer",
 		"location": "Netherlands",
 		"country": "🇳🇱",
-		"url": "https://www.senaat.nl/persoon/g_k_perin_gopie_msc_volt"
+		"url": "https://www.eerstekamer.nl/persoon/g_k_perin_gopie_msc_volt"
 	},
 	{
 		"name": "Eddy Hartog",
@@ -492,7 +492,7 @@
 		"position": "Αντιδήμαρχος",
 		"location": "Athens",
 		"country": "🇬🇷",
-		"url": "https://www.athinatora.gr/team/dourou-olga/"
+		"url": "https://www.cityofathens.gr/en/who/deputy-mayors/"
 	},
 	{
 		"name": "Marian State",
@@ -596,29 +596,29 @@
 	{
 		"name": "Federica Vinci",
 		"startDate": "10/2021",
-		"endDate": "2026",
+		"endDate": "2027",
 		"position": "Vicesindaco",
-		"location": "Bologna",
+		"location": "Isernia",
 		"country": "🇮🇹",
-		"url": "https://voltitalia.it/elezioni-trasparenti"
+		"url": "https://www.comune.isernia.it/amministrazione/politici/"
 	},
 	{
 		"name": "Volt Mantova",
-		"startDate": "2021",
+		"startDate": "09/2020",
 		"endDate": "2026",
 		"position": "Consigliere Comunale",
 		"location": "Mantova",
 		"country": "🇮🇹",
-		"url": "https://voltitalia.it/elezioni-trasparenti"
+		"url": "https://www.corriere.it/elezioni-2020/risultati-comunali/mantova_020030.shtml"
 	},
 	{
 		"name": "Volt Matera candidates",
-		"startDate": "10/2021",
-		"endDate": "2026",
+		"startDate": "05/2025",
+		"endDate": "2030",
 		"position": "Consigliere Comunale",
 		"location": "Matera",
 		"country": "🇮🇹",
-		"url": "https://voltitalia.it/elezioni-trasparenti"
+		"url": "https://tg24.sky.it/politica/elezioni/italia/comunali/2025/05/basilicata/matera"
 	},
 	{
 		"name": "Camille Marteau",
@@ -630,12 +630,147 @@
 		"url": "https://voltfrance.org/actualites/volt-entre-au-conseil-municipal-de-strasbourg"
 	},
 	{
-		"name": "Mathias Langner",
+		"name": "Ana Lena Herrling",
 		"startDate": "03/2026",
-		"endDate": "2032",
-		"position": "Conseiller Municipal",
-		"location": "L'Hermitage",
-		"country": "🇫🇷",
-		"url": "https://www.dna.fr/elections/resultats/elections-municipales-2026?commune=35131"
+		"endDate": "2031",
+		"position": "Fraktionsvorsitzende",
+		"location": "Darmstadt",
+		"country": "🇩🇪",
+		"url": "https://voltdeutschland.org/darmstadt-fraktion/neuigkeiten/europe-and-local-government-go-hand-in-hand-volt-is-growing-in-darmstadt-and-across-hesse"
+	},
+	{
+		"name": "Frederik Jobst",
+		"startDate": "03/2026",
+		"endDate": "2031",
+		"position": "Stadtverordneter",
+		"location": "Darmstadt",
+		"country": "🇩🇪",
+		"url": "https://voltdeutschland.org/darmstadt-fraktion/neuigkeiten/europe-and-local-government-go-hand-in-hand-volt-is-growing-in-darmstadt-and-across-hesse"
+	},
+	{
+		"name": "Berit Walter",
+		"startDate": "03/2026",
+		"endDate": "2031",
+		"position": "Stadtverordnete",
+		"location": "Darmstadt",
+		"country": "🇩🇪",
+		"url": "https://voltdeutschland.org/darmstadt-fraktion/neuigkeiten/europe-and-local-government-go-hand-in-hand-volt-is-growing-in-darmstadt-and-across-hesse"
+	},
+	{
+		"name": "Ann-Kathrin Bersch",
+		"startDate": "03/2026",
+		"endDate": "2031",
+		"position": "Stadtverordnete",
+		"location": "Darmstadt",
+		"country": "🇩🇪",
+		"url": "https://voltdeutschland.org/darmstadt-fraktion/neuigkeiten/europe-and-local-government-go-hand-in-hand-volt-is-growing-in-darmstadt-and-across-hesse"
+	},
+	{
+		"name": "Justin Krampe",
+		"startDate": "03/2026",
+		"endDate": "2031",
+		"position": "Stadtverordneter",
+		"location": "Darmstadt",
+		"country": "🇩🇪",
+		"url": "https://voltdeutschland.org/darmstadt-fraktion/neuigkeiten/europe-and-local-government-go-hand-in-hand-volt-is-growing-in-darmstadt-and-across-hesse"
+	},
+	{
+		"name": "Anna Schilling",
+		"startDate": "03/2026",
+		"endDate": "2031",
+		"position": "Stadtverordnete",
+		"location": "Darmstadt",
+		"country": "🇩🇪",
+		"url": "https://voltdeutschland.org/darmstadt-fraktion/neuigkeiten/europe-and-local-government-go-hand-in-hand-volt-is-growing-in-darmstadt-and-across-hesse"
+	},
+	{
+		"name": "Franziska Schäffer",
+		"startDate": "03/2026",
+		"endDate": "2031",
+		"position": "Stadtverordnete",
+		"location": "Darmstadt",
+		"country": "🇩🇪",
+		"url": "https://voltdeutschland.org/darmstadt-fraktion/neuigkeiten/europe-and-local-government-go-hand-in-hand-volt-is-growing-in-darmstadt-and-across-hesse"
+	},
+	{
+		"name": "Moira Lüttich",
+		"startDate": "03/2026",
+		"endDate": "2031",
+		"position": "Stadtverordnete",
+		"location": "Wiesbaden",
+		"country": "🇩🇪",
+		"url": "https://www.wiesbaden.de/medien/downloads/rathaus/wahlen/8450_04_Endgueltiges-Ergebnis.pdf"
+	},
+	{
+		"name": "Daniel Weber",
+		"startDate": "03/2026",
+		"endDate": "2031",
+		"position": "Stadtverordneter",
+		"location": "Wiesbaden",
+		"country": "🇩🇪",
+		"url": "https://www.wiesbaden.de/medien/downloads/rathaus/wahlen/8450_04_Endgueltiges-Ergebnis.pdf"
+	},
+	{
+		"name": "Maria João Xavier Vinha",
+		"startDate": "03/2026",
+		"endDate": "2031",
+		"position": "Stadtverordnete",
+		"location": "Wiesbaden",
+		"country": "🇩🇪",
+		"url": "https://www.wiesbaden.de/medien/downloads/rathaus/wahlen/8450_04_Endgueltiges-Ergebnis.pdf"
+	},
+	{
+		"name": "Regina Wolf",
+		"startDate": "03/2026",
+		"endDate": "2031",
+		"position": "Stadtverordnete",
+		"location": "Wiesbaden",
+		"country": "🇩🇪",
+		"url": "https://www.wiesbaden.de/medien/downloads/rathaus/wahlen/8450_04_Endgueltiges-Ergebnis.pdf"
+	},
+	{
+		"name": "Monika Pranjic",
+		"startDate": "03/2026",
+		"endDate": "2031",
+		"position": "Stadtverordnete",
+		"location": "Gießen",
+		"country": "🇩🇪",
+		"url": "https://www.giessen.de/media/custom/2874_14506_1.PDF"
+	},
+	{
+		"name": "Vyacheslav Yashchenko",
+		"startDate": "03/2026",
+		"endDate": "2031",
+		"position": "Stadtverordneter",
+		"location": "Gießen",
+		"country": "🇩🇪",
+		"url": "https://www.giessen.de/media/custom/2874_14506_1.PDF"
+	},
+	{
+		"name": "Anne Mittmann",
+		"startDate": "03/2026",
+		"endDate": "2031",
+		"position": "Stadtverordnete",
+		"location": "Gießen",
+		"country": "🇩🇪",
+		"url": "https://www.giessen.de/media/custom/2874_14506_1.PDF"
+	},
+	{
+		"name": "Volker Elm",
+		"startDate": "03/2026",
+		"endDate": "2031",
+		"position": "Fraktionsvorsitzender",
+		"location": "Fulda",
+		"country": "🇩🇪",
+		"url": "https://www.fulda.de/d67/04_Magistratspressestelle/Amtliche_Bekanntmachungen/2026/Bekanntmachung_Ergebnis_-_SV.pdf"
+	},
+	{
+		"name": "Anna Kleespies",
+		"startDate": "03/2026",
+		"endDate": "2031",
+		"position": "Stadtverordnete",
+		"location": "Fulda",
+		"country": "🇩🇪",
+		"url": "https://www.fulda.de/d67/04_Magistratspressestelle/Amtliche_Bekanntmachungen/2026/Bekanntmachung_Ergebnis_-_SV.pdf"
 	}
 ]

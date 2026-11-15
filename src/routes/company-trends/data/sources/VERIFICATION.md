@@ -465,3 +465,14 @@ Method:
   - none
 - sourceUrl fixes: none
 - Note: FY2009, FY2010, FY2012, FY2013 stored values are as-first-reported XBRL figures; later 10-Ks restated them (e.g. FY2010 revenue 408,085 / OI 24,002; FY2013 revenue 468,651 / OI 27,725). Matches original primary values, so verified; notes now state the as-first-reported policy.
+
+## Re-check pass 2026-11-15 (bead w-xdi)
+
+Method as above (SEC XBRL companyconcept, exact to the filed unit).
+
+- Spot-checked the three most recent anchors (revenue and operating income) against SEC XBRL for 33 filers: Alphabet, Amazon, Apple, ASML, Boeing, Chevron (revenue), Coca-Cola, Costco, Eli Lilly (revenue), Eni, Ferrari, Ford, General Motors, GSK, Intel, Johnson & Johnson (revenue), McDonald's, Meta, Microsoft, Netflix, Nike (revenue), Novartis (operating income), NVIDIA, Oracle, Pfizer (revenue), Procter & Gamble, SAP, Shell (revenue), Tesla, TotalEnergies (revenue), Unilever, Walmart, plus AstraZeneca and BP (ifrs-full). All matched; no corrections. Unilever FY2024 stays at the originally reported 60,761 / 9,400 (the 2025 20-F restates it to 52,479 / 8,829 after the ice cream demerger). Operating income of the derived-OI companies (Chevron, Eli Lilly, J&J, Nike, Pfizer, ExxonMobil, Shell, TotalEnergies) is not an XBRL fact and was not re-derived.
+- Press-release check of FY2025 for BMW (revenues 133,453; EBIT ~10.2bn, 12 Mar 2026 release), Mercedes-Benz (132,214 / EBIT 5,820), Volkswagen (321.9bn / operating result 8.9bn), LVMH (80,807; profit from recurring operations 17,755 in the shareholder letter, stored 17,099 is the operating-profit/EBIT-basis already documented), Inditex (sales 39.86bn, EBIT ~8.0bn) and Tesco (revenue 73,712, statutory operating profit 2,985): consistent.
+- Added Apple FY2026 (period ending 2026-09-26): revenue 478,834, operating income 158,063, 10-K accession 0000320193-26-000026 (XBRL). Apple was the only company with a fiscal year ended and filed by 2026-11-15 that was missing; every other FY2026 year-end (Costco, Microsoft, Nike, Oracle, P&G, Walmart, Tesco, Inditex, NVIDIA) was already present, and the remaining companies' FY2026 has not ended.
+- Anthropic: its Form S-1 (filed 2026-10-26) and S-1/A No. 1 (2026-11-02) are now public on EDGAR (CIK 2130357). Replaced the Reuters/Capital Brief figures with the filing's Summary Consolidated Statements of Operations Data: 2025 revenue 4,590 -> 4,585, operating loss -8,060 (unchanged); 2024 386 / -2,980 (unchanged); added 2023 revenue 41, operating loss -551. Quality kept `estimated` as instructed.
+- OpenAI: no new annual figures; no public S-1. Only WSJ-reported 2026 quarterly figures exist (Q3 2026 revenue about 10bn, adjusted operating loss about 10.9bn), not added. Kept `estimated`.
+- fx.json: ECB quarterly averages through 2026Q3 already present; 2026Q3 USD 1.1505 matches the DBnomics ECB mirror. No new quarter is complete, so no extension.

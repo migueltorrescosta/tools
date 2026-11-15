@@ -5,7 +5,7 @@ export const portugal: Context = {
 	title: 'Portugal',
 	summary:
 		'The Portuguese state: sovereign organs, courts, borders and migration, work and social security, tax, research funding, regulators and local government.',
-	asOf: '2026-11-13',
+	asOf: '2026-11-15',
 	institutions: [
 		{
 			id: 'president-of-the-republic',
@@ -135,7 +135,7 @@ export const portugal: Context = {
 			acronym: 'MF',
 			kind: 'executive',
 			level: 'national',
-			founded: '1801',
+			founded: '1788',
 			seat: 'Lisbon',
 			url: 'https://www.portugal.gov.pt/pt/gc25/area-de-governo/financas',
 			summary:
@@ -307,7 +307,7 @@ export const portugal: Context = {
 			seat: 'Lisbon',
 			url: 'https://www.tribunalconstitucional.pt/',
 			summary:
-				'Court with final say on constitutionality; struck down nationality-loss penal provisions twice (Dec 2025, 2026).',
+				'Court with final say on constitutionality, presided since 15 June 2026 by João Carlos Loureiro (succeeding José João Abrantes); struck down the accessory penalty of nationality loss twice (Acórdão 1134/2025, Dec 2025; Acórdão 409/2026, 8 May 2026).',
 			responsibilities: [
 				'Preventive and successive review of constitutionality',
 				'Concrete review on appeal from any court',
@@ -337,7 +337,8 @@ export const portugal: Context = {
 			founded: '1833',
 			seat: 'Lisbon',
 			url: 'https://www.stj.pt/',
-			summary: 'Highest court of the civil and criminal judicial order.',
+			summary:
+				'Highest court of the civil and criminal judicial order; presided since June 2024 by João Cura Mariano (five-year term).',
 			responsibilities: [
 				'Hears appeals on points of law from the Relação courts',
 				'Unifies case law (uniform jurisprudence rulings)',
@@ -364,7 +365,7 @@ export const portugal: Context = {
 			level: 'regional',
 			founded: '1833',
 			seat: 'Lisbon, Porto, Coimbra, Évora, Guimarães',
-			url: 'https://www.tribunais.org.pt/',
+			url: 'https://tribunais.org.pt/',
 			summary: 'Five second-instance courts of the judicial order.',
 			responsibilities: [
 				'Rehear facts and law on appeal from comarca courts',
@@ -374,7 +375,7 @@ export const portugal: Context = {
 			accountableTo: ['superior-council-magistracy'],
 			overlaps: [],
 			sources: [
-				'https://www.tribunais.org.pt/',
+				'https://tribunais.org.pt/',
 				'https://diariodarepublica.pt/dr/legislacao-consolidada/lei/2013-34580575'
 			]
 		},
@@ -386,7 +387,7 @@ export const portugal: Context = {
 			level: 'local',
 			founded: '2014',
 			seat: '23 comarcas nationwide',
-			url: 'https://www.tribunais.org.pt/',
+			url: 'https://tribunais.org.pt/',
 			summary:
 				'First-instance civil, criminal, family, labour and commercial courts in 23 comarcas.',
 			responsibilities: [
@@ -402,7 +403,7 @@ export const portugal: Context = {
 			accountableTo: ['superior-council-magistracy'],
 			overlaps: [],
 			sources: [
-				'https://www.tribunais.org.pt/',
+				'https://tribunais.org.pt/',
 				'https://diariodarepublica.pt/dr/legislacao-consolidada/lei/2013-34580575'
 			]
 		},
@@ -443,7 +444,7 @@ export const portugal: Context = {
 			level: 'regional',
 			founded: '1997',
 			seat: 'Porto, Lisbon',
-			url: 'https://www.tcanorte.pt/',
+			url: 'https://tca-norte.tribunais.org.pt/',
 			summary: 'Second-instance administrative and tax courts.',
 			responsibilities: [
 				'Hear appeals from TAF rulings on facts and law',
@@ -453,7 +454,7 @@ export const portugal: Context = {
 			accountableTo: ['CSTAF (Conselho Superior dos Tribunais Administrativos e Fiscais)'],
 			overlaps: [],
 			sources: [
-				'https://www.tcanorte.pt/',
+				'https://tca-norte.tribunais.org.pt/',
 				'https://www.tcasul.pt/',
 				'https://diariodarepublica.pt/dr/legislacao-consolidada/lei/2002-34580675'
 			]
@@ -467,7 +468,7 @@ export const portugal: Context = {
 			level: 'local',
 			founded: '1984',
 			seat: '16 seats nationwide',
-			url: 'https://www.tribunais.org.pt/',
+			url: 'https://tribunais.org.pt/',
 			summary: 'First-instance courts for disputes with public bodies and tax disputes.',
 			responsibilities: [
 				'Challenges to administrative acts (e.g. AIMA delays, licensing)',
@@ -483,7 +484,7 @@ export const portugal: Context = {
 				}
 			],
 			sources: [
-				'https://www.tribunais.org.pt/',
+				'https://tribunais.org.pt/',
 				'https://diariodarepublica.pt/dr/legislacao-consolidada/lei/2002-34580675',
 				'https://observador.pt/2026/07/23/governo-quer-redistribuir-processos-da-aima-por-tribunais-de-todo-o-pais-apos-chumbar-proposta-igual-da-il-em-fevereiro/'
 			]
@@ -589,7 +590,8 @@ export const portugal: Context = {
 			founded: '1976',
 			seat: 'Lisbon',
 			url: 'https://www.ministeriopublico.pt/',
-			summary: 'Autonomous prosecution magistracy headed by the Attorney General (PGR).',
+			summary:
+				'Autonomous prosecution magistracy headed by the Attorney General (PGR), Amadeu Guerra since 12 October 2024.',
 			responsibilities: [
 				'Directs criminal investigations (PJ, PSP, GNR act under it)',
 				'Represents the State and minors in court',
@@ -673,7 +675,7 @@ export const portugal: Context = {
 			seat: 'Lisbon',
 			url: 'https://www.provedor-jus.pt/',
 			summary:
-				'Independent body handling free complaints against public administration; also national preventive mechanism and NHRI.',
+				'Independent body handling free complaints against public administration; also national preventive mechanism and NHRI. Led by Luísa Neto since July 2026 (post vacant from June 2025, when Maria Lúcia Amaral joined the Government).',
 			responsibilities: [
 				'Investigates complaints (e.g. AIMA, Segurança Social, AT)',
 				'Issues non-binding recommendations',
@@ -704,7 +706,7 @@ export const portugal: Context = {
 			seat: 'Lisbon',
 			url: 'https://aima.gov.pt/',
 			summary:
-				'Administrative migration agency created on 29 Oct 2023 when SEF was abolished; handles residence permits and asylum decisions.',
+				'Administrative migration agency created on 29 Oct 2023 when SEF was abolished; handles residence permits and asylum decisions. President Pedro Portugal Gaspar; board member César Teixeira designated successor in Oct 2026 (appointment pending).',
 			responsibilities: [
 				'Residence permits, renewals and family reunification',
 				'Asylum and international protection decisions',
@@ -861,7 +863,7 @@ export const portugal: Context = {
 				'Interpol/Europol national unit'
 			],
 			obligations: [
-				'Lei 37/2008 (PJ organic law)',
+				'Decree-Law 137/2019 (PJ organisation; replaced Lei 37/2008)',
 				'Criminal Investigation Organisation Law (LOIC, Lei 49/2008)'
 			],
 			accountableTo: ['ministry-justice', 'public-prosecution'],
@@ -924,7 +926,7 @@ export const portugal: Context = {
 				'EURES and recognition services for migrants'
 			],
 			obligations: [
-				'Decree-Law 143/2012 (organic law)',
+				'Decree-Law 143/2012 (organic law), restructured by Decree-Law 42/2026',
 				'Must verify active job search of benefit recipients'
 			],
 			accountableTo: ['ministry-labour-social-security'],
@@ -1033,10 +1035,11 @@ export const portugal: Context = {
 			acronym: 'DGERT',
 			kind: 'agency',
 			level: 'national',
-			founded: '2007',
+			founded: '2002',
 			seat: 'Lisbon',
 			url: 'https://www.dgert.gov.pt/',
-			summary: 'Collective bargaining registry, conciliation and training-provider certification.',
+			summary:
+				'Collective bargaining registry, conciliation and training-provider certification; created in 2002 (Decree-Law 266/2002), organic law of 2007 (Decree-Law 210/2007) restructured by Decreto Regulamentar 3/2026.',
 			responsibilities: [
 				'Deposits and publishes collective agreements',
 				'Conciliation and mediation in labour conflicts',
@@ -1100,7 +1103,7 @@ export const portugal: Context = {
 			acronym: 'ARTE',
 			kind: 'agency',
 			level: 'national',
-			founded: '2025',
+			founded: '2025 (AMA 2007)',
 			seat: 'Lisbon',
 			url: 'https://www.arte.gov.pt/',
 			summary:
@@ -1126,7 +1129,7 @@ export const portugal: Context = {
 			kind: 'agency',
 			level: 'local',
 			founded: '1999',
-			seat: '~70 shops nationwide',
+			seat: '80+ shops nationwide',
 			url: 'https://www.gov.pt/',
 			summary: 'One-stop counters housing desks of IRN, AT, Segurança Social, AIMA and utilities.',
 			responsibilities: [
@@ -1341,7 +1344,8 @@ export const portugal: Context = {
 				'Works with Estrutura de Missão Reconstruir o Centro'
 			],
 			obligations: ['Council of Ministers resolution (June 2026)'],
-			accountableTo: ['ministry-presidency'],
+			// Supervising ministry not yet published.
+			accountableTo: ['portugal-government'],
 			overlaps: [],
 			sources: [
 				'https://portugal.gov.pt/gc25/comunicacao/noticias/conselho-de-ministros-aprova-criacao-de-agencia-para-coordenar-ptrr-portugal-transformacao-recuperacao-e-resiliencia'
@@ -1357,7 +1361,8 @@ export const portugal: Context = {
 			founded: '1846',
 			seat: 'Lisbon',
 			url: 'https://www.bportugal.pt/',
-			summary: 'Central bank, part of the Eurosystem; prudential and conduct supervisor of banks.',
+			summary:
+				'Central bank, part of the Eurosystem (Governor Álvaro Santos Pereira since 6 October 2025, succeeding Mário Centeno); prudential and conduct supervisor of banks.',
 			responsibilities: [
 				'Implements ECB monetary policy',
 				'Supervises less significant banks; with ECB for significant ones',
@@ -1631,7 +1636,7 @@ export const portugal: Context = {
 			],
 			obligations: [
 				'Constitution (CRP) arts. 225-234',
-				'Political-Administrative Statute (Lei 39/80)'
+				'Political-Administrative Statute (Lei 2/2009, third revision of Lei 39/80)'
 			],
 			accountableTo: [
 				'Regional electorate',
@@ -1686,12 +1691,8 @@ export const portugal: Context = {
 			seat: 'Lisbon',
 			url: 'https://www.portugal.gov.pt/pt/gc25/area-de-governo/presidencia',
 			summary:
-				'Ministry (António Leitão Amaro) coordinating government, including migration policy and the PTRR agency.',
-			responsibilities: [
-				'Tutela of AIMA and migration policy',
-				'Coordinates Council of Ministers',
-				'Oversees PTRR agency'
-			],
+				'Ministry (António Leitão Amaro) coordinating government, including migration policy.',
+			responsibilities: ['Tutela of AIMA and migration policy', 'Coordinates Council of Ministers'],
 			obligations: ['Government organic law (DL 2025)'],
 			accountableTo: ['portugal-government'],
 			overlaps: [],
@@ -2320,16 +2321,6 @@ export const portugal: Context = {
 			label: 'tutela (supervision)',
 			detail: 'The ministry holds ministerial supervision (tutela/superintendência) over the body.',
 			sources: ['https://aima.gov.pt/']
-		},
-		{
-			from: 'ministry-presidency',
-			to: 'ptrr-agency',
-			kind: 'oversees',
-			label: 'tutela (supervision)',
-			detail: 'The ministry holds ministerial supervision (tutela/superintendência) over the body.',
-			sources: [
-				'https://portugal.gov.pt/gc25/comunicacao/noticias/conselho-de-ministros-aprova-criacao-de-agencia-para-coordenar-ptrr-portugal-transformacao-recuperacao-e-resiliencia'
-			]
 		},
 		{
 			from: 'psp-unef',

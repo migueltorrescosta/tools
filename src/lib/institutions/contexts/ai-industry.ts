@@ -5,7 +5,7 @@ export const aiIndustry: Context = {
 	title: 'AI industry',
 	summary:
 		'Who makes AI chips, who runs the data centres, who builds the models, who pays for them and who regulates them.',
-	asOf: '2026-11-13',
+	asOf: '2026-11-15',
 	institutions: [
 		{
 			id: 'asml',
@@ -61,7 +61,7 @@ export const aiIndustry: Context = {
 			overlaps: [],
 			sources: [
 				'https://www.zeiss.com/semiconductor-manufacturing-technology/about-us.html',
-				'https://www.asml.com/en/news/press-releases/2016/asml-to-acquire-249-percent-of-carl-zeiss-smt'
+				'https://www.asml.com/en/news/press-releases/2016/zeiss-and-asml-strengthen-partnership-for-next-generation-of-euv-lithography'
 			]
 		},
 		{
@@ -318,7 +318,7 @@ export const aiIndustry: Context = {
 			seat: 'Cambridge (UK)',
 			url: 'https://www.arm.com',
 			summary:
-				'Licenses the CPU instruction set used in Nvidia Grace, AWS Graviton and most phones; ~90% owned by SoftBank.',
+				'Licenses the CPU instruction set used in Nvidia Grace, AWS Graviton and most phones; ~86% owned by SoftBank.',
 			responsibilities: [
 				'Licenses CPU architectures and cores',
 				'Designs compute subsystems for data-centre chips'
@@ -327,9 +327,12 @@ export const aiIndustry: Context = {
 				'US securities law (SEC reporting, Sarbanes-Oxley) (Nasdaq listing)',
 				'UK National Security and Investment Act'
 			],
-			accountableTo: ['Shareholders', 'softbank (~90%)'],
+			accountableTo: ['Shareholders', 'softbank (~86%)'],
 			overlaps: [],
-			sources: ['https://www.arm.com/company', 'https://group.softbank/en/ir']
+			sources: [
+				'https://www.arm.com/company',
+				'https://www.sec.gov/Archives/edgar/data/0001973239/000197323926000097/arm-20260331.htm'
+			]
 		},
 		{
 			id: 'applied-materials',
@@ -488,7 +491,7 @@ export const aiIndustry: Context = {
 			founded: '1975',
 			seat: 'Redmond',
 			url: 'https://www.microsoft.com',
-			summary: 'Azure cloud; holds ~27% of OpenAI Group PBC and invested in Anthropic.',
+			summary: 'Azure cloud; holds ~27% of OpenAI Group PBC (Oct 2025) and invested in Anthropic.',
 			responsibilities: [
 				'Runs Azure AI infrastructure',
 				'Exclusive OpenAI API reseller (to 2032 IP rights)',
@@ -546,7 +549,7 @@ export const aiIndustry: Context = {
 			],
 			sources: [
 				'https://www.aboutamazon.com/news/company-news/amazon-anthropic-ai-investment',
-				'https://siliconangle.com/2026/04/20/amazon-invest-25b-anthropic-part-expanded-cloud-partnership/'
+				'https://www.anthropic.com/news/anthropic-amazon-compute'
 			]
 		},
 		{
@@ -647,7 +650,7 @@ export const aiIndustry: Context = {
 			seat: 'Menlo Park',
 			url: 'https://about.meta.com',
 			summary:
-				'Builds open-weight Llama models and gigawatt data centres (Hyperion); 2026 capex US$125-145bn.',
+				'Builds open-weight Llama models and gigawatt data centres (Hyperion); 2026 capex US$135-145bn.',
 			responsibilities: [
 				'Meta Superintelligence Labs',
 				'Hyperion and Prometheus data centres',
@@ -661,6 +664,7 @@ export const aiIndustry: Context = {
 			accountableTo: ['Shareholders (Zuckerberg control)'],
 			overlaps: [],
 			sources: [
+				'https://investor.atmeta.com/investor-news/press-release-details/2026/Meta-Reports-Third-Quarter-2026-Results/',
 				'https://www.businesstoday.in/technology/news/story/meta-bets-billions-on-google-to-power-its-ai-ambitions-518270-2026-02-27'
 			]
 		},
@@ -698,13 +702,14 @@ export const aiIndustry: Context = {
 			seat: 'San Francisco',
 			url: 'https://openai.com',
 			summary:
-				'Maker of ChatGPT; public benefit corporation valued at ~US$1.25tn (Nov 2026 first close).',
+				'Maker of ChatGPT; public benefit corporation valued at ~US$1.25tn (Nov 2026 first close); confidential IPO filing (S-1) submitted Jun 2026.',
 			responsibilities: [
 				'Develops GPT models and ChatGPT',
 				'Stargate compute build-out (~30 GW in commitments)'
 			],
 			obligations: [
 				'Delaware PBC law; Foundation control',
+				'US securities law (confidential S-1 submitted Jun 2026; not yet listed)',
 				'EU AI Act GPAI obligations',
 				'CAISI pre-deployment testing agreement'
 			],
@@ -717,6 +722,7 @@ export const aiIndustry: Context = {
 			],
 			sources: [
 				'https://openai.com/index/built-to-benefit-everyone/',
+				'https://openai.com/index/openai-submits-confidential-s-1/',
 				'https://siliconangle.com/2026/11/06/openai-reportedly-raises-11b-in-new-funding-at-1-25t-valuation/'
 			]
 		},
@@ -728,10 +734,12 @@ export const aiIndustry: Context = {
 			founded: '2021',
 			seat: 'San Francisco',
 			url: 'https://www.anthropic.com',
-			summary: 'Maker of Claude; public benefit corporation valued at US$965bn (May 2026).',
+			summary:
+				'Maker of Claude; public benefit corporation valued at US$965bn (May 2026); filed its public IPO prospectus (S-1) on 26 Oct 2026.',
 			responsibilities: ['Develops Claude models', 'Multi-chip strategy: Trainium, TPU, Nvidia'],
 			obligations: [
 				'Delaware PBC law; Long-Term Benefit Trust',
+				'US securities law (SEC registration statement filed; IPO pending)',
 				'EU AI Act GPAI code of practice',
 				'CAISI and UK AISI testing agreements'
 			],
@@ -742,7 +750,11 @@ export const aiIndustry: Context = {
 					note: 'Its two largest backers (Amazon, Google) are also its compute suppliers and competitors.'
 				}
 			],
-			sources: ['https://www.anthropic.com/company', 'https://www.anthropic.com/news/series-h']
+			sources: [
+				'https://www.anthropic.com/company',
+				'https://www.anthropic.com/news/series-h',
+				'https://www.kuow.org/npr-news/2026-10-26/ai-giant-anthropic-files-for-an-ipo-that-could-break-records'
+			]
 		},
 		{
 			id: 'spacex-xai',
@@ -752,16 +764,22 @@ export const aiIndustry: Context = {
 			founded: '2002',
 			seat: 'Starbase (TX)',
 			url: 'https://x.ai',
-			summary: 'xAI (Grok, Colossus) merged into SpaceX in Feb 2026 at ~US$1.25tn combined.',
+			summary:
+				'xAI (Grok, Colossus) merged into SpaceX in Feb 2026 at ~US$1.25tn; SpaceX listed on Nasdaq (SPCX) in June 2026 at ~US$1.77tn.',
 			responsibilities: [
 				'Develops Grok models',
 				'Runs Colossus supercomputers in Memphis',
 				'Owns X (Twitter)'
 			],
-			obligations: ['US law; CAISI testing agreement (May 2026)', 'EU DSA for X'],
-			accountableTo: ['Shareholders (Musk control)'],
+			obligations: [
+				'US securities law (SEC reporting; Nasdaq listing since Jun 2026)',
+				'CAISI testing agreement (May 2026)',
+				'EU DSA for X'
+			],
+			accountableTo: ['Shareholders (Musk ~82% of votes)'],
 			overlaps: [],
 			sources: [
+				'https://euronews.com/2026/06/12/spacex-makes-its-nasdaq-debut-after-the-largest-public-offering-in-history',
 				'https://fortune.com/2026/02/02/elon-musk-spacex-xai-ipo-trillion',
 				'https://nairametrics.com/2026/02/03/musks-spacex-merges-xai-in-deal-valued-at-1-25-trillion/'
 			]
@@ -862,12 +880,13 @@ export const aiIndustry: Context = {
 			founded: '1981',
 			seat: 'Tokyo',
 			url: 'https://group.softbank',
-			summary: 'Largest outside OpenAI investor (~11%) and Stargate lead; owns ~90% of Arm.',
+			summary: 'Largest outside OpenAI investor (~13%) and Stargate lead; owns ~86% of Arm.',
 			responsibilities: ['Invests in OpenAI, Arm, Intel', 'Leads Stargate LLC financing'],
 			obligations: ['Tokyo Stock Exchange rules', 'Japanese corporate law'],
 			accountableTo: ['Shareholders (Son control)'],
 			overlaps: [],
 			sources: [
+				'https://group.softbank/system/files/pdf/ir/financials/financial_reports/financial-report_q2fy2026_01_en.pdf',
 				'https://group.softbank/en/news/press',
 				'https://finance.yahoo.com/markets/stocks/articles/openai-closes-122bn-funding-round-093126735.html'
 			]
@@ -1020,10 +1039,11 @@ export const aiIndustry: Context = {
 			acronym: 'BIS',
 			kind: 'agency',
 			level: 'national',
-			founded: '1950',
+			founded: '1987',
 			seat: 'Washington, D.C.',
 			url: 'https://www.bis.gov',
-			summary: 'Commerce agency running US export controls on chips, tools and model weights.',
+			summary:
+				'Commerce agency (Bureau of Export Administration from 1987, renamed 2002) running US export controls on chips, tools and model weights.',
 			responsibilities: [
 				'Licenses H200/MI325X to China case-by-case (Jan 2026)',
 				'Entity List',
@@ -1043,7 +1063,7 @@ export const aiIndustry: Context = {
 			],
 			sources: [
 				'https://www.bis.gov/',
-				'https://introl.com/blog/bis-export-policy-h200-mi325x-china-case-by-case-2026'
+				'https://www.govinfo.gov/content/pkg/FR-2026-01-15/html/2026-00789.htm'
 			]
 		},
 		{
@@ -1447,7 +1467,7 @@ export const aiIndustry: Context = {
 			kind: 'nonprofit',
 			level: 'global',
 			founded: '2023',
-			seat: 'Washington, D.C.',
+			seat: 'United States (no address published)',
 			url: 'https://www.frontiermodelforum.org',
 			summary: 'Industry body of frontier labs for safety best practice.',
 			responsibilities: ['Safety frameworks and bio/cyber thresholds', 'AI Safety Fund'],
@@ -1467,7 +1487,7 @@ export const aiIndustry: Context = {
 			kind: 'standards-body',
 			level: 'global',
 			founded: '2020',
-			seat: 'San Francisco',
+			seat: 'Dover, DE (published address)',
 			url: 'https://mlcommons.org',
 			summary: 'Engineering consortium running MLPerf and AILuminate safety benchmarks.',
 			responsibilities: ['MLPerf training/inference benchmarks', 'AILuminate safety benchmark'],
@@ -1491,9 +1511,10 @@ export const aiIndustry: Context = {
 			to: 'carl-zeiss-smt',
 			kind: 'invests-in',
 			label: '24.9% stake',
-			detail: 'ASML bought 24.9% of Carl Zeiss SMT in 2016 (EUR1bn) to fund High-NA EUV.',
+			detail:
+				'Nov 2016: ASML agreed to buy 24.9% of Carl Zeiss SMT for EUR1bn cash (closed 2017) and to fund about EUR760m of High-NA EUV R&D and capex over six years.',
 			sources: [
-				'https://www.asml.com/en/news/press-releases/2016/asml-to-acquire-249-percent-of-carl-zeiss-smt'
+				'https://www.asml.com/en/news/press-releases/2016/zeiss-and-asml-strengthen-partnership-for-next-generation-of-euv-lithography'
 			]
 		},
 		{
@@ -1584,8 +1605,11 @@ export const aiIndustry: Context = {
 			to: 'synopsys',
 			kind: 'invests-in',
 			label: 'US$2bn stake',
-			detail: 'Nvidia bought ~US$2bn of Synopsys shares (Dec 2025) to GPU-accelerate EDA.',
-			sources: ['https://news.synopsys.com/']
+			detail:
+				'Nvidia bought US$2bn of Synopsys shares at US$414.79 (1 Dec 2025) to GPU-accelerate EDA.',
+			sources: [
+				'https://news.synopsys.com/2025-12-01-NVIDIA-and-Synopsys-Announce-Strategic-Partnership-to-Revolutionize-Engineering-and-Design'
+			]
 		},
 		{
 			from: 'tsmc',
@@ -1681,8 +1705,11 @@ export const aiIndustry: Context = {
 			to: 'united-states-government',
 			kind: 'supplies',
 			label: 'Secure Enclave chips',
-			detail: 'CHIPS Secure Enclave programme (~US$3bn) for defence chips.',
-			sources: ['https://www.theregister.com/2025/08/25/intel_gets_trumped/']
+			detail:
+				'CHIPS Secure Enclave award (US$3.2bn) for defence chips; converted to equity in Aug 2025.',
+			sources: [
+				'https://www.intc.com/news-events/press-releases/detail/1748/intel-and-trump-administration-reach-historic-agreement-to'
+			]
 		},
 		{
 			from: 'nvidia',
@@ -1726,8 +1753,9 @@ export const aiIndustry: Context = {
 			kind: 'partners',
 			label: 'Stargate 4.5 GW',
 			detail:
-				'Jul 2025: ~US$300bn, 4.5 GW contract; Abilene ~1.2 GW due Q4 2026; extra Abilene expansion dropped.',
+				'Jul 2025: 4.5 GW of added Stargate capacity at ~US$30bn a year (WSJ later reported ~US$300bn over five years); Abilene ~1.2 GW due Q4 2026; extra Abilene expansion dropped.',
 			sources: [
+				'https://openai.com/index/stargate-advances-with-partnership-with-oracle/',
 				'https://www.tomshardware.com/tech-industry/oracle-rebuts-incorrect-reporting-on-stargate-expansion',
 				'https://epoch.ai/blog/openai-stargate-where-the-us-sites-stand'
 			]
@@ -1747,7 +1775,7 @@ export const aiIndustry: Context = {
 			kind: 'partners',
 			label: '6 GW + warrants',
 			detail:
-				'Oct 2025: 6 GW of Instinct GPUs from H2 2026; warrant for up to 160m AMD shares (~10%) vesting by milestones.',
+				'Oct 2025: 6 GW of Instinct GPUs, first 1 GW (MI450) from H2 2026; warrant for up to 160m AMD shares (~10%) vesting by deployment and share-price milestones.',
 			sources: [
 				'https://ir.amd.com/news-events/press-releases/detail/1260/amd-and-openai-announce-strategic-partnership'
 			]
@@ -1778,12 +1806,9 @@ export const aiIndustry: Context = {
 			from: 'amazon',
 			to: 'openai',
 			kind: 'partners',
-			label: 'AWS US$100bn',
-			detail:
-				"Nov 2025 US$38bn deal expanded to ~US$100bn over 8 years, tied to Amazon's 2026 investment.",
-			sources: [
-				'https://finance.yahoo.com/markets/stocks/articles/openai-closes-122bn-funding-round-093126735.html'
-			]
+			label: 'AWS US$38bn',
+			detail: 'Nov 2025: US$38bn of AWS compute over seven years.',
+			sources: ['https://openai.com/index/aws-and-openai-partnership/']
 		},
 		{
 			from: 'coreweave',
@@ -1800,8 +1825,10 @@ export const aiIndustry: Context = {
 			to: 'meta',
 			kind: 'partners',
 			label: 'US$35bn compute',
-			detail: 'US$14.2bn (Sept 2025) plus US$21bn (Apr 2026) through 2032.',
-			sources: ['https://www.eweek.com/news/meta-coreweave-21b-ai-cloud-deal/']
+			detail: 'US$14.2bn (Sept 2025) plus US$21bn (9 Apr 2026, capacity through Dec 2032).',
+			sources: [
+				'https://investors.coreweave.com/news/news-details/2026/CoreWeave-and-Meta-Announce-21-Billion-Expanded-AI-Infrastructure-Agreement/default.aspx'
+			]
 		},
 		{
 			from: 'amazon',
@@ -1810,9 +1837,7 @@ export const aiIndustry: Context = {
 			label: 'Trainium, 5 GW',
 			detail:
 				'Apr 2026: Anthropic commits >US$100bn over 10 years for up to 5 GW of Trainium; Project Rainier.',
-			sources: [
-				'https://siliconangle.com/2026/04/20/amazon-invest-25b-anthropic-part-expanded-cloud-partnership/'
-			]
+			sources: ['https://www.anthropic.com/news/anthropic-amazon-compute']
 		},
 		{
 			from: 'alphabet-google',
@@ -1820,9 +1845,10 @@ export const aiIndustry: Context = {
 			kind: 'partners',
 			label: 'TPUs ~1 GW + 3.5 GW',
 			detail:
-				'Oct 2025: up to 1m TPUs (>1 GW in 2026); Apr 2026: ~3.5 GW more via Broadcom from 2027.',
+				'Oct 2025: up to 1m TPUs (>1 GW in 2026); Apr 2026: multiple GW more from 2027 (~3.5 GW via Broadcom, per Broadcom filing).',
 			sources: [
 				'https://www.anthropic.com/news/expanding-our-use-of-google-cloud-tpus-and-services',
+				'https://www.anthropic.com/news/google-broadcom-partnership-compute',
 				'https://www.hpcwire.com/off-the-wire/anthropic-signs-google-broadcom-deal-to-add-multi-gigawatt-tpu-capacity/'
 			]
 		},
@@ -1834,6 +1860,7 @@ export const aiIndustry: Context = {
 			detail:
 				"Broadcom supplies the 3.5 GW TPU expansion, contingent on Anthropic's commercial success.",
 			sources: [
+				'https://www.anthropic.com/news/google-broadcom-partnership-compute',
 				'https://www.hpcwire.com/off-the-wire/anthropic-signs-google-broadcom-deal-to-add-multi-gigawatt-tpu-capacity/'
 			]
 		},
@@ -1844,7 +1871,7 @@ export const aiIndustry: Context = {
 			label: 'US$30bn Azure',
 			detail: 'Nov 2025: Anthropic commits US$30bn to Azure, up to 1 GW of Nvidia systems.',
 			sources: [
-				'https://www.aljazeera.com/economy/2025/11/18/microsoft-nvidia-invest-in-anthropic-in-cloud-services-deal'
+				'https://www.anthropic.com/news/microsoft-nvidia-anthropic-announce-strategic-partnerships'
 			]
 		},
 		{
@@ -1863,9 +1890,10 @@ export const aiIndustry: Context = {
 			to: 'meta',
 			kind: 'supplies',
 			label: 'MI450 GPUs',
-			detail: 'Five-year ~US$60bn deal for AMD MI450 from H2 2026 (reported).',
+			detail:
+				'Feb 2026: up to 6 GW over several years, first 1 GW (custom MI450-based) from H2 2026; warrant for up to 160m AMD shares. Value undisclosed (~US$60bn reported).',
 			sources: [
-				'https://www.businesstoday.in/technology/news/story/meta-bets-billions-on-google-to-power-its-ai-ambitions-518270-2026-02-27'
+				'https://ir.amd.com/news-events/press-releases/detail/1279/amd-and-meta-announce-expanded-strategic-partnership'
 			]
 		},
 		{
@@ -1924,9 +1952,11 @@ export const aiIndustry: Context = {
 			from: 'softbank',
 			to: 'openai',
 			kind: 'invests-in',
-			label: '~11%, US$60bn+',
-			detail: 'US$30bn (2025) plus US$30bn in Mar 2026 round.',
+			label: '~13%, US$64.6bn',
+			detail:
+				'US$34.6bn to 2025 plus US$30bn follow-on (tranches Apr, Jul, Oct 2026); ~13% as of 1 Oct 2026.',
 			sources: [
+				'https://group.softbank/system/files/pdf/ir/financials/financial_reports/financial-report_q2fy2026_01_en.pdf',
 				'https://finance.yahoo.com/markets/stocks/articles/openai-closes-122bn-funding-round-093126735.html'
 			]
 		},
@@ -1935,7 +1965,7 @@ export const aiIndustry: Context = {
 			to: 'openai',
 			kind: 'invests-in',
 			label: 'US$50bn (Mar 2026)',
-			detail: 'US$50bn in the US$122bn round; ~US$35bn contingent on IPO or AGI.',
+			detail: 'US$50bn in the US$122bn round (US$15bn upfront); ~US$35bn contingent on IPO or AGI.',
 			sources: [
 				'https://finance.yahoo.com/markets/stocks/articles/openai-closes-122bn-funding-round-093126735.html'
 			]
@@ -1967,18 +1997,18 @@ export const aiIndustry: Context = {
 			label: 'US$13bn + up to 20bn',
 			detail:
 				'US$8bn (2023-24) + US$5bn (Apr 2026) + up to US$20bn on milestones; stake est. mid-teens %.',
-			sources: [
-				'https://siliconangle.com/2026/04/20/amazon-invest-25b-anthropic-part-expanded-cloud-partnership/'
-			]
+			sources: ['https://www.anthropic.com/news/anthropic-amazon-compute']
 		},
 		{
 			from: 'alphabet-google',
 			to: 'anthropic',
 			kind: 'invests-in',
-			label: '~14% stake',
-			detail: '~US$3bn+ invested; ~14% stake per 2025 court filings; further 2025 investment.',
+			label: 'Notes and preferred; capped at 14.99%',
+			detail:
+				'Convertible notes of up to US$2bn (2023) and ~US$1.3bn (2024). Mar 2026 agreement: ~US$10bn of Series G-2 preferred plus up to US$30bn more through 2030, of which US$10bn went into Series H; ownership capped at 14.99% (Anthropic S-1/A).',
 			sources: [
-				'https://www.anthropic.com/news/expanding-our-use-of-google-cloud-tpus-and-services'
+				'https://www.sec.gov/Archives/edgar/data/2130357/000162828026068676/anthropicpbc-sx1ax1.htm',
+				'https://www.sec.gov/Archives/edgar/data/1652044/000165204426000048/goog-20260331.htm'
 			]
 		},
 		{
@@ -1988,7 +2018,7 @@ export const aiIndustry: Context = {
 			label: 'Up to US$5bn',
 			detail: 'Nov 2025 commitment alongside Azure deal.',
 			sources: [
-				'https://www.aljazeera.com/economy/2025/11/18/microsoft-nvidia-invest-in-anthropic-in-cloud-services-deal'
+				'https://www.anthropic.com/news/microsoft-nvidia-anthropic-announce-strategic-partnerships'
 			]
 		},
 		{
@@ -1998,17 +2028,19 @@ export const aiIndustry: Context = {
 			label: 'Up to US$10bn',
 			detail: 'Nov 2025 commitment; Anthropic adopts Nvidia Grace Blackwell/Vera Rubin.',
 			sources: [
-				'https://www.aljazeera.com/economy/2025/11/18/microsoft-nvidia-invest-in-anthropic-in-cloud-services-deal'
+				'https://www.anthropic.com/news/microsoft-nvidia-anthropic-announce-strategic-partnerships'
 			]
 		},
 		{
 			from: 'qia',
 			to: 'anthropic',
 			kind: 'invests-in',
-			label: 'Series F/G',
-			detail: 'QIA co-led Series F (Sept 2025, US$13bn at US$183bn).',
+			label: 'Series F/G investor',
+			detail:
+				'Participated in Series F (Sept 2025, US$13bn at US$183bn, led by ICONIQ) and Series G (Feb 2026, US$30bn at US$380bn).',
 			sources: [
-				'https://www.anthropic.com/news/anthropic-raises-series-f-at-usd183b-post-money-valuation'
+				'https://www.anthropic.com/news/anthropic-raises-series-f-at-usd183b-post-money-valuation',
+				'https://www.anthropic.com/news/anthropic-raises-30-billion-series-g-funding-380-billion-post-money-valuation'
 			]
 		},
 		{
@@ -2073,9 +2105,12 @@ export const aiIndustry: Context = {
 			from: 'softbank',
 			to: 'arm',
 			kind: 'invests-in',
-			label: '~90% stake',
-			detail: "SoftBank kept ~90% after Arm's 2023 IPO.",
-			sources: ['https://group.softbank/en/ir']
+			label: '~86% stake',
+			detail:
+				"SoftBank kept ~90% after Arm's 2023 IPO; Arm's FY2026 20-F (21 May 2026) shows ~86%.",
+			sources: [
+				'https://www.sec.gov/Archives/edgar/data/0001973239/000197323926000097/arm-20260331.htm'
+			]
 		},
 		{
 			from: 'asml',
@@ -2170,17 +2205,23 @@ export const aiIndustry: Context = {
 			from: 'taiwan-government',
 			to: 'tsmc',
 			kind: 'invests-in',
-			label: '~6% via NDF',
-			detail: "National Development Fund is TSMC's largest single shareholder.",
-			sources: ['https://www.tsmc.com/english/aboutTSMC']
+			label: '6.38% via NDF',
+			detail:
+				"National Development Fund held 6.38% at 31 Dec 2025, TSMC's largest named holder (the ADR custodian account holds 20.49%).",
+			sources: [
+				'https://investor.tsmc.com/static/annualReports/2025/english/pdf/2025_tsmc_ar_e_ch4.pdf'
+			]
 		},
 		{
 			from: 'japan-government',
 			to: 'rapidus',
 			kind: 'funds',
 			label: 'JPY2.35tn R&D aid; golden share',
-			detail: 'METI R&D grants (JPY631.5bn added Apr 2026) and IPA equity with golden share.',
+			detail:
+				'METI R&D grants (JPY631.5bn added Apr 2026) and IPA equity (JPY100bn Feb 2026, JPY150bn Jun 2026) with a golden share.',
 			sources: [
+				'https://www.argusmedia.com/de/news-and-insights/latest-market-news/2835708-japan-adds-funding-for-rapidus-semiconductor-project',
+				'https://www.design-reuse.com/news/202530620-rapidus-completes-150-billion-yen-funding-round-from-japan-government/',
 				'https://www.theregister.com/2026/02/27/rapidus_funding/',
 				'https://english.adnkronos.com/2026/02/27/rapidus-gets-267-6-b-yen-in-public-private-funds/'
 			]
@@ -2190,8 +2231,12 @@ export const aiIndustry: Context = {
 			to: 'tsmc',
 			kind: 'funds',
 			label: 'Kumamoto subsidies',
-			detail: 'Up to JPY1.2tn for TSMC/JASM Kumamoto fabs.',
-			sources: ['https://www.meti.go.jp/english']
+			detail:
+				'Up to JPY1.055tn for TSMC/JASM Kumamoto fabs after METI revised the plans on 16 Oct 2026 (fab 1 JPY409.5bn, fab 2 3nm JPY645.15bn; previously JPY1.208tn).',
+			sources: [
+				'https://cloudnews.tech/japan-approves-tsmcs-3nm-kumamoto-fab-trims-the-subsidies/',
+				'https://www.meti.go.jp/english/policy/0704_001.pdf'
+			]
 		},
 		{
 			from: 'chips-program-office',
@@ -2247,7 +2292,7 @@ export const aiIndustry: Context = {
 			kind: 'implements',
 			label: 'AI Factories/Gigafactories',
 			detail:
-				'Runs gigafactory tender (EUR10bn public, EUR20bn private target); awards early 2027.',
+				'Runs tender (opened 30 Jul 2026) for up to seven gigafactories (EUR10bn public, EUR20bn private target); awards early 2027.',
 			sources: [
 				'https://www.eurohpc-ju.europa.eu/call-tenders-selection-artificial-intelligence-gigafactory-consortia-and-establishment-ai_en'
 			]
@@ -2265,8 +2310,11 @@ export const aiIndustry: Context = {
 			to: 'samsung-electronics',
 			kind: 'funds',
 			label: 'K-Chips tax credits',
-			detail: 'Investment tax credits up to 25-30% for chip capex.',
-			sources: ['https://www.motie.go.kr/eng']
+			detail:
+				'Facility-investment tax credit of 20% for large and mid-sized firms (15% before the 2025 amendment; 30% for SMEs).',
+			sources: [
+				'https://investmentpolicy.unctad.org/investment-policy-monitor/measures/5335/korea-republic-of-raises-corporate-tax-credit-for-semiconductor-sector'
+			]
 		},
 		{
 			from: 'south-korea-government',
@@ -2274,14 +2322,17 @@ export const aiIndustry: Context = {
 			kind: 'funds',
 			label: 'K-Chips tax credits',
 			detail: 'Same credits; Yongin cluster infrastructure support.',
-			sources: ['https://www.motie.go.kr/eng']
+			sources: [
+				'https://investmentpolicy.unctad.org/investment-policy-monitor/measures/5335/korea-republic-of-raises-corporate-tax-credit-for-semiconductor-sector'
+			]
 		},
 		{
 			from: 'uk-government',
 			to: 'uk-aisi',
 			kind: 'funds',
 			label: 'Core budget',
-			detail: 'DSIT funds AISI (~GBP66m/yr plus initial GBP100m).',
+			detail:
+				'DSIT funds AISI (GBP66m per financial year plus long-term commitments; its predecessor taskforce started with GBP100m in 2023).',
 			sources: ['https://www.aisi.gov.uk/']
 		},
 		{
@@ -2290,8 +2341,8 @@ export const aiIndustry: Context = {
 			kind: 'regulates',
 			label: 'China licences',
 			detail:
-				'H200 to China case-by-case since Jan 2026 (25% fee, volume caps, US lab verification).',
-			sources: ['https://introl.com/blog/bis-export-policy-h200-mi325x-china-case-by-case-2026']
+				'H200 to China case-by-case since 15 Jan 2026 (50% shipment-ratio cap, certifications, US third-party testing); the 25% duty is a separate proclamation.',
+			sources: ['https://www.govinfo.gov/content/pkg/FR-2026-01-15/html/2026-00789.htm']
 		},
 		{
 			from: 'us-bis',
@@ -2299,7 +2350,7 @@ export const aiIndustry: Context = {
 			kind: 'regulates',
 			label: 'China licences',
 			detail: 'MI325X under the same case-by-case regime.',
-			sources: ['https://introl.com/blog/bis-export-policy-h200-mi325x-china-case-by-case-2026']
+			sources: ['https://www.govinfo.gov/content/pkg/FR-2026-01-15/html/2026-00789.htm']
 		},
 		{
 			from: 'us-bis',
@@ -2331,9 +2382,10 @@ export const aiIndustry: Context = {
 			to: 'g42',
 			kind: 'regulates',
 			label: 'Export licence',
-			detail: 'Nov 2025: licence for up to 35,000 GB300-equivalents with security conditions.',
+			detail:
+				'19 Nov 2025: approval for up to 35,000 GB300-equivalents, conditioned on security and reporting requirements.',
 			sources: [
-				'https://www.thenationalnews.com/future/technology/2025/11/20/uae-ai-nvidia-chips-us/'
+				'https://commerce.gov/news/press-releases/2025/11/statement-uae-and-saudi-chip-exports'
 			]
 		},
 		{
@@ -2341,9 +2393,10 @@ export const aiIndustry: Context = {
 			to: 'humain',
 			kind: 'regulates',
 			label: 'Export licence',
-			detail: 'Nov 2025: licence for up to 35,000 GB300-equivalents.',
+			detail:
+				'19 Nov 2025: approval for up to 35,000 GB300-equivalents, with security and reporting conditions.',
 			sources: [
-				'https://www.thenationalnews.com/future/technology/2025/11/20/uae-ai-nvidia-chips-us/'
+				'https://commerce.gov/news/press-releases/2025/11/statement-uae-and-saudi-chip-exports'
 			]
 		},
 		{
@@ -2359,8 +2412,10 @@ export const aiIndustry: Context = {
 			to: 'asml',
 			kind: 'regulates',
 			label: 'Export licences',
-			detail: 'Licences for EUV, 1970i/1980i DUV and their servicing to China.',
+			detail:
+				'Licences for EUV, NXT:2000i and newer DUV (since 1 Sep 2023), NXT:1970i/1980i (since 7 Sep 2024) and their servicing to China.',
 			sources: [
+				'https://www.government.nl/latest/news/2024/09/06/the-netherlands-expands-export-control-measure-advanced-semiconductor-manufacturing-equipment',
 				'https://bits-chips.com/article/dutch-minister-pushes-back-on-us-bid-to-tighten-china-chip-controls/'
 			]
 		},
@@ -2369,8 +2424,10 @@ export const aiIndustry: Context = {
 			to: 'tokyo-electron',
 			kind: 'regulates',
 			label: 'Tool export controls',
-			detail: 'METI licensing of 23+ tool categories since 2023.',
-			sources: ['https://www.meti.go.jp/english']
+			detail: 'METI licensing of 23 tool categories since 23 Jul 2023 (FEFTA).',
+			sources: [
+				'https://www.csis.org/analysis/csis-translation-updated-japanese-export-controls-high-performance-semiconductor'
+			]
 		},
 		{
 			from: 'taiwan-government',
@@ -2408,7 +2465,7 @@ export const aiIndustry: Context = {
 			label: 'GPAI obligations',
 			detail:
 				'GPAI rules since Aug 2025; fines enforceable from Aug 2026. OpenAI signed Code of Practice.',
-			sources: ['https://digital-strategy.ec.europa.eu/en/policies/ai-office']
+			sources: ['https://digital-strategy.ec.europa.eu/en/policies/contents-code-gpai']
 		},
 		{
 			from: 'eu-ai-office',
@@ -2416,7 +2473,7 @@ export const aiIndustry: Context = {
 			kind: 'regulates',
 			label: 'GPAI obligations',
 			detail: 'Signatory of GPAI Code of Practice.',
-			sources: ['https://digital-strategy.ec.europa.eu/en/policies/ai-office']
+			sources: ['https://digital-strategy.ec.europa.eu/en/policies/contents-code-gpai']
 		},
 		{
 			from: 'eu-ai-office',
@@ -2424,7 +2481,7 @@ export const aiIndustry: Context = {
 			kind: 'regulates',
 			label: 'GPAI obligations',
 			detail: 'Signatory of GPAI Code of Practice.',
-			sources: ['https://digital-strategy.ec.europa.eu/en/policies/ai-office']
+			sources: ['https://digital-strategy.ec.europa.eu/en/policies/contents-code-gpai']
 		},
 		{
 			from: 'eu-ai-office',
@@ -2432,7 +2489,7 @@ export const aiIndustry: Context = {
 			kind: 'regulates',
 			label: 'GPAI obligations',
 			detail: 'Meta refused to sign the Code; must show compliance otherwise.',
-			sources: ['https://digital-strategy.ec.europa.eu/en/policies/ai-office']
+			sources: ['https://digital-strategy.ec.europa.eu/en/policies/contents-code-gpai']
 		},
 		{
 			from: 'eu-ai-office',
@@ -2440,7 +2497,7 @@ export const aiIndustry: Context = {
 			kind: 'regulates',
 			label: 'GPAI obligations',
 			detail: 'Signatory of GPAI Code of Practice.',
-			sources: ['https://digital-strategy.ec.europa.eu/en/policies/ai-office']
+			sources: ['https://digital-strategy.ec.europa.eu/en/policies/contents-code-gpai']
 		},
 		{
 			from: 'eu-ai-office',
@@ -2471,7 +2528,7 @@ export const aiIndustry: Context = {
 			to: 'openai',
 			kind: 'oversees',
 			label: 'Pre-deployment tests',
-			detail: 'Voluntary testing agreements, renegotiated 2025-26.',
+			detail: 'Voluntary testing agreements (first signed Aug 2024), renegotiated 2025-26.',
 			sources: [
 				'https://digitalpolicyalert.org/event/39699-center-for-ai-standards-and-innovation-signed-frontier-ai-national-security-testing-agreements-with-google-deepmind-microsoft-and-xai'
 			]
@@ -2491,8 +2548,9 @@ export const aiIndustry: Context = {
 			to: 'google-deepmind',
 			kind: 'oversees',
 			label: 'Pre-deployment tests',
-			detail: 'Agreement signed May 2026.',
+			detail: 'Agreement announced 5 May 2026.',
 			sources: [
+				'https://www.nist.gov/node/1911491',
 				'https://digitalpolicyalert.org/event/39699-center-for-ai-standards-and-innovation-signed-frontier-ai-national-security-testing-agreements-with-google-deepmind-microsoft-and-xai'
 			]
 		},
@@ -2501,8 +2559,9 @@ export const aiIndustry: Context = {
 			to: 'spacex-xai',
 			kind: 'oversees',
 			label: 'Pre-deployment tests',
-			detail: 'Agreement signed May 2026.',
+			detail: 'Agreement announced 5 May 2026.',
 			sources: [
+				'https://www.nist.gov/node/1911491',
 				'https://digitalpolicyalert.org/event/39699-center-for-ai-standards-and-innovation-signed-frontier-ai-national-security-testing-agreements-with-google-deepmind-microsoft-and-xai'
 			]
 		},

@@ -4,7 +4,7 @@
 	"type": "ai",
 	"country": "US",
 	"reportingCurrency": "USD",
-	"notes": "Private. Calendar-year FY. 2024-2025: audited financial statements published by Where's Your Ed At and reported as verified by the Financial Times; operatingIncome = 'loss from operations'. Earlier years omitted: only run-rates or losses of unspecified type were reported. Net losses not used.",
+	"notes": "Private. Calendar-year FY. 2024-2025: audited financial statements published by Where's Your Ed At and reported as verified by the Financial Times; operatingIncome = 'loss from operations'. Earlier years omitted: only run-rates or losses of unspecified type were reported. Net losses not used. Checked 2026-11-15: no new annual figures; only WSJ-reported 2026 quarterly figures (Q3 2026 revenue ~$10B, adjusted operating loss ~$10.9B) and no public S-1 on EDGAR, so FY2026 is not added.",
 	"anchors": [
 		{
 			"periodEnd": "2024-12-31",

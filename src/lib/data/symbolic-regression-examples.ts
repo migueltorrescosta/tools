@@ -16,7 +16,7 @@ export interface Example {
 	operators?: OperatorName[];
 }
 
-/** Orbital elements of bodies orbiting the Sun (JPL, about 4 significant figures). */
+/** Orbital elements of bodies orbiting the Sun (JPL, about 4 significant figures; small bodies at older epochs). */
 const KEPLER_CSV = `body,a_AU,T_years,e
 Mercury,0.3871,0.2408,0.2056
 Venus,0.7233,0.6152,0.0068
