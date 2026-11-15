@@ -16,6 +16,7 @@ const ROUTES = [
 	'/information-pricing',
 	'/deconvolution',
 	'/scientific-derivations',
+	'/institutions',
 	'/chaos-game',
 	'/rank-vote',
 	'/verb-conjugator',

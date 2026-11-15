@@ -48,6 +48,21 @@ describe('layoutGraph', async () => {
 			expect(apart).toBe(true);
 		}
 	});
+
+	it('puts at most maxPerRow boxes in a row', async () => {
+		// One hub with ten children: by default all ten share a row.
+		const ids = Array.from({ length: 10 }, (_, i) => `n${i}`);
+		const nodes = Object.fromEntries(['hub', ...ids].map((id) => [id, box]));
+		const edges = ids.map((id) => ({ id: `hub->${id}`, from: 'hub', to: id }));
+		const rows = (l: GraphLayout) => {
+			const count = new Map<number, number>();
+			for (const id of ids) count.set(l.nodes[id].y, (count.get(l.nodes[id].y) ?? 0) + 1);
+			return Math.max(...count.values());
+		};
+		expect(rows(await layoutGraph(nodes, edges))).toBe(10);
+		const capped = await layoutGraph(nodes, edges, { maxPerRow: 4 });
+		expect(rows(capped)).toBeLessThanOrEqual(4);
+	});
 });
 
 /** Crossings between edges that share no endpoint, segment by segment. */

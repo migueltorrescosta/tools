@@ -39,6 +39,14 @@ export interface LayoutOptions {
 	rowGap?: number;
 	/** Keep each row in the order the nodes are given instead of minimising crossings. */
 	keepOrder?: boolean;
+	/** At most this many boxes per row: wide graphs grow taller instead of wider. */
+	maxPerRow?: number;
+	/** Gap between parallel edges, and between an edge and a box (twice this). */
+	edgeGap?: number;
+	/** Let edges that share an end share their route, which saves width on busy graphs. */
+	mergeEdges?: boolean;
+	/** Crossing-minimisation passes; ELK's default is 7. */
+	thoroughness?: number;
 }
 
 let engine: Promise<ELK> | undefined;
@@ -62,7 +70,15 @@ export function useElk(instance: ELK): void {
 export async function layoutGraph(
 	nodes: Record<string, Size>,
 	edges: LayoutEdge[],
-	{ nodeGap = 16, rowGap = 44, keepOrder = false }: LayoutOptions = {}
+	{
+		nodeGap = 16,
+		rowGap = 44,
+		keepOrder = false,
+		maxPerRow,
+		edgeGap,
+		mergeEdges = false,
+		thoroughness = 100
+	}: LayoutOptions = {}
 ): Promise<GraphLayout> {
 	const graph: ElkNode = {
 		id: 'root',
@@ -75,10 +91,21 @@ export async function layoutGraph(
 			'elk.layered.spacing.nodeNodeBetweenLayers': String(rowGap),
 			'elk.spacing.edgeNode': '12',
 			'elk.spacing.edgeEdge': '8',
+			...(edgeGap !== undefined && {
+				'elk.spacing.edgeNode': String(edgeGap * 2),
+				'elk.spacing.edgeEdge': String(edgeGap),
+				'elk.layered.spacing.edgeNodeBetweenLayers': String(edgeGap * 2),
+				'elk.layered.spacing.edgeEdgeBetweenLayers': String(edgeGap)
+			}),
+			...(mergeEdges && { 'elk.layered.mergeEdges': 'true' }),
 			// More crossing-minimisation passes: a few ms on the largest graphs, about half the crossings.
-			'elk.layered.thoroughness': '100',
+			'elk.layered.thoroughness': String(thoroughness),
 			'elk.layered.crossingMinimization.greedySwitch.type': 'TWO_SIDED',
 			'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
+			...(maxPerRow && {
+				'elk.layered.layering.strategy': 'COFFMAN_GRAHAM',
+				'elk.layered.layering.coffmanGraham.layerBound': String(maxPerRow)
+			}),
 			...(keepOrder && {
 				'elk.layered.considerModelOrder.strategy': 'NODES_AND_EDGES',
 				'elk.layered.crossingMinimization.forceNodeModelOrder': 'true'
