@@ -1,6 +1,6 @@
 {
 	"meta": {
-		"generated": "2026-10-26",
+		"generated": "2026-11-15",
 		"units": "EUR millions, fiscal-year (trailing twelve months) totals placed at the fiscal year-end quarter",
 		"fxMethodology": "ECB quarterly average euro reference rates (foreign currency units per EUR), hardcoded. USD/GBP fiscal-year figures are converted to EUR with the mean of the quarterly rates over the fiscal year; display in USD/GBP reconverts each quarter with the same fiscal-year mean rate, so reporting-currency figures match the filings. Rates taken from the ECB EXR series (Q.USD.EUR.SP00.A, Q.GBP.EUR.SP00.A) via the DBnomics mirror of the ECB Data Portal.",
 		"fxSource": "https://data.ecb.europa.eu/data/datasets/EXR"
@@ -897,23 +897,31 @@
 			"type": "ai",
 			"reportingCurrency": "USD",
 			"country": "US",
-			"notes": "Private. Figures from Anthropic's confidential IPO prospectus as reviewed by Reuters (Sept 2026), relayed by Capital Brief/Fortune/TNW. operatingIncome = reported operating loss (GAAP). Calendar-year FY. GAAP net loss far larger (2025: $41.97B incl. ~$34B non-cash fair-value charge on convertible financing; 2024: $8.31B) and is NOT used. Pre-2024 years omitted: only run-rates reported, no actual annual revenue + loss.",
+			"notes": "Private (IPO registration pending). Figures from Anthropic's public Form S-1 (filed 2026-10-26) and S-1/A No. 1 (2026-11-02) on SEC EDGAR: revenue and operating loss as printed in the Summary Consolidated Statements of Operations Data (USD millions), earlier relayed through Reuters' review of the confidential prospectus. Calendar-year FY. GAAP net loss is far larger (2023: $1,531M; 2024: $8,309M; 2025: $41,965M, mainly non-cash fair-value changes of convertible notes and SAFEs, $34.3B in 2025) and is NOT used. Quality kept 'estimated' because the registration statement is not yet effective and the figures are unaudited-in-this-dataset context (not an annual report).",
 			"points": [
+				{
+					"quarter": "2023Q4",
+					"revenue": 37.9171,
+					"operatingIncome": -509.568,
+					"quality": "estimated",
+					"source": "Anthropic, PBC Form S-1/A (Amendment No. 1, filed 2026-11-02, accession 0001628280-26-068676), Summary Consolidated Statements of Operations Data, FY2023 (FY ending 2023-12-31: revenue USD 41m, operating income USD -551m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026068676/anthropicpbc-sx1ax1.htm"
+				},
 				{
 					"quarter": "2024Q4",
 					"revenue": 356.664,
 					"operatingIncome": -2753.52,
 					"quality": "estimated",
-					"source": "Reuters review of Anthropic IPO prospectus, via Capital Brief (2024 comparatives: revenue $386M, operating loss $2.98B) (FY ending 2024-12-31: revenue USD 386m, operating income USD -2,980m)",
-					"sourceUrl": "https://www.capitalbrief.com/briefing/anthropics-ipo-prospectus-reveals-usd46b-revenue-surge-and-usd81b-operating-loss-502742cd-1025-43ee-ab7b-cf4c551fbce5/"
+					"source": "Anthropic, PBC Form S-1/A (Amendment No. 1, filed 2026-11-02, accession 0001628280-26-068676), Summary Consolidated Statements of Operations Data, FY2024 (FY ending 2024-12-31: revenue USD 386m, operating income USD -2,980m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026068676/anthropicpbc-sx1ax1.htm"
 				},
 				{
 					"quarter": "2025Q4",
-					"revenue": 4064.06,
+					"revenue": 4059.63,
 					"operatingIncome": -7136.45,
 					"quality": "estimated",
-					"source": "Reuters review of Anthropic IPO prospectus, via Capital Brief (FY2025: revenue $4.59B, operating loss $8.06B) (FY ending 2025-12-31: revenue USD 4,590m, operating income USD -8,060m)",
-					"sourceUrl": "https://www.capitalbrief.com/briefing/anthropics-ipo-prospectus-reveals-usd46b-revenue-surge-and-usd81b-operating-loss-502742cd-1025-43ee-ab7b-cf4c551fbce5/"
+					"source": "Anthropic, PBC Form S-1/A (Amendment No. 1, filed 2026-11-02, accession 0001628280-26-068676), Summary Consolidated Statements of Operations Data, FY2025 (FY ending 2025-12-31: revenue USD 4,585m, operating income USD -8,060m)",
+					"sourceUrl": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026068676/anthropicpbc-sx1ax1.htm"
 				}
 			]
 		},
@@ -923,7 +931,7 @@
 			"type": "tech",
 			"reportingCurrency": "USD",
 			"country": "US",
-			"notes": "Revenue = Net sales; operating income = 'Operating income' line. FY ends last Saturday of September. FY2007 uses the 2010 10-K/A restated figures (retrospective iPhone/Apple TV revenue recognition change); FY2005-2006 as reported in FY2007 10-K (pre-restatement). FY2026 (ends 2026-09-26) not yet filed.",
+			"notes": "Revenue = Net sales; operating income = 'Operating income' line. FY ends last Saturday of September. FY2007 uses the 2010 10-K/A restated figures (retrospective iPhone/Apple TV revenue recognition change); FY2005-2006 as reported in FY2007 10-K (pre-restatement). FY2026 (ends 2026-09-26) from the 10-K filed autumn 2026.",
 			"points": [
 				{
 					"quarter": "2000Q3",
@@ -1131,6 +1139,14 @@
 					"operatingIncome": 120343,
 					"quality": "reported",
 					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0000320193-25-000079); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2025-09-27: revenue USD 416,161m, operating income USD 133,050m)",
+					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
+				},
+				{
+					"quarter": "2026Q3",
+					"revenue": 412158,
+					"operatingIncome": 136053,
+					"quality": "reported",
+					"source": "SEC EDGAR XBRL companyconcept (10-K accn 0000320193-26-000026); revenue tag us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax, operating income us-gaap:OperatingIncomeLoss (FY ending 2026-09-26: revenue USD 478,834m, operating income USD 158,063m)",
 					"sourceUrl": "https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/OperatingIncomeLoss.json"
 				}
 			]
@@ -6883,7 +6899,7 @@
 			"type": "ai",
 			"reportingCurrency": "USD",
 			"country": "US",
-			"notes": "Private. Calendar-year FY. 2024-2025: audited financial statements published by Where's Your Ed At and reported as verified by the Financial Times; operatingIncome = 'loss from operations'. Earlier years omitted: only run-rates or losses of unspecified type were reported. Net losses not used.",
+			"notes": "Private. Calendar-year FY. 2024-2025: audited financial statements published by Where's Your Ed At and reported as verified by the Financial Times; operatingIncome = 'loss from operations'. Earlier years omitted: only run-rates or losses of unspecified type were reported. Net losses not used. Checked 2026-11-15: no new annual figures; only WSJ-reported 2026 quarterly figures (Q3 2026 revenue ~$10B, adjusted operating loss ~$10.9B) and no public S-1 on EDGAR, so FY2026 is not added.",
 			"points": [
 				{
 					"quarter": "2024Q4",

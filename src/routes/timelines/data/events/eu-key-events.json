@@ -124,5 +124,47 @@
 		"date": "1957-03-25",
 		"title": "Treaty of Rome",
 		"description": "Six founding members sign the Treaty of Rome, establishing the European Economic Community (EEC)."
+	},
+	{
+		"id": 2201,
+		"emoji": "📅",
+		"date": "1992-02-07",
+		"title": "Maastricht Treaty",
+		"description": "Treaty on European Union is signed in Maastricht. It enters into force on 1 November 1993, creating the European Union and setting the path to the euro."
+	},
+	{
+		"id": 2202,
+		"emoji": "📅",
+		"date": "2002-01-01",
+		"title": "Euro Banknotes and Coins",
+		"description": "Euro banknotes and coins enter circulation in twelve countries, replacing national currencies."
+	},
+	{
+		"id": 2203,
+		"emoji": "📅",
+		"date": "2023-12-14",
+		"title": "Georgia Candidate Status",
+		"description": "European Council grants Georgia EU candidate status, conditional on reforms; accession progress has since stalled."
+	},
+	{
+		"id": 2204,
+		"emoji": "📅",
+		"date": "2024-06-25",
+		"title": "Ukraine and Moldova Accession Talks",
+		"description": "EU opens accession negotiations with Ukraine and Moldova at their first intergovernmental conferences in Luxembourg."
+	},
+	{
+		"id": 2205,
+		"emoji": "📅",
+		"date": "2025-01-01",
+		"title": "Bulgaria and Romania Join Schengen",
+		"description": "Land border checks with Bulgaria and Romania are lifted, making both full members of the Schengen Area after air and sea borders opened in March 2024."
+	},
+	{
+		"id": 2206,
+		"emoji": "📅",
+		"date": "2026-01-01",
+		"title": "Bulgaria Joins Euro",
+		"description": "Bulgaria becomes the 21st member of the Eurozone, adopting the euro."
 	}
 ]

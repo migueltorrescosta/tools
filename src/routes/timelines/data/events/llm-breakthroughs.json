@@ -7,7 +7,7 @@
 		"description": "Introduced gated memory cells (LSTM) that preserve information across long sequences.",
 		"conceptDescription": "Introduced gated memory cells (LSTM) that preserve information across long sequences.",
 		"valueAdd": "Enabled models to remember earlier context and learn long-range dependencies in language.",
-		"url": "https://www.bioinf.jku.at/publications/older/2604.pdf"
+		"url": "https://doi.org/10.1162/neco.1997.9.8.1735"
 	},
 	{
 		"id": 1002,
@@ -288,5 +288,115 @@
 		"conceptDescription": "Integrated terminals, editors, browsers, and execution environments into agent loops.",
 		"valueAdd": "Enabled agents to interact with real developer tooling and complete end-to-end coding workflows.",
 		"url": "https://arxiv.org/abs/2407.16741"
+	},
+	{
+		"id": 1030,
+		"emoji": "📏",
+		"date": "2023-02-27",
+		"title": "LLaMA",
+		"description": "Released a family of openly distributed foundation models trained only on public data, up to 65B parameters.",
+		"conceptDescription": "Released a family of openly distributed foundation models trained only on public data, up to 65B parameters.",
+		"valueAdd": "Showed that smaller models trained on more tokens can match much larger ones, and seeded the open-weight ecosystem.",
+		"url": "https://arxiv.org/abs/2302.13971"
+	},
+	{
+		"id": 1031,
+		"emoji": "📏",
+		"date": "2023-03-15",
+		"title": "GPT-4",
+		"description": "Introduced a large multimodal model accepting image and text inputs and producing text, with human-level scores on many professional exams.",
+		"conceptDescription": "Introduced a large multimodal model accepting image and text inputs and producing text, with human-level scores on many professional exams.",
+		"valueAdd": "Set the reference for frontier capability and made predictable scaling of large training runs a standard practice.",
+		"url": "https://arxiv.org/abs/2303.08774"
+	},
+	{
+		"id": 1032,
+		"emoji": "⚡",
+		"date": "2023-12-01",
+		"title": "Mamba",
+		"description": "Introduced selective state space models whose parameters depend on the input, with linear-time sequence modelling.",
+		"conceptDescription": "Introduced selective state space models whose parameters depend on the input, with linear-time sequence modelling.",
+		"valueAdd": "Offered a credible non-attention alternative to Transformers with linear scaling in sequence length.",
+		"url": "https://arxiv.org/abs/2312.00752"
+	},
+	{
+		"id": 1033,
+		"emoji": "🤖",
+		"date": "2024-01-08",
+		"title": "Mixtral of Experts",
+		"description": "Open-weight sparse mixture-of-experts model that routes each token to two of eight experts per layer.",
+		"conceptDescription": "Open-weight sparse mixture-of-experts model that routes each token to two of eight experts per layer.",
+		"valueAdd": "Brought sparse expert routing into mainstream open models, matching larger dense models at lower inference cost.",
+		"url": "https://arxiv.org/abs/2401.04088"
+	},
+	{
+		"id": 1034,
+		"emoji": "🎯",
+		"date": "2024-09-12",
+		"title": "OpenAI o1",
+		"description": "Trained models with large-scale reinforcement learning to produce long chains of thought before answering.",
+		"conceptDescription": "Trained models with large-scale reinforcement learning to produce long chains of thought before answering.",
+		"valueAdd": "Established test-time compute as a second scaling axis, improving mathematics, coding, and science reasoning.",
+		"url": "https://openai.com/index/learning-to-reason-with-llms/"
+	},
+	{
+		"id": 1035,
+		"emoji": "🤖",
+		"date": "2024-11-25",
+		"title": "Model Context Protocol",
+		"description": "Open standard for connecting AI assistants to external tools and data sources through a common client-server interface.",
+		"conceptDescription": "Open standard for connecting AI assistants to external tools and data sources through a common client-server interface.",
+		"valueAdd": "Replaced bespoke tool integrations with one protocol that many models and applications adopted.",
+		"url": "https://www.anthropic.com/news/model-context-protocol"
+	},
+	{
+		"id": 1036,
+		"emoji": "🎯",
+		"date": "2025-01-22",
+		"title": "DeepSeek-R1",
+		"description": "Showed that reasoning behaviour can emerge from reinforcement learning with rule-based rewards, and released open weights.",
+		"conceptDescription": "Showed that reasoning behaviour can emerge from reinforcement learning with rule-based rewards, and released open weights.",
+		"valueAdd": "Made frontier-style reasoning models reproducible and openly available, with distillation into small models.",
+		"url": "https://arxiv.org/abs/2501.12948"
+	},
+	{
+		"id": 1037,
+		"emoji": "📏",
+		"date": "2025-08-07",
+		"title": "GPT-5",
+		"description": "Released a unified system that routes between a fast model and a deeper reasoning model, available across ChatGPT and the API.",
+		"conceptDescription": "Released a unified system that routes between a fast model and a deeper reasoning model, available across ChatGPT and the API.",
+		"valueAdd": "Folded reasoning and general chat into one default model, with stronger coding and agentic performance.",
+		"url": "https://openai.com/index/introducing-gpt-5/"
+	},
+	{
+		"id": 1038,
+		"emoji": "📏",
+		"date": "2025-11-18",
+		"title": "Gemini 3",
+		"description": "Released Gemini 3 Pro, a natively multimodal reasoning model, across Search, the Gemini app, and developer platforms on day one.",
+		"conceptDescription": "Released Gemini 3 Pro, a natively multimodal reasoning model, across Search, the Gemini app, and developer platforms on day one.",
+		"valueAdd": "Brought a frontier reasoning model into Google's products at launch, with an agentic development platform (Antigravity).",
+		"url": "https://blog.google/products/gemini/gemini-3/"
+	},
+	{
+		"id": 1039,
+		"emoji": "🤖",
+		"date": "2025-11-24",
+		"title": "Claude Opus 4.5",
+		"description": "Released a frontier model aimed at long-running coding, agent, and computer-use work.",
+		"conceptDescription": "Released a frontier model aimed at long-running coding, agent, and computer-use work.",
+		"valueAdd": "Raised the bar for autonomous software engineering and tool-using agents.",
+		"url": "https://www.anthropic.com/news/claude-opus-4-5"
+	},
+	{
+		"id": 1041,
+		"emoji": "🎯",
+		"date": "2026-04-23",
+		"title": "GPT-5.5",
+		"description": "Released OpenAI's next flagship model, positioned for real-world work and agentic tasks, with API access following a day later.",
+		"conceptDescription": "Released OpenAI's next flagship model, positioned for real-world work and agentic tasks, with API access following a day later.",
+		"valueAdd": "Pushed agentic tool use and multi-step professional work further within a single general model.",
+		"url": "https://openai.com/index/introducing-gpt-5-5/"
 	}
 ]

@@ -139,6 +139,7 @@ describe('events/eu-elections.json country identity', () => {
 		LT: 'Lithuania',
 		LU: 'Luxembourg',
 		LV: 'Latvia',
+		NL: 'Netherlands',
 		MT: 'Malta',
 		PL: 'Poland',
 		PT: 'Portugal',

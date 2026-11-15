@@ -276,7 +276,7 @@ export const shannonCommunication: Paper = {
 		{
 			id: 'noiseless-coding',
 			title: 'Fundamental theorem for a noiseless channel',
-			section: 'Sec. 9, Theorems 5 and 9',
+			section: 'Secs. 7 and 9, Theorems 5 and 9',
 			summary: t`Messages can be coded into about $H$ binary digits per symbol and no fewer, so a channel of capacity $C$ carries $C/H$ source symbols per second. Shannon's second proof uses the code now called the Shannon code.`,
 			nodes: [
 				{
@@ -400,7 +400,7 @@ export const shannonCommunication: Paper = {
 					title: 'Chain rule',
 					kind: 'assumption',
 					tex: t`H(x,y) = H(x) + H_x(y) = H(y) + H_y(x)`,
-					ref: 'Sec. 6, property 4'
+					ref: 'Sec. 6, property 5'
 				},
 				{
 					id: 'symmetric-forms',

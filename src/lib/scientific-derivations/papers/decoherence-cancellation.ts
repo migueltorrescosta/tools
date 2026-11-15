@@ -655,7 +655,7 @@ export const decoherenceCancellation: Paper = {
 		{
 			id: 'case-study',
 			title: 'Case study: residual dissipation from K_SA',
-			section: 'SM, Sec. III.1',
+			section: 'SM, Sec. III A',
 			summary: t`In the plaquette, the coupling noise also multiplies $(J^z_S)^2 + (J^z_A)^2$. At $\alpha = -1/\ell$ this leaves a residual dephasing $\tfrac{\lambda}{4\ell^2}\mathbb M[(J^z_S)^2]$, which spares NOON states and every qubit state.`,
 			nodes: [
 				{
@@ -777,7 +777,7 @@ export const decoherenceCancellation: Paper = {
 		{
 			id: 'laser-noise',
 			title: 'Laser-induced noise and the correlation matrix Λ',
-			section: 'SM, Sec. III.2',
+			section: 'SM, Sec. III B',
 			summary: t`Intensity noise of one pump laser drives both the site energies and the cavity-mediated coupling, so all noise terms share one source and $\Lambda$ has rank one. The derivation needs unequal light shifts on the two sites of a double well, which the paper does not say.`,
 			nodes: [
 				{

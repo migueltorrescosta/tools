@@ -203,7 +203,9 @@ test('Volt - on a phone the list of people in office comes first', async ({ page
 	const person = list.getByRole('link', { name: 'Jennifer Glashagen' });
 	await expect(person).toBeVisible();
 	await expect(person).toHaveAttribute('target', '_blank');
-	await expect(list.getByText(/· Fraktionsvorsitzende/)).toBeVisible();
+	await expect(list.getByRole('listitem').filter({ hasText: 'Jennifer Glashagen' })).toContainText(
+		'· Fraktionsvorsitzende'
+	);
 
 	await page.getByRole('button', { name: 'Timeline view' }).click();
 	await expect(page.getByTestId('volt-timeline')).toBeVisible();

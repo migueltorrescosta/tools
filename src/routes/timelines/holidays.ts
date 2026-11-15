@@ -131,6 +131,10 @@ const firstMonday =
 	(month: number): Rule =>
 	(year) =>
 		onOrAfter(year, month, 1, MONDAY);
+const firstSunday =
+	(month: number): Rule =>
+	(year) =>
+		onOrAfter(year, month, 1, SUNDAY);
 
 /** Saturday between 20 and 26 June (Finland, Sweden). */
 const midsummerSaturday: Rule = (year) => onOrAfter(year, 6, 20, SATURDAY);
@@ -431,6 +435,12 @@ export const COUNTRY_HOLIDAYS: CountryHolidays[] = [
 			["St. Stephen's Day", fixed(8, 20)],
 			['Republic Day', fixed(10, 23)],
 			ALL_SAINTS,
+			// Added to Labour Code s. 102(1) by bill T/13464, adopted 3 November 2026 (193 votes to 0),
+			// in force on the third day after promulgation, so applying from 2026; before that it
+			// was only a rest day set in the yearly working-time decree.
+			// https://www.parlament.hu/irom42/13464/13464.pdf https://444.hu/2026/11/03/mar-az-iden-munkaszuneti-nap-lesz-december-24-e
+			// https://bbj.hu/budapest/events/hungary-makes-christmas-eve-a-public-holiday-starting-in-2026/
+			[...CHRISTMAS_EVE, { validFrom: 2026 }],
 			CHRISTMAS,
 			BOXING_DAY
 		]
@@ -504,6 +514,10 @@ export const COUNTRY_HOLIDAYS: CountryHolidays[] = [
 			EASTER_SUNDAY,
 			EASTER_MONDAY,
 			LABOUR_DAY,
+			// Labour Code art. 123(1) also names Mother's Day (first Sunday of May) and
+			// Father's Day (first Sunday of June).
+			["Mother's Day", firstSunday(5)],
+			["Father's Day", firstSunday(6)],
 			["St. John's Day", fixed(6, 24)],
 			['Statehood Day', fixed(7, 6)],
 			ASSUMPTION,

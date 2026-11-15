@@ -5,7 +5,7 @@ export const euInternational: Context = {
 	title: 'EU and international',
 	summary:
 		"The EU's institutions, agencies and funding programmes, the Council of Europe, the UN system and the international courts.",
-	asOf: '2026-11-13',
+	asOf: '2026-11-15',
 	institutions: [
 		{
 			id: 'european-union',
@@ -450,7 +450,7 @@ export const euInternational: Context = {
 				'Refers criminal suspicions to EPPO or national prosecutors'
 			],
 			obligations: [
-				'Regulation 883/2013 (amended 2020)',
+				'Regulation (EU, Euratom) 883/2013 (amended by Regulation 2020/2223)',
 				'Independent in investigations though part of the Commission',
 				'Supervisory Committee oversight'
 			],
@@ -465,7 +465,10 @@ export const euInternational: Context = {
 					note: 'Eurojust coordinates national prosecutors; OLAF has no prosecutorial role.'
 				}
 			],
-			sources: ['https://anti-fraud.ec.europa.eu/about-us_en']
+			sources: [
+				'https://anti-fraud.ec.europa.eu/about-us_en',
+				'https://eur-lex.europa.eu/eli/reg/2020/2223/oj'
+			]
 		},
 		{
 			id: 'eppo',
@@ -477,7 +480,7 @@ export const euInternational: Context = {
 			seat: 'Luxembourg',
 			url: 'https://www.eppo.europa.eu',
 			summary:
-				'Independent EU prosecutor investigating and prosecuting crimes against the EU budget in 24 member states.',
+				'Independent EU prosecutor investigating and prosecuting crimes against the EU budget in 25 member states.',
 			responsibilities: [
 				'Investigates and prosecutes EU-budget fraud, VAT fraud over €10m, corruption',
 				'Brings cases before national courts',
@@ -485,7 +488,7 @@ export const euInternational: Context = {
 			],
 			obligations: [
 				'Regulation (EU) 2017/1939 (enhanced cooperation)',
-				'Hungary, Ireland, Denmark do not participate (Hungary began joining in 2026)',
+				'Denmark and Ireland do not participate; Hungary joined on 2 Aug 2026 (operational there once its European Prosecutor is appointed)',
 				'Annual report to Parliament, Council, Commission'
 			],
 			accountableTo: [
@@ -505,6 +508,7 @@ export const euInternational: Context = {
 			],
 			sources: [
 				'https://www.eppo.europa.eu/about/background_en',
+				'https://www.eppo.europa.eu/about/members_en',
 				'https://eucrim.eu/news/andres-ritter-succeeds-laura-kovesi-as-european-chief-prosecutor/'
 			]
 		},
@@ -539,7 +543,10 @@ export const euInternational: Context = {
 					note: 'Eurojust supports national war-crimes prosecutions; the ICC prosecutes when states cannot or will not.'
 				}
 			],
-			sources: ['https://www.eurojust.europa.eu/about-us']
+			sources: [
+				'https://www.eurojust.europa.eu/about-us',
+				'https://eur-lex.europa.eu/eli/reg/2018/1727/oj/eng'
+			]
 		},
 		{
 			id: 'europol',
@@ -607,7 +614,10 @@ export const euInternational: Context = {
 					note: 'Frontex handles borders and returns, EUAA asylum procedures; both deploy at hotspots.'
 				}
 			],
-			sources: ['https://www.frontex.europa.eu/about-frontex/who-we-are/tasks-mission/']
+			sources: [
+				'https://www.frontex.europa.eu/about-frontex/who-we-are/tasks-mission/',
+				'https://eur-lex.europa.eu/eli/reg/2019/1896/oj/eng'
+			]
 		},
 		{
 			id: 'national-border-police',
@@ -665,6 +675,7 @@ export const euInternational: Context = {
 			],
 			sources: [
 				'https://euaa.europa.eu/about-us',
+				'https://eur-lex.europa.eu/eli/reg/2021/2303/oj',
 				'https://home-affairs.ec.europa.eu/policies/migration-and-asylum/pact-migration-and-asylum_en'
 			]
 		},
@@ -710,7 +721,7 @@ export const euInternational: Context = {
 				'Supports NIS2 and Cyber Resilience Act',
 				'Threat landscape reports'
 			],
-			obligations: ['Cybersecurity Act (EU) 2019/881 (revision proposed 2026)'],
+			obligations: ['Cybersecurity Act (EU) 2019/881 (revision proposed 20 Jan 2026)'],
 			accountableTo: ['european-commission', 'european-parliament'],
 			overlaps: [
 				{
@@ -738,7 +749,7 @@ export const euInternational: Context = {
 				'Supports national market-surveillance authorities'
 			],
 			obligations: [
-				'AI Act (EU) 2024/1689 as amended by the 2026 Digital Omnibus on AI',
+				'AI Act (EU) 2024/1689 as amended by Regulation (EU) 2026/1744 (Digital Omnibus on AI, in force 27 Jul 2026)',
 				'High-risk deadlines moved to Dec 2027 (Annex III) and Aug 2028 (Annex I)'
 			],
 			accountableTo: ['dg-cnect', 'european-commission'],
@@ -754,7 +765,8 @@ export const euInternational: Context = {
 			],
 			sources: [
 				'https://digital-strategy.ec.europa.eu/en/policies/ai-office',
-				'https://www.gibsondunn.com/eu-ai-act-omnibus-agreement-postponed-high-risk-deadlines-and-other-key-changes/'
+				'https://www.gibsondunn.com/eu-ai-act-omnibus-agreement-postponed-high-risk-deadlines-and-other-key-changes/',
+				'https://eur-lex.europa.eu/eli/reg/2026/1744/oj/eng'
 			]
 		},
 		{
@@ -1159,7 +1171,7 @@ export const euInternational: Context = {
 			responsibilities: [
 				'Free movement without internal checks',
 				'Common external border and visa rules',
-				'Entry/Exit System live since Oct 2025; ETIAS planned'
+				'Entry/Exit System fully operational since Apr 2026 (started Oct 2025); ETIAS not yet launched'
 			],
 			obligations: [
 				'Schengen Borders Code',
@@ -1172,7 +1184,10 @@ export const euInternational: Context = {
 					note: 'Not identical to the EU: Ireland and Cyprus are outside; four non-EU states are in.'
 				}
 			],
-			sources: ['https://home-affairs.ec.europa.eu/policies/schengen/schengen-area_en']
+			sources: [
+				'https://home-affairs.ec.europa.eu/policies/schengen/schengen-area_en',
+				'https://home-affairs.ec.europa.eu/policies/schengen/smart-borders/entry-exit-system_en'
+			]
 		},
 		{
 			id: 'council-of-europe',
@@ -1429,7 +1444,7 @@ export const euInternational: Context = {
 			seat: 'Geneva',
 			url: 'https://www.ohchr.org',
 			summary:
-				'UN Secretariat office leading on human rights, headed by High Commissioner Volker Türk.',
+				'UN Secretariat office leading on human rights, headed by High Commissioner Volker Türk (second four-year term from Oct 2026).',
 			responsibilities: [
 				'Monitoring and reporting',
 				'Supports HRC and treaty bodies',
@@ -1438,7 +1453,10 @@ export const euInternational: Context = {
 			obligations: ['GA resolution 48/141'],
 			accountableTo: ['un-secretariat', 'un-general-assembly'],
 			overlaps: [],
-			sources: ['https://www.ohchr.org/en/about-us']
+			sources: [
+				'https://www.ohchr.org/en/about-us',
+				'https://www.ohchr.org/en/about-us/high-commissioner/volker-turk'
+			]
 		},
 		{
 			id: 'unhcr',
@@ -1720,7 +1738,7 @@ export const euInternational: Context = {
 				"Victims' reparations"
 			],
 			obligations: [
-				'Rome Statute; 125 states parties',
+				'Rome Statute; 125 states parties (Burkina Faso, Mali and Niger notified withdrawal in June 2026, effective June 2027)',
 				'Complementarity: national courts first',
 				'Relies on states for arrests',
 				'Under US sanctions since 2025; Hungary reversed its withdrawal in 2026'
@@ -1739,6 +1757,7 @@ export const euInternational: Context = {
 			sources: [
 				'https://www.icc-cpi.int/about/the-court',
 				'https://asp.icc-cpi.int/states-parties',
+				'https://treaties.un.org/doc/Publication/CN/2026/CN.264.2026-Eng.pdf',
 				'https://www.hrw.org/news/2026/04/24/hungarys-road-back-to-the-rule-of-law-runs-through-the-icc'
 			]
 		},
