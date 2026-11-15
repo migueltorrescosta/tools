@@ -1344,7 +1344,7 @@ export const portugal: Context = {
 				'Works with Estrutura de Missão Reconstruir o Centro'
 			],
 			obligations: ['Council of Ministers resolution (June 2026)'],
-			// Supervising ministry not yet published (owner decision 2026-11-15: leave unset).
+			// Supervising ministry not yet published.
 			accountableTo: ['portugal-government'],
 			overlaps: [],
 			sources: [
