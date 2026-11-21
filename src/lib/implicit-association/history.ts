@@ -1,5 +1,5 @@
 import { score, summarise, type Score } from './score.js';
-import type { InputKind, Run } from './types.js';
+import type { Run } from './types.js';
 
 export interface ScoredRun {
 	run: Run;
@@ -14,71 +14,27 @@ export function scoreAll(runs: readonly Run[]): ScoredRun[] {
 	});
 }
 
-export interface DotRow {
-	key: string;
-	comparisonId: string;
-	label: string;
-	input: InputKind;
-	runs: ScoredRun[];
-	/** Mean of the unflagged runs, with a 95% CI from 3 of them. */
-	mean?: number;
+export interface Association {
+	labels: Run['labels'];
+	/** Mean D of the counted runs: positive links the first group with the first attribute. */
+	mean: number;
+	n: number;
+	/** 95% interval of the mean, from 3 counted runs. */
 	ci?: [number, number];
 }
 
-const pairLabel = (pair: readonly [string, string]) => `${pair[0]} / ${pair[1]}`;
-
 /**
- * One row per comparison and input, most recent first. Keyboard and touch never share a
- * row: touch adds latency, so its scores are not comparable.
+ * One association per comparison (same labels), over the counted runs of every input,
+ * in the order each comparison was first taken. Runs flagged as too fast are left out.
  */
-export function dotRows(scored: readonly ScoredRun[]): DotRow[] {
-	const rows = new Map<string, DotRow>();
-	for (const s of [...scored].reverse()) {
-		const { run } = s;
-		const key = `${run.comparisonId}:${run.input}`;
-		let row = rows.get(key);
-		if (!row) {
-			row = {
-				key,
-				comparisonId: run.comparisonId,
-				label: `${pairLabel(run.labels.targets)} × ${pairLabel(run.labels.attributes)}`,
-				input: run.input,
-				runs: []
-			};
-			rows.set(key, row);
-		}
-		row.runs.push(s);
+export function associations(scored: readonly ScoredRun[]): Association[] {
+	const groups = new Map<string, { labels: Run['labels']; ds: number[] }>();
+	for (const { run, score } of scored) {
+		if (score.flagged) continue;
+		const key = JSON.stringify(run.labels);
+		const g = groups.get(key) ?? { labels: run.labels, ds: [] };
+		g.ds.push(score.d);
+		groups.set(key, g);
 	}
-	for (const row of rows.values()) {
-		const valid = row.runs.filter((s) => !s.score.flagged).map((s) => s.score.d);
-		if (valid.length) Object.assign(row, summarise(valid));
-	}
-	return [...rows.values()];
-}
-
-export interface HeatMap {
-	rows: string[];
-	columns: string[];
-	/** cells[row][column]: mean D of unflagged runs and their count, when there are any. */
-	cells: ({ mean: number; n: number } | undefined)[][];
-}
-
-/** Target pairs × attribute pairs, each cell the mean D over unflagged runs (all inputs). */
-export function heatMap(scored: readonly ScoredRun[]): HeatMap {
-	const valid = scored.filter((s) => !s.score.flagged);
-	const rows = [...new Set(valid.map((s) => pairLabel(s.run.labels.targets)))];
-	const columns = [...new Set(valid.map((s) => pairLabel(s.run.labels.attributes)))];
-	const cells = rows.map((r) =>
-		columns.map((c) => {
-			const ds = valid
-				.filter(
-					(s) => pairLabel(s.run.labels.targets) === r && pairLabel(s.run.labels.attributes) === c
-				)
-				.map((s) => s.score.d);
-			return ds.length
-				? { mean: ds.reduce((a, b) => a + b, 0) / ds.length, n: ds.length }
-				: undefined;
-		})
-	);
-	return { rows, columns, cells };
+	return [...groups.values()].map(({ labels, ds }) => ({ labels, n: ds.length, ...summarise(ds) }));
 }

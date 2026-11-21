@@ -13,7 +13,7 @@
 		ShareActions,
 		type Column
 	} from '#lib/ui/index.js';
-	import { dotRows, heatMap, scoreAll } from '#lib/implicit-association/history.js';
+	import { associations, scoreAll } from '#lib/implicit-association/history.js';
 	import { PRESETS, title } from '#lib/implicit-association/presets.js';
 	import { band, score } from '#lib/implicit-association/score.js';
 	import {
@@ -29,10 +29,8 @@
 	import { idbDelete, idbGet, idbSet } from '#lib/implicit-association/idb.js';
 	import type { Comparison, Run } from '#lib/implicit-association/types.js';
 	import Builder from './lib/Builder.svelte';
-	import DotPlot from './lib/DotPlot.svelte';
-	import HeatMap from './lib/HeatMap.svelte';
+	import Dumbbell from './lib/Dumbbell.svelte';
 	import Runner from './lib/Runner.svelte';
-	import Scale from './lib/Scale.svelte';
 	import { REFERENCES } from './lib/references.js';
 
 	const PREFIX = 'implicit-association:';
@@ -54,8 +52,7 @@
 		comparisons.map((c) => ({ value: c.id, label: (c.custom ? 'Yours: ' : '') + title(c) }))
 	);
 	const scored = $derived(scoreAll(runs));
-	const rows = $derived(dotRows(scored));
-	const map = $derived(heatMap(scored));
+	const assoc = $derived(associations(scored));
 	const lastScore = $derived(last && score(last.responses, last.firstFocal));
 
 	const shareHash = $derived(
@@ -250,7 +247,6 @@
 							<span class="d">D = {fmt(lastScore.d)}</span>
 						</p>
 					{/if}
-					<Scale d={lastScore.d} labels={last.labels} />
 					<p class="muted">One run is noisy. Your average over several runs is a better read.</p>
 				</div>
 			</Panel>
@@ -266,15 +262,10 @@
 			</p>
 		{:else}
 			<div class="charts">
-				<section aria-labelledby="by-comparison">
-					<h3 id="by-comparison">By comparison</h3>
-					<DotPlot {rows} />
-				</section>
-				{#if map.rows.length}
-					<section aria-labelledby="overview">
-						<h3 id="overview">Overview</h3>
-						<HeatMap {map} />
-					</section>
+				{#if assoc.length}
+					<Dumbbell items={assoc} />
+				{:else}
+					<p class="muted">None of your runs count yet: they came in too fast.</p>
 				{/if}
 				<Fold label="All runs" summary={String(scored.length)}>
 					<DataTable
@@ -348,10 +339,8 @@
 	.muted {
 		color: var(--text-muted);
 	}
-	/* minmax(0, 1fr): the charts size to the panel, never the panel to the charts. */
 	.result {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr);
 		gap: var(--sp-3);
 	}
 	.headline {
@@ -365,15 +354,11 @@
 		color: var(--text-muted);
 		font-variant-numeric: tabular-nums;
 	}
+	/* minmax(0, 1fr): the chart sizes to the panel, never the panel to the chart. */
 	.charts {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr);
 		gap: var(--sp-4);
-	}
-	h3 {
-		font-size: var(--text-md);
-		font-weight: 600;
-		margin-bottom: var(--sp-2);
 	}
 	.about {
 		display: grid;

@@ -1,53 +1,42 @@
 import { describe, expect, it } from 'vitest';
-import { dotRows, heatMap, type ScoredRun } from './history';
+import { associations, type ScoredRun } from './history';
 import type { InputKind, Run } from './types';
 
 function scored(
-	id: string,
-	comparisonId: string,
+	labels: Run['labels'],
 	d: number,
 	input: InputKind = 'keyboard',
 	flagged = false
 ): ScoredRun {
-	const run = {
-		id,
-		comparisonId,
-		input,
-		date: id,
-		labels: {
-			targets: ['A', 'B'],
-			attributes: comparisonId === 'x' ? ['Good', 'Bad'] : ['Sci', 'Arts']
-		}
-	} as unknown as Run;
+	const run = { id: String(Math.random()), labels, input } as unknown as Run;
 	return { run, score: { d, pairs: [d, d], fastShare: 0, flagged, errorShare: 0 } };
 }
 
-describe('dotRows', () => {
-	it('splits rows by input and leaves flagged runs out of the mean', () => {
-		const rows = dotRows([
-			scored('1', 'x', 0.2),
-			scored('2', 'x', 0.4),
-			scored('3', 'x', 2, 'keyboard', true),
-			scored('4', 'x', 0.9, 'touch')
-		]);
-		expect(rows.map((r) => r.key)).toEqual(['x:touch', 'x:keyboard']);
-		expect(rows[1].mean).toBeCloseTo(0.3);
-		expect(rows[1].ci).toBeUndefined();
-		expect(rows[1].runs).toHaveLength(3);
-	});
-});
+const AB = { targets: ['A', 'B'], attributes: ['Good', 'Bad'] } as Run['labels'];
+const CD = { targets: ['C', 'D'], attributes: ['Good', 'Bad'] } as Run['labels'];
 
-describe('heatMap', () => {
-	it('averages unflagged runs per target pair and attribute pair', () => {
-		const m = heatMap([
-			scored('1', 'x', 0.2),
-			scored('2', 'x', 0.4, 'touch'),
-			scored('3', 'y', -0.5),
-			scored('4', 'y', 3, 'keyboard', true)
+describe('associations', () => {
+	it('averages counted runs of both inputs per comparison and leaves flagged runs out', () => {
+		const a = associations([
+			scored(AB, 0.2),
+			scored(AB, 0.4, 'touch'),
+			scored(AB, 3, 'keyboard', true),
+			scored(CD, -0.5)
 		]);
-		expect(m.rows).toEqual(['A / B']);
-		expect(m.columns).toEqual(['Good / Bad', 'Sci / Arts']);
-		expect(m.cells[0][0]!.mean).toBeCloseTo(0.3);
-		expect(m.cells[0][1]).toEqual({ mean: -0.5, n: 1 });
+		expect(a.map((x) => x.labels)).toEqual([AB, CD]);
+		expect(a[0].mean).toBeCloseTo(0.3);
+		expect(a[0].n).toBe(2);
+		expect(a[0].ci).toBeUndefined();
+		expect(a[1]).toEqual({ labels: CD, mean: -0.5, n: 1 });
+	});
+
+	it('adds a 95% interval from 3 counted runs', () => {
+		const [a] = associations([scored(AB, 0.1), scored(AB, 0.3), scored(AB, 0.5)]);
+		expect(a.ci![0]).toBeLessThan(0.3);
+		expect(a.ci![1]).toBeGreaterThan(0.3);
+	});
+
+	it('leaves out a comparison whose runs were all too fast', () => {
+		expect(associations([scored(AB, 1, 'keyboard', true)])).toEqual([]);
 	});
 });

@@ -117,7 +117,7 @@ test('a wrong key shows a red cross until the right key is pressed', async ({ pa
 	await expect(page.getByRole('button', { name: 'Start', exact: true })).toBeVisible();
 });
 
-test('history shows a dot per run, the mean, and a heat map cell per comparison', async ({
+test('history draws one section per attribute pair, a dumbbell per comparison', async ({
 	page
 }) => {
 	await seed(page, [
@@ -126,22 +126,24 @@ test('history shows a dot per run, the mean, and a heat map cell per comparison'
 		fixtureRun('3', 'gender-science', GENDER, 650, 760),
 		fixtureRun('4', 'age', AGE, 800, 600),
 		fixtureRun('5', 'age', AGE, 700, 700, 'touch'),
-		// Every answer under 300 ms: kept, drawn hollow, left out of means.
+		// Every answer under 300 ms: listed in the table, left out of the chart.
 		fixtureRun('6', 'age', AGE, 100, 120)
 	]);
 	await open(page);
-	await expect(page.locator('.dot-plot > svg circle.run')).toHaveCount(6);
-	await expect(page.locator('.dot-plot > svg circle.run.flagged')).toHaveCount(1);
-	await expect(
-		page.locator('.dot-plot').getByText('Male / Female × Science / Arts', { exact: true })
-	).toBeVisible();
-	await expect(
-		page.locator('.dot-plot').getByText('Young / Old × Good / Bad (touch)')
-	).toBeVisible();
-	const heat = page.locator('table.heat');
-	await expect(heat.getByRole('columnheader')).toHaveText(['Science / Arts', 'Good / Bad']);
-	await expect(heat.getByRole('rowheader')).toHaveText(['Male / Female', 'Young / Old']);
-	await expect(heat.locator('td .n')).toHaveText(['3×', '2×']);
+	await expect(page.getByTestId('section')).toHaveCount(2);
+	await expect(page.getByRole('img', { name: 'Groups between Science and Arts' })).toBeVisible();
+	await expect(page.getByRole('img', { name: 'Groups between Good and Bad' })).toBeVisible();
+	const dumbbells = page.getByTestId('dumbbell');
+	await expect(dumbbells).toHaveCount(2);
+	// Three runs that agree: the direction is clear. Keyboard and touch average together.
+	const gender = dumbbells.filter({ hasText: 'Male' });
+	await expect(gender).toHaveAttribute('data-confidence', '2');
+	await expect(gender).toContainText('3 runs');
+	const age = dumbbells.filter({ hasText: 'Young' });
+	await expect(age).toHaveAttribute('data-confidence', '0');
+	await expect(age).toContainText('2 runs');
+	await page.locator('summary', { hasText: 'All runs' }).click();
+	await expect(page.getByRole('cell', { name: 'No: too fast' })).toHaveCount(1);
 
 	// With charts on screen, a phone-width page still has no horizontal scrolling.
 	await page.setViewportSize({ width: 390, height: 800 });
@@ -206,8 +208,6 @@ test('export and import move the history', async ({ page, browser }) => {
 	await open(fresh);
 	await fresh.getByLabel('Import file').setInputFiles(file);
 	await expect(fresh.getByRole('status').filter({ hasText: 'Added 1 run.' })).toBeVisible();
-	await expect(
-		fresh.locator('.dot-plot').getByText('Young / Old × Good / Bad', { exact: true })
-	).toBeVisible();
+	await expect(fresh.getByRole('img', { name: 'Groups between Good and Bad' })).toBeVisible();
 	await fresh.context().close();
 });

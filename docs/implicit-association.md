@@ -27,9 +27,14 @@ A positive D means the first group goes with the focal attribute more easily tha
 
 ## Charts
 
-- **By comparison** (`DotPlot`): one row per comparison and input, with every run as a dot. The mean of the counted runs appears as a tick, with a 95% t-interval from 3 counted runs onwards. Keyboard and touch never share a row, because touch adds latency.
-- **Overview** (`HeatMap`): group pairs as rows and attribute pairs as columns. Each cell shows the mean D of the counted runs (both inputs) and the run count. Blue means the first group goes with the first attribute; orange means the second group does.
-- **All runs**: a table view of every run.
+The history has one chart (`Dumbbell` in `src/routes/implicit-association/lib/`), built from `associations` in `src/lib/implicit-association/history.ts`:
+
+- One section per attribute pair, its two attributes named at the ends of an axis. Every comparison that used that pair shares the section: a single Good–Bad axis holds Young/Old, White/Black, Europe/United States and so on.
+- Each comparison is a dumbbell between its two groups. Each group sits $D/2$ toward the attribute it goes with, so the dumbbell's length is the mean D, and the side it leans to gives the direction. Rows are sorted by strength.
+- Colour depth shows the strength band (slight, moderate, strong).
+- Opacity shows confidence: faint with fewer than 3 counted runs, medium while the 95% interval of the mean still includes 0, and solid once the interval excludes 0. Only the marks fade; names and values keep full contrast.
+- Under each dumbbell are the mean D and the run count. Hovering gives a sentence with the direction, band, confidence and the 95% interval.
+- Keyboard and touch runs are averaged together, and runs flagged as too fast are left out. The "All runs" table lists every run, flagged ones included, and doubles as the chart's table view.
 
 ## Stimuli and licences
 
