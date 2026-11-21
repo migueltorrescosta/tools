@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { associations, type ScoredRun } from './history';
+import { associations, sections, type ScoredRun } from './history';
 import type { InputKind, Run } from './types';
 
 function scored(
@@ -38,5 +38,48 @@ describe('associations', () => {
 
 	it('leaves out a comparison whose runs were all too fast', () => {
 		expect(associations([scored(AB, 1, 'keyboard', true)])).toEqual([]);
+	});
+});
+
+describe('sections', () => {
+	const assoc = (t: [string, string], a: [string, string], mean: number) => ({
+		labels: { targets: t, attributes: a },
+		mean,
+		n: 1
+	});
+	const GB: [string, string] = ['Good', 'Bad'];
+
+	it('draws every Good/Bad comparison on one axis, and Male/Female on its own axis', () => {
+		const s = sections([
+			assoc(['Male', 'Female'], ['Science', 'Arts'], 0.4),
+			assoc(['Male', 'Female'], ['Career', 'Family'], 0.3),
+			assoc(['Young', 'Old'], GB, 0.5),
+			assoc(['Europe', 'US'], GB, -0.2),
+			assoc(['White', 'Black'], GB, 0.1)
+		]);
+		expect(s.map((x) => x.ends)).toEqual([GB, ['Male', 'Female']]);
+		expect(s[0].dumbbells.map((d) => d.names[0])).toEqual(['Young', 'Europe', 'White']);
+		// On a group axis, the dumbbell runs between the attributes, leaning the same way.
+		expect(s[1].dumbbells.map((d) => [d.names, d.lean])).toEqual([
+			[['Science', 'Arts'], 0.4],
+			[['Career', 'Family'], 0.3]
+		]);
+	});
+
+	it('puts a lone comparison on its attribute axis', () => {
+		const s = sections([assoc(['A', 'B'], GB, 0.2)]);
+		expect(s.map((x) => x.ends)).toEqual([GB]);
+	});
+
+	it('finds the minimum when greedy picks would not', () => {
+		// Two attribute pairs each shared by two group pairs, and one cross link: 2 axes suffice.
+		const s = sections([
+			assoc(['A', 'B'], ['X1', 'X2'], 0.1),
+			assoc(['C', 'D'], ['X1', 'X2'], 0.1),
+			assoc(['A', 'B'], ['Y1', 'Y2'], 0.1),
+			assoc(['E', 'F'], ['Y1', 'Y2'], 0.1)
+		]);
+		expect(s).toHaveLength(2);
+		expect(s.flatMap((x) => x.dumbbells)).toHaveLength(4);
 	});
 });

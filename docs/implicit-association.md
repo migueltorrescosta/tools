@@ -27,14 +27,15 @@ A positive D means the first group goes with the focal attribute more easily tha
 
 ## Charts
 
-The history has one chart (`Dumbbell` in `src/routes/implicit-association/lib/`), built from `associations` in `src/lib/implicit-association/history.ts`:
+The history has one chart, built from `associations` and `sections` in `src/lib/implicit-association/history.ts` and drawn by `Dumbbell` and `Section` in `src/routes/implicit-association/lib/`:
 
-- One section per attribute pair, its two attributes named at the ends of an axis. Every comparison that used that pair shares the section: a single Good–Bad axis holds Young/Old, White/Black, Europe/United States and so on.
-- Each comparison is a dumbbell between its two groups. Each group sits $D/2$ toward the attribute it goes with, so the dumbbell's length is the mean D, and the side it leans to gives the direction. Rows are sorted by strength.
-- Colour depth shows the strength band (slight, moderate, strong).
-- Opacity shows confidence: faint with fewer than 3 counted runs, medium while the 95% interval of the mean still includes 0, and solid once the interval excludes 0. Only the marks fade; names and values keep full contrast.
-- Under each dumbbell are the mean D and the run count. Hovering gives a sentence with the direction, band, confidence and the 95% interval.
-- Keyboard and touch runs are averaged together, and runs flagged as too fast are left out. The "All runs" table lists every run, flagged ones included, and doubles as the chart's table view.
+- **Axes.** A comparison links a pair of groups (Male/Female) with a pair of attributes (Science/Arts). It can be drawn on either axis: on the attribute axis as a dumbbell between its groups, or on the group axis as a dumbbell between its attributes. `sections` picks the fewest axes that show every comparison once. This is a minimum vertex cover of the bipartite graph of group pairs and attribute pairs, found exactly with König's theorem, with ties going to the attribute axis. With the presets, every Good/Bad comparison shares one Good–Bad axis, and the two gender comparisons share one Male–Female axis.
+- **Layout.** Axes sit side by side as columns, and stack on narrow screens.
+- **Dumbbells.** Each name sits $D/2$ toward the axis end it goes with, so the length is the mean D and the lean gives the direction. Rows are sorted by strength.
+- **Colour depth** shows the strength band (slight, moderate, strong): weaker associations fade toward the background.
+- **Opacity** shows confidence: faint with fewer than 3 counted runs, medium while the 95% interval of the mean still includes 0, and solid once the interval excludes 0. Only the marks fade; names and values keep full contrast.
+- **Labels.** Under each dumbbell are the mean D and the run count. Hovering gives a sentence with the direction, band, confidence and the 95% interval.
+- **Runs.** Keyboard and touch runs are averaged together, and runs flagged as too fast are left out. The "All runs" table lists every run, flagged ones included, and doubles as the chart's table view.
 
 ## Stimuli and licences
 

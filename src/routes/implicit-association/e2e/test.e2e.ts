@@ -117,9 +117,7 @@ test('a wrong key shows a red cross until the right key is pressed', async ({ pa
 	await expect(page.getByRole('button', { name: 'Start', exact: true })).toBeVisible();
 });
 
-test('history draws one section per attribute pair, a dumbbell per comparison', async ({
-	page
-}) => {
+test('history draws the fewest axes, with a dumbbell per comparison', async ({ page }) => {
 	await seed(page, [
 		fixtureRun('1', 'gender-science', GENDER, 600, 800),
 		fixtureRun('2', 'gender-science', GENDER, 620, 780),
@@ -130,9 +128,10 @@ test('history draws one section per attribute pair, a dumbbell per comparison', 
 		fixtureRun('6', 'age', AGE, 100, 120)
 	]);
 	await open(page);
+	// Each comparison is on its own attribute pair, so each gets its attribute axis.
 	await expect(page.getByTestId('section')).toHaveCount(2);
-	await expect(page.getByRole('img', { name: 'Groups between Science and Arts' })).toBeVisible();
-	await expect(page.getByRole('img', { name: 'Groups between Good and Bad' })).toBeVisible();
+	await expect(page.getByRole('img', { name: 'Between Science and Arts' })).toBeVisible();
+	await expect(page.getByRole('img', { name: 'Between Good and Bad' })).toBeVisible();
 	const dumbbells = page.getByTestId('dumbbell');
 	await expect(dumbbells).toHaveCount(2);
 	// Three runs that agree: the direction is clear. Keyboard and touch average together.
@@ -208,6 +207,6 @@ test('export and import move the history', async ({ page, browser }) => {
 	await open(fresh);
 	await fresh.getByLabel('Import file').setInputFiles(file);
 	await expect(fresh.getByRole('status').filter({ hasText: 'Added 1 run.' })).toBeVisible();
-	await expect(fresh.getByRole('img', { name: 'Groups between Good and Bad' })).toBeVisible();
+	await expect(fresh.getByRole('img', { name: 'Between Good and Bad' })).toBeVisible();
 	await fresh.context().close();
 });
