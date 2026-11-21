@@ -47,8 +47,12 @@
 	</table>
 </div>
 <p class="note">
-	<span class="swatch" style:background={fill(1)}></span> first group with first attribute
-	<span class="swatch" style:background={fill(-1)}></span> second group with first attribute
+	<span class="key"
+		><span class="swatch" style:background={fill(1)}></span> first group with first attribute</span
+	>
+	<span class="key"
+		><span class="swatch" style:background={fill(-1)}></span> second group with first attribute</span
+	>
 </p>
 
 <style>
@@ -96,6 +100,11 @@
 		margin-top: var(--sp-2);
 		color: var(--text-muted);
 		font-size: var(--text-sm);
+	}
+	.key {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--sp-1);
 	}
 	.swatch {
 		display: inline-block;
