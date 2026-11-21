@@ -56,6 +56,12 @@ export const routes: ToolRoute[] = [
 		group: 'Everyday'
 	},
 	{
+		path: '/implicit-association',
+		name: 'Implicit Association',
+		description: 'Test which ideas you link, and track your results.',
+		group: 'Everyday'
+	},
+	{
 		path: '/verb-conjugator',
 		name: 'Verb Conjugator',
 		description: 'Practise Italian, Spanish and Portuguese verbs.',

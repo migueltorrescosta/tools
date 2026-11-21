@@ -19,6 +19,7 @@ const ROUTES = [
 	'/institutions',
 	'/chaos-game',
 	'/rank-vote',
+	'/implicit-association',
 	'/verb-conjugator',
 	// A fixed timeline: without ?t the page picks one at random.
 	'/timelines?t=llm-breakthroughs',
