@@ -1,4 +1,4 @@
-/** Shrink an uploaded image to a 160 px JPEG data URL, small enough to keep in localStorage. */
+/** Shrink an uploaded image to a 160 px JPEG data URL, so many fit in the browser's storage. */
 export async function toDataUrl(file: File, size = 160): Promise<string> {
 	const bitmap = await createImageBitmap(file);
 	const scale = size / Math.max(bitmap.width, bitmap.height);

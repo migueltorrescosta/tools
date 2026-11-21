@@ -26,6 +26,7 @@
 		RUNS_KEY,
 		type Backup
 	} from '#lib/implicit-association/storage.js';
+	import { idbDelete, idbGet, idbSet } from '#lib/implicit-association/idb.js';
 	import type { Comparison, Run } from '#lib/implicit-association/types.js';
 	import Builder from './lib/Builder.svelte';
 	import DotPlot from './lib/DotPlot.svelte';
@@ -63,17 +64,20 @@
 	let origin = $state('');
 	const shareUrl = $derived(`${origin}/implicit-association${shareHash ? `#${shareHash}` : ''}`);
 
-	function save() {
+	function saveRuns() {
 		const storage = browserStorage();
 		if (!storage) return;
 		try {
 			storage.setItem(RUNS_KEY, JSON.stringify(runs));
-			storage.setItem(CUSTOM_KEY, JSON.stringify(custom));
-			storageError = '';
 		} catch {
-			storageError =
-				'Your browser storage is full. Export your history, then remove some image comparisons.';
+			storageError = 'Your browser storage is full. Export your history to keep it.';
 		}
+	}
+
+	function saveCustom() {
+		idbSet(CUSTOM_KEY, $state.snapshot(custom)).catch(() => {
+			storageError = 'Your browser storage is full. Export your history, then remove some images.';
+		});
 	}
 
 	function addCustom(c: Comparison) {
@@ -90,16 +94,15 @@
 			const shared = decodeShare(code);
 			if (shared) {
 				addCustom(shared);
-				save();
+				saveCustom();
 			}
 		}
 	}
 
-	onMount(() => {
+	onMount(async () => {
 		origin = location.origin;
-		const storage = browserStorage();
-		runs = readJson<Run[]>(storage, RUNS_KEY) ?? [];
-		custom = readJson<Comparison[]>(storage, CUSTOM_KEY) ?? [];
+		runs = readJson<Run[]>(browserStorage(), RUNS_KEY) ?? [];
+		custom = (await idbGet<Comparison[]>(CUSTOM_KEY)) ?? [];
 		readHash();
 		hydrated = true;
 	});
@@ -114,18 +117,19 @@
 		runs = [...runs, run];
 		last = run;
 		mode = 'pick';
-		save();
+		saveRuns();
 	}
 
 	function created(c: Comparison) {
 		addCustom(c);
 		mode = 'pick';
-		save();
+		saveCustom();
 	}
 
 	function clearAll() {
 		const storage = browserStorage();
 		if (storage) clearSaved(storage, PREFIX);
+		idbDelete(CUSTOM_KEY).catch(() => undefined);
 		runs = [];
 		custom = [];
 		last = undefined;
@@ -156,7 +160,8 @@
 		const merged = merge({ version: 1, runs, custom }, backup);
 		runs = merged.runs;
 		custom = merged.custom;
-		save();
+		saveRuns();
+		saveCustom();
 		importMessage = `Added ${runs.length - before} run${runs.length - before === 1 ? '' : 's'}.`;
 	}
 

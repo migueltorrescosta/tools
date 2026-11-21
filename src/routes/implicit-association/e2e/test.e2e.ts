@@ -52,6 +52,23 @@ async function seed(page: Page, runs: Run[]) {
 	}, JSON.stringify(runs));
 }
 
+/** How many custom comparisons IndexedDB holds. */
+function savedCustomCount(page: Page): Promise<number> {
+	return page.evaluate(
+		() =>
+			new Promise<number>((resolve) => {
+				const open = indexedDB.open('implicit-association', 1);
+				open.onsuccess = () => {
+					const get = open.result.transaction('kv').objectStore('kv').get('custom');
+					get.onsuccess = () => {
+						resolve(get.result?.length ?? 0);
+						open.result.close();
+					};
+				};
+			})
+	);
+}
+
 /** Answer every trial correctly with the keyboard, after `wait` ms, until the result shows. */
 async function takeTest(page: Page, wait = 0) {
 	await page.getByRole('button', { name: 'Start', exact: true }).click();
@@ -151,6 +168,18 @@ test('a custom comparison can be built and shared by link', async ({ page, conte
 	}
 	await page.getByRole('button', { name: 'Save comparison' }).click();
 	await expect(page.getByRole('combobox', { name: 'Comparison' })).toHaveValue(/^custom-/);
+	// Saved in IndexedDB (the write is async, so wait for it): still there after a reload.
+	await expect.poll(() => savedCustomCount(page)).toBe(1);
+	await page.reload();
+	await expect(page.locator('.container[data-hydrated]')).toBeVisible();
+	await expect(
+		page
+			.getByRole('combobox', { name: 'Comparison' })
+			.locator('option', { hasText: 'Yours: Tea / Coffee × Morning / Night' })
+	).toHaveCount(1);
+	await page
+		.getByRole('combobox', { name: 'Comparison' })
+		.selectOption({ label: 'Yours: Tea / Coffee × Morning / Night' });
 	await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 	await page.getByRole('button', { name: /Copy share link/ }).click();
 	const url = await page.evaluate(() => navigator.clipboard.readText());

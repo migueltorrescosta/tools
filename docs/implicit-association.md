@@ -39,7 +39,8 @@ A positive D means the first group goes with the focal attribute more easily tha
 
 ## Storage and sharing
 
-- `implicit-association:runs` holds every run with its trial-level responses. `implicit-association:custom` holds custom comparisons; uploaded images are stored there as 160 px JPEG data URLs.
+- localStorage key `implicit-association:runs` holds every run with its trial-level responses.
+- Custom comparisons live in IndexedDB (database `implicit-association`, store `kv`, key `custom`; see `src/lib/implicit-association/idb.ts`), because uploaded images, stored as 160 px JPEG data URLs, can outgrow localStorage. The bin in the top bar clears both.
 - Export writes both keys to a versioned JSON file (`Backup`). Import merges by id.
 - The share link carries the selected comparison: `#p=<preset id>` for a preset, `#c=<base64url JSON>` for a word-only custom comparison. A custom comparison's id is a hash of its content, so a shared test groups with the same test in the recipient's history. Image comparisons aren't encoded in the link.
 

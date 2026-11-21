@@ -1,7 +1,8 @@
 import type { Category, Comparison, Run, Stimulus } from './types.js';
 
 export const RUNS_KEY = 'implicit-association:runs';
-export const CUSTOM_KEY = 'implicit-association:custom';
+/** The IndexedDB key (src/lib/implicit-association/idb.ts) of the custom comparisons. */
+export const CUSTOM_KEY = 'custom';
 export const MIN_ITEMS = 4;
 export const MAX_ITEMS = 8;
 
