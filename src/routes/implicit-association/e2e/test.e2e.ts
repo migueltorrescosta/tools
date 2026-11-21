@@ -125,6 +125,12 @@ test('history shows a dot per run, the mean, and a heat map cell per comparison'
 	await expect(heat.getByRole('columnheader')).toHaveText(['Science / Arts', 'Good / Bad']);
 	await expect(heat.getByRole('rowheader')).toHaveText(['Male / Female', 'Young / Old']);
 	await expect(heat.locator('td .n')).toHaveText(['3×', '2×']);
+
+	// With charts on screen, a phone-width page still has no horizontal scrolling.
+	await page.setViewportSize({ width: 390, height: 800 });
+	await expect
+		.poll(() => page.evaluate(() => document.documentElement.scrollWidth))
+		.toBeLessThanOrEqual(390);
 });
 
 test('a custom comparison can be built and shared by link', async ({ page, context }) => {

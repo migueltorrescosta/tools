@@ -343,8 +343,10 @@
 	.muted {
 		color: var(--text-muted);
 	}
+	/* minmax(0, 1fr): the charts size to the panel, never the panel to the charts. */
 	.result {
 		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		gap: var(--sp-3);
 	}
 	.headline {
@@ -360,6 +362,7 @@
 	}
 	.charts {
 		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		gap: var(--sp-4);
 	}
 	h3 {
